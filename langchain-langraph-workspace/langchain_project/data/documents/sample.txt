@@ -1,0 +1,17 @@
+AI Service Knowledge Base
+=========================
+
+LangChain is a framework for developing applications powered by large language models (LLMs).
+It provides tools for prompt management, chains, agents, memory, and retrieval-augmented generation (RAG).
+
+FastAPI is a modern, fast web framework for building APIs with Python.
+It supports async operations, automatic OpenAPI documentation, and data validation via Pydantic.
+
+RAG (Retrieval-Augmented Generation) combines document retrieval with LLM generation.
+Documents are split into chunks, embedded into a vector store, and retrieved based on semantic similarity.
+
+Agents use LLMs to decide which tools to call and in what order.
+Tools can include calculators, web search, databases, and APIs.
+
+Memory allows AI systems to maintain context across multiple turns of a conversation.
+This enables more coherent and personalized interactions.

@@ -1,8 +1,8 @@
 import os
-from langchain_openai import ChatOpenAI
-from langchain.prompts import ChatPromptTemplate
-from langchain_core.messages import HumanMessage, AIMessage
-from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI # pyright: ignore[reportMissingImports]
+from langchain.prompts import ChatPromptTemplate # pyright: ignore[reportMissingImports]
+from langchain_core.messages import HumanMessage, AIMessage # pyright: ignore[reportMissingImports]
+from dotenv import load_dotenv # pyright: ignore[reportMissingImports]
 
 load_dotenv()
 
