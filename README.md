@@ -1,143 +1,213 @@
-# AI Chat Application
+# AI Engineer Projects
 
-A Python chat application built with LangChain and OpenAI API that maintains conversation history and provides intelligent responses.
+A collection of AI projects built with LangChain and OpenAI API.
 
-## Features
+---
 
-✓ Uses ChatOpenAI from LangChain for intelligent responses  
-✓ Loads API key securely from `.env` file  
-✓ Maintains conversation history (memory)  
-✓ Uses customizable prompt templates  
-✓ Continuous chat loop with special commands  
-✓ Clean and modular code structure  
-✓ Graceful error handling  
+## Project 1: LangChain AI Service
 
-## Project Structure
+A production-ready FastAPI service with LangChain featuring an agent, RAG, memory, streaming, and versioned prompts.
+
+### Features
+
+- Agent with tools (calculator, datetime)
+- Retrieval-Augmented Generation (RAG) via FAISS
+- Conversation memory
+- Streaming responses (token-by-token)
+- Versioned prompt templates
+- Structured JSON responses
+- Request/response logging
+
+### Project Structure
 
 ```
-demo/
-├── main.py                 # Entry point with chat loop
-├── llm_service.py         # LLM service and business logic
-├── requirements.txt       # Python dependencies
-├── .env.example          # Example environment configuration
-└── .env                  # Your actual configuration (create from .env.example)
+langchain-langraph-workspace/langchain_project/
+├── app/
+│   ├── main.py              # FastAPI entrypoint
+│   ├── api/
+│   │   └── routes.py        # All API endpoints
+│   ├── core/
+│   │   ├── config.py        # Settings (loaded from .env)
+│   │   └── logger.py        # Logging setup (stdout)
+│   ├── agents/
+│   │   └── agent.py         # Agent with tools
+│   ├── chains/
+│   │   └── chain.py         # LangChain chains
+│   ├── tools/
+│   │   ├── tool_1.py        # Calculator tool
+│   │   └── tool_2.py        # Datetime tool
+│   ├── memory/
+│   │   └── memory.py        # Conversation memory
+│   ├── rag/
+│   │   ├── ingest.py        # Document ingestion + FAISS indexing
+│   │   └── retrieve.py      # RAG retrieval
+│   ├── prompts/
+│   │   ├── v1.txt           # Prompt version 1
+│   │   └── v2.txt           # Prompt version 2
+│   ├── models/
+│   │   └── response_model.py # Pydantic request/response models
+│   └── services/
+│       └── ai_service.py    # Orchestration logic
+├── data/
+│   └── documents/           # Uploaded files for RAG
+├── requirements.txt
+├── .env                     # API keys (not committed)
+└── README.md
 ```
 
-## Setup Instructions
+### Setup & Run
 
-### 1. Install Dependencies
+**Step 1 — Navigate to the project**
 
 ```bash
-cd /Users/chandankumar/Desktop/workspace/ai-engineer/demo
+cd langchain-langraph-workspace/langchain_project
+```
+
+**Step 2 — Activate the virtual environment**
+
+```bash
+source venv/bin/activate
+```
+
+**Step 3 — Install dependencies** (only needed once)
+
+```bash
 pip install -r requirements.txt
 ```
 
-### 2. Configure API Key
+**Step 4 — Configure your API key**
 
-Create a `.env` file in the `demo` directory:
+Create or edit the `.env` file:
+
+```
+OPENAI_API_KEY=your_openai_api_key_here
+```
+
+**Step 5 — Start the server**
 
 ```bash
-cp .env.example .env
+uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-Then edit `.env` and add your OpenAI API key:
+The `--reload` flag auto-restarts the server on code changes (useful during development).
 
-```
-OPENAI_API_KEY=your_actual_openai_api_key_here
-```
+The server will be available at: `http://127.0.0.1:8000`
 
-Get your API key from: https://platform.openai.com/api-keys
+### API Endpoints
 
-### 3. Run the Application
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/health` | Health check — returns service status and model |
+| POST | `/api/v1/chat` | Chat with AI (agent + optional RAG) |
+| POST | `/api/v1/chat/stream` | Streaming chat (token-by-token via SSE) |
+| POST | `/api/v1/agent` | Run agent directly with tools |
+| POST | `/api/v1/ingest` | Upload a `.txt` or `.pdf` file for RAG |
+| GET | `/api/v1/prompts` | List all available prompt versions |
+| GET | `/api/v1/memory` | View current conversation history |
+| DELETE | `/api/v1/memory` | Clear conversation history |
+
+**Interactive API docs (Swagger UI):** `http://127.0.0.1:8000/docs`
+
+### Example Requests
+
+**Chat (with agent and tools):**
 
 ```bash
-python main.py
+curl -X POST http://127.0.0.1:8000/api/v1/chat \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What is 10 * 5?", "prompt_version": "v1", "use_rag": false}'
 ```
 
-## Usage
+**Agent (tool trace visible):**
 
-Once the application starts, you can:
-
-- **Chat**: Simply type your message and press Enter
-- **View History**: Type `history` to see the conversation
-- **Clear History**: Type `clear` to reset the conversation
-- **Exit**: Type `exit` to quit the application
-
-### Example Interaction
-
-```
-You: Hello, how are you?
-
-AI: I'm doing well, thank you for asking! I'm here to help with any questions or tasks you might have. How can I assist you today?
-
-You: What is Python?
-
-AI: Python is a high-level, interpreted programming language known for its simplicity and readability...
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/agent \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What is today'\''s date?"}'
 ```
 
-## Configuration
+**Ingest a document for RAG:**
 
-### Model Selection
-
-The application uses `gpt-4o-mini` by default, but you can change it by modifying the model parameter in `main.py`:
-
-```python
-chat_service = ChatService(model="gpt-4o-mini")  # Change this model name
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/ingest \
+  -F "file=@/path/to/your/document.txt"
 ```
 
-### Prompt Template
+**Chat with RAG enabled:**
 
-You can customize the system prompt in `llm_service.py` by modifying the `prompt_template`:
-
-```python
-self.prompt_template = ChatPromptTemplate.from_messages([
-    ("system", "Your custom system prompt here"),
-    ("human", "{input}")
-])
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/chat \
+  -H "Content-Type: application/json" \
+  -d '{"question": "Summarize the document", "prompt_version": "v1", "use_rag": true}'
 ```
 
-## Code Architecture
+### Application Logs
 
-### `llm_service.py`
-- **ChatService class**: Manages all LangChain and OpenAI interactions
-- Handles API initialization, prompt templating, and conversation history
-- Provides methods: `get_response()`, `get_conversation_history()`, `clear_history()`
+Logs are written to **stdout** (the terminal where you started the server). There is no separate log file — all output appears inline in your terminal session.
 
-### `main.py`
-- **Chat Loop**: Handles user input and command processing
-- **Special Commands**: exit, clear, history
-- **Error Handling**: Graceful handling of API and configuration errors
-- **User Interface**: Formatted output and welcome messages
+**Log format:**
+
+```
+2026-04-13 21:44:33,123 | INFO | app.api.routes | POST /chat | question='What is 2+2?'
+2026-04-13 21:44:33,890 | INFO | app.main | POST /api/v1/chat | 200 | 767.45ms
+```
+
+Each log line contains:
+- **Timestamp** — when the event occurred
+- **Level** — `INFO`, `WARNING`, or `ERROR`
+- **Module** — which part of the code emitted the log
+- **Message** — request details, tool usage, or error description
+
+**To watch logs while the server runs:**
+
+Just look at your terminal — logs stream in real time as requests come in. To save logs to a file alongside the terminal output:
+
+```bash
+uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload 2>&1 | tee app.log
+```
+
+This prints logs to the terminal AND saves them to `app.log` in the project directory.
+
+**To view saved logs:**
+
+```bash
+cat app.log          # full log
+tail -f app.log      # follow live (like tail -f)
+grep ERROR app.log   # filter only errors
+```
+
+### Configuration
+
+All settings are controlled via the `.env` file and loaded through `app/core/config.py`:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `OPENAI_API_KEY` | — | Your OpenAI API key (required) |
+| `MODEL_NAME` | `gpt-3.5-turbo` | OpenAI model to use |
+| `TEMPERATURE` | `0.7` | Response creativity (0.0–1.0) |
+| `PROMPT_VERSION` | `v1` | Default prompt version |
+| `MAX_RETRIES` | `3` | Retry attempts on API failure |
+
+### Troubleshooting
+
+**Server won't start**
+- Make sure the venv is activated: `source venv/bin/activate`
+- Check that port 8000 is free: `lsof -i :8000`
+
+**API key errors**
+- Confirm `.env` exists in `langchain_project/` with `OPENAI_API_KEY=sk-...`
+- Verify the key is valid at https://platform.openai.com/api-keys
+
+**Import errors**
+- Run `pip install -r requirements.txt` inside the activated venv
+
+---
 
 ## Requirements
 
-- Python 3.8+
-- OpenAI API key (free trial available)
+- Python 3.9+
+- OpenAI API key
 - Internet connection for API calls
-
-## Dependencies
-
-- **langchain**: LLM framework
-- **langchain-openai**: OpenAI integration
-- **langchain-community**: Community utilities
-- **python-dotenv**: Environment variable management
-- **openai**: Official OpenAI Python library
-
-## Troubleshooting
-
-### API Key Not Found
-- Ensure `.env` file exists in the `demo` directory
-- Verify the file contains `OPENAI_API_KEY=your_key`
-- Check that your API key is valid
-
-### Import Errors
-- Run `pip install -r requirements.txt` again
-- Ensure you're using Python 3.8 or higher
-
-### API Errors
-- Check your internet connection
-- Verify your OpenAI API key is valid
-- Check your OpenAI account balance/quota
 
 ## License
 
