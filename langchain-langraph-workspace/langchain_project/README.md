@@ -164,6 +164,62 @@ ai-service/
 
 ---
 
+# 📊 Monitoring (Arize Phoenix)
+
+Free, open-source LLM observability. Traces every LangChain call — agent steps, tool invocations, token counts, latency, errors.
+
+## Start the Phoenix server
+
+```bash
+# Option 1 — Python (venv already has it installed)
+venv/bin/python -m phoenix.server.main serve
+
+# Option 2 — Docker
+docker run -d --name phoenix -p 6006:6006 -p 4317:4317 -p 4318:4318 arizephoenix/phoenix:latest
+```
+
+## Open the UI
+
+```
+http://localhost:6006
+```
+
+## What you see
+
+| Tab | Shows |
+|-----|-------|
+| Traces | Every request end-to-end (agent + chain + tools) |
+| Spans | Individual steps inside each trace |
+| Latency | How long each LLM/tool call took |
+| Tokens | Input + output token counts per call |
+| Errors | Failed tool calls, agent loops, exceptions |
+
+## How it works
+
+Phoenix is wired into the app via OpenTelemetry in `app/main.py`:
+
+```python
+from openinference.instrumentation.langchain import LangChainInstrumentor
+LangChainInstrumentor().instrument(tracer_provider=tracer_provider)
+```
+
+Every LangChain call (chains, agents, tools, retrievers) is automatically traced — no manual instrumentation needed. Traces are sent to `http://localhost:6006/v1/traces`.
+
+## Start the app
+
+```bash
+# 1. Start Phoenix first
+venv/bin/python -m phoenix.server.main serve &
+
+# 2. Start the AI service
+venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8001 --reload
+
+# 3. Open Phoenix UI
+open http://localhost:6006
+```
+
+---
+
 # ⚡ Rule
 
 * Do NOT hardcode logic inside one file
