@@ -1,0 +1,25 @@
+CATEGORY: pci_dss
+SOURCE: PCI DSS Compliance Guide v4.0 — Bank of America Internal
+
+PCI DSS COMPLIANCE POLICY
+
+1. SCOPE
+PCI DSS v4.0 applies to all systems that store, process, or transmit cardholder data (CHD) or sensitive authentication data (SAD). This includes card numbers (PAN), expiry dates, CVV/CVCs, and PIN data.
+
+2. CARDHOLDER DATA STORAGE
+Primary Account Numbers (PAN) must never be stored unencrypted. Masked PAN (showing only last 4 digits) is permitted for display purposes. CVV2/CVC2 codes must NEVER be stored after authorization, even in encrypted form. Full magnetic stripe data storage is prohibited.
+
+3. ENCRYPTION REQUIREMENTS
+All cardholder data at rest must use AES-256 encryption. Data in transit must use TLS 1.2 or higher. SSL and early TLS (1.0, 1.1) are prohibited. Encryption keys must be rotated annually and stored separately from encrypted data using Hardware Security Modules (HSMs).
+
+4. ACCESS CONTROLS
+Principle of least privilege applies to all systems in the cardholder data environment (CDE). Multi-Factor Authentication (MFA) is required for all remote access and for all administrative access to CDE systems. Shared or generic credentials are prohibited. All access must be individual and auditable.
+
+5. VULNERABILITY MANAGEMENT
+External-facing systems must undergo quarterly vulnerability scans by an Approved Scanning Vendor (ASV). Annual penetration testing is required for CDE systems. Critical patches must be applied within 30 days; high-severity patches within 60 days.
+
+6. MONITORING AND LOGGING
+All access to cardholder data must be logged with timestamps, user ID, and action taken. Logs must be retained for 12 months with 3 months immediately available for analysis. Log integrity must be protected from modification.
+
+7. INCIDENT RESPONSE
+Any suspected cardholder data breach must be reported to the PCI SSC and relevant card brands (Visa, Mastercard) within 24 hours. Forensic investigation must be initiated immediately using a QSA-approved forensic firm.

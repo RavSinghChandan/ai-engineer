@@ -7,6 +7,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import get_settings
 from app.api.routes.health import router as health_router
 from app.api.routes.transaction import router as transaction_router
+from app.api.routes.loan import router as loan_router
+from app.api.routes.account import router as account_router
+from app.api.routes.compliance import router as compliance_router
+from app.api.routes.conversation import router as conversation_router
+from app.api.routes.loan_committee import router as committee_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -43,6 +48,11 @@ def create_app() -> FastAPI:
 
     app.include_router(health_router, prefix="/api/v1")
     app.include_router(transaction_router, prefix="/api/v1")
+    app.include_router(loan_router, prefix="/api/v1")
+    app.include_router(account_router, prefix="/api/v1")
+    app.include_router(compliance_router, prefix="/api/v1")
+    app.include_router(conversation_router, prefix="/api/v1")
+    app.include_router(committee_router, prefix="/api/v1")
 
     @app.on_event("startup")
     async def on_startup() -> None:

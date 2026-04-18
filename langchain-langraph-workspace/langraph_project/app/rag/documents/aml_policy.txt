@@ -1,0 +1,30 @@
+CATEGORY: aml
+SOURCE: AML Compliance Manual v5.1 — Bank of America Internal
+
+ANTI-MONEY LAUNDERING (AML) POLICY
+
+1. REGULATORY FRAMEWORK
+The bank's AML program complies with the Bank Secrecy Act (BSA), USA PATRIOT Act Section 326, FinCEN regulations, and FATF Recommendations. The Chief Compliance Officer (CCO) bears ultimate responsibility for AML program effectiveness.
+
+2. SUSPICIOUS ACTIVITY REPORTING (SAR)
+A Suspicious Activity Report must be filed with FinCEN within 30 calendar days of detecting suspicious activity. If no suspect is identified, the filing deadline extends to 60 days. Transactions involving $5,000 or more where suspicion of money laundering, fraud, or other criminal activity exists must trigger SAR evaluation.
+
+3. CURRENCY TRANSACTION REPORTS (CTR)
+Cash transactions exceeding $10,000 in a single business day must be reported to FinCEN via CTR Form 112 within 15 days. Structuring (breaking large transactions into smaller ones to avoid CTR requirements) is a federal crime under 31 U.S.C. § 5324.
+
+4. RED FLAGS FOR MONEY LAUNDERING
+- Transactions inconsistent with the customer's known business or income
+- Unusual cash deposits followed by immediate wire transfers abroad
+- Multiple customers sending funds to the same foreign account
+- Reluctance to provide KYC documentation
+- Transactions with countries on FATF high-risk list
+- Round-dollar transactions with no apparent business purpose
+
+5. TRANSACTION MONITORING
+The bank uses automated transaction monitoring systems with threshold-based and behavioral analytics rules. Alerts are reviewed by AML analysts within 5 business days. Cases requiring SAR must be escalated to Senior AML Analyst within 24 hours.
+
+6. WIRE TRANSFER RULES
+International wire transfers must include complete originator and beneficiary information per the Travel Rule (31 CFR 1010.410). Transfers to or from OFAC-sanctioned countries are strictly prohibited and will be blocked and reported.
+
+7. TRAINING
+All customer-facing staff must complete annual AML training. Completion is mandatory and tracked. Failure to complete within the annual window results in system access suspension.

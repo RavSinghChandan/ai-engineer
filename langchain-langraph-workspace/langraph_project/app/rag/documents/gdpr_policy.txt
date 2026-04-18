@@ -1,0 +1,22 @@
+CATEGORY: gdpr
+SOURCE: GDPR Data Protection Policy v2.3 — Bank of America EU Operations
+
+GDPR COMPLIANCE POLICY
+
+1. LAWFUL BASIS FOR PROCESSING
+The bank processes personal data under the following lawful bases: (a) Contract necessity — processing required to fulfil banking services, (b) Legal obligation — regulatory reporting requirements, (c) Legitimate interests — fraud prevention and risk management, (d) Consent — marketing communications (explicit opt-in required).
+
+2. DATA SUBJECT RIGHTS
+Customers have the right to: access their personal data (response within 30 days), rectification of inaccurate data (within 30 days), erasure ("right to be forgotten") where no legal retention obligation exists, data portability in machine-readable format, and objection to processing for marketing purposes (immediate effect).
+
+3. DATA RETENTION
+Transaction records: 7 years (legal requirement). KYC documents: 5 years post account closure. Marketing consent records: 3 years from last interaction. CCTV footage: 30 days unless required for investigation. Biometric data: deleted within 30 days of collection unless explicit consent obtained.
+
+4. DATA BREACH NOTIFICATION
+Personal data breaches must be reported to the relevant Data Protection Authority (DPA) within 72 hours of becoming aware. If the breach is likely to result in high risk to individuals, affected data subjects must be notified without undue delay. Breach register must be maintained regardless of notification obligation.
+
+5. DATA TRANSFERS
+Personal data may only be transferred outside the EEA to countries with adequate protection decisions, or under Standard Contractual Clauses (SCCs) approved by the European Commission. US transfers require additional safeguards under the EU-US Data Privacy Framework.
+
+6. DATA PROTECTION OFFICER
+A Data Protection Officer (DPO) must be designated for all banking operations within the EU. The DPO must be independent, report directly to senior management, and be the primary contact for supervisory authorities.

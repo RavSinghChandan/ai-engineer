@@ -1,0 +1,23 @@
+CATEGORY: kyc
+SOURCE: KYC Policy v3.2 — Bank of America Internal
+
+KNOW YOUR CUSTOMER (KYC) POLICY
+
+1. CUSTOMER IDENTIFICATION PROGRAM (CIP)
+All new customers must provide government-issued photo ID (passport, driver's license, or national ID card) before account opening. The bank must verify the identity of each customer through documentary or non-documentary methods as outlined in 31 CFR 1020.220.
+
+2. REQUIRED IDENTIFICATION DOCUMENTS
+Individual customers: Full legal name, date of birth, residential address, and Social Security Number (SSN) or Tax Identification Number (TIN). Foreign nationals must provide passport number and country of issuance.
+Business customers: Legal business name, principal place of business, Employer Identification Number (EIN), and list of beneficial owners holding 25% or more ownership.
+
+3. ENHANCED DUE DILIGENCE (EDD)
+EDD is required for Politically Exposed Persons (PEPs), high-risk countries (FATF blacklist/greylist), customers with complex ownership structures, and accounts with anticipated transaction volumes exceeding $1,000,000 annually.
+
+4. ONGOING MONITORING
+Customer profiles must be reviewed annually for standard accounts, semi-annually for high-risk accounts. Any material change in customer circumstances must trigger an immediate KYC refresh. Dormant accounts inactive for 12+ months require re-verification before reactivation.
+
+5. RECORD KEEPING
+All KYC documentation must be retained for a minimum of 5 years after account closure as required by the Bank Secrecy Act (BSA). Records must be available to regulatory authorities within 48 hours upon request.
+
+6. SANCTIONS SCREENING
+All customers must be screened against OFAC SDN list, UN Security Council sanctions, and EU consolidated sanctions list at onboarding and upon each material update. Positive matches must be escalated to the Compliance Officer within 1 business hour.
