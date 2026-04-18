@@ -1,26 +1,49 @@
 import logging
-
 from fastapi import APIRouter, HTTPException
-
-from app.schemas.conversation import (
-    ConversationRequest,
-    ConversationResponse,
-    ChatMessage,
-)
+from app.schemas.conversation import ConversationRequest, ConversationResponse, ChatMessage
 from app.graphs.conversation_agent import run_conversation
 
 logger = logging.getLogger(__name__)
-
 router = APIRouter(prefix="/conversation", tags=["Conversation"])
 
 
-@router.post("/chat", response_model=ConversationResponse)
+@router.post(
+    "/chat",
+    response_model=ConversationResponse,
+    summary="Multi-turn banking chat",
+    description=(
+        "Stateful conversational assistant backed by **LangGraph MemorySaver** checkpoints.\n\n"
+        "**How memory works:**\n"
+        "- Same `session_id` → conversation continues (full history replayed automatically)\n"
+        "- New `session_id` → fresh conversation starts\n"
+        "- `account_id` → previous topics are injected as context on new sessions (long-term profile)\n\n"
+        "**Graph:** `load_context → detect_intent → respond → save_context`\n\n"
+        "**Intents detected:** balance · transaction · loan · compliance · account · fraud · general"
+    ),
+    openapi_extra={
+        "requestBody": {
+            "content": {
+                "application/json": {
+                    "examples": {
+                        "Turn 1 — start session": {
+                            "summary": "First message in a new session",
+                            "value": {"session_id": "sess-001", "message": "What are the KYC requirements for opening an account?", "account_id": "ACC-1001"},
+                        },
+                        "Turn 2 — continue session": {
+                            "summary": "Follow-up (same session_id — LLM remembers Turn 1)",
+                            "value": {"session_id": "sess-001", "message": "And what about AML rules?"},
+                        },
+                        "New session": {
+                            "summary": "Different session_id = fresh start",
+                            "value": {"session_id": "sess-002", "message": "Can I get a personal loan?", "account_id": "ACC-1001"},
+                        },
+                    }
+                }
+            }
+        }
+    },
+)
 async def chat(request: ConversationRequest) -> ConversationResponse:
-    """
-    Multi-turn banking assistant. Each call with the same session_id
-    continues the existing conversation — full history is maintained via
-    LangGraph MemorySaver checkpointing.
-    """
     try:
         result = run_conversation(
             session_id=request.session_id,
@@ -40,16 +63,15 @@ async def chat(request: ConversationRequest) -> ConversationResponse:
     )
 
 
-@router.delete("/chat/{session_id}", status_code=204)
+@router.delete(
+    "/chat/{session_id}",
+    status_code=204,
+    summary="Clear a conversation session",
+    description="Deletes the MemorySaver checkpoint for the given `session_id`. Use on logout or to start fresh.",
+)
 async def clear_session(session_id: str) -> None:
-    """
-    Clears the in-memory checkpoint for a session (logout / new conversation).
-    In production this would delete the DB row.
-    """
     from app.memory.store import get_checkpointer
-    checkpointer = get_checkpointer()
-    # MemorySaver stores by thread_id; delete by overwriting with empty state
     try:
-        checkpointer.storage.pop(session_id, None)
+        get_checkpointer().storage.pop(session_id, None)
     except Exception:
-        pass  # safe no-op if session doesn't exist
+        pass
