@@ -17,6 +17,9 @@ from app.api.routes.compliance import router as compliance_router
 from app.api.routes.conversation import router as conversation_router
 from app.api.routes.loan_committee import router as committee_router
 from app.api.routes.resilience import router as resilience_router
+from app.api.routes.auth import router as auth_router
+from app.api.routes.security import router as security_router
+from app.api.routes.autonomous import router as autonomous_router
 
 settings = get_settings()
 logger = get_logger(__name__)
@@ -95,6 +98,27 @@ OPENAPI_TAGS = [
             "circuit breakers at runtime."
         ),
     },
+    {
+        "name": "Security",
+        "description": (
+            "**Step 10 — Security Layer.**  \n"
+            "JWT Bearer authentication (`POST /auth/token`) and role-based access "
+            "control (admin > officer > customer). Human-in-the-loop approval "
+            "implemented with LangGraph `interrupt_before` checkpointing: submit "
+            "a loan → graph pauses → officer decides → graph resumes."
+        ),
+    },
+    {
+        "name": "Autonomous Agent",
+        "description": (
+            "**Step 11 — Autonomous Banking AI Agent.**  \n"
+            "Single endpoint that accepts any natural-language banking query. "
+            "The master orchestrator graph classifies intent, selects the right "
+            "sub-workflow (loan / account / compliance / transaction / committee / "
+            "resilience / conversation), executes it, optionally enriches with RAG, "
+            "and falls back gracefully on failure. Full execution trace returned."
+        ),
+    },
 ]
 
 
@@ -114,7 +138,9 @@ def create_app() -> FastAPI:
             "| 5 | Compliance RAG — FAISS + graded retrieval |\n"
             "| 6 | Conversational Memory — MemorySaver + profile |\n"
             "| 7 | Multi-Agent Loan Committee — Planner + Executor + Validator |\n"
-            "| 8 | Resilience — retry + circuit breaker + fallback + timeout |\n\n"
+            "| 8 | Resilience — retry + circuit breaker + fallback + timeout |\n"
+            "| 10 | Security — JWT auth + RBAC + Human-in-the-Loop (interrupt) |\n"
+            "| 11 | Autonomous Agent — master orchestrator, all workflows unified |\n\n"
             "### Observability\n"
             "- **Arize Phoenix** → http://localhost:6006 (run `phoenix serve` to start)\n"
             "- **LangSmith** → set `LANGCHAIN_API_KEY` in `.env`\n"
@@ -160,6 +186,9 @@ def create_app() -> FastAPI:
     app.include_router(conversation_router,prefix="/api/v1")
     app.include_router(committee_router,   prefix="/api/v1")
     app.include_router(resilience_router,  prefix="/api/v1")
+    app.include_router(auth_router,        prefix="/api/v1")
+    app.include_router(security_router,    prefix="/api/v1")
+    app.include_router(autonomous_router,  prefix="/api/v1")
 
     @app.on_event("startup")
     async def on_startup() -> None:
