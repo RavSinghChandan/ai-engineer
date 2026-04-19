@@ -1,95 +1,96 @@
 """
 LLM Service Module
-Handles all LangChain and OpenAI interactions
+Handles all LangChain and OpenAI/DeepSeek interactions with token-based routing.
+
+Routing strategy:
+  - < LLM_TOKEN_THRESHOLD tokens  → OpenAI (gpt-4o-mini)
+  - >= LLM_TOKEN_THRESHOLD tokens → DeepSeek (deepseek-chat)
 """
 
 import os
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_community.chat_message_histories import ChatMessageHistory
-from langchain_core.runnables.history import RunnableWithMessageHistory
 
-# Load environment variables from .env file
 load_dotenv()
+
+# ~4 characters per token is a reasonable approximation without tiktoken
+_CHARS_PER_TOKEN = 4
+_TOKEN_THRESHOLD = int(os.getenv("LLM_TOKEN_THRESHOLD", "50"))
+
+_OPENAI_MODEL = "gpt-4o-mini"
+_DEEPSEEK_MODEL = "deepseek-chat"
+_DEEPSEEK_BASE_URL = "https://api.deepseek.com"
+
+
+def _estimate_tokens(text: str) -> int:
+    return max(1, len(text) // _CHARS_PER_TOKEN)
+
+
+def _get_routed_llm(text: str) -> ChatOpenAI:
+    """Return OpenAI for small requests, DeepSeek for large ones."""
+    token_count = _estimate_tokens(text)
+    if token_count >= _TOKEN_THRESHOLD:
+        deepseek_key = os.getenv("DEEPSEEK_API_KEY")
+        if not deepseek_key:
+            raise ValueError("DEEPSEEK_API_KEY not found in environment variables.")
+        return ChatOpenAI(
+            model=_DEEPSEEK_MODEL,
+            api_key=deepseek_key,
+            base_url=_DEEPSEEK_BASE_URL,
+            temperature=0.7,
+        )
+    else:
+        openai_key = os.getenv("OPENAI_API_KEY")
+        if not openai_key:
+            raise ValueError("OPENAI_API_KEY not found in environment variables.")
+        return ChatOpenAI(
+            model=_OPENAI_MODEL,
+            api_key=openai_key,
+            temperature=0.7,
+        )
 
 
 class ChatService:
-    """Service class for managing chat interactions with OpenAI"""
+    """Service class for managing chat interactions with token-based LLM routing."""
 
-    def __init__(self, model: str = "gpt-4o-mini"):
-        """
-        Initialize the ChatService with OpenAI API
-
-        Args:
-            model: The OpenAI model to use (default: gpt-4o-mini)
-        """
-        # Get API key from environment
-        api_key = os.getenv("OPENAI_API_KEY")
-        if not api_key:
+    def __init__(self):
+        openai_key = os.getenv("OPENAI_API_KEY")
+        if not openai_key:
             raise ValueError(
                 "OPENAI_API_KEY not found in environment variables. "
                 "Please create a .env file with your API key."
             )
+        deepseek_key = os.getenv("DEEPSEEK_API_KEY")
+        if not deepseek_key:
+            raise ValueError(
+                "DEEPSEEK_API_KEY not found in environment variables. "
+                "Please add DEEPSEEK_API_KEY to your .env file."
+            )
 
-        # Initialize the LLM
-        self.llm = ChatOpenAI(
-            model=model,
-            api_key=api_key,
-            temperature=0.7
-        )
-
-        # Define the prompt template
         self.prompt_template = ChatPromptTemplate.from_messages([
             ("system", "You are a helpful and friendly AI assistant. Provide clear, concise, and helpful responses."),
             ("human", "{input}")
         ])
-
-        # Initialize message history
         self.chat_history = ChatMessageHistory()
 
-        # Create the chain with message history
-        self.chain = (
-            self.prompt_template
-            | self.llm
-        )
-
     def get_response(self, user_input: str) -> str:
-        """
-        Get a response from the AI based on user input
-
-        Args:
-            user_input: The user's message
-
-        Returns:
-            The AI's response as a string
-        """
+        """Route to OpenAI or DeepSeek based on input token count, then return response."""
         try:
-            # Invoke the chain with the user input
-            response = self.chain.invoke({"input": user_input})
-
-            # Extract the content from the response
+            llm = _get_routed_llm(user_input)
+            chain = self.prompt_template | llm
+            response = chain.invoke({"input": user_input})
             ai_message = response.content
-
-            # Store messages in history for context
             self.chat_history.add_user_message(user_input)
             self.chat_history.add_ai_message(ai_message)
-
             return ai_message
         except Exception as e:
             return f"Error: Unable to get response from AI. {str(e)}"
 
     def get_conversation_history(self) -> list:
-        """
-        Get the conversation history
-
-        Returns:
-            List of messages in the conversation
-        """
         return self.chat_history.messages
 
     def clear_history(self):
-        """Clear the conversation history"""
         self.chat_history = ChatMessageHistory()
 

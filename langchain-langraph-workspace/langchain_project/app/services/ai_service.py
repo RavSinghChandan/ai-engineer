@@ -64,7 +64,7 @@ def run_ai_service(
     )
 
     try:
-        executor = get_agent_executor()
+        executor = get_agent_executor(question=agent_question)
         result = executor.invoke({
             "input": agent_question,
             "chat_history": memory.get(),
@@ -83,7 +83,7 @@ def run_ai_service(
         if context_text:
             system_prompt += f"\n\nContext:\n{context_text}"
 
-        chain = get_reasoning_chain(system_prompt)
+        chain = get_reasoning_chain(system_prompt, question=question)
         try:
             answer = _invoke_chain(chain, {"input": question, "history": memory.get()})
         except Exception as fallback_err:

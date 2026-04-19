@@ -46,7 +46,7 @@ def main():
     try:
         # Initialize the chat service
         print("Initializing chat service...")
-        chat_service = ChatService(model="gpt-4o-mini")
+        chat_service = ChatService()
         print("✓ Chat service initialized successfully!\n")
 
         # Print welcome message

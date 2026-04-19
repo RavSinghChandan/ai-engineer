@@ -1,8 +1,7 @@
-from langchain_openai import ChatOpenAI
 from langchain.agents import create_tool_calling_agent, AgentExecutor
 from langchain_core.prompts import ChatPromptTemplate
 
-from app.core.config import settings
+from app.core.llm_router import get_llm
 from app.core.logger import get_logger
 from app.tools.tool_1 import calculator
 from app.tools.tool_2 import get_current_datetime
@@ -19,12 +18,9 @@ _prompt = ChatPromptTemplate.from_messages([
 ])
 
 
-def get_agent_executor() -> AgentExecutor:
-    llm = ChatOpenAI(
-        openai_api_key=settings.openai_api_key,
-        model=settings.model_name,
-        temperature=settings.temperature,
-    )
+def get_agent_executor(question: str = "") -> AgentExecutor:
+    """Build an AgentExecutor, routing to OpenAI or DeepSeek based on question token count."""
+    llm = get_llm(question)
     agent = create_tool_calling_agent(llm, tools, _prompt)
     return AgentExecutor(
         agent=agent,
