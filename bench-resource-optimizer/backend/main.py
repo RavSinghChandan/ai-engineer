@@ -1,16 +1,16 @@
 """
 Bench Resource Optimization System — FastAPI backend.
-LLM: DeepSeek (OpenAI-compatible API)
-Embeddings: HuggingFace all-MiniLM-L6-v2 (local, no API key needed)
+LLM: DeepSeek (OpenAI-compatible)  temperature=0 for speed + determinism
+Embeddings: HuggingFace all-MiniLM-L6-v2 (local)
 """
 import os
 from contextlib import asynccontextmanager
+from typing import List
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from langchain_openai import ChatOpenAI
-from typing import List
 from pydantic import BaseModel
 
 from agents.cv_parser_agent import parse_cv
@@ -33,7 +33,7 @@ async def lifespan(app: FastAPI):
 
     api_key = os.getenv("DEEPSEEK_API_KEY")
     base_url = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
-    model = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
+    model    = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
 
     if not api_key:
         raise RuntimeError("DEEPSEEK_API_KEY not set in .env")
@@ -42,7 +42,7 @@ async def lifespan(app: FastAPI):
         model=model,
         openai_api_key=api_key,
         openai_api_base=base_url,
-        temperature=0.3,
+        temperature=0,          # deterministic = marginally faster, consistent output
     )
 
     print("⏳ Loading HuggingFace embeddings (downloads once)...")
@@ -52,11 +52,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(
-    title="Bench Resource Optimization API",
-    version="1.0.0",
-    lifespan=lifespan,
-)
+app = FastAPI(title="Bench Resource Optimization API", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -66,25 +62,24 @@ app.add_middleware(
 )
 
 
-# ── Models ────────────────────────────────────────────────────────────────────
+# ── Request models ─────────────────────────────────────────────────────────────
 
 class MapRoleRequest(BaseModel):
     user_id: str
     target_role: str
 
-
 class GeneratePlanRequest(BaseModel):
     user_id: str
     target_role: str
     missing_skills: List[str]
-
+    num_days: int = 7
 
 class UpdateProgressRequest(BaseModel):
     user_id: str
     completed_task_ids: List[str]
 
 
-# ── Routes ────────────────────────────────────────────────────────────────────
+# ── Routes ──────────────────────────────────────────────────────────────────────
 
 @app.get("/health")
 def health():
@@ -101,15 +96,14 @@ def list_roles():
 @app.post("/upload-cv")
 async def upload_cv(file: UploadFile = File(...)):
     if not file.filename.lower().endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Only PDF files are accepted.")
+        raise HTTPException(400, "Only PDF files are accepted.")
 
-    raw_bytes = await file.read()
+    raw_bytes   = await file.read()
     resume_text = extract_text_from_pdf(raw_bytes)
-
     if not resume_text:
-        raise HTTPException(status_code=422, detail="Could not extract text from PDF.")
+        raise HTTPException(422, "Could not extract text from PDF.")
 
-    parsed = parse_cv(resume_text, _llm)
+    parsed  = parse_cv(resume_text, _llm)
     user_id = save_user({"profile": parsed, "resume_text": resume_text[:500]})
     return {"user_id": user_id, "profile": parsed}
 
@@ -118,18 +112,21 @@ async def upload_cv(file: UploadFile = File(...)):
 def map_role_endpoint(req: MapRoleRequest):
     user = get_user(req.user_id)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found.")
+        raise HTTPException(404, "User not found.")
     return map_role(user["profile"], req.target_role, _vector_store, _llm)
 
 
 @app.post("/generate-plan")
-def generate_plan_endpoint(req: GeneratePlanRequest):
+async def generate_plan_endpoint(req: GeneratePlanRequest):
+    """Async — runs phase-1 outline + all day tasks in parallel."""
     user = get_user(req.user_id)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found.")
+        raise HTTPException(404, "User not found.")
 
     current_skills = user["profile"].get("skills", [])
-    plan = generate_plan(req.target_role, req.missing_skills, current_skills, _llm)
+    plan = await generate_plan(
+        req.target_role, req.missing_skills, current_skills, _llm, req.num_days
+    )
 
     save_progress(req.user_id, {
         "role": req.target_role,
@@ -141,9 +138,10 @@ def generate_plan_endpoint(req: GeneratePlanRequest):
 
 @app.post("/update-progress")
 def update_progress(req: UpdateProgressRequest):
+    """Pure Python — no LLM call, returns instantly."""
     progress = get_progress(req.user_id)
     if not progress:
-        raise HTTPException(status_code=404, detail="No plan found. Generate a plan first.")
+        raise HTTPException(404, "No plan found. Generate a plan first.")
 
     progress["completed_task_ids"] = req.completed_task_ids
     save_progress(req.user_id, progress)
@@ -152,7 +150,6 @@ def update_progress(req: UpdateProgressRequest):
         progress["role"],
         progress["plan"],
         req.completed_task_ids,
-        _llm,
     )
 
 
@@ -160,5 +157,5 @@ def update_progress(req: UpdateProgressRequest):
 def get_progress_endpoint(user_id: str):
     progress = get_progress(user_id)
     if not progress:
-        raise HTTPException(status_code=404, detail="No progress found.")
+        raise HTTPException(404, "No progress found.")
     return progress

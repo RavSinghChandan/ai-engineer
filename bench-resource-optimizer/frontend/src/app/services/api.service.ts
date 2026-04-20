@@ -28,11 +28,17 @@ export class ApiService {
     });
   }
 
-  generatePlan(userId: string, targetRole: string, missingSkills: string[]): Observable<Plan> {
+  generatePlan(
+    userId: string,
+    targetRole: string,
+    missingSkills: string[],
+    numDays: number = 7,
+  ): Observable<Plan> {
     return this.http.post<Plan>(`${this.base}/generate-plan`, {
       user_id: userId,
       target_role: targetRole,
       missing_skills: missingSkills,
+      num_days: numDays,
     });
   }
 

@@ -61,3 +61,16 @@ export interface Role {
   title: string;
   description: string;
 }
+
+// Flat row model used by AG Grid
+export interface TaskRow {
+  id: string;
+  day: number;
+  theme: string;
+  title: string;
+  description: string;
+  skill: string;
+  hours: number;
+  done: boolean;
+  resource: string;
+}

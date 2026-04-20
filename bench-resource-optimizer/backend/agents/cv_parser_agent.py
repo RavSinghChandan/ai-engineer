@@ -1,56 +1,40 @@
 """
-CV Parser Agent — converts raw resume text into structured JSON using LLM.
-
-Prompt strategy: few-shot extraction so the model outputs consistent JSON
-regardless of resume format or writing style.
+CV Parser Agent — strips input to 1200 chars and uses max_tokens=380.
+Keeps output schema identical so the frontend is unaffected.
 """
-import json
 from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
+from utils.json_parser import parse_llm_json
 
-SYSTEM_PROMPT = """You are a precise CV parser. Extract information from resumes and
-return ONLY valid JSON. Never add explanation or markdown fences around JSON."""
+SYSTEM_PROMPT = "You are a CV parser. Return ONLY valid JSON, no markdown."
 
-USER_PROMPT = """Parse the following resume text and extract structured information.
-
-Resume Text:
-{resume_text}
-
-Return a JSON object with exactly these keys:
+USER_PROMPT = """Extract info from this resume. Return ONLY this JSON:
 {{
-  "name": "candidate full name or 'Unknown'",
-  "email": "email address or ''",
-  "phone": "phone number or ''",
-  "skills": ["list", "of", "technical", "skills"],
-  "experience_years": "total years of experience as integer (estimate if unclear)",
-  "roles": ["list", "of", "job", "roles", "held"],
-  "projects": [
-    {{
-      "name": "project name",
-      "description": "one sentence description",
-      "technologies": ["tech1", "tech2"]
-    }}
-  ],
-  "education": "highest degree and field"
+  "name": "<full name or 'Unknown'>",
+  "email": "<email or ''>",
+  "phone": "<phone or ''>",
+  "skills": [<technical skill strings>],
+  "experience_years": <int>,
+  "roles": [<job title strings>],
+  "projects": [{{"name":"<n>","description":"<10 words>","technologies":[<list>]}}],
+  "education": "<degree and field>"
 }}
 
-Extract ONLY what is present. Use empty lists/strings for missing fields.
-Return ONLY the JSON object, no other text."""
+Resume:
+{resume_text}"""
 
 
 def parse_cv(resume_text: str, llm: ChatOpenAI) -> dict:
+    # Trim to avoid huge prompts; first 1200 chars capture name/skills/titles
+    trimmed = resume_text[:1200]
+
     prompt = ChatPromptTemplate.from_messages([
         ("system", SYSTEM_PROMPT),
         ("human", USER_PROMPT),
     ])
 
-    chain = prompt | llm
-    result = chain.invoke({"resume_text": resume_text})
-    content = result.content.strip()
+    bounded_llm = llm.bind(max_tokens=380)
+    chain = prompt | bounded_llm
+    result = chain.invoke({"resume_text": trimmed})
 
-    # Strip markdown fences if model added them despite instructions
-    if content.startswith("```"):
-        lines = content.split("\n")
-        content = "\n".join(lines[1:-1] if lines[-1] == "```" else lines[1:])
-
-    return json.loads(content)
+    return parse_llm_json(result.content)

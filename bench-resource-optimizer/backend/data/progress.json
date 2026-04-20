@@ -7,226 +7,147 @@
       "focus_skills": [
         "TensorFlow",
         "PyTorch",
-        "Scikit-learn",
         "MLflow"
       ],
       "plan": [
         {
           "day": 1,
-          "theme": "Scikit-learn Fundamentals & ML Basics",
+          "theme": "Foundations of Deep Learning with TensorFlow",
           "tasks": [
             {
-              "id": "day1_task1",
-              "title": "Learn Scikit-learn Core APIs",
-              "description": "Study and practice using Scikit-learn's main modules: datasets, preprocessing, model selection, and evaluation metrics. Write code to load a dataset, split it, and evaluate a simple model.",
+              "id": "d1t1",
+              "title": "Master TensorFlow tensors and operations",
+              "skill": "TensorFlow",
               "hours": 2,
-              "skill": "Scikit-learn",
-              "resource": "https://scikit-learn.org/stable/user_guide.html"
+              "resource": "https://www.tensorflow.org/tutorials",
+              "description": "Master TensorFlow tensors and operations"
             },
             {
-              "id": "day1_task2",
-              "title": "Build a Classification Pipeline",
-              "description": "Create a complete ML pipeline for a classification problem (e.g., Iris or Digits dataset) using Scikit-learn. Include preprocessing (StandardScaler), model training (LogisticRegression or RandomForest), and evaluation (accuracy, confusion matrix).",
+              "id": "d1t2",
+              "title": "Build a linear regression model",
+              "skill": "TensorFlow",
               "hours": 2,
-              "skill": "Scikit-learn",
-              "resource": "https://scikit-learn.org/stable/tutorial/basic/tutorial.html"
-            },
-            {
-              "id": "day1_task3",
-              "title": "Mini-Project: Predict Wine Quality",
-              "description": "Use the Wine Quality dataset to build a regression model predicting wine quality. Implement feature scaling, train a LinearRegression or Ridge model, and evaluate with RMSE and R\u00b2.",
-              "hours": 2,
-              "skill": "Scikit-learn",
-              "resource": "https://archive.ics.uci.edu/ml/datasets/wine+quality"
+              "resource": "https://www.tensorflow.org/tutorials",
+              "description": "Build a linear regression model"
             }
           ]
         },
         {
           "day": 2,
-          "theme": "TensorFlow Introduction & Neural Networks",
+          "theme": "Advanced Neural Networks in PyTorch",
           "tasks": [
             {
-              "id": "day2_task1",
-              "title": "TensorFlow 2.x Basics & Keras API",
-              "description": "Learn TensorFlow's core concepts: tensors, variables, and automatic differentiation. Practice building sequential models using tf.keras for dense neural networks.",
+              "id": "d2t1",
+              "title": "Implement custom autograd functions",
+              "skill": "PyTorch",
               "hours": 2,
-              "skill": "TensorFlow",
-              "resource": "https://www.tensorflow.org/guide/keras/sequential_model"
+              "resource": "https://pytorch.org/tutorials/",
+              "description": "Implement custom autograd functions"
             },
             {
-              "id": "day2_task2",
-              "title": "Train a Neural Network for MNIST",
-              "description": "Build, compile, and train a neural network to classify handwritten digits from the MNIST dataset. Use Flatten, Dense layers, and softmax activation. Monitor training with validation split.",
+              "id": "d2t2",
+              "title": "Build a neural ODE network",
+              "skill": "PyTorch",
               "hours": 2,
-              "skill": "TensorFlow",
-              "resource": "https://www.tensorflow.org/tutorials/quickstart/beginner"
-            },
-            {
-              "id": "day2_task3",
-              "title": "Mini-Project: Fashion MNIST Classifier",
-              "description": "Create a CNN model using TensorFlow/Keras to classify Fashion MNIST images. Include Conv2D, MaxPooling2D, and Dropout layers. Achieve >90% test accuracy.",
-              "hours": 2,
-              "skill": "TensorFlow",
-              "resource": "https://www.tensorflow.org/tutorials/keras/classification"
+              "resource": "https://pytorch.org/tutorials/",
+              "description": "Build a neural ODE network"
             }
           ]
         },
         {
           "day": 3,
-          "theme": "PyTorch Fundamentals & Dynamic Computation",
+          "theme": "Experiment Tracking and Model Registry with MLflow",
           "tasks": [
             {
-              "id": "day3_task1",
-              "title": "PyTorch Tensors, Autograd & NN Module",
-              "description": "Learn PyTorch tensor operations, automatic differentiation with autograd, and build neural networks using torch.nn.Module. Compare with TensorFlow approaches.",
+              "id": "d3t1",
+              "title": "Log experiments with parameters and metrics",
+              "skill": "MLflow",
               "hours": 2,
-              "skill": "PyTorch",
-              "resource": "https://pytorch.org/tutorials/beginner/basics/intro.html"
+              "resource": "https://mlflow.org/docs/latest/",
+              "description": "Log experiments with parameters and metrics"
             },
             {
-              "id": "day3_task2",
-              "title": "Implement a Custom Training Loop",
-              "description": "Write a training loop from scratch for a simple regression problem. Manually compute loss, backpropagate with loss.backward(), and update weights using an optimizer.",
+              "id": "d3t2",
+              "title": "Register and version a trained model",
+              "skill": "MLflow",
               "hours": 2,
-              "skill": "PyTorch",
-              "resource": "https://pytorch.org/tutorials/beginner/pytorch_with_examples.html"
-            },
-            {
-              "id": "day3_task3",
-              "title": "Mini-Project: CIFAR-10 CNN in PyTorch",
-              "description": "Build a Convolutional Neural Network in PyTorch to classify CIFAR-10 images. Use DataLoader for batching, and train with CrossEntropyLoss and SGD optimizer.",
-              "hours": 2,
-              "skill": "PyTorch",
-              "resource": "https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html"
+              "resource": "https://mlflow.org/docs/latest/",
+              "description": "Register and version a trained model"
             }
           ]
         },
         {
           "day": 4,
-          "theme": "Advanced Model Development & Comparison",
+          "theme": "Production Model Deployment using TensorFlow Serving",
           "tasks": [
             {
-              "id": "day4_task1",
-              "title": "Transfer Learning with TensorFlow Hub",
-              "description": "Use a pre-trained model from TensorFlow Hub (e.g., MobileNet) for image classification on a custom dataset. Fine-tune the model by unfreezing top layers.",
-              "hours": 2,
+              "id": "d4t1",
+              "title": "Prepare and export a SavedModel",
               "skill": "TensorFlow",
-              "resource": "https://www.tensorflow.org/hub/tutorials/tf2_image_retraining"
+              "hours": 2,
+              "resource": "https://www.tensorflow.org/tutorials",
+              "description": "Prepare and export a SavedModel"
             },
             {
-              "id": "day4_task2",
-              "title": "Build an LSTM for Text Classification in PyTorch",
-              "description": "Create an LSTM model in PyTorch for sentiment analysis on the IMDB dataset. Use embedding layers and pack_padded_sequence for variable-length sequences.",
+              "id": "d4t2",
+              "title": "Deploy model with TensorFlow Serving",
+              "skill": "TensorFlow",
               "hours": 2,
-              "skill": "PyTorch",
-              "resource": "https://pytorch.org/tutorials/beginner/text_sentiment_ngrams_tutorial.html"
-            },
-            {
-              "id": "day4_task3",
-              "title": "Mini-Project: Compare Frameworks on Titanic Dataset",
-              "description": "Solve the Titanic survival prediction problem using both Scikit-learn (RandomForest) and TensorFlow/Keras (neural network). Compare accuracy, training time, and code complexity.",
-              "hours": 2,
-              "skill": "Scikit-learn, TensorFlow",
-              "resource": "https://www.kaggle.com/c/titanic/data"
+              "resource": "https://www.tensorflow.org/tutorials",
+              "description": "Deploy model with TensorFlow Serving"
             }
           ]
         },
         {
           "day": 5,
-          "theme": "MLflow for Experiment Tracking & Model Management",
+          "theme": "Research Prototyping and Dynamic Graphs in PyTorch",
           "tasks": [
             {
-              "id": "day5_task1",
-              "title": "MLflow Setup & Basic Logging",
-              "description": "Install MLflow and start a tracking server. Log parameters, metrics, and artifacts from a simple Scikit-learn model training run.",
-              "hours": 1,
-              "skill": "MLflow",
-              "resource": "https://mlflow.org/docs/latest/tracking.html"
-            },
-            {
-              "id": "day5_task2",
-              "title": "Log TensorFlow & PyTorch Experiments",
-              "description": "Integrate MLflow into your TensorFlow and PyTorch training scripts. Log metrics per epoch, model architectures, and final model files.",
+              "id": "d5t1",
+              "title": "Implement custom autograd functions",
+              "skill": "PyTorch",
               "hours": 2,
-              "skill": "MLflow, TensorFlow, PyTorch",
-              "resource": "https://mlflow.org/docs/latest/python_api/mlflow.tensorflow.html"
+              "resource": "https://pytorch.org/tutorials/",
+              "description": "Implement custom autograd functions"
             },
             {
-              "id": "day5_task3",
-              "title": "Mini-Project: End-to-End ML Pipeline with MLflow",
-              "description": "Build a complete pipeline for a regression problem: data loading, preprocessing, model training (try multiple algorithms), hyperparameter tuning, and log everything to MLflow. Use the UI to compare runs.",
-              "hours": 3,
-              "skill": "MLflow, Scikit-learn",
-              "resource": "https://mlflow.org/docs/latest/tutorials-and-examples/tutorial.html"
+              "id": "d5t2",
+              "title": "Build a dynamic neural architecture search",
+              "skill": "PyTorch",
+              "hours": 2,
+              "resource": "https://pytorch.org/tutorials/",
+              "description": "Build a dynamic neural architecture search"
             }
           ]
         },
         {
           "day": 6,
-          "theme": "Production Integration & Model Serving",
+          "theme": "End-to-End ML Pipeline Orchestration with MLflow",
           "tasks": [
             {
-              "id": "day6_task1",
-              "title": "Package a Model with MLflow Models",
-              "description": "Save a trained Scikit-learn model as an MLflow Model. Create a custom Python environment (conda.yaml) and test local serving via mlflow models serve.",
-              "hours": 2,
+              "id": "d6t1",
+              "title": "Define and log pipeline stages",
               "skill": "MLflow",
-              "resource": "https://mlflow.org/docs/latest/models.html"
-            },
-            {
-              "id": "day6_task2",
-              "title": "Build a FastAPI Service for Model Inference",
-              "description": "Create a FastAPI application that loads a saved ML model (from Scikit-learn or TensorFlow) and exposes a POST endpoint for predictions. Use Pydantic for request validation.",
               "hours": 2,
-              "skill": "FastAPI, Scikit-learn/TensorFlow",
-              "resource": "https://fastapi.tiangolo.com/tutorial/first-steps/"
+              "resource": "https://mlflow.org/docs/latest/",
+              "description": "Define and log pipeline stages"
             },
             {
-              "id": "day6_task3",
-              "title": "Mini-Project: Dockerize the ML Service",
-              "description": "Containerize your FastAPI model service using Docker. Include the model file, dependencies, and expose the API port. Build the image and run it locally.",
+              "id": "d6t2",
+              "title": "Build a production tracking pipeline",
+              "skill": "MLflow",
               "hours": 2,
-              "skill": "Docker, FastAPI",
-              "resource": "https://docs.docker.com/get-started/02_our_app/"
-            }
-          ]
-        },
-        {
-          "day": 7,
-          "theme": "End-to-End Project & Workflow Consolidation",
-          "tasks": [
-            {
-              "id": "day7_task1",
-              "title": "Complete ML Project: Image Classifier with Full Stack",
-              "description": "Build an image classification system: train a CNN (TensorFlow/PyTorch), track experiments with MLflow, save the best model, and create a FastAPI service for inference.",
-              "hours": 3,
-              "skill": "TensorFlow/PyTorch, MLflow, FastAPI",
-              "resource": "https://www.tensorflow.org/tutorials/images/classification"
-            },
-            {
-              "id": "day7_task2",
-              "title": "Version Control for ML with Git",
-              "description": "Create a Git repository for your project. Commit code, model files (using Git LFS or excluding large files), and MLflow experiment data. Write a clear README.",
-              "hours": 1,
-              "skill": "Git",
-              "resource": "https://git-scm.com/doc"
-            },
-            {
-              "id": "day7_task3",
-              "title": "Deploy & Test the Full Pipeline",
-              "description": "Run your Dockerized FastAPI service and test it with sample image uploads via curl or Postman. Verify predictions match training performance.",
-              "hours": 2,
-              "skill": "Docker, FastAPI",
-              "resource": "https://docs.docker.com/compose/gettingstarted/"
+              "resource": "https://mlflow.org/docs/latest/",
+              "description": "Build a production tracking pipeline"
             }
           ]
         }
       ]
     },
     "completed_task_ids": [
-      "day1_task1",
-      "day1_task2",
-      "day1_task3"
+      "d1t1",
+      "d1t2",
+      "d2t1"
     ]
   },
   "1a10b7c0": {
@@ -1137,5 +1058,872 @@
       ]
     },
     "completed_task_ids": []
+  },
+  "2e0c13de": {
+    "role": "AI/ML Engineer",
+    "plan": {
+      "role": "AI/ML Engineer",
+      "total_days": 6,
+      "focus_skills": [
+        "TensorFlow",
+        "PyTorch",
+        "Scikit-learn",
+        "MLflow"
+      ],
+      "plan": [
+        {
+          "day": 1,
+          "theme": "Scikit-learn Fundamentals & ML Pipeline Basics",
+          "tasks": [
+            {
+              "id": "day1_task1",
+              "title": "Scikit-learn Core API & Data Preprocessing",
+              "description": "Learn Scikit-learn's fit/predict/transform API. Practice data loading, splitting (train/test), scaling (StandardScaler), encoding (LabelEncoder, OneHotEncoder), and imputation using sklearn.preprocessing and sklearn.impute.",
+              "hours": 2,
+              "skill": "Scikit-learn",
+              "resource": "https://scikit-learn.org/stable/user_guide.html"
+            },
+            {
+              "id": "day1_task2",
+              "title": "Build & Evaluate Classic ML Models",
+              "description": "Implement and compare Logistic Regression, Random Forest, and SVM classifiers on a dataset like Iris or Digits. Use metrics (accuracy, precision, recall, F1) and cross-validation (cross_val_score).",
+              "hours": 2.5,
+              "skill": "Scikit-learn",
+              "resource": "https://scikit-learn.org/stable/tutorial/statistical_inference/supervised_learning.html"
+            },
+            {
+              "id": "day1_task3",
+              "title": "Mini-Project: End-to-end ML Pipeline with Scikit-learn",
+              "description": "Build a complete pipeline: load a dataset (e.g., Titanic from seaborn or sklearn.datasets.fetch_california_housing), preprocess features, train a model (e.g., RandomForestRegressor), evaluate with RMSE/MAE, and save the model using joblib.",
+              "hours": 3,
+              "skill": "Scikit-learn",
+              "resource": "https://scikit-learn.org/stable/modules/compose.html"
+            }
+          ]
+        },
+        {
+          "day": 2,
+          "theme": "TensorFlow Core & Neural Network Implementation",
+          "tasks": [
+            {
+              "id": "day2_task1",
+              "title": "TensorFlow 2.x Basics: Tensors, Layers, Models",
+              "description": "Learn TensorFlow tensors, operations, and automatic differentiation. Build a Sequential model with Dense layers, compile with optimizer/loss, and understand training loops using model.fit().",
+              "hours": 2,
+              "skill": "TensorFlow",
+              "resource": "https://www.tensorflow.org/tutorials/quickstart/beginner"
+            },
+            {
+              "id": "day2_task2",
+              "title": "Implement a Feedforward Neural Network",
+              "description": "Create a neural network for classification (e.g., MNIST digits). Use tf.keras.layers (Dense, Dropout, Flatten), compile with Adam optimizer and sparse_categorical_crossentropy, train, and evaluate accuracy.",
+              "hours": 2.5,
+              "skill": "TensorFlow",
+              "resource": "https://www.tensorflow.org/tutorials/keras/classification"
+            },
+            {
+              "id": "day2_task3",
+              "title": "Mini-Project: Image Classifier with CNN using TensorFlow",
+              "description": "Build a Convolutional Neural Network (CNN) using tf.keras.layers.Conv2D, MaxPooling2D, etc. Train on CIFAR-10 or a subset, visualize training history, and make predictions on test images.",
+              "hours": 3,
+              "skill": "TensorFlow",
+              "resource": "https://www.tensorflow.org/tutorials/images/cnn"
+            }
+          ]
+        },
+        {
+          "day": 3,
+          "theme": "PyTorch Fundamentals & Dynamic Computation Graphs",
+          "tasks": [
+            {
+              "id": "day3_task1",
+              "title": "PyTorch Tensors, Autograd, and NN Module",
+              "description": "Learn PyTorch tensor creation, operations, and automatic differentiation (autograd). Build a custom neural network by subclassing nn.Module, define forward pass, and use nn.Linear, nn.ReLU.",
+              "hours": 2,
+              "skill": "PyTorch",
+              "resource": "https://pytorch.org/tutorials/beginner/basics/intro.html"
+            },
+            {
+              "id": "day3_task2",
+              "title": "Train a Model with PyTorch: DataLoader & Training Loop",
+              "description": "Create a Dataset and DataLoader for batching. Write a manual training loop: forward pass, loss calculation (nn.CrossEntropyLoss), backward pass (loss.backward()), and optimizer step (torch.optim.SGD).",
+              "hours": 2.5,
+              "skill": "PyTorch",
+              "resource": "https://pytorch.org/tutorials/beginner/basics/optimization_tutorial.html"
+            },
+            {
+              "id": "day3_task3",
+              "title": "Mini-Project: Text Classifier with PyTorch and NLP Basics",
+              "description": "Build a text classification model using a simple embedding layer (nn.Embedding) and linear layers. Preprocess text data (tokenization, vocabulary), train on a small dataset (e.g., AG News subset), and evaluate.",
+              "hours": 3,
+              "skill": "PyTorch",
+              "resource": "https://pytorch.org/tutorials/beginner/text_sentiment_ngrams_tutorial.html"
+            }
+          ]
+        },
+        {
+          "day": 4,
+          "theme": "MLflow for Experiment Tracking & Model Management",
+          "tasks": [
+            {
+              "id": "day4_task1",
+              "title": "MLflow Setup and Basic Logging",
+              "description": "Install MLflow, start the tracking server locally. Learn to log parameters, metrics, and artifacts. Experiment with mlflow.start_run(), log_param(), log_metric(), and log_artifact().",
+              "hours": 2,
+              "skill": "MLflow",
+              "resource": "https://mlflow.org/docs/latest/tracking.html"
+            },
+            {
+              "id": "day4_task2",
+              "title": "Log Scikit-learn and TensorFlow Models to MLflow",
+              "description": "Use mlflow.sklearn.autolog() and mlflow.tensorflow.autolog() during model training. Log a trained Scikit-learn model and a TensorFlow Keras model, then load them back for inference.",
+              "hours": 2,
+              "skill": "MLflow",
+              "resource": "https://mlflow.org/docs/latest/python_api/mlflow.sklearn.html"
+            },
+            {
+              "id": "day4_task3",
+              "title": "Mini-Project: End-to-end ML Pipeline with MLflow Tracking",
+              "description": "Create a script that trains multiple Scikit-learn models (e.g., Logistic Regression, Random Forest) on a dataset, logs each experiment to MLflow with different hyperparameters, compares metrics in the UI, and registers the best model.",
+              "hours": 3,
+              "skill": "MLflow",
+              "resource": "https://mlflow.org/docs/latest/tutorials-and-examples/tutorial.html"
+            }
+          ]
+        },
+        {
+          "day": 5,
+          "theme": "Advanced Model Integration & Production Patterns",
+          "tasks": [
+            {
+              "id": "day5_task1",
+              "title": "Build a FastAPI Service for Model Inference",
+              "description": "Create a FastAPI app that loads a saved Scikit-learn or TensorFlow model. Define a POST endpoint that accepts input data, runs prediction, and returns results. Test with curl or Postman.",
+              "hours": 2,
+              "skill": "Model Integration",
+              "resource": "https://fastapi.tiangolo.com/"
+            },
+            {
+              "id": "day5_task2",
+              "title": "Containerize ML Model with Docker",
+              "description": "Write a Dockerfile for the FastAPI model service. Include dependencies (requirements.txt), copy model file, expose port, and set up CMD. Build the image and run a container locally.",
+              "hours": 2,
+              "skill": "Docker",
+              "resource": "https://docs.docker.com/get-started/"
+            },
+            {
+              "id": "day5_task3",
+              "title": "Mini-Project: ML Pipeline with MLflow Model Registry & API",
+              "description": "Train a model, log it to MLflow, and register it in the Model Registry. Then, build a separate FastAPI service that fetches the latest production model from the registry and serves predictions.",
+              "hours": 3,
+              "skill": "MLflow, Model Integration",
+              "resource": "https://mlflow.org/docs/latest/model-registry.html"
+            }
+          ]
+        },
+        {
+          "day": 6,
+          "theme": "Synthesis & Real-world AI/ML System",
+          "tasks": [
+            {
+              "id": "day6_task1",
+              "title": "Compare TensorFlow vs PyTorch for a Custom Task",
+              "description": "Implement the same neural network architecture (e.g., a simple CNN or RNN) in both TensorFlow and PyTorch for a small dataset. Compare code structure, training loops, and ease of debugging.",
+              "hours": 2.5,
+              "skill": "TensorFlow, PyTorch",
+              "resource": "https://www.tensorflow.org/guide/keras, https://pytorch.org/tutorials/beginner/nn_tutorial.html"
+            },
+            {
+              "id": "day6_task2",
+              "title": "Build a Recommendation System with Scikit-learn",
+              "description": "Create a collaborative filtering or content-based recommendation model using Scikit-learn's NearestNeighbors or matrix factorization. Test on a dataset like MovieLens small.",
+              "hours": 2,
+              "skill": "Scikit-learn",
+              "resource": "https://scikit-learn.org/stable/modules/neighbors.html"
+            },
+            {
+              "id": "day6_task3",
+              "title": "Capstone Project: Full ML Lifecycle with All Tools",
+              "description": "End-to-end project: Use Scikit-learn for preprocessing and baseline model, PyTorch/TensorFlow for a neural network, track experiments in MLflow, register the best model, and create a Dockerized FastAPI service that uses the model. Simulate a CI/CD trigger.",
+              "hours": 4,
+              "skill": "TensorFlow, PyTorch, Scikit-learn, MLflow",
+              "resource": "https://mlflow.org/docs/latest/tutorials-and-examples/tutorial.html"
+            }
+          ]
+        }
+      ]
+    },
+    "completed_task_ids": []
+  },
+  "be40697e": {
+    "role": "Java Microservices Developer",
+    "plan": {
+      "role": "Java Microservices Developer",
+      "total_days": 18,
+      "focus_skills": [
+        "REST API",
+        "JWT",
+        "RabbitMQ"
+      ],
+      "plan": [
+        {
+          "day": 1,
+          "theme": "REST API Fundamentals",
+          "tasks": [
+            {
+              "id": "d1t1",
+              "title": "Design RESTful endpoints and resources",
+              "skill": "REST API",
+              "hours": 2,
+              "resource": "https://restfulapi.net/",
+              "description": "Design RESTful endpoints and resources"
+            },
+            {
+              "id": "d1t2",
+              "title": "Build a simple book catalog API",
+              "skill": "REST API",
+              "hours": 2,
+              "resource": "https://restfulapi.net/",
+              "description": "Build a simple book catalog API"
+            }
+          ]
+        },
+        {
+          "day": 2,
+          "theme": "JWT Structure and Generation",
+          "tasks": [
+            {
+              "id": "d2t1",
+              "title": "Analyze JWT Header and Payload",
+              "skill": "JWT",
+              "hours": 2,
+              "resource": "https://jwt.io/introduction/",
+              "description": "Analyze JWT Header and Payload"
+            },
+            {
+              "id": "d2t2",
+              "title": "Generate and Sign a JWT",
+              "skill": "JWT",
+              "hours": 2,
+              "resource": "https://jwt.io/introduction/",
+              "description": "Generate and Sign a JWT"
+            }
+          ]
+        },
+        {
+          "day": 3,
+          "theme": "RabbitMQ Core Concepts",
+          "tasks": [
+            {
+              "id": "d3t1",
+              "title": "Study exchanges, queues, and bindings",
+              "skill": "RabbitMQ",
+              "hours": 2,
+              "resource": "https://www.google.com/search?q=rabbitmq+tutorial",
+              "description": "Study exchanges, queues, and bindings"
+            },
+            {
+              "id": "d3t2",
+              "title": "Implement producer-consumer with RabbitMQ",
+              "skill": "RabbitMQ",
+              "hours": 2,
+              "resource": "https://www.google.com/search?q=rabbitmq+tutorial",
+              "description": "Implement producer-consumer with RabbitMQ"
+            }
+          ]
+        },
+        {
+          "day": 4,
+          "theme": "Designing RESTful Endpoints",
+          "tasks": [
+            {
+              "id": "d4t1",
+              "title": "Design User Resource REST Endpoints",
+              "skill": "REST API",
+              "hours": 2,
+              "resource": "https://restfulapi.net/",
+              "description": "Design User Resource REST Endpoints"
+            },
+            {
+              "id": "d4t2",
+              "title": "Implement Product Catalog API",
+              "skill": "REST API",
+              "hours": 2,
+              "resource": "https://restfulapi.net/",
+              "description": "Implement Product Catalog API"
+            }
+          ]
+        },
+        {
+          "day": 5,
+          "theme": "JWT Validation and Security",
+          "tasks": [
+            {
+              "id": "d5t1",
+              "title": "Implement JWT validation logic",
+              "skill": "JWT",
+              "hours": 2,
+              "resource": "https://jwt.io/introduction/",
+              "description": "Implement JWT validation logic"
+            },
+            {
+              "id": "d5t2",
+              "title": "Build secure JWT authentication service",
+              "skill": "JWT",
+              "hours": 2,
+              "resource": "https://jwt.io/introduction/",
+              "description": "Build secure JWT authentication service"
+            }
+          ]
+        },
+        {
+          "day": 6,
+          "theme": "RabbitMQ Exchanges and Queues",
+          "tasks": [
+            {
+              "id": "d6t1",
+              "title": "Configure Direct and Topic Exchanges",
+              "skill": "RabbitMQ",
+              "hours": 2,
+              "resource": "https://www.google.com/search?q=rabbitmq+tutorial",
+              "description": "Configure Direct and Topic Exchanges"
+            },
+            {
+              "id": "d6t2",
+              "title": "Build Producer-Consumer with Fanout Exchange",
+              "skill": "RabbitMQ",
+              "hours": 2,
+              "resource": "https://www.google.com/search?q=rabbitmq+tutorial",
+              "description": "Build Producer-Consumer with Fanout Exchange"
+            }
+          ]
+        },
+        {
+          "day": 7,
+          "theme": "Spring Boot REST Controllers",
+          "tasks": [
+            {
+              "id": "d7t1",
+              "title": "Create REST Controller with CRUD",
+              "skill": "REST API",
+              "hours": 2,
+              "resource": "https://restfulapi.net/",
+              "description": "Create REST Controller with CRUD"
+            },
+            {
+              "id": "d7t2",
+              "title": "Build Book Management API",
+              "skill": "REST API",
+              "hours": 2,
+              "resource": "https://restfulapi.net/",
+              "description": "Build Book Management API"
+            }
+          ]
+        },
+        {
+          "day": 8,
+          "theme": "Implementing JWT in Spring Security",
+          "tasks": [
+            {
+              "id": "d8t1",
+              "title": "Configure JWT authentication filter",
+              "skill": "JWT",
+              "hours": 2,
+              "resource": "https://jwt.io/introduction/",
+              "description": "Configure JWT authentication filter"
+            },
+            {
+              "id": "d8t2",
+              "title": "Build secure user login endpoint",
+              "skill": "JWT",
+              "hours": 2,
+              "resource": "https://jwt.io/introduction/",
+              "description": "Build secure user login endpoint"
+            }
+          ]
+        },
+        {
+          "day": 9,
+          "theme": "RabbitMQ Message Producers",
+          "tasks": [
+            {
+              "id": "d9t1",
+              "title": "Configure and connect to RabbitMQ",
+              "skill": "RabbitMQ",
+              "hours": 2,
+              "resource": "https://www.google.com/search?q=rabbitmq+tutorial",
+              "description": "Configure and connect to RabbitMQ"
+            },
+            {
+              "id": "d9t2",
+              "title": "Build a Spring Boot message publisher",
+              "skill": "RabbitMQ",
+              "hours": 2,
+              "resource": "https://www.google.com/search?q=rabbitmq+tutorial",
+              "description": "Build a Spring Boot message publisher"
+            }
+          ]
+        },
+        {
+          "day": 10,
+          "theme": "REST API Error Handling",
+          "tasks": [
+            {
+              "id": "d10t1",
+              "title": "Implement Global Exception Handler",
+              "skill": "REST API",
+              "hours": 2,
+              "resource": "https://restfulapi.net/",
+              "description": "Implement Global Exception Handler"
+            },
+            {
+              "id": "d10t2",
+              "title": "Build Error Response Microservice",
+              "skill": "REST API",
+              "hours": 2,
+              "resource": "https://restfulapi.net/",
+              "description": "Build Error Response Microservice"
+            }
+          ]
+        },
+        {
+          "day": 11,
+          "theme": "JWT Refresh Token Patterns",
+          "tasks": [
+            {
+              "id": "d11t1",
+              "title": "Implement Refresh Token Rotation",
+              "skill": "JWT",
+              "hours": 2,
+              "resource": "https://jwt.io/introduction/",
+              "description": "Implement Refresh Token Rotation"
+            },
+            {
+              "id": "d11t2",
+              "title": "Build Secure Token Refresh Endpoint",
+              "skill": "JWT",
+              "hours": 2,
+              "resource": "https://jwt.io/introduction/",
+              "description": "Build Secure Token Refresh Endpoint"
+            }
+          ]
+        },
+        {
+          "day": 12,
+          "theme": "RabbitMQ Message Consumers",
+          "tasks": [
+            {
+              "id": "d12t1",
+              "title": "Implement a durable queue consumer",
+              "skill": "RabbitMQ",
+              "hours": 2,
+              "resource": "https://www.google.com/search?q=rabbitmq+tutorial",
+              "description": "Implement a durable queue consumer"
+            },
+            {
+              "id": "d12t2",
+              "title": "Build order processing microservice with RabbitMQ",
+              "skill": "RabbitMQ",
+              "hours": 2,
+              "resource": "https://www.google.com/search?q=rabbitmq+tutorial",
+              "description": "Build order processing microservice with RabbitMQ"
+            }
+          ]
+        },
+        {
+          "day": 13,
+          "theme": "REST API Documentation with OpenAPI",
+          "tasks": [
+            {
+              "id": "d13t1",
+              "title": "Define API contracts with OpenAPI",
+              "skill": "REST API",
+              "hours": 2,
+              "resource": "https://restfulapi.net/",
+              "description": "Define API contracts with OpenAPI"
+            },
+            {
+              "id": "d13t2",
+              "title": "Generate interactive API documentation",
+              "skill": "REST API",
+              "hours": 2,
+              "resource": "https://restfulapi.net/",
+              "description": "Generate interactive API documentation"
+            }
+          ]
+        },
+        {
+          "day": 14,
+          "theme": "Securing Microservices with JWT",
+          "tasks": [
+            {
+              "id": "d14t1",
+              "title": "Implement JWT token generation and validation",
+              "skill": "JWT",
+              "hours": 2,
+              "resource": "https://jwt.io/introduction/",
+              "description": "Implement JWT token generation and validation"
+            },
+            {
+              "id": "d14t2",
+              "title": "Build a secure user authentication service",
+              "skill": "JWT",
+              "hours": 2,
+              "resource": "https://jwt.io/introduction/",
+              "description": "Build a secure user authentication service"
+            }
+          ]
+        },
+        {
+          "day": 15,
+          "theme": "RabbitMQ Message Acknowledgment",
+          "tasks": [
+            {
+              "id": "d15t1",
+              "title": "Study acknowledgment modes and guarantees",
+              "skill": "RabbitMQ",
+              "hours": 2,
+              "resource": "https://www.google.com/search?q=rabbitmq+tutorial",
+              "description": "Study acknowledgment modes and guarantees"
+            },
+            {
+              "id": "d15t2",
+              "title": "Implement manual ack in consumer service",
+              "skill": "RabbitMQ",
+              "hours": 2,
+              "resource": "https://www.google.com/search?q=rabbitmq+tutorial",
+              "description": "Implement manual ack in consumer service"
+            }
+          ]
+        },
+        {
+          "day": 16,
+          "theme": "REST API Testing Strategies",
+          "tasks": [
+            {
+              "id": "d16t1",
+              "title": "Design API contract tests",
+              "skill": "REST API",
+              "hours": 2,
+              "resource": "https://restfulapi.net/",
+              "description": "Design API contract tests"
+            },
+            {
+              "id": "d16t2",
+              "title": "Build a mock API server",
+              "skill": "REST API",
+              "hours": 2,
+              "resource": "https://restfulapi.net/",
+              "description": "Build a mock API server"
+            }
+          ]
+        },
+        {
+          "day": 17,
+          "theme": "JWT Best Practices and Pitfalls",
+          "tasks": [
+            {
+              "id": "d17t1",
+              "title": "Review JWT security best practices",
+              "skill": "JWT",
+              "hours": 2,
+              "resource": "https://jwt.io/introduction/",
+              "description": "Review JWT security best practices"
+            },
+            {
+              "id": "d17t2",
+              "title": "Implement secure JWT validation service",
+              "skill": "JWT",
+              "hours": 2,
+              "resource": "https://jwt.io/introduction/",
+              "description": "Implement secure JWT validation service"
+            }
+          ]
+        },
+        {
+          "day": 18,
+          "theme": "RabbitMQ for Event-Driven Architecture",
+          "tasks": [
+            {
+              "id": "d18t1",
+              "title": "Set up RabbitMQ with Spring AMQP",
+              "skill": "RabbitMQ",
+              "hours": 2,
+              "resource": "https://www.google.com/search?q=rabbitmq+tutorial",
+              "description": "Set up RabbitMQ with Spring AMQP"
+            },
+            {
+              "id": "d18t2",
+              "title": "Build order event publisher and consumer",
+              "skill": "RabbitMQ",
+              "hours": 2,
+              "resource": "https://www.google.com/search?q=rabbitmq+tutorial",
+              "description": "Build order event publisher and consumer"
+            }
+          ]
+        }
+      ]
+    },
+    "completed_task_ids": []
+  },
+  "9fee67bd": {
+    "role": "Java Microservices Developer",
+    "plan": {
+      "role": "Java Microservices Developer",
+      "total_days": 14,
+      "focus_skills": [
+        "REST API",
+        "JWT",
+        "RabbitMQ"
+      ],
+      "plan": [
+        {
+          "day": 1,
+          "theme": "REST Fundamentals and Design Principles",
+          "tasks": [
+            {
+              "id": "d1t1",
+              "title": "Study REST constraints and Richardson Maturity Model",
+              "skill": "REST API",
+              "hours": 2,
+              "resource": "https://restfulapi.net/",
+              "description": "Study REST constraints and Richardson Maturity Model"
+            },
+            {
+              "id": "d1t2",
+              "title": "Design a simple book catalog REST API",
+              "skill": "REST API",
+              "hours": 2,
+              "resource": "https://restfulapi.net/",
+              "description": "Design a simple book catalog REST API"
+            }
+          ]
+        },
+        {
+          "day": 2,
+          "theme": "JWT Structure and Manual Creation/Verification",
+          "tasks": [
+            {
+              "id": "d2t1",
+              "title": "Decode and analyze JWT structure",
+              "skill": "JWT",
+              "hours": 2,
+              "resource": "https://jwt.io/introduction/",
+              "description": "Decode and analyze JWT structure"
+            },
+            {
+              "id": "d2t2",
+              "title": "Manually create and verify JWT",
+              "skill": "JWT",
+              "hours": 2,
+              "resource": "https://jwt.io/introduction/",
+              "description": "Manually create and verify JWT"
+            }
+          ]
+        },
+        {
+          "day": 3,
+          "theme": "RabbitMQ Core Concepts and Simple Messaging",
+          "tasks": [
+            {
+              "id": "d3t1",
+              "title": "Study RabbitMQ fundamentals",
+              "skill": "RabbitMQ",
+              "hours": 2,
+              "resource": "https://www.google.com/search?q=rabbitmq+tutorial",
+              "description": "Study RabbitMQ fundamentals"
+            },
+            {
+              "id": "d3t2",
+              "title": "Build RabbitMQ mini-project",
+              "skill": "RabbitMQ",
+              "hours": 2,
+              "resource": "https://www.google.com/search?q=rabbitmq+tutorial",
+              "description": "Build RabbitMQ mini-project"
+            }
+          ]
+        },
+        {
+          "day": 4,
+          "theme": "Building Robust REST Controllers and Exception Handling",
+          "tasks": [
+            {
+              "id": "d4t1",
+              "title": "Implement Global Exception Handler",
+              "skill": "REST API",
+              "hours": 2,
+              "resource": "https://restfulapi.net/",
+              "description": "Implement Global Exception Handler"
+            },
+            {
+              "id": "d4t2",
+              "title": "Build Product Catalog REST Controller",
+              "skill": "REST API",
+              "hours": 2,
+              "resource": "https://restfulapi.net/",
+              "description": "Build Product Catalog REST Controller"
+            }
+          ]
+        },
+        {
+          "day": 5,
+          "theme": "JWT Integration with Spring Security for Authentication",
+          "tasks": [
+            {
+              "id": "d5t1",
+              "title": "Configure JWT filters and providers",
+              "skill": "JWT",
+              "hours": 2,
+              "resource": "https://jwt.io/introduction/",
+              "description": "Configure JWT filters and providers"
+            },
+            {
+              "id": "d5t2",
+              "title": "Implement secure login and token validation",
+              "skill": "JWT",
+              "hours": 2,
+              "resource": "https://jwt.io/introduction/",
+              "description": "Implement secure login and token validation"
+            }
+          ]
+        },
+        {
+          "day": 6,
+          "theme": "RabbitMQ Exchanges, Bindings, and Routing",
+          "tasks": [
+            {
+              "id": "d6t1",
+              "title": "Study exchange types and bindings",
+              "skill": "RabbitMQ",
+              "hours": 2,
+              "resource": "https://www.google.com/search?q=rabbitmq+tutorial",
+              "description": "Study exchange types and bindings"
+            },
+            {
+              "id": "d6t2",
+              "title": "Implement routing with topic exchanges",
+              "skill": "RabbitMQ",
+              "hours": 2,
+              "resource": "https://www.google.com/search?q=rabbitmq+tutorial",
+              "description": "Implement routing with topic exchanges"
+            }
+          ]
+        },
+        {
+          "day": 7,
+          "theme": "Advanced REST: HATEOAS, Versioning, and Documentation",
+          "tasks": [
+            {
+              "id": "d7t1",
+              "title": "Study REST API fundamentals",
+              "skill": "REST API",
+              "hours": 2,
+              "resource": "https://restfulapi.net/",
+              "description": "Study REST API fundamentals"
+            },
+            {
+              "id": "d7t2",
+              "title": "Build REST API mini-project",
+              "skill": "REST API",
+              "hours": 2,
+              "resource": "https://restfulapi.net/",
+              "description": "Build REST API mini-project"
+            }
+          ]
+        },
+        {
+          "day": 8,
+          "theme": "JWT Refresh Tokens and Secure Storage Strategies",
+          "tasks": [
+            {
+              "id": "d8t1",
+              "title": "Implement JWT refresh token endpoint",
+              "skill": "JWT",
+              "hours": 2,
+              "resource": "https://jwt.io/introduction/",
+              "description": "Implement JWT refresh token endpoint"
+            },
+            {
+              "id": "d8t2",
+              "title": "Build secure token storage service",
+              "skill": "JWT",
+              "hours": 2,
+              "resource": "https://jwt.io/introduction/",
+              "description": "Build secure token storage service"
+            }
+          ]
+        },
+        {
+          "day": 9,
+          "theme": "RabbitMQ Message Acknowledgments and Durability",
+          "tasks": [
+            {
+              "id": "d9t1",
+              "title": "Study acknowledgment modes and durability",
+              "skill": "RabbitMQ",
+              "hours": 2,
+              "resource": "https://www.google.com/search?q=rabbitmq+tutorial",
+              "description": "Study acknowledgment modes and durability"
+            },
+            {
+              "id": "d9t2",
+              "title": "Build a durable producer-consumer service",
+              "skill": "RabbitMQ",
+              "hours": 2,
+              "resource": "https://www.google.com/search?q=rabbitmq+tutorial",
+              "description": "Build a durable producer-consumer service"
+            }
+          ]
+        },
+        {
+          "day": 10,
+          "theme": "REST API Testing with MockMvc and Integration Tests",
+          "tasks": [
+            {
+              "id": "d10t1",
+              "title": "Write MockMvc unit tests",
+              "skill": "REST API",
+              "hours": 2,
+              "resource": "https://restfulapi.net/",
+              "description": "Write MockMvc unit tests"
+            },
+            {
+              "id": "d10t2",
+              "title": "Build a tested REST controller",
+              "skill": "REST API",
+              "hours": 2,
+              "resource": "https://restfulapi.net/",
+              "description": "Build a tested REST controller"
+            }
+          ]
+        },
+        {
+          "day": 11,
+          "theme": "JWT in a Microservices Context and Token Propagation",
+          "tasks": [
+            {
+              "id": "d11t1",
+              "title": "Study JWT propagation patterns",
+              "skill": "JWT",
+              "hours": 2,
+              "resource": "https://jwt.io/introduction/",
+              "description": "Study JWT propagation patterns"
+            },
+            {
+              "id": "d11t2",
+              "title": "Implement token forwarding service",
+              "skill": "JWT",
+              "hours": 2,
+              "resource": "https://jwt.io/introduction/",
+              "description": "Implement token forwarding service"
+            }
+          ]
+        }
+      ]
+    },
+    "completed_task_ids": [
+      "d1t1",
+      "d1t2"
+    ]
   }
 }
