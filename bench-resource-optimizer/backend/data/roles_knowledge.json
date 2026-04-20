@@ -1,0 +1,72 @@
+{
+  "roles": [
+    {
+      "id": "java-microservices-dev",
+      "title": "Java Microservices Developer",
+      "description": "Builds scalable backend microservices using Java/Spring Boot ecosystem.",
+      "required_skills": ["Java", "Spring Boot", "REST API", "JWT", "Docker", "Kubernetes", "Maven", "PostgreSQL", "RabbitMQ", "Git"],
+      "experience_years": 2,
+      "learning_resources": {
+        "Java": "https://docs.oracle.com/en/java/",
+        "Spring Boot": "https://spring.io/guides",
+        "Docker": "https://docs.docker.com/get-started/"
+      }
+    },
+    {
+      "id": "frontend-angular-dev",
+      "title": "Frontend Angular Developer",
+      "description": "Builds responsive web applications using Angular framework.",
+      "required_skills": ["Angular", "TypeScript", "RxJS", "HTML5", "CSS3", "REST API", "Git", "NgRx", "Jasmine", "Webpack"],
+      "experience_years": 2,
+      "learning_resources": {
+        "Angular": "https://angular.io/docs",
+        "TypeScript": "https://www.typescriptlang.org/docs/",
+        "RxJS": "https://rxjs.dev/guide/overview"
+      }
+    },
+    {
+      "id": "fullstack-react-node",
+      "title": "Fullstack React Node Developer",
+      "description": "Builds full-stack web apps with React frontend and Node.js backend.",
+      "required_skills": ["React", "Node.js", "Express.js", "JavaScript", "TypeScript", "MongoDB", "REST API", "Git", "Redux", "Docker"],
+      "experience_years": 3,
+      "learning_resources": {
+        "React": "https://react.dev/learn",
+        "Node.js": "https://nodejs.org/en/docs"
+      }
+    },
+    {
+      "id": "devops-engineer",
+      "title": "DevOps Engineer",
+      "description": "Manages CI/CD pipelines, cloud infrastructure, and deployment automation.",
+      "required_skills": ["Docker", "Kubernetes", "Jenkins", "Terraform", "AWS", "Linux", "Git", "Bash", "Ansible", "Prometheus"],
+      "experience_years": 3,
+      "learning_resources": {
+        "Kubernetes": "https://kubernetes.io/docs/",
+        "Terraform": "https://developer.hashicorp.com/terraform/docs"
+      }
+    },
+    {
+      "id": "python-data-engineer",
+      "title": "Python Data Engineer",
+      "description": "Builds data pipelines and ETL workflows using Python and cloud services.",
+      "required_skills": ["Python", "PySpark", "SQL", "Airflow", "Pandas", "AWS S3", "Kafka", "Docker", "Git", "dbt"],
+      "experience_years": 2,
+      "learning_resources": {
+        "PySpark": "https://spark.apache.org/docs/latest/api/python/",
+        "Airflow": "https://airflow.apache.org/docs/"
+      }
+    },
+    {
+      "id": "ai-ml-engineer",
+      "title": "AI/ML Engineer",
+      "description": "Develops and deploys machine learning models for production use cases.",
+      "required_skills": ["Python", "TensorFlow", "PyTorch", "Scikit-learn", "SQL", "MLflow", "Docker", "FastAPI", "Git", "LangChain"],
+      "experience_years": 3,
+      "learning_resources": {
+        "PyTorch": "https://pytorch.org/tutorials/",
+        "LangChain": "https://python.langchain.com/docs/"
+      }
+    }
+  ]
+}

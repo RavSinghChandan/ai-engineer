@@ -1,0 +1,286 @@
+{
+  "f819a86c": {
+    "profile": {
+      "name": "Ravi Kumar",
+      "email": "ravi@example.com",
+      "skills": [
+        "Python",
+        "FastAPI",
+        "Docker",
+        "Git",
+        "SQL"
+      ],
+      "experience_years": 3,
+      "roles": [
+        "Backend Developer"
+      ],
+      "projects": [],
+      "education": "B.Tech Computer Science"
+    },
+    "resume_text": "test"
+  },
+  "1a10b7c0": {
+    "profile": {
+      "name": "Chandan Kumar",
+      "email": "peravchandan15@gmail.com",
+      "phone": "+91 62909 09518",
+      "skills": [
+        "Java (8/11/17)",
+        "Python",
+        "JavaScript",
+        "TypeScript",
+        "SQL",
+        "LLM APIs",
+        "Prompt Engineering",
+        "NLP Basics",
+        "Model Integration",
+        "Spring Boot",
+        "FastAPI",
+        "Flask",
+        "Spring MVC",
+        "Hibernate",
+        "JPA",
+        "OpenAI API",
+        "LangChain",
+        "Vector Databases (FAISS)",
+        "Pandas",
+        "NumPy",
+        "Apache Kafka (Producer/Consumer, async processing)",
+        "Oracle",
+        "PostgreSQL",
+        "MySQL",
+        "MongoDB",
+        "Docker",
+        "Kubernetes",
+        "Jenkins",
+        "Maven",
+        "Git",
+        "CI/CD",
+        "AI-enabled Microservices",
+        "Event-Driven Architecture",
+        "Design Patterns",
+        "DSA",
+        "Scalability",
+        "Resiliency"
+      ],
+      "experience_years": 4,
+      "roles": [
+        "Senior Software Engineer",
+        "Software Engineer, Backend",
+        "Software Engineer"
+      ],
+      "projects": [
+        {
+          "name": "RAV AI Platform",
+          "description": "Built a production-ready AI platform evolving from LLM-based APIs into a scalable system supporting chatbot, summarization, and decision workflows.",
+          "technologies": [
+            "Spring Boot",
+            "Python (FastAPI)",
+            "FAISS",
+            "Kafka"
+          ]
+        }
+      ],
+      "education": "B.Tech \u2014 Computer Science & Engineering"
+    },
+    "resume_text": "Chandan Kumar\n\u2642phone+91 62909 09518/envel\u2322peravchandan15@gmail.com/githubgithub/linkedinlinkedin\nProfessional Summary\nAI Engineer with4+ yearsof experience designing and buildingscalable backend systems with integrated AI capabilities\nfor production environments. Strong expertise inPython, LLM-powered systems, and AI-driven backend architectures\nleveraging REST APIs, event-driven microservices, and distributed systems.\nProven ability to buildend-to-end AI-enabled platformsincluding conversationa"
+  },
+  "d4fa6a9a": {
+    "profile": {
+      "name": "Chandan Kumar",
+      "email": "peravchandan15@gmail.com",
+      "phone": "+91 62909 09518",
+      "skills": [
+        "Java (8/11/17)",
+        "Python",
+        "JavaScript",
+        "TypeScript",
+        "SQL",
+        "LLM APIs",
+        "Prompt Engineering",
+        "NLP Basics",
+        "Model Integration",
+        "Spring Boot",
+        "FastAPI",
+        "Flask",
+        "Spring MVC",
+        "Hibernate",
+        "JPA",
+        "OpenAI API",
+        "LangChain",
+        "Vector Databases (FAISS)",
+        "Pandas",
+        "NumPy",
+        "Apache Kafka (Producer/Consumer, async processing)",
+        "Oracle",
+        "PostgreSQL",
+        "MySQL",
+        "MongoDB",
+        "Docker",
+        "Kubernetes",
+        "Jenkins",
+        "Maven",
+        "Git",
+        "CI/CD",
+        "AI-enabled Microservices",
+        "Event-Driven Architecture",
+        "Design Patterns",
+        "DSA",
+        "Scalability",
+        "Resiliency"
+      ],
+      "experience_years": 4,
+      "roles": [
+        "Senior Software Engineer",
+        "Software Engineer, Backend",
+        "Software Engineer"
+      ],
+      "projects": [
+        {
+          "name": "RAV AI Platform",
+          "description": "Built a production-ready AI platform evolving from LLM-based APIs into a scalable system supporting chatbot, summarization, and decision workflows.",
+          "technologies": [
+            "Spring Boot",
+            "Python (FastAPI)",
+            "FAISS",
+            "Kafka"
+          ]
+        }
+      ],
+      "education": "B.Tech \u2014 Computer Science & Engineering"
+    },
+    "resume_text": "Chandan Kumar\n\u2642phone+91 62909 09518/envel\u2322peravchandan15@gmail.com/githubgithub/linkedinlinkedin\nProfessional Summary\nAI Engineer with4+ yearsof experience designing and buildingscalable backend systems with integrated AI capabilities\nfor production environments. Strong expertise inPython, LLM-powered systems, and AI-driven backend architectures\nleveraging REST APIs, event-driven microservices, and distributed systems.\nProven ability to buildend-to-end AI-enabled platformsincluding conversationa"
+  },
+  "6efaad1b": {
+    "profile": {
+      "name": "Chandan Kumar",
+      "email": "peravchandan15@gmail.com",
+      "phone": "+91 62909 09518",
+      "skills": [
+        "Java (8/11/17)",
+        "Python",
+        "JavaScript",
+        "TypeScript",
+        "SQL",
+        "LLM APIs",
+        "Prompt Engineering",
+        "NLP Basics",
+        "Model Integration",
+        "Spring Boot",
+        "FastAPI",
+        "Flask",
+        "Spring MVC",
+        "Hibernate",
+        "JPA",
+        "OpenAI API",
+        "LangChain",
+        "Vector Databases (FAISS)",
+        "Pandas",
+        "NumPy",
+        "Apache Kafka (Producer/Consumer, async processing)",
+        "Oracle",
+        "PostgreSQL",
+        "MySQL",
+        "MongoDB",
+        "Docker",
+        "Kubernetes",
+        "Jenkins",
+        "Maven",
+        "Git",
+        "CI/CD",
+        "AI-enabled Microservices",
+        "Event-Driven Architecture",
+        "Design Patterns",
+        "DSA",
+        "Scalability",
+        "Resiliency"
+      ],
+      "experience_years": 4,
+      "roles": [
+        "Senior Software Engineer",
+        "Software Engineer, Backend",
+        "Software Engineer"
+      ],
+      "projects": [
+        {
+          "name": "RAV AI Platform",
+          "description": "Built a production-ready AI platform evolving from LLM-based APIs into a scalable system supporting chatbot, summarization, and decision workflows.",
+          "technologies": [
+            "Spring Boot",
+            "Python (FastAPI)",
+            "FAISS",
+            "Kafka"
+          ]
+        }
+      ],
+      "education": "B.Tech \u2014 Computer Science & Engineering"
+    },
+    "resume_text": "Chandan Kumar\n\u2642phone+91 62909 09518/envel\u2322peravchandan15@gmail.com/githubgithub/linkedinlinkedin\nProfessional Summary\nAI Engineer with4+ yearsof experience designing and buildingscalable backend systems with integrated AI capabilities\nfor production environments. Strong expertise inPython, LLM-powered systems, and AI-driven backend architectures\nleveraging REST APIs, event-driven microservices, and distributed systems.\nProven ability to buildend-to-end AI-enabled platformsincluding conversationa"
+  },
+  "a4f24cb8": {
+    "profile": {
+      "name": "Chandan Kumar",
+      "email": "peravchandan15@gmail.com",
+      "phone": "+91 62909 09518",
+      "skills": [
+        "Java (8/11/17)",
+        "Python",
+        "JavaScript",
+        "TypeScript",
+        "SQL",
+        "LLM APIs",
+        "Prompt Engineering",
+        "NLP Basics",
+        "Model Integration",
+        "Spring Boot",
+        "FastAPI",
+        "Flask",
+        "Spring MVC",
+        "Hibernate",
+        "JPA",
+        "OpenAI API",
+        "LangChain",
+        "Vector Databases (FAISS)",
+        "Pandas",
+        "NumPy",
+        "Apache Kafka (Producer/Consumer, async processing)",
+        "Oracle",
+        "PostgreSQL",
+        "MySQL",
+        "MongoDB",
+        "Docker",
+        "Kubernetes",
+        "Jenkins",
+        "Maven",
+        "Git",
+        "CI/CD",
+        "AI-enabled Microservices",
+        "Event-Driven Architecture",
+        "Design Patterns",
+        "DSA",
+        "Scalability",
+        "Resiliency"
+      ],
+      "experience_years": 4,
+      "roles": [
+        "Senior Software Engineer",
+        "Software Engineer, Backend",
+        "Software Engineer"
+      ],
+      "projects": [
+        {
+          "name": "RAV AI Platform",
+          "description": "Built a production-ready AI platform evolving from LLM-based APIs into a scalable system supporting chatbot, summarization, and decision workflows.",
+          "technologies": [
+            "Spring Boot",
+            "Python (FastAPI)",
+            "FAISS",
+            "Kafka"
+          ]
+        }
+      ],
+      "education": "B.Tech \u2014 Computer Science & Engineering"
+    },
+    "resume_text": "Chandan Kumar\n\u2642phone+91 62909 09518/envel\u2322peravchandan15@gmail.com/githubgithub/linkedinlinkedin\nProfessional Summary\nAI Engineer with4+ yearsof experience designing and buildingscalable backend systems with integrated AI capabilities\nfor production environments. Strong expertise inPython, LLM-powered systems, and AI-driven backend architectures\nleveraging REST APIs, event-driven microservices, and distributed systems.\nProven ability to buildend-to-end AI-enabled platformsincluding conversationa"
+  }
+}

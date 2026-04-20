@@ -1,0 +1,1141 @@
+{
+  "f819a86c": {
+    "role": "AI/ML Engineer",
+    "plan": {
+      "role": "AI/ML Engineer",
+      "total_days": 7,
+      "focus_skills": [
+        "TensorFlow",
+        "PyTorch",
+        "Scikit-learn",
+        "MLflow"
+      ],
+      "plan": [
+        {
+          "day": 1,
+          "theme": "Scikit-learn Fundamentals & ML Basics",
+          "tasks": [
+            {
+              "id": "day1_task1",
+              "title": "Learn Scikit-learn Core APIs",
+              "description": "Study and practice using Scikit-learn's main modules: datasets, preprocessing, model selection, and evaluation metrics. Write code to load a dataset, split it, and evaluate a simple model.",
+              "hours": 2,
+              "skill": "Scikit-learn",
+              "resource": "https://scikit-learn.org/stable/user_guide.html"
+            },
+            {
+              "id": "day1_task2",
+              "title": "Build a Classification Pipeline",
+              "description": "Create a complete ML pipeline for a classification problem (e.g., Iris or Digits dataset) using Scikit-learn. Include preprocessing (StandardScaler), model training (LogisticRegression or RandomForest), and evaluation (accuracy, confusion matrix).",
+              "hours": 2,
+              "skill": "Scikit-learn",
+              "resource": "https://scikit-learn.org/stable/tutorial/basic/tutorial.html"
+            },
+            {
+              "id": "day1_task3",
+              "title": "Mini-Project: Predict Wine Quality",
+              "description": "Use the Wine Quality dataset to build a regression model predicting wine quality. Implement feature scaling, train a LinearRegression or Ridge model, and evaluate with RMSE and R\u00b2.",
+              "hours": 2,
+              "skill": "Scikit-learn",
+              "resource": "https://archive.ics.uci.edu/ml/datasets/wine+quality"
+            }
+          ]
+        },
+        {
+          "day": 2,
+          "theme": "TensorFlow Introduction & Neural Networks",
+          "tasks": [
+            {
+              "id": "day2_task1",
+              "title": "TensorFlow 2.x Basics & Keras API",
+              "description": "Learn TensorFlow's core concepts: tensors, variables, and automatic differentiation. Practice building sequential models using tf.keras for dense neural networks.",
+              "hours": 2,
+              "skill": "TensorFlow",
+              "resource": "https://www.tensorflow.org/guide/keras/sequential_model"
+            },
+            {
+              "id": "day2_task2",
+              "title": "Train a Neural Network for MNIST",
+              "description": "Build, compile, and train a neural network to classify handwritten digits from the MNIST dataset. Use Flatten, Dense layers, and softmax activation. Monitor training with validation split.",
+              "hours": 2,
+              "skill": "TensorFlow",
+              "resource": "https://www.tensorflow.org/tutorials/quickstart/beginner"
+            },
+            {
+              "id": "day2_task3",
+              "title": "Mini-Project: Fashion MNIST Classifier",
+              "description": "Create a CNN model using TensorFlow/Keras to classify Fashion MNIST images. Include Conv2D, MaxPooling2D, and Dropout layers. Achieve >90% test accuracy.",
+              "hours": 2,
+              "skill": "TensorFlow",
+              "resource": "https://www.tensorflow.org/tutorials/keras/classification"
+            }
+          ]
+        },
+        {
+          "day": 3,
+          "theme": "PyTorch Fundamentals & Dynamic Computation",
+          "tasks": [
+            {
+              "id": "day3_task1",
+              "title": "PyTorch Tensors, Autograd & NN Module",
+              "description": "Learn PyTorch tensor operations, automatic differentiation with autograd, and build neural networks using torch.nn.Module. Compare with TensorFlow approaches.",
+              "hours": 2,
+              "skill": "PyTorch",
+              "resource": "https://pytorch.org/tutorials/beginner/basics/intro.html"
+            },
+            {
+              "id": "day3_task2",
+              "title": "Implement a Custom Training Loop",
+              "description": "Write a training loop from scratch for a simple regression problem. Manually compute loss, backpropagate with loss.backward(), and update weights using an optimizer.",
+              "hours": 2,
+              "skill": "PyTorch",
+              "resource": "https://pytorch.org/tutorials/beginner/pytorch_with_examples.html"
+            },
+            {
+              "id": "day3_task3",
+              "title": "Mini-Project: CIFAR-10 CNN in PyTorch",
+              "description": "Build a Convolutional Neural Network in PyTorch to classify CIFAR-10 images. Use DataLoader for batching, and train with CrossEntropyLoss and SGD optimizer.",
+              "hours": 2,
+              "skill": "PyTorch",
+              "resource": "https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html"
+            }
+          ]
+        },
+        {
+          "day": 4,
+          "theme": "Advanced Model Development & Comparison",
+          "tasks": [
+            {
+              "id": "day4_task1",
+              "title": "Transfer Learning with TensorFlow Hub",
+              "description": "Use a pre-trained model from TensorFlow Hub (e.g., MobileNet) for image classification on a custom dataset. Fine-tune the model by unfreezing top layers.",
+              "hours": 2,
+              "skill": "TensorFlow",
+              "resource": "https://www.tensorflow.org/hub/tutorials/tf2_image_retraining"
+            },
+            {
+              "id": "day4_task2",
+              "title": "Build an LSTM for Text Classification in PyTorch",
+              "description": "Create an LSTM model in PyTorch for sentiment analysis on the IMDB dataset. Use embedding layers and pack_padded_sequence for variable-length sequences.",
+              "hours": 2,
+              "skill": "PyTorch",
+              "resource": "https://pytorch.org/tutorials/beginner/text_sentiment_ngrams_tutorial.html"
+            },
+            {
+              "id": "day4_task3",
+              "title": "Mini-Project: Compare Frameworks on Titanic Dataset",
+              "description": "Solve the Titanic survival prediction problem using both Scikit-learn (RandomForest) and TensorFlow/Keras (neural network). Compare accuracy, training time, and code complexity.",
+              "hours": 2,
+              "skill": "Scikit-learn, TensorFlow",
+              "resource": "https://www.kaggle.com/c/titanic/data"
+            }
+          ]
+        },
+        {
+          "day": 5,
+          "theme": "MLflow for Experiment Tracking & Model Management",
+          "tasks": [
+            {
+              "id": "day5_task1",
+              "title": "MLflow Setup & Basic Logging",
+              "description": "Install MLflow and start a tracking server. Log parameters, metrics, and artifacts from a simple Scikit-learn model training run.",
+              "hours": 1,
+              "skill": "MLflow",
+              "resource": "https://mlflow.org/docs/latest/tracking.html"
+            },
+            {
+              "id": "day5_task2",
+              "title": "Log TensorFlow & PyTorch Experiments",
+              "description": "Integrate MLflow into your TensorFlow and PyTorch training scripts. Log metrics per epoch, model architectures, and final model files.",
+              "hours": 2,
+              "skill": "MLflow, TensorFlow, PyTorch",
+              "resource": "https://mlflow.org/docs/latest/python_api/mlflow.tensorflow.html"
+            },
+            {
+              "id": "day5_task3",
+              "title": "Mini-Project: End-to-End ML Pipeline with MLflow",
+              "description": "Build a complete pipeline for a regression problem: data loading, preprocessing, model training (try multiple algorithms), hyperparameter tuning, and log everything to MLflow. Use the UI to compare runs.",
+              "hours": 3,
+              "skill": "MLflow, Scikit-learn",
+              "resource": "https://mlflow.org/docs/latest/tutorials-and-examples/tutorial.html"
+            }
+          ]
+        },
+        {
+          "day": 6,
+          "theme": "Production Integration & Model Serving",
+          "tasks": [
+            {
+              "id": "day6_task1",
+              "title": "Package a Model with MLflow Models",
+              "description": "Save a trained Scikit-learn model as an MLflow Model. Create a custom Python environment (conda.yaml) and test local serving via mlflow models serve.",
+              "hours": 2,
+              "skill": "MLflow",
+              "resource": "https://mlflow.org/docs/latest/models.html"
+            },
+            {
+              "id": "day6_task2",
+              "title": "Build a FastAPI Service for Model Inference",
+              "description": "Create a FastAPI application that loads a saved ML model (from Scikit-learn or TensorFlow) and exposes a POST endpoint for predictions. Use Pydantic for request validation.",
+              "hours": 2,
+              "skill": "FastAPI, Scikit-learn/TensorFlow",
+              "resource": "https://fastapi.tiangolo.com/tutorial/first-steps/"
+            },
+            {
+              "id": "day6_task3",
+              "title": "Mini-Project: Dockerize the ML Service",
+              "description": "Containerize your FastAPI model service using Docker. Include the model file, dependencies, and expose the API port. Build the image and run it locally.",
+              "hours": 2,
+              "skill": "Docker, FastAPI",
+              "resource": "https://docs.docker.com/get-started/02_our_app/"
+            }
+          ]
+        },
+        {
+          "day": 7,
+          "theme": "End-to-End Project & Workflow Consolidation",
+          "tasks": [
+            {
+              "id": "day7_task1",
+              "title": "Complete ML Project: Image Classifier with Full Stack",
+              "description": "Build an image classification system: train a CNN (TensorFlow/PyTorch), track experiments with MLflow, save the best model, and create a FastAPI service for inference.",
+              "hours": 3,
+              "skill": "TensorFlow/PyTorch, MLflow, FastAPI",
+              "resource": "https://www.tensorflow.org/tutorials/images/classification"
+            },
+            {
+              "id": "day7_task2",
+              "title": "Version Control for ML with Git",
+              "description": "Create a Git repository for your project. Commit code, model files (using Git LFS or excluding large files), and MLflow experiment data. Write a clear README.",
+              "hours": 1,
+              "skill": "Git",
+              "resource": "https://git-scm.com/doc"
+            },
+            {
+              "id": "day7_task3",
+              "title": "Deploy & Test the Full Pipeline",
+              "description": "Run your Dockerized FastAPI service and test it with sample image uploads via curl or Postman. Verify predictions match training performance.",
+              "hours": 2,
+              "skill": "Docker, FastAPI",
+              "resource": "https://docs.docker.com/compose/gettingstarted/"
+            }
+          ]
+        }
+      ]
+    },
+    "completed_task_ids": [
+      "day1_task1",
+      "day1_task2",
+      "day1_task3"
+    ]
+  },
+  "1a10b7c0": {
+    "role": "AI Engineer",
+    "plan": {
+      "role": "AI Engineer",
+      "total_days": 7,
+      "focus_skills": [
+        "PyTorch",
+        "Neural Network Implementation",
+        "Model Training",
+        "Computer Vision",
+        "NLP with PyTorch",
+        "Model Deployment",
+        "Production Integration"
+      ],
+      "plan": [
+        {
+          "day": 1,
+          "theme": "PyTorch Fundamentals & Tensors",
+          "tasks": [
+            {
+              "id": "day1_task1",
+              "title": "Install PyTorch & Explore Core Concepts",
+              "description": "Install PyTorch with CUDA support. Learn about tensors, basic operations (creation, indexing, slicing, reshaping), and automatic differentiation (autograd). Compare with NumPy arrays.",
+              "hours": 2,
+              "skill": "PyTorch",
+              "resource": "https://pytorch.org/tutorials/beginner/basics/tensorqs_tutorial.html"
+            },
+            {
+              "id": "day1_task2",
+              "title": "Build a Simple Linear Regression Model",
+              "description": "Implement a linear regression model from scratch using PyTorch tensors and autograd. Manually define forward pass, loss (MSE), and use gradient descent to train on synthetic data.",
+              "hours": 2.5,
+              "skill": "Neural Network Implementation",
+              "resource": "https://pytorch.org/tutorials/beginner/pytorch_with_examples.html"
+            },
+            {
+              "id": "day1_task3",
+              "title": "Mini-Project: Predict House Prices",
+              "description": "Load a small dataset (e.g., Boston Housing from sklearn). Preprocess with Pandas, convert to tensors. Train your linear regression model, plot predictions vs actuals, and calculate RMSE.",
+              "hours": 2,
+              "skill": "Model Training",
+              "resource": "https://www.kaggle.com/code/prasadperera/the-boston-housing-dataset"
+            }
+          ]
+        },
+        {
+          "day": 2,
+          "theme": "Building Neural Networks with nn.Module",
+          "tasks": [
+            {
+              "id": "day2_task1",
+              "title": "Learn torch.nn Module & Common Layers",
+              "description": "Study nn.Module, nn.Sequential, Linear, ReLU, Dropout, etc. Understand parameter initialization and moving models to GPU.",
+              "hours": 2,
+              "skill": "PyTorch",
+              "resource": "https://pytorch.org/tutorials/beginner/nn_tutorial.html"
+            },
+            {
+              "id": "day2_task2",
+              "title": "Implement a Feedforward Network for Classification",
+              "description": "Build a multi-layer perceptron (MLP) using nn.Module for MNIST digit classification. Use CrossEntropyLoss and Adam optimizer.",
+              "hours": 2.5,
+              "skill": "Neural Network Implementation",
+              "resource": "https://pytorch.org/tutorials/beginner/blitz/neural_networks_tutorial.html"
+            },
+            {
+              "id": "day2_task3",
+              "title": "Mini-Project: MNIST Digit Classifier",
+              "description": "Train your MLP on MNIST dataset. Split into train/val, track accuracy/loss per epoch, and achieve >95% test accuracy. Visualize some misclassified examples.",
+              "hours": 2.5,
+              "skill": "Model Training",
+              "resource": "https://pytorch.org/vision/stable/datasets.html"
+            }
+          ]
+        },
+        {
+          "day": 3,
+          "theme": "Computer Vision with CNNs",
+          "tasks": [
+            {
+              "id": "day3_task1",
+              "title": "Study Convolutional Layers & Popular Architectures",
+              "description": "Learn Conv2d, MaxPool2d, BatchNorm2d. Review CNN architectures like LeNet, ResNet blocks. Understand image data loading with torchvision.",
+              "hours": 2,
+              "skill": "PyTorch",
+              "resource": "https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html"
+            },
+            {
+              "id": "day3_task2",
+              "title": "Build and Train a CNN on CIFAR-10",
+              "description": "Implement a CNN (e.g., 2-3 Conv layers followed by linear layers) for CIFAR-10 classification. Use data augmentation (random crop, flip).",
+              "hours": 2.5,
+              "skill": "Computer Vision",
+              "resource": "https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html"
+            },
+            {
+              "id": "day3_task3",
+              "title": "Mini-Project: Improve CIFAR-10 Model",
+              "description": "Experiment with different CNN architectures, hyperparameters (learning rate, batch size), and regularization (dropout, weight decay) to achieve >75% test accuracy.",
+              "hours": 2.5,
+              "skill": "Model Training",
+              "resource": "https://paperswithcode.com/sota/image-classification-on-cifar-10"
+            }
+          ]
+        },
+        {
+          "day": 4,
+          "theme": "NLP & Sequence Models",
+          "tasks": [
+            {
+              "id": "day4_task1",
+              "title": "Learn Embeddings & RNN/LSTM Modules",
+              "description": "Study nn.Embedding, RNN, LSTM, GRU. Understand packing padded sequences for variable-length inputs.",
+              "hours": 2,
+              "skill": "PyTorch",
+              "resource": "https://pytorch.org/tutorials/beginner/nlp/sequence_models_tutorial.html"
+            },
+            {
+              "id": "day4_task2",
+              "title": "Implement a Sentiment Analysis Model",
+              "description": "Build an LSTM-based model for binary sentiment classification (e.g., on IMDB reviews). Use embeddings, handle text preprocessing.",
+              "hours": 2.5,
+              "skill": "NLP with PyTorch",
+              "resource": "https://pytorch.org/tutorials/beginner/text_sentiment_ngrams_tutorial.html"
+            },
+            {
+              "id": "day4_task3",
+              "title": "Mini-Project: Train on IMDB Dataset",
+              "description": "Train your sentiment model. Use DataLoader with collate_fn for batching. Track training/validation accuracy, aim for >85% test accuracy.",
+              "hours": 2.5,
+              "skill": "Model Training",
+              "resource": "https://ai.stanford.edu/~amaas/data/sentiment/"
+            }
+          ]
+        },
+        {
+          "day": 5,
+          "theme": "Transfer Learning & Advanced Training",
+          "tasks": [
+            {
+              "id": "day5_task1",
+              "title": "Explore Pretrained Models & Fine-tuning",
+              "description": "Learn to load pretrained models (ResNet, BERT) from torchvision/huggingface. Practice freezing layers and fine-tuning on custom datasets.",
+              "hours": 2,
+              "skill": "PyTorch",
+              "resource": "https://pytorch.org/tutorials/beginner/transfer_learning_tutorial.html"
+            },
+            {
+              "id": "day5_task2",
+              "title": "Fine-tune ResNet for Custom Image Classification",
+              "description": "Use a pretrained ResNet18, replace the final layer, and fine-tune on a small custom dataset (e.g., cats vs dogs from Kaggle).",
+              "hours": 2.5,
+              "skill": "Computer Vision",
+              "resource": "https://www.kaggle.com/c/dogs-vs-cats"
+            },
+            {
+              "id": "day5_task3",
+              "title": "Mini-Project: Deploy Fine-tuned Model as API",
+              "description": "Save your fine-tuned model. Create a FastAPI endpoint that loads the model and accepts image uploads, returning predictions. Containerize with Docker.",
+              "hours": 2.5,
+              "skill": "Model Deployment",
+              "resource": "https://fastapi.tiangolo.com/"
+            }
+          ]
+        },
+        {
+          "day": 6,
+          "theme": "Production Readiness & Optimization",
+          "tasks": [
+            {
+              "id": "day6_task1",
+              "title": "Model Saving/Loading & TorchScript",
+              "description": "Learn different model serialization methods (state_dict, entire model). Convert model to TorchScript for production deployment.",
+              "hours": 2,
+              "skill": "PyTorch",
+              "resource": "https://pytorch.org/tutorials/beginner/saving_loading_models.html"
+            },
+            {
+              "id": "day6_task2",
+              "title": "Optimize Inference with ONNX & Quantization",
+              "description": "Export a model to ONNX format. Experiment with dynamic quantization to reduce model size and speed up inference.",
+              "hours": 2.5,
+              "skill": "Model Deployment",
+              "resource": "https://pytorch.org/tutorials/advanced/super_resolution_with_onnxruntime.html"
+            },
+            {
+              "id": "day6_task3",
+              "title": "Mini-Project: Build a CI/CD Pipeline for Model",
+              "description": "Set up a Jenkins/GitHub Actions pipeline that trains a simple PyTorch model on code push, runs tests, and deploys the saved model to a cloud storage (simulate with local folder).",
+              "hours": 2.5,
+              "skill": "Production Integration",
+              "resource": "https://www.jenkins.io/doc/tutorials/"
+            }
+          ]
+        },
+        {
+          "day": 7,
+          "theme": "Integration with Existing AI Stack",
+          "tasks": [
+            {
+              "id": "day7_task1",
+              "title": "Combine PyTorch with LangChain & Vector DBs",
+              "description": "Create a custom LangChain tool/agent that uses a PyTorch model for prediction. Integrate with FAISS for retrieval-augmented tasks.",
+              "hours": 2.5,
+              "skill": "Production Integration",
+              "resource": "https://python.langchain.com/docs/modules/agents/tools/custom_tools"
+            },
+            {
+              "id": "day7_task2",
+              "title": "Build an Event-Driven AI Microservice",
+              "description": "Create a PyTorch model service that consumes images from an Apache Kafka topic, runs inference, and publishes results to another topic.",
+              "hours": 3,
+              "skill": "AI-enabled Microservices",
+              "resource": "https://kafka.apache.org/documentation/"
+            },
+            {
+              "id": "day7_task3",
+              "title": "Capstone Project: End-to-End AI Pipeline",
+              "description": "Build a full pipeline: data ingestion (Kafka), preprocessing (Pandas/PyTorch), model training (PyTorch CNN), deployment (FastAPI+Docker), monitoring (log metrics). Use a small public dataset.",
+              "hours": 3.5,
+              "skill": "Model Deployment",
+              "resource": "https://pytorch.org/tutorials/beginner/deep_learning_60min_blitz.html"
+            }
+          ]
+        }
+      ]
+    },
+    "completed_task_ids": [
+      "1"
+    ]
+  },
+  "d4fa6a9a": {
+    "role": "AI/ML Engineer",
+    "plan": {
+      "role": "AI/ML Engineer",
+      "total_days": 7,
+      "focus_skills": [
+        "TensorFlow",
+        "PyTorch",
+        "Scikit-learn",
+        "MLflow"
+      ],
+      "plan": [
+        {
+          "day": 1,
+          "theme": "Scikit-learn Fundamentals & ML Pipeline Basics",
+          "tasks": [
+            {
+              "id": "day1_task1",
+              "title": "Scikit-learn Core API & Data Preprocessing",
+              "description": "Practice using scikit-learn for data splitting (train_test_split), scaling (StandardScaler, MinMaxScaler), encoding (LabelEncoder, OneHotEncoder), and simple models (LinearRegression, LogisticRegression). Load a dataset (e.g., Iris, Boston housing via sklearn.datasets) and preprocess it.",
+              "hours": 2,
+              "skill": "Scikit-learn",
+              "resource": "https://scikit-learn.org/stable/user_guide.html"
+            },
+            {
+              "id": "day1_task2",
+              "title": "Build a Classification Pipeline",
+              "description": "Create a complete classification pipeline using scikit-learn's Pipeline class. Include preprocessing steps and a classifier (e.g., RandomForestClassifier). Evaluate using metrics like accuracy, precision, recall, and confusion matrix.",
+              "hours": 2,
+              "skill": "Scikit-learn",
+              "resource": "https://scikit-learn.org/stable/modules/generated/sklearn.pipeline.Pipeline.html"
+            },
+            {
+              "id": "day1_task3",
+              "title": "Mini-Project: Customer Churn Predictor",
+              "description": "Use a dataset (e.g., Telco Customer Churn from Kaggle or synthetic data) to build a model predicting churn. Implement full pipeline: load data, handle missing values, encode categorical features, scale numerical features, train a model (e.g., GradientBoostingClassifier), and evaluate performance.",
+              "hours": 3,
+              "skill": "Scikit-learn",
+              "resource": "https://www.kaggle.com/datasets/blastchar/telco-customer-churn"
+            }
+          ]
+        },
+        {
+          "day": 2,
+          "theme": "TensorFlow Introduction & Neural Network Basics",
+          "tasks": [
+            {
+              "id": "day2_task1",
+              "title": "TensorFlow 2.x & Keras API Basics",
+              "description": "Install TensorFlow and explore core concepts: tensors, variables, automatic differentiation (GradientTape). Build a simple sequential model using Keras (Dense layers, activation functions). Compile with optimizer, loss, and metrics.",
+              "hours": 2,
+              "skill": "TensorFlow",
+              "resource": "https://www.tensorflow.org/guide/keras/sequential_model"
+            },
+            {
+              "id": "day2_task2",
+              "title": "Train a Neural Network for Regression",
+              "description": "Build and train a neural network to solve a regression problem (e.g., predict house prices using Boston housing dataset). Use callbacks like EarlyStopping and ModelCheckpoint. Visualize training history (loss vs. epochs).",
+              "hours": 2,
+              "skill": "TensorFlow",
+              "resource": "https://www.tensorflow.org/tutorials/keras/regression"
+            },
+            {
+              "id": "day2_task3",
+              "title": "Mini-Project: MNIST Digit Classifier",
+              "description": "Build a convolutional neural network (CNN) using TensorFlow/Keras to classify handwritten digits from the MNIST dataset. Include Conv2D, MaxPooling2D, Flatten, and Dense layers. Achieve >99% accuracy on test set.",
+              "hours": 3,
+              "skill": "TensorFlow",
+              "resource": "https://www.tensorflow.org/tutorials/quickstart/advanced"
+            }
+          ]
+        },
+        {
+          "day": 3,
+          "theme": "PyTorch Fundamentals & Dynamic Computation",
+          "tasks": [
+            {
+              "id": "day3_task1",
+              "title": "PyTorch Tensors, Autograd & NN Module",
+              "description": "Learn PyTorch tensor operations, automatic differentiation (autograd), and the nn.Module class. Create a custom neural network module with linear layers and activation functions. Manually implement training loop with loss and optimizer.",
+              "hours": 2,
+              "skill": "PyTorch",
+              "resource": "https://pytorch.org/tutorials/beginner/basics/intro.html"
+            },
+            {
+              "id": "day3_task2",
+              "title": "Data Loading with DataLoader & Dataset",
+              "description": "Use PyTorch's Dataset and DataLoader for efficient data handling. Create a custom Dataset class for a sample dataset (e.g., a CSV). Implement batching, shuffling, and parallel data loading.",
+              "hours": 2,
+              "skill": "PyTorch",
+              "resource": "https://pytorch.org/tutorials/beginner/basics/data_tutorial.html"
+            },
+            {
+              "id": "day3_task3",
+              "title": "Mini-Project: Fashion-MNIST Classifier with PyTorch",
+              "description": "Build a neural network (e.g., a simple CNN or multi-layer perceptron) in PyTorch to classify Fashion-MNIST images. Implement full training loop, track loss/accuracy, and save the trained model.",
+              "hours": 3,
+              "skill": "PyTorch",
+              "resource": "https://pytorch.org/tutorials/beginner/basics/quickstart.html"
+            }
+          ]
+        },
+        {
+          "day": 4,
+          "theme": "MLflow for Experiment Tracking & Model Management",
+          "tasks": [
+            {
+              "id": "day4_task1",
+              "title": "MLflow Setup & Basic Logging",
+              "description": "Install MLflow and start the tracking server locally. Log parameters, metrics, and artifacts from a simple scikit-learn or TensorFlow training script. View results in the MLflow UI.",
+              "hours": 2,
+              "skill": "MLflow",
+              "resource": "https://mlflow.org/docs/latest/tracking.html#getting-started"
+            },
+            {
+              "id": "day4_task2",
+              "title": "Model Registry & Deployment",
+              "description": "Register a trained model in the MLflow Model Registry. Transition model stages (Staging, Production). Load a registered model for inference. Explore model serving with MLflow.",
+              "hours": 2,
+              "skill": "MLflow",
+              "resource": "https://mlflow.org/docs/latest/model-registry.html"
+            },
+            {
+              "id": "day4_task3",
+              "title": "Mini-Project: End-to-End ML Pipeline with MLflow",
+              "description": "Create a complete pipeline: train multiple scikit-learn models (e.g., RandomForest, SVM) on a dataset, log all experiments to MLflow, compare metrics, register the best model, and create a simple Flask/FastAPI endpoint to serve predictions using the registered model.",
+              "hours": 3,
+              "skill": "MLflow",
+              "resource": "https://mlflow.org/docs/latest/tutorials-and-examples/index.html"
+            }
+          ]
+        },
+        {
+          "day": 5,
+          "theme": "Advanced TensorFlow: Custom Models & Data Pipelines",
+          "tasks": [
+            {
+              "id": "day5_task1",
+              "title": "TensorFlow Functional API & Custom Layers",
+              "description": "Build a model using the Functional API (multiple inputs/outputs, shared layers). Create a custom layer by subclassing tf.keras.layers.Layer. Implement custom training loops with GradientTape for more control.",
+              "hours": 2,
+              "skill": "TensorFlow",
+              "resource": "https://www.tensorflow.org/guide/keras/functional"
+            },
+            {
+              "id": "day5_task2",
+              "title": "TFData Pipeline for Performance",
+              "description": "Use tf.data.Dataset to create efficient input pipelines from various sources (NumPy arrays, CSV files). Apply transformations (map, shuffle, batch, prefetch). Compare performance with and without tf.data.",
+              "hours": 2,
+              "skill": "TensorFlow",
+              "resource": "https://www.tensorflow.org/guide/data"
+            },
+            {
+              "id": "day5_task3",
+              "title": "Mini-Project: Text Classifier with TensorFlow Hub",
+              "description": "Build a text classification model (e.g., sentiment analysis) using a pre-trained text embedding from TensorFlow Hub. Use the Functional API, tf.data for text preprocessing, and train a classifier on a dataset like IMDB reviews.",
+              "hours": 3,
+              "skill": "TensorFlow",
+              "resource": "https://www.tensorflow.org/hub/tutorials/tf2_text_classification"
+            }
+          ]
+        },
+        {
+          "day": 6,
+          "theme": "Advanced PyTorch: Custom Datasets, Transforms & Transfer Learning",
+          "tasks": [
+            {
+              "id": "day6_task1",
+              "title": "Custom Transforms & Data Augmentation",
+              "description": "Create custom transforms using torchvision.transforms or by writing callable classes. Apply data augmentation (random crop, flip, color jitter) to image data. Compose transforms into a pipeline.",
+              "hours": 2,
+              "skill": "PyTorch",
+              "resource": "https://pytorch.org/vision/stable/transforms.html"
+            },
+            {
+              "id": "day6_task2",
+              "title": "Transfer Learning with Torchvision Models",
+              "description": "Load a pre-trained model from torchvision.models (e.g., ResNet). Freeze early layers, replace the classifier head, and fine-tune on a custom dataset (e.g., a small image classification task).",
+              "hours": 2,
+              "skill": "PyTorch",
+              "resource": "https://pytorch.org/tutorials/beginner/transfer_learning_tutorial.html"
+            },
+            {
+              "id": "day6_task3",
+              "title": "Mini-Project: Dog Breed Classifier with Transfer Learning",
+              "description": "Use a pre-trained CNN (e.g., ResNet50) and fine-tune it on the Stanford Dogs dataset (or a subset). Implement data loading with augmentation, model modification, training, and evaluation. Log experiments to MLflow.",
+              "hours": 3,
+              "skill": "PyTorch",
+              "resource": "https://www.kaggle.com/datasets/jessicali9530/stanford-dogs-dataset"
+            }
+          ]
+        },
+        {
+          "day": 7,
+          "theme": "Integration & Productionization",
+          "tasks": [
+            {
+              "id": "day7_task1",
+              "title": "Model Serving with FastAPI/Flask",
+              "description": "Create a REST API endpoint using FastAPI or Flask to serve a trained scikit-learn, TensorFlow, or PyTorch model. Accept input data, preprocess it, run inference, and return predictions. Add input validation.",
+              "hours": 2,
+              "skill": "Model Integration",
+              "resource": "https://fastapi.tiangolo.com/tutorial/first-steps/"
+            },
+            {
+              "id": "day7_task2",
+              "title": "Containerize ML Model with Docker",
+              "description": "Write a Dockerfile for the model serving API from task 1. Include all dependencies (Python, libraries, model files). Build the image and run a container locally. Test the endpoint.",
+              "hours": 2,
+              "skill": "Docker",
+              "resource": "https://docs.docker.com/get-started/02_our_app/"
+            },
+            {
+              "id": "day7_task3",
+              "title": "Mini-Project: End-to-End ML Microservice",
+              "description": "Build a complete system: Train a model (using any framework), log it with MLflow, create a FastAPI service that loads the model from MLflow, containerize it with Docker, and write a simple Kubernetes deployment YAML (or docker-compose) to run it. Optionally, add a CI/CD step (e.g., GitHub Action) to build the image.",
+              "hours": 3,
+              "skill": "AI-enabled Microservices",
+              "resource": "https://mlflow.org/docs/latest/models.html#deploy-mlflow-models"
+            }
+          ]
+        }
+      ]
+    },
+    "completed_task_ids": []
+  },
+  "6efaad1b": {
+    "role": "AI/ML Engineer",
+    "plan": {
+      "role": "AI/ML Engineer",
+      "total_days": 7,
+      "focus_skills": [
+        "TensorFlow",
+        "PyTorch",
+        "Scikit-learn",
+        "MLflow"
+      ],
+      "plan": [
+        {
+          "day": 1,
+          "theme": "Scikit-learn Fundamentals & Classic ML",
+          "tasks": [
+            {
+              "id": "day1_task1",
+              "title": "Scikit-learn Core API & Data Preprocessing",
+              "description": "Study scikit-learn's fit/predict/transform API. Practice using sklearn.preprocessing (StandardScaler, OneHotEncoder) and sklearn.model_selection (train_test_split, cross_val_score) with a dataset like Iris or Titanic.",
+              "hours": 2,
+              "skill": "Scikit-learn",
+              "resource": "https://scikit-learn.org/stable/user_guide.html"
+            },
+            {
+              "id": "day1_task2",
+              "title": "Train & Evaluate Classic ML Models",
+              "description": "Implement and compare LogisticRegression, RandomForestClassifier, and GradientBoostingClassifier on a classification dataset. Use metrics like accuracy, precision, recall, and generate a confusion matrix.",
+              "hours": 2.5,
+              "skill": "Scikit-learn",
+              "resource": "https://scikit-learn.org/stable/supervised_learning.html"
+            },
+            {
+              "id": "day1_task3",
+              "title": "Mini-Project: Build a Customer Churn Predictor",
+              "description": "Using a dataset (e.g., Telco Customer Churn), build an end-to-end pipeline: load data, preprocess features, train a classifier, evaluate performance, and save the model with joblib.",
+              "hours": 3,
+              "skill": "Scikit-learn",
+              "resource": "https://www.kaggle.com/datasets/blastchar/telco-customer-churn"
+            }
+          ]
+        },
+        {
+          "day": 2,
+          "theme": "TensorFlow Core & Neural Networks",
+          "tasks": [
+            {
+              "id": "day2_task1",
+              "title": "TensorFlow 2.x & Keras API Basics",
+              "description": "Learn TensorFlow's eager execution and Keras Sequential/Functional API. Create simple models with Dense, Dropout layers. Compile with optimizers (Adam) and losses (categorical_crossentropy).",
+              "hours": 2,
+              "skill": "TensorFlow",
+              "resource": "https://www.tensorflow.org/guide/keras"
+            },
+            {
+              "id": "day2_task2",
+              "title": "Train a CNN for Image Classification",
+              "description": "Build a Convolutional Neural Network using Conv2D, MaxPooling2D layers. Train on MNIST or CIFAR-10 dataset. Use callbacks like EarlyStopping and ModelCheckpoint.",
+              "hours": 3,
+              "skill": "TensorFlow",
+              "resource": "https://www.tensorflow.org/tutorials/images/cnn"
+            },
+            {
+              "id": "day2_task3",
+              "title": "Mini-Project: Digit Classifier with TensorFlow",
+              "description": "Create a web service using FastAPI (leveraging your existing skill) that loads a trained MNIST model. Accept image uploads, preprocess, predict digit, and return JSON result.",
+              "hours": 2.5,
+              "skill": "TensorFlow",
+              "resource": "https://www.tensorflow.org/tutorials/quickstart/beginner"
+            }
+          ]
+        },
+        {
+          "day": 3,
+          "theme": "PyTorch Fundamentals & Dynamic Computation",
+          "tasks": [
+            {
+              "id": "day3_task1",
+              "title": "PyTorch Tensors, Autograd & NN Module",
+              "description": "Practice tensor operations, understand autograd for automatic differentiation. Build a simple neural network using torch.nn.Module, define forward pass, and use torch.optim.",
+              "hours": 2,
+              "skill": "PyTorch",
+              "resource": "https://pytorch.org/tutorials/beginner/basics/intro.html"
+            },
+            {
+              "id": "day3_task2",
+              "title": "Data Loading with DataLoader & Training Loop",
+              "description": "Create a custom Dataset class, use DataLoader for batching. Write a manual training loop with loss calculation, backward pass, and optimizer step.",
+              "hours": 2.5,
+              "skill": "PyTorch",
+              "resource": "https://pytorch.org/tutorials/beginner/basics/data_tutorial.html"
+            },
+            {
+              "id": "day3_task3",
+              "title": "Mini-Project: Sentiment Analysis with PyTorch",
+              "description": "Build a text classifier for IMDB reviews using an Embedding layer and LSTM. Preprocess text, create vocabulary, train model, and evaluate on test set.",
+              "hours": 3,
+              "skill": "PyTorch",
+              "resource": "https://pytorch.org/tutorials/beginner/text_sentiment_ngrams_tutorial.html"
+            }
+          ]
+        },
+        {
+          "day": 4,
+          "theme": "Model Comparison & Advanced Scikit-learn",
+          "tasks": [
+            {
+              "id": "day4_task1",
+              "title": "Hyperparameter Tuning with GridSearchCV",
+              "description": "Perform hyperparameter optimization for a RandomForest or SVM using GridSearchCV and RandomizedSearchCV. Analyze results with cv_results_.",
+              "hours": 2,
+              "skill": "Scikit-learn",
+              "resource": "https://scikit-learn.org/stable/modules/grid_search.html"
+            },
+            {
+              "id": "day4_task2",
+              "title": "Pipelines & Feature Unions",
+              "description": "Create a scikit-learn Pipeline that chains preprocessing (imputation, scaling) and model steps. Use FeatureUnion to combine multiple feature extraction methods.",
+              "hours": 2,
+              "skill": "Scikit-learn",
+              "resource": "https://scikit-learn.org/stable/modules/compose.html"
+            },
+            {
+              "id": "day4_task3",
+              "title": "Mini-Project: Model Comparison Dashboard",
+              "description": "Build a Jupyter notebook that loads a dataset, trains 3 different models (e.g., Logistic Regression, Random Forest, XGBoost), compares their performance metrics, and visualizes results with matplotlib.",
+              "hours": 3,
+              "skill": "Scikit-learn",
+              "resource": "https://scikit-learn.org/stable/auto_examples/index.html"
+            }
+          ]
+        },
+        {
+          "day": 5,
+          "theme": "MLflow for Experiment Tracking & Model Registry",
+          "tasks": [
+            {
+              "id": "day5_task1",
+              "title": "MLflow Setup & Basic Logging",
+              "description": "Install MLflow, start tracking server locally. Log parameters, metrics, and artifacts from a simple scikit-learn model training run.",
+              "hours": 1.5,
+              "skill": "MLflow",
+              "resource": "https://mlflow.org/docs/latest/tracking.html"
+            },
+            {
+              "id": "day5_task2",
+              "title": "Log Models & Use Model Registry",
+              "description": "Log a trained scikit-learn or TensorFlow model to MLflow. Register the model, transition stages (Staging -> Production), and load the model for inference.",
+              "hours": 2,
+              "skill": "MLflow",
+              "resource": "https://mlflow.org/docs/latest/model-registry.html"
+            },
+            {
+              "id": "day5_task3",
+              "title": "Mini-Project: End-to-End ML Pipeline with MLflow",
+              "description": "Create a Python script that trains a model on the Boston Housing dataset, logs experiment to MLflow, registers the best model, and creates a Docker container for serving (leveraging your Docker skill).",
+              "hours": 3.5,
+              "skill": "MLflow",
+              "resource": "https://mlflow.org/docs/latest/tutorials-and-examples/index.html"
+            }
+          ]
+        },
+        {
+          "day": 6,
+          "theme": "TensorFlow vs PyTorch Deep Dive",
+          "tasks": [
+            {
+              "id": "day6_task1",
+              "title": "Custom Layers & Training in TensorFlow",
+              "description": "Create a custom layer by subclassing tf.keras.layers.Layer. Implement a custom training loop using tf.GradientTape for more control.",
+              "hours": 2.5,
+              "skill": "TensorFlow",
+              "resource": "https://www.tensorflow.org/guide/keras/custom_layers_and_models"
+            },
+            {
+              "id": "day6_task2",
+              "title": "Transfer Learning with PyTorch",
+              "description": "Use a pretrained ResNet model from torchvision, freeze early layers, replace classifier head, and fine-tune on a custom dataset.",
+              "hours": 2.5,
+              "skill": "PyTorch",
+              "resource": "https://pytorch.org/tutorials/beginner/transfer_learning_tutorial.html"
+            },
+            {
+              "id": "day6_task3",
+              "title": "Mini-Project: Same Model in Both Frameworks",
+              "description": "Implement the same neural network architecture (e.g., a 3-layer MLP) for MNIST classification in both TensorFlow and PyTorch. Compare code structure, training loops, and performance.",
+              "hours": 3,
+              "skill": "TensorFlow, PyTorch",
+              "resource": "https://github.com/astorfi/TensorFlow-World/blob/master/docs/tutorials/3-neural_networks-multilayer-perceptron.md"
+            }
+          ]
+        },
+        {
+          "day": 7,
+          "theme": "Integration & Production Workflow",
+          "tasks": [
+            {
+              "id": "day7_task1",
+              "title": "Model Serving with MLflow & FastAPI",
+              "description": "Serve a registered MLflow model as a REST API using MLflow's built-in serving or package it in a FastAPI application. Add input validation and logging.",
+              "hours": 2.5,
+              "skill": "MLflow",
+              "resource": "https://mlflow.org/docs/latest/models.html#deploy-mlflow-models"
+            },
+            {
+              "id": "day7_task2",
+              "title": "CI/CD Pipeline for ML Model",
+              "description": "Design a Jenkins pipeline (leveraging your CI/CD skill) that triggers on Git push, runs model training tests, and deploys the model if metrics exceed a threshold.",
+              "hours": 2,
+              "skill": "MLflow, CI/CD",
+              "resource": "https://mlflow.org/docs/latest/plugins.html#jenkins-mlflow-plugin"
+            },
+            {
+              "id": "day7_task3",
+              "title": "Capstone Mini-Project: Full ML Lifecycle",
+              "description": "Build a complete system: train a scikit-learn model on a dataset, track experiment with MLflow, register best model, containerize with Docker, deploy to local Kubernetes (minikube), and create a FastAPI service for inference.",
+              "hours": 4,
+              "skill": "TensorFlow, PyTorch, Scikit-learn, MLflow",
+              "resource": "https://github.com/DataTalksClub/mlops-zoomcamp"
+            }
+          ]
+        }
+      ]
+    },
+    "completed_task_ids": []
+  },
+  "a4f24cb8": {
+    "role": "AI/ML Engineer",
+    "plan": {
+      "role": "AI/ML Engineer",
+      "total_days": 7,
+      "focus_skills": [
+        "TensorFlow",
+        "PyTorch",
+        "Scikit-learn",
+        "MLflow"
+      ],
+      "plan": [
+        {
+          "day": 1,
+          "theme": "Scikit-learn Fundamentals & Classic ML",
+          "tasks": [
+            {
+              "id": "day1_task1",
+              "title": "Scikit-learn Core API & Data Preprocessing",
+              "description": "Study Scikit-learn's fit/predict/transform API. Practice using sklearn.preprocessing (StandardScaler, OneHotEncoder) and sklearn.model_selection (train_test_split, cross_val_score) on a sample dataset (e.g., Iris or Boston housing).",
+              "hours": 2,
+              "skill": "Scikit-learn",
+              "resource": "https://scikit-learn.org/stable/tutorial/basic/tutorial.html"
+            },
+            {
+              "id": "day1_task2",
+              "title": "Train & Evaluate Classic ML Models",
+              "description": "Implement and compare at least three classic ML models (e.g., LogisticRegression, RandomForestClassifier, SVM) on a classification dataset (e.g., from sklearn.datasets). Evaluate using accuracy, precision, recall, and confusion matrix.",
+              "hours": 3,
+              "skill": "Scikit-learn",
+              "resource": "https://scikit-learn.org/stable/modules/classes.html"
+            },
+            {
+              "id": "day1_task3",
+              "title": "Mini-Project: Build a Classic ML Pipeline",
+              "description": "Create an end-to-end pipeline: load data, preprocess, train a model (e.g., RandomForest), tune hyperparameters using GridSearchCV, evaluate, and save the model using pickle/joblib. Use a dataset like the Titanic survival dataset.",
+              "hours": 3,
+              "skill": "Scikit-learn",
+              "resource": "https://www.kaggle.com/c/titanic/data"
+            }
+          ]
+        },
+        {
+          "day": 2,
+          "theme": "TensorFlow Core & Neural Networks",
+          "tasks": [
+            {
+              "id": "day2_task1",
+              "title": "TensorFlow 2.x Basics & Keras API",
+              "description": "Learn TensorFlow tensors, variables, and automatic differentiation. Practice building sequential and functional Keras models (Dense, Dropout layers). Use tf.data.Dataset for input pipelines.",
+              "hours": 2,
+              "skill": "TensorFlow",
+              "resource": "https://www.tensorflow.org/tutorials/quickstart/beginner"
+            },
+            {
+              "id": "day2_task2",
+              "title": "Train a Neural Network for Classification",
+              "description": "Build and train a fully connected neural network on MNIST or Fashion-MNIST. Implement training loops with callbacks (EarlyStopping, ModelCheckpoint). Visualize training history (loss/accuracy).",
+              "hours": 3,
+              "skill": "TensorFlow",
+              "resource": "https://www.tensorflow.org/tutorials/keras/classification"
+            },
+            {
+              "id": "day2_task3",
+              "title": "Mini-Project: Image Classifier with CNN",
+              "description": "Build a Convolutional Neural Network (CNN) using TensorFlow/Keras for CIFAR-10 image classification. Include Conv2D, MaxPooling2D, and Dropout layers. Achieve >70% test accuracy.",
+              "hours": 3,
+              "skill": "TensorFlow",
+              "resource": "https://www.tensorflow.org/tutorials/images/cnn"
+            }
+          ]
+        },
+        {
+          "day": 3,
+          "theme": "PyTorch Fundamentals & Dynamic Computation",
+          "tasks": [
+            {
+              "id": "day3_task1",
+              "title": "PyTorch Tensors, Autograd & NN Module",
+              "description": "Learn PyTorch tensor operations, automatic differentiation (autograd), and the torch.nn module. Build a simple neural network using nn.Sequential and custom nn.Module classes.",
+              "hours": 2,
+              "skill": "PyTorch",
+              "resource": "https://pytorch.org/tutorials/beginner/basics/intro.html"
+            },
+            {
+              "id": "day3_task2",
+              "title": "Custom Training Loop & DataLoaders",
+              "description": "Write a custom training loop (forward pass, loss calculation, backward pass, optimizer step). Use torch.utils.data.DataLoader with a custom Dataset class for batching and shuffling.",
+              "hours": 3,
+              "skill": "PyTorch",
+              "resource": "https://pytorch.org/tutorials/beginner/basics/optimization_tutorial.html"
+            },
+            {
+              "id": "day3_task3",
+              "title": "Mini-Project: Text Classifier with PyTorch",
+              "description": "Build a text classification model for sentiment analysis (e.g., on IMDB reviews). Use an embedding layer (nn.Embedding) followed by LSTM or a simple feedforward network. Use torchtext for data loading.",
+              "hours": 3,
+              "skill": "PyTorch",
+              "resource": "https://pytorch.org/tutorials/beginner/text_sentiment_ngrams_tutorial.html"
+            }
+          ]
+        },
+        {
+          "day": 4,
+          "theme": "Advanced Model Architectures & Transfer Learning",
+          "tasks": [
+            {
+              "id": "day4_task1",
+              "title": "Transfer Learning with TensorFlow Hub/PyTorch Hub",
+              "description": "Practice transfer learning: load a pre-trained model (e.g., ResNet, BERT) from TF Hub or Torch Hub. Freeze base layers, replace the head, and fine-tune on a custom dataset (e.g., cats vs dogs).",
+              "hours": 3,
+              "skill": "TensorFlow, PyTorch",
+              "resource": "https://www.tensorflow.org/tutorials/images/transfer_learning, https://pytorch.org/tutorials/beginner/transfer_learning_tutorial.html"
+            },
+            {
+              "id": "day4_task2",
+              "title": "Implement a Custom Model Architecture",
+              "description": "Design and implement a custom neural network architecture (e.g., a siamese network or a custom CNN block) in both TensorFlow/Keras and PyTorch to compare the frameworks.",
+              "hours": 3,
+              "skill": "TensorFlow, PyTorch",
+              "resource": "https://keras.io/guides/making_new_layers_and_models_via_subclassing/, https://pytorch.org/tutorials/beginner/nn_tutorial.html"
+            },
+            {
+              "id": "day4_task3",
+              "title": "Mini-Project: Fine-tune a Pre-trained Model",
+              "description": "Fine-tune a pre-trained vision model (e.g., MobileNetV2 from TF Hub) on a small custom image dataset (collect 100-200 images per class). Deploy the model as a FastAPI endpoint that returns predictions.",
+              "hours": 2,
+              "skill": "TensorFlow, FastAPI",
+              "resource": "https://www.tensorflow.org/hub/tutorials/tf2_image_retraining"
+            }
+          ]
+        },
+        {
+          "day": 5,
+          "theme": "MLflow for Experiment Tracking & Model Management",
+          "tasks": [
+            {
+              "id": "day5_task1",
+              "title": "MLflow Setup & Basic Logging",
+              "description": "Install MLflow and start the tracking server locally. Log parameters, metrics, and artifacts from a simple Scikit-learn or TensorFlow training script. View results in the MLflow UI.",
+              "hours": 2,
+              "skill": "MLflow",
+              "resource": "https://mlflow.org/docs/latest/tutorials-and-examples/tutorial.html"
+            },
+            {
+              "id": "day5_task2",
+              "title": "Model Registry & Versioning",
+              "description": "Register a trained model in the MLflow Model Registry. Create model versions, transition stages (Staging, Production), and load a specific model version for inference.",
+              "hours": 2,
+              "skill": "MLflow",
+              "resource": "https://mlflow.org/docs/latest/model-registry.html"
+            },
+            {
+              "id": "day5_task3",
+              "title": "Mini-Project: End-to-End ML Pipeline with MLflow",
+              "description": "Build a complete pipeline: train multiple Scikit-learn models (e.g., different hyperparameters) on a dataset, log all experiments to MLflow, select the best model, register it, and create a Dockerized inference service that loads the model from MLflow.",
+              "hours": 4,
+              "skill": "MLflow, Scikit-learn, Docker",
+              "resource": "https://mlflow.org/docs/latest/python_api/mlflow.sklearn.html"
+            }
+          ]
+        },
+        {
+          "day": 6,
+          "theme": "Production ML: Integration & Deployment Patterns",
+          "tasks": [
+            {
+              "id": "day6_task1",
+              "title": "Model Serving with TensorFlow Serving / TorchServe",
+              "description": "Export a trained TensorFlow model as SavedModel and serve it using TensorFlow Serving. Alternatively, export a PyTorch model and serve with TorchServe. Send inference requests via REST/gRPC.",
+              "hours": 3,
+              "skill": "TensorFlow, PyTorch",
+              "resource": "https://www.tensorflow.org/tfx/guide/serving, https://pytorch.org/serve/"
+            },
+            {
+              "id": "day6_task2",
+              "title": "Build a Scalable Inference Microservice",
+              "description": "Create a FastAPI microservice that loads a trained model (from MLflow or local), exposes a /predict endpoint, and includes health checks, logging, and input validation. Containerize it with Docker.",
+              "hours": 3,
+              "skill": "FastAPI, Docker, Model Integration",
+              "resource": "https://fastapi.tiangolo.com/deployment/docker/"
+            },
+            {
+              "id": "day6_task3",
+              "title": "Mini-Project: Event-Driven Model Inference",
+              "description": "Build a system where a producer sends data to Apache Kafka, a consumer loads a model and performs batch inference on the stream, and results are stored in PostgreSQL. Use your existing Kafka and DB skills.",
+              "hours": 2,
+              "skill": "Apache Kafka, Model Integration, PostgreSQL",
+              "resource": "https://kafka.apache.org/documentation/#gettingStarted"
+            }
+          ]
+        },
+        {
+          "day": 7,
+          "theme": "Synthesis & Full-Stack ML Project",
+          "tasks": [
+            {
+              "id": "day7_task1",
+              "title": "Review & Compare Frameworks",
+              "description": "Create a comparison table of TensorFlow vs PyTorch vs Scikit-learn for different use cases (research, production, ease of use). Write a summary of when to use each.",
+              "hours": 1,
+              "skill": "TensorFlow, PyTorch, Scikit-learn",
+              "resource": "https://www.tensorflow.org/, https://pytorch.org/, https://scikit-learn.org/"
+            },
+            {
+              "id": "day7_task2",
+              "title": "Design a Full ML System Architecture",
+              "description": "Design an architecture diagram for a real-time ML system that includes data ingestion, preprocessing, model training (with MLflow tracking), serving (with Kubernetes), and monitoring. Leverage your scalability and event-driven architecture knowledge.",
+              "hours": 2,
+              "skill": "MLflow, Kubernetes, Event-Driven Architecture",
+              "resource": "https://ml-ops.org/content/mlops-principles"
+            },
+            {
+              "id": "day7_task3",
+              "title": "Capstone Mini-Project: End-to-End ML Application",
+              "description": "Build a complete application: train a model (using any of the 4 focus skills), track with MLflow, containerize the training and serving components, deploy with Kubernetes manifests, and set up a CI/CD pipeline with Jenkins/Git to retrain on new data.",
+              "hours": 5,
+              "skill": "TensorFlow/PyTorch, MLflow, Docker, Kubernetes, CI/CD",
+              "resource": "https://github.com/kelvins/awesome-mlops"
+            }
+          ]
+        }
+      ]
+    },
+    "completed_task_ids": []
+  }
+}
