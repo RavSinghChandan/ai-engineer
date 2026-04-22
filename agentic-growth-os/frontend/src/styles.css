@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+  body { @apply bg-gray-950 text-gray-100; -webkit-font-smoothing: antialiased; }
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-white/10 rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-white/20; }
+}
+
+@layer components {
+  .glass        { @apply bg-white/5 backdrop-blur-sm border border-white/10; }
+  .glass-card   { @apply glass rounded-xl p-5 shadow-xl; }
+  .btn-primary  { @apply bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-5 py-2.5 rounded-lg transition-all duration-200 shadow-lg shadow-indigo-900/30 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed; }
+  .btn-secondary{ @apply bg-white/10 hover:bg-white/15 text-gray-200 font-medium px-4 py-2 rounded-lg transition-all duration-200 border border-white/10; }
+  .btn-danger   { @apply bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 font-medium px-4 py-2 rounded-lg transition-all duration-200; }
+  .input-field  { @apply bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-gray-100 text-sm placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 w-full transition-all; }
+  .select-field { @apply input-field appearance-none cursor-pointer; }
+  .label-text   { @apply text-xs font-medium text-gray-400 uppercase tracking-wider; }
+  .section-title{ @apply text-xl font-bold text-white tracking-tight; }
+  .metric-card  { @apply glass-card flex flex-col gap-1; }
+  .badge        { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium; }
+  .badge-green  { @apply badge bg-emerald-500/15 text-emerald-400 border border-emerald-500/20; }
+  .badge-blue   { @apply badge bg-blue-500/15 text-blue-400 border border-blue-500/20; }
+  .badge-purple { @apply badge bg-purple-500/15 text-purple-400 border border-purple-500/20; }
+  .badge-amber  { @apply badge bg-amber-500/15 text-amber-400 border border-amber-500/20; }
+  .badge-red    { @apply badge bg-red-500/15 text-red-400 border border-red-500/20; }
+  .nav-item     { @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer w-full text-left; }
+  .nav-item-active   { @apply nav-item bg-indigo-600/20 text-indigo-400 border border-indigo-500/30; }
+  .nav-item-inactive { @apply nav-item text-gray-400 hover:text-gray-200 hover:bg-white/5 border border-transparent; }
+
+  /* Node styles for workflow canvas */
+  .agent-node {
+    @apply rounded-xl border transition-all duration-200 cursor-grab active:cursor-grabbing select-none;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(8px);
+  }
+  .agent-node:hover { @apply shadow-lg; transform: translateY(-1px); }
+  .agent-node.running { animation: nodeRun 0.8s ease-in-out infinite alternate; }
+  .agent-node.done { @apply border-emerald-500/40; }
+}
+
+@keyframes nodeRun {
+  from { box-shadow: 0 0 0 rgba(99,102,241,0); }
+  to   { box-shadow: 0 0 20px rgba(99,102,241,0.5); }
+}
+
+@keyframes progress-fill {
+  from { width: 0%; }
+}
+
+.progress-bar { animation: progress-fill 0.6s ease-out; }
+
+/* Drag indicator */
+.cdk-drag-preview { @apply opacity-80 shadow-2xl rotate-2; }
+.cdk-drag-placeholder { @apply opacity-20; }
+.cdk-drag-animating { transition: transform 250ms cubic-bezier(0, 0, 0.2, 1); }

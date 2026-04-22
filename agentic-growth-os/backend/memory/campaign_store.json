@@ -1,0 +1,91 @@
+{
+  "campaigns": [
+    {
+      "id": "8a021e73",
+      "timestamp": "2026-04-22T10:24:58.409556",
+      "campaign_type": "real_estate",
+      "product_name": "Skyline Heights",
+      "target_audience": "Home buyers 30-50",
+      "budget": 50000.0,
+      "metrics": {
+        "ctr": 2.25,
+        "conversion_rate": 3.56,
+        "roi_score": 3.13,
+        "impressions": 46133,
+        "clicks": 1038,
+        "conversions": 36,
+        "cost_per_click": 48.15,
+        "cost_per_conversion": 1388.89
+      },
+      "agent_decisions": {
+        "tone_used": "professional",
+        "headline": "Your Dream Home is Here",
+        "budget_split": {
+          "search_ads": 0.55,
+          "display_ads": 0.25,
+          "social_ads": 0.2
+        },
+        "bid_strategy": "maximize_conversions",
+        "audience_age_group": "30-50"
+      }
+    },
+    {
+      "id": "e5460e29",
+      "timestamp": "2026-04-22T10:24:58.442148",
+      "campaign_type": "real_estate",
+      "product_name": "Skyline Heights",
+      "target_audience": "Home buyers 30-50",
+      "budget": 50000.0,
+      "metrics": {
+        "ctr": 2.8,
+        "conversion_rate": 4.34,
+        "roi_score": 5.47,
+        "impressions": 41678,
+        "clicks": 1167,
+        "conversions": 50,
+        "cost_per_click": 42.84,
+        "cost_per_conversion": 1000.0
+      },
+      "agent_decisions": {
+        "tone_used": "emotional_storytelling",
+        "headline": "\u20b945L Onwards \u2014 0% Brokerage, RERA Approved",
+        "budget_split": {
+          "search_ads": 0.4,
+          "display_ads": 0.3,
+          "social_ads": 0.3
+        },
+        "bid_strategy": "target_roas",
+        "audience_age_group": "30-50"
+      }
+    },
+    {
+      "id": "0aeeae6b",
+      "timestamp": "2026-04-22T10:39:20.993450",
+      "campaign_type": "real_estate",
+      "product_name": "Skyline Heights",
+      "target_audience": "Home buyers aged 30-50, upper middle class",
+      "budget": 50000.0,
+      "metrics": {
+        "ctr": 3.49,
+        "conversion_rate": 4.76,
+        "roi_score": 4.68,
+        "impressions": 33381,
+        "clicks": 1165,
+        "conversions": 55,
+        "cost_per_click": 42.91,
+        "cost_per_conversion": 909.09
+      },
+      "agent_decisions": {
+        "tone_used": "emotional_storytelling",
+        "headline": "\u20b945L Onwards \u2014 0% Brokerage, RERA Approved",
+        "budget_split": {
+          "search_ads": 0.4,
+          "display_ads": 0.3,
+          "social_ads": 0.3
+        },
+        "bid_strategy": "target_roas",
+        "audience_age_group": "30-50"
+      }
+    }
+  ]
+}
