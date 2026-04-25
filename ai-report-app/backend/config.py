@@ -2,7 +2,7 @@ import os
 
 class Settings:
     # DeepSeek
-    DEEPSEEK_API_KEY: str = os.getenv("DEEPSEEK_API_KEY", "REDACTED_DEEPSEEK_API_KEY")
+    DEEPSEEK_API_KEY: str = os.getenv("DEEPSEEK_API_KEY", "")
     DEEPSEEK_API_URL: str = "https://api.deepseek.com/v1/chat/completions"
     DEEPSEEK_MODEL: str   = "deepseek-chat"
 

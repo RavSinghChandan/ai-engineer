@@ -1,8 +1,9 @@
+import os
 import json
 import re
 import requests
 
-DEEPSEEK_API_KEY = "REDACTED_DEEPSEEK_API_KEY"
+DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
 DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
 
 CAROUSEL_PROMPT = '''You are an expert AI educator and content creator.
