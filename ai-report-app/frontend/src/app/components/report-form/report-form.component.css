@@ -1,0 +1,252 @@
+/* ── Tabs ──────────────────────────────────────────── */
+.tabs {
+  display: flex;
+  gap: .5rem;
+  margin-bottom: 1.25rem;
+}
+
+.tab {
+  flex: 1;
+  padding: .6rem 1rem;
+  border: 2px solid #E2E8F0;
+  border-radius: 8px;
+  background: #F7FAFC;
+  font-size: .9rem;
+  font-weight: 600;
+  color: #4A5568;
+  cursor: pointer;
+  transition: all .18s;
+}
+.tab.active {
+  border-color: #1565C0;
+  background: #EBF4FF;
+  color: #1565C0;
+}
+.tab:hover:not(.active) { background: #EDF2F7; }
+
+/* ── Section ───────────────────────────────────────── */
+.section {
+  background: #F7FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 1.1rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+  margin-bottom: .9rem;
+}
+
+.section-label {
+  font-size: .8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #718096;
+}
+
+.optional { font-weight: 400; text-transform: none; letter-spacing: 0; font-style: italic; }
+
+/* ── Labels & inputs ───────────────────────────────── */
+.field-label {
+  font-size: .85rem;
+  font-weight: 600;
+  color: #2D3748;
+}
+
+.textarea {
+  width: 100%;
+  resize: vertical;
+  padding: .7rem .9rem;
+  border: 1.5px solid #CBD5E0;
+  border-radius: 8px;
+  font-size: .92rem;
+  line-height: 1.55;
+  font-family: inherit;
+  transition: border-color .18s;
+}
+.textarea:focus   { outline: none; border-color: #1565C0; box-shadow: 0 0 0 3px rgba(21,101,192,.13); }
+.textarea:disabled { background: #EDF2F7; }
+
+.text-input {
+  width: 100%;
+  padding: .65rem .9rem;
+  border: 1.5px solid #CBD5E0;
+  border-radius: 8px;
+  font-size: .92rem;
+  font-family: inherit;
+  transition: border-color .18s;
+}
+.text-input:focus   { outline: none; border-color: #1565C0; box-shadow: 0 0 0 3px rgba(21,101,192,.13); }
+.text-input:disabled { background: #EDF2F7; }
+
+/* ── Or divider ────────────────────────────────────── */
+.or-divider {
+  display: flex; align-items: center; gap: .6rem;
+}
+.or-divider::before, .or-divider::after {
+  content: ''; flex: 1; height: 1px; background: #E2E8F0;
+}
+.or-divider span { font-size: .78rem; color: #A0AEC0; white-space: nowrap; }
+
+/* ── File drop ─────────────────────────────────────── */
+.file-drop {
+  border: 2px dashed #CBD5E0;
+  border-radius: 8px;
+  transition: border-color .18s, background .18s;
+}
+.file-drop.has-file { border-color: #1565C0; background: #EBF4FF; }
+.file-drop:hover    { border-color: #1565C0; }
+
+.file-input { display: none; }
+
+.file-label {
+  display: flex; align-items: center; justify-content: center; gap: .5rem;
+  padding: .75rem 1rem;
+  cursor: pointer;
+  font-size: .88rem;
+  color: #4A5568;
+  font-weight: 500;
+}
+.file-name { color: #1565C0; font-weight: 600; }
+
+/* ── Branding grid ─────────────────────────────────── */
+.branding-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .75rem;
+}
+
+.brand-card {
+  background: #fff;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 8px;
+  padding: .8rem;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+.brand-card-title {
+  font-size: .8rem;
+  font-weight: 700;
+  color: #4A5568;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.upload-zone {
+  border: 2px dashed #CBD5E0;
+  border-radius: 6px;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color .18s;
+}
+.upload-zone:hover { border-color: #1565C0; }
+
+.upload-zone-label {
+  font-size: .82rem;
+  color: #718096;
+  cursor: pointer;
+  text-align: center;
+  padding: .5rem;
+}
+
+/* ── Image previews ────────────────────────────────── */
+.preview-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+}
+
+.logo-preview {
+  max-width: 100%;
+  max-height: 80px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.profile-preview {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2.5px solid #1565C0;
+}
+
+/* ── Buttons ───────────────────────────────────────── */
+.clear-x {
+  background: none; border: none; cursor: pointer;
+  color: #718096; font-size: .95rem;
+  padding: .2rem .4rem; border-radius: 4px;
+}
+.clear-x:hover { background: #FED7D7; color: #C53030; }
+
+.overlay-x {
+  position: absolute; top: 2px; right: 2px;
+}
+
+.btn-primary {
+  display: flex; align-items: center; justify-content: center; gap: .5rem;
+  width: 100%;
+  padding: .85rem 1.5rem;
+  background: #1565C0;
+  color: #fff;
+  border: none; border-radius: 8px;
+  font-size: 1rem; font-weight: 700;
+  cursor: pointer;
+  transition: background .18s, transform .1s;
+  margin-top: .25rem;
+}
+.btn-primary:hover:not(:disabled) { background: #0D47A1; transform: translateY(-1px); }
+.btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ── Spinner ───────────────────────────────────────── */
+.spinner {
+  width: 18px; height: 18px;
+  border: 3px solid rgba(255,255,255,.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Alerts ────────────────────────────────────────── */
+.alert-error {
+  padding: .7rem 1rem;
+  background: #FFF5F5;
+  border: 1.5px solid #FC8181;
+  color: #C53030;
+  border-radius: 8px;
+  font-size: .9rem;
+  margin-bottom: .5rem;
+}
+
+/* ── Success bar ───────────────────────────────────── */
+.success-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  flex-wrap: wrap;
+  background: #F0FFF4;
+  border: 1.5px solid #68D391;
+  border-radius: 8px;
+  padding: .85rem 1.1rem;
+  margin-top: .75rem;
+}
+.success-text { color: #276749; font-weight: 700; font-size: .95rem; }
+
+.btn-download {
+  display: flex; align-items: center; gap: .35rem;
+  padding: .55rem 1.1rem;
+  background: #276749; color: #fff;
+  border: none; border-radius: 7px;
+  font-size: .9rem; font-weight: 700;
+  cursor: pointer;
+  transition: background .18s;
+}
+.btn-download:hover { background: #1C4532; }
+
+/* ── Hint ──────────────────────────────────────────── */
+.hint { font-size: .82rem; color: #718096; margin-top: -.2rem; }

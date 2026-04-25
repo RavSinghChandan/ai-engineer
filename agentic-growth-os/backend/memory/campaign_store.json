@@ -289,6 +289,238 @@
         "bid_strategy": "target_roas",
         "audience_age_group": "30-50"
       }
+    },
+    {
+      "id": "cf13b4f4",
+      "timestamp": "2026-04-22T21:52:06.875686",
+      "campaign_type": "real_estate",
+      "product_name": "Skyline Heights",
+      "target_audience": "Home buyers aged 30-50, upper middle class",
+      "budget": 50000.0,
+      "metrics": {
+        "ctr": 3.18,
+        "conversion_rate": 4.09,
+        "roi_score": 4.38,
+        "impressions": 34591,
+        "clicks": 1100,
+        "conversions": 44,
+        "cost_per_click": 45.43,
+        "cost_per_conversion": 1136.36
+      },
+      "agent_decisions": {
+        "tone_used": "benefit_focused",
+        "headline": "\u20b945L Onwards \u2014 0% Brokerage, RERA Approved",
+        "budget_split": {
+          "search_ads": 0.4,
+          "display_ads": 0.3,
+          "social_ads": 0.3
+        },
+        "bid_strategy": "target_roas",
+        "audience_age_group": "30-50"
+      }
+    },
+    {
+      "id": "d2593c55",
+      "timestamp": "2026-04-22T21:52:14.621122",
+      "campaign_type": "real_estate",
+      "product_name": "Skyline Heights",
+      "target_audience": "Home buyers aged 30-50, upper middle class",
+      "budget": 50000.0,
+      "metrics": {
+        "ctr": 2.77,
+        "conversion_rate": 4.28,
+        "roi_score": 4.03,
+        "impressions": 39530,
+        "clicks": 1095,
+        "conversions": 46,
+        "cost_per_click": 45.66,
+        "cost_per_conversion": 1086.96
+      },
+      "agent_decisions": {
+        "tone_used": "benefit_focused",
+        "headline": "\u20b945L Onwards \u2014 0% Brokerage, RERA Approved",
+        "budget_split": {
+          "search_ads": 0.4,
+          "display_ads": 0.3,
+          "social_ads": 0.3
+        },
+        "bid_strategy": "target_roas",
+        "audience_age_group": "30-50"
+      }
+    },
+    {
+      "id": "4e94b2b6",
+      "timestamp": "2026-04-22T21:52:18.485712",
+      "campaign_type": "real_estate",
+      "product_name": "Skyline Heights",
+      "target_audience": "Home buyers aged 30-50, upper middle class",
+      "budget": 50000.0,
+      "metrics": {
+        "ctr": 2.74,
+        "conversion_rate": 4.26,
+        "roi_score": 5.26,
+        "impressions": 44744,
+        "clicks": 1226,
+        "conversions": 52,
+        "cost_per_click": 40.75,
+        "cost_per_conversion": 961.54
+      },
+      "agent_decisions": {
+        "tone_used": "benefit_focused",
+        "headline": "\u20b945L Onwards \u2014 0% Brokerage, RERA Approved",
+        "budget_split": {
+          "search_ads": 0.4,
+          "display_ads": 0.3,
+          "social_ads": 0.3
+        },
+        "bid_strategy": "target_roas",
+        "audience_age_group": "30-50"
+      }
+    },
+    {
+      "id": "8a059831",
+      "timestamp": "2026-04-22T21:52:29.511723",
+      "campaign_type": "real_estate",
+      "product_name": "Skyline Heights",
+      "target_audience": "Home buyers aged 30-50, upper middle class",
+      "budget": 50000.0,
+      "metrics": {
+        "ctr": 2.99,
+        "conversion_rate": 4.42,
+        "roi_score": 5.67,
+        "impressions": 41137,
+        "clicks": 1230,
+        "conversions": 54,
+        "cost_per_click": 40.63,
+        "cost_per_conversion": 925.93
+      },
+      "agent_decisions": {
+        "tone_used": "benefit_focused",
+        "headline": "\u20b945L Onwards \u2014 0% Brokerage, RERA Approved",
+        "budget_split": {
+          "search_ads": 0.4,
+          "display_ads": 0.3,
+          "social_ads": 0.3
+        },
+        "bid_strategy": "target_roas",
+        "audience_age_group": "30-50"
+      }
+    },
+    {
+      "id": "4d47e3e7",
+      "timestamp": "2026-04-22T21:52:33.319459",
+      "campaign_type": "real_estate",
+      "product_name": "Skyline Heights",
+      "target_audience": "Home buyers aged 30-50, upper middle class",
+      "budget": 50000.0,
+      "metrics": {
+        "ctr": 3.05,
+        "conversion_rate": 4.94,
+        "roi_score": 4.61,
+        "impressions": 36163,
+        "clicks": 1103,
+        "conversions": 54,
+        "cost_per_click": 45.3,
+        "cost_per_conversion": 925.93
+      },
+      "agent_decisions": {
+        "tone_used": "benefit_focused",
+        "headline": "\u20b945L Onwards \u2014 0% Brokerage, RERA Approved",
+        "budget_split": {
+          "search_ads": 0.4,
+          "display_ads": 0.3,
+          "social_ads": 0.3
+        },
+        "bid_strategy": "target_roas",
+        "audience_age_group": "30-50"
+      }
+    },
+    {
+      "id": "05657ef5",
+      "timestamp": "2026-04-22T21:52:36.886428",
+      "campaign_type": "real_estate",
+      "product_name": "Skyline Heights",
+      "target_audience": "Home buyers aged 30-50, upper middle class",
+      "budget": 50000.0,
+      "metrics": {
+        "ctr": 2.63,
+        "conversion_rate": 4.31,
+        "roi_score": 5.21,
+        "impressions": 41178,
+        "clicks": 1083,
+        "conversions": 46,
+        "cost_per_click": 46.13,
+        "cost_per_conversion": 1086.96
+      },
+      "agent_decisions": {
+        "tone_used": "benefit_focused",
+        "headline": "\u20b945L Onwards \u2014 0% Brokerage, RERA Approved",
+        "budget_split": {
+          "search_ads": 0.4,
+          "display_ads": 0.3,
+          "social_ads": 0.3
+        },
+        "bid_strategy": "target_roas",
+        "audience_age_group": "30-50"
+      }
+    },
+    {
+      "id": "899f7ee4",
+      "timestamp": "2026-04-22T21:52:40.270022",
+      "campaign_type": "real_estate",
+      "product_name": "Skyline Heights",
+      "target_audience": "Home buyers aged 30-50, upper middle class",
+      "budget": 50000.0,
+      "metrics": {
+        "ctr": 2.79,
+        "conversion_rate": 4.45,
+        "roi_score": 5.24,
+        "impressions": 40071,
+        "clicks": 1118,
+        "conversions": 49,
+        "cost_per_click": 44.69,
+        "cost_per_conversion": 1020.41
+      },
+      "agent_decisions": {
+        "tone_used": "benefit_focused",
+        "headline": "\u20b945L Onwards \u2014 0% Brokerage, RERA Approved",
+        "budget_split": {
+          "search_ads": 0.4,
+          "display_ads": 0.3,
+          "social_ads": 0.3
+        },
+        "bid_strategy": "target_roas",
+        "audience_age_group": "30-50"
+      }
+    },
+    {
+      "id": "021ddf76",
+      "timestamp": "2026-04-24T20:55:12.649670",
+      "campaign_type": "real_estate",
+      "product_name": "Skyline Heights",
+      "target_audience": "Home buyers aged 30-50, upper middle class",
+      "budget": 50000.0,
+      "metrics": {
+        "ctr": 2.59,
+        "conversion_rate": 4.17,
+        "roi_score": 5.07,
+        "impressions": 44247,
+        "clicks": 1146,
+        "conversions": 47,
+        "cost_per_click": 43.61,
+        "cost_per_conversion": 1063.83
+      },
+      "agent_decisions": {
+        "tone_used": "benefit_focused",
+        "headline": "\u20b945L Onwards \u2014 0% Brokerage, RERA Approved",
+        "budget_split": {
+          "search_ads": 0.4,
+          "display_ads": 0.3,
+          "social_ads": 0.3
+        },
+        "bid_strategy": "target_roas",
+        "audience_age_group": "30-50"
+      }
     }
   ]
 }

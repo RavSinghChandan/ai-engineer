@@ -1,0 +1,141 @@
+<!-- ── Mode tabs ──────────────────────────────────────────────── -->
+<div class="tabs">
+  <button class="tab" [class.active]="mode==='report'"   (click)="switchMode('report')">
+    &#128202; Data Report
+  </button>
+  <button class="tab" [class.active]="mode==='carousel'" (click)="switchMode('carousel')">
+    &#128247; Carousel PDF
+  </button>
+</div>
+
+<!-- ══════════════════════  REPORT MODE  ═══════════════════════ -->
+@if (mode === 'report') {
+
+  <!-- Data input section -->
+  <div class="section">
+    <div class="section-label">&#128196; Data Input</div>
+
+    <label class="field-label" for="textInput">Paste text, numbers, or CSV rows</label>
+    <textarea
+      id="textInput"
+      class="textarea"
+      rows="5"
+      placeholder="e.g. Monthly revenue Jan=10k, Feb=25k, Mar=18k, Apr=42k…"
+      [(ngModel)]="textInput"
+      [disabled]="loading"
+    ></textarea>
+
+    <div class="or-divider"><span>or upload a file</span></div>
+
+    <div class="file-drop" [class.has-file]="dataFile">
+      <input type="file" id="dataFile" class="file-input" accept=".txt,.csv,.json"
+             (change)="onDataFile($event)" [disabled]="loading" />
+      <label for="dataFile" class="file-label">
+        @if (dataFile) {
+          <span class="file-name">&#128196; {{ dataFile.name }}</span>
+          <button type="button" class="clear-x" (click)="clearDataFile(); $event.stopPropagation()">&#x2715;</button>
+        } @else {
+          <span>&#128194; .txt / .csv / .json</span>
+        }
+      </label>
+    </div>
+  </div>
+
+  <!-- Branding section -->
+  <div class="section">
+    <div class="section-label">&#127775; Branding <span class="optional">(optional)</span></div>
+
+    <div class="branding-grid">
+
+      <!-- Logo -->
+      <div class="brand-card">
+        <div class="brand-card-title">Company Logo</div>
+        @if (logoPreview) {
+          <div class="preview-box">
+            <img [src]="logoPreview" alt="Logo preview" class="logo-preview" />
+            <button type="button" class="clear-x overlay-x" (click)="clearLogo()">&#x2715;</button>
+          </div>
+        } @else {
+          <div class="upload-zone">
+            <input type="file" id="logoFile" class="file-input" accept="image/*"
+                   (change)="onLogo($event)" [disabled]="loading" />
+            <label for="logoFile" class="upload-zone-label">
+              &#128444; Upload PNG / JPG
+            </label>
+          </div>
+        }
+      </div>
+
+      <!-- Profile pic -->
+      <div class="brand-card">
+        <div class="brand-card-title">Your Photo</div>
+        @if (profilePreview) {
+          <div class="preview-box">
+            <img [src]="profilePreview" alt="Profile preview" class="profile-preview" />
+            <button type="button" class="clear-x overlay-x" (click)="clearProfile()">&#x2715;</button>
+          </div>
+        } @else {
+          <div class="upload-zone">
+            <input type="file" id="profileFile" class="file-input" accept="image/*"
+                   (change)="onProfilePic($event)" [disabled]="loading" />
+            <label for="profileFile" class="upload-zone-label">
+              &#128100; Upload PNG / JPG
+            </label>
+          </div>
+        }
+      </div>
+
+    </div>
+
+    <label class="field-label" for="authorName" style="margin-top:.75rem">Your name (shown in PDF footer)</label>
+    <input
+      id="authorName"
+      type="text"
+      class="text-input"
+      placeholder="e.g. Chandan Kumar"
+      [(ngModel)]="authorName"
+      [disabled]="loading"
+    />
+  </div>
+}
+
+<!-- ══════════════════════  CAROUSEL MODE  ══════════════════════ -->
+@if (mode === 'carousel') {
+  <div class="section">
+    <div class="section-label">&#127775; Carousel Topic</div>
+    <label class="field-label" for="carouselTopic">What topic should the carousel cover?</label>
+    <input
+      id="carouselTopic"
+      type="text"
+      class="text-input"
+      placeholder="e.g. What is Artificial Intelligence?"
+      [(ngModel)]="carouselTopic"
+      [disabled]="loading"
+    />
+    <p class="hint">Generates a 7-slide LinkedIn-style PDF carousel via DeepSeek AI.</p>
+  </div>
+}
+
+<!-- ── Error ───────────────────────────────────────────────────── -->
+@if (error) {
+  <div class="alert-error">&#9888; {{ error }}</div>
+}
+
+<!-- ── Generate button ────────────────────────────────────────── -->
+<button class="btn-primary" (click)="generate()" [disabled]="!canSubmit">
+  @if (loading) {
+    <span class="spinner"></span> Generating&hellip;
+  } @else {
+    &#9889; Generate {{ mode === 'carousel' ? 'Carousel' : 'Report' }}
+  }
+</button>
+
+<!-- ── Result ─────────────────────────────────────────────────── -->
+@if (reportReady) {
+  <div class="success-bar">
+    <div class="success-text">&#10003; PDF ready!</div>
+    <button class="btn-download" (click)="download()">
+      &#11015; Download PDF
+    </button>
+  </div>
+}
