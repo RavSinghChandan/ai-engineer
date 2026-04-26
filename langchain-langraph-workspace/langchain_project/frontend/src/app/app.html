@@ -1,0 +1,179 @@
+<div class="app-shell" [ngClass]="draggingClass()">
+
+  <!-- TOP BAR -->
+  <header class="top-bar">
+    <div class="top-bar-inner">
+
+      <!-- Brand: AI with Rav logo -->
+      <div class="brand">
+        <img src="rav-logo.png" alt="AI with Rav" class="brand-logo" />
+        <div class="brand-divider"></div>
+        <div class="brand-app">
+          <span class="brand-app-title">LangChain <span class="brand-app-accent">Visualizer</span></span>
+          <span class="brand-app-sub">Live execution explorer</span>
+        </div>
+      </div>
+
+      <!-- Center: tech stack badges -->
+      <div class="top-center">
+        <span class="badge badge-lc">LangChain</span>
+        <span class="badge badge-fapi">FastAPI</span>
+        <span class="badge badge-ng">Angular 21</span>
+        <span class="badge badge-faiss">FAISS</span>
+      </div>
+
+      <!-- Right: Rav's photo + name -->
+      <div class="presenter">
+        <div class="presenter-info">
+          <span class="presenter-name">Rav Singh</span>
+          <span class="presenter-role">AI for Business</span>
+        </div>
+        <img src="rav-photo.png" alt="Rav Singh" class="presenter-avatar" />
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN LAYOUT -->
+  <main class="main-layout">
+
+    <!-- ── LEFT: Input panel (resizable width) ── -->
+    <aside class="left-col" [style.width.px]="leftWidth()">
+      <app-input-panel />
+    </aside>
+
+    <!-- Drag divider: left width -->
+    <div class="resize-divider v-drag"
+         (mousedown)="startDrag('left', $event)"
+         title="Drag to resize input panel width">
+      <div class="divider-handle"></div>
+    </div>
+
+    <!-- ── RIGHT: Flow + Timeline + Code + JSON ── -->
+    <section class="right-col">
+
+      <!-- Flow diagram — always visible -->
+      <div class="panel flow-panel" [style.height.px]="flowHeight()">
+        <app-flow-diagram />
+      </div>
+
+      <!-- Drag divider: flow panel height ↕ -->
+      <div class="resize-divider h-drag"
+           (mousedown)="startDrag('flow', $event)"
+           title="Drag to resize flow panel height">
+        <div class="h-handle"></div>
+      </div>
+
+      <!-- ── Mid row: Timeline + Code ── -->
+      <div class="mid-row" [ngClass]="{ 'mid-expanded': codeExpanded() }">
+
+        <!-- Timeline (hidden when code is expanded) -->
+        @if (!codeExpanded()) {
+          <div class="panel timeline-panel" [style.width.px]="timelineWidth()">
+            <app-step-timeline />
+          </div>
+
+          <!-- Drag divider: timeline width -->
+          <div class="resize-divider v-drag inner-v"
+               (mousedown)="startDrag('timeline', $event)"
+               title="Drag to resize timeline width">
+            <div class="divider-handle"></div>
+          </div>
+        }
+
+        <!-- Code panel -->
+        <div class="panel code-panel-host" [ngClass]="{ 'code-full': codeExpanded() }">
+
+          <!-- Unified toolbar: label + file/fn chips + expand toggle -->
+          <div class="code-toolbar">
+            <span class="code-toolbar-label">
+              <span class="toolbar-dot"></span>
+              CODE EXECUTION
+            </span>
+
+            <!-- File + function chips from current step -->
+            @if (execState.currentStep()) {
+              <div class="toolbar-chips">
+                <span class="chip-file">
+                  &#128196; {{ execState.currentStep()!.file }}
+                </span>
+                <span class="chip-fn">{{ execState.currentStep()!.functionName }}</span>
+                @if (execState.currentStep()!.toolUsed) {
+                  <span class="chip-tool">&#128295; {{ execState.currentStep()!.toolUsed }}</span>
+                }
+                @if (execState.currentStep()!.badge) {
+                  <span class="chip-badge">{{ execState.currentStep()!.badge }}</span>
+                }
+              </div>
+            }
+
+            <div class="toolbar-actions">
+
+              <!-- Step controls (only while flow is running) -->
+              @if (execState.isRunning() && !execState.isComplete()) {
+                <div class="step-group">
+                  <button class="step-btn step-in"
+                          (click)="execState.stepIn()"
+                          title="Step In — move to next line within current block">
+                    &#8628; Step In
+                  </button>
+                  <button class="step-btn step-over"
+                          (click)="execState.nextStep()"
+                          title="Step Over — advance to next execution step">
+                    &#8627; Step Over
+                  </button>
+                </div>
+              }
+
+              <!-- Zoom controls -->
+              <div class="zoom-group">
+                <button class="zoom-btn" (click)="execState.zoomOut()" title="Zoom out">A−</button>
+                <span class="zoom-val">{{ execState.codeFontSize() }}px</span>
+                <button class="zoom-btn" (click)="execState.zoomIn()" title="Zoom in">A+</button>
+              </div>
+
+              @if (codeExpanded()) {
+                <button class="toolbar-btn restore-btn"
+                        (click)="codeExpanded.set(false)"
+                        title="Restore layout">
+                  &#8598; Restore
+                </button>
+              } @else {
+                <button class="toolbar-btn expand-btn"
+                        (click)="codeExpanded.set(true)"
+                        title="Expand code panel">
+                  &#8599; Expand
+                </button>
+              }
+            </div>
+          </div>
+
+          <app-code-panel />
+        </div>
+
+      </div>
+
+      <!-- JSON panel (hidden when code is expanded) -->
+      @if (!codeExpanded()) {
+        <div class="panel json-panel-host">
+
+          <!-- JSON collapse toggle header -->
+          <div class="json-toggle-bar" (click)="jsonCollapsed.set(!jsonCollapsed())">
+            <span class="jt-label">
+              <span class="jt-dot"></span>
+              API PAYLOAD
+            </span>
+            <span class="jt-chevron">{{ jsonCollapsed() ? '&#9660;' : '&#9650;' }}</span>
+          </div>
+
+          @if (!jsonCollapsed()) {
+            <app-json-panel />
+          }
+
+        </div>
+      }
+
+    </section>
+  </main>
+
+</div>

@@ -2,6 +2,7 @@ import os
 import time
 
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api.routes import router
@@ -100,6 +101,14 @@ versioned prompts, streaming, retry/fallback, and full observability.
     openapi_tags=tags_metadata,
     contact={"name": "AI Service", "email": "ai-service@example.com"},
     license_info={"name": "MIT"},
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:4200", "http://127.0.0.1:4200"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
