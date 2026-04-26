@@ -168,119 +168,148 @@ import { ENDPOINT_CONFIGS, EndpointConfig } from '../../data/endpoints.data';
 
       <!-- ── Response — ONLY shown after flow completes ── -->
       @if (state.isComplete() && state.apiResponse()) {
-        <div class="response-area">
-          <div class="resp-header">
-            <span class="resp-dot"></span>
-            <span class="resp-title">RESPONSE</span>
-            <span class="resp-badge">{{ selected().method }} {{ selected().path }}</span>
+        <div class="resp-card">
+
+          <!-- Card header -->
+          <div class="resp-card-head">
+            <div class="resp-success-pill">
+              <span class="resp-check">&#10003;</span> Response Ready
+            </div>
+            <span class="resp-ep-pill">{{ selected().method }} {{ selected().path }}</span>
           </div>
-          <div [ngSwitch]="state.currentEndpointId()">
 
-            <!-- Chat / Chat Stream -->
-            <ng-template [ngSwitchCase]="'chat'">
-              <ng-container *ngTemplateOutlet="chatResp"></ng-container>
-            </ng-template>
-            <ng-template [ngSwitchCase]="'chat_stream'">
-              <ng-container *ngTemplateOutlet="chatResp"></ng-container>
-            </ng-template>
-
-            <!-- Agent -->
-            <ng-template ngSwitchCase="agent">
-              <div class="resp-answer">{{ state.apiResponse()!['answer'] }}</div>
-              @if (state.apiResponse()!['tools_used']?.length) {
-                <div class="resp-meta-label">Tools used:</div>
-                <div class="tools-row">
-                  @for (t of state.apiResponse()!['tools_used']; track t) {
-                    <span class="tool-chip">&#128295; {{ t }}</span>
+          <!-- ── CHAT / STREAM ── -->
+          @if (state.currentEndpointId() === 'chat' || state.currentEndpointId() === 'chat_stream') {
+            <div class="resp-answer-block">
+              <div class="resp-section-icon">&#129302;</div>
+              <div class="resp-answer-text">{{ state.apiResponse()!['answer'] }}</div>
+            </div>
+            @if (state.apiResponse()!['sources']?.length) {
+              <div class="resp-section">
+                <div class="resp-section-label">&#128204; Sources</div>
+                <div class="resp-chips-row">
+                  @for (src of state.apiResponse()!['sources']; track src) {
+                    <span class="chip chip-source">{{ src }}</span>
                   }
                 </div>
-              }
-              @if (state.apiResponse()!['steps']?.length) {
-                <div class="resp-meta-label">Trace:</div>
-                <div class="steps-trace">
-                  @for (s of state.apiResponse()!['steps']; track $index) {
-                    <div class="trace-line">{{ s }}</div>
-                  }
-                </div>
-              }
-            </ng-template>
-
-            <!-- Health -->
-            <ng-template ngSwitchCase="health">
-              <div class="resp-health">
-                <div class="health-ok">&#10003; Service online</div>
-                <div class="health-model">Model: <strong>{{ state.apiResponse()!['model'] }}</strong></div>
               </div>
-            </ng-template>
-
-            <!-- Prompts -->
-            <ng-template ngSwitchCase="prompts">
-              @for (p of state.apiResponse()!['prompts']; track p.version) {
-                <div class="prompt-card">
-                  <div class="prompt-ver">Style {{ p.version }}</div>
-                  <div class="prompt-body">{{ p.content }}</div>
+            }
+            @if (state.apiResponse()!['steps']?.length) {
+              <div class="resp-section">
+                <div class="resp-section-label">&#9194; Execution Flow</div>
+                <div class="resp-trace">
+                  @for (s of state.apiResponse()!['steps']; track $index) {
+                    <div class="trace-row" [ngClass]="traceClass(s)">
+                      <div class="trace-icon">{{ traceIcon(s) }}</div>
+                      <div class="trace-body">
+                        <span class="trace-num">{{ $index + 1 }}</span>
+                        <span class="trace-text">{{ s }}</span>
+                      </div>
+                    </div>
+                  }
                 </div>
-              }
-            </ng-template>
+              </div>
+            }
+          }
 
-            <!-- Memory GET -->
-            <ng-template ngSwitchCase="memory_get">
-              <div class="resp-meta-label">{{ state.apiResponse()!['total'] }} messages stored</div>
-              <div class="mem-list">
+          <!-- ── AGENT ── -->
+          @else if (state.currentEndpointId() === 'agent') {
+            <div class="resp-answer-block">
+              <div class="resp-section-icon">&#129302;</div>
+              <div class="resp-answer-text">{{ state.apiResponse()!['answer'] }}</div>
+            </div>
+            @if (state.apiResponse()!['tools_used']?.length) {
+              <div class="resp-section">
+                <div class="resp-section-label">&#128295; Tools Used</div>
+                <div class="resp-chips-row">
+                  @for (t of state.apiResponse()!['tools_used']; track t) {
+                    <span class="chip chip-tool">{{ t }}</span>
+                  }
+                </div>
+              </div>
+            }
+            @if (state.apiResponse()!['steps']?.length) {
+              <div class="resp-section">
+                <div class="resp-section-label">&#9194; Execution Flow</div>
+                <div class="resp-trace">
+                  @for (s of state.apiResponse()!['steps']; track $index) {
+                    <div class="trace-row" [ngClass]="traceClass(s)">
+                      <div class="trace-icon">{{ traceIcon(s) }}</div>
+                      <div class="trace-body">
+                        <span class="trace-num">{{ $index + 1 }}</span>
+                        <span class="trace-text">{{ s }}</span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          }
+
+          <!-- ── HEALTH ── -->
+          @else if (state.currentEndpointId() === 'health') {
+            <div class="resp-status-card resp-status-ok">
+              <div class="resp-status-icon">&#9989;</div>
+              <div>
+                <div class="resp-status-title">Service is Online</div>
+                <div class="resp-status-sub">Model: {{ state.apiResponse()!['model'] }}</div>
+              </div>
+            </div>
+          }
+
+          <!-- ── PROMPTS ── -->
+          @else if (state.currentEndpointId() === 'prompts') {
+            @for (p of state.apiResponse()!['prompts']; track p.version) {
+              <div class="resp-prompt-card">
+                <div class="resp-prompt-badge">Style {{ p.version }}</div>
+                <div class="resp-prompt-body">{{ p.content }}</div>
+              </div>
+            }
+          }
+
+          <!-- ── MEMORY GET ── -->
+          @else if (state.currentEndpointId() === 'memory_get') {
+            <div class="resp-section">
+              <div class="resp-section-label">&#129504; {{ state.apiResponse()!['total'] }} Messages Stored</div>
+              <div class="resp-mem-list">
                 @for (m of state.apiResponse()!['messages']; track $index) {
-                  <div class="mem-msg" [ngClass]="m.role === 'human' ? 'mem-human' : 'mem-ai'">
-                    <span class="mem-role">{{ m.role === 'human' ? '&#128100; You' : '&#129302; AI' }}</span>
-                    <div class="mem-text">{{ m.content.length > 180 ? m.content.slice(0, 180) + '…' : m.content }}</div>
+                  <div class="resp-bubble" [ngClass]="m.role === 'human' ? 'bubble-human' : 'bubble-ai'">
+                    <div class="bubble-role">{{ m.role === 'human' ? '&#128100; You' : '&#129302; AI' }}</div>
+                    <div class="bubble-text">{{ m.content.length > 160 ? m.content.slice(0, 160) + '…' : m.content }}</div>
                   </div>
                 }
               </div>
-            </ng-template>
+            </div>
+          }
 
-            <!-- Memory DELETE -->
-            <ng-template ngSwitchCase="memory_delete">
-              <div class="resp-health">
-                <div class="health-ok">&#10003; Memory cleared</div>
+          <!-- ── MEMORY DELETE ── -->
+          @else if (state.currentEndpointId() === 'memory_delete') {
+            <div class="resp-status-card resp-status-warn">
+              <div class="resp-status-icon">&#128465;&#65039;</div>
+              <div>
+                <div class="resp-status-title">Memory Cleared</div>
+                <div class="resp-status-sub">Conversation history wiped</div>
               </div>
-            </ng-template>
+            </div>
+          }
 
-            <!-- Ingest -->
-            <ng-template ngSwitchCase="ingest">
-              <div class="resp-health">
-                <div class="health-ok">&#10003; Document ingested</div>
-                @if (state.apiResponse()!['chunks']) {
-                  <div class="health-model">{{ state.apiResponse()!['chunks'] }} chunks stored in FAISS</div>
-                }
+          <!-- ── INGEST ── -->
+          @else if (state.currentEndpointId() === 'ingest') {
+            <div class="resp-status-card resp-status-ok">
+              <div class="resp-status-icon">&#128194;</div>
+              <div>
+                <div class="resp-status-title">Document Ingested</div>
+                <div class="resp-status-sub">{{ state.apiResponse()!['chunks'] }} chunks stored in FAISS vector store</div>
               </div>
-            </ng-template>
+            </div>
+          }
 
-            <!-- Default -->
-            <ng-template ngSwitchDefault>
-              <pre class="resp-raw">{{ state.apiResponse() | json }}</pre>
-            </ng-template>
+          <!-- ── FALLBACK ── -->
+          @else {
+            <pre class="resp-raw">{{ state.apiResponse() | json }}</pre>
+          }
 
-          </div>
         </div>
-
-        <!-- Shared chat template -->
-        <ng-template #chatResp>
-          <div class="resp-answer">{{ state.apiResponse()!['answer'] }}</div>
-          @if (state.apiResponse()!['sources']?.length) {
-            <div class="resp-meta-label">Sources:</div>
-            <div class="sources-list">
-              @for (src of state.apiResponse()!['sources']; track src) {
-                <span class="source-chip">&#128204; {{ src }}</span>
-              }
-            </div>
-          }
-          @if (state.apiResponse()!['steps']?.length) {
-            <div class="resp-meta-label">Execution trace:</div>
-            <div class="steps-trace">
-              @for (s of state.apiResponse()!['steps']; track $index) {
-                <div class="trace-line">{{ $index + 1 }}. {{ s }}</div>
-              }
-            </div>
-          }
-        </ng-template>
 
       } @else if (state.isRunning()) {
         <!-- Flow in progress — show waiting message -->
@@ -536,62 +565,218 @@ import { ENDPOINT_CONFIGS, EndpointConfig } from '../../data/endpoints.data';
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Response area */
-    .response-area {
-      display: flex; flex-direction: column; gap: 10px;
-      animation: fade-in 0.4s ease;
-    }
-    @keyframes fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-
-    .resp-header { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .resp-dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; flex-shrink: 0; }
-    .resp-title { font-size: 10px; font-weight: 800; color: #374151; text-transform: uppercase; letter-spacing: 0.1em; }
-    .resp-badge {
-      font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 4px;
-      background: #f0fdf4; color: #15803d; font-family: 'JetBrains Mono', monospace;
-    }
-
-    .resp-answer {
-      font-size: 13px; color: #111827; line-height: 1.65;
-      background: #f9fafb; border-radius: 8px; padding: 10px 12px;
+    /* ══ Response card (Apple-style) ══ */
+    .resp-card {
+      border-radius: 16px;
       border: 1px solid #e5e7eb;
+      overflow: visible;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+      animation: card-in 0.4s cubic-bezier(0.34,1.56,0.64,1);
+      background: white;
+      /* clip header corners without clipping content */
+      clip-path: none;
     }
-
-    .resp-meta-label {
-      font-size: 10px; font-weight: 700; color: #9ca3af;
-      text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px;
+    .resp-card > .resp-card-head {
+      border-radius: 16px 16px 0 0;
+      overflow: hidden;
     }
+    @keyframes card-in { from { opacity:0; transform:translateY(10px) scale(0.98); } to { opacity:1; transform:none; } }
 
-    .steps-trace { display: flex; flex-direction: column; gap: 3px; }
-    .trace-line {
-      font-size: 11px; color: #6b7280;
+    /* Header strip */
+    .resp-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+      gap: 8px;
+    }
+    .resp-success-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: white;
+    }
+    .resp-check {
+      width: 18px; height: 18px;
+      background: #22c55e;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 900;
+      flex-shrink: 0;
+    }
+    .resp-ep-pill {
+      font-size: 10px;
       font-family: 'JetBrains Mono', monospace;
-      background: white; border: 1px solid #f3f4f6;
-      padding: 3px 8px; border-radius: 4px;
+      font-weight: 700;
+      color: #7dd3fc;
+      background: rgba(255,255,255,0.1);
+      padding: 2px 8px;
+      border-radius: 99px;
+      white-space: nowrap;
     }
 
-    .tools-row { display: flex; flex-wrap: wrap; gap: 5px; }
-    .tool-chip { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 4px; background: #fffbeb; color: #d97706; }
+    /* AI Answer block */
+    .resp-answer-block {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 14px 14px 10px;
+      background: #fafafa;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .resp-section-icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+    .resp-answer-text {
+      font-size: 14px;
+      color: #111827;
+      line-height: 1.7;
+      font-weight: 400;
+      flex: 1;
+      min-width: 0;
+      white-space: normal;
+      word-break: break-word;
+      overflow-wrap: break-word;
+    }
 
-    .sources-list { display: flex; flex-wrap: wrap; gap: 5px; }
-    .source-chip { font-size: 11px; padding: 3px 9px; border-radius: 4px; background: #eef2ff; color: #6366f1; }
+    /* Section container */
+    .resp-section {
+      padding: 12px 14px;
+      border-bottom: 1px solid #f3f4f6;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .resp-section:last-child { border-bottom: none; }
+    .resp-section-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
 
-    .resp-health { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; background: #f0fdf4; border-radius: 8px; }
-    .health-ok { font-size: 14px; font-weight: 700; color: #15803d; }
-    .health-model { font-size: 12px; color: #374151; }
+    /* Chips */
+    .resp-chips-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 99px;
+    }
+    .chip-source { background: #eef2ff; color: #4f46e5; }
+    .chip-tool   { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
 
-    .prompt-card { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; margin-bottom: 6px; }
-    .prompt-ver { font-size: 10px; font-weight: 700; color: #6366f1; text-transform: uppercase; margin-bottom: 5px; }
-    .prompt-body { font-size: 11px; color: #374151; white-space: pre-wrap; font-family: 'JetBrains Mono', monospace; }
+    /* Execution trace */
+    .resp-trace { display: flex; flex-direction: column; gap: 6px; }
+    .trace-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: #f9fafb;
+      border: 1px solid #f0f0f0;
+    }
+    .trace-icon { font-size: 16px; flex-shrink: 0; line-height: 1.4; }
+    .trace-body { display: flex; align-items: flex-start; gap: 7px; flex: 1; min-width: 0; }
+    .trace-num {
+      font-size: 10px;
+      font-weight: 800;
+      color: white;
+      background: #6b7280;
+      border-radius: 99px;
+      width: 18px; height: 18px;
+      display: inline-flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .trace-text {
+      font-size: 12.5px;
+      color: #374151;
+      line-height: 1.6;
+      flex: 1;
+      min-width: 0;
+      white-space: normal;
+      word-break: break-word;
+      overflow-wrap: break-word;
+    }
 
-    .mem-list { display: flex; flex-direction: column; gap: 5px; max-height: 200px; overflow-y: auto; }
-    .mem-msg { padding: 7px 10px; border-radius: 7px; display: flex; flex-direction: column; gap: 2px; }
-    .mem-human { background: #eef2ff; }
-    .mem-ai    { background: #f9fafb; border: 1px solid #e5e7eb; }
-    .mem-role  { font-size: 9px; font-weight: 700; text-transform: uppercase; color: #9ca3af; }
-    .mem-text  { font-size: 11px; color: #374151; line-height: 1.4; }
+    /* Trace type colour overrides */
+    .trace-rag    { background: #eff6ff; border-color: #bfdbfe; }
+    .trace-rag    .trace-num { background: #3b82f6; }
+    .trace-rag    .trace-text { color: #1e3a8a; }
 
-    .resp-raw { font-size: 10.5px; font-family: 'JetBrains Mono', monospace; color: #374151; white-space: pre-wrap; word-break: break-all; background: #f9fafb; padding: 10px; border-radius: 8px; margin: 0; }
+    .trace-tool   { background: #fffbeb; border-color: #fde68a; }
+    .trace-tool   .trace-num { background: #d97706; }
+    .trace-tool   .trace-text { color: #78350f; }
+
+    .trace-agent  { background: #f5f3ff; border-color: #ddd6fe; }
+    .trace-agent  .trace-num { background: #7c3aed; }
+    .trace-agent  .trace-text { color: #3b0764; }
+
+    .trace-memory { background: #fdf2f8; border-color: #fbcfe8; }
+    .trace-memory .trace-num { background: #db2777; }
+    .trace-memory .trace-text { color: #831843; }
+
+    .trace-llm    { background: #f0fdf4; border-color: #bbf7d0; }
+    .trace-llm    .trace-num { background: #16a34a; }
+    .trace-llm    .trace-text { color: #14532d; }
+
+    /* Status cards (health / ingest / memory clear) */
+    .resp-status-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 14px;
+      padding: 14px 16px;
+      border-radius: 14px;
+    }
+    .resp-status-ok   { background: linear-gradient(135deg,#f0fdf4,#dcfce7); border: 1.5px solid #bbf7d0; }
+    .resp-status-warn { background: linear-gradient(135deg,#fefce8,#fef9c3); border: 1.5px solid #fde68a; }
+    .resp-status-icon { font-size: 28px; flex-shrink: 0; }
+    .resp-status-title { font-size: 15px; font-weight: 700; color: #111827; }
+    .resp-status-sub   { font-size: 12px; color: #6b7280; margin-top: 2px; }
+
+    /* Prompt cards */
+    .resp-prompt-card {
+      margin: 8px 14px;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .resp-prompt-badge {
+      background: linear-gradient(90deg,#6366f1,#8b5cf6);
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 5px 12px;
+    }
+    .resp-prompt-body {
+      font-size: 12px;
+      color: #374151;
+      white-space: pre-wrap;
+      padding: 10px 12px;
+      line-height: 1.6;
+      background: #fafafa;
+    }
+
+    /* Memory chat bubbles */
+    .resp-mem-list { display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto; }
+    .resp-bubble { padding: 8px 12px; border-radius: 12px; display: flex; flex-direction: column; gap: 3px; }
+    .bubble-human { background: #eef2ff; border-bottom-left-radius: 4px; }
+    .bubble-ai    { background: #f0fdf4; border-bottom-right-radius: 4px; }
+    .bubble-role  { font-size: 10px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.06em; }
+    .bubble-text  { font-size: 13px; color: #1f2937; line-height: 1.5; }
+
+    /* Fallback raw */
+    .resp-raw { font-size: 11px; font-family: 'JetBrains Mono',monospace; color: #374151; white-space: pre-wrap; word-break: break-all; background: #f9fafb; padding: 12px; margin: 12px; border-radius: 10px; }
   `]
 })
 export class InputPanelComponent {
@@ -661,6 +846,29 @@ export class InputPanelComponent {
 
   reset(): void {
     this.state.resetState();
+  }
+
+  traceClass(step: string): string {
+    const s = step.toLowerCase();
+    if (s.includes('tool used') || s.includes('calculator') || s.includes('datetime')) return 'trace-tool';
+    if (s.includes('rag') || s.includes('retriev') || s.includes('faiss') || s.includes('context')) return 'trace-rag';
+    if (s.includes('memory') || s.includes('saved') || s.includes('conversation')) return 'trace-memory';
+    if (s.includes('agent') || s.includes('think') || s.includes('tool')) return 'trace-agent';
+    if (s.includes('llm') || s.includes('routing') || s.includes('openai') || s.includes('deepseek')) return 'trace-llm';
+    return '';
+  }
+
+  traceIcon(step: string): string {
+    const s = step.toLowerCase();
+    if (s.includes('calculator')) return '🧮';
+    if (s.includes('datetime') || s.includes('time')) return '🕐';
+    if (s.includes('tool used')) return '🔧';
+    if (s.includes('rag') || s.includes('retriev') || s.includes('context')) return '📚';
+    if (s.includes('memory') || s.includes('saved')) return '🧠';
+    if (s.includes('agent')) return '🤖';
+    if (s.includes('llm') || s.includes('routing')) return '⚡';
+    if (s.includes('skip')) return '⏭';
+    return '▸';
   }
 
   triggerFile(): void {
