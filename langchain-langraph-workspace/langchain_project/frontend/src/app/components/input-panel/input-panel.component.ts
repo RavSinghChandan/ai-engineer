@@ -181,8 +181,11 @@ import { ENDPOINT_CONFIGS, EndpointConfig } from '../../data/endpoints.data';
           <!-- ── CHAT / STREAM ── -->
           @if (state.currentEndpointId() === 'chat' || state.currentEndpointId() === 'chat_stream') {
             <div class="resp-answer-block">
-              <div class="resp-section-icon">&#129302;</div>
-              <div class="resp-answer-text">{{ state.apiResponse()!['answer'] }}</div>
+              <div class="ai-badge">
+                <span class="ai-badge-spark">✦</span>
+                <span class="ai-badge-text">AI</span>
+              </div>
+              <div class="resp-answer-text" [innerHTML]="formatResponse(state.apiResponse()!['answer'])"></div>
             </div>
             @if (state.apiResponse()!['sources']?.length) {
               <div class="resp-section">
@@ -194,29 +197,16 @@ import { ENDPOINT_CONFIGS, EndpointConfig } from '../../data/endpoints.data';
                 </div>
               </div>
             }
-            @if (state.apiResponse()!['steps']?.length) {
-              <div class="resp-section">
-                <div class="resp-section-label">&#9194; Execution Flow</div>
-                <div class="resp-trace">
-                  @for (s of state.apiResponse()!['steps']; track $index) {
-                    <div class="trace-row" [ngClass]="traceClass(s)">
-                      <div class="trace-icon">{{ traceIcon(s) }}</div>
-                      <div class="trace-body">
-                        <span class="trace-num">{{ $index + 1 }}</span>
-                        <span class="trace-text">{{ s }}</span>
-                      </div>
-                    </div>
-                  }
-                </div>
-              </div>
-            }
           }
 
           <!-- ── AGENT ── -->
           @else if (state.currentEndpointId() === 'agent') {
             <div class="resp-answer-block">
-              <div class="resp-section-icon">&#129302;</div>
-              <div class="resp-answer-text">{{ state.apiResponse()!['answer'] }}</div>
+              <div class="ai-badge">
+                <span class="ai-badge-spark">✦</span>
+                <span class="ai-badge-text">AI</span>
+              </div>
+              <div class="resp-answer-text" [innerHTML]="formatResponse(state.apiResponse()!['answer'])"></div>
             </div>
             @if (state.apiResponse()!['tools_used']?.length) {
               <div class="resp-section">
@@ -224,22 +214,6 @@ import { ENDPOINT_CONFIGS, EndpointConfig } from '../../data/endpoints.data';
                 <div class="resp-chips-row">
                   @for (t of state.apiResponse()!['tools_used']; track t) {
                     <span class="chip chip-tool">{{ t }}</span>
-                  }
-                </div>
-              </div>
-            }
-            @if (state.apiResponse()!['steps']?.length) {
-              <div class="resp-section">
-                <div class="resp-section-label">&#9194; Execution Flow</div>
-                <div class="resp-trace">
-                  @for (s of state.apiResponse()!['steps']; track $index) {
-                    <div class="trace-row" [ngClass]="traceClass(s)">
-                      <div class="trace-icon">{{ traceIcon(s) }}</div>
-                      <div class="trace-body">
-                        <span class="trace-num">{{ $index + 1 }}</span>
-                        <span class="trace-text">{{ s }}</span>
-                      </div>
-                    </div>
                   }
                 </div>
               </div>
@@ -624,23 +598,83 @@ import { ENDPOINT_CONFIGS, EndpointConfig } from '../../data/endpoints.data';
     /* AI Answer block */
     .resp-answer-block {
       display: flex;
-      gap: 10px;
+      gap: 12px;
       align-items: flex-start;
-      padding: 14px 14px 10px;
+      padding: 16px 14px 12px;
       background: #fafafa;
       border-bottom: 1px solid #f0f0f0;
     }
-    .resp-section-icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+
+    /* Custom AI gradient badge */
+    .ai-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+      flex-shrink: 0;
+      box-shadow: 0 4px 14px rgba(99,102,241,0.45);
+      gap: 1px;
+    }
+    .ai-badge-spark { font-size: 8px; color: rgba(255,255,255,0.7); line-height: 1; }
+    .ai-badge-text  { font-size: 14px; font-weight: 900; color: white; letter-spacing: -0.5px; line-height: 1; }
+
     .resp-answer-text {
       font-size: 14px;
       color: #111827;
-      line-height: 1.7;
+      line-height: 1.75;
       font-weight: 400;
       flex: 1;
       min-width: 0;
       white-space: normal;
       word-break: break-word;
       overflow-wrap: break-word;
+    }
+
+    /* ── Rich text formatting inside answer ── */
+    .resp-answer-text :host ::ng-deep .fmt-para { display: block; margin-bottom: 6px; }
+    .resp-answer-text :host ::ng-deep .fmt-b { font-weight: 700; color: #111827; }
+
+    :host ::ng-deep .fmt-para   { display: block; margin-bottom: 6px; }
+    :host ::ng-deep .fmt-b      { font-weight: 700; color: #0f172a; }
+    :host ::ng-deep .fmt-acr    {
+      font-size: 11px; font-weight: 800; font-family: 'JetBrains Mono', monospace;
+      background: #eef2ff; color: #4f46e5;
+      padding: 1px 5px; border-radius: 4px; vertical-align: middle;
+    }
+    :host ::ng-deep .fmt-num-val {
+      font-weight: 700; color: #ea580c;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    :host ::ng-deep .fmt-def {
+      background: linear-gradient(135deg,#fef9c3,#fef08a);
+      color: #78350f; font-weight: 600;
+      padding: 0 3px; border-radius: 3px;
+    }
+    :host ::ng-deep .fmt-li {
+      display: flex; align-items: flex-start; gap: 8px;
+      margin: 5px 0; padding: 6px 10px;
+      background: white; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    :host ::ng-deep .fmt-li-n {
+      font-size: 11px; font-weight: 800; color: white;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      border-radius: 99px; min-width: 20px; height: 20px;
+      display: inline-flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 1px;
+    }
+    :host ::ng-deep .fmt-li-text { font-size: 13.5px; color: #1f2937; line-height: 1.6; flex: 1; }
+    :host ::ng-deep .fmt-bullet {
+      display: flex; align-items: flex-start; gap: 8px; margin: 4px 0;
+    }
+    :host ::ng-deep .fmt-dot { color: #6366f1; font-size: 10px; margin-top: 5px; flex-shrink: 0; }
+    :host ::ng-deep .fmt-hdr {
+      font-size: 13px; font-weight: 700; color: #1e1b4b;
+      margin: 8px 0 4px; padding-bottom: 3px;
+      border-bottom: 2px solid #e0e7ff;
     }
 
     /* Section container */
@@ -846,6 +880,59 @@ export class InputPanelComponent {
 
   reset(): void {
     this.state.resetState();
+  }
+
+  formatResponse(text: string): string {
+    if (!text) return '';
+    const parts: string[] = [];
+    for (const raw of text.split('\n')) {
+      const line = raw.trim();
+      if (!line) { parts.push('<br>'); continue; }
+
+      // Numbered list: "1. text"
+      const numM = line.match(/^(\d+)[.)]\s+(.+)$/);
+      if (numM) {
+        parts.push(`<div class="fmt-li"><span class="fmt-li-n">${numM[1]}</span><span class="fmt-li-text">${this.inlineFmt(numM[2])}</span></div>`);
+        continue;
+      }
+      // Bullet: "- text" or "• text"
+      const bulM = line.match(/^[-•*]\s+(.+)$/);
+      if (bulM) {
+        parts.push(`<div class="fmt-bullet"><span class="fmt-dot">◆</span><span class="fmt-li-text">${this.inlineFmt(bulM[1])}</span></div>`);
+        continue;
+      }
+      // Section header: short line ending with ":"
+      if (/^[A-Z][^.!?\n]{2,50}:$/.test(line)) {
+        parts.push(`<div class="fmt-hdr">${this.esc(line)}</div>`);
+        continue;
+      }
+      parts.push(`<span class="fmt-para">${this.inlineFmt(line)}</span>`);
+    }
+    return parts.join('');
+  }
+
+  private inlineFmt(text: string): string {
+    let h = this.esc(text);
+    // **bold**
+    h = h.replace(/\*\*([^*\n]+)\*\*/g, '<b class="fmt-b">$1</b>');
+    // Definition phrases: "stands for X", "refers to X" → highlight the definition
+    h = h.replace(
+      /\b(stands for|refers to|is defined as|means|is known as)\s+([^.,;:!?\n]+)/gi,
+      (_m, verb, def) => `${verb} <mark class="fmt-def">${def}</mark>`
+    );
+    // Tech acronyms → indigo pill
+    h = h.replace(
+      /\b(AI|ML|NLP|RAG|LLM|API|FAISS|GPU|CPU|HTTP|REST|JSON|SQL|GPT|NLP|DevOps|CI\/CD|AGI|IoT|SaaS|OCR)\b/g,
+      '<span class="fmt-acr">$1</span>'
+    );
+    // Numbers → orange bold
+    h = h.replace(/\b(\d+(?:\.\d+)?(?:\s*(?:%|ms|px|billion|million|thousand|tokens?|chunks?|GB|MB|KB))?)\b/g,
+      '<span class="fmt-num-val">$1</span>');
+    return h;
+  }
+
+  private esc(s: string): string {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
   traceClass(step: string): string {
