@@ -22,9 +22,6 @@ export const PROJECT_CONFIG = {
   presenterName: 'Chandan Kumar',
   presenterRole: 'AI Systems Engineer',
 
-  // Backend
-  backendUrl: 'http://localhost:8001',
-
   // Primary accent color (CSS)
   accentColor: '#6366f1',
 } as const;

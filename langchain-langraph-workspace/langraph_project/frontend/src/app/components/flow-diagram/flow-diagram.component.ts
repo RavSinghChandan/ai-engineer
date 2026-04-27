@@ -10,15 +10,18 @@ import { FlowNode } from '../../models/execution-step.model';
   template: `
     <div class="flow-wrapper">
 
-      <!-- Header row -->
+      <!-- Header -->
       <div class="flow-header">
         <div class="flow-title">
           <span class="flow-dot"></span>
           EXECUTION FLOW
         </div>
-        <div class="flow-meta">
+        <div class="flow-right">
           <span class="step-count">{{ nodes().length }} steps</span>
-          <span class="pct-badge">{{ progress() }}%</span>
+          <div class="prog-pill">
+            <div class="prog-fill" [style.width.%]="progress()"></div>
+            <span class="prog-label">{{ progress() }}%</span>
+          </div>
         </div>
       </div>
 
@@ -26,48 +29,49 @@ import { FlowNode } from '../../models/execution-step.model';
       <div class="nodes-track">
         @for (node of nodes(); track node.id; let i = $index) {
 
-          <!-- Node card -->
-          <div class="node-cell"
-               [class.node-pending]="node.status === 'pending'"
-               [class.node-active]="node.status === 'active'"
-               [class.node-done]="node.status === 'completed'"
+          <!-- Node -->
+          <div class="node"
+               [class.is-pending]="node.status === 'pending'"
+               [class.is-active]="node.status === 'active'"
+               [class.is-done]="node.status === 'completed'"
                (click)="onNodeClick(i)"
                [title]="node.label">
 
-            <!-- Step number badge -->
-            <div class="step-num">{{ i + 1 }}</div>
-
-            <!-- Icon circle -->
-            <div class="icon-ring">
-              <span class="icon-letter">{{ node.icon }}</span>
-              @if (node.status === 'active') {
-                <span class="active-pulse"></span>
-              }
+            <!-- icon -->
+            <div class="node-icon">
               @if (node.status === 'completed') {
-                <span class="done-check">✓</span>
+                <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+                  <path d="M2 6.5L4.8 9L10 3" stroke="currentColor" stroke-width="1.8"
+                        stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              } @else {
+                <span class="node-letter">{{ node.icon }}</span>
+              }
+              @if (node.status === 'active') {
+                <span class="pulse"></span>
               }
             </div>
 
-            <!-- Label -->
-            <span class="node-name">{{ node.label }}</span>
+            <!-- text -->
+            <div class="node-text">
+              <span class="node-label">{{ node.label }}</span>
+              <span class="node-step">{{ i + 1 }}</span>
+            </div>
+
           </div>
 
           <!-- Connector -->
           @if (i < nodes().length - 1) {
-            <div class="connector" [class.connector-done]="node.status === 'completed'">
-              <svg width="28" height="14" viewBox="0 0 28 14" fill="none">
-                <path d="M2 7 H22" [attr.stroke]="arrowColor(i)" stroke-width="1.5" stroke-linecap="round"/>
-                <path d="M17 3 L23 7 L17 11" [attr.stroke]="arrowColor(i)"
-                      stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" fill="none"/>
+            <div class="arrow" [class.arrow-done]="node.status === 'completed'"
+                               [class.arrow-active]="node.status === 'active'">
+              <svg width="16" height="8" viewBox="0 0 16 8" fill="none">
+                <path d="M0 4H12" [attr.stroke]="arrowColor(i)" stroke-width="1.2" stroke-linecap="round"/>
+                <path d="M9 1.5L12.5 4L9 6.5" [attr.stroke]="arrowColor(i)"
+                      stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </div>
           }
         }
-      </div>
-
-      <!-- Progress bar -->
-      <div class="prog-track">
-        <div class="prog-fill" [style.width.%]="progress()"></div>
       </div>
 
     </div>
@@ -77,9 +81,9 @@ import { FlowNode } from '../../models/execution-step.model';
 
     .flow-wrapper {
       height: 100%;
-      padding: 12px 20px 10px;
-      background: #ffffff;
-      border-bottom: 1px solid #f0f0f0;
+      padding: 10px 20px 10px;
+      background: #fff;
+      border-bottom: 1px solid #ebebef;
       display: flex;
       flex-direction: column;
       gap: 8px;
@@ -97,38 +101,59 @@ import { FlowNode } from '../../models/execution-step.model';
     .flow-title {
       display: flex;
       align-items: center;
-      gap: 7px;
-      font-size: 10.5px;
+      gap: 6px;
+      font-size: 10px;
       font-weight: 700;
-      letter-spacing: 0.12em;
-      color: #6b7280;
+      letter-spacing: 0.13em;
+      color: #8b8fa8;
       text-transform: uppercase;
     }
     .flow-dot {
-      width: 7px; height: 7px;
+      width: 6px; height: 6px;
       border-radius: 50%;
       background: #6366f1;
-      box-shadow: 0 0 6px rgba(99,102,241,0.5);
+      box-shadow: 0 0 0 2px rgba(99,102,241,0.2);
       flex-shrink: 0;
     }
-    .flow-meta {
+    .flow-right {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
     .step-count {
-      font-size: 10.5px;
-      font-weight: 600;
-      color: #9ca3af;
+      font-size: 10px;
+      font-weight: 500;
+      color: #b0b4c4;
     }
-    .pct-badge {
-      font-size: 10.5px;
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-      color: #6366f1;
-      background: #eef2ff;
-      padding: 1px 8px;
+
+    /* Progress pill */
+    .prog-pill {
+      position: relative;
+      width: 80px;
+      height: 16px;
+      background: #f3f4f6;
       border-radius: 99px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+    }
+    .prog-fill {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      background: linear-gradient(90deg, #6366f1, #818cf8);
+      border-radius: 99px;
+      transition: width 0.5s ease;
+    }
+    .prog-label {
+      position: relative;
+      z-index: 1;
+      font-size: 9px;
+      font-weight: 700;
+      color: #6366f1;
+      width: 100%;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.02em;
     }
 
     /* ── Node track ── */
@@ -137,185 +162,137 @@ import { FlowNode } from '../../models/execution-step.model';
       align-items: center;
       flex-wrap: nowrap;
       overflow-x: auto;
-      overflow-y: visible;
-      gap: 0;
+      overflow-y: hidden;
       flex: 1;
       min-height: 0;
-      padding: 6px 2px 8px;
+      gap: 0;
+      padding: 0 2px;
       scrollbar-width: none;
     }
     .nodes-track::-webkit-scrollbar { display: none; }
 
-    /* ── Node card ── */
-    .node-cell {
+    /* ── Node ── */
+    .node {
       display: flex;
-      flex-direction: column;
       align-items: center;
-      gap: 5px;
-      cursor: pointer;
+      gap: 6px;
       flex-shrink: 0;
-      padding: 6px 8px;
-      border-radius: 12px;
-      border: 1.5px solid transparent;
-      background: #f9fafb;
-      transition: all 0.2s ease;
-      min-width: 64px;
-      position: relative;
+      padding: 5px 10px 5px 6px;
+      border-radius: 8px;
+      border: 1px solid #e8eaf0;
+      background: #f8f9fb;
+      cursor: pointer;
+      transition: border-color 0.18s, background 0.18s, box-shadow 0.18s, transform 0.15s;
     }
-    .node-cell:hover {
-      background: #f3f4ff;
-      border-color: #c7d2fe;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(99,102,241,0.1);
-    }
-
-    /* Step number badge */
-    .step-num {
-      position: absolute;
-      top: -7px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 9px;
-      font-weight: 800;
-      color: #9ca3af;
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 99px;
-      padding: 0 5px;
-      line-height: 16px;
-      white-space: nowrap;
-      letter-spacing: 0;
+    .node:hover {
+      border-color: #a5b4fc;
+      background: #f0f1ff;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(99,102,241,0.1);
     }
 
-    /* Icon ring */
-    .icon-ring {
+    /* icon box */
+    .node-icon {
       position: relative;
-      width: 36px; height: 36px;
-      border-radius: 10px;
-      background: white;
-      border: 1.5px solid #e5e7eb;
+      width: 28px; height: 28px;
+      border-radius: 7px;
+      background: #fff;
+      border: 1px solid #e8eaf0;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      transition: all 0.25s ease;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+      color: #9ca3af;
     }
-    .icon-letter {
-      font-size: 13px;
+    .node-letter {
+      font-size: 11px;
       font-weight: 800;
-      color: #6b7280;
       letter-spacing: -0.02em;
       line-height: 1;
-      transition: color 0.2s;
     }
 
-    /* Check badge */
-    .done-check {
-      position: absolute;
-      top: -5px; right: -5px;
-      width: 14px; height: 14px;
-      border-radius: 50%;
-      background: #22c55e;
-      color: white;
-      font-size: 8px;
-      font-weight: 900;
+    /* text stack */
+    .node-text {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 0 0 2px white;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .node-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #374151;
+      white-space: nowrap;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
+    .node-step {
+      font-size: 9px;
+      font-weight: 500;
+      color: #c4c9d6;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
     }
 
-    /* Active pulse */
-    .active-pulse {
+    /* ── Active pulse ── */
+    .pulse {
       position: absolute;
-      inset: -4px;
-      border-radius: 14px;
-      border: 2px solid #6366f1;
-      animation: pulse-ring 1.6s ease-in-out infinite;
+      inset: -3px;
+      border-radius: 10px;
+      border: 1.5px solid #6366f1;
+      animation: pulse-anim 1.8s ease-in-out infinite;
       pointer-events: none;
     }
-    @keyframes pulse-ring {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50%       { opacity: 0.2; transform: scale(1.08); }
+    @keyframes pulse-anim {
+      0%, 100% { opacity: 0.9; transform: scale(1); }
+      50%       { opacity: 0;   transform: scale(1.18); }
     }
 
-    /* Node label */
-    .node-name {
-      font-size: 10.5px;
-      font-weight: 600;
-      color: #6b7280;
-      text-align: center;
-      white-space: nowrap;
-      letter-spacing: -0.005em;
-      transition: color 0.2s;
-    }
+    /* ── PENDING ── */
+    .is-pending .node-icon   { background: #f8f9fb; border-color: #e8eaf0; color: #c4c9d6; }
+    .is-pending .node-label  { color: #9ca3af; }
 
-    /* ── Pending (default) ── */
-    .node-pending .icon-ring {
-      background: #f9fafb;
-      border-color: #e5e7eb;
-    }
-    .node-pending .icon-letter { color: #9ca3af; }
-    .node-pending .node-name   { color: #9ca3af; }
-    .node-pending .step-num    { color: #d1d5db; border-color: #f3f4f6; }
-
-    /* ── Active ── */
-    .node-active {
-      background: #eef2ff;
+    /* ── ACTIVE ── */
+    .is-active {
       border-color: #6366f1;
-      box-shadow: 0 0 0 3px rgba(99,102,241,0.12), 0 4px 14px rgba(99,102,241,0.18);
+      background: #eef2ff;
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.1), 0 2px 10px rgba(99,102,241,0.15);
     }
-    .node-active .icon-ring {
+    .is-active .node-icon {
       background: #6366f1;
       border-color: #6366f1;
-      box-shadow: 0 4px 12px rgba(99,102,241,0.35);
+      color: white;
+      box-shadow: 0 2px 8px rgba(99,102,241,0.4);
     }
-    .node-active .icon-letter { color: white; font-size: 14px; }
-    .node-active .node-name   { color: #4f46e5; font-weight: 700; }
-    .node-active .step-num    { color: #6366f1; border-color: #c7d2fe; background: #eef2ff; }
+    .is-active .node-label { color: #4338ca; font-weight: 700; }
+    .is-active .node-step  { color: #818cf8; }
 
-    /* ── Completed ── */
-    .node-done {
+    /* ── DONE ── */
+    .is-done {
+      border-color: rgba(34,197,94,0.25);
       background: #f0fdf4;
-      border-color: rgba(34,197,94,0.3);
     }
-    .node-done .icon-ring {
+    .is-done .node-icon {
       background: #22c55e;
       border-color: #22c55e;
+      color: white;
     }
-    .node-done .icon-letter  { color: white; }
-    .node-done .node-name    { color: #15803d; font-weight: 700; }
-    .node-done .step-num     { color: #22c55e; border-color: #bbf7d0; background: #f0fdf4; }
+    .is-done .node-label { color: #15803d; font-weight: 700; }
+    .is-done .node-step  { color: #86efac; }
 
-    /* ── Connector arrow ── */
-    .connector {
+    /* ── Connector ── */
+    .arrow {
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      width: 28px;
-      margin: 0 2px;
-      opacity: 0.4;
-      transition: opacity 0.3s;
-      margin-top: 14px; /* align with center of node (offset step-num badge) */
+      width: 20px;
+      opacity: 0.3;
+      transition: opacity 0.25s;
+      flex: 0 0 20px;
     }
-    .connector-done { opacity: 0.9; }
-
-    /* ── Progress bar ── */
-    .prog-track {
-      flex-shrink: 0;
-      height: 3px;
-      background: #f3f4f6;
-      border-radius: 99px;
-      overflow: hidden;
-    }
-    .prog-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #6366f1, #22c55e);
-      border-radius: 99px;
-      transition: width 0.5s ease;
-      box-shadow: 0 0 6px rgba(99,102,241,0.3);
-    }
+    .arrow-done   { opacity: 0.7; }
+    .arrow-active { opacity: 1; }
   `]
 })
 export class FlowDiagramComponent {

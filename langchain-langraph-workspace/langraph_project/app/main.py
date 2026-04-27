@@ -10,6 +10,7 @@ from app.core.logger import get_logger
 from app.core.monitoring import setup_phoenix, setup_langsmith
 
 from app.api.routes.health import router as health_router
+from app.api.routes.config import router as config_router
 from app.api.routes.transaction import router as transaction_router
 from app.api.routes.loan import router as loan_router
 from app.api.routes.account import router as account_router
@@ -179,6 +180,7 @@ def create_app() -> FastAPI:
 
     # ── Routers ───────────────────────────────────────────────────────────────
     app.include_router(health_router,      prefix="/api/v1")
+    app.include_router(config_router,      prefix="/api/v1")
     app.include_router(transaction_router, prefix="/api/v1")
     app.include_router(loan_router,        prefix="/api/v1")
     app.include_router(account_router,     prefix="/api/v1")

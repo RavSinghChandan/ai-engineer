@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { BackendConfigService } from '../../services/backend-config.service';
 
 interface EndpointField {
   name: string;
@@ -25,7 +26,6 @@ interface Endpoint {
   danger?: boolean;
 }
 
-const API_BASE = 'http://localhost:8000/api/v1';
 
 const ENDPOINTS: Endpoint[] = [
   {
@@ -157,7 +157,7 @@ const ENDPOINTS: Endpoint[] = [
       <!-- Backend status bar -->
       <div class="status-bar" [ngClass]="backendUp() ? 'status-ok' : 'status-down'">
         <span class="status-indicator"></span>
-        <span>{{ backendUp() ? 'Backend is online — http://localhost:8000' : 'Backend offline — start: uvicorn app.main:app --port 8000' }}</span>
+        <span>{{ backendUp() ? 'Backend is online — ' + cfg.backendUrl : 'Backend offline — start: python run.py' }}</span>
       </div>
 
       <!-- Endpoint cards grid -->
@@ -816,6 +816,8 @@ const ENDPOINTS: Endpoint[] = [
 })
 export class ApiExplorerComponent {
   private http = inject(HttpClient);
+  protected cfg = inject(BackendConfigService);
+  private get base() { return this.cfg.backendUrl; }
 
   readonly endpoints = ENDPOINTS;
 
@@ -834,7 +836,7 @@ export class ApiExplorerComponent {
   private streamMap = signal<Record<string, string>>({});
 
   constructor() {
-    this.http.get(`${API_BASE}/health`).subscribe({
+    this.http.get(`${this.base}/api/v1/health/`).subscribe({
       next: () => this.backendUp.set(true),
       error: () => this.backendUp.set(false),
     });
@@ -912,13 +914,13 @@ export class ApiExplorerComponent {
     let obs;
 
     if (ep.method === 'GET') {
-      obs = this.http.get<any>(`http://localhost:8000${ep.path}`);
+      obs = this.http.get<any>(`${this.base}${ep.path}`);
     } else if (ep.method === 'DELETE') {
-      obs = this.http.delete<any>(`http://localhost:8000${ep.path}`);
+      obs = this.http.delete<any>(`${this.base}${ep.path}`);
     } else {
       const body: Record<string, any> = {};
       ep.fields.forEach(f => { body[f.name] = form[f.name] ?? f.default; });
-      obs = this.http.post<any>(`http://localhost:8000${ep.path}`, body);
+      obs = this.http.post<any>(`${this.base}${ep.path}`, body);
     }
 
     obs.subscribe({
@@ -935,7 +937,7 @@ export class ApiExplorerComponent {
     const form = this.formData()[ep.id] ?? {};
     this.streamMap.update(m => ({ ...m, [ep.id]: '' }));
 
-    fetch('http://localhost:8000/api/v1/chat/stream', {
+    fetch(`${this.base}/api/v1/chat/stream`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -979,7 +981,7 @@ export class ApiExplorerComponent {
     const fd = new FormData();
     fd.append('file', file);
 
-    this.http.post<any>('http://localhost:8000/api/v1/ingest', fd).subscribe({
+    this.http.post<any>(`${this.base}/api/v1/ingest`, fd).subscribe({
       next: (res) => { this.setResponse('ingest', res); this.setLoading('ingest', false); },
       error: (err) => {
         this.setError('ingest', err.error?.detail ?? err.message ?? 'Upload failed');

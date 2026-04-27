@@ -1,9 +1,9 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { inject, Injectable, signal, computed } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ExecutionStep, FlowNode } from '../models/execution-step.model';
 import { FLOW_NODES } from '../data/mock-steps.data';
 import { ENDPOINT_CONFIGS, EndpointConfig } from '../data/endpoints.data';
-import { PROJECT_CONFIG } from '../config/project.config';
+import { BackendConfigService } from './backend-config.service';
 
 export interface ApiResponse {
   [key: string]: any;
@@ -57,6 +57,9 @@ export class ExecutionStateService {
     return Math.round((done / steps.length) * 100);
   });
 
+  private cfg = inject(BackendConfigService);
+  private get backendUrl() { return this.cfg.backendUrl; }
+
   constructor(private http: HttpClient) {}
 
   // ── Start flow ────────────────────────────────────────────────────────────
@@ -93,7 +96,7 @@ export class ExecutionStateService {
   // ── HTTP calls ────────────────────────────────────────────────────────────
 
   private callHttp(config: EndpointConfig, form: Record<string, any>): void {
-    const url = `${PROJECT_CONFIG.backendUrl}${config.path}`;
+    const url = `${this.backendUrl}${config.path}`;
     let obs;
 
     if (config.method === 'GET') {
@@ -124,7 +127,7 @@ export class ExecutionStateService {
   }
 
   private callStream(form: Record<string, any>): void {
-    fetch(`${PROJECT_CONFIG.backendUrl}/api/v1/chat/stream`, {
+    fetch(`${this.backendUrl}/api/v1/chat/stream`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -159,7 +162,7 @@ export class ExecutionStateService {
     }
     const fd = new FormData();
     fd.append('file', file);
-    this.http.post<ApiResponse>(`${PROJECT_CONFIG.backendUrl}/api/v1/ingest`, fd).subscribe({
+    this.http.post<ApiResponse>(`${this.backendUrl}/api/v1/ingest`, fd).subscribe({
       next: res => this._pendingResponse.set(res),
       error: () => this._pendingResponse.set({ message: 'Ingest failed', chunks: 0, source: file.name }),
     });
