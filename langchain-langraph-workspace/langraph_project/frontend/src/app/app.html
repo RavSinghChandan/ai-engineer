@@ -1,0 +1,151 @@
+<div class="app-shell" [ngClass]="draggingClass()">
+
+  <!-- TOP BAR -->
+  <header class="top-bar">
+    <div class="top-bar-inner">
+
+      <!-- Brand -->
+      <div class="brand">
+        <img src="rav-logo.png" alt="AI with Rav" class="brand-logo" />
+        <div class="brand-divider"></div>
+        <div class="brand-app">
+          <span class="brand-app-title">AI with Rav <span class="brand-app-accent">Engine</span></span>
+          <span class="brand-app-sub">Banking AI Platform — graph execution & debugging</span>
+        </div>
+      </div>
+
+      <!-- Center badges -->
+      <div class="top-center">
+        <span class="badge badge-lc">Banking AI</span>
+        <span class="badge badge-fapi">LangGraph • Agents • RAG</span>
+        <span class="badge badge-ng">Python • FastAPI • Redis</span>
+        <span class="badge badge-faiss">Production Ready</span>
+      </div>
+
+      <!-- Right -->
+      <div class="presenter">
+        <div class="presenter-info">
+          <span class="presenter-name">Chandan Kumar</span>
+          <span class="presenter-role">AI Systems Engineer</span>
+        </div>
+        <img src="rav-photo.png" alt="Chandan Kumar" class="presenter-avatar" />
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="main-layout">
+
+    <!-- LEFT — Input -->
+    <aside class="left-col" [style.width.px]="leftWidth()">
+      <app-input-panel />
+    </aside>
+
+    <div class="resize-divider v-drag"
+         (mousedown)="startDrag('left', $event)"
+         title="Drag to resize input width">
+      <div class="divider-handle"></div>
+    </div>
+
+    <!-- RIGHT — work area -->
+    <section class="right-col">
+
+      <!-- Top: Flow strip (fixed height) -->
+      <div class="panel flow-panel">
+        <app-flow-diagram />
+      </div>
+
+      <!-- Mid: 3-column work area [Timeline | Graph | Code] -->
+      <div class="mid-row" [ngClass]="{ 'mid-expanded': codeExpanded() }">
+
+        @if (!codeExpanded()) {
+          <!-- ── Graph column ── -->
+          <div class="panel graph-col"
+               [class.col-collapsed]="graphCollapsed()"
+               [style.width.px]="graphCollapsed() ? null : graphWidth()">
+            <div class="col-header" (click)="graphCollapsed.set(!graphCollapsed())">
+              <span class="col-label">
+                <span class="col-dot" style="background:#a855f7"></span>
+                GRAPH STRUCTURE &amp; API
+              </span>
+              <span class="col-chevron">{{ graphCollapsed() ? '▸' : '▾' }}</span>
+            </div>
+            @if (!graphCollapsed()) {
+              <app-endpoint-graph />
+            }
+          </div>
+
+          @if (!graphCollapsed()) {
+            <div class="resize-divider v-drag inner-v"
+                 (mousedown)="startDrag('graph', $event)"
+                 title="Drag to resize graph width">
+              <div class="divider-handle"></div>
+            </div>
+          }
+        }
+
+        <!-- ── Code column (fills remaining) ── -->
+        <div class="panel code-panel-host" [ngClass]="{ 'code-full': codeExpanded() }">
+
+          <div class="code-toolbar">
+            <span class="code-toolbar-label">
+              <span class="toolbar-dot"></span>
+              EXECUTION
+            </span>
+
+            @if (execState.currentStep()) {
+              <div class="toolbar-chips">
+                <span class="chip-file">
+                  {{ execState.currentStep()!.file }}
+                </span>
+                <span class="chip-fn">
+                  {{ execState.currentStep()!.functionName }}
+                </span>
+              </div>
+            }
+
+            <div class="toolbar-actions">
+
+              @if (execState.isRunning() && !execState.isComplete()) {
+                <div class="step-group">
+                  <button class="step-btn step-in"
+                          (click)="execState.stepIn()">
+                    Step In
+                  </button>
+                  <button class="step-btn step-over"
+                          (click)="execState.nextStep()">
+                    Step Over
+                  </button>
+                </div>
+              }
+
+              <div class="zoom-group">
+                <button class="zoom-btn" (click)="execState.zoomOut()">A−</button>
+                <span class="zoom-val">{{ execState.codeFontSize() }}px</span>
+                <button class="zoom-btn" (click)="execState.zoomIn()">A+</button>
+              </div>
+
+              @if (codeExpanded()) {
+                <button class="toolbar-btn restore-btn"
+                        (click)="codeExpanded.set(false)">
+                  Restore
+                </button>
+              } @else {
+                <button class="toolbar-btn expand-btn"
+                        (click)="codeExpanded.set(true)">
+                  Expand
+                </button>
+              }
+            </div>
+          </div>
+
+          <app-code-panel />
+        </div>
+
+      </div>
+
+    </section>
+  </main>
+
+</div>

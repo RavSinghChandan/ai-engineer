@@ -22,7 +22,7 @@ export class ExecutionStateService {
   private _pendingResponse = signal<ApiResponse | null>(null); // held until flow ends
   private _requestPayload = signal<any | null>(null);
   private _autoPlaying = signal(false);
-  private _currentEndpointId = signal<string>('chat');
+  private _currentEndpointId = signal<string>('health');
   private _autoTimer: ReturnType<typeof setInterval> | null = null;
   private _manualLine = signal<number | null>(null);
   readonly codeFontSize = signal(13);
@@ -102,9 +102,14 @@ export class ExecutionStateService {
       obs = this.http.delete<ApiResponse>(url);
     } else {
       const body = config.buildBody(form);
-      obs = this.http.post<ApiResponse>(url, body, {
-        headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
-      });
+      // FormData bodies (e.g. auth/token) must not set Content-Type — browser sets boundary
+      if (body instanceof FormData) {
+        obs = this.http.post<ApiResponse>(url, body);
+      } else {
+        obs = this.http.post<ApiResponse>(url, body, {
+          headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+        });
+      }
     }
 
     obs.subscribe({
@@ -312,4 +317,7 @@ export class ExecutionStateService {
 
   zoomIn():  void { this.codeFontSize.update(s => Math.min(s + 1, 22)); }
   zoomOut(): void { this.codeFontSize.update(s => Math.max(s - 1, 10)); }
+
+  // Update the displayed endpoint without starting the flow (for graph preview)
+  selectEndpoint(id: string): void { this._currentEndpointId.set(id); }
 }

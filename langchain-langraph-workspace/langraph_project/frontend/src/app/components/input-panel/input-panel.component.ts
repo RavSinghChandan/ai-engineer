@@ -14,7 +14,7 @@ import { PROJECT_CONFIG } from '../../config/project.config';
 
       <!-- Brand -->
       <div class="brand-row">
-        <div class="brand-icon">&#9889;</div>
+        <div class="brand-icon">&#127381;</div>
         <div>
           <div class="brand-name">{{ cfg.panelTitle }}</div>
           <div class="brand-sub">{{ cfg.panelSubtitle }}</div>
@@ -22,47 +22,59 @@ import { PROJECT_CONFIG } from '../../config/project.config';
         <div class="status-dot" [ngClass]="dotClass()"></div>
       </div>
 
-      <!-- Endpoint selector — custom dropdown -->
+      <!-- Endpoint selector — Apple-style colorful dropdown -->
       <div class="field-block">
         <label class="field-label">Select API Endpoint</label>
 
-        <!-- Trigger button (closed state) -->
+        <!-- Trigger button -->
         <div class="ep-trigger"
-             [ngClass]="{ 'ep-trigger-open': dropOpen, 'ep-trigger-disabled': state.isRunning() }"
+             [class.ep-trigger-open]="dropOpen"
+             [class.ep-trigger-disabled]="state.isRunning()"
+             [style.border-color]="dropOpen ? selected().color : ''"
+             [style.box-shadow]="dropOpen ? '0 0 0 3px ' + selected().color + '22' : ''"
              (click)="!state.isRunning() && toggleDrop()">
+          <div class="ep-icon-wrap" [style.background]="selected().color + '18'">
+            <span class="ep-icon-emoji">{{ selected().emoji }}</span>
+          </div>
+          <div class="ep-trigger-body">
+            <span class="ep-trigger-name" [style.color]="selected().color">{{ selected().label }}</span>
+            <span class="ep-trigger-path">{{ selected().method }} {{ selected().path }}</span>
+          </div>
           <span class="verb-badge" [ngClass]="'verb-' + selected().method.toLowerCase()">
             {{ selected().method }}
           </span>
-          <div class="ep-trigger-body">
-            <span class="ep-trigger-name">{{ selected().emoji }} {{ selected().label }}</span>
-            <span class="ep-trigger-path">{{ selected().path }}</span>
-          </div>
-          <span class="ep-caret" [ngClass]="{ 'ep-caret-open': dropOpen }">&#9660;</span>
+          <span class="ep-caret" [class.ep-caret-open]="dropOpen" [style.color]="dropOpen ? selected().color : ''">▾</span>
         </div>
 
-        <!-- Dropdown list -->
+        <!-- Dropdown panel -->
         @if (dropOpen) {
           <div class="ep-dropdown">
             @for (ep of endpoints; track ep.id) {
               <div class="ep-option"
-                   [ngClass]="{ 'ep-option-active': ep.id === selectedId() }"
+                   [class.ep-option-active]="ep.id === selectedId()"
+                   [style.border-left-color]="ep.id === selectedId() ? ep.color : 'transparent'"
                    (click)="pickEndpoint(ep.id)">
-                <span class="verb-badge" [ngClass]="'verb-' + ep.method.toLowerCase()">
-                  {{ ep.method }}
-                </span>
+                <div class="ep-opt-icon" [style.background]="ep.color + '18'">
+                  <span>{{ ep.emoji }}</span>
+                </div>
                 <div class="ep-option-body">
-                  <span class="ep-option-name">{{ ep.emoji }} {{ ep.label }}</span>
+                  <span class="ep-option-name"
+                        [style.color]="ep.id === selectedId() ? ep.color : ''">{{ ep.label }}</span>
                   <span class="ep-option-path">{{ ep.path }}</span>
                 </div>
+                <span class="verb-badge" [ngClass]="'verb-' + ep.method.toLowerCase()">{{ ep.method }}</span>
                 @if (ep.id === selectedId()) {
-                  <span class="ep-active-dot">&#10003;</span>
+                  <span class="ep-active-check" [style.color]="ep.color">✓</span>
                 }
               </div>
             }
           </div>
         }
 
-        <div class="endpoint-tagline">{{ selected().tagline }}</div>
+        <div class="endpoint-tagline">
+          <span class="tagline-dot" [style.background]="selected().color"></span>
+          {{ selected().tagline }}
+        </div>
       </div>
 
       <!-- Dynamic form fields -->
@@ -106,9 +118,7 @@ import { PROJECT_CONFIG } from '../../config/project.config';
                   (change)="setField(field.name, $any($event.target).value)"
                   [disabled]="state.isRunning()">
                   @for (opt of field.options; track opt) {
-                    <option [value]="opt">
-                      {{ opt === 'v1' ? 'v1 — Friendly & Clear' : 'v2 — Analytical & Detailed' }}
-                    </option>
+                    <option [value]="opt">{{ opt }}</option>
                   }
                 </select>
               </div>
@@ -179,29 +189,43 @@ import { PROJECT_CONFIG } from '../../config/project.config';
             <span class="resp-ep-pill">{{ selected().method }} {{ selected().path }}</span>
           </div>
 
-          <!-- ── CHAT / STREAM ── -->
-          @if (state.currentEndpointId() === 'chat' || state.currentEndpointId() === 'chat_stream') {
-            <div class="resp-answer-block">
-              <div class="ai-badge">
-                <span class="ai-badge-spark">✦</span>
-                <span class="ai-badge-text">AI</span>
+          <!-- ── HEALTH ── -->
+          @if (state.currentEndpointId() === 'health') {
+            <div class="resp-status-card resp-status-ok">
+              <div class="resp-status-icon">&#9989;</div>
+              <div>
+                <div class="resp-status-title">Platform is Online</div>
+                <div class="resp-status-sub">{{ state.apiResponse()!['service'] }} v{{ state.apiResponse()!['version'] }}</div>
               </div>
-              <div class="resp-answer-text" [innerHTML]="formatResponse(state.apiResponse()!['answer'])"></div>
             </div>
-            @if (state.apiResponse()!['sources']?.length) {
-              <div class="resp-section">
-                <div class="resp-section-label">&#128204; Sources</div>
-                <div class="resp-chips-row">
-                  @for (src of state.apiResponse()!['sources']; track src) {
-                    <span class="chip chip-source">{{ src }}</span>
-                  }
-                </div>
-              </div>
-            }
           }
 
-          <!-- ── AGENT ── -->
-          @else if (state.currentEndpointId() === 'agent') {
+          <!-- ── TRANSACTION ROUTE ── -->
+          @else if (state.currentEndpointId() === 'transaction_route') {
+            <div class="resp-status-card resp-status-ok">
+              <div class="resp-status-icon">&#128203;</div>
+              <div>
+                <div class="resp-status-title">Routed: {{ state.apiResponse()!['routing_decision'] }}</div>
+                <div class="resp-status-sub">Priority: {{ state.apiResponse()!['priority'] }} | Human review: {{ state.apiResponse()!['requires_human_review'] }}</div>
+              </div>
+            </div>
+          }
+
+          <!-- ── LOAN ELIGIBILITY ── -->
+          @else if (state.currentEndpointId() === 'loan_eligibility') {
+            <div class="resp-status-card" [ngClass]="state.apiResponse()!['decision'] === 'approved' ? 'resp-status-ok' : 'resp-status-warn'">
+              <div class="resp-status-icon">{{ state.apiResponse()!['decision'] === 'approved' ? '&#9989;' : '&#10060;' }}</div>
+              <div>
+                <div class="resp-status-title">Decision: {{ (state.apiResponse()!['decision'] || '').toUpperCase() }}</div>
+                <div class="resp-status-sub">
+                  {{ state.apiResponse()!['eligible_amount'] ? 'Amount: $' + state.apiResponse()!['eligible_amount'] + ' @ ' + state.apiResponse()!['interest_rate'] + '%' : state.apiResponse()!['rejection_reason'] }}
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- ── ACCOUNT QUERY ── -->
+          @else if (state.currentEndpointId() === 'account_query') {
             <div class="resp-answer-block">
               <div class="ai-badge">
                 <span class="ai-badge-spark">✦</span>
@@ -221,65 +245,112 @@ import { PROJECT_CONFIG } from '../../config/project.config';
             }
           }
 
-          <!-- ── HEALTH ── -->
-          @else if (state.currentEndpointId() === 'health') {
-            <div class="resp-status-card resp-status-ok">
-              <div class="resp-status-icon">&#9989;</div>
-              <div>
-                <div class="resp-status-title">Service is Online</div>
-                <div class="resp-status-sub">Model: {{ state.apiResponse()!['model'] }}</div>
+          <!-- ── COMPLIANCE RAG ── -->
+          @else if (state.currentEndpointId() === 'compliance_query') {
+            <div class="resp-answer-block">
+              <div class="ai-badge">
+                <span class="ai-badge-spark">✦</span>
+                <span class="ai-badge-text">AI</span>
               </div>
+              <div class="resp-answer-text" [innerHTML]="formatResponse(state.apiResponse()!['answer'])"></div>
             </div>
-          }
-
-          <!-- ── PROMPTS ── -->
-          @else if (state.currentEndpointId() === 'prompts') {
-            @for (p of state.apiResponse()!['prompts']; track p.version) {
-              <div class="resp-prompt-card">
-                <div class="resp-prompt-badge">Style {{ p.version }}</div>
-                <div class="resp-prompt-body">{{ p.content }}</div>
+            @if (state.apiResponse()!['sources']?.length) {
+              <div class="resp-section">
+                <div class="resp-section-label">&#128204; Policy Sources</div>
+                <div class="resp-chips-row">
+                  @for (src of state.apiResponse()!['sources']; track src) {
+                    <span class="chip chip-source">{{ src }}</span>
+                  }
+                </div>
               </div>
             }
           }
 
-          <!-- ── MEMORY GET ── -->
-          @else if (state.currentEndpointId() === 'memory_get') {
+          <!-- ── CONVERSATION ── -->
+          @else if (state.currentEndpointId() === 'conversation_chat') {
+            <div class="resp-answer-block">
+              <div class="ai-badge">
+                <span class="ai-badge-spark">✦</span>
+                <span class="ai-badge-text">AI</span>
+              </div>
+              <div class="resp-answer-text" [innerHTML]="formatResponse(state.apiResponse()!['reply'])"></div>
+            </div>
             <div class="resp-section">
-              <div class="resp-section-label">&#129504; {{ state.apiResponse()!['total'] }} Messages Stored</div>
-              <div class="resp-mem-list">
-                @for (m of state.apiResponse()!['messages']; track $index) {
-                  <div class="resp-bubble" [ngClass]="m.role === 'human' ? 'bubble-human' : 'bubble-ai'">
-                    <div class="bubble-role">{{ m.role === 'human' ? '&#128100; You' : '&#129302; AI' }}</div>
-                    <div class="bubble-text">{{ m.content.length > 160 ? m.content.slice(0, 160) + '…' : m.content }}</div>
-                  </div>
-                }
+              <div class="resp-section-label">
+                &#129504; Session: {{ state.apiResponse()!['session_id'] }} · Turn {{ state.apiResponse()!['turn_count'] }}
+                @if (state.apiResponse()!['intent']) { · Intent: {{ state.apiResponse()!['intent'] }} }
               </div>
             </div>
           }
 
-          <!-- ── MEMORY DELETE ── -->
-          @else if (state.currentEndpointId() === 'memory_delete') {
-            <div class="resp-status-card resp-status-warn">
-              <div class="resp-status-icon">&#128465;&#65039;</div>
+          <!-- ── LOAN COMMITTEE ── -->
+          @else if (state.currentEndpointId() === 'loan_committee') {
+            <div class="resp-status-card" [ngClass]="state.apiResponse()!['verdict'] === 'approved' ? 'resp-status-ok' : 'resp-status-warn'">
+              <div class="resp-status-icon">{{ state.apiResponse()!['verdict'] === 'approved' ? '&#9989;' : state.apiResponse()!['verdict'] === 'escalated' ? '&#9888;&#65039;' : '&#10060;' }}</div>
               <div>
-                <div class="resp-status-title">Memory Cleared</div>
-                <div class="resp-status-sub">Conversation history wiped</div>
+                <div class="resp-status-title">Committee: {{ (state.apiResponse()!['verdict'] || '').toUpperCase() }}</div>
+                <div class="resp-status-sub">Risk Score: {{ state.apiResponse()!['risk_score'] }} | Rate: {{ state.apiResponse()!['interest_rate'] }}%</div>
               </div>
             </div>
           }
 
-          <!-- ── INGEST ── -->
-          @else if (state.currentEndpointId() === 'ingest') {
+          <!-- ── RESILIENCE ── -->
+          @else if (state.currentEndpointId() === 'resilience_query') {
+            <div class="resp-answer-block">
+              <div class="ai-badge">
+                <span class="ai-badge-spark">✦</span>
+                <span class="ai-badge-text">AI</span>
+              </div>
+              <div class="resp-answer-text" [innerHTML]="formatResponse(state.apiResponse()!['response'])"></div>
+            </div>
+            <div class="resp-section">
+              <div class="resp-section-label">
+                &#128737;&#65039; Circuit: {{ state.apiResponse()!['circuit_state'] }}
+                · Attempts: {{ state.apiResponse()!['attempt_count'] }}
+                · Fallback: {{ state.apiResponse()!['used_fallback'] ? 'Yes' : 'No' }}
+              </div>
+            </div>
+          }
+
+          <!-- ── AUTH TOKEN ── -->
+          @else if (state.currentEndpointId() === 'auth_token') {
             <div class="resp-status-card resp-status-ok">
-              <div class="resp-status-icon">&#128194;</div>
+              <div class="resp-status-icon">&#128274;</div>
               <div>
-                <div class="resp-status-title">Document Ingested</div>
-                <div class="resp-status-sub">{{ state.apiResponse()!['chunks'] }} chunks stored in FAISS vector store</div>
+                <div class="resp-status-title">{{ state.apiResponse()!['username'] }} · {{ state.apiResponse()!['role'] }}</div>
+                <div class="resp-status-sub">Bearer token issued — use in Authorization header</div>
               </div>
             </div>
           }
 
-          <!-- ── FALLBACK ── -->
+          <!-- ── AUTONOMOUS AGENT ── -->
+          @else if (state.currentEndpointId() === 'autonomous_query') {
+            <div class="resp-answer-block">
+              <div class="ai-badge">
+                <span class="ai-badge-spark">✦</span>
+                <span class="ai-badge-text">AI</span>
+              </div>
+              <div class="resp-answer-text" [innerHTML]="formatResponse(state.apiResponse()!['answer'])"></div>
+            </div>
+            <div class="resp-section">
+              <div class="resp-section-label">
+                &#128301; Workflow: {{ state.apiResponse()!['workflow_used'] }}
+                · Intent: {{ state.apiResponse()!['intent_detected'] }}
+              </div>
+            </div>
+            @if (state.apiResponse()!['sources']?.length) {
+              <div class="resp-section">
+                <div class="resp-section-label">&#128204; RAG Sources</div>
+                <div class="resp-chips-row">
+                  @for (src of state.apiResponse()!['sources']; track src) {
+                    <span class="chip chip-source">{{ src }}</span>
+                  }
+                </div>
+              </div>
+            }
+          }
+
+          <!-- ── FALLBACK — shows raw JSON for any unhandled endpoint ── -->
           @else {
             <pre class="resp-raw">{{ state.apiResponse() | json }}</pre>
           }
@@ -343,27 +414,39 @@ import { PROJECT_CONFIG } from '../../config/project.config';
       font-size: 10px; font-weight: 700;
       text-transform: uppercase; letter-spacing: 0.07em; color: #6b7280;
     }
-    /* ── Custom endpoint dropdown ── */
+    /* ── Apple-style colorful endpoint dropdown ── */
     .ep-trigger {
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 10px 12px;
+      padding: 9px 12px;
       border: 1.5px solid #e5e7eb;
-      border-radius: 12px;
-      background: #f9fafb;
-      cursor: pointer;
-      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
-      user-select: none;
-    }
-    .ep-trigger:hover { border-color: #6366f1; background: white; }
-    .ep-trigger-open {
-      border-color: #6366f1;
+      border-radius: 14px;
       background: white;
-      border-radius: 12px 12px 0 0;
-      box-shadow: 0 2px 8px rgba(99,102,241,0.1);
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.25s, background 0.2s;
+      user-select: none;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .ep-trigger:hover {
+      background: #fafafa;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.09);
+    }
+    .ep-trigger-open {
+      border-radius: 14px 14px 0 0;
+      background: white;
     }
     .ep-trigger-disabled { opacity: 0.55; cursor: not-allowed; pointer-events: none; }
+
+    /* Colored emoji icon */
+    .ep-icon-wrap {
+      width: 34px; height: 34px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+    .ep-icon-emoji { font-size: 17px; line-height: 1; }
 
     .ep-trigger-body {
       display: flex;
@@ -374,11 +457,11 @@ import { PROJECT_CONFIG } from '../../config/project.config';
     }
     .ep-trigger-name {
       font-size: 13px;
-      font-weight: 600;
-      color: #111827;
+      font-weight: 700;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      transition: color 0.2s;
     }
     .ep-trigger-path {
       font-size: 10px;
@@ -386,37 +469,57 @@ import { PROJECT_CONFIG } from '../../config/project.config';
       color: #9ca3af;
     }
     .ep-caret {
-      font-size: 9px;
+      font-size: 14px;
       color: #9ca3af;
       flex-shrink: 0;
-      transition: transform 0.2s;
+      transition: transform 0.22s cubic-bezier(0.4,0,0.2,1), color 0.2s;
+      line-height: 1;
     }
-    .ep-caret-open { transform: rotate(180deg); color: #6366f1; }
+    .ep-caret-open { transform: rotate(180deg); }
 
     /* Dropdown panel */
     .ep-dropdown {
-      border: 1.5px solid #6366f1;
+      border: 1.5px solid #e5e7eb;
       border-top: none;
-      border-radius: 0 0 12px 12px;
+      border-radius: 0 0 14px 14px;
       background: white;
       overflow: hidden;
-      box-shadow: 0 8px 24px rgba(99,102,241,0.12);
-      animation: drop-in 0.15s ease;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+      animation: drop-in 0.18s cubic-bezier(0.34,1.3,0.64,1);
+      max-height: 340px;
+      overflow-y: auto;
     }
-    @keyframes drop-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+    @keyframes drop-in {
+      from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+      to   { opacity: 1; transform: none; }
+    }
 
+    /* Each option row */
     .ep-option {
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 9px 12px;
+      padding: 8px 12px;
       cursor: pointer;
       border-bottom: 1px solid #f3f4f6;
-      transition: background 0.15s;
+      border-left: 3px solid transparent;
+      transition: background 0.15s, border-left-color 0.15s;
     }
     .ep-option:last-child { border-bottom: none; }
-    .ep-option:hover { background: #f5f3ff; }
-    .ep-option-active { background: #eef2ff; }
+    .ep-option:hover { background: #f8f8fc; }
+    .ep-option-active { background: #fafafe; }
+
+    /* Colored emoji icon in option */
+    .ep-opt-icon {
+      width: 30px; height: 30px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+    .ep-option:hover .ep-opt-icon { transform: scale(1.08); transition: transform 0.15s; }
+
     .ep-option-body {
       display: flex;
       flex-direction: column;
@@ -426,21 +529,21 @@ import { PROJECT_CONFIG } from '../../config/project.config';
     }
     .ep-option-name {
       font-size: 12px;
-      font-weight: 600;
+      font-weight: 700;
       color: #111827;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      transition: color 0.15s;
     }
     .ep-option-path {
       font-size: 10px;
       font-family: 'JetBrains Mono', monospace;
       color: #9ca3af;
     }
-    .ep-active-dot {
-      font-size: 12px;
-      color: #6366f1;
-      font-weight: 700;
+    .ep-active-check {
+      font-size: 13px;
+      font-weight: 800;
       flex-shrink: 0;
     }
 
@@ -449,8 +552,8 @@ import { PROJECT_CONFIG } from '../../config/project.config';
       font-size: 9px;
       font-weight: 800;
       letter-spacing: 0.06em;
-      padding: 2px 6px;
-      border-radius: 5px;
+      padding: 2px 7px;
+      border-radius: 6px;
       flex-shrink: 0;
       font-family: 'JetBrains Mono', monospace;
     }
@@ -459,7 +562,19 @@ import { PROJECT_CONFIG } from '../../config/project.config';
     .verb-delete { background: #fef2f2; color: #dc2626; }
 
     .endpoint-tagline {
-      font-size: 11px; color: #9ca3af; font-style: italic; margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: #9ca3af;
+      font-style: italic;
+      margin-top: 5px;
+    }
+    .tagline-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      opacity: 0.7;
     }
 
     .fields-area { display: flex; flex-direction: column; gap: 10px; }
@@ -812,6 +927,7 @@ import { PROJECT_CONFIG } from '../../config/project.config';
 
     /* Fallback raw */
     .resp-raw { font-size: 11px; font-family: 'JetBrains Mono',monospace; color: #374151; white-space: pre-wrap; word-break: break-all; background: #f9fafb; padding: 12px; margin: 12px; border-radius: 10px; }
+
   `]
 })
 export class InputPanelComponent {
@@ -819,7 +935,7 @@ export class InputPanelComponent {
   readonly cfg = PROJECT_CONFIG;
 
   readonly endpoints: EndpointConfig[] = ENDPOINT_CONFIGS;
-  readonly selectedId = signal('chat');
+  readonly selectedId = signal('health');
   dropOpen = false;
 
   readonly selected = computed(() =>
@@ -827,9 +943,15 @@ export class InputPanelComponent {
   );
 
   private _formValues = signal<Record<string, any>>({
-    chat: { question: 'What is 144 divided by 12?', use_rag: false, prompt_version: 'v1' },
-    chat_stream: { question: 'Explain LangChain agents in simple terms', use_rag: false, prompt_version: 'v1' },
-    agent: { question: 'What is 123 × 456 and what time is it now?' },
+    transaction_route:  { transaction_id: 'txn-001', transaction_type: 'payment', amount: 1200, account_id: 'ACC-1001' },
+    loan_eligibility:   { applicant_id: 'app-001', loan_type: 'personal', requested_amount: 20000, annual_income: 80000, credit_score: 750, employment_years: 6, existing_debt: 500 },
+    account_query:      { account_id: 'ACC-1001', query: 'What is my current balance and last 3 transactions?' },
+    compliance_query:   { query: 'What are the AML reporting thresholds for Suspicious Activity Reports?', category: 'aml', top_k: '5' },
+    conversation_chat:  { session_id: 'sess-001', message: 'What are the KYC requirements for opening a bank account?', account_id: 'ACC-1001' },
+    loan_committee:     { application_id: 'APP-001', applicant_name: 'Alice Johnson', loan_type: 'personal', requested_amount: 20000, annual_income: 80000, credit_score: 750, employment_years: 6, existing_debt: 500 },
+    resilience_query:   { query: 'What loan options are available for a credit score of 720?' },
+    auth_token:         { username: 'admin', password: 'admin123' },
+    autonomous_query:   { query: 'Am I eligible for a home loan with a credit score of 740?', session_id: 'sess-001' },
   });
 
   dotClass(): string {
@@ -862,14 +984,17 @@ export class InputPanelComponent {
   onEndpointChange(id: string): void {
     this.selectedId.set(id);
     this.state.resetState();
+    this.state.selectEndpoint(id);
   }
 
   canRun(): boolean {
     if (this.state.isRunning()) return false;
     const ep = this.selected();
-    if (ep.fields.some(f => f.type === 'textarea')) {
-      const q = this.getField('question', '');
-      return typeof q === 'string' && q.trim().length > 0;
+    // Any textarea field must be non-empty before running
+    const textareaField = ep.fields.find(f => f.type === 'textarea');
+    if (textareaField) {
+      const val = this.getField(textareaField.name, textareaField.default ?? '');
+      return typeof val === 'string' && val.trim().length > 0;
     }
     return true;
   }
@@ -970,4 +1095,5 @@ export class InputPanelComponent {
       this.setField('file', input.files[0]);
     }
   }
+
 }
