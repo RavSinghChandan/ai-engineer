@@ -135,8 +135,7 @@ interface GraphEdge {
           <!-- Re-keys to retrigger entrance animation when endpoint changes -->
           @for (_ of [endpointKey()]; track _) {
             <div class="lg-canvas-wrap"
-                 [style.transform]="'scale(' + zoom() + ')'"
-                 [style.transform-origin]="'top center'">
+                 [style.zoom]="zoom()">
               <svg class="lg-canvas"
                    [attr.viewBox]="'0 0 ' + canvasWidth() + ' ' + canvasHeight()"
                    [attr.width]="canvasWidth()"
@@ -1120,8 +1119,9 @@ export class EndpointGraphComponent {
   onDocMouseMove(e: MouseEvent): void {
     const d = this._drag;
     if (!d) return;
-    const dx = e.clientX - d.startX;
-    const dy = e.clientY - d.startY;
+    const z = this.zoom();
+    const dx = (e.clientX - d.startX) / z;
+    const dy = (e.clientY - d.startY) / z;
     if (!d.moved && Math.hypot(dx, dy) < 4) return;       // click threshold
     d.moved = true;
     this.draggingKey.set(d.nodeKey);
@@ -1163,12 +1163,13 @@ export class EndpointGraphComponent {
     });
   }
 
-  /** Smoothly scroll the canvas so the entire graph is in view. */
+  /** Reset zoom to 1 and scroll to top so the full graph is visible. */
   fitToView(): void {
+    this.zoom.set(1.0);
     requestAnimationFrame(() => {
-      const wrap = (this._stageEl() ?? null);
-      if (!wrap) return;
-      wrap.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      const stage = this._stageEl();
+      if (!stage) return;
+      stage.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
     });
   }
   private _stageEl(): HTMLElement | null {
