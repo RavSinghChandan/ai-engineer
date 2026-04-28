@@ -15,7 +15,7 @@ const TIMEOUT_MS = 120_000; // 2 minutes hard cap
 
 @Injectable({ providedIn: 'root' })
 export class ReportService {
-  private readonly base   = 'http://localhost:8000';
+  private readonly base   = 'http://localhost:8002';
   private readonly apiKey = 'ai-report-saas-2024';
 
   private get headers(): HttpHeaders {

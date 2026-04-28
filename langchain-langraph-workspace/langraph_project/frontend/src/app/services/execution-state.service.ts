@@ -24,6 +24,7 @@ export class ExecutionStateService {
   private _autoPlaying = signal(false);
   private _currentEndpointId = signal<string>('health');
   private _autoTimer: ReturnType<typeof setInterval> | null = null;
+  private _autoLineTimer: ReturnType<typeof setTimeout> | null = null;
   private _manualLine = signal<number | null>(null);
   readonly codeFontSize = signal(13);
 
@@ -235,27 +236,64 @@ export class ExecutionStateService {
   }
 
   // ── Auto play ─────────────────────────────────────────────────────────────
+  // Scans through each line of the current step's code before advancing.
+  // Timeline: enter step → line 1 → line 2 → … → last line → next step.
   toggleAutoPlay(): void {
     if (this._autoPlaying()) {
       this.stopAutoPlay();
     } else {
       this._autoPlaying.set(true);
-      this._autoTimer = setInterval(() => {
-        const idx = this._currentIndex();
-        if (idx >= this._steps().length - 1) {
-          this.stopAutoPlay();
-          this.finishFlow();
-        } else {
-          this.nextStep();
-        }
-      }, 1600);
+      this._runAutoStep();
     }
+  }
+
+  private _runAutoStep(): void {
+    const steps = this._steps();
+    const idx = this._currentIndex();
+
+    if (idx >= steps.length - 1) {
+      this.stopAutoPlay();
+      this.finishFlow();
+      return;
+    }
+
+    const step = steps[idx];
+    const totalLines = step ? step.code.split('\n').length : 0;
+    const startLine = step?.highlightLine ?? 1;
+
+    // Scan line by line through the current step, then advance
+    this._scanLines(startLine, totalLines, () => {
+      if (!this._autoPlaying()) return;
+      this.nextStep();
+      // Short pause after advancing before scanning the new step
+      this._autoLineTimer = setTimeout(() => {
+        if (this._autoPlaying()) this._runAutoStep();
+      }, 300);
+    });
+  }
+
+  private _scanLines(from: number, total: number, onDone: () => void): void {
+    this._manualLine.set(from);
+    if (from >= total) {
+      // Pause on last line briefly then finish
+      this._autoTimer = setTimeout(onDone, 500) as unknown as ReturnType<typeof setInterval>;
+      return;
+    }
+    // Speed: ~180ms per line — fast enough to feel alive, slow enough to read
+    this._autoTimer = setTimeout(() => {
+      if (!this._autoPlaying()) return;
+      this._scanLines(from + 1, total, onDone);
+    }, 180) as unknown as ReturnType<typeof setInterval>;
   }
 
   stopAutoPlay(): void {
     if (this._autoTimer) {
-      clearInterval(this._autoTimer);
+      clearTimeout(this._autoTimer as unknown as ReturnType<typeof setTimeout>);
       this._autoTimer = null;
+    }
+    if (this._autoLineTimer) {
+      clearTimeout(this._autoLineTimer);
+      this._autoLineTimer = null;
     }
     this._autoPlaying.set(false);
   }

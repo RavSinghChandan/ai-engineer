@@ -106,7 +106,7 @@ export class ReportFormComponent implements OnDestroy {
       },
       error: async (err) => {
         this._stopTimer();
-        let msg = 'Request failed. Check that the backend is running on port 8000.';
+        let msg = 'Request failed. Check that the backend is running on port 8002.';
 
         if (err.name === 'TimeoutError') {
           msg = 'Request timed out after 2 minutes. The backend may be overloaded — please try again.';

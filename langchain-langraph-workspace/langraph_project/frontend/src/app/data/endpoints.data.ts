@@ -175,20 +175,42 @@ function uiStep(id: number, endpointLabel: string, note = ''): ExecutionStep {
     functionName: 'runFlow()',
     nodeId: 'user',
     badge: 'Angular UI',
-    highlightLine: 2,
+    highlightLine: 1,
     status: 'pending',
-    code: `// User clicks "Run AI Flow"\nrunFlow(): void {\n  if (!this.canRun()) return;\n  const form = this.formValues[this.selectedId];\n  this.state.startFlow(\n    this.selectedEndpointId,  // "${trim(endpointLabel, 30)}"\n    form,\n  );\n}`,
+    code: `runFlow(): void {
+  if (!this.canRun()) return;
+  const form = this.formValues[this.selectedId];
+  this.state.startFlow(
+    this.selectedEndpointId,
+    form,
+  );
+  // HTTP request fired in background
+  // Step animation begins immediately
+}`,
     lineOutputs: {
-      1: '// Comment — no output',
-      2: '▶ runFlow() invoked — button click event fired',
-      3: `canRun() → true${note ? ' | ' + note : ''}`,
-      4: 'formValues retrieved from signal',
-      5: '→ state.startFlow called',
+      1: `▶ runFlow() invoked — "${trim(endpointLabel, 28)}" selected`,
+      2: `canRun() → true${note ? ' | ' + note : ''}`,
+      3: 'form = signal snapshot of all field values',
+      4: '→ state.startFlow() called',
+      5: `selectedEndpointId = "${trim(endpointLabel, 22)}"`,
+      6: 'form payload passed as second argument',
+      8: 'HTTP call dispatched — Angular HttpClient',
+      9: 'setTimeout(nextStep, 400) — animation starts',
     },
   };
 }
 
 function routesStep(id: number, method: string, path: string, fn: string, code: string): ExecutionStep {
+  const lines = code.split('\n');
+  const outputs: Record<number, string> = {};
+  lines.forEach((l, i) => {
+    const n = i + 1;
+    if (l.includes('@router')) outputs[n] = `${method} "${path}" route registered on FastAPI router`;
+    else if (l.includes('async def')) outputs[n] = `▶ ${fn} invoked — Pydantic body validation complete`;
+    else if (l.includes('result =') || l.includes('run_')) outputs[n] = '→ LangGraph runner called — graph.invoke() dispatched';
+    else if (l.includes('return')) outputs[n] = 'Pydantic serialises result dict → JSON response 200 OK';
+    else if (l.trim()) outputs[n] = l.trim().replace(/"/g, '').slice(0, 60);
+  });
   return {
     id,
     name: 'FastAPI Route Handler',
@@ -197,18 +219,24 @@ function routesStep(id: number, method: string, path: string, fn: string, code: 
     functionName: fn,
     nodeId: 'routes',
     badge: 'FastAPI',
-    highlightLine: 2,
+    highlightLine: 1,
     status: 'pending',
     code,
-    lineOutputs: {
-      1: `${method} "${path}" endpoint mounted`,
-      2: `▶ ${fn} invoked — request body validated by Pydantic`,
-      3: `→ LangGraph runner called`,
-    },
+    lineOutputs: outputs,
   };
 }
 
 function graphStateStep(id: number, stateClass: string, code: string, description: string): ExecutionStep {
+  const lines = code.split('\n');
+  const outputs: Record<number, string> = {};
+  lines.forEach((l, i) => {
+    const n = i + 1;
+    if (l.includes('class ')) outputs[n] = `▶ ${stateClass} TypedDict created — LangGraph state container`;
+    else if (l.includes(':') && !l.includes('#')) {
+      const field = l.trim().split(':')[0].trim();
+      outputs[n] = field ? `${field} field declared in state schema` : '';
+    } else if (l.includes('#')) outputs[n] = l.trim().replace('#', '→').trim();
+  });
   return {
     id,
     name: 'Graph State Initialised',
@@ -217,18 +245,25 @@ function graphStateStep(id: number, stateClass: string, code: string, descriptio
     functionName: stateClass,
     nodeId: 'graph',
     badge: 'StateGraph',
-    highlightLine: 2,
+    highlightLine: 1,
     status: 'pending',
     code,
-    lineOutputs: {
-      1: `class ${stateClass}(TypedDict) — LangGraph state schema`,
-      2: `▶ State dict created with input fields`,
-      3: 'Remaining fields → None (merged by LangGraph per-node)',
-    },
+    lineOutputs: outputs,
   };
 }
 
 function classifierStep(id: number, name: string, file: string, fn: string, code: string, description: string): ExecutionStep {
+  const lines = code.split('\n');
+  const outputs: Record<number, string> = {};
+  lines.forEach((l, i) => {
+    const n = i + 1;
+    if (l.includes('def ')) outputs[n] = `▶ ${fn} invoked — receives full graph state`;
+    else if (l.includes('return')) outputs[n] = `classification result returned → state merged by LangGraph`;
+    else if (l.includes('if ') || l.includes('elif ')) outputs[n] = `condition evaluated: ${l.trim().replace(/"/g, "'").slice(0, 55)}`;
+    else if (l.includes('for ')) outputs[n] = `iterating keyword/rule map`;
+    else if (l.includes('=') && !l.includes('==')) outputs[n] = `${l.trim().split('=')[0].trim()} assigned`;
+    else if (l.trim() && !l.trim().startsWith('#')) outputs[n] = l.trim().slice(0, 60);
+  });
   return {
     id,
     name: `Classifier: ${name}`,
@@ -237,19 +272,27 @@ function classifierStep(id: number, name: string, file: string, fn: string, code
     functionName: fn,
     nodeId: 'classifier',
     badge: 'Classifier Node',
-    highlightLine: 3,
+    highlightLine: 1,
     status: 'pending',
     code,
-    lineOutputs: {
-      1: `${fn}(state) — receives full accumulated state`,
-      2: 'Input extracted and normalised',
-      3: `▶ ${name} classification logic executing`,
-      4: 'Returns intent / classification → state merged',
-    },
+    lineOutputs: outputs,
   };
 }
 
 function llmCallStep(id: number, model: string, fn: string, code: string, description: string): ExecutionStep {
+  const lines = code.split('\n');
+  const outputs: Record<number, string> = {};
+  lines.forEach((l, i) => {
+    const n = i + 1;
+    if (l.includes('def ')) outputs[n] = `▶ ${fn} node executing — LangGraph called this node`;
+    else if (l.includes('ChatOpenAI') || l.includes('llm =')) outputs[n] = `${model} client initialised — temperature=0 for determinism`;
+    else if (l.includes('.invoke(') && l.includes('llm')) outputs[n] = `→ ${model} API called — awaiting response (~800ms avg)`;
+    else if (l.includes('SystemMessage')) outputs[n] = 'System prompt injected — defines LLM persona and constraints';
+    else if (l.includes('HumanMessage')) outputs[n] = 'User query added to message list';
+    else if (l.includes('return')) outputs[n] = 'LLM response merged into graph state';
+    else if (l.includes('response') && l.includes('.content')) outputs[n] = 'response.content extracted — raw string answer';
+    else if (l.trim() && !l.trim().startsWith('#')) outputs[n] = l.trim().slice(0, 60);
+  });
   return {
     id,
     name: `LLM Call (${model})`,
@@ -258,20 +301,25 @@ function llmCallStep(id: number, model: string, fn: string, code: string, descri
     functionName: fn,
     nodeId: 'llm',
     badge: 'LLM Call',
-    highlightLine: 3,
+    highlightLine: 1,
     status: 'pending',
     code,
-    lineOutputs: {
-      1: `llm = ChatOpenAI(model="${model}", temperature=0)`,
-      2: 'messages = [SystemMessage(prompt), HumanMessage(query)]',
-      3: `▶ llm.invoke(messages) → calling ${model} API`,
-      4: 'response = ChatCompletion object',
-      5: 'response.content → extracted text answer',
-    },
+    lineOutputs: outputs,
   };
 }
 
 function conditionalEdgeStep(id: number, fromNode: string, routingKey: string, code: string, description: string): ExecutionStep {
+  const lines = code.split('\n');
+  const outputs: Record<number, string> = {};
+  lines.forEach((l, i) => {
+    const n = i + 1;
+    if (l.includes('def ')) outputs[n] = `▶ routing function called — reads state from "${fromNode}" node output`;
+    else if (l.includes('return')) outputs[n] = `routing decision = "${routingKey}" → LangGraph selects next node`;
+    else if (l.includes('add_conditional_edges')) outputs[n] = `conditional edges wired at graph compile time`;
+    else if (l.includes('"') && l.includes(':')) outputs[n] = `destination mapping: ${l.trim().replace(/,\s*$/, '')}`;
+    else if (l.includes('if ') || l.includes('elif ')) outputs[n] = `condition: ${l.trim().slice(0, 55)}`;
+    else if (l.trim() && !l.trim().startsWith('#')) outputs[n] = l.trim().slice(0, 60);
+  });
   return {
     id,
     name: 'Conditional Edge Fires',
@@ -280,19 +328,25 @@ function conditionalEdgeStep(id: number, fromNode: string, routingKey: string, c
     functionName: 'add_conditional_edges()',
     nodeId: 'edge',
     badge: 'Conditional Edge',
-    highlightLine: 3,
+    highlightLine: 1,
     status: 'pending',
     code,
-    lineOutputs: {
-      1: `routing function receives state from "${fromNode}" node`,
-      2: `▶ routing key = "${routingKey}" — decision made`,
-      3: `"${routingKey}" → mapped to destination node`,
-      4: 'LangGraph transitions execution to destination',
-    },
+    lineOutputs: outputs,
   };
 }
 
 function toolStep(id: number, name: string, file: string, fn: string, code: string, description: string): ExecutionStep {
+  const lines = code.split('\n');
+  const outputs: Record<number, string> = {};
+  lines.forEach((l, i) => {
+    const n = i + 1;
+    if (l.includes('@tool')) outputs[n] = 'LangChain @tool decorator — registers function as callable tool';
+    else if (l.includes('def ')) outputs[n] = `▶ ${fn} invoked by LangGraph ToolNode`;
+    else if (l.includes('return')) outputs[n] = 'tool result returned → injected into agent messages as ToolMessage';
+    else if (l.includes('ToolNode')) outputs[n] = 'ToolNode executes all pending tool_calls from last agent message';
+    else if (l.includes('=') && !l.includes('==') && !l.includes('def ')) outputs[n] = `${l.trim().split('=')[0].trim()} computed`;
+    else if (l.trim() && !l.trim().startsWith('#')) outputs[n] = l.trim().slice(0, 60);
+  });
   return {
     id,
     name: `Tool: ${name}`,
@@ -301,19 +355,24 @@ function toolStep(id: number, name: string, file: string, fn: string, code: stri
     functionName: fn,
     nodeId: 'tool',
     badge: 'Tool / RAG',
-    highlightLine: 3,
+    highlightLine: 1,
     status: 'pending',
     code,
-    lineOutputs: {
-      1: `${fn}() — tool invoked from LangGraph ToolNode`,
-      2: 'Input extracted from agent state',
-      3: `▶ ${name} executing`,
-      4: 'Result returned and merged into agent state',
-    },
+    lineOutputs: outputs,
   };
 }
 
 function specialistStep(id: number, name: string, file: string, fn: string, code: string, description: string): ExecutionStep {
+  const lines = code.split('\n');
+  const outputs: Record<number, string> = {};
+  lines.forEach((l, i) => {
+    const n = i + 1;
+    if (l.includes('def ')) outputs[n] = `▶ ${fn} invoked — specialist node executing`;
+    else if (l.includes('return')) outputs[n] = 'result dict returned → LangGraph merges into shared state';
+    else if (l.includes('if ') || l.includes('elif ')) outputs[n] = `branch condition: ${l.trim().slice(0, 50)}`;
+    else if (l.includes('=') && !l.includes('==') && !l.includes('def ')) outputs[n] = `${l.trim().split('=')[0].trim()} computed`;
+    else if (l.trim() && !l.trim().startsWith('#')) outputs[n] = l.trim().slice(0, 60);
+  });
   return {
     id,
     name: `Specialist: ${name}`,
@@ -322,14 +381,10 @@ function specialistStep(id: number, name: string, file: string, fn: string, code
     functionName: fn,
     nodeId: 'specialist',
     badge: 'Specialist Node',
-    highlightLine: 3,
+    highlightLine: 1,
     status: 'pending',
     code,
-    lineOutputs: {
-      1: `${fn}() — specialist sub-graph invoked`,
-      2: 'Domain-specific logic runs',
-      3: `▶ ${name} result computed`,
-    },
+    lineOutputs: outputs,
   };
 }
 
@@ -342,27 +397,61 @@ function memorySaverStep(id: number, sessionId = 'sess-001'): ExecutionStep {
     functionName: 'MemorySaver.put()',
     nodeId: 'memory',
     badge: 'MemorySaver',
-    highlightLine: 3,
+    highlightLine: 1,
     status: 'pending',
-    code: `checkpointer = MemorySaver()
+    code: `from langgraph.checkpoint.memory import MemorySaver
+
+checkpointer = MemorySaver()
 graph = builder.compile(checkpointer=checkpointer)
 
 config = {"configurable": {"thread_id": "${sessionId}"}}
 result = graph.invoke(initial_state, config=config)
+# MemorySaver saves snapshot after EVERY node execution
 
-# Next call with same thread_id → history replayed
-result2 = graph.invoke(next_msg, config=config)`,
+# Next call — same thread_id reloads full prior state
+result2 = graph.invoke({"query": "follow-up"}, config=config)`,
     lineOutputs: {
-      1: 'MemorySaver() — in-memory checkpoint store',
-      2: 'graph.compile(checkpointer=...) — checkpointing wired in',
-      3: `▶ config["thread_id"] = "${sessionId}"`,
-      4: 'graph.invoke → checkpoint stored after each node',
-      7: 'Next call: full prior state replayed automatically',
+      1: '▶ MemorySaver imported from langgraph.checkpoint.memory',
+      3: 'checkpointer = MemorySaver() — in-process dict store',
+      4: 'graph.compile(checkpointer=...) — checkpointing wired in',
+      6: `config["thread_id"] = "${sessionId}" — unique session key`,
+      7: 'graph.invoke → state snapshot saved after each node',
+      8: 'checkpoint: {query, intent, result, messages, ...} persisted',
+      10: 'Next call: same thread_id → full prior state replayed',
+      11: 'LangGraph merges prior state + new input automatically',
     },
   };
 }
 
-function responseStep(id: number, modelName: string, description: string): ExecutionStep {
+function responseStep(id: number, modelName: string, description: string, fields?: string): ExecutionStep {
+  const fieldLines = fields || `    answer: str
+    execution_steps: list[str]
+    session_id: Optional[str] = None
+    sources: list[str] = []`;
+  const code = `class ${modelName}(BaseModel):
+${fieldLines}
+
+# Route handler assembles response from final graph state:
+final_state = graph.invoke(initial_state, config=config)
+return ${modelName}(
+    **{k: final_state[k] for k in ${modelName}.model_fields}
+)
+# FastAPI serialises to JSON → HTTP 200 OK`;
+  const lines = code.split('\n');
+  const outputs: Record<number, string> = {};
+  lines.forEach((l, i) => {
+    const n = i + 1;
+    if (l.includes('class ')) outputs[n] = `▶ ${modelName}(BaseModel) — Pydantic response schema`;
+    else if (l.trim().includes(':') && !l.includes('class') && !l.includes('#') && !l.includes('=') && !l.includes('(')) {
+      const field = l.trim().split(':')[0];
+      outputs[n] = `${field} field → populated from LangGraph final state`;
+    }
+    else if (l.includes('final_state =')) outputs[n] = 'graph.invoke() returns final accumulated state dict';
+    else if (l.includes('return')) outputs[n] = `${modelName}(**result) constructed — all fields validated by Pydantic`;
+    else if (l.includes('**{k:')) outputs[n] = 'dict comprehension maps state keys → model fields';
+    else if (l.includes('FastAPI')) outputs[n] = 'FastAPI auto-serialises Pydantic model → JSON 200 OK response';
+    else if (l.trim() && !l.trim().startsWith('#')) outputs[n] = l.trim().slice(0, 60);
+  });
   return {
     id,
     name: 'Response Serialised',
@@ -371,19 +460,10 @@ function responseStep(id: number, modelName: string, description: string): Execu
     functionName: modelName,
     nodeId: 'response',
     badge: 'Pydantic',
-    highlightLine: 2,
+    highlightLine: 1,
     status: 'pending',
-    code: `class ${modelName}(BaseModel):
-    # Fields populated from LangGraph final state
-    ...
-
-# In route handler:
-return ${modelName}(**final_state)`,
-    lineOutputs: {
-      1: `class ${modelName}(BaseModel) — Pydantic response schema`,
-      2: `▶ Fields populated from LangGraph final state`,
-      4: `return ${modelName}(**result) → JSON serialised`,
-    },
+    code,
+    lineOutputs: outputs,
   };
 }
 
@@ -405,7 +485,47 @@ export const ENDPOINT_CONFIGS: EndpointConfig[] = [
       return [
         uiStep(1, this.label),
         routesStep(2, 'GET', this.path, 'health_check()', HEALTH_CODE),
-        responseStep(3, 'HealthResponse', 'Returns { status: "healthy", service: "Banking AI Platform", version: "1.0.0" } — no LangGraph involved.'),
+        graphStateStep(3, 'HealthState', `# Health check has no graph state — direct FastAPI response
+class HealthResponse(BaseModel):
+    status: str
+    service: str
+    version: str
+    # No LangGraph pipeline — returns immediately`, 'Health endpoint bypasses LangGraph entirely — no state graph needed. Direct Pydantic serialisation.'),
+        classifierStep(4, 'status_check', 'app/api/routes/health.py', 'health_check()', `def health_check() -> HealthResponse:
+    # No classifier — simple liveness probe
+    return HealthResponse(
+        status="healthy",
+        service=settings.APP_NAME,
+        version=settings.APP_VERSION,
+    )`, 'No intent classification needed — health check is always a direct liveness probe response.'),
+        llmCallStep(5, 'N/A — no LLM', 'health_check()', `# Health endpoint does NOT call an LLM
+# No token cost — pure in-process response
+return HealthResponse(status="healthy", ...)
+# LangGraph LLM nodes are skipped for liveness checks`, 'Health check skips all LLM nodes — designed for zero-latency, zero-cost liveness probing.'),
+        conditionalEdgeStep(6, 'health_gate', 'healthy', `# No conditional edge — health always returns "healthy"
+# In a real system you might add:
+if not db.ping():
+    return {"status": "degraded"}
+if not redis.ping():
+    return {"status": "degraded"}
+# For now: always healthy`, 'Health gate: all downstream services reachable → routing directly to response.'),
+        specialistStep(7, 'liveness_probe', 'app/api/routes/health.py', 'health_check()', `# No specialist sub-graph — single function
+@router.get("/health", response_model=HealthResponse)
+async def health_check():
+    return HealthResponse(
+        status="healthy",
+        service=settings.APP_NAME,
+        version=settings.APP_VERSION,
+    )`, 'Liveness probe returns immediately — no sub-graph delegation required.'),
+        toolStep(8, 'N/A — no tools', 'app/api/routes/health.py', 'health_check()', `# No tool calls in health endpoint
+# Tools used by ReAct agents (account, compliance, resilience)
+# Health is a pure in-process response — no external I/O
+return HealthResponse(status="healthy")`, 'No tool invocation — health check is purely in-process with no external dependencies.'),
+        memorySaverStep(9),
+        responseStep(10, 'HealthResponse', 'Returns { status: "healthy", service: "Banking AI Platform", version: "1.0.0" } — no LangGraph involved.',
+          `    status: str          # "healthy" | "degraded" | "down"
+    service: str         # "Banking AI Platform"
+    version: str         # "1.0.0"`),
       ];
     },
     buildBody: () => null,
@@ -436,9 +556,34 @@ export const ENDPOINT_CONFIGS: EndpointConfig[] = [
         routesStep(2, 'POST', this.path, 'route_transaction()', `@router.post("/route", response_model=RouteTransactionResponse)\nasync def route_transaction(request: RouteTransactionRequest):\n    result = run_transaction_router(request.model_dump())\n    return RouteTransactionResponse(**result)`),
         graphStateStep(3, 'TransactionGraphState', STATE_CODE, 'TransactionGraphState TypedDict initialised. LangGraph will merge partial returns from each node into this shared state.'),
         classifierStep(4, 'classify_transaction', 'app/graphs/transaction_router.py', 'classify_transaction()', `def classify_transaction(state: TransactionGraphState):\n    tx_type = state.get("transaction_type")\n    logger.info("Classifying %s | type=%s", state["transaction_id"], tx_type)\n    if tx_type not in TransactionType.__members__.values():\n        return {"transaction_type": TransactionType.UNKNOWN, "error": f"Unknown: {tx_type}"}\n    return {"transaction_type": TransactionType(tx_type)}`, `Validates and classifies transaction type. "${txType}" confirmed valid — state["transaction_type"] updated.`),
-        conditionalEdgeStep(5, 'classify_transaction', txType, GRAPH_COMPILE_CODE, `Conditional edge evaluates state["transaction_type"] = "${txType}". Routes to ${destNode} — the correct processor sub-node.`),
-        specialistStep(6, destNode, 'app/graphs/transaction_router.py', `${destNode}()`, `def ${destNode}(state: TransactionGraphState):\n    logger.info("Routing %s → ${txType.toUpperCase()}", state["transaction_id"])\n    return {\n        "routing_decision": RoutingDecision.${txType.toUpperCase()}_PROCESSOR,\n        "requires_human_review": ${txType === 'fraud_check' || Number(amount) > 50000},\n    }`, `Transaction routed to ${txType.replace('_', ' ')} engine. Amount $${amount} → ${Number(amount) > 50000 ? 'HIGH' : 'MEDIUM'} priority.`),
-        responseStep(7, 'RouteTransactionResponse', 'Returns transaction_id, routing_decision, priority, requires_human_review, and metadata.'),
+        llmCallStep(5, 'N/A — rule-based routing', `route_transaction()`, `# Transaction router uses RULE-BASED classification — no LLM cost
+# The classifier node (step 4) already determined the route
+# LLM is skipped: transaction_type is an enum, not ambiguous text
+ROUTING_MAP = {
+    "payment":        RoutingDecision.PAYMENT_PROCESSOR,
+    "fraud_check":    RoutingDecision.FRAUD_ENGINE,
+    "loan":           RoutingDecision.LOAN_PROCESSOR,
+    "account_lookup": RoutingDecision.ACCOUNT_SERVICE,
+}
+# Deterministic — no LLM tokens consumed`, `Transaction routing is deterministic — "${txType}" maps directly to ${destNode} with no LLM call needed.`),
+        conditionalEdgeStep(6, 'classify_transaction', txType, GRAPH_COMPILE_CODE, `Conditional edge evaluates state["transaction_type"] = "${txType}". Routes to ${destNode} — the correct processor sub-node.`),
+        specialistStep(7, destNode, 'app/graphs/transaction_router.py', `${destNode}()`, `def ${destNode}(state: TransactionGraphState):\n    logger.info("Routing %s → ${txType.toUpperCase()}", state["transaction_id"])\n    return {\n        "routing_decision": RoutingDecision.${txType.toUpperCase()}_PROCESSOR,\n        "requires_human_review": ${txType === 'fraud_check' || Number(amount) > 50000},\n    }`, `Transaction routed to ${txType.replace('_', ' ')} engine. Amount $${amount} → ${Number(amount) > 50000 ? 'HIGH' : 'MEDIUM'} priority.`),
+        toolStep(8, `${txType}_processor`, 'app/graphs/transaction_router.py', `${destNode}()`, `# No external tool call — routing metadata computed in-process
+def assign_priority(state: TransactionGraphState):
+    amount = state.get("amount", 0)
+    priority = (
+        TransactionPriority.HIGH   if amount > 50_000 else
+        TransactionPriority.MEDIUM if amount > 5_000  else
+        TransactionPriority.LOW
+    )
+    return {"priority": priority}`, `Priority assigned: amount $${amount} → ${Number(amount) > 50000 ? 'HIGH' : 'MEDIUM'} priority. No external tool I/O required.`),
+        memorySaverStep(9),
+        responseStep(10, 'RouteTransactionResponse', 'Returns transaction_id, routing_decision, priority, requires_human_review, and metadata.',
+          `    transaction_id: str
+    routing_decision: str      # "PAYMENT_PROCESSOR" | "FRAUD_ENGINE" | ...
+    priority: str              # "HIGH" | "MEDIUM" | "LOW"
+    requires_human_review: bool
+    metadata: dict`),
       ];
     },
     buildBody: (form) => ({
@@ -485,9 +630,35 @@ export const ENDPOINT_CONFIGS: EndpointConfig[] = [
         graphStateStep(3, 'LoanGraphState', LOAN_STATE_CODE, '6-node LangGraph pipeline initialised. Each node performs one eligibility gate — failure short-circuits directly to reject_application.'),
         classifierStep(4, 'check_credit_score', 'app/graphs/loan_eligibility.py', 'check_credit_score()', `def check_credit_score(state: LoanGraphState):\n    score = state["credit_score"]\n    loan_type = state["loan_type"]\n    minimums = {"home": 680, "business": 660, "auto": 620, "personal": 600}\n    minimum = minimums.get(loan_type, 600)\n    if score < minimum:\n        return {"decision": "rejected", "rejection_reason": f"Credit score {score} < {minimum}"}\n    return {}`, `Credit score ${score} vs minimum ${minScore} for ${loanType} → ${creditOk ? '✓ PASS' : '✗ FAIL'}`),
         conditionalEdgeStep(5, 'check_credit_score', creditOk ? 'check_income' : 'reject_application', `def route_after_credit(state: LoanGraphState) -> str:\n    if state.get("decision") == "rejected":\n        return "reject_application"   # short-circuit\n    return "check_income"             # continue pipeline\n\ngraph.add_conditional_edges(\n    "check_credit_score", route_after_credit,\n    {"check_income": "check_income", "reject_application": "reject_application"}\n)`, `Credit gate: ${creditOk ? `score ${score} ≥ ${minScore} → continuing to check_income` : `score ${score} < ${minScore} → short-circuit to reject_application`}`),
+        llmCallStep(5, 'N/A — rule-based gates', 'check_income()', `# Loan eligibility uses DETERMINISTIC gates — no LLM calls
+# Each node applies a mathematical rule, not an LLM prompt
+def check_income(state: LoanGraphState):
+    monthly_income = state["annual_income"] / 12
+    monthly_debt   = state["existing_debt"] / 12
+    dti = monthly_debt / monthly_income
+    # Rule: DTI must be < 43% (Fannie Mae threshold)
+    if dti > 0.43:
+        return {"decision": "rejected"}
+    return {"debt_to_income_ratio": round(dti, 3)}`, `Loan eligibility is rule-based — DTI ${dti}% vs 43% threshold. No LLM token cost for structured financial decisions.`),
         specialistStep(6, `check_income → DTI=${dti}%`, 'app/graphs/loan_eligibility.py', 'check_income()', `def check_income(state: LoanGraphState):\n    monthly_debt = state["existing_debt"] / 12\n    monthly_income = state["annual_income"] / 12\n    dti = monthly_debt / monthly_income if monthly_income > 0 else 1.0\n    if dti > 0.43:\n        return {"decision": "rejected", "rejection_reason": f"DTI {dti:.0%} > 43%"}\n    return {"debt_to_income_ratio": round(dti, 3)}`, `DTI = ${dti}% vs max 43% → ${dtiOk ? '✓ PASS' : '✗ FAIL'}`),
         specialistStep(7, `make_final_decision → ${decision}`, 'app/graphs/loan_eligibility.py', 'make_final_decision()', `def make_final_decision(state: LoanGraphState):\n    risk_score = state.get("risk_score", 50)\n    if risk_score < 30:\n        return {"decision": "pending_review"}\n    if state.get("decision") == "rejected":\n        return {}\n    return {\n        "decision": "approved",\n        "eligible_amount": state["requested_amount"],\n        "interest_rate": max(5.0, 15.0 - risk_score / 10),\n    }`, `Final verdict: ${decision} — credit ${creditOk ? 'OK' : 'FAILED'}, DTI ${dtiOk ? 'OK' : 'FAILED'}.`),
-        responseStep(8, 'LoanEligibilityResponse', `Returns decision (${decision}), eligible_amount, interest_rate, loan_term_months, DTI ratio, risk_score.`),
+        toolStep(8, 'risk_score_calculator', 'app/graphs/loan_eligibility.py', 'calculate_risk()', `def calculate_risk(state: LoanGraphState) -> dict:
+    score  = state["credit_score"]
+    dti    = state.get("debt_to_income_ratio", 0.5)
+    years  = state.get("employment_years", 0)
+    # Weighted risk formula (lower = safer)
+    risk = max(0, 100 - (score - 300) / 5.5 - (1 - dti) * 20 + (3 - min(years, 3)) * 5)
+    return {"risk_score": round(risk, 2)}`, `Risk score computed from credit (${score}), DTI (${dti}%), employment. No external API call — in-process calculation.`),
+        memorySaverStep(9),
+        responseStep(10, 'LoanEligibilityResponse', `Returns decision (${decision}), eligible_amount, interest_rate, loan_term_months, DTI ratio, risk_score.`,
+          `    applicant_id: str
+    decision: str              # "${decision}"
+    eligible_amount: float     # ${decision === 'APPROVED' ? form['requested_amount'] || 20000 : 0}
+    interest_rate: float       # calculated from risk score
+    loan_term_months: int      # 36 | 60 | 120
+    debt_to_income_ratio: float
+    risk_score: float
+    rejection_reason: Optional[str]`),
       ];
     },
     buildBody: (form) => ({
@@ -522,7 +693,15 @@ export const ENDPOINT_CONFIGS: EndpointConfig[] = [
         uiStep(1, this.label, `account=${acctId}`),
         routesStep(2, 'POST', this.path, 'query_account()', `@router.post("/query", response_model=AccountQueryResponse)\nasync def query_account(request: AccountQueryRequest):\n    result = run_account_agent(\n        account_id=request.account_id,\n        query=request.query,\n    )\n    return AccountQueryResponse(**result)`),
         graphStateStep(3, 'AccountAgentState', `class AccountAgentState(TypedDict, total=False):\n    account_id: str\n    query: str\n    messages: list\n    tools_used: list[str]\n    answer: Optional[str]`, `ReAct LangGraph agent initialised for account ${acctId}. Tools: get_account_details, get_transactions.`),
-        llmCallStep(4, 'gpt-4o-mini', 'react_agent()', `tools = [get_account_details, get_transactions]
+        classifierStep(4, 'detect_query_intent', 'app/graphs/account_agent.py', 'react_agent()', `# ReAct agent implicitly classifies intent via tool selection
+# "balance" → selects get_account_details
+# "transactions" → selects get_transactions
+# "both" → chains both tools in sequence
+def react_agent(state: AccountAgentState):
+    messages = state.get("messages", [])
+    response = llm_with_tools.invoke([SystemMessage(PROMPT), *messages, HumanMessage(state["query"])])
+    return {"messages": [*messages, response]}`, `Query "${trim(q, 35)}" — LLM classifies intent and selects appropriate tools from [get_account_details, get_transactions].`),
+        llmCallStep(5, 'gpt-4o-mini', 'react_agent()', `tools = [get_account_details, get_transactions]
 llm_with_tools = llm.bind_tools(tools)
 
 def react_agent(state: AccountAgentState):
@@ -533,8 +712,17 @@ def react_agent(state: AccountAgentState):
         HumanMessage(state["query"]),
     ])
     return {"messages": [*messages, response]}`, `LLM (gpt-4o-mini) with tool bindings reasons over: "${trim(q, 40)}". Decides which tools to call.`),
-        conditionalEdgeStep(5, 'agent', 'tools', `def should_continue(state: AccountAgentState) -> str:\n    last_msg = state["messages"][-1]\n    if last_msg.tool_calls:       # agent requested tools\n        return "tools"\n    return END                     # agent is done\n\ngraph.add_conditional_edges("agent", should_continue,\n    {"tools": "tool_node", END: END})`, `LLM returned tool_calls → routing to "tools" branch. get_account_details("${acctId}") will be called.`),
-        toolStep(6, 'Tool Executor', 'app/graphs/account_agent.py', 'tool_executor()', `# LangGraph ToolNode executes all tool_calls from last message
+        conditionalEdgeStep(6, 'agent', 'tools', `def should_continue(state: AccountAgentState) -> str:\n    last_msg = state["messages"][-1]\n    if last_msg.tool_calls:       # agent requested tools\n        return "tools"\n    return END                     # agent is done\n\ngraph.add_conditional_edges("agent", should_continue,\n    {"tools": "tool_node", END: END})`, `LLM returned tool_calls → routing to "tools" branch. get_account_details("${acctId}") will be called.`),
+        specialistStep(7, 'react_loop (observe + re-reason)', 'app/graphs/account_agent.py', 'react_agent()', `# After tool results are injected, agent re-reasons
+# ReAct loop: think → act → observe → think → ...
+def react_agent(state: AccountAgentState):
+    # Tool results are now in messages
+    response = llm_with_tools.invoke(state["messages"])
+    if not response.tool_calls:
+        # Agent is satisfied — extract final answer
+        return {"answer": response.content, "messages": [...]}
+    # More tools needed — loop continues`, `ReAct agent observes tool results and synthesises final answer for account ${acctId}.`),
+        toolStep(8, 'get_account_details / get_transactions', 'app/graphs/account_agent.py', 'tool_executor()', `# LangGraph ToolNode executes all tool_calls from last message
 tool_node = ToolNode(tools)
 
 @tool
@@ -544,8 +732,12 @@ def get_account_details(account_id: str) -> dict:
 @tool
 def get_transactions(account_id: str, limit: int = 5) -> list:
     return MOCK_TRANSACTIONS.get(account_id, [])[:limit]`, `Tool called: get_account_details("${acctId}") → balance, status, type. Result injected back into messages.`),
-        memorySaverStep(7),
-        responseStep(8, 'AccountQueryResponse', `Returns account_id, query, answer, and tools_used list (e.g. ["get_account_details", "get_transactions"]).`),
+        memorySaverStep(9),
+        responseStep(10, 'AccountQueryResponse', `Returns account_id, query, answer, and tools_used list (e.g. ["get_account_details", "get_transactions"]).`,
+          `    account_id: str        # "${acctId}"
+    query: str             # "${trim(q, 35)}"
+    answer: str            # LLM-generated natural language answer
+    tools_used: list[str]  # ["get_account_details", "get_transactions"]`),
       ];
     },
     buildBody: (form) => ({
@@ -577,8 +769,19 @@ def get_transactions(account_id: str, limit: int = 5) -> list:
         uiStep(1, this.label, `category=${cat}`),
         routesStep(2, 'POST', this.path, 'query_compliance()', `@router.post("/query", response_model=ComplianceQueryResponse)\nasync def query_compliance(request: ComplianceQueryRequest):\n    result = run_compliance_rag(\n        query=request.query,\n        category=request.category.value if request.category else None,\n        top_k=request.top_k,\n    )\n    return ComplianceQueryResponse(**result)`),
         graphStateStep(3, 'ComplianceState', `class ComplianceState(TypedDict, total=False):\n    query: str\n    category: Optional[str]   # "aml" | "kyc" | "pci_dss" | "gdpr"\n    top_k: int\n    retrieved_docs: list\n    graded_docs: list\n    sources: list[str]\n    answer: Optional[str]`, `Compliance RAG pipeline initialised. Category filter: "${cat}", top_k=${k}.`),
-        toolStep(4, 'FAISS Retrieval + Grader', 'app/graphs/compliance_rag.py', 'retrieve_documents()', COMPLIANCE_RAG_CODE, `FAISS vector store searched for "${trim(q, 35)}" with category="${cat}". Top-${k} chunks retrieved → relevance-graded by LLM grader.`),
-        llmCallStep(5, 'gpt-4o-mini', 'generate_answer()', `def generate_answer(state: ComplianceState):
+        classifierStep(4, 'classify_category', 'app/graphs/compliance_rag.py', 'classify_query()', `def classify_query(state: ComplianceState):
+    category = state.get("category")
+    if category:
+        return {"category": category}   # explicit — no LLM needed
+    # Auto-detect from query text
+    query = state["query"].lower()
+    if any(k in query for k in ["aml","suspicious","sar"]):
+        return {"category": "aml"}
+    if any(k in query for k in ["kyc","identity","onboard"]):
+        return {"category": "kyc"}
+    return {"category": "general"}`, `Query classified as category="${cat}" — ${cat === form['category'] ? 'user-specified, no LLM needed' : 'auto-detected from query text'}.`),
+        toolStep(5, 'FAISS Retrieval + Grader', 'app/graphs/compliance_rag.py', 'retrieve_documents()', COMPLIANCE_RAG_CODE, `FAISS vector store searched for "${trim(q, 35)}" with category="${cat}". Top-${k} chunks retrieved → relevance-graded by LLM grader.`),
+        llmCallStep(6, 'gpt-4o-mini', 'generate_answer()', `def generate_answer(state: ComplianceState):
     context = "\\n\\n".join([
         d.page_content for d in state["graded_docs"]
     ])
@@ -587,8 +790,29 @@ def get_transactions(account_id: str, limit: int = 5) -> list:
         HumanMessage(state["query"]),
     ])
     return {"answer": answer.content}`, `LLM generates cited answer from ${Math.min(k, 3)} relevant ${cat.toUpperCase()} policy chunks. Sources: ${cat}/policy_doc_*.pdf`),
-        memorySaverStep(6),
-        responseStep(7, 'ComplianceQueryResponse', 'Returns query, answer (cited), sources, category, documents_retrieved, and documents_used count.'),
+        conditionalEdgeStep(7, 'generate_answer', 'has_sources', `def route_after_answer(state: ComplianceState) -> str:
+    if state.get("graded_docs"):
+        return "has_sources"   # RAG answer with citations
+    return "no_sources"        # fallback — no relevant docs found
+
+graph.add_conditional_edges("generate_answer", route_after_answer,
+    {"has_sources": END, "no_sources": "fallback_response"})`, `Answer generated with ${Math.min(k, 3)} cited sources → routing to END (citations available).`),
+        specialistStep(8, `rag_synthesizer (${cat.toUpperCase()})`, 'app/graphs/compliance_rag.py', 'synthesize_response()', `def synthesize_response(state: ComplianceState):
+    # Format the RAG answer with proper citations
+    answer = state["answer"]
+    sources = state["sources"]
+    cited = answer + "\\n\\nSources:\\n" + "\\n".join(
+        f"  [{i+1}] {s}" for i, s in enumerate(sources)
+    )
+    return {"answer": cited, "documents_used": len(sources)}`, `${cat.toUpperCase()} compliance answer synthesised with citations from ${Math.min(k, 3)} policy documents.`),
+        memorySaverStep(9),
+        responseStep(10, 'ComplianceQueryResponse', 'Returns query, answer (cited), sources, category, documents_retrieved, and documents_used count.',
+          `    query: str
+    answer: str                # cited RAG answer from ${cat.toUpperCase()} policy docs
+    sources: list[str]         # ["${cat}/policy_doc_1.pdf", ...]
+    category: str              # "${cat}"
+    documents_retrieved: int   # ${k}
+    documents_used: int        # after relevance grading`),
       ];
     },
     buildBody: (form) => ({
@@ -638,8 +862,41 @@ def get_transactions(account_id: str, limit: int = 5) -> list:
         "messages": updated_history,
         "turn_count": state.get("turn_count", 0) + 1,
     }`, `LLM generates reply with full history context. turn_count incremented. History appended for next turn.`),
-        memorySaverStep(6, sessId),
-        responseStep(7, 'ConversationResponse', 'Returns session_id, reply, intent, turn_count, and full conversation history.'),
+        conditionalEdgeStep(6, 'respond', 'continue', `def route_after_respond(state: ConversationState) -> str:
+    # Check if agent needs to fetch account data
+    intent = state.get("intent", "")
+    if intent in ("balance", "transactions") and state.get("account_id"):
+        return "fetch_account"   # → tool node
+    return END                   # → save to memory
+
+graph.add_conditional_edges("respond", route_after_respond,
+    {"fetch_account": "account_tool", END: END})`, `Intent "${state['intent'] || 'general'}" — routing to END (no account lookup needed for this query).`),
+        specialistStep(7, 'history_manager', 'app/graphs/conversation_agent.py', 'update_history()', `def update_history(state: ConversationState):
+    # Trim history to last N turns to avoid token bloat
+    MAX_TURNS = 10
+    messages = state.get("messages", [])
+    if len(messages) > MAX_TURNS * 2:
+        # Keep system message + last N turns
+        messages = messages[-(MAX_TURNS * 2):]
+    return {"messages": messages, "turn_count": len(messages) // 2}`, `Conversation history managed for session "${sessId}". Sliding window keeps last 10 turns to control token usage.`),
+        toolStep(8, 'history_loader', 'app/graphs/conversation_agent.py', 'load_history()', `def load_prior_history(state: ConversationState):
+    # MemorySaver automatically replays state for same thread_id
+    # This node formats it into LangChain message objects
+    raw = state.get("messages", [])
+    return {
+        "messages": [
+            HumanMessage(m["content"]) if m["role"] == "user"
+            else AIMessage(m["content"])
+            for m in raw
+        ]
+    }`, `Prior conversation history for session "${sessId}" loaded from MemorySaver. ${sessId === 'sess-001' ? 'First turn — empty history.' : 'Previous turns replayed into context.'}`),
+        memorySaverStep(9, sessId),
+        responseStep(10, 'ConversationResponse', 'Returns session_id, reply, intent, turn_count, and full conversation history.',
+          `    session_id: str        # "${sessId}"
+    reply: str             # LLM-generated banking assistant reply
+    intent: Optional[str]  # "kyc" | "aml" | "balance" | "loan" | ...
+    turn_count: int        # number of conversation turns so far
+    history: list[ChatMessage]  # full prior conversation`),
       ];
     },
     buildBody: (form) => ({
@@ -700,8 +957,28 @@ def get_transactions(account_id: str, limit: int = 5) -> list:
         )
     ])
     return {"verdict": verdict.content, "validator_output": verdict.content}`, `Agent 3 — Validator cross-checks both agents and issues binding verdict: ${verdict}.`),
-        memorySaverStep(8),
-        responseStep(9, 'LoanCommitteeResponse', 'Returns verdict (approved/rejected/escalated), risk_score, interest_rate, and agent_messages audit trail.'),
+        toolStep(8, 'credit_check / income_check / dti_check', 'app/graphs/loan_committee.py', 'executor_agent() tools', `def run_credit_check(credit_score: int) -> dict:
+    return {"pass": credit_score >= 680, "score": credit_score, "min": 680}
+
+def run_income_check(state: CommitteeState) -> dict:
+    monthly = state["annual_income"] / 12
+    return {"monthly_income": monthly, "sufficient": monthly > 2_500}
+
+def compute_dti(state: CommitteeState) -> float:
+    return (state["existing_debt"] / state["annual_income"]) * 100
+
+def compute_risk_score(state: CommitteeState) -> float:
+    return max(0, 100 - (state["credit_score"] - 300) / 5.5)`, `Executor Agent tools ran: credit score ${score} → ${score >= 680 ? '✓ PASS' : '✗ FAIL'}, DTI computed, risk score calculated.`),
+        memorySaverStep(9),
+        responseStep(10, 'LoanCommitteeResponse', 'Returns verdict (approved/rejected/escalated), risk_score, interest_rate, and agent_messages audit trail.',
+          `    application_id: str
+    verdict: str           # "${verdict}"
+    risk_score: float      # 0–100 (lower = safer)
+    interest_rate: Optional[float]
+    agent_messages: list[str]  # planner + executor + validator outputs
+    planner_summary: str
+    executor_checks: dict
+    validator_reasoning: str`),
       ];
     },
     buildBody: (form) => ({
@@ -755,8 +1032,24 @@ result = run_resilient_agent(query="${trim(q, 30)}")
 # Layer 2: Retry with exponential back-off (tenacity)
 # Layer 3: Model fallback (gpt-4o-mini → gpt-3.5-turbo → rule-based)
 # Layer 4: 30s timeout ceiling`, `Query answered through full resilience pipeline. Primary model used (circuit ${circuitState}).`),
-        memorySaverStep(7),
-        responseStep(8, 'ResilientQueryResponse', 'Returns response, circuit_state, used_fallback, attempt_count, and breaker_statuses for all circuit breakers.'),
+        toolStep(7, 'circuit_breaker + retry_wrapper', 'app/graphs/resilient_agent.py', 'call_with_retry()', `@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=1, max=10),
+    retry=retry_if_exception_type(openai.RateLimitError),
+    before_sleep=lambda r: logger.warning("Retry %d/3", r.attempt_number),
+)
+def call_with_retry(query: str) -> str:
+    return llm.invoke([HumanMessage(query)]).content
+
+# Fallback chain if all retries fail:
+FALLBACK_MODELS = ["gpt-4o-mini", "gpt-3.5-turbo", "rule_based"]`, `Tenacity retry wrapper: up to 3 attempts with exponential back-off. Circuit ${circuitState} → ${circuitState === 'OPEN' ? 'fallback model used' : 'primary model succeeded'}.`),
+        memorySaverStep(8),
+        responseStep(9, 'ResilientQueryResponse', 'Returns response, circuit_state, used_fallback, attempt_count, and breaker_statuses for all circuit breakers.',
+          `    response: str          # LLM answer (primary or fallback)
+    circuit_state: str     # "${circuitState}" — CLOSED | OPEN | HALF_OPEN
+    used_fallback: bool    # true if primary model failed
+    attempt_count: int     # 1–3 (tenacity retry attempts)
+    breaker_statuses: list[dict]  # per-breaker health snapshot`),
       ];
     },
     buildBody: (form) => ({
@@ -799,15 +1092,51 @@ def authenticate_user(username: str, password: str):
         return None
     expected = f"{username}123"
     return user if password == expected else None`, `User "${user}" classified and authenticated → role="${role}"`),
-        specialistStep(5, 'create_access_token', 'app/security/jwt_handler.py', 'create_access_token()', `def create_access_token(data: dict) -> str:
+        llmCallStep(5, 'N/A — rule-based auth', 'authenticate_user()', `# JWT auth is DETERMINISTIC — no LLM involvement
+# Password verified against static hash (bcrypt in production)
+def verify_password(plain: str, hashed: str) -> bool:
+    return pwd_context.verify(plain, hashed)
+
+# Role assignment is a lookup — not a language model task
+role = DEMO_USERS["${user}"]["role"]  # → "${role}"
+# No LLM tokens consumed for authentication flows`, `Authentication is deterministic — credential check + role lookup. No LLM call needed or appropriate for security-sensitive auth.`),
+        conditionalEdgeStep(6, 'authenticate_user', 'authenticated', `def route_after_auth(state: TokenState) -> str:
+    if state.get("authenticated"):
+        return "create_token"     # → JWT minting
+    return "reject_auth"          # → 401 Unauthorized
+
+graph.add_conditional_edges("authenticate_user", route_after_auth,
+    {"create_token": "create_token", "reject_auth": END})`, `Authentication succeeded for "${user}" → routing to create_token node.`),
+        specialistStep(7, 'create_access_token', 'app/security/jwt_handler.py', 'create_access_token()', `def create_access_token(data: dict) -> str:
     payload = {
         **data,
         "exp": datetime.utcnow() + timedelta(minutes=60),
         "iat": datetime.utcnow(),
     }
     return jwt.encode(payload, settings.jwt_secret_key, algorithm="HS256")`, `JWT token created for user="${user}", role="${role}". Expires in 60 minutes.`),
-        memorySaverStep(6),
-        responseStep(7, 'TokenResponse', `Returns access_token (JWT Bearer), role="${role}", and username="${user}".`),
+        toolStep(8, 'rbac_check', 'app/security/rbac.py', 'require_role()', `class Role(str, Enum):
+    ADMIN    = "admin"
+    OFFICER  = "officer"
+    CUSTOMER = "customer"
+
+ROLE_HIERARCHY = {
+    Role.ADMIN:    3,
+    Role.OFFICER:  2,
+    Role.CUSTOMER: 1,
+}
+
+def require_role(minimum: Role):
+    def checker(token_data: dict):
+        user_level = ROLE_HIERARCHY[token_data["role"]]
+        if user_level < ROLE_HIERARCHY[minimum]:
+            raise HTTPException(403, "Insufficient role")
+    return checker`, `RBAC check: user="${user}" role="${role}" → level ${role === 'admin' ? 3 : role === 'officer' ? 2 : 1}. Token includes role claim for downstream endpoint guards.`),
+        memorySaverStep(9),
+        responseStep(10, 'TokenResponse', `Returns access_token (JWT Bearer), role="${role}", and username="${user}".`,
+          `    access_token: str      # JWT Bearer token (HS256, exp=60min)
+    token_type: str        # "bearer"
+    role: str              # "${role}"
+    username: str          # "${user}"`),
       ];
     },
     buildBody: (form) => {
@@ -885,8 +1214,34 @@ ${intent === 'loan' ? 'result = run_loan_eligibility(state["context"])' : intent
 if should_enrich_with_rag(state):
     rag_result = run_compliance_rag(state["query"])
     return {"rag_context": rag_result["answer"]}`, `${intent} workflow executed. Result merged back into master graph state.`),
-        memorySaverStep(8, sessId),
-        responseStep(9, 'AutonomousResponse', 'Returns answer, workflow_used, intent_detected, execution_steps audit trail, session_id, and any sources from RAG enrichment.'),
+        toolStep(8,
+          intent === 'loan' ? 'credit_check / income_check' : intent === 'account' ? 'get_account_details / get_transactions' : intent === 'compliance' ? 'FAISS vector_search' : 'conversation_history',
+          intent === 'loan' ? 'app/graphs/loan_eligibility.py' : intent === 'account' ? 'app/graphs/account_agent.py' : intent === 'compliance' ? 'app/graphs/compliance_rag.py' : 'app/graphs/conversation_agent.py',
+          intent === 'loan' ? 'check_credit_score()' : intent === 'account' ? 'get_account_details()' : intent === 'compliance' ? 'retrieve_documents()' : 'load_history()',
+          intent === 'loan'
+            ? `def check_credit_score(state: LoanGraphState):\n    score = state["credit_score"]\n    minimum = {"home": 680, "auto": 620, "personal": 600}[state["loan_type"]]\n    if score < minimum:\n        return {"decision": "rejected", "rejection_reason": f"Score {score} < {minimum}"}\n    return {}   # pass — state unchanged\n\ndef check_income(state: LoanGraphState):\n    dti = state["monthly_debt"] / state["monthly_income"]\n    return {"dti_ratio": round(dti, 3), "income_ok": dti < 0.43}`
+            : intent === 'account'
+            ? `@tool\ndef get_account_details(account_id: str) -> dict:\n    return MOCK_ACCOUNTS[account_id]\n\n@tool\ndef get_transactions(account_id: str, limit: int = 5) -> list:\n    return MOCK_TRANSACTIONS[account_id][:limit]\n\n# LangGraph ToolNode executes whichever the ReAct agent selects\ntool_node = ToolNode([get_account_details, get_transactions])`
+            : intent === 'compliance'
+            ? `def retrieve_documents(state: ComplianceState):\n    docs = vectorstore.similarity_search(state["query"], k=state["top_k"])\n    graded = [d for d in docs if grader.invoke(d).binary_score == "yes"]\n    return {\n        "graded_docs": graded,\n        "sources": [d.metadata["source"] for d in graded],\n    }`
+            : `def load_history(state: ConversationState):\n    history = memory_store.get(state["session_id"], [])\n    return {"history": history, "turn_count": len(history)}`,
+          intent === 'loan'
+            ? 'Credit score & income tools run inside the loan sub-graph. Each tool returns a partial state update; LangGraph merges them automatically.'
+            : intent === 'account'
+            ? 'ReAct agent invokes get_account_details and/or get_transactions via LangGraph ToolNode. Results merged into agent state.'
+            : intent === 'compliance'
+            ? 'FAISS vector store searched for top-k documents. Relevance grader filters results before passing to the LLM answer node.'
+            : 'Conversation history loaded from MemorySaver. Prior turns injected into LLM context for multi-turn coherence.',
+        ),
+        memorySaverStep(9, sessId),
+        responseStep(10, 'AutonomousResponse', 'Returns answer, workflow_used, intent_detected, execution_steps audit trail, session_id, and any sources from RAG enrichment.',
+          `    answer: str              # final LLM-generated answer
+    workflow_used: str       # "${intent}" sub-graph that ran
+    intent_detected: str     # "${intent}" — classified from query
+    execution_steps: list[str] # full audit trail from all nodes
+    session_id: str          # "${sessId}" — for MemorySaver
+    sources: list[str]       # RAG sources (if compliance query)
+    used_fallback: bool`),
       ];
     },
     buildBody: (form) => ({

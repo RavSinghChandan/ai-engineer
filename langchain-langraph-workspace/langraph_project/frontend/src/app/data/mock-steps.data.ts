@@ -17,6 +17,33 @@ export const FLOW_NODES: FlowNode[] = [
 
 export const MOCK_STEPS: ExecutionStep[] = [
   {
+    id: 0,
+    name: 'Query Submitted',
+    description: 'User sends a natural-language query from the frontend. Angular serialises the form payload and POSTs it to FastAPI via the dev-server proxy.',
+    file: 'frontend/src/app/services/execution-state.service.ts',
+    functionName: 'startFlow()',
+    nodeId: 'user',
+    badge: 'Angular',
+    highlightLine: 3,
+    status: 'pending',
+    code: `startFlow(endpointId: string, form: Record<string, any>): void {
+  this.resetState();
+  const config = ENDPOINT_CONFIGS.find(e => e.id === endpointId);
+  this._isRunning.set(true);
+  // Fire the real HTTP call in background
+  this.callHttp(config, form);
+  // Kick off the step-by-step animation
+  setTimeout(() => this.nextStep(), 400);
+}`,
+    lineOutputs: {
+      1: '▶ startFlow() — user clicked "Run"',
+      2: 'resetState() — clearing previous execution',
+      3: 'config found: POST /api/v1/autonomous/query',
+      5: 'HTTP call dispatched in background',
+      7: 'Animation begins — stepping through nodes',
+    },
+  },
+  {
     id: 1,
     name: 'HTTP Request Received',
     description: 'FastAPI receives POST /api/v1/autonomous/query. Pydantic validates the request body before entering the LangGraph pipeline.',
