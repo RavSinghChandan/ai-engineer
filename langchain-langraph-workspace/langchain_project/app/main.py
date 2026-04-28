@@ -105,7 +105,8 @@ versioned prompts, streaming, retry/fallback, and full observability.
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4200", "http://127.0.0.1:4200"],
+    allow_origins=["http://localhost:4200", "http://127.0.0.1:4200",
+                   "http://localhost:4202", "http://127.0.0.1:4202"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

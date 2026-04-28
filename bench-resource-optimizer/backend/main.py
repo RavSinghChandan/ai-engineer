@@ -56,7 +56,7 @@ app = FastAPI(title="Bench Resource Optimization API", version="1.0.0", lifespan
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4200"],
+    allow_origins=["http://localhost:4200", "http://localhost:4202", "http://127.0.0.1:4202"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
