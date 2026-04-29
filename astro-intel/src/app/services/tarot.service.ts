@@ -57,8 +57,8 @@ export class TarotService {
         position,
         orientation,
         meaning: orientation === 'reversed'
-          ? `Reversed — ${card.meaning.replace('This suggests','This invites reflection on')}`
-          : card.meaning,
+          ? `Reversed — ${(card as any)['meaning'].replace('This suggests','This invites reflection on')}`
+          : (card as any)['meaning'] as string,
       };
     });
   }

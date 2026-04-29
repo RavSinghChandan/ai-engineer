@@ -24,7 +24,7 @@ export class RemedyService {
 
   private _mergeColors(o: AgentOutputs): string[] {
     const colors: string[] = [];
-    if (o.numerology) o.numerology.forEach(n => colors.push(...n.lucky_colors));
+    if (o.numerology) (o.numerology as any[]).forEach((n: any) => colors.push(...(n.lucky_colors ?? [])));
     if (o.vastu) colors.push(...o.vastu.colors_recommended);
     return colors;
   }
@@ -122,7 +122,7 @@ export class RemedyService {
       'Avoid reactive decisions during emotional highs or lows — wait 24 hours before responding to conflicts.',
       'This suggests that speaking with gratitude and kindness daily improves relationships and personal energy.',
     ];
-    if (outputs.astrology?.doshas?.some(d => d.includes('Mangal'))) {
+    if ((outputs.astrology as any)?.doshas?.some((d: string) => d.includes('Mangal'))) {
       adjustments.push('As a Mangal Dosha indicator is present, practicing patience in romantic partnerships is especially recommended.');
     }
     return adjustments;

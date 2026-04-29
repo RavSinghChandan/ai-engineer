@@ -1,23 +1,35 @@
 """
 STEP 4 — Meta Consensus Agent (Master Intelligence)
-Reads all memory, detects patterns, resolves conflicts, assigns confidence.
+Per-question merge across all domains.
+Detects common patterns, resolves conflicts, assigns confidence.
+HIGH = 3+ domains agree. MEDIUM = 2. LOW = 1.
 """
 from __future__ import annotations
 from collections import Counter
 from typing import Any, Dict, List, Tuple
 
 
+def _assign_confidence(domain_count: int) -> str:
+    if domain_count >= 3: return "high"
+    if domain_count >= 2: return "medium"
+    return "low"
+
+
 def _collect_traits(memory: Dict[str, Any]) -> List[str]:
     traits = []
-    if "numerology" in memory:
-        for trad in memory["numerology"].values():
-            traits.extend(trad.get("traits", []))
-    if "palmistry" in memory:
-        for trad in memory["palmistry"].values():
-            traits.extend(trad.get("traits", []))
-    if "astrology" in memory:
-        for trad in memory["astrology"].values():
-            traits.extend(trad.get("strengths", []))
+    num = memory.get("numerology", {})
+    if "question_wise_analysis" not in num:
+        # legacy flat structure
+        for trad in ["indian", "chaldean", "pythagorean"]:
+            traits.extend(num.get(trad, {}).get("traits", []))
+    palm = memory.get("palmistry", {})
+    if "question_wise_analysis" not in palm:
+        for trad in ["indian", "chinese", "western"]:
+            traits.extend(palm.get(trad, {}).get("traits", []))
+    astro = memory.get("astrology", {})
+    if "question_wise_analysis" not in astro:
+        for key in ["vedic"]:
+            traits.extend(astro.get(key, {}).get("strengths", []))
     return traits
 
 
@@ -26,287 +38,249 @@ def _top_patterns(items: List[str], min_freq: int = 2) -> List[Tuple[str, int]]:
     return [(t, c) for t, c in freq.most_common(10) if c >= min_freq]
 
 
-def _assign_confidence(count: int, total_agents: int) -> str:
-    if count >= 3:        return "high"
-    if count >= 2:        return "medium"
-    return "low"
-
-
-def _collect_predictions(memory: Dict[str, Any], focus: str) -> List[Dict[str, Any]]:
-    """Gather all predictions with their source, then de-duplicate similar ones."""
+def _get_predictions_for_question(memory: Dict[str, Any], question: str, intent: str) -> List[Dict[str, Any]]:
     pool: List[Dict[str, Any]] = []
-    if "astrology" in memory:
-        for trad, data in memory["astrology"].items():
-            for p in data.get("predictions", []):
-                pool.append({"text": p, "source": "astrology", "tradition": trad})
-    if "numerology" in memory:
-        for trad, data in memory["numerology"].items():
-            for p in data.get("predictions", []):
-                pool.append({"text": p, "source": "numerology", "tradition": trad})
-    if "tarot" in memory:
-        for trad, data in memory["tarot"].items():
-            for g in data.get("guidance", []):
-                pool.append({"text": g, "source": "tarot", "tradition": trad})
-    if "palmistry" in memory:
-        for trad, data in memory["palmistry"].items():
-            fi = data.get("focus_insight","")
-            if fi:
-                pool.append({"text": fi, "source": "palmistry", "tradition": trad})
-    return pool[:12]
+    for domain_key in ["astrology", "numerology", "palmistry", "tarot", "vastu"]:
+        domain_data = memory.get(domain_key, {})
+        qwa = domain_data.get("question_wise_analysis", [])
+        for qa in qwa:
+            if qa.get("question") == question:
+                for sub in qa.get("sub_agent_results", []):
+                    pool.append({
+                        "text":      sub["prediction"],
+                        "source":    domain_key,
+                        "sub_agent": sub["sub_agent"],
+                        "confidence": sub.get("confidence_hint", "medium"),
+                    })
+    # Fallback: pull from legacy flat predictions
+    if not pool:
+        for domain_key in ["astrology", "numerology"]:
+            domain_data = memory.get(domain_key, {})
+            preds = domain_data.get("vedic", {}).get("predictions", []) or domain_data.get("indian", {}).get("predictions", [])
+            for p in preds[:2]:
+                pool.append({"text": p, "source": domain_key, "sub_agent": domain_key, "confidence": "medium"})
+    return pool
 
 
-def _filter_by_focus(pool: List[Dict[str, Any]], focus: str) -> List[Dict[str, Any]]:
-    if focus == "general":
-        return pool
-    FOCUS_TERMS = {
-        "career":   ["career","job","work","profession","business","role","leadership","promotion"],
-        "finance":  ["finance","money","wealth","financial","income","gain","savings","investment"],
-        "marriage": ["marriage","relationship","partner","love","partnership","bond"],
-        "health":   ["health","vitality","body","physical","wellness","well-being"],
-        "spirituality":["spiritual","meditation","karma","inner","soul","practice"],
-    }
-    terms = FOCUS_TERMS.get(focus, [])
-    if not terms:
-        return pool
-    filtered = [p for p in pool if any(t in p["text"].lower() for t in terms)]
-    return filtered if filtered else pool[:4]  # fallback to top-4 if nothing matches
+def _build_question_consensus(memory: Dict[str, Any], question: str, intent: str) -> Dict[str, Any]:
+    pool = _get_predictions_for_question(memory, question, intent)
 
+    # Group by source domain
+    by_domain: Dict[str, List[str]] = {}
+    for p in pool:
+        by_domain.setdefault(p["source"], []).append(p["text"])
 
-def _build_career_insight(memory: Dict[str, Any], focus: str) -> Dict[str, Any]:
-    sources, content_parts = [], []
+    domains_present = list(by_domain.keys())
+    domain_count    = len(domains_present)
 
-    if "astrology" in memory:
-        for data in memory["astrology"].values():
-            preds = [p for p in data.get("predictions",[]) if any(
-                k in p.lower() for k in ["career","profession","work","business","role"]
-            )]
-            if preds:
-                content_parts.append(preds[0])
-                sources.append("astrology")
+    # Build insights — one per domain, mark is_common if 3+
+    insights = []
+    for i, (domain, preds) in enumerate(by_domain.items()):
+        insight_id = f"q{_q_index(memory, question)}_i{i+1}"
+        insights.append({
+            "id":          insight_id,
+            "content":     preds[0] if preds else f"{domain.capitalize()} analysis confirms {intent}-related energy.",
+            "confidence":  _assign_confidence(domain_count),
+            "domains":     [domain],
+            "is_common":   domain_count >= 3,
+            "editable":    True,
+            "source_predictions": preds[:3],
+        })
 
-    if "numerology" in memory:
-        for data in memory["numerology"].values():
-            preds = [p for p in data.get("predictions",[]) if any(
-                k in p.lower() for k in ["career","role","leadership","advance","field"]
-            )]
-            if preds:
-                content_parts.append(preds[0])
-                sources.append("numerology")
-                break
+    # Cross-domain consensus insight if 3+ domains agree
+    if domain_count >= 3:
+        all_texts = [p["text"] for p in pool[:3]]
+        combined  = " ".join(all_texts[:2])
+        insights.append({
+            "id":          f"q{_q_index(memory, question)}_consensus",
+            "content":     f"Multi-domain consensus on '{question}': {combined}",
+            "confidence":  "high",
+            "domains":     domains_present,
+            "is_common":   True,
+            "editable":    True,
+            "source_predictions": [p["text"] for p in pool[:5]],
+        })
 
-    if "palmistry" in memory:
-        for data in memory["palmistry"].values():
-            cn = data.get("career_notes",[])
-            if cn:
-                content_parts.append(cn[0])
-                sources.append("palmistry")
-                break
+    key_insight = insights[-1]["content"] if insights else f"Consistent growth energy is indicated for: {question}"
 
-    if "tarot" in memory:
-        for data in memory["tarot"].values():
-            th = data.get("overall_theme","")
-            if th:
-                content_parts.append(th)
-                sources.append("tarot")
-                break
-
-    if not content_parts:
-        content_parts = ["Steady career growth is indicated across multiple analytical systems."]
-        sources = list(memory.keys())
-
-    unique_src = list(dict.fromkeys(sources))
     return {
-        "content": " ".join(content_parts[:4]),
-        "confidence": _assign_confidence(len(unique_src), 5),
-        "sources": unique_src,
+        "question":   question,
+        "intent":     intent,
+        "insights":   insights,
+        "key_insight": key_insight,
+        "domains_confirmed": domains_present,
+        "agreement_level":   _assign_confidence(domain_count),
     }
 
 
-def _build_personality_insight(top_traits: List[Tuple[str, int]], memory: Dict[str, Any]) -> Dict[str, Any]:
-    if not top_traits:
-        top_traits = [("growth-oriented", 2), ("adaptable", 2)]
-    trait_str = ", ".join(t for t, _ in top_traits[:4])
-    sources = [m for m in ["astrology","numerology","palmistry"] if m in memory]
-    return {
-        "content": f"There is a strong tendency toward {trait_str} — this pattern repeats consistently across multiple spiritual traditions. "
-                   f"This suggests these qualities form the core character architecture and will be most prominent during key life decisions.",
-        "confidence": _assign_confidence(len(top_traits), 5),
-        "sources": sources,
-    }
-
-
-def _build_relationship_insight(memory: Dict[str, Any]) -> Dict[str, Any]:
-    parts, sources = [], []
-    if "palmistry" in memory:
-        for data in memory["palmistry"].values():
-            rn = data.get("relationship_notes",[])
-            if rn:
-                parts.append(rn[0])
-                sources.append("palmistry")
-    if "astrology" in memory:
-        for data in memory["astrology"].values():
-            preds = [p for p in data.get("predictions",[]) if any(k in p.lower() for k in ["relation","partner","marriage","love"])]
-            if preds:
-                parts.append(preds[0])
-                sources.append("astrology")
-    if "tarot" in memory:
-        for data in memory["tarot"].values():
-            guidance = data.get("guidance",[])
-            if guidance:
-                parts.append(guidance[0])
-                sources.append("tarot")
-    if not parts:
-        parts = ["There is a tendency toward meaningful, loyal partnerships. Emotional depth and commitment are key themes."]
-        sources = list(memory.keys())[:2]
-    return {
-        "content": " ".join(parts[:3]),
-        "confidence": _assign_confidence(len(set(sources)), 5),
-        "sources": list(dict.fromkeys(sources)),
-    }
-
-
-def _build_health_insight(memory: Dict[str, Any]) -> Dict[str, Any]:
-    parts, sources = [], []
-    if "palmistry" in memory:
-        for data in memory["palmistry"].values():
-            hn = data.get("health_notes",[])
-            if hn:
-                parts.append(hn[0])
-                sources.append("palmistry")
-    if "astrology" in memory:
-        for data in memory["astrology"].values():
-            ch = data.get("challenges",[])
-            if ch:
-                parts.append(ch[0])
-                sources.append("astrology")
-    if not parts:
-        parts = ["Good health is indicated overall — attention to stress management and routine is advisable."]
-        sources = ["astrology","palmistry"]
-    return {
-        "content": " ".join(parts[:3]),
-        "confidence": "medium",
-        "sources": list(dict.fromkeys(sources)),
-    }
-
-
-def _build_spiritual_insight(memory: Dict[str, Any]) -> Dict[str, Any]:
-    parts, sources = [], []
-    if "tarot" in memory:
-        for data in memory["tarot"].values():
-            th = data.get("overall_theme","")
-            if th:
-                parts.append(th)
-                sources.append("tarot")
-    if "astrology" in memory:
-        for data in memory["astrology"].values():
-            yogas = data.get("yogas",[])
-            if yogas:
-                parts.append(yogas[0].get("description","") if isinstance(yogas[0],dict) else str(yogas[0]))
-                sources.append("astrology")
-    if "numerology" in memory:
-        for trad, data in memory["numerology"].items():
-            lp = data.get("core_numbers",{}).get("life_path",0)
-            if lp in (7, 11, 22, 33):
-                parts.append(f"Life Path {lp} carries strong spiritual resonance — inner seeking and meditation amplify growth.")
-                sources.append("numerology")
-                break
-    if not parts:
-        parts = ["Spiritual growth is indicated — a regular mindfulness practice is recommended."]
-        sources = ["astrology"]
-    return {
-        "content": " ".join(parts[:3]),
-        "confidence": "medium",
-        "sources": list(dict.fromkeys(sources)),
-    }
-
-
-def _build_timing_insight(memory: Dict[str, Any]) -> Dict[str, Any]:
-    parts, sources = [], []
-    if "astrology" in memory:
-        for data in memory["astrology"].values():
-            dasha = data.get("current_dasha","")
-            preds = data.get("predictions",[])
-            if dasha:
-                parts.append(f"Currently running {dasha}.")
-                sources.append("astrology")
-            if preds:
-                parts.append(preds[0])
-    if "numerology" in memory:
-        for trad, data in memory["numerology"].items():
-            preds = data.get("predictions",[])
-            if preds:
-                parts.append(preds[-1])
-                sources.append("numerology")
-                break
-    return {
-        "content": " ".join(parts[:3]) or "Timing indicators suggest a growth phase — consistent action now yields long-term results.",
-        "confidence": "high" if "astrology" in sources else "medium",
-        "sources": list(dict.fromkeys(sources)),
-    }
+def _q_index(memory: Dict[str, Any], question: str) -> int:
+    """Find the question's index from normalized_questions stored in memory."""
+    for domain_data in memory.values():
+        qwa = domain_data.get("question_wise_analysis", [])
+        for qa in qwa:
+            if qa.get("question") == question:
+                return qwa.index(qa) + 1
+    return 1
 
 
 def _detect_conflicts(memory: Dict[str, Any]) -> List[Dict[str, Any]]:
     conflicts = []
-    # Numerology traditions sometimes differ on name number emphasis — flag if all 3 diverge
-    if "numerology" in memory:
-        nums = memory["numerology"]
-        lps = {t: d.get("core_numbers",{}).get("life_path",0) for t,d in nums.items()}
-        values = list(lps.values())
-        if len(set(values)) == len(values) and len(values) > 1:
+    num = memory.get("numerology", {})
+    for key in ["indian", "chaldean", "pythagorean"]:
+        vals = [num.get(k, {}).get("core_numbers", {}).get("life_path", 0) for k in ["indian", "chaldean", "pythagorean"] if k in num]
+        if vals and len(set(vals)) == len(vals) and len(vals) > 1:
             conflicts.append({
                 "area": "Numerology — Life Path interpretation",
-                "note": "Minor variation across traditions — Indian and Chaldean readings agree on core traits; Pythagorean adds name-number nuance.",
+                "note": "Minor variation across traditions — Indian and Chaldean agree on core traits; Pythagorean adds name-number nuance.",
                 "resolution": "Majority (2 of 3) agreement retained as primary insight.",
             })
+        break
     return conflicts
 
 
-def meta_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
-    memory  = state.get("memory", {})
-    focus   = state.get("focus_context", {}).get("intent", "general")
-    question = state.get("user_question", "")
+def _build_consolidated_from_memory(memory: Dict[str, Any], focus: str, question: str) -> Dict[str, Any]:
+    """Build the legacy consolidated structure for admin_review_agent backward compat."""
+    def _first_pred(domain_key: str, subkeys: List[str]) -> str:
+        d = memory.get(domain_key, {})
+        for sk in subkeys:
+            preds = d.get(sk, {}).get("predictions", [])
+            if preds: return preds[0]
+        return ""
 
-    top_traits    = _top_patterns(_collect_traits(memory))
-    all_preds     = _collect_predictions(memory, focus)
-    focus_preds   = _filter_by_focus(all_preds, focus)
-    conflicts     = _detect_conflicts(memory)
+    def _first_focus_insight(domain_key: str, subkeys: List[str]) -> str:
+        d = memory.get(domain_key, {})
+        for sk in subkeys:
+            fi = d.get(sk, {}).get("focus_insight", "")
+            if fi: return fi
+        return ""
 
-    personality   = _build_personality_insight(top_traits, memory)
-    career        = _build_career_insight(memory, focus)
-    relationship  = _build_relationship_insight(memory)
-    health        = _build_health_insight(memory)
-    spiritual     = _build_spiritual_insight(memory)
-    timing        = _build_timing_insight(memory)
+    career_parts, career_srcs = [], []
+    for domain_key, subkeys in [("astrology", ["vedic"]), ("numerology", ["indian"]), ("palmistry", ["indian"]), ("tarot", ["universal"])]:
+        pred = _first_pred(domain_key, subkeys)
+        if pred:
+            career_parts.append(pred)
+            career_srcs.append(domain_key)
+
+    palm_insights = [_first_focus_insight("palmistry", ["indian", "chinese", "western"])]
+    rel_parts, rel_srcs = [], []
+    for domain_key, subkeys in [("palmistry", ["indian"]), ("astrology", ["vedic"]), ("tarot", ["universal"])]:
+        fi = _first_focus_insight(domain_key, subkeys)
+        if fi:
+            rel_parts.append(fi)
+            rel_srcs.append(domain_key)
+
+    timing_parts, timing_srcs = [], []
+    astro = memory.get("astrology", {})
+    vedic_data = astro.get("vedic", {})
+    if vedic_data.get("current_dasha"):
+        timing_parts.append(f"Currently running {vedic_data['current_dasha']}.")
+        timing_srcs.append("astrology")
+    if vedic_data.get("predictions"):
+        timing_parts.append(vedic_data["predictions"][0])
+
+    traits = _collect_traits(memory)
+    top_traits = _top_patterns(traits)
+
+    focus_preds_pool = []
+    for domain_key in ["astrology", "numerology", "tarot", "palmistry"]:
+        d = memory.get(domain_key, {})
+        qwa = d.get("question_wise_analysis", [])
+        for qa in qwa:
+            for sub in qa.get("sub_agent_results", []):
+                focus_preds_pool.append({"text": sub["prediction"], "source": domain_key})
 
     answer_to_question = ""
-    if question:
-        combined = " ".join(p["text"] for p in focus_preds[:3])
+    if question and focus_preds_pool:
+        combined = " ".join(p["text"] for p in focus_preds_pool[:2])
+        src_count = len(set(p["source"] for p in focus_preds_pool[:3]))
         answer_to_question = (
-            f"Regarding your question — '{question}' — here is what the combined analysis reveals: "
-            f"{combined} "
-            f"This is confirmed across {len(set(p['source'] for p in focus_preds[:3]))} spiritual systems."
-        ) if focus_preds else (
+            f"Regarding your question — '{question}' — the combined analysis reveals: "
+            f"{combined} This is confirmed across {src_count} spiritual systems."
+        )
+    elif question:
+        answer_to_question = (
             f"Regarding your question — '{question}' — the overall life energy is positive. "
             "Consistent effort aligned with your natural strengths will guide you forward."
         )
 
-    consolidated = {
-        "question_answered": answer_to_question,
-        "focus": focus,
-        "top_traits": [{"trait": t, "count": c, "confidence": _assign_confidence(c, 5)} for t, c in top_traits],
-        "personality_insight":  personality,
-        "career_insight":       career,
-        "relationship_insight": relationship,
-        "health_insight":       health,
-        "spiritual_insight":    spiritual,
-        "timing_insight":       timing,
-        "conflicts_detected":   conflicts,
-        "total_agents_run":     sum(len(v) for v in memory.values() if isinstance(v, dict)),
+    return {
+        "question_answered":    answer_to_question,
+        "focus":                focus,
+        "top_traits":           [{"trait": t, "count": c, "confidence": _assign_confidence(c)} for t, c in top_traits],
+        "personality_insight":  {
+            "content": (
+                f"There is a strong tendency toward {', '.join(t for t, _ in top_traits[:4])} — this pattern repeats across multiple traditions."
+                if top_traits else "A growth-oriented, determined character is consistently indicated."
+            ),
+            "confidence": _assign_confidence(len(top_traits)),
+            "sources": [m for m in ["astrology", "numerology", "palmistry"] if m in memory],
+        },
+        "career_insight": {
+            "content": " ".join(career_parts[:3]) or "Steady career progress is indicated through consistent, disciplined action.",
+            "confidence": _assign_confidence(len(set(career_srcs))),
+            "sources": list(dict.fromkeys(career_srcs)),
+        },
+        "relationship_insight": {
+            "content": " ".join(rel_parts[:2]) or "Deep, loyal partnerships are indicated. Emotional intelligence is a key strength.",
+            "confidence": _assign_confidence(len(set(rel_srcs))),
+            "sources": list(dict.fromkeys(rel_srcs)),
+        },
+        "health_insight": {
+            "content": "Good health is generally indicated — stress management is the key variable.",
+            "confidence": "medium",
+            "sources": ["palmistry", "astrology"],
+        },
+        "spiritual_insight": {
+            "content": "A period of spiritual deepening is indicated — inner practice rewards generously now.",
+            "confidence": "medium",
+            "sources": ["tarot", "astrology"],
+        },
+        "timing_insight": {
+            "content": " ".join(timing_parts[:2]) or "A growth-phase is indicated — consistent action yields compounding long-term results.",
+            "confidence": "high" if "astrology" in timing_srcs else "medium",
+            "sources": list(dict.fromkeys(timing_srcs)) or ["astrology"],
+        },
+        "conflicts_detected":  _detect_conflicts(memory),
+        "total_agents_run":    sum(1 for v in memory.values() if isinstance(v, dict)),
     }
 
-    state["consolidated"] = consolidated
+
+def meta_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
+    memory   = state.get("memory", {})
+    focus    = state.get("focus_context", {}).get("intent", "general")
+    question = state.get("user_question", "")
+
+    normalized_questions = state.get("normalized_questions", [])
+    if not normalized_questions:
+        normalized_questions = [{"question": question or "General life overview.", "intent": focus, "index": 0}]
+
+    # Per-question consensus
+    question_consensus = []
+    for nq in normalized_questions:
+        consensus = _build_question_consensus(memory, nq["question"], nq["intent"])
+        question_consensus.append(consensus)
+
+    # Admin review structure (question-wise with insight IDs)
+    admin_review_data = {
+        "questions": [
+            {
+                "question": qc["question"],
+                "intent":   qc["intent"],
+                "insights": qc["insights"],
+            }
+            for qc in question_consensus
+        ]
+    }
+
+    # Legacy consolidated for admin_review_agent / remedy_agent
+    consolidated = _build_consolidated_from_memory(memory, focus, question)
+
+    state["question_consensus"] = question_consensus
+    state["admin_review_data"]  = admin_review_data
+    state["consolidated"]       = consolidated
+
     state.setdefault("agent_log", []).append(
-        f"[MetaAgent] Consolidated {len(top_traits)} repeating traits, "
-        f"{len(focus_preds)} focus-relevant predictions, {len(conflicts)} conflicts resolved."
+        f"[MetaAgent] Consensus built for {len(question_consensus)} question(s). "
+        f"Agreement levels: {[qc['agreement_level'] for qc in question_consensus]}"
     )
     return state
