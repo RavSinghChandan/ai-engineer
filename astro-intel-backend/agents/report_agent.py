@@ -8,6 +8,9 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
+from .simplify_agent import simplify_narrative, build_structured_summary_prompt
+from .agent_prompts import get_prompt, REPORT_AGENT, REPORT_AGENT_STRUCTURED
+
 
 # ── Prompt builders ────────────────────────────────────────────────────────────
 
@@ -17,6 +20,7 @@ def _build_prompts(
     insights: List[Dict[str, Any]],
     subject: str,
     domains: List[str],
+    remedies: Dict[str, Any] = {},
 ) -> Dict[str, Any]:
     """
     Returns 4 prompt variants for the consolidation LLM call.
@@ -29,18 +33,14 @@ def _build_prompts(
         for ins in insights
     )
 
-    sys_base = (
-        "You are a professional spiritual consultant writing a personalised report. "
-        "Use only the approved insights provided. Do not add external information. "
-        "Write in second person ('you', 'your'). Use possibility language: "
-        "'suggests', 'indicates', 'tends toward', 'is likely'. "
-        "Never use absolute predictions. Never use fear language."
-    )
+    _report_cfg = REPORT_AGENT
+    sys_base = _report_cfg["system"]
 
     # ── Simple · temperature=0 ──────────────────────────────────────────────
     simple_0 = {
         "model":       "claude-opus-4-7",
         "temperature": 0,
+        "top_p":       _report_cfg["top_p"],
         "max_tokens":  600,
         "system":      sys_base,
         "user": (
@@ -55,12 +55,13 @@ def _build_prompts(
     }
 
     # ── Simple · temperature=0.1 ────────────────────────────────────────────
-    simple_01 = {**simple_0, "temperature": 0.1}
+    simple_01 = {**simple_0, "temperature": _report_cfg["temperature"]}
 
     # ── Detailed · temperature=0 ────────────────────────────────────────────
     detailed_0 = {
         "model":       "claude-opus-4-7",
         "temperature": 0,
+        "top_p":       _report_cfg["top_p"],
         "max_tokens":  1400,
         "system":      sys_base,
         "user": (
@@ -82,13 +83,17 @@ def _build_prompts(
     }
 
     # ── Detailed · temperature=0.1 ──────────────────────────────────────────
-    detailed_01 = {**detailed_0, "temperature": 0.1}
+    detailed_01 = {**detailed_0, "temperature": _report_cfg["temperature"]}
+
+    # ── Structured bullet-point (WHO/WHAT/WHEN/WHERE/HOW + remedies) ───────────
+    structured = build_structured_summary_prompt(question, intent, insights, subject, remedies)
 
     return {
-        "simple_t0":   simple_0,
-        "simple_t01":  simple_01,
-        "detailed_t0": detailed_0,
+        "simple_t0":    simple_0,
+        "simple_t01":   simple_01,
+        "detailed_t0":  detailed_0,
         "detailed_t01": detailed_01,
+        "structured":   structured,   # bullet-point WHO/WHAT/WHEN/WHERE/HOW + remedies
     }
 
 
@@ -100,6 +105,7 @@ def _consolidate_section(
     approved_insights: List[Dict[str, Any]],
     subject: str,
     domains: List[str],
+    remedies: Dict[str, Any] = {},
 ) -> Dict[str, Any]:
     """
     Builds a consolidated narrative for one question section.
@@ -139,15 +145,24 @@ def _consolidate_section(
 
     narrative = " ".join(p for p in narrative_parts if p.strip())
 
-    prompts = _build_prompts(question, intent, approved_insights, subject, domains)
+    prompts = _build_prompts(question, intent, approved_insights, subject, domains, remedies)
+
+    simple_narrative = simplify_narrative(narrative, question, intent)
+
+    from .simplify_agent import build_structured_summary
+    structured_summary = build_structured_summary(
+        question, intent, approved_insights, remedies, {}
+    )
 
     return {
-        "question":  question,
-        "intent":    intent,
-        "narrative": narrative,          # fallback; replace with LLM output
-        "prompts":   prompts,            # 4 variants for caller to pick
-        "insights":  approved_insights,  # full approved insight list for editing
-        "domain_breakdown": _domain_breakdown(approved_insights),
+        "question":           question,
+        "intent":             intent,
+        "narrative":          narrative,
+        "simple_narrative":   simple_narrative,
+        "structured_summary": structured_summary,
+        "prompts":            prompts,
+        "insights":           approved_insights,
+        "domain_breakdown":   _domain_breakdown(approved_insights),
     }
 
 
@@ -169,6 +184,7 @@ def final_report_agent(
     logo_url:   str = "{{LOGO_URL}}",
     image_url:  str = "{{IMAGE_URL}}",
     memory:     Dict[str, Any] = {},
+    remedies:   Dict[str, Any] = {},
 ) -> Dict[str, Any]:
 
     subject       = admin_review.get("subject", "")
@@ -208,8 +224,11 @@ def final_report_agent(
             conf_dist[c] = conf_dist.get(c, 0) + 1
 
         if approved_insights:
+            # Match per-question remedy
+            qr_list = remedies.get("question_remedies", []) if remedies else []
+            qr = next((r for r in qr_list if r.get("question") == question), {})
             section = _consolidate_section(
-                question, intent, approved_insights, subject, modules_used
+                question, intent, approved_insights, subject, modules_used, qr
             )
             report_sections.append(section)
 

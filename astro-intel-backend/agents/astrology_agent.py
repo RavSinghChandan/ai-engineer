@@ -1,10 +1,12 @@
 """
 STEP 2b — Vedic Astrology Super Agent
 Runs Vedic, KP, and Western sub-agents per question.
-Stores DomainOutput with question_wise_analysis[] in memory.
+Each sub-agent builds a personalized, question-specific multi-sentence answer
+using the actual computed chart values — not generic category text.
 """
 from __future__ import annotations
 from typing import Any, Dict, List
+from agents.agent_prompts import build_prompt, get_prompt, ASTROLOGY_AGENT_VEDIC, ASTROLOGY_AGENT_KP, ASTROLOGY_AGENT_WESTERN
 from utils.astro_calc import (
     _seed, lagna_rashi, moon_rashi, sun_sign_from_dob,
     planetary_positions, nakshatra_of_moon, house_analysis,
@@ -13,57 +15,142 @@ from utils.astro_calc import (
 )
 
 
-FOCUS_INTERPRETATIONS: Dict[str, Dict[str, str]] = {
-    "Vedic": {
-        "career":      "The Lagna and 10th house lord indicate strong professional ambition — a favorable dasha supports career growth.",
-        "finance":     "2nd and 11th house energies suggest financial gains through disciplined, persistent effort.",
-        "marriage":    "7th house analysis indicates meaningful partnerships — emotional maturity is a key strength.",
-        "health":      "Lagna and 8th house analysis suggest good vitality — stress and overwork are areas to monitor.",
-        "spirituality":"Favorable yogas and 9th house energy indicate a spiritual deepening phase.",
-        "education":   "5th house lord is well-placed — academic success and intellectual growth are supported.",
-        "travel":      "12th and 9th house energies support travel and relocation — new horizons are opening.",
-        "children":    "5th house energy is positively activated — parenting and family expansion are indicated.",
-        "general":     "The overall chart suggests a growth phase — consistent action yields compounding results.",
+# ── Marriage timing by dasha planet ────────────────────────────────────────────
+DASHA_MARRIAGE_TIMING = {
+    "Sun":     "The Sun dasha period is active — marriage timing is likely in the 2–3 year window ahead, particularly when Venus or Jupiter transits the 7th house.",
+    "Moon":    "The Moon dasha brings emotional readiness for commitment — marriage is strongly indicated within 1–2 years, especially during favorable Venus transits.",
+    "Mars":    "Mars dasha adds passion and decisiveness — marriage prospects are active now, with the best window during Jupiter's transit over the 7th house.",
+    "Mercury": "Mercury dasha supports communication and connection — meeting a compatible partner is likely; formal commitment may follow within 2–4 years.",
+    "Jupiter": "Jupiter dasha is among the most auspicious for marriage — a significant relationship or formal commitment is strongly indicated within 1–2 years.",
+    "Venus":   "Venus dasha is the most favorable period for marriage — a committed partnership is very strongly indicated, often within the current year or next.",
+    "Saturn":  "Saturn dasha brings slow but lasting commitments — marriage is indicated, though it may come after patient waiting; age 27–30 or 35–38 are classic Saturn windows.",
+    "Rahu":    "Rahu dasha can bring unconventional or unexpected relationships — marriage is possible but may involve cross-cultural, long-distance, or unique circumstances.",
+    "Ketu":    "Ketu dasha emphasizes spiritual bonds over worldly commitments — marriage may be delayed, but when it comes it is deeply karmic and meaningful.",
+}
+
+LAGNA_PARTNER_TRAITS = {
+    "Aries":       "The 7th house falls in Libra — a diplomatic, artistic, and harmonious partner is indicated.",
+    "Taurus":      "The 7th house falls in Scorpio — an intense, deeply loyal, and emotionally strong partner is suggested.",
+    "Gemini":      "The 7th house falls in Sagittarius — a philosophical, adventurous, and optimistic partner is favored.",
+    "Cancer":      "The 7th house falls in Capricorn — a stable, responsible, and career-oriented partner is indicated.",
+    "Leo":         "The 7th house falls in Aquarius — an independent, innovative, and humanitarian partner is suggested.",
+    "Virgo":       "The 7th house falls in Pisces — a compassionate, spiritual, and emotionally receptive partner is indicated.",
+    "Libra":       "The 7th house falls in Aries — an assertive, energetic, and courageous partner is favored.",
+    "Scorpio":     "The 7th house falls in Taurus — a grounded, sensual, and materially secure partner is suggested.",
+    "Sagittarius": "The 7th house falls in Gemini — a witty, communicative, and intellectually stimulating partner is indicated.",
+    "Capricorn":   "The 7th house falls in Cancer — a nurturing, family-oriented, and emotionally warm partner is favored.",
+    "Aquarius":    "The 7th house falls in Leo — a confident, generous, and creatively expressive partner is suggested.",
+    "Pisces":      "The 7th house falls in Virgo — a practical, health-conscious, and service-oriented partner is indicated.",
+}
+
+INTENT_QUESTION_TEMPLATES = {
+    "marriage": {
+        "Vedic": (
+            "From the Vedic perspective, your {lagna} Lagna places the 7th house (marriage) in focus. "
+            "{partner_trait} {dasha_timing} "
+            "The {nakshatra} nakshatra of your Moon in {moon} adds emotional depth to your partnerships — "
+            "you seek a bond that is both spiritually meaningful and emotionally secure."
+        ),
+        "KP": (
+            "The KP system analyses the 7th cusp sub-lord directly for marriage timing. "
+            "With your Moon in {moon} and Lagna in {lagna}, the sub-lord signification points toward "
+            "a meaningful relationship chapter that is actively opening. "
+            "KP analysis confirms that 7th house matters are energised — deliberate steps toward commitment will be rewarded."
+        ),
+        "Western": (
+            "In Western astrology, your {sun} Sun and Moon in {moon} shape your relationship style. "
+            "Venus placement and 7th house ruler aspects indicate partnership opportunities — "
+            "emotional openness and clear communication are the two most important factors for manifesting the right relationship. "
+            "The current outer-planet transits support meaningful romantic development."
+        ),
     },
-    "KP": {
-        "career":      "Sub-lord of the 10th cusp indicates favorable signification for career advancement and recognition.",
-        "finance":     "Sub-lord of the 2nd cusp is well-placed — financial accumulation through steady effort is supported.",
-        "marriage":    "7th cusp sub-lord signification points to a meaningful relationship chapter opening.",
-        "health":      "Ascendant sub-lord analysis suggests good physical health — mental balance is key.",
-        "spirituality":"9th cusp sub-lord carries spiritual signification — inner practice rewards deeply now.",
-        "education":   "5th cusp sub-lord is favorably placed — study and certification efforts will succeed.",
-        "travel":      "12th cusp sub-lord supports foreign travel and settlement opportunities.",
-        "children":    "5th cusp sub-lord analysis supports family expansion and parenting themes.",
-        "general":     "KP system analysis confirms a positive period — deliberate action amplifies outcomes.",
+    "career": {
+        "Vedic": (
+            "Your {lagna} Lagna places the 10th house of career in focus. "
+            "Currently running {dasha} dasha — this period activates professional ambition and recognition. "
+            "The {nakshatra} nakshatra enhances strategic thinking, making this a favorable window for career advancement."
+        ),
+        "KP": (
+            "KP analysis of the 10th cusp sub-lord confirms strong career signification in this period. "
+            "With {lagna} Lagna, leadership and professional authority are highlighted. "
+            "Deliberate skill-building and visibility efforts will yield measurable recognition."
+        ),
+        "Western": (
+            "Your {sun} Sun and Midheaven aspects indicate career visibility and advancement opportunities. "
+            "10th house activity is highlighted — professional goals pursued with focus now carry strong momentum. "
+            "Jupiter and Saturn transits support sustained career growth through disciplined, consistent action."
+        ),
     },
-    "Western": {
-        "career":      "10th house activity and Midheaven aspects suggest career visibility and advancement opportunities.",
-        "finance":     "2nd house planets and Venus aspects indicate financial growth through creative or communicative work.",
-        "marriage":    "7th house ruler and Venus placement suggest partnership opportunities — emotional openness is key.",
-        "health":      "Ascendant ruler aspects suggest good vitality — regular routines and self-care are emphasized.",
-        "spirituality":"Neptune and Jupiter aspects indicate spiritual receptivity and a deepening inner life.",
-        "education":   "Mercury and Jupiter aspects favor learning, study, and intellectual achievement.",
-        "travel":      "Sagittarius and 9th house placements support international travel and cultural expansion.",
-        "children":    "Moon and Venus aspects indicate nurturing instincts and favorable parenting energy.",
-        "general":     "Western chart analysis suggests positive outer-planet transits supporting growth and expansion.",
+    "finance": {
+        "Vedic": (
+            "The 2nd and 11th houses govern wealth in Vedic astrology — your {lagna} Lagna activates these through the current {dasha} dasha. "
+            "Financial growth through disciplined, persistent effort is indicated. "
+            "The {nakshatra} nakshatra bestows resourcefulness — practical, grounded financial decisions compound steadily."
+        ),
+        "KP": (
+            "KP 2nd cusp sub-lord analysis suggests financial accumulation is supported in the current period. "
+            "Income through consistent effort and skill application is favored. "
+            "Speculation or high-risk ventures are not recommended — steady building is the path."
+        ),
+        "Western": (
+            "Your {sun} Sun and Venus aspects indicate financial growth through creative or communicative work. "
+            "2nd house planets are active — income potential is expanding. "
+            "Long-term planning aligned with your natural strengths will yield lasting material security."
+        ),
+    },
+    "general": {
+        "Vedic": (
+            "Your {lagna} Lagna and {moon} Moon sign together indicate a growth-oriented phase. "
+            "Currently running {dasha} dasha — consistent, purposeful action compounds powerfully in this period. "
+            "The {nakshatra} nakshatra bestows wisdom and perceptiveness to navigate challenges with clarity."
+        ),
+        "KP": (
+            "KP system analysis confirms a positive overall period with favorable cusp significations. "
+            "Deliberate effort in areas of personal priority will yield clear results. "
+            "Moon sub-lord placement supports emotional steadiness and sound decision-making."
+        ),
+        "Western": (
+            "Your {sun} Sun and Moon in {moon} create a personality that is both adaptive and purposeful. "
+            "Current outer-planet transits — Jupiter and Saturn — support sustained growth across life areas. "
+            "Focusing energy on long-term goals during this window amplifies outcomes significantly."
+        ),
     },
 }
 
 
-def _run_vedic_sub_agent(name: str, dob: str, tob: str, pob: str, question: str, intent: str) -> Dict[str, Any]:
-    seed    = _seed(name + dob + pob)
-    lagna   = lagna_rashi(seed)
-    moon    = moon_rashi(seed)
-    sun     = sun_sign_from_dob(dob)
-    nakshat = nakshatra_of_moon(seed)
-    dasha_planet, dasha_label = current_dasha(seed, dob)
-    preds   = predictions_for_focus(lagna, sun, moon, intent, seed)
+def _build_prediction(template_key: str, tradition: str, lagna: str, moon: str, sun: str, nakshatra: str, dasha: str) -> str:
+    templates = INTENT_QUESTION_TEMPLATES.get(template_key, INTENT_QUESTION_TEMPLATES["general"])
+    tmpl = templates.get(tradition, templates.get("Vedic", ""))
+    partner_trait = LAGNA_PARTNER_TRAITS.get(lagna, "A compatible, emotionally aligned partner is indicated.")
+    dasha_planet  = dasha.split(" ")[0] if dasha else "Jupiter"
+    dasha_timing  = DASHA_MARRIAGE_TIMING.get(dasha_planet, DASHA_MARRIAGE_TIMING["Jupiter"])
+    return tmpl.format(
+        lagna=lagna, moon=moon, sun=sun, nakshatra=nakshatra,
+        dasha=dasha, partner_trait=partner_trait, dasha_timing=dasha_timing,
+    )
 
-    focus_pred = FOCUS_INTERPRETATIONS["Vedic"].get(intent, FOCUS_INTERPRETATIONS["Vedic"]["general"])
+
+def _run_vedic_sub_agent(name: str, dob: str, tob: str, pob: str, question: str, intent: str) -> Dict[str, Any]:
+    seed       = _seed(name + dob + pob)
+    lagna      = lagna_rashi(seed)
+    moon       = moon_rashi(seed)
+    sun        = sun_sign_from_dob(dob)
+    nakshat    = nakshatra_of_moon(seed)
+    dasha_planet, dasha_label = current_dasha(seed, dob)
+    preds      = predictions_for_focus(lagna, sun, moon, intent, seed)
+
+    _cfg = build_prompt(
+        "astrology_vedic",
+        name=name, dob=dob, tob=tob, pob=pob,
+        question=question, intent=intent, tradition="Vedic (Jyotish)",
+        lagna=lagna, moon=moon, sun=sun, nakshatra=nakshat, dasha=dasha_label,
+    )
+    prediction = _build_prediction(intent, "Vedic", lagna, moon, sun, nakshat, dasha_label)
+
     return {
         "sub_agent":       "Vedic Astrology",
         "question":        question,
-        "prediction":      focus_pred,
+        "prediction":      prediction,
         "traits":          [f"Lagna {lagna}", f"Moon {moon}", nakshat],
         "confidence_hint": "high",
         "extra": {
@@ -82,7 +169,7 @@ def _run_vedic_sub_agent(name: str, dob: str, tob: str, pob: str, question: str,
                 f"The {nakshat} nakshatra bestows wisdom and perceptiveness.",
             ],
             "challenges": [
-                f"The {moon} Moon may bring emotional fluctuations — mindful management is advised.",
+                f"The {moon} Moon may bring emotional fluctuations requiring mindful management.",
                 "A tendency toward overwork — balance and delegation are recommended.",
             ],
         },
@@ -90,39 +177,61 @@ def _run_vedic_sub_agent(name: str, dob: str, tob: str, pob: str, question: str,
 
 
 def _run_kp_sub_agent(name: str, dob: str, question: str, intent: str) -> Dict[str, Any]:
-    seed = _seed(name + dob + "KP")
+    seed  = _seed(name + dob + "KP")
     lagna = lagna_rashi(seed)
     moon  = moon_rashi(seed)
-    focus_pred = FOCUS_INTERPRETATIONS["KP"].get(intent, FOCUS_INTERPRETATIONS["KP"]["general"])
+    sun   = sun_sign_from_dob(dob)
+    nakshat = nakshatra_of_moon(seed)
+    dasha_planet, dasha_label = current_dasha(seed, dob)
+
+    _cfg = build_prompt(
+        "astrology_kp",
+        name=name, dob=dob, tob="", pob="",
+        question=question, intent=intent, tradition="KP System",
+        lagna=lagna, moon=moon, sun=sun, nakshatra=nakshat, dasha=dasha_label,
+    )
+    prediction = _build_prediction(intent, "KP", lagna, moon, sun, nakshat, dasha_label)
+
     return {
         "sub_agent":       "KP Astrology",
         "question":        question,
-        "prediction":      focus_pred,
+        "prediction":      prediction,
         "traits":          [f"Ascendant sub-lord active", f"Moon sub-lord {moon}", "Favorable dasha signification"],
         "confidence_hint": "medium",
         "extra": {
             "chart":         {"lagna": lagna, "moon_sign": moon},
-            "predictions":   [focus_pred, f"KP cusp analysis confirms favorable period for {intent}."],
+            "predictions":   [prediction, f"KP cusp analysis confirms favorable period for {intent}."],
             "cusp_analysis": f"Sub-lord of relevant house cusps is well-placed for {intent} matters.",
         },
     }
 
 
 def _run_western_sub_agent(name: str, dob: str, question: str, intent: str) -> Dict[str, Any]:
-    seed = _seed(name + dob + "Western")
-    sun  = sun_sign_from_dob(dob)
-    moon = moon_rashi(seed)
-    focus_pred = FOCUS_INTERPRETATIONS["Western"].get(intent, FOCUS_INTERPRETATIONS["Western"]["general"])
+    seed  = _seed(name + dob + "Western")
+    sun   = sun_sign_from_dob(dob)
+    moon  = moon_rashi(seed)
+    lagna = lagna_rashi(seed)
+    nakshat = nakshatra_of_moon(seed)
+    dasha_planet, dasha_label = current_dasha(seed, dob)
+
+    _cfg = build_prompt(
+        "astrology_western",
+        name=name, dob=dob, tob="", pob="",
+        question=question, intent=intent, tradition="Western",
+        lagna=lagna, moon=moon, sun=sun, nakshatra=nakshat, dasha=dasha_label,
+    )
+    prediction = _build_prediction(intent, "Western", lagna, moon, sun, nakshat, dasha_label)
+
     return {
         "sub_agent":       "Western Astrology",
         "question":        question,
-        "prediction":      focus_pred,
+        "prediction":      prediction,
         "traits":          [f"Sun in {sun}", f"Moon in {moon}", "Active outer planet transits"],
         "confidence_hint": "medium",
         "extra": {
             "chart":       {"sun_sign": sun, "moon_sign": moon},
-            "predictions": [focus_pred, f"Western transit analysis supports {intent} themes for the current period."],
-            "transits":    f"Jupiter and Saturn transits are active — sustained growth is indicated.",
+            "predictions": [prediction, f"Western transit analysis supports {intent} themes for the current period."],
+            "transits":    "Jupiter and Saturn transits are active — sustained growth is indicated.",
         },
     }
 
@@ -133,19 +242,12 @@ def _analyze_question(name: str, dob: str, tob: str, pob: str, question: str, in
     western = _run_western_sub_agent(name, dob, question, intent)
 
     sub_results = [vedic, kp, western]
-    agreements = [
-        f"All three traditions confirm a favorable period for {intent}-related matters.",
-        "Timing indicators align across systems — consistent action is recommended.",
-    ]
-    conflicts = []
-    if intent in ("finance", "career"):
-        conflicts.append("KP and Western may differ on exact timing — Vedic dasha period takes priority for timing.")
-
     lagna = vedic["extra"]["chart"]["lagna"]
     dasha = vedic["extra"]["current_dasha"]
+
     summary = (
         f"Astrology analysis for '{question}': Lagna is {lagna}, currently running {dasha}. "
-        f"All three systems (Vedic, KP, Western) broadly confirm {intent}-related growth energy. "
+        f"All three systems (Vedic, KP, Western) confirm {intent}-related energy. "
         f"{vedic['prediction']}"
     )
 
@@ -154,8 +256,11 @@ def _analyze_question(name: str, dob: str, tob: str, pob: str, question: str, in
         "intent":            intent,
         "sub_agent_results": sub_results,
         "domain_summary":    summary,
-        "agreements":        agreements,
-        "conflicts":         conflicts,
+        "agreements":        [
+            f"All three astrological traditions confirm a favorable period for {intent}-related matters.",
+            "Timing indicators align across Vedic, KP, and Western systems.",
+        ],
+        "conflicts":         [],
     }
 
 
@@ -164,10 +269,10 @@ def astrology_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
         return state
 
     profile = state["user_profile"]
-    name = profile.get("full_name", "")   if isinstance(profile, dict) else profile.full_name
-    dob  = profile.get("date_of_birth","") if isinstance(profile, dict) else profile.date_of_birth
-    tob  = profile.get("time_of_birth","") if isinstance(profile, dict) else getattr(profile, "time_of_birth", "")
-    pob  = profile.get("place_of_birth","") if isinstance(profile, dict) else getattr(profile, "place_of_birth", "")
+    name = profile.get("full_name", "")    if isinstance(profile, dict) else profile.full_name
+    dob  = profile.get("date_of_birth", "") if isinstance(profile, dict) else profile.date_of_birth
+    tob  = profile.get("time_of_birth", "") if isinstance(profile, dict) else getattr(profile, "time_of_birth", "")
+    pob  = profile.get("place_of_birth", "") if isinstance(profile, dict) else getattr(profile, "place_of_birth", "")
 
     normalized_questions = state.get("normalized_questions", [])
     if not normalized_questions:
@@ -180,21 +285,26 @@ def astrology_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
         analysis = _analyze_question(name, dob, tob, pob, nq["question"], nq["intent"])
         question_wise_analysis.append(analysis)
 
-    # Legacy flat structure for admin_review_agent backward compat
     first_sub = question_wise_analysis[0]["sub_agent_results"][0]
+    _prompt_cfg = get_prompt("astrology")
     domain_output = {
         "domain":                 "astrology",
         "question_wise_analysis": question_wise_analysis,
+        "prompt_config": {
+            "temperature": _prompt_cfg["temperature"],
+            "top_p":       _prompt_cfg["top_p"],
+            "role":        _prompt_cfg["role"],
+        },
         "vedic":                  first_sub["extra"],
     }
-    domain_output["vedic"]["tradition"]      = "Vedic"
+    domain_output["vedic"]["tradition"]       = "Vedic"
     domain_output["vedic"]["focus_addressed"] = normalized_questions[0]["intent"]
-    domain_output["vedic"]["predictions"]    = first_sub["extra"].get("predictions", [])
-    domain_output["vedic"]["strengths"]      = first_sub["extra"].get("strengths", [])
-    domain_output["vedic"]["challenges"]     = first_sub["extra"].get("challenges", [])
-    domain_output["vedic"]["yogas"]          = first_sub["extra"].get("yogas", [])
-    domain_output["vedic"]["doshas"]         = first_sub["extra"].get("doshas", [])
-    domain_output["vedic"]["current_dasha"]  = first_sub["extra"].get("current_dasha", "")
+    domain_output["vedic"]["predictions"]     = first_sub["extra"].get("predictions", [])
+    domain_output["vedic"]["strengths"]       = first_sub["extra"].get("strengths", [])
+    domain_output["vedic"]["challenges"]      = first_sub["extra"].get("challenges", [])
+    domain_output["vedic"]["yogas"]           = first_sub["extra"].get("yogas", [])
+    domain_output["vedic"]["doshas"]          = first_sub["extra"].get("doshas", [])
+    domain_output["vedic"]["current_dasha"]   = first_sub["extra"].get("current_dasha", "")
 
     state.setdefault("memory", {})["astrology"] = domain_output
     state.setdefault("agent_log", []).append(

@@ -117,13 +117,142 @@ export class OrchestratorService {
     const review = this.adminReview();
     if (!review) throw new Error('No review available');
 
-    const sections = review.questions.map(q => ({
-      question: q.question,
-      intent:   q.intent,
-      insights: q.insights
+    const sections = review.questions.map(q => {
+      const approved = q.insights
         .filter(i => approvedIds.includes(i.id))
-        .map(i => ({ ...i, approved: true })),
-    })).filter(s => s.insights.length > 0);
+        .map(i => ({ ...i, approved: true }));
+      // Build domain breakdown
+      const domain_breakdown: Record<string, string[]> = {};
+      for (const ins of approved) {
+        for (const d of ins.domains) {
+          if (!domain_breakdown[d]) domain_breakdown[d] = [];
+          domain_breakdown[d].push(ins.content);
+        }
+      }
+      // Simple narrative: join approved contents ordered by confidence
+      const ordered = [
+        ...approved.filter(i => i.confidence === 'high'),
+        ...approved.filter(i => i.confidence === 'medium'),
+        ...approved.filter(i => !['high','medium'].includes(i.confidence)),
+      ];
+      const narrative = ordered.map(i => i.content.replace(/\.$/, '')).join('. ') + (ordered.length ? '.' : '');
+      // Build simple_narrative: deduplicate sentences, strip tradition prefixes
+      const PREFIXES = [
+        'From the Vedic perspective,', 'From the Indian Numerology perspective,',
+        'From the Chaldean Numerology perspective,', 'From the Pythagorean Numerology perspective,',
+        'From the KP system perspective,', 'From the Western astrology perspective,',
+        'In Western astrology,', 'The KP system analyses', 'The combined wisdom of',
+      ];
+      const stripPrefix = (s: string) => {
+        for (const p of PREFIXES) { if (s.startsWith(p)) { const r = s.slice(p.length).trim(); return r[0]?.toUpperCase() + r.slice(1); } }
+        return s;
+      };
+      const key = (s: string) => s.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim();
+      const dedup = (arr: string[]) => {
+        const seen: string[] = [];
+        return arr.filter(s => {
+          const k = key(s); const w = new Set(k.split(' '));
+          const dup = seen.some(sk => { const sw = new Set(sk.split(' ')); const inter = [...w].filter(x => sw.has(x)).length; return inter / Math.max(w.size, sw.size) > 0.75; });
+          if (!dup) seen.push(k); return !dup;
+        });
+      };
+      const allSents = ordered.flatMap(i => i.content.split(/(?<=[.!?])\s+/)).filter(Boolean);
+      const simplified = dedup(allSents.map(stripPrefix).filter(s => !s.startsWith('The combined wisdom')));
+      const simple_narrative = simplified.slice(0, 6).join('  ');
+
+      // ── Structured summary: WHO/WHAT/WHEN/WHERE/HOW from insight sentences ──
+      // Fully generic — keyword slot assignment, works for any question type
+      const SLOT_KW: Record<string, string[]> = {
+        who:   ['partner','person','mentor','guide','support','advisor','doctor','colleague','friend','family','teacher','compatibility','soulmate','companion','life path'],
+        what:  ['indicates','suggests','shows','analysis','chart','tradition','reading','insight','energy','theme','pattern','favourable','positive','active','highlighted'],
+        when:  ['age','ages','year','month','period','phase','timing','time','window','cycle','soon','current','next','within'],
+        where: ['focus','environment','place','setting','direction','zone','space','location','area','field','sector','channel'],
+        how:   ['practice','action','step','habit','meditation','mantra','routine','daily','consistent','build','invest','begin','open','communicate','express'],
+      };
+      const SLOT_SECOND: Record<string, string> = {
+        who:   'The right people and circumstances are drawn toward those who are clear about their values and what they want.',
+        what:  'Multiple spiritual traditions agree on this theme, which increases the reliability of this indication.',
+        when:  'Acting with intention during this active window will yield far better results than waiting for conditions to be perfect.',
+        where: 'Environments that feel naturally aligned with your energy are showing you where your momentum most wants to flow.',
+        how:   'Consistent small actions, taken daily without exception, will compound into significant change within 90 days.',
+      };
+      const HW_LABELS: Record<string, string> = {
+        who:   'Who is the key person or support in this?',
+        what:  'What does the analysis say?',
+        when:  'When is the best time to act?',
+        where: 'Where should you focus your energy?',
+        how:   'How can you take action?',
+      };
+      const INTENT_HABITS: Record<string, string[]> = {
+        marriage:    ['Practice active, judgment-free listening in all important conversations.','Express one genuine appreciation to your partner or loved ones daily.','Work on your own inner growth — a fulfilled individual brings more to a relationship.'],
+        career:      ['Begin each workday with 5 minutes of intention-setting.','Invest in one meaningful professional connection per week.','Dedicate focused, uninterrupted time to your most important task daily.'],
+        finance:     ['Track every expense for 30 days — awareness is the foundation of financial growth.','Set up automatic savings on the 1st of each month.','Pause 48 hours before making major financial decisions.'],
+        health:      ['Begin with 20 minutes of morning sunlight daily.','Aim for 7–8 hours of sleep — recovery is when transformation happens.','Walk 30 minutes daily.'],
+        spirituality:['Practice 10 minutes of silent sitting each morning before any screen.','Keep a spiritual journal — write reflections and gratitude nightly.','Spend time in nature weekly.'],
+        education:   ['Study in 50-minute focused blocks then take a 10-minute break.','Review notes within 24 hours of learning.','Maintain a regular sleep schedule during exam periods.'],
+        travel:      ['Begin travel planning 3–6 months in advance.','Keep travel documents organised and accessible.','Journal your travels — writing anchors experiences.'],
+        children:    ['Create consistent daily rituals with your child — predictability builds security.','Practice active, curious listening with children.','Read together daily — even 15 minutes deepens connection.'],
+        general:     ['Begin each morning with 10 minutes of mindful breathing.','Keep a gratitude journal — write 3 things you appreciate each evening.','Spend 20 minutes in natural sunlight daily.'],
+      };
+
+      const hw_sentences = dedup(allSents.map(stripPrefix));
+      const usedIdx = new Set<number>();
+      const slots: Record<string, string[]> = { who: [], what: [], when: [], where: [], how: [] };
+      for (const slot of ['who','what','when','where','how']) {
+        for (let si = 0; si < hw_sentences.length; si++) {
+          if (usedIdx.has(si)) continue;
+          if (SLOT_KW[slot].some(kw => hw_sentences[si].toLowerCase().includes(kw))) {
+            slots[slot].push(hw_sentences[si]); usedIdx.add(si);
+            if (slots[slot].length >= 2) break;
+          }
+        }
+      }
+      const rem = hw_sentences.filter((_, si) => !usedIdx.has(si));
+      let ri = 0;
+      for (const slot of ['who','what','when','where','how']) {
+        if (!slots[slot].length && rem.length) slots[slot].push(rem[ri++ % rem.length]);
+      }
+      const hw_bullets = ['who','what','when','where','how'].map(slot => {
+        const sents = slots[slot];
+        const first = sents[0] || 'The traditions indicate a positive period for this area of your life.';
+        const answer = sents.length >= 2 ? `${first} ${sents[1]}` : `${first.replace(/\.$/, '')}. ${SLOT_SECOND[slot]}`;
+        return { label: HW_LABELS[slot], answer };
+      });
+      const INTENT_COLORS: Record<string, string[]> = {
+        marriage:     ['Rose Pink', 'Ivory', 'Lavender'],
+        career:       ['Royal Blue', 'Gold', 'White'],
+        finance:      ['Green', 'Gold', 'Yellow'],
+        health:       ['Green', 'White', 'Sky Blue'],
+        spirituality: ['Violet', 'White', 'Indigo'],
+        education:    ['Yellow', 'Green', 'White'],
+        travel:       ['Orange', 'Blue', 'White'],
+        children:     ['Soft Yellow', 'Green', 'White'],
+        general:      ['Gold', 'White', 'Green'],
+      };
+      const INTENT_MANTRAS: Record<string, string[]> = {
+        marriage:     ['Om Shukraya Namah — Venus blessings for love and harmony (108 times)', 'Om Namah Shivaya — Well-being, protection, and inner peace (108 times)'],
+        career:       ['Om Suryaya Namah — Confidence, clarity, and professional success (108 times)', 'Gayatri Mantra — Wisdom and divine clarity of mind (21 times)'],
+        finance:      ['Om Lakshmyai Namah — Abundance, prosperity, and financial flow (108 times)', 'Om Ganeshaya Namah — Removing obstacles on your path (108 times)'],
+        health:       ['Om Dhanvantre Namah — Healing, vitality, and well-being (108 times)', 'Mahamrityunjaya Mantra — Protection and strength of body and mind (11 times)'],
+        spirituality: ['Om Namah Shivaya — Inner peace, higher awareness, and liberation (108 times)', 'So Hum — I am that, connecting to universal consciousness (21 times)'],
+        education:    ['Om Saraswatyai Namah — Knowledge, wisdom, and academic clarity (108 times)', 'Gayatri Mantra — Divine light and intellect (21 times)'],
+        travel:       ['Om Gam Ganapataye Namah — Safe journeys and removal of obstacles (108 times)', 'Om Namah Shivaya — Overall protection and well-being (108 times)'],
+        children:     ['Om Santana Gopala Namah — Blessings for family and children (108 times)', 'Om Namah Shivaya — Protection and inner peace for the family (108 times)'],
+        general:      ['Om Namah Shivaya — Overall well-being, protection, and inner peace (108 times)', 'Gayatri Mantra — Wisdom, divine light, and clarity of mind (21 times)'],
+      };
+
+      const habits = (INTENT_HABITS[q.intent] || INTENT_HABITS['general']).slice(0, 3);
+      const intentColors = (INTENT_COLORS[q.intent] || INTENT_COLORS['general']);
+      const intentMantras = (INTENT_MANTRAS[q.intent] || INTENT_MANTRAS['general']);
+      const remedy_bullets = {
+        daily_habits: habits,
+        mantras: intentMantras,
+        lucky_colors: intentColors.map(c => `Wear or surround yourself with ${c}`),
+      };
+      const structured_summary = { question: q.question, intent: q.intent, hw_bullets, remedy_bullets };
+
+      return { question: q.question, intent: q.intent, narrative, simple_narrative, structured_summary, insights: approved, domain_breakdown };
+    }).filter(s => s.insights.length > 0);
 
     const report: FinalReport = {
       brand_name:   'Aura with Rav',

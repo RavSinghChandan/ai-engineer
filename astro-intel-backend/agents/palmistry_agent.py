@@ -5,6 +5,7 @@ Stores DomainOutput with question_wise_analysis[] in memory.
 """
 from __future__ import annotations
 from typing import Any, Dict, List
+from agents.agent_prompts import build_prompt, get_prompt
 
 
 FOCUS_INSIGHTS: Dict[str, Dict[str, str]] = {
@@ -74,9 +75,21 @@ TRAITS = {
 }
 
 
-def _run_sub_agent(tradition: str, hand_shape: str, question: str, intent: str) -> Dict[str, Any]:
+def _run_sub_agent(tradition: str, hand_shape: str, question: str, intent: str, name: str = "", dob: str = "") -> Dict[str, Any]:
     focus_insight = FOCUS_INSIGHTS[tradition].get(intent, FOCUS_INSIGHTS[tradition]["general"])
     traits = TRAITS[tradition]
+    _trad_key = {
+        "Indian":  "palmistry_indian",
+        "Chinese": "palmistry_chinese",
+        "Western": "palmistry_western",
+    }.get(tradition, "palmistry")
+    _cfg = build_prompt(
+        _trad_key,
+        name=name or "Client", dob=dob or "",
+        tradition=f"{tradition} Palmistry",
+        question=question, intent=intent,
+        palm_insight=focus_insight,
+    )
     return {
         "sub_agent":       f"{tradition} Palmistry",
         "question":        question,
@@ -123,18 +136,23 @@ def palmistry_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
     palm_input = mi.get("palmistry", {}) if isinstance(mi, dict) else {}
     hand_shape = palm_input.get("hand_shape", "") if isinstance(palm_input, dict) else ""
 
+    profile = state.get("user_profile", {})
+    name = profile.get("full_name", "") if isinstance(profile, dict) else getattr(profile, "full_name", "")
+    dob  = profile.get("date_of_birth", "") if isinstance(profile, dict) else getattr(profile, "date_of_birth", "")
+
     normalized_questions = state.get("normalized_questions", [])
     if not normalized_questions:
         single = state.get("user_question", "")
         focus  = state.get("focus_context", {}).get("intent", "general")
         normalized_questions = [{"question": single or "General life overview.", "intent": focus, "index": 0}]
 
+    _prompt_cfg = get_prompt("palmistry")
     question_wise_analysis = []
     for nq in normalized_questions:
         tradition_results = [
-            _run_sub_agent("Indian",  hand_shape, nq["question"], nq["intent"]),
-            _run_sub_agent("Chinese", hand_shape, nq["question"], nq["intent"]),
-            _run_sub_agent("Western", hand_shape, nq["question"], nq["intent"]),
+            _run_sub_agent("Indian",  hand_shape, nq["question"], nq["intent"], name, dob),
+            _run_sub_agent("Chinese", hand_shape, nq["question"], nq["intent"], name, dob),
+            _run_sub_agent("Western", hand_shape, nq["question"], nq["intent"], name, dob),
         ]
         analysis = _analyze_question(tradition_results, nq["question"], nq["intent"])
         question_wise_analysis.append(analysis)
@@ -145,6 +163,11 @@ def palmistry_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
     domain_output = {
         "domain":                 "palmistry",
         "question_wise_analysis": question_wise_analysis,
+        "prompt_config": {
+            "temperature": _prompt_cfg["temperature"],
+            "top_p":       _prompt_cfg["top_p"],
+            "role":        _prompt_cfg["role"],
+        },
         "indian":  {
             "tradition": "Indian", "focus_addressed": first_intent,
             "traits": TRAITS["Indian"], "lines": LINE_DATA["Indian"],

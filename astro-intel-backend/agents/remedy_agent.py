@@ -5,6 +5,7 @@ Synthesizes insights from consolidated + memory.
 """
 from __future__ import annotations
 from typing import Any, Dict, List
+from agents.agent_prompts import build_prompt
 
 
 PLANET_MANTRAS: Dict[str, Dict[str, Any]] = {
@@ -263,6 +264,20 @@ def remedy_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
         ),
         "question_remedies":      question_remedies,
     }
+
+    name = profile.get("full_name", "") if isinstance(profile := state.get("user_profile", {}), dict) else getattr(profile, "full_name", "")
+    lp_num = 0
+    num_mem = state.get("memory", {}).get("numerology", {})
+    for trad in ["indian", "chaldean", "pythagorean"]:
+        lp_num = num_mem.get(trad, {}).get("core_numbers", {}).get("life_path", 0)
+        if lp_num:
+            break
+    for nq in normalized_questions:
+        build_prompt(
+            "remedy",
+            name=name, lagna=lagna, dasha=dasha_planet,
+            question=nq["question"], intent=nq["intent"], lp=lp_num,
+        )
 
     state["remedies"] = remedies
     state.setdefault("agent_log", []).append(

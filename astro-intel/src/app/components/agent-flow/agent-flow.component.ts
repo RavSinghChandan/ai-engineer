@@ -81,7 +81,7 @@ const NODES = [
         <div class="drawer-hdr">
           <div class="dh-left">
             <span class="dh-title">Agent Pipeline</span>
-            <span class="dh-sub">LangGraph · Sequential with sub-agent fan-out per question</span>
+            <span class="dh-sub">Aura with Rav · 360° Multi-Tradition Intelligence Pipeline</span>
           </div>
           <button class="dh-close" (click)="open.set(false)">✕</button>
         </div>
@@ -144,7 +144,7 @@ const NODES = [
 
           <!-- Step 2: Parallel domain agents -->
           <div class="g-parallel-section">
-            <div class="g-parallel-label">Step 2 · Parallel fan-out</div>
+            <div class="g-parallel-label">Step 2 · Parallel Domain Analysis</div>
             <div class="g-parallel-grid">
               @for (node of domainNodes; track node.id) {
                 <div class="g-node g-node-domain"

@@ -96,6 +96,7 @@ async def approve_and_generate(req: ApprovalRequest) -> JSONResponse:
 
     admin_review = state.get("admin_review", {})
     memory       = state.get("memory", {})
+    remedies     = state.get("remedies", {})
 
     report = final_report_agent(
         admin_review = admin_review,
@@ -105,6 +106,7 @@ async def approve_and_generate(req: ApprovalRequest) -> JSONResponse:
         logo_url     = req.logo_url,
         image_url    = req.image_url,
         memory       = memory,
+        remedies     = remedies,
     )
 
     _sessions[session_id]["final_report"] = report

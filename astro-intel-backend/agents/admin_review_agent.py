@@ -5,6 +5,7 @@ Each insight has: id, content, confidence, domains[], is_common, editable.
 """
 from __future__ import annotations
 from typing import Any, Dict, List
+from agents.agent_prompts import build_prompt
 
 
 def admin_review_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
@@ -173,6 +174,16 @@ def admin_review_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
                 }
             ],
         }
+
+    for q_item in admin_review["questions"]:
+        domain_texts = "\n".join(ins["content"] for ins in q_item["insights"][:6])
+        build_prompt(
+            "admin_review",
+            name=name,
+            question=q_item["question"],
+            intent=q_item.get("intent", "general"),
+            domain_outputs=domain_texts,
+        )
 
     state["admin_review"] = admin_review
     total_insights = sum(len(q["insights"]) for q in admin_review["questions"])

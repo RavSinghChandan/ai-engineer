@@ -7,6 +7,7 @@ HIGH = 3+ domains agree. MEDIUM = 2. LOW = 1.
 from __future__ import annotations
 from collections import Counter
 from typing import Any, Dict, List, Tuple
+from agents.agent_prompts import build_prompt, get_prompt
 
 
 def _assign_confidence(domain_count: int) -> str:
@@ -274,6 +275,19 @@ def meta_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
 
     # Legacy consolidated for admin_review_agent / remedy_agent
     consolidated = _build_consolidated_from_memory(memory, focus, question)
+
+    profile = state.get("user_profile", {})
+    name    = profile.get("full_name", "") if isinstance(profile, dict) else getattr(profile, "full_name", "")
+    for qc in question_consensus:
+        domain_texts = "\n".join(
+            f"[{ins['domains']}] {ins['content']}"
+            for ins in qc.get("insights", [])[:5]
+        )
+        build_prompt(
+            "meta",
+            name=name, question=qc["question"],
+            intent=qc["intent"], domain_insights=domain_texts,
+        )
 
     state["question_consensus"] = question_consensus
     state["admin_review_data"]  = admin_review_data

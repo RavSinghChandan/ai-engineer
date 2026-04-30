@@ -41,7 +41,7 @@ import { AdminInsight, AdminQuestion } from '../../models/astro.models';
             <span class="sib-sep">·</span>
             <span class="sib-item">Questions: <strong>{{ questionBlocks().length }}</strong></span>
             <span class="sib-sep">·</span>
-            <span class="sib-green">LangGraph multi-agent</span>
+            <span class="sib-green">Aura with Rav · 360° Multi-agent Pipeline</span>
           } @else {
             <span class="sib-amber">Local computation mode (backend offline)</span>
           }
@@ -177,9 +177,9 @@ import { AdminInsight, AdminQuestion } from '../../models/astro.models';
     </div>
   `,
   styles: [`
-    :host { display: flex; flex-direction: column; height: 100vh; overflow: hidden; background: #f7f4ee; font-family: Georgia, serif; }
+    :host { display: flex; flex-direction: column; min-height: 100vh; background: #f7f4ee; font-family: Georgia, serif; }
 
-    .review-shell { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+    .review-shell { display: flex; flex-direction: column; min-height: 100vh; }
 
     /* Header */
     .review-header {
@@ -220,12 +220,15 @@ import { AdminInsight, AdminQuestion } from '../../models/astro.models';
     .tab-active { color: #8a6a00; border-bottom-color: #d4af37; }
 
     /* Review body */
-    .review-body { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 20px; }
+    .review-body { flex: 1; overflow-y: auto; padding: 20px 24px 48px; display: flex; flex-direction: column; gap: 20px; }
+    .review-body::-webkit-scrollbar { width: 6px; }
+    .review-body::-webkit-scrollbar-track { background: transparent; }
+    .review-body::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.3); border-radius: 99px; }
     .empty-state { text-align: center; padding: 60px 20px; color: #9ca3af; display: flex; flex-direction: column; align-items: center; gap: 14px; font-size: 14px; }
     .back-btn-plain { padding: 8px 20px; border-radius: 8px; border: 1px solid #e8e4dc; background: #fff; color: #555; font-size: 13px; cursor: pointer; font-family: Georgia, serif; }
 
     /* Question block */
-    .question-block { background: #fff; border-radius: 14px; border: 1px solid #e8e4dc; overflow: hidden; }
+    .question-block { background: #fff; border-radius: 14px; border: 1px solid #e8e4dc; overflow: hidden; box-shadow: 0 1px 6px rgba(0,0,0,0.05); }
 
     .question-hdr {
       display: flex; align-items: flex-start; gap: 14px;
@@ -240,21 +243,21 @@ import { AdminInsight, AdminQuestion } from '../../models/astro.models';
     .q-approved-count { font-weight: 600; color: #16a34a; }
 
     /* Insights list */
-    .insights-list { display: flex; flex-direction: column; gap: 0; }
+    .insights-list { display: flex; flex-direction: column; }
 
     .insight-card {
-      padding: 14px 20px; border-bottom: 1px solid #f0ece4;
-      transition: background 0.15s;
+      padding: 18px 20px 22px; border-bottom: 1px solid #f0ece4;
+      transition: background 0.15s; overflow: visible;
     }
-    .insight-card:last-child { border-bottom: none; }
+    .insight-card:last-child { border-bottom: none; padding-bottom: 26px; }
     .insight-approved { background: #f0fdf4; }
     .insight-rejected { background: #fef2f2; opacity: 0.65; }
 
-    .insight-hdr { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+    .insight-hdr { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
     .insight-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
     .insight-tags { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
     .insight-id { font-size: 9px; color: #bbb; font-family: monospace; margin-top: 2px; }
-    .insight-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .insight-actions { display: flex; gap: 6px; flex-shrink: 0; align-items: center; }
 
     .conf-badge { font-size: 9px; font-weight: 800; padding: 2px 8px; border-radius: 99px; letter-spacing: 0.08em; }
     .conf-high   { background: #dcfce7; color: #15803d; }
@@ -264,15 +267,19 @@ import { AdminInsight, AdminQuestion } from '../../models/astro.models';
     .domain-tag  { font-size: 9.5px; background: #f3f4f6; color: #555; padding: 2px 8px; border-radius: 99px; font-weight: 600; text-transform: capitalize; }
     .edited-tag  { font-size: 9.5px; background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 99px; font-weight: 600; }
 
-    .edit-btn    { padding: 4px 12px; border-radius: 6px; border: 1.5px solid #e5e7eb; background: transparent; font-size: 11px; font-weight: 600; color: #888; cursor: pointer; font-family: Georgia, serif; }
+    .edit-btn    { padding: 5px 13px; border-radius: 6px; border: 1.5px solid #e5e7eb; background: transparent; font-size: 11px; font-weight: 600; color: #888; cursor: pointer; font-family: Georgia, serif; white-space: nowrap; }
     .edit-btn:hover { border-color: #d4af37; color: #8a6a00; }
-    .reject-btn  { padding: 4px 12px; border-radius: 6px; border: 1.5px solid #fca5a5; background: transparent; font-size: 11px; font-weight: 600; color: #ef4444; cursor: pointer; font-family: Georgia, serif; }
+    .reject-btn  { padding: 5px 13px; border-radius: 6px; border: 1.5px solid #fca5a5; background: transparent; font-size: 11px; font-weight: 600; color: #ef4444; cursor: pointer; font-family: Georgia, serif; white-space: nowrap; }
     .active-reject  { background: #ef4444; color: #fff; border-color: #ef4444; }
-    .approve-btn { padding: 4px 12px; border-radius: 6px; border: 1.5px solid #86efac; background: transparent; font-size: 11px; font-weight: 600; color: #16a34a; cursor: pointer; font-family: Georgia, serif; }
+    .approve-btn { padding: 5px 13px; border-radius: 6px; border: 1.5px solid #86efac; background: transparent; font-size: 11px; font-weight: 600; color: #16a34a; cursor: pointer; font-family: Georgia, serif; white-space: nowrap; }
     .active-approve { background: #22c55e; color: #fff; border-color: #22c55e; }
 
-    .insight-content { font-size: 13.5px; color: #374151; line-height: 1.75; margin: 0; }
-    .insight-editor  { width: 100%; border: 1.5px solid #d4af37; border-radius: 8px; padding: 10px 12px; font-size: 13px; color: #374151; line-height: 1.7; resize: vertical; font-family: Georgia, serif; outline: none; box-sizing: border-box; background: #fffbf0; }
+    .insight-content {
+      font-size: 14px; color: #374151; line-height: 1.85;
+      margin: 0; padding-bottom: 4px;
+      display: block; overflow: visible; word-wrap: break-word;
+    }
+    .insight-editor  { width: 100%; border: 1.5px solid #d4af37; border-radius: 8px; padding: 10px 12px; font-size: 13px; color: #374151; line-height: 1.7; resize: vertical; font-family: Georgia, serif; outline: none; box-sizing: border-box; background: #fffbf0; min-height: 100px; }
 
     /* Raw JSON */
     .raw-body { flex: 1; overflow: hidden; display: flex; flex-direction: column; padding: 16px; gap: 10px; }

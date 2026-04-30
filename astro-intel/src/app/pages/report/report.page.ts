@@ -1,4 +1,4 @@
-import { Component, inject, computed, signal, ElementRef, ViewChild } from '@angular/core';
+import { Component, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -9,446 +9,752 @@ import { OrchestratorService } from '../../services/orchestrator.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="report-shell">
-
-      <!-- ── Control bar ──────────────────────────────────────────────── -->
-      <div class="ctrl-bar no-print">
-        <button class="ctrl-btn" (click)="goBack()">← Back</button>
-        <div class="ctrl-center">
-          <span class="ctrl-title">✦ Final Report</span>
-          @if (editMode()) {
-            <span class="edit-badge">Editing</span>
-          }
-        </div>
-        <div class="ctrl-actions">
-          <button class="ctrl-btn ctrl-btn-ghost"
-                  (click)="toggleEdit()"
-                  [class.active-edit]="editMode()">
-            {{ editMode() ? '✓ Done Editing' : '✎ Edit Report' }}
-          </button>
-          <button class="ctrl-btn ctrl-btn-ghost" (click)="copyJson()">
-            {{ copied() ? '✓ Copied' : '{} JSON' }}
-          </button>
-          <button class="ctrl-btn ctrl-btn-primary" (click)="printPdf()">
-            ⬇ Save PDF
-          </button>
-        </div>
+    <!-- ── Toolbar (hidden in print) ──────────────────────────────────────── -->
+    <div class="toolbar no-print">
+      <button class="tb-btn" (click)="goBack()">← Back</button>
+      <span class="tb-title">Report Preview</span>
+      <div class="tb-right">
+        <button class="tb-btn" [class.tb-active]="editMode()" (click)="editMode.set(!editMode())">
+          {{ editMode() ? '✓ Done' : '✎ Edit' }}
+        </button>
+        <button class="tb-btn-gold" (click)="printPdf()">⬇ Save PDF</button>
       </div>
+    </div>
 
-      @if (report()) {
-        <div class="report-doc" id="report-doc" #reportDoc>
+    @if (report()) {
+      <div class="report-wrap" id="report-doc">
 
-          <!-- ── Title page ──────────────────────────────────────────── -->
-          <div class="title-page">
-            <div class="logo-circle">✦</div>
-            <p class="report-brand">{{ report()!.brand_name }}</p>
-            <div class="title-divider"></div>
-            <h1 class="report-main-title">{{ report()!.report_title }}</h1>
-            <p class="report-subtitle">A comprehensive multi-discipline spiritual analysis</p>
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <!-- COVER PAGE                                                         -->
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <div class="cover page-break-after no-print">
 
-            <div class="report-user-block">
-              <span class="ru-label">Prepared for</span>
-              <span class="ru-name">{{ report()!.user_name }}</span>
-              <span class="ru-date">{{ formatDate(report()!.generated_at) }}</span>
-            </div>
-
-            @if (report()!.questions.length) {
-              <div class="questions-summary">
-                <div class="qs-label">Questions Analysed</div>
-                @for (q of report()!.questions; track q; let qi = $index) {
-                  <div class="qs-item">
-                    <span class="qs-num">{{ qi + 1 }}.</span>
-                    <span>{{ q }}</span>
-                  </div>
-                }
-              </div>
-            }
-
-            <div class="modules-row">
-              @for (m of report()!.modules_used; track m) {
-                <span class="mod-pill">{{ m }}</span>
-              }
-            </div>
-
-            <!-- Stats -->
-            <div class="stats-row">
-              <div class="stat-box">
-                <div class="stat-val">{{ report()!.total_insights_approved }}</div>
-                <div class="stat-lbl">Approved</div>
-              </div>
-              <div class="stat-box">
-                <div class="stat-val">{{ report()!.modules_used.length }}</div>
-                <div class="stat-lbl">Traditions</div>
-              </div>
-              <div class="stat-box">
-                <div class="stat-val">{{ report()!.sections.length }}</div>
-                <div class="stat-lbl">Questions</div>
-              </div>
-            </div>
+          <!-- Astrologer photo (full bleed background) -->
+          <div class="cover-photo-wrap">
+            <img src="rav-photo.png" alt="Rav" class="cover-photo" />
+            <div class="cover-photo-overlay"></div>
           </div>
 
-          <!-- ── Disclaimer ──────────────────────────────────────────── -->
-          <div class="disclaimer-block">
-            <p>{{ report()!.disclaimer }}</p>
-          </div>
+          <!-- Cover content — centred column -->
+          <div class="cover-content">
 
-          <!-- ── Question sections ───────────────────────────────────── -->
-          @for (section of report()!.sections; track section.question; let si = $index) {
-            <div class="question-section">
-
-              <!-- Section header -->
-              <div class="sec-header">
-                <div class="sec-qnum">Q{{ si + 1 }}</div>
-                <div class="sec-qtext">{{ section.question }}</div>
-                <div class="sec-intent">{{ section.intent | titlecase }}</div>
+            <!-- Centred logo — 50% of page width -->
+            <div class="cover-logo-wrap">
+              <div class="cover-logo-circle">
+                <img src="rav-logo.png" alt="Aura with Rav" class="cover-logo-center" />
               </div>
+            </div>
 
-              <!-- 360° Consolidated narrative -->
-              <div class="narrative-block">
-                <div class="narrative-label">360° Analysis</div>
-                @if (editMode()) {
-                  <textarea
-                    class="narrative-edit"
-                    [value]="getNarrative(si)"
-                    (input)="setNarrative(si, $any($event.target).value)"
-                    rows="6"
-                    placeholder="Edit the consolidated narrative…">
-                  </textarea>
-                } @else {
-                  <p class="narrative-text">{{ getNarrative(si) }}</p>
-                }
-              </div>
+            <div class="cover-tag">Personal Spiritual Intelligence Report</div>
+            <h1 class="cover-name">{{ report()!.user_name }}</h1>
+            <div class="cover-divider"></div>
+            <p class="cover-subtitle">
+              A personalised reading prepared through the combined wisdom of<br>
+              Vedic Astrology · Numerology · Tarot
+            </p>
+            <div class="cover-date">{{ formatDate(report()!.generated_at) }}</div>
 
-              <!-- Domain breakdown accordion (no-print) -->
-              @if (section.domain_breakdown && objectKeys(section.domain_breakdown).length > 1) {
-                <div class="domain-breakdown no-print">
-                  <button class="breakdown-toggle" (click)="toggleBreakdown(si)">
-                    {{ breakdownOpen()[si] ? '▾' : '▸' }} By Tradition
-                  </button>
-                  @if (breakdownOpen()[si]) {
-                    <div class="breakdown-grid">
-                      @for (domain of objectKeys(section.domain_breakdown); track domain) {
-                        <div class="breakdown-card">
-                          <div class="bc-domain">{{ domain | titlecase }}</div>
-                          @for (text of section.domain_breakdown[domain]; track text) {
-                            <p class="bc-text">{{ text }}</p>
-                          }
-                        </div>
-                      }
-                    </div>
-                  }
+            <!-- Questions listed on cover -->
+            <div class="cover-questions">
+              @for (q of report()!.questions; track q; let qi = $index) {
+                <div class="cq-item">
+                  <span class="cq-num">{{ qi + 1 }}</span>
+                  <span class="cq-text">{{ q }}</span>
                 </div>
               }
+            </div>
+          </div>
 
-              <!-- Individual insights (editable) -->
-              <div class="insights-list">
-                <div class="insights-label no-print">Approved Insights</div>
-                @for (insight of section.insights; track insight.id; let ii = $index) {
-                  <div class="insight-row" [class.editing]="editMode()">
-                    <div class="insight-meta">
-                      <span class="conf-badge"
-                            [class.conf-h]="insight.confidence === 'high'"
-                            [class.conf-m]="insight.confidence === 'medium'"
-                            [class.conf-l]="insight.confidence === 'low'">
-                        {{ insight.confidence | uppercase }}
-                      </span>
-                      @if (insight.is_common) {
-                        <span class="common-badge">MULTI-DOMAIN</span>
-                      }
-                      @for (d of insight.domains; track d) {
-                        <span class="domain-badge">{{ d }}</span>
-                      }
-                      <span class="insight-id no-print">{{ insight.id }}</span>
-                    </div>
+          <!-- Bottom bar -->
+          <div class="cover-footer">
+            <span>Prepared by Aura with Rav · Confidential · For personal guidance only</span>
+          </div>
+        </div>
 
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <!-- LETTER FROM ASTROLOGER                                             -->
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <div class="inner-page page-break-after letter-page">
+          <div class="page-header">
+            <img src="rav-logo.png" alt="Aura with Rav" class="page-logo" />
+          </div>
+
+          <div class="letter-section">
+            <h2 class="section-heading">A Message for {{ report()!.user_name }}</h2>
+            <div class="gold-rule"></div>
+            <div class="letter-body">
+              <p>Dear {{ report()!.user_name }},</p>
+              <p>
+                Thank you for trusting Aura with Rav with your questions. This report has been prepared
+                with care, drawing on the ancient wisdom of Vedic Astrology, Numerology, and Tarot — three
+                traditions that, when read together, offer a remarkably coherent picture of your journey.
+              </p>
+              <p>
+                The insights you will find here are not predictions set in stone. They are tendencies,
+                patterns, and energies that the cosmos reflects back at this moment in your life. Your
+                awareness, your choices, and your intentions remain the most powerful forces at work.
+              </p>
+              <p>
+                Read each section slowly. Sit with what resonates. Let the rest pass.
+              </p>
+              <p class="letter-sign">With light and clarity,<br><strong>Rav</strong><br><em>Aura with Rav</em></p>
+            </div>
+          </div>
+
+          <div class="disclaimer-box">
+            {{ report()!.disclaimer }}
+          </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <!-- QUESTION SECTIONS (one page per question)                          -->
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        @for (section of report()!.sections; track section.question; let si = $index) {
+          <div class="inner-page question-page page-break-after">
+
+            <div class="page-header">
+              <img src="rav-logo.png" alt="Aura with Rav" class="page-logo" />
+              <span class="page-header-right">{{ report()!.user_name }} · {{ formatDate(report()!.generated_at) }}</span>
+            </div>
+
+            <!-- Question label -->
+            <div class="q-label-row">
+              <div class="q-circle">Q{{ si + 1 }}</div>
+              <div class="q-label-text">{{ section.question }}</div>
+            </div>
+
+            <!-- Summary — structured bullets (WHO/WHAT/WHEN/WHERE/HOW) -->
+            <div class="section-block summary-block">
+              <h3 class="block-heading">Summary</h3>
+              <div class="gold-rule"></div>
+
+              @if (section.structured_summary && !editMode()) {
+                <!-- HW bullets -->
+                <ul class="hw-list">
+                  @for (b of section.structured_summary.hw_bullets; track b.label) {
+                    <li class="hw-item">
+                      <span class="hw-label" [innerHTML]="colorize(b.label)"></span>
+                      <span class="hw-answer" [innerHTML]="colorize(b.answer)"></span>
+                    </li>
+                  }
+                </ul>
+
+                <!-- Remedies -->
+                @if (section.structured_summary.remedy_bullets) {
+                  <div class="remedy-block">
+                    <div class="remedy-heading">Remedies to support your journey</div>
+                    @if (section.structured_summary.remedy_bullets.daily_habits?.length) {
+                      <div class="remedy-group">
+                        <div class="remedy-subhead">Daily Habits</div>
+                        <ul class="remedy-list">
+                          @for (h of section.structured_summary.remedy_bullets.daily_habits; track h) {
+                            <li [innerHTML]="colorize(h)"></li>
+                          }
+                        </ul>
+                      </div>
+                    }
+                    @if (section.structured_summary.remedy_bullets.mantras?.length) {
+                      <div class="remedy-group">
+                        <div class="remedy-subhead">Mantra</div>
+                        <ul class="remedy-list">
+                          @for (m of section.structured_summary.remedy_bullets.mantras; track m) {
+                            <li [innerHTML]="colorize(m)"></li>
+                          }
+                        </ul>
+                      </div>
+                    }
+                    @if (section.structured_summary.remedy_bullets.lucky_colors?.length) {
+                      <div class="remedy-group">
+                        <div class="remedy-subhead">Lucky Colors</div>
+                        <ul class="remedy-list">
+                          @for (c of section.structured_summary.remedy_bullets.lucky_colors; track c) {
+                            <li [innerHTML]="colorize(c)"></li>
+                          }
+                        </ul>
+                      </div>
+                    }
+                  </div>
+                }
+              } @else if (editMode()) {
+                <textarea class="edit-area"
+                  [value]="getNarrative(si)"
+                  (input)="setNarrative(si, $any($event.target).value)"
+                  rows="6"></textarea>
+              } @else {
+                <!-- Fallback prose when no structured summary -->
+                <p class="narrative-para" [innerHTML]="colorize(getNarrative(si))"></p>
+              }
+            </div>
+
+            <!-- Per-insight explanations (What the traditions say) -->
+            @if (section.insights && section.insights.length) {
+              <div class="section-block">
+                <h3 class="block-heading">What the traditions say</h3>
+                <div class="gold-rule"></div>
+
+                @for (ins of section.insights; track ins.id; let ii = $index) {
+                  <div class="insight-prose">
+                    <div class="insight-tradition">{{ traditionLabel(ins.domains) }}</div>
                     @if (editMode()) {
-                      <textarea
-                        class="insight-edit"
-                        [value]="getInsightText(si, ii)"
-                        (input)="setInsightText(si, ii, $any($event.target).value)"
-                        rows="3">
-                      </textarea>
+                      <textarea class="edit-area"
+                        [value]="getInsight(si, ii)"
+                        (input)="setInsight(si, ii, $any($event.target).value)"
+                        rows="4"></textarea>
                     } @else {
-                      <p class="insight-text">{{ getInsightText(si, ii) }}</p>
+                      <p class="insight-text" [innerHTML]="colorize(getInsight(si, ii))"></p>
                     }
                   </div>
                 }
               </div>
-
-            </div>
-          }
-
-          <!-- ── Footer ──────────────────────────────────────────────── -->
-          <div class="report-footer">
-            <div class="footer-star">✦</div>
-            <div class="footer-brand">{{ report()!.brand_name }}</div>
-            <p class="footer-date">Generated on {{ formatDate(report()!.generated_at) }}</p>
-            <p class="footer-copy">{{ report()!.closing_note }}</p>
-          </div>
-
-        </div>
-
-        <!-- ── Prompt variants panel (no-print) ───────────────────────── -->
-        @if (showPrompts()) {
-          <div class="prompts-panel no-print">
-            <div class="pp-header">
-              <span>LLM Prompt Variants</span>
-              <button class="pp-close" (click)="showPrompts.set(false)">✕</button>
-            </div>
-            @for (section of report()!.sections; track section.question; let si = $index) {
-              @if (section.prompts) {
-                <div class="pp-section">
-                  <div class="pp-q">Q{{ si + 1 }}: {{ section.question }}</div>
-                  @for (variantKey of promptVariantKeys; track variantKey) {
-                    <div class="pp-variant">
-                      <div class="pp-variant-label">
-                        {{ variantLabel(variantKey) }}
-                        <span class="pp-temp">temp={{ variantKey.includes('t01') ? '0.1' : '0' }}</span>
-                      </div>
-                      <pre class="pp-code">{{ section.prompts[variantKey]?.user }}</pre>
-                    </div>
-                  }
-                </div>
-              }
             }
+
           </div>
         }
 
-        <div class="bottom-actions no-print">
-          <button class="ctrl-btn ctrl-btn-ghost" (click)="showPrompts.set(!showPrompts())">
-            {{ showPrompts() ? 'Hide' : 'View' }} Prompt Variants
-          </button>
-          <button class="ctrl-btn ctrl-btn-primary" (click)="printPdf()">
-            ⬇ Save PDF
-          </button>
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <!-- CLOSING PAGE                                                        -->
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <div class="inner-page closing-page">
+          <div class="page-header">
+            <img src="rav-logo.png" alt="Aura with Rav" class="page-logo" />
+          </div>
+
+          <div class="closing-content">
+            <img src="rav-photo.png" alt="Rav" class="closing-photo" />
+            <h2 class="closing-heading">Thank you, {{ report()!.user_name }}</h2>
+            <div class="gold-rule" style="margin: 0 auto 20px;"></div>
+            <p class="closing-text">{{ report()!.closing_note }}</p>
+            <p class="closing-text">
+              For follow-up consultations, personalised sessions, or deeper readings,
+              reach out through <strong>Aura with Rav</strong>.
+            </p>
+            <div class="closing-seal">✦</div>
+          </div>
+
+          <div class="final-footer">
+            <img src="rav-logo.png" alt="Aura with Rav" class="footer-logo" />
+            <span>{{ formatDate(report()!.generated_at) }} · Confidential · For personal guidance only</span>
+          </div>
         </div>
 
-      } @else {
-        <div class="no-report">
-          <div class="nr-icon">✦</div>
-          <p>No report generated yet.</p>
-          <button class="ctrl-btn-plain" (click)="goBack()">← Go to Review</button>
-        </div>
-      }
-
-    </div>
+      </div><!-- /report-wrap -->
+    } @else {
+      <div class="no-report">
+        <p>No report yet.</p>
+        <button class="tb-btn" (click)="goBack()">← Back to Review</button>
+      </div>
+    }
   `,
   styles: [`
-    :host { display: block; min-height: 100vh; background: #f7f4ee; font-family: Georgia, serif; }
+    /* ── Base ───────────────────────────────────────────────────────────────── */
+    :host {
+      display: block; min-height: 100vh;
+      background: #eae6df;
+      font-family: 'Georgia', 'Times New Roman', serif;
+    }
 
-    /* ── Control bar ──────────────────────────────────────────────────────── */
-    .ctrl-bar {
-      position: sticky; top: 0; z-index: 100;
+    /* ── Toolbar ─────────────────────────────────────────────────────────────── */
+    .toolbar {
+      position: sticky; top: 0; z-index: 200;
       display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 24px; background: #fff; border-bottom: 1px solid #e8e4dc;
-      flex-wrap: wrap; gap: 8px;
+      padding: 10px 28px; background: #1a1410; gap: 12px;
     }
-    .ctrl-center  { flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; }
-    .ctrl-title   { font-size: 14px; font-weight: 700; color: #8a6a00; }
-    .ctrl-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    .edit-badge   { font-size: 10px; font-weight: 800; padding: 2px 10px; border-radius: 99px; background: #fef9c3; color: #854d0e; border: 1px solid #fde68a; letter-spacing: 0.06em; font-family: system-ui, sans-serif; }
+    .tb-title { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.6); letter-spacing: 0.08em; }
+    .tb-right  { display: flex; gap: 8px; align-items: center; }
+    .tb-btn    { padding: 6px 16px; border-radius: 7px; border: 1px solid rgba(255,255,255,0.18); background: transparent; color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; cursor: pointer; font-family: Georgia, serif; transition: all 0.15s; }
+    .tb-btn:hover   { background: rgba(255,255,255,0.08); }
+    .tb-active      { border-color: #d4af37; color: #d4af37; }
+    .tb-btn-gold    { padding: 7px 20px; border-radius: 7px; border: none; background: linear-gradient(135deg,#8a6a00,#d4af37); color: #fff; font-size: 12px; font-weight: 700; cursor: pointer; font-family: Georgia, serif; }
 
-    .ctrl-btn         { padding: 7px 16px; border-radius: 8px; border: 1px solid #e8e4dc; background: #f7f4ee; color: #555; font-size: 12px; font-weight: 600; cursor: pointer; font-family: Georgia, serif; transition: all 0.15s; }
-    .ctrl-btn:hover   { background: #eee; }
-    .ctrl-btn-ghost   { border-color: rgba(212,175,55,0.4); color: #8a6a00; background: transparent; }
-    .ctrl-btn-ghost:hover { background: rgba(212,175,55,0.06); }
-    .ctrl-btn-primary { background: linear-gradient(135deg,#8a6a00,#d4af37); color: #fff; border: none; }
-    .ctrl-btn-primary:hover { opacity: 0.92; }
-    .active-edit      { background: rgba(212,175,55,0.12) !important; border-color: #d4af37 !important; color: #8a6a00 !important; }
-    .ctrl-btn-plain   { padding: 8px 20px; border-radius: 8px; border: 1px solid #e8e4dc; background: #fff; color: #555; font-size: 13px; cursor: pointer; }
-
-    /* ── Report document ──────────────────────────────────────────────────── */
-    .report-doc { max-width: 820px; margin: 32px auto 60px; background: #fff; border-radius: 16px; box-shadow: 0 4px 40px rgba(0,0,0,0.10); overflow: hidden; }
-
-    /* ── Title page ───────────────────────────────────────────────────────── */
-    .title-page {
-      background: linear-gradient(160deg, #1a1410 0%, #2d2010 60%, #1a1410 100%);
-      padding: 56px 48px 44px; text-align: center;
-      display: flex; flex-direction: column; align-items: center; gap: 14px;
+    /* ── Report wrapper ──────────────────────────────────────────────────────── */
+    .report-wrap {
+      max-width: 780px; margin: 28px auto 60px;
+      display: flex; flex-direction: column; gap: 0;
+      box-shadow: 0 8px 60px rgba(0,0,0,0.22);
     }
-    .logo-circle    { width: 60px; height: 60px; border-radius: 50%; background: rgba(212,175,55,0.12); border: 2px solid rgba(212,175,55,0.35); display: flex; align-items: center; justify-content: center; font-size: 26px; color: #d4af37; }
-    .report-brand   { font-size: 11px; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin: 0; }
-    .title-divider  { width: 56px; height: 2px; background: linear-gradient(90deg,transparent,#d4af37,transparent); }
-    .report-main-title { font-size: 26px; font-weight: 700; color: #fff; margin: 0; line-height: 1.3; }
-    .report-subtitle   { font-size: 12px; color: rgba(255,255,255,0.45); margin: 0; }
-    .report-user-block { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 4px; }
-    .ru-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(255,255,255,0.3); }
-    .ru-name  { font-size: 22px; font-weight: 700; color: #d4af37; }
-    .ru-date  { font-size: 11px; color: rgba(255,255,255,0.3); }
 
-    .questions-summary { background: rgba(255,255,255,0.05); border: 1px solid rgba(212,175,55,0.18); border-radius: 10px; padding: 14px 20px; text-align: left; max-width: 480px; width: 100%; }
-    .qs-label { font-size: 9px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(212,175,55,0.55); margin-bottom: 8px; }
-    .qs-item  { font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.65; display: flex; gap: 6px; }
-    .qs-num   { color: #d4af37; font-weight: 700; flex-shrink: 0; }
+    /* ══════════════════════════════════════════════════════════════════════════ */
+    /* COVER PAGE                                                                 */
+    /* ══════════════════════════════════════════════════════════════════════════ */
+    .cover {
+      position: relative; min-height: 100vh;
+      background: #1a1410;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
 
-    .modules-row { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
-    .mod-pill    { padding: 3px 13px; border-radius: 99px; border: 1px solid rgba(212,175,55,0.25); color: rgba(255,255,255,0.5); font-size: 10px; font-weight: 600; text-transform: capitalize; }
+    /* ── Cover top-left logo ──────────────────────────────────────────────────── */
+    .cover-logo-wrap {
+      display: flex; justify-content: flex-start; align-items: flex-start;
+      width: 100%; margin-bottom: 28px;
+    }
+    .cover-logo-circle {
+      width: 180px; height: 180px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid rgba(212,175,55,0.5);
+      box-shadow: 0 0 28px rgba(212,175,55,0.3);
+      flex-shrink: 0;
+    }
+    .cover-logo-center {
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
 
-    .stats-row { display: flex; gap: 20px; justify-content: center; margin-top: 4px; }
-    .stat-box  { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-    .stat-val  { font-size: 22px; font-weight: 700; color: #d4af37; }
-    .stat-lbl  { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.3); }
+    .cover-photo-wrap {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: flex-end;
+    }
+    .cover-photo {
+      height: 100%; width: 52%;
+      object-fit: cover; object-position: center top;
+      opacity: 0.35;
+    }
+    .cover-photo-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(100deg, #1a1410 45%, transparent 80%);
+    }
 
-    /* ── Disclaimer ───────────────────────────────────────────────────────── */
-    .disclaimer-block { padding: 14px 48px; background: #fffbf0; border-bottom: 1px solid #f5e6b0; }
-    .disclaimer-block p { font-size: 11px; color: #78350f; line-height: 1.7; margin: 0; text-align: center; }
+    .cover-content {
+      position: relative; z-index: 10;
+      padding: 40px 48px 40px;
+      flex: 1; display: flex; flex-direction: column;
+      align-items: flex-start; justify-content: center;
+      text-align: left;
+    }
+    .cover-tag {
+      font-size: 10px; font-weight: 800; letter-spacing: 0.22em;
+      text-transform: uppercase; color: #d4af37; margin-bottom: 18px;
+    }
+    .cover-name {
+      font-size: 42px; font-weight: 900; color: #fff;
+      margin: 0 0 16px; line-height: 1.15;
+    }
+    .cover-divider {
+      width: 56px; height: 2px;
+      background: linear-gradient(90deg, #d4af37, transparent);
+      margin: 0 0 20px;
+    }
+    .cover-subtitle {
+      font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.55);
+      line-height: 1.8; margin: 0 0 24px;
+    }
+    .cover-date {
+      font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.35);
+      letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 32px;
+    }
 
-    /* ── Question section ─────────────────────────────────────────────────── */
-    .question-section { border-bottom: 2px solid #f0ece4; }
-    .question-section:last-of-type { border-bottom: none; }
+    .cover-questions { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 480px; }
+    .cq-item { display: flex; gap: 12px; align-items: flex-start; text-align: left; }
+    .cq-num  {
+      flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%;
+      background: rgba(212,175,55,0.2); border: 1px solid rgba(212,175,55,0.4);
+      color: #d4af37; font-size: 10px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; margin-top: 1px;
+    }
+    .cq-text { font-size: 13px; color: rgba(255,255,255,0.7); line-height: 1.6; }
 
-    .sec-header {
-      display: flex; align-items: flex-start; gap: 12px;
-      padding: 18px 40px 14px;
-      background: linear-gradient(90deg,#fffbf0,#fff);
+    .cover-footer {
+      position: relative; z-index: 10;
+      padding: 18px 48px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      font-size: 10px; color: rgba(255,255,255,0.3);
+      letter-spacing: 0.08em; text-align: center;
+    }
+
+    /* ══════════════════════════════════════════════════════════════════════════ */
+    /* INNER PAGES                                                                */
+    /* ══════════════════════════════════════════════════════════════════════════ */
+    .inner-page {
+      background: #fff;
+      padding: 0;
+      display: flex; flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .page-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 40px 16px;
+      border-bottom: 1.5px solid #f0ece4;
+      background: #fffdf8;
+    }
+    .page-logo {
+      height: 32px; width: 32px;
+      object-fit: cover; border-radius: 50%;
+      border: 1.5px solid rgba(212,175,55,0.4);
+    }
+    @media print {
+      .page-logo { height: 96px !important; width: 96px !important; }
+    }
+    .page-header-right { font-size: 10px; color: #aaa; letter-spacing: 0.08em; text-transform: uppercase; }
+
+    /* ── Letter section ───────────────────────────────────────────────────────── */
+    .letter-section { padding: 48px 52px 32px; flex: 1; }
+    .section-heading {
+      font-size: 22px; font-weight: 800; color: #1a1410;
+      margin: 0 0 10px; letter-spacing: 0.01em;
+    }
+    .gold-rule {
+      width: 48px; height: 2px;
+      background: linear-gradient(90deg, #d4af37, rgba(212,175,55,0.2));
+      margin-bottom: 28px;
+    }
+    .letter-body p {
+      font-size: 14.5px; font-weight: 600; color: #374151; line-height: 1.95;
+      margin: 0 0 18px;
+    }
+    .letter-sign { margin-top: 28px; font-size: 14px; font-weight: 600; color: #374151; line-height: 1.8; }
+
+    .disclaimer-box {
+      margin: 0 52px 48px;
+      padding: 14px 20px;
+      background: #fffbf0; border: 1px solid #f5e6b0; border-radius: 8px;
+      font-size: 11px; color: #78350f; line-height: 1.75; text-align: center;
+    }
+
+    /* ── Question label ───────────────────────────────────────────────────────── */
+    .q-label-row {
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 32px 52px 0;
+    }
+    .q-circle {
+      flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, #8a6a00, #d4af37);
+      color: #fff; font-size: 13px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      margin-top: 3px;
+    }
+    .q-label-text {
+      font-size: 20px; font-weight: 800; color: #1a1410; line-height: 1.4;
+    }
+
+    /* ── Content blocks ───────────────────────────────────────────────────────── */
+    .section-block { padding: 28px 52px 0; }
+    .block-heading {
+      font-size: 13px; font-weight: 800; letter-spacing: 0.14em;
+      text-transform: uppercase; color: #8a6a00; margin: 0 0 8px;
+    }
+
+    .narrative-para {
+      font-size: 15px; font-weight: 600; color: #1f2937; line-height: 2.0;
+      margin: 0; padding-bottom: 8px;
+    }
+
+    /* ── Per-tradition prose ─────────────────────────────────────────────────── */
+    .insight-prose {
+      margin-bottom: 22px; padding-bottom: 22px;
       border-bottom: 1px solid #f0ece4;
     }
-    .sec-qnum  { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg,#8a6a00,#d4af37); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; margin-top: 2px; }
-    .sec-qtext { flex: 1; font-size: 15px; font-weight: 600; color: #1a1a1a; line-height: 1.45; }
-    .sec-intent{ flex-shrink: 0; font-size: 10px; font-weight: 700; padding: 2px 10px; border-radius: 99px; background: rgba(212,175,55,0.1); color: #8a6a00; border: 1px solid rgba(212,175,55,0.22); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 4px; }
-
-    /* ── Narrative block ─────────────────────────────────────────────────── */
-    .narrative-block { padding: 22px 40px; background: #fffdf6; border-bottom: 1px solid #f0ece4; }
-    .narrative-label { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.14em; color: #8a6a00; margin-bottom: 10px; }
-    .narrative-text  { font-size: 15px; color: #1f2937; line-height: 1.9; margin: 0; }
-    .narrative-edit  {
-      width: 100%; box-sizing: border-box; padding: 12px; border-radius: 8px;
-      border: 1.5px solid rgba(212,175,55,0.4); font-family: Georgia, serif;
-      font-size: 14px; color: #1f2937; line-height: 1.85; background: #fff;
-      resize: vertical; outline: none;
+    .insight-prose:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 32px; }
+    .insight-tradition {
+      font-size: 10px; font-weight: 800; letter-spacing: 0.14em;
+      text-transform: uppercase; color: #d4af37; margin-bottom: 8px;
     }
-    .narrative-edit:focus { border-color: #d4af37; box-shadow: 0 0 0 3px rgba(212,175,55,0.12); }
-
-    /* ── Domain breakdown ────────────────────────────────────────────────── */
-    .domain-breakdown { padding: 0 40px 4px; border-bottom: 1px solid #f0ece4; }
-    .breakdown-toggle { background: none; border: none; color: #8a6a00; font-size: 12px; font-weight: 700; cursor: pointer; padding: 10px 0; font-family: Georgia, serif; }
-    .breakdown-grid   { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; padding-bottom: 14px; }
-    .breakdown-card   { background: #f9f6ee; border-radius: 8px; padding: 12px; }
-    .bc-domain { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #8a6a00; margin-bottom: 6px; }
-    .bc-text   { font-size: 11.5px; color: #555; line-height: 1.6; margin: 0 0 4px; }
-
-    /* ── Insight rows ─────────────────────────────────────────────────────── */
-    .insights-list  { padding: 4px 40px 20px; }
-    .insights-label { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: #aaa; margin: 14px 0 8px; }
-
-    .insight-row { padding: 14px 0; border-bottom: 1px solid #f7f4ee; }
-    .insight-row:last-child { border-bottom: none; }
-    .insight-row.editing .insight-meta { margin-bottom: 8px; }
-
-    .insight-meta   { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; align-items: center; }
-    .conf-badge     { font-size: 9px; font-weight: 800; padding: 2px 8px; border-radius: 99px; letter-spacing: 0.08em; }
-    .conf-h { background: #dcfce7; color: #15803d; }
-    .conf-m { background: #fef9c3; color: #854d0e; }
-    .conf-l { background: #f3f4f6; color: #6b7280; }
-    .common-badge   { font-size: 9px; font-weight: 800; padding: 2px 8px; border-radius: 99px; background: rgba(212,175,55,0.1); color: #8a6a00; border: 1px solid rgba(212,175,55,0.22); letter-spacing: 0.06em; }
-    .domain-badge   { font-size: 9.5px; background: #f3f4f6; color: #555; padding: 2px 8px; border-radius: 99px; font-weight: 600; text-transform: capitalize; }
-    .insight-id     { font-size: 9px; color: #ccc; font-family: monospace; margin-left: auto; }
-
-    .insight-text { font-size: 13.5px; color: #374151; line-height: 1.85; margin: 0; }
-    .insight-edit {
-      width: 100%; box-sizing: border-box; padding: 10px; border-radius: 7px;
-      border: 1.5px solid rgba(212,175,55,0.3); font-family: Georgia, serif;
-      font-size: 13px; color: #374151; line-height: 1.8; background: #fff;
-      resize: vertical; outline: none;
+    .insight-text {
+      font-size: 13.5px; font-weight: 600; color: #374151; line-height: 1.9;
+      margin: 0;
     }
-    .insight-edit:focus { border-color: #d4af37; box-shadow: 0 0 0 3px rgba(212,175,55,0.1); }
 
-    /* ── Footer ───────────────────────────────────────────────────────────── */
-    .report-footer { padding: 30px 48px; text-align: center; background: linear-gradient(160deg,#1a1410,#2d2010); display: flex; flex-direction: column; align-items: center; gap: 8px; }
-    .footer-star   { font-size: 22px; color: #d4af37; }
-    .footer-brand  { font-size: 13px; font-weight: 700; color: #d4af37; letter-spacing: 0.1em; }
-    .footer-date   { font-size: 10.5px; color: rgba(255,255,255,0.35); margin: 0; }
-    .footer-copy   { font-size: 10px; color: rgba(255,255,255,0.22); margin: 0; max-width: 500px; line-height: 1.6; }
+    /* ── Structured HW bullet list ──────────────────────────────────────────── */
+    .hw-list {
+      list-style: none; margin: 0 0 24px; padding: 0;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .hw-item {
+      display: flex; flex-direction: column; gap: 3px;
+      padding: 12px 16px;
+      background: #faf8f3; border-left: 3px solid #d4af37;
+      border-radius: 0 8px 8px 0;
+    }
+    .hw-label {
+      font-size: 10px; font-weight: 800; letter-spacing: 0.14em;
+      text-transform: uppercase; color: #92600a;
+    }
+    .hw-answer {
+      font-size: 14px; font-weight: 600; color: #1f2937; line-height: 1.75;
+    }
 
-    /* ── Bottom actions ───────────────────────────────────────────────────── */
-    .bottom-actions { max-width: 820px; margin: 0 auto 40px; display: flex; justify-content: flex-end; gap: 10px; padding: 0 4px; }
+    /* ── Remedy block ────────────────────────────────────────────────────────── */
+    .remedy-block {
+      margin-top: 28px; padding: 20px 22px;
+      background: linear-gradient(135deg, #fdf8ee, #fffbf2);
+      border: 1px solid rgba(212,175,55,0.25); border-radius: 12px;
+    }
+    .remedy-heading {
+      font-size: 11px; font-weight: 800; letter-spacing: 0.16em;
+      text-transform: uppercase; color: #b45309; margin-bottom: 16px;
+    }
+    .remedy-group { margin-bottom: 14px; }
+    .remedy-group:last-child { margin-bottom: 0; }
+    .remedy-subhead {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: #6d28d9; margin-bottom: 6px;
+    }
+    .remedy-list {
+      list-style: none; margin: 0; padding: 0;
+      display: flex; flex-direction: column; gap: 5px;
+    }
+    .remedy-list li {
+      font-size: 13px; font-weight: 600; color: #374151; line-height: 1.75;
+      padding-left: 14px; position: relative;
+    }
+    .remedy-list li::before {
+      content: '✦'; position: absolute; left: 0;
+      color: #d4af37; font-size: 8px; top: 5px;
+    }
 
-    /* ── Prompt variants panel ────────────────────────────────────────────── */
-    .prompts-panel { max-width: 820px; margin: 0 auto 20px; background: #1a1410; border-radius: 12px; overflow: hidden; }
-    .pp-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); color: #d4af37; font-size: 13px; font-weight: 700; }
-    .pp-close  { background: none; border: none; color: rgba(255,255,255,0.4); font-size: 16px; cursor: pointer; }
-    .pp-section{ padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-    .pp-q      { font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 12px; font-style: italic; }
-    .pp-variant{ margin-bottom: 14px; }
-    .pp-variant-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #d4af37; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
-    .pp-temp   { font-weight: 400; font-size: 9px; background: rgba(212,175,55,0.12); padding: 1px 7px; border-radius: 99px; color: rgba(212,175,55,0.7); }
-    .pp-code   { background: rgba(255,255,255,0.04); border-radius: 6px; padding: 10px 14px; font-size: 11px; color: rgba(255,255,255,0.6); line-height: 1.65; white-space: pre-wrap; word-break: break-word; margin: 0; font-family: 'SF Mono', 'Fira Code', monospace; }
+    /* ── Summary block ───────────────────────────────────────────────────────── */
+    .summary-block { position: relative; }
 
-    /* ── Empty state ──────────────────────────────────────────────────────── */
-    .no-report { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; gap: 14px; color: #9ca3af; }
-    .nr-icon   { font-size: 48px; color: #d4af37; }
+    /* ── Edit areas ──────────────────────────────────────────────────────────── */
+    .edit-area {
+      width: 100%; box-sizing: border-box; padding: 10px 14px;
+      border: 1.5px solid #d4af37; border-radius: 8px;
+      font-family: Georgia, serif; font-size: 13.5px; color: #374151;
+      line-height: 1.85; background: #fffbf0; resize: vertical; outline: none;
+    }
+    .edit-area:focus { box-shadow: 0 0 0 3px rgba(212,175,55,0.15); }
 
-    /* ── Print ────────────────────────────────────────────────────────────── */
+    /* ══════════════════════════════════════════════════════════════════════════ */
+    /* CLOSING PAGE                                                               */
+    /* ══════════════════════════════════════════════════════════════════════════ */
+    .closing-page { background: #1a1410; }
+    .closing-page .page-header {
+      background: transparent; border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .closing-page .page-logo { filter: brightness(10); opacity: 0.7; }
+    .closing-page .page-header-right { color: rgba(255,255,255,0.3); }
+
+    .closing-content {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 60px 48px 40px; text-align: center;
+    }
+    .closing-photo {
+      width: 140px; height: 140px; border-radius: 50%;
+      object-fit: cover; object-position: center top;
+      border: 3px solid rgba(212,175,55,0.4);
+      margin-bottom: 28px;
+    }
+    .closing-heading {
+      font-size: 26px; font-weight: 800; color: #fff;
+      margin: 0 0 14px;
+    }
+    .closing-text {
+      font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.6);
+      line-height: 1.9; margin: 0 0 16px; max-width: 480px;
+    }
+    .closing-seal { font-size: 36px; color: #d4af37; margin-top: 20px; }
+
+    .final-footer {
+      display: flex; align-items: center; justify-content: center; gap: 16px;
+      padding: 20px 40px; border-top: 1px solid rgba(255,255,255,0.08);
+      font-size: 10px; color: rgba(255,255,255,0.25);
+      letter-spacing: 0.08em; text-align: center;
+    }
+    .footer-logo {
+      height: 22px; width: 22px;
+      object-fit: cover; border-radius: 50%;
+      filter: brightness(10); opacity: 0.3;
+    }
+
+    /* ── Empty state ─────────────────────────────────────────────────────────── */
+    .no-report {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; min-height: 60vh; gap: 16px;
+      color: #9ca3af; font-size: 14px;
+    }
+
+    /* ══════════════════════════════════════════════════════════════════════════ */
+    /* PRINT STYLES                                                               */
+    /* ══════════════════════════════════════════════════════════════════════════ */
+    @page { margin: 0; size: A4; }
     @media print {
-      .no-print { display: none !important; }
       :host { background: white; }
-      .report-doc { margin: 0; border-radius: 0; box-shadow: none; max-width: 100%; }
-      .insight-edit, .narrative-edit { border: none; resize: none; background: transparent; padding: 0; }
+      .no-print { display: none !important; }
+      .report-wrap { margin: 0; max-width: 100%; box-shadow: none; }
+      .cover, .inner-page { min-height: 100vh; }
+      .page-break-after { page-break-after: always; }
+      .edit-area { border: none; background: transparent; resize: none; padding: 0; }
+
+      /* Ensure images print — base64 src set by printPdf() */
+      img { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+      /* Logo circles in print */
+      .page-logo, .footer-logo { border-radius: 50% !important; }
+      /* Cover logo circle — preserved in print */
+      .cover-logo-circle {
+        width: 180px !important; height: 180px !important;
+        border-radius: 50% !important; overflow: hidden !important;
+        -webkit-print-color-adjust: exact; print-color-adjust: exact;
+      }
+      .cover-logo-center { width: 100% !important; height: 100% !important; object-fit: cover !important; }
+
+      /* Force cover background photo to print */
+      .cover { position: relative !important; overflow: hidden !important; }
+      .cover-photo-wrap { position: absolute !important; inset: 0 !important; display: flex !important; }
+      .cover-photo {
+        display: block !important; visibility: visible !important;
+        opacity: 0.35 !important; height: 100% !important; width: 52% !important;
+        object-fit: cover !important; object-position: center top !important;
+        -webkit-print-color-adjust: exact; print-color-adjust: exact;
+      }
+      .cover-photo-overlay {
+        display: block !important; position: absolute !important; inset: 0 !important;
+        background: linear-gradient(100deg, #1a1410 45%, transparent 80%) !important;
+        -webkit-print-color-adjust: exact; print-color-adjust: exact;
+      }
     }
   `]
 })
 export class ReportPage {
   private router = inject(Router);
-  readonly orch   = inject(OrchestratorService);
-  readonly copied    = signal(false);
-  readonly editMode  = signal(false);
-  readonly showPrompts = signal(false);
-  readonly breakdownOpen = signal<Record<number, boolean>>({});
+  readonly orch     = inject(OrchestratorService);
+  readonly editMode = signal(false);
+  readonly report   = computed(() => this.orch.finalReport());
 
-  // Local editable copies of narrative + insight texts
   private narrativeEdits = signal<Record<number, string>>({});
   private insightEdits   = signal<Record<string, string>>({});
 
-  readonly report = computed(() => this.orch.finalReport());
+  // ── Sentiment lexicon ────────────────────────────────────────────────────────
+  // Each entry: [word, category]
+  // Categories: auspicious | love | planetary | caution | strength | spiritual | timing
+  private readonly LEXICON: Record<string, string> = {
+    // Auspicious / positive outcomes
+    favored:'auspicious', favorable:'auspicious', auspicious:'auspicious',
+    prosperity:'auspicious', abundant:'auspicious', abundance:'auspicious',
+    growth:'auspicious', flourish:'auspicious', success:'auspicious',
+    blessed:'auspicious', fortune:'auspicious', fortunate:'auspicious',
+    rewarded:'auspicious', gains:'auspicious', positive:'auspicious',
+    indicated:'auspicious', supported:'auspicious', benefits:'auspicious',
+    opportunities:'auspicious', opportunity:'auspicious', expand:'auspicious',
+    wisdom:'auspicious', clarity:'auspicious', fulfillment:'auspicious',
+    achievement:'auspicious', accomplish:'auspicious', joy:'auspicious',
+    healing:'auspicious', renewal:'auspicious', optimism:'auspicious',
+    harmonious:'auspicious', harmony:'auspicious', blessings:'auspicious',
+    noble:'auspicious', elevated:'auspicious', bright:'auspicious',
 
-  readonly promptVariantKeys = ['simple_t0', 'simple_t01', 'detailed_t0', 'detailed_t01'];
+    // Love / relationship / marriage
+    marriage:'love', partner:'love', partnership:'love', relationship:'love',
+    love:'love', romantic:'love', bond:'love', commitment:'love',
+    spouse:'love', companion:'love', soulmate:'love', union:'love',
+    wedding:'love', married:'love', compatibility:'love', compatible:'love',
+    nurturing:'love', nurture:'love', affection:'love', devoted:'love',
+    emotional:'love', heart:'love', deep:'love',
+    intimate:'love', warmth:'love', caring:'love', loyal:'love',
+    expressive:'love', connection:'love', connect:'love',
 
-  // ── Edit helpers ──────────────────────────────────────────────────────────
+    // Planetary / astrological terms
+    lagna:'planetary', ascendant:'planetary', nakshatra:'planetary',
+    dasha:'planetary', mahadasha:'planetary', antardasha:'planetary',
+    venus:'planetary', jupiter:'planetary', saturn:'planetary',
+    mars:'planetary', mercury:'planetary', moon:'planetary',
+    rahu:'planetary', ketu:'planetary', sun:'planetary',
+    vedic:'planetary', kp:'planetary', western:'planetary',
+    cusp:'planetary', transit:'planetary', yoga:'planetary',
+    house:'planetary', lord:'planetary', placement:'planetary',
+    chart:'planetary', planetary:'planetary', signification:'planetary',
+    nakshtra:'planetary', vishakha:'planetary', rohini:'planetary',
 
+    // Strength / courage / confidence
+    strength:'strength', strong:'strength', courage:'strength',
+    confident:'strength', resilience:'strength', determined:'strength',
+    powerful:'strength', assertive:'strength', leadership:'strength',
+    ambitious:'strength', disciplined:'strength', decisive:'strength',
+    independent:'strength', stable:'strength', steadfast:'strength',
+    energised:'strength', energized:'strength', momentum:'strength',
+    focused:'strength', deliberate:'strength', purposeful:'strength',
+
+    // Spiritual / inner wisdom
+    spiritual:'spiritual', spiritually:'spiritual', inner:'spiritual',
+    soul:'spiritual', karma:'spiritual',
+    divine:'spiritual', sacred:'spiritual', intuition:'spiritual',
+    intuitive:'spiritual', meditation:'spiritual', mantra:'spiritual',
+    dharma:'spiritual', consciousness:'spiritual', awakening:'spiritual',
+    insight:'spiritual', enlightenment:'spiritual', transcendent:'spiritual',
+    deeper:'spiritual', profound:'spiritual',
+    universe:'spiritual', cosmic:'spiritual', ancient:'spiritual',
+
+    // Timing / cycles
+    timing:'timing', period:'timing', cycle:'timing', phase:'timing',
+    window:'timing', ages:'timing', year:'timing', years:'timing',
+    shortly:'timing', soon:'timing', approaching:'timing', ahead:'timing',
+    current:'timing', active:'timing', opening:'timing', emerging:'timing',
+
+    // Caution / reflection / patience
+    delay:'caution', patience:'caution', wait:'caution', caution:'caution',
+    challenge:'caution', difficult:'caution', obstacle:'caution',
+    reversed:'caution', reflection:'caution', pause:'caution',
+    unconventional:'caution', unexpected:'caution', unique:'caution',
+    karmic:'caution', careful:'caution', mindful:'caution',
+    fluctuation:'caution', fluctuations:'caution', manage:'caution',
+  };
+
+  // Color per category (readable on white background, prints well)
+  private readonly COLORS: Record<string, string> = {
+    auspicious: '#b45309',   // warm amber-brown
+    love:       '#be185d',   // deep rose
+    planetary:  '#0e7490',   // teal
+    strength:   '#1d4ed8',   // royal blue
+    spiritual:  '#6d28d9',   // violet
+    timing:     '#047857',   // emerald green
+    caution:    '#7c3aed',   // soft purple
+  };
+
+  /** Tokenize text, wrap sentiment words in colored spans, return safe HTML string */
+  colorize(text: string): string {
+    if (!text) return '';
+    // Split keeping punctuation attached to words
+    return text.split(/(\s+)/).map(token => {
+      const trimmed = token.trim();
+      if (!trimmed) return token; // whitespace — return as-is
+
+      // Strip leading/trailing punctuation to look up the word
+      const stripped = trimmed.replace(/^[^a-zA-Z]+|[^a-zA-Z]+$/g, '').toLowerCase();
+      const category = this.LEXICON[stripped];
+
+      if (category) {
+        const color = this.COLORS[category];
+        return token.replace(
+          trimmed,
+          `<span style="color:${color};font-weight:600;">${trimmed}</span>`
+        );
+      }
+      return token;
+    }).join('');
+  }
+
+  // ── Getters / setters ────────────────────────────────────────────────────────
   getNarrative(si: number): string {
-    const edits = this.narrativeEdits();
-    if (edits[si] !== undefined) return edits[si];
-    return this.report()?.sections[si]?.narrative ?? '';
+    const e = this.narrativeEdits();
+    if (e[si] !== undefined) return e[si];
+    const section = this.report()?.sections[si];
+    return section?.simple_narrative || section?.narrative || '';
+  }
+  setNarrative(si: number, v: string): void {
+    this.narrativeEdits.update(e => ({ ...e, [si]: v }));
   }
 
-  setNarrative(si: number, value: string): void {
-    this.narrativeEdits.update(e => ({ ...e, [si]: value }));
-  }
-
-  getInsightText(si: number, ii: number): string {
+  getInsight(si: number, ii: number): string {
     const key = `${si}_${ii}`;
-    const edits = this.insightEdits();
-    if (edits[key] !== undefined) return edits[key];
-    return this.report()?.sections[si]?.insights[ii]?.content ?? '';
+    const e = this.insightEdits();
+    return e[key] !== undefined ? e[key] : (this.report()?.sections[si]?.insights[ii]?.content ?? '');
+  }
+  setInsight(si: number, ii: number, v: string): void {
+    this.insightEdits.update(e => ({ ...e, [`${si}_${ii}`]: v }));
   }
 
-  setInsightText(si: number, ii: number, value: string): void {
-    const key = `${si}_${ii}`;
-    this.insightEdits.update(e => ({ ...e, [key]: value }));
-  }
-
-  toggleEdit(): void {
-    this.editMode.update(v => !v);
-  }
-
-  toggleBreakdown(si: number): void {
-    this.breakdownOpen.update(m => ({ ...m, [si]: !m[si] }));
-  }
-
-  // ── Utility ───────────────────────────────────────────────────────────────
-
-  objectKeys(obj: Record<string, any>): string[] {
-    return obj ? Object.keys(obj) : [];
-  }
-
-  variantLabel(key: string): string {
+  traditionLabel(domains: string[]): string {
     const map: Record<string, string> = {
-      simple_t0:    'Simple — Deterministic (temp=0)',
-      simple_t01:   'Simple — Near-deterministic (temp=0.1)',
-      detailed_t0:  'Detailed — Deterministic (temp=0)',
-      detailed_t01: 'Detailed — Near-deterministic (temp=0.1)',
+      astrology:  'Vedic & Western Astrology',
+      numerology: 'Sacred Numerology',
+      tarot:      'Tarot Reading',
+      palmistry:  'Palm Reading',
+      vastu:      'Vastu Shastra',
     };
-    return map[key] ?? key;
+    if (!domains || !domains.length) return 'Spiritual Insight';
+    return map[domains[0]] ?? domains[0].charAt(0).toUpperCase() + domains[0].slice(1);
   }
 
   formatDate(iso: string): string {
@@ -457,15 +763,35 @@ export class ReportPage {
     } catch { return iso; }
   }
 
-  printPdf(): void { window.print(); }
+  private async toBase64(url: string): Promise<string> {
+    try {
+      const res  = await fetch(url);
+      const blob = await res.blob();
+      return new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror  = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch { return url; }
+  }
 
-  copyJson(): void {
-    const r = this.report();
-    if (!r) return;
-    navigator.clipboard.writeText(JSON.stringify(r, null, 2)).then(() => {
-      this.copied.set(true);
-      setTimeout(() => this.copied.set(false), 2000);
-    });
+  async printPdf(): Promise<void> {
+    // Embed all images as base64 so they render in the PDF
+    const imgs = document.querySelectorAll<HTMLImageElement>('#report-doc img');
+    const origSrcs: string[] = [];
+    await Promise.all(Array.from(imgs).map(async (img, i) => {
+      origSrcs[i] = img.src;
+      // Only convert relative / same-origin URLs
+      if (!img.src.startsWith('data:')) {
+        img.src = await this.toBase64(img.src);
+      }
+    }));
+
+    window.print();
+
+    // Restore original src after print dialog
+    Array.from(imgs).forEach((img, i) => { img.src = origSrcs[i]; });
   }
 
   goBack(): void { this.router.navigate(['/review']); }

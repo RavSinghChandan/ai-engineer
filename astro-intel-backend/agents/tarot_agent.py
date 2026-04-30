@@ -1,10 +1,11 @@
 """
 STEP 2d — Tarot Reading Super Agent
 Runs Rider-Waite and Intuitive sub-agents per question.
-Stores DomainOutput with question_wise_analysis[] in memory.
+Each sub-agent builds a personalized, question-specific multi-sentence answer.
 """
 from __future__ import annotations
 from typing import Any, Dict, List
+from agents.agent_prompts import build_prompt, get_prompt
 
 DECK: List[Dict[str, Any]] = [
     {"name": "The Fool",          "keywords": ["new beginnings", "adventure", "potential"],        "meaning": "A fresh start is on the horizon — uninhibited exploration of new possibilities is suggested."},
@@ -40,6 +41,38 @@ DECK: List[Dict[str, Any]] = [
 POSITIONS_3 = ["Past / Root Cause", "Present / Current Energy", "Future / Potential Outcome"]
 POSITIONS_5 = ["Past", "Present", "Hidden Influence", "Advice for Now", "Future Potential"]
 
+# ── Question-specific card interpretation templates ────────────────────────────
+INTENT_CARD_TEMPLATES = {
+    "marriage": (
+        "The cards drawn for your marriage question are: {card0} (Past), {card1} (Present), {card2} (Future). "
+        "The past card — {card0} — suggests that {meaning0} This shapes the foundation of your relationship journey. "
+        "The present card — {card1} — indicates that {meaning1} This is the current energy surrounding your marriage question. "
+        "The future card — {card2} — suggests {meaning2} "
+        "The overall spread indicates that {theme} Patience and emotional readiness are the key preparations."
+    ),
+    "career": (
+        "The cards drawn for your career question are: {card0} (Past), {card1} (Present), {card2} (Future). "
+        "The past card — {card0} — reveals that {meaning0} "
+        "The present card — {card1} — shows that {meaning1} "
+        "The future card — {card2} — suggests {meaning2} "
+        "The overall spread confirms: {theme}"
+    ),
+    "finance": (
+        "The cards drawn for your financial question are: {card0} (Past), {card1} (Present), {card2} (Future). "
+        "The past card reveals financial energy rooted in {meaning0} "
+        "The present card — {card1} — shows the current financial landscape: {meaning1} "
+        "The future card — {card2} — projects that {meaning2} "
+        "Overall: {theme}"
+    ),
+    "general": (
+        "The cards drawn for your question are: {card0} (Past), {card1} (Present), {card2} (Future). "
+        "The past card — {card0} — suggests that {meaning0} "
+        "The present card — {card1} — shows that {meaning1} "
+        "The future card — {card2} — indicates {meaning2} "
+        "Overall spread theme: {theme}"
+    ),
+}
+
 
 def _seed(s: str) -> int:
     return sum(ord(c) for c in s)
@@ -69,74 +102,99 @@ def _draw(positions: List[str], seed: int) -> List[Dict[str, Any]]:
 
 
 def _overall_theme(cards: List[Dict[str, Any]], focus: str) -> str:
-    positive_kw = {"success", "joy", "abundance", "hope", "strength", "clarity", "opportunity", "momentum", "achievement", "renewal"}
+    positive_kw = {"success", "joy", "abundance", "hope", "strength", "clarity", "opportunity", "momentum", "achievement", "renewal", "celebration", "harmony"}
     all_kw = [kw for c in cards for kw in c["keywords"]]
     positives = sum(1 for kw in all_kw if kw in positive_kw)
-    prefix_map = {
-        "career":      "In the context of your career question: ",
-        "finance":     "In the context of your financial question: ",
-        "marriage":    "In the context of your relationship question: ",
-        "health":      "In the context of your health question: ",
-        "spirituality":"In the context of your spiritual question: ",
-        "education":   "In the context of your education question: ",
-        "travel":      "In the context of your travel question: ",
-        "children":    "In the context of your family question: ",
-        "general":     "In the context of your overall life question: ",
-    }
-    prefix = prefix_map.get(focus, prefix_map["general"])
+
+    focus_context = {
+        "marriage":    "regarding your marriage question",
+        "career":      "regarding your career question",
+        "finance":     "regarding your financial question",
+        "health":      "regarding your health question",
+        "spirituality":"regarding your spiritual question",
+        "education":   "regarding your education question",
+        "travel":      "regarding your travel question",
+        "children":    "regarding your family question",
+        "general":     "regarding your question",
+    }.get(focus, "regarding your question")
+
     if positives >= 3:
-        return f"{prefix}the spread suggests a positive, growth-oriented period with opportunities for meaningful advancement."
-    return f"{prefix}the spread suggests a reflective time — deliberate, conscious action will open new pathways."
+        return f"The spread {focus_context} suggests a positive, growth-oriented period with clear opportunities ahead."
+    return f"The spread {focus_context} suggests a reflective time — deliberate, conscious action will open new pathways."
 
 
-def _guidance(cards: List[Dict[str, Any]], question: str) -> List[str]:
-    return [
-        f"There is a tendency toward {cards[0]['keywords'][0]} shaping the current situation from its roots.",
-        f"The present card — {cards[1]['name']} — suggests that {cards[1]['meaning'].lower().rstrip('.')} right now.",
-        (f"The future card — {cards[2]['name']} — suggests {cards[2]['keywords'][1]} in the path ahead."
-         if len(cards) > 2 else "Patience and consistent action guide toward the desired outcome."),
-        "Trust the process — small, conscious steps create lasting transformation.",
-    ]
+def _build_tarot_prediction(cards: List[Dict[str, Any]], intent: str, question: str) -> str:
+    if len(cards) < 3:
+        return _overall_theme(cards, intent)
+    template = INTENT_CARD_TEMPLATES.get(intent, INTENT_CARD_TEMPLATES["general"])
+    theme = _overall_theme(cards, intent)
+    m0 = cards[0]["meaning"].rstrip(".")
+    m1 = cards[1]["meaning"].rstrip(".")
+    m2 = cards[2]["meaning"].rstrip(".")
+    return template.format(
+        card0=cards[0]["name"], card1=cards[1]["name"], card2=cards[2]["name"],
+        meaning0=m0.lower() + ".", meaning1=m1.lower() + ".", meaning2=m2.lower() + ".",
+        theme=theme,
+    )
 
 
 def _run_rider_waite(name: str, dob: str, question: str, intent: str, spread_type: str) -> Dict[str, Any]:
     positions = POSITIONS_5 if spread_type == "5-card" else POSITIONS_3
     seed  = _seed(name + dob + question + "RW")
     cards = _draw(positions, seed)
+    prediction = _build_tarot_prediction(cards, intent, question)
     theme = _overall_theme(cards, intent)
-    guidance = _guidance(cards, question)
+    _cfg = build_prompt(
+        "tarot_rider_waite",
+        name=name, dob=dob, question=question, intent=intent,
+        card0=cards[0]["name"] if len(cards) > 0 else "",
+        card1=cards[1]["name"] if len(cards) > 1 else "",
+        card2=cards[2]["name"] if len(cards) > 2 else "",
+        orient0=cards[0]["orientation"] if len(cards) > 0 else "",
+        orient1=cards[1]["orientation"] if len(cards) > 1 else "",
+        orient2=cards[2]["orientation"] if len(cards) > 2 else "",
+    )
     return {
         "sub_agent":       "Rider-Waite Tarot",
         "question":        question,
-        "prediction":      theme,
+        "prediction":      prediction,
         "traits":          [c["name"] for c in cards[:3]],
         "confidence_hint": "medium",
         "extra": {
             "spread":        spread_type,
             "cards":         cards,
             "overall_theme": theme,
-            "guidance":      guidance,
+            "guidance":      [prediction],
         },
     }
 
 
 def _run_intuitive(name: str, dob: str, question: str, intent: str, spread_type: str) -> Dict[str, Any]:
-    positions = POSITIONS_3
     seed  = _seed(name + dob + question + "INT")
-    cards = _draw(positions, seed)
+    cards = _draw(POSITIONS_3, seed)
+    prediction = _build_tarot_prediction(cards, intent, question)
     theme = _overall_theme(cards, intent)
-    guidance = _guidance(cards, question)
+    _cfg = build_prompt(
+        "tarot_intuitive",
+        name=name, dob=dob, question=question, intent=intent,
+        card0=cards[0]["name"] if len(cards) > 0 else "",
+        card1=cards[1]["name"] if len(cards) > 1 else "",
+        card2=cards[2]["name"] if len(cards) > 2 else "",
+        orient0=cards[0]["orientation"] if len(cards) > 0 else "",
+        orient1=cards[1]["orientation"] if len(cards) > 1 else "",
+        orient2=cards[2]["orientation"] if len(cards) > 2 else "",
+    )
     return {
         "sub_agent":       "Intuitive Tarot",
         "question":        question,
-        "prediction":      theme,
+        "prediction":      prediction,
         "traits":          [c["name"] for c in cards[:3]],
         "confidence_hint": "medium",
         "extra": {
             "spread":        "3-card",
             "cards":         cards,
             "overall_theme": theme,
-            "guidance":      guidance,
+            "guidance":      [prediction],
         },
     }
 
@@ -146,15 +204,9 @@ def _analyze_question(name: str, dob: str, question: str, intent: str, spread_ty
     intuitive = _run_intuitive(name, dob, question, intent, spread_type)
 
     sub_results = [rw, intuitive]
-    agreements = [
-        f"Both Rider-Waite and Intuitive readings confirm {intent}-oriented energy in the current spread.",
-        "The cards collectively suggest conscious, deliberate action will yield positive outcomes.",
-    ]
-    conflicts = []
-
     summary = (
-        f"Tarot analysis for '{question}': {rw['prediction']} "
-        f"Cards drawn include {', '.join(rw['traits'][:2])} — symbolizing growth and forward movement."
+        f"Tarot analysis for '{question}': {rw['prediction'][:120]}... "
+        f"Cards drawn: {', '.join(rw['traits'][:3])}."
     )
 
     return {
@@ -162,8 +214,8 @@ def _analyze_question(name: str, dob: str, question: str, intent: str, spread_ty
         "intent":            intent,
         "sub_agent_results": sub_results,
         "domain_summary":    summary,
-        "agreements":        agreements,
-        "conflicts":         conflicts,
+        "agreements":        [f"Both Rider-Waite and Intuitive readings confirm energy relevant to: {question}."],
+        "conflicts":         [],
     }
 
 
@@ -190,19 +242,24 @@ def tarot_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
         analysis = _analyze_question(name, dob, nq["question"], nq["intent"], spread_type)
         question_wise_analysis.append(analysis)
 
-    # Legacy flat structure for admin_review_agent backward compat
     first_rw = question_wise_analysis[0]["sub_agent_results"][0]["extra"]
+    _prompt_cfg = get_prompt("tarot")
     domain_output = {
         "domain":                 "tarot",
         "question_wise_analysis": question_wise_analysis,
+        "prompt_config": {
+            "temperature": _prompt_cfg["temperature"],
+            "top_p":       _prompt_cfg["top_p"],
+            "role":        _prompt_cfg["role"],
+        },
         "universal": {
-            "tradition":     "Universal Tarot",
+            "tradition":       "Universal Tarot",
             "focus_addressed": normalized_questions[0]["intent"],
-            "spread":         spread_type,
-            "question":       normalized_questions[0]["question"],
-            "cards":          first_rw["cards"],
-            "overall_theme":  first_rw["overall_theme"],
-            "guidance":       first_rw["guidance"],
+            "spread":          spread_type,
+            "question":        normalized_questions[0]["question"],
+            "cards":           first_rw["cards"],
+            "overall_theme":   first_rw["overall_theme"],
+            "guidance":        first_rw["guidance"],
         },
     }
 

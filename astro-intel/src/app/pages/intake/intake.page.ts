@@ -423,7 +423,7 @@ function validateProfile(p: {
           }
           @if (orch.sessionId()) {
             <div class="alert-ok">
-              🔑 Session <code>{{ orch.sessionId() }}</code> · LangGraph · Focus: <strong>{{ orch.focusContext()['intent'] | titlecase }}</strong>
+              🔑 Session <code>{{ orch.sessionId() }}</code> · Aura with Rav · Focus: <strong>{{ orch.focusContext()['intent'] | titlecase }}</strong>
             </div>
           }
           @if (orch.isDone()) {

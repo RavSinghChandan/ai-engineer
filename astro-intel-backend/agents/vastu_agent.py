@@ -5,6 +5,7 @@ Stores DomainOutput with question_wise_analysis[] in memory.
 """
 from __future__ import annotations
 from typing import Any, Dict, List
+from agents.agent_prompts import build_prompt, get_prompt
 
 DIRECTION_ENERGY: Dict[str, str] = {
     "north":     "North (Kubera) carries prosperity and career energy — highly auspicious for work and finance.",
@@ -80,11 +81,20 @@ BASE_CORRECTIONS = [
 ]
 
 
-def _run_traditional_vastu(facing: str, prop_type: str, question: str, intent: str) -> Dict[str, Any]:
+def _run_traditional_vastu(facing: str, prop_type: str, question: str, intent: str, name: str = "") -> Dict[str, Any]:
     priority_zones = FOCUS_VASTU_ZONES.get(intent, list(ZONE_ANALYSIS.keys()))
     zone_analysis  = {z: ZONE_ANALYSIS[z] for z in priority_zones if z in ZONE_ANALYSIS}
     overall        = DIRECTION_ENERGY.get(facing, DIRECTION_ENERGY["north"])
     corrections    = BASE_CORRECTIONS[:2] + FOCUS_CORRECTIONS.get(intent, [])
+    _cfg = build_prompt(
+        "vastu",
+        name=name or "Client",
+        question=question, intent=intent,
+        property_type=prop_type,
+        facing=facing.capitalize(),
+        zone=", ".join(priority_zones[:2]),
+        zone_energy=overall,
+    )
 
     prediction = (
         f"Traditional Vastu analysis for '{question}': {overall} "
@@ -135,8 +145,8 @@ def _run_modern_vastu(facing: str, question: str, intent: str) -> Dict[str, Any]
     }
 
 
-def _analyze_question(facing: str, prop_type: str, question: str, intent: str) -> Dict[str, Any]:
-    traditional = _run_traditional_vastu(facing, prop_type, question, intent)
+def _analyze_question(facing: str, prop_type: str, question: str, intent: str, name: str = "") -> Dict[str, Any]:
+    traditional = _run_traditional_vastu(facing, prop_type, question, intent, name)
     modern      = _run_modern_vastu(facing, question, intent)
 
     sub_results = [traditional, modern]
@@ -174,15 +184,19 @@ def vastu_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
     else:
         facing, prop_type, notes = "north", "Apartment / Flat", ""
 
+    profile = state.get("user_profile", {})
+    name = profile.get("full_name", "") if isinstance(profile, dict) else getattr(profile, "full_name", "")
+
     normalized_questions = state.get("normalized_questions", [])
     if not normalized_questions:
         single = state.get("user_question", "")
         focus  = state.get("focus_context", {}).get("intent", "general")
         normalized_questions = [{"question": single or "General life overview.", "intent": focus, "index": 0}]
 
+    _prompt_cfg = get_prompt("vastu")
     question_wise_analysis = []
     for nq in normalized_questions:
-        analysis = _analyze_question(facing, prop_type, nq["question"], nq["intent"])
+        analysis = _analyze_question(facing, prop_type, nq["question"], nq["intent"], name)
         question_wise_analysis.append(analysis)
 
     # Legacy flat structure for admin_review_agent backward compat
@@ -190,6 +204,11 @@ def vastu_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
     domain_output = {
         "domain":                 "vastu",
         "question_wise_analysis": question_wise_analysis,
+        "prompt_config": {
+            "temperature": _prompt_cfg["temperature"],
+            "top_p":       _prompt_cfg["top_p"],
+            "role":        _prompt_cfg["role"],
+        },
         "vedic": {
             "tradition":         "Vedic Vastu Shastra",
             "focus_addressed":   normalized_questions[0]["intent"],

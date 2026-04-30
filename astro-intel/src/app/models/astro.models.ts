@@ -63,12 +63,36 @@ export interface ReportInsight {
   domains: string[];
   is_common: boolean;
   approved: boolean;
+  editable?: boolean;
+}
+
+export interface HwBullet {
+  label: string;
+  answer: string;
+}
+
+export interface RemedyBullets {
+  daily_habits: string[];
+  mantras: string[];
+  lucky_colors: string[];
+}
+
+export interface StructuredSummary {
+  question: string;
+  intent: string;
+  hw_bullets: HwBullet[];
+  remedy_bullets: RemedyBullets;
 }
 
 export interface ReportSection {
   question: string;
   intent: string;
+  narrative: string;
+  simple_narrative?: string;
+  structured_summary?: StructuredSummary;
   insights: ReportInsight[];
+  domain_breakdown?: Record<string, string[]>;
+  prompts?: Record<string, any>;
 }
 
 export interface FinalReport {
@@ -84,6 +108,9 @@ export interface FinalReport {
   disclaimer: string;
   closing_note: string;
   confidence_distribution: Record<string, number>;
+  total_insights_approved?: number;
+  total_insights_rejected?: number;
+  total_insights_reviewed?: number;
 }
 
 // ── Raw Agent Outputs (for display) ───────────────────────────────────────
