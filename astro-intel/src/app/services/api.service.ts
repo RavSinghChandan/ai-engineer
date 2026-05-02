@@ -79,22 +79,47 @@ export interface ReportSection {
   }>;
 }
 
+export interface FinalReportPayload {
+  brand_name: string;
+  logo_url: string;
+  image_url: string;
+  report_title: string;
+  user_name: string;
+  questions: string[];
+  generated_at: string;
+  modules_used: string[];
+  sections: ReportSection[];
+  disclaimer: string;
+  closing_note: string;
+  confidence_distribution: Record<string, number>;
+  language_code?: string;
+  language_name?: string;
+  language_native?: string;
+}
+
 export interface ApproveResponse {
   session_id: string;
-  final_report: {
-    brand_name: string;
-    logo_url: string;
-    image_url: string;
-    report_title: string;
-    user_name: string;
-    questions: string[];
-    generated_at: string;
-    modules_used: string[];
-    sections: ReportSection[];
-    disclaimer: string;
-    closing_note: string;
-    confidence_distribution: Record<string, number>;
-  };
+  final_report: FinalReportPayload;
+}
+
+export interface LanguageOption {
+  code: string;
+  name: string;
+  native: string;
+  script: string;
+}
+
+export interface TranslateRequest {
+  session_id: string;
+  language_code: string;
+  report?: Record<string, any>;
+}
+
+export interface TranslateResponse {
+  session_id: string;
+  language_code: string;
+  language_name: string;
+  final_report: FinalReportPayload;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -111,6 +136,18 @@ export class ApiService {
     return this.http
       .post<ApproveResponse>(`${BACKEND}/api/v1/analysis/approve`, req)
       .pipe(timeout(30_000), catchError(this._handleError));
+  }
+
+  getLanguages(): Observable<{ languages: LanguageOption[] }> {
+    return this.http
+      .get<{ languages: LanguageOption[] }>(`${BACKEND}/api/v1/analysis/languages`)
+      .pipe(catchError(this._handleError));
+  }
+
+  translateReport(req: TranslateRequest): Observable<TranslateResponse> {
+    return this.http
+      .post<TranslateResponse>(`${BACKEND}/api/v1/analysis/translate`, req)
+      .pipe(timeout(60_000), catchError(this._handleError));
   }
 
   getHealth(): Observable<any> {

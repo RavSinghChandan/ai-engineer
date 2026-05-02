@@ -5,11 +5,13 @@ html, body {
   height: 100%;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  background: #f0f7ff;
+  color: #1a2540;
 }
 
 body { overflow-x: hidden; }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(147,51,234,0.3); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(147,51,234,0.5); }
+::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.3); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(59,130,246,0.55); }

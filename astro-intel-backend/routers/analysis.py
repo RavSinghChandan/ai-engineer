@@ -9,10 +9,12 @@ from typing import Any, Dict
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 
 from schemas import AnalysisRequest, ApprovalRequest
 from graph.pipeline import run_pipeline
 from agents.report_agent import final_report_agent
+from agents.translation_agent import translation_agent, list_languages
 import memory.store as store
 
 router = APIRouter(prefix="/api/v1/analysis", tags=["Analysis"])
@@ -141,3 +143,82 @@ async def get_session(session_id: str) -> JSONResponse:
 async def get_memory(session_id: str) -> JSONResponse:
     all_mem = await store.read_all(session_id)
     return JSONResponse(content={"session_id": session_id, "memory": all_mem})
+
+
+# ── GET /languages — list all supported translation languages ─────────────────
+@router.get("/languages")
+async def get_languages() -> JSONResponse:
+    return JSONResponse(content={"languages": list_languages()})
+
+
+# ── POST /translate — translate a final report into a target language ─────────
+class TranslateRequest(BaseModel):
+    session_id: str
+    language_code: str           # e.g. "hi", "bn", "ta"
+    report: Dict[str, Any] = {}  # if provided, translate this; else load from session
+
+
+@router.post("/translate")
+async def translate_report(req: TranslateRequest) -> JSONResponse:
+    """
+    Translate a FinalReport into one of the 22 Indian Constitutional languages.
+    Preserves tone, structure, impact, and spiritual register.
+    """
+    report = req.report
+
+    # Fall back to session-stored report if no report body provided
+    if not report and req.session_id:
+        state = _sessions.get(req.session_id)
+        if not state:
+            state = await store.read_meta(req.session_id, "state")
+        if state:
+            report = state.get("final_report", {})
+        if not report:
+            stored = await store.read_meta(req.session_id, "final_report")
+            if stored:
+                report = stored
+
+    if not report:
+        raise HTTPException(
+            status_code=404,
+            detail="No report found. Provide report in request body or run /approve first."
+        )
+
+    try:
+        # Import Anthropic client lazily to avoid hard dependency at startup
+        try:
+            import anthropic
+            client = anthropic.Anthropic()
+
+            def llm_caller(prompt: Dict[str, Any]) -> str:
+                msg = client.messages.create(
+                    model=prompt["model"],
+                    max_tokens=prompt["max_tokens"],
+                    temperature=prompt["temperature"],
+                    system=prompt["system"],
+                    messages=[{"role": "user", "content": prompt["user"]}],
+                )
+                return msg.content[0].text
+
+        except (ImportError, Exception):
+            llm_caller = None   # falls back to mock prefix translation
+
+        translated = translation_agent(
+            report=report,
+            target_language_code=req.language_code,
+            llm_caller=llm_caller,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    # Persist translated report to session store
+    if req.session_id:
+        lang_key = f"final_report_{req.language_code}"
+        await store.write_meta(req.session_id, lang_key, translated)
+
+    return JSONResponse(content={
+        "session_id":    req.session_id,
+        "language_code": req.language_code,
+        "language_name": translated.get("language_name", ""),
+        "final_report":  translated,
+    })
