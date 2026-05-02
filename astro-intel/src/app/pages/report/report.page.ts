@@ -306,7 +306,7 @@ import { firstValueFrom } from 'rxjs';
 
         <div class="q-banner">
           <div class="q-circle">Q{{ si + 1 }}</div>
-          <div class="q-text">{{ section.question }}</div>
+          <div class="q-text">{{ despacify(section.question) }}</div>
         </div>
 
         <div class="content-block">
@@ -317,7 +317,7 @@ import { firstValueFrom } from 'rxjs';
             <ul class="hw-list">
               @for (b of section.structured_summary.hw_bullets; track b.label) {
                 <li class="hw-item">
-                  <span class="hw-label" [innerHTML]="colorize(b.label)"></span>
+                  <span class="hw-label" [innerHTML]="colorize(despacify(b.label))"></span>
                   <span class="hw-answer" [innerHTML]="colorize(b.answer)"></span>
                 </li>
               }
@@ -748,7 +748,7 @@ import { firstValueFrom } from 'rxjs';
 
 .content-block { padding: 24px 48px 0; }
 .block-heading {
-  font-size: 10px; font-weight: 800; letter-spacing: 0.18em;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.04em;
   text-transform: uppercase; color: #8a6a00; margin: 0 0 8px;
 }
 .narrative-para { font-size: 15px; font-weight: 400; color: #1f2937; line-height: 2; margin: 0; }
@@ -759,7 +759,7 @@ import { firstValueFrom } from 'rxjs';
   padding: 11px 16px; background: #faf8f3;
   border-left: 3px solid #d4af37; border-radius: 0 8px 8px 0;
 }
-.hw-label { font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: #92600a; }
+.hw-label { font-size: 11px; font-weight: 700; letter-spacing: 0.03em; text-transform: none; color: #92600a; }
 .hw-answer { font-size: 13.5px; font-weight: 500; color: #1f2937; line-height: 1.75; }
 
 .remedy-card {
@@ -767,10 +767,10 @@ import { firstValueFrom } from 'rxjs';
   background: linear-gradient(135deg, #fdf8ee, #fffbf2);
   border: 1px solid rgba(212,175,55,0.25); border-radius: 12px;
 }
-.remedy-card-head { font-size: 10px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #b45309; margin-bottom: 14px; }
+.remedy-card-head { font-size: 12px; font-weight: 700; letter-spacing: 0.03em; text-transform: none; color: #b45309; margin-bottom: 14px; }
 .remedy-group { margin-bottom: 12px; }
 .remedy-group:last-child { margin-bottom: 0; }
-.remedy-group-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #6d28d9; margin-bottom: 5px; }
+.remedy-group-label { font-size: 11px; font-weight: 700; letter-spacing: 0.03em; text-transform: none; color: #6d28d9; margin-bottom: 5px; }
 .remedy-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
 .remedy-list li { font-size: 13px; font-weight: 500; color: #374151; line-height: 1.75; padding-left: 15px; position: relative; }
 .remedy-list li::before { content: '✦'; position: absolute; left: 0; color: #d4af37; font-size: 8px; top: 5px; }
@@ -963,6 +963,33 @@ export class ReportPage implements OnInit {
     auspicious: '#b45309', love: '#be185d', planetary: '#0e7490',
     strength: '#1d4ed8', spiritual: '#6d28d9', timing: '#047857', caution: '#7c3aed',
   };
+
+  // Strip the spaced-uppercase pattern the AI sometimes emits:
+  // "W H O I S T H E R I G H T P A R T N E R" → "Who Is The Right Partner"
+  despacify(text: string): string {
+    if (!text) return '';
+    // Detect: every character is separated by a single space (spaced-caps pattern)
+    // Pattern: single uppercase letters (or short words) separated by spaces
+    const spacedCaps = /^([A-Z]\s){3,}[A-Z]$/.test(text.trim());
+    if (spacedCaps) {
+      return text.trim().replace(/\s/g, '').split('').map((c, i, a) => {
+        // Can't recover word boundaries, so just rejoin as title words
+        // Better approach: collapse all spaces between single chars
+        return c;
+      }).join('');
+    }
+    // More robust: if 80%+ of "words" are single uppercase letters, collapse them
+    const words = text.trim().split(/\s+/);
+    const singleUppers = words.filter(w => /^[A-Z]$/.test(w)).length;
+    if (words.length >= 4 && singleUppers / words.length >= 0.75) {
+      // Collapse into a readable title: join all chars, then split on natural boundaries
+      const collapsed = words.join('');
+      // Convert ALLCAPS to Title Case
+      return collapsed.charAt(0).toUpperCase() + collapsed.slice(1).toLowerCase()
+        .replace(/([.!?]\s*)(\w)/g, (_, p, c) => p + c.toUpperCase());
+    }
+    return text;
+  }
 
   colorize(text: string): string {
     if (!text) return '';
