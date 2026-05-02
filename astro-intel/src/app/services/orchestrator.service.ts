@@ -23,6 +23,7 @@ export class OrchestratorService {
   readonly rawOutputs          = signal<AgentOutputs>({});
   readonly adminReview         = signal<AdminReview | null>(null);
   readonly finalReport         = signal<FinalReport | null>(null);
+  readonly englishReport       = signal<FinalReport | null>(null); // always the original English
   readonly currentInput        = signal<SystemInput | null>(null);
   readonly sessionId           = signal<string>('');
   readonly agentLog            = signal<string[]>([]);
@@ -109,6 +110,7 @@ export class OrchestratorService {
         }));
         const report = res.final_report as unknown as FinalReport;
         this.finalReport.set(report);
+        this.englishReport.set(report);
         return report;
       } catch { /* fall through to local */ }
     }
@@ -269,6 +271,7 @@ export class OrchestratorService {
       confidence_distribution: { high: 0, medium: 0, low: 0 },
     };
     this.finalReport.set(report);
+    this.englishReport.set(report);
     return report;
   }
 
@@ -293,6 +296,7 @@ export class OrchestratorService {
     this.rawOutputs.set({});
     this.adminReview.set(null);
     this.finalReport.set(null);
+    this.englishReport.set(null);
     this.currentInput.set(null);
     this.sessionId.set('');
     this.agentLog.set([]);

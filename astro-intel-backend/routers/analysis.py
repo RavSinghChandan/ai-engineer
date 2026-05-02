@@ -184,25 +184,56 @@ async def translate_report(req: TranslateRequest) -> JSONResponse:
             detail="No report found. Provide report in request body or run /approve first."
         )
 
-    try:
-        # Import Anthropic client lazily to avoid hard dependency at startup
+    import os, json as _json
+    deepseek_key = os.environ.get("DEEPSEEK_API_KEY", "")
+    if not deepseek_key:
+        # try loading from .env in project root
         try:
-            import anthropic
-            client = anthropic.Anthropic()
+            root_env = os.path.join(os.path.dirname(__file__), "..", "..", ".env")
+            with open(root_env) as f:
+                for line in f:
+                    line = line.strip()
+                    if line.startswith("DEEPSEEK_API_KEY="):
+                        deepseek_key = line.split("=", 1)[1].strip()
+                        break
+        except Exception:
+            pass
 
-            def llm_caller(prompt: Dict[str, Any]) -> str:
-                msg = client.messages.create(
-                    model=prompt["model"],
-                    max_tokens=prompt["max_tokens"],
-                    temperature=prompt["temperature"],
-                    system=prompt["system"],
-                    messages=[{"role": "user", "content": prompt["user"]}],
-                )
-                return msg.content[0].text
+    if not deepseek_key:
+        raise HTTPException(status_code=503, detail="DEEPSEEK_API_KEY not set. Add it to your .env file.")
 
-        except (ImportError, Exception):
-            llm_caller = None   # falls back to mock prefix translation
+    import urllib.request as _urllib
 
+    def llm_caller(prompt: Dict[str, Any]) -> str:
+        payload = _json.dumps({
+            "model": "deepseek-chat",
+            "temperature": prompt.get("temperature", 0),
+            "max_tokens": prompt.get("max_tokens", 4096),
+            "messages": [
+                {"role": "system", "content": prompt["system"]},
+                {"role": "user",   "content": prompt["user"]},
+            ],
+        }).encode()
+        req_obj = _urllib.Request(
+            "https://api.deepseek.com/chat/completions",
+            data=payload,
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {deepseek_key}",
+            },
+            method="POST",
+        )
+        with _urllib.urlopen(req_obj, timeout=120) as resp:
+            data = _json.loads(resp.read().decode())
+        raw = data["choices"][0]["message"]["content"]
+        if raw.strip().startswith("```"):
+            raw = "\n".join(
+                l for l in raw.strip().splitlines()
+                if not l.strip().startswith("```")
+            ).strip()
+        return raw
+
+    try:
         translated = translation_agent(
             report=report,
             target_language_code=req.language_code,

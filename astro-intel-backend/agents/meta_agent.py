@@ -80,7 +80,7 @@ def _build_question_consensus(memory: Dict[str, Any], question: str, intent: str
         insight_id = f"q{_q_index(memory, question)}_i{i+1}"
         insights.append({
             "id":          insight_id,
-            "content":     preds[0] if preds else f"{domain.capitalize()} analysis confirms {intent}-related energy.",
+            "content":     " ".join(preds[:3]) if preds else f"{domain.capitalize()} analysis confirms {intent}-related energy.",
             "confidence":  _assign_confidence(domain_count),
             "domains":     [domain],
             "is_common":   domain_count >= 3,
@@ -90,8 +90,8 @@ def _build_question_consensus(memory: Dict[str, Any], question: str, intent: str
 
     # Cross-domain consensus insight if 3+ domains agree
     if domain_count >= 3:
-        all_texts = [p["text"] for p in pool[:3]]
-        combined  = " ".join(all_texts[:2])
+        all_texts = [p["text"] for p in pool[:5]]
+        combined  = " ".join(all_texts)
         insights.append({
             "id":          f"q{_q_index(memory, question)}_consensus",
             "content":     f"Multi-domain consensus on '{question}': {combined}",

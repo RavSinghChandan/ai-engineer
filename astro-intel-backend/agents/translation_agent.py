@@ -83,18 +83,19 @@ def _build_translation_prompt(
         "    one-word native-language gloss in parentheses on first use only\n"
         "  • Mantras — render in Devanagari + Roman transliteration, never translate\n"
         "  • Numbers, dates, proper nouns — do not translate\n"
-        "Output ONLY a JSON object: {\"translations\": [\"...\", ...]} "
-        "with exactly the same count as input lines. No commentary."
+        "CRITICAL: Output ONLY raw JSON — no markdown, no code fences, no commentary. "
+        "The response must start with { and end with }. "
+        'Format: {"translations": ["...", ...]} with exactly the same count as input lines.'
     )
 
     user = (
         f"Target language: {lang_name} ({lang_native})\n\n"
-        f"Translate each numbered item faithfully:\n{numbered}\n\n"
-        "Return JSON: {\"translations\": [\"<item1 translated>\", ...]}"
+        f"Translate each numbered item faithfully into {lang_name}:\n{numbered}\n\n"
+        f'Return ONLY this JSON (no markdown): {{"translations": ["<item1 in {lang_name}>", ...]}}'
     )
 
     return {
-        "model":       "claude-opus-4-7",
+        "model":       "deepseek-chat",
         "temperature": 0,
         "max_tokens":  4096,
         "system":      system,
@@ -201,12 +202,21 @@ def translation_agent(
         prompt = _build_translation_prompt(batch, code, lang_info)
 
         if llm_caller:
-            raw = llm_caller(prompt)
             try:
+                raw = llm_caller(prompt)
+                # Strip markdown fences defensively
+                raw = raw.strip()
+                if raw.startswith("```"):
+                    raw = "\n".join(
+                        l for l in raw.splitlines()
+                        if not l.strip().startswith("```")
+                    ).strip()
                 parsed = json.loads(raw)
                 batch_translated = parsed.get("translations", batch)
-            except (json.JSONDecodeError, AttributeError):
-                # Fallback: use original text if parsing fails
+                # Ensure we got the right count; pad/trim if not
+                if len(batch_translated) != len(batch):
+                    batch_translated = (batch_translated + batch)[: len(batch)]
+            except Exception:
                 batch_translated = batch
         else:
             # Mock: prefix each item with language tag for testing

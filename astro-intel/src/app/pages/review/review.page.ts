@@ -3,7 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { OrchestratorService } from '../../services/orchestrator.service';
+import { ApiService, LanguageOption } from '../../services/api.service';
 import { AdminInsight, AdminQuestion } from '../../models/astro.models';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-review',
@@ -39,10 +41,21 @@ import { AdminInsight, AdminQuestion } from '../../models/astro.models';
         <span class="progress-label">{{ approvedCount() }}/{{ totalInsightCount() }}</span>
       </div>
       <button class="btn-outline-green" (click)="approveAll()">Approve All</button>
-      <button class="btn-primary" [disabled]="approvedCount() === 0" (click)="generate()">
-        Generate Report
-        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M4 2l5 4.5L4 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
+      @if (!reportGenerated()) {
+        <button class="btn-primary" [disabled]="approvedCount() === 0 || generating()" (click)="generate()">
+          @if (generating()) {
+            <span class="btn-spinner"></span> Generating…
+          } @else {
+            Generate Report
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M4 2l5 4.5L4 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          }
+        </button>
+      } @else {
+        <button class="btn-primary" (click)="finalizeReport()">
+          View Report
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M4 2l5 4.5L4 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      }
     </div>
   </header>
 
@@ -72,6 +85,20 @@ import { AdminInsight, AdminQuestion } from '../../models/astro.models';
     <button class="tab" [class.tab-on]="activeTab()==='review'" (click)="activeTab.set('review')">
       <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="1" width="11" height="11" rx="2.5" stroke="currentColor" stroke-width="1.4"/><path d="M4 5h5M4 8h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
       Review
+    </button>
+    <button class="tab" [class.tab-on]="activeTab()==='translate'"
+            [class.tab-locked]="!reportGenerated()"
+            (click)="reportGenerated() && activeTab.set('translate')">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+        <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.3"/>
+        <path d="M6.5 1.5C6.5 1.5 4.5 3.8 4.5 6.5s2 5 2 5M6.5 1.5C6.5 1.5 8.5 3.8 8.5 6.5s-2 5-2 5M1.5 6.5h10" stroke="currentColor" stroke-width="1.3"/>
+      </svg>
+      Translation
+      @if (!reportGenerated()) {
+        <span class="tab-lock-icon">🔒</span>
+      } @else if (translatedSections().length) {
+        <span class="tab-count tab-count-purple">{{ translationApprovedCount() }}/{{ translatedSections().length }}</span>
+      }
     </button>
     <button class="tab" [class.tab-on]="activeTab()==='raw'" (click)="activeTab.set('raw')">
       <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M3 4l-2 2.5 2 2.5M10 4l2 2.5-2 2.5M7 2l-1 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -172,6 +199,155 @@ import { AdminInsight, AdminQuestion } from '../../models/astro.models';
             }
           </div>
 
+        </div>
+      }
+
+    </div>
+  }
+
+  <!-- ══ TRANSLATION TAB ════════════════════════════════════════════════════ -->
+  @if (activeTab() === 'translate') {
+    <div class="body">
+
+      <!-- Translation control bar -->
+      <div class="trans-ctrl-bar">
+        <div class="trans-ctrl-left">
+          <svg width="16" height="16" viewBox="0 0 14 14" fill="none" class="trans-globe">
+            <circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/>
+            <path d="M7 1.5C7 1.5 5 4 5 7s2 5.5 2 5.5M7 1.5C7 1.5 9 4 9 7s-2 5.5-2 5.5M1.5 7h11" stroke="currentColor" stroke-width="1.3"/>
+          </svg>
+          <span class="trans-ctrl-label">Translate report to:</span>
+          <select class="lang-select-ctrl" [(ngModel)]="selectedTranslateLang" [disabled]="translating()">
+            @for (lang of languages(); track lang.code) {
+              @if (lang.code !== 'en') {
+                <option [value]="lang.code">{{ lang.native }} · {{ lang.name }}</option>
+              }
+            }
+          </select>
+        </div>
+        <div class="trans-ctrl-right">
+          @if (translatedSections().length && !translating()) {
+            <span class="trans-status-ok">
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 6.5l3.5 3.5 5.5-6" stroke="#22c55e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Translated · {{ translationApprovedCount() }}/{{ translatedSections().length }} approved
+            </span>
+          }
+          <button class="btn-translate"
+                  [disabled]="translating()"
+                  (click)="doTranslate()">
+            @if (translating()) {
+              <span class="btn-spinner"></span> Translating…
+            } @else {
+              <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 1.5C7 1.5 5 4 5 7s2 5.5 2 5.5M7 1.5C7 1.5 9 4 9 7s-2 5.5-2 5.5M1.5 7h11" stroke="currentColor" stroke-width="1.3"/></svg>
+              {{ translatedSections().length ? 'Re-translate' : 'Translate Now' }}
+            }
+          </button>
+          @if (translatedSections().length) {
+            <button class="btn-finalize" (click)="finalizeWithTranslation()">
+              Finalize & View Report
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M4 2l5 4.5L4 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Translation error -->
+      @if (translateError()) {
+        <div class="trans-error-bar">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.4"/><path d="M7 4.5v3M7 9.5v.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          {{ translateError() }}
+          <button class="err-dismiss" (click)="translateError.set('')">×</button>
+        </div>
+      }
+
+      <!-- Translation loading state -->
+      @if (translating()) {
+        <div class="trans-loading-card">
+          <div class="trans-loading-ring"></div>
+          <div class="trans-loading-text">
+            <strong>Translation Agent is working…</strong>
+            <span>Translating to {{ pendingLangName() }} — preserving tone, structure, and spiritual register across all 22 Indian Constitutional languages.</span>
+          </div>
+        </div>
+      }
+
+      <!-- Translated sections -->
+      @if (!translating() && translatedSections().length) {
+        <div class="trans-intro-banner">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="#8b5cf6" stroke-width="1.4"/><path d="M7 4v3.5l2.5 1.5" stroke="#8b5cf6" stroke-width="1.4" stroke-linecap="round"/></svg>
+          Review each translated section below. You can edit or reject any mistranslation before finalizing.
+        </div>
+
+        @for (section of translatedSections(); track section.question; let si = $index) {
+          <div class="q-card">
+
+            <div class="q-hdr q-hdr-purple">
+              <div class="q-num-circle q-num-purple">Q{{ si + 1 }}</div>
+              <div class="q-info">
+                <div class="q-text">{{ section.question }}</div>
+                <div class="q-meta">
+                  <span class="intent-tag intent-tag-purple">{{ currentLangNative() }}</span>
+                  <span class="q-stat q-stat-purple">{{ transSectionApprovedCount(si) }}/{{ section.insights.length }} approved</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="insights">
+              @for (ins of section.insights; track ins.id; let ii = $index) {
+                <div class="insight"
+                     [class.insight-on]="transApprovedIds().has(ins.id)"
+                     [class.insight-off]="transRejectedIds().has(ins.id)">
+
+                  <div class="insight-top">
+                    <div class="insight-tags">
+                      <span class="conf conf-m">TRANSLATED</span>
+                      @for (d of ins.domains; track d) {
+                        <span class="domain-tag">{{ d }}</span>
+                      }
+                      <span class="ins-id">{{ ins.id }}</span>
+                    </div>
+                    <div class="insight-actions">
+                      <button class="act-btn act-edit" (click)="toggleTransEdit(ins.id)">
+                        {{ transEditingId() === ins.id ? '✓ Save' : 'Edit' }}
+                      </button>
+                      <button class="act-btn act-reject"
+                              [class.act-reject-on]="transRejectedIds().has(ins.id)"
+                              (click)="toggleTransReject(ins.id)">Reject</button>
+                      <button class="act-btn act-approve"
+                              [class.act-approve-on]="transApprovedIds().has(ins.id)"
+                              (click)="toggleTransApprove(ins.id)">
+                        @if (transApprovedIds().has(ins.id)) {
+                          <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 5.5l2.5 2.5L9 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        }
+                        Approve
+                      </button>
+                    </div>
+                  </div>
+
+                  @if (transEditingId() === ins.id) {
+                    <textarea class="ins-editor"
+                      [value]="ins.content"
+                      (input)="onTransEdit(si, ii, $event)"
+                      rows="4"></textarea>
+                  } @else {
+                    <p class="ins-text ins-text-native">{{ ins.content }}</p>
+                  }
+
+                </div>
+              }
+            </div>
+
+          </div>
+        }
+
+      } @else if (!translating() && !translatedSections().length) {
+        <div class="trans-empty">
+          <svg width="40" height="40" viewBox="0 0 14 14" fill="none" class="trans-empty-icon">
+            <circle cx="7" cy="7" r="5.5" stroke="#d4af37" stroke-width="1.3"/>
+            <path d="M7 1.5C7 1.5 5 4 5 7s2 5.5 2 5.5M7 1.5C7 1.5 9 4 9 7s-2 5.5-2 5.5M1.5 7h11" stroke="#d4af37" stroke-width="1.3"/>
+          </svg>
+          <p class="trans-empty-title">No translation yet</p>
+          <p class="trans-empty-sub">Select a language above and click "Translate Now" to begin. The Translation Agent will preserve tone, meaning, and spiritual register.</p>
         </div>
       }
 
@@ -295,6 +471,13 @@ import { AdminInsight, AdminQuestion } from '../../models/astro.models';
   cursor: pointer; font-family: Georgia, serif;
 }
 
+.btn-spinner {
+  width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
+  border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff;
+  animation: spin 0.7s linear infinite; display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
 /* ── Session bar ──────────────────────────────────────────────────────────── */
 .session-bar {
   display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
@@ -326,11 +509,14 @@ import { AdminInsight, AdminQuestion } from '../../models/astro.models';
 }
 .tab:hover { color: #374151; }
 .tab-on { color: #8a6a00; border-bottom-color: #d4af37; }
+.tab-locked { opacity: 0.45; cursor: not-allowed !important; }
+.tab-lock-icon { font-size: 10px; }
 .tab-count {
   background: #f3f4f6; color: #6b7280; font-size: 10px; font-weight: 700;
   padding: 1px 6px; border-radius: 99px;
 }
 .tab-on .tab-count { background: rgba(212,175,55,0.15); color: #8a6a00; }
+.tab-count-purple { background: rgba(139,92,246,0.1); color: #7c3aed; }
 
 /* ── Review body ──────────────────────────────────────────────────────────── */
 .body {
@@ -364,6 +550,9 @@ import { AdminInsight, AdminQuestion } from '../../models/astro.models';
   background: linear-gradient(135deg, #fffbf0 0%, #fff 60%);
   border-bottom: 1px solid rgba(0,0,0,0.06);
 }
+.q-hdr-purple {
+  background: linear-gradient(135deg, #f5f3ff 0%, #fff 60%);
+}
 .q-num-circle {
   flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%;
   background: linear-gradient(135deg, #8a6a00, #d4af37);
@@ -371,6 +560,7 @@ import { AdminInsight, AdminQuestion } from '../../models/astro.models';
   display: flex; align-items: center; justify-content: center;
   font-family: Georgia, serif; margin-top: 1px;
 }
+.q-num-purple { background: linear-gradient(135deg, #6d28d9, #8b5cf6); }
 .q-info { flex: 1; min-width: 0; }
 .q-text { font-size: 14.5px; font-weight: 700; color: #1a1a1a; line-height: 1.5; margin-bottom: 6px; font-family: Georgia, serif; }
 .q-meta { display: flex; align-items: center; gap: 8px; }
@@ -379,7 +569,11 @@ import { AdminInsight, AdminQuestion } from '../../models/astro.models';
   background: rgba(212,175,55,0.1); color: #8a6a00;
   border: 1px solid rgba(212,175,55,0.25); letter-spacing: 0.06em; text-transform: uppercase;
 }
+.intent-tag-purple {
+  background: rgba(139,92,246,0.1); color: #6d28d9; border-color: rgba(139,92,246,0.25);
+}
 .q-stat { font-size: 11px; color: #16a34a; font-weight: 600; }
+.q-stat-purple { color: #7c3aed; }
 
 /* Insights list */
 .insights { display: flex; flex-direction: column; }
@@ -450,6 +644,7 @@ import { AdminInsight, AdminQuestion } from '../../models/astro.models';
   font-size: 14px; color: #374151; line-height: 1.85; margin: 0;
   font-family: Georgia, serif;
 }
+.ins-text-native { font-size: 15px; line-height: 2; }
 .ins-editor {
   width: 100%; box-sizing: border-box; padding: 10px 12px;
   border: 1.5px solid #d4af37; border-radius: 8px; outline: none;
@@ -457,6 +652,98 @@ import { AdminInsight, AdminQuestion } from '../../models/astro.models';
   line-height: 1.75; background: #fffbf0; resize: vertical; min-height: 88px;
 }
 .ins-editor:focus { box-shadow: 0 0 0 3px rgba(212,175,55,0.12); }
+
+/* ── Translation tab specific ─────────────────────────────────────────────── */
+.trans-ctrl-bar {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  background: #fff; border-radius: 12px; padding: 14px 18px;
+  border: 1px solid rgba(139,92,246,0.15);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.trans-ctrl-left { display: flex; align-items: center; gap: 10px; }
+.trans-ctrl-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.trans-globe { color: #7c3aed; flex-shrink: 0; }
+.trans-ctrl-label { font-size: 13px; font-weight: 600; color: #374151; font-family: Georgia, serif; white-space: nowrap; }
+.lang-select-ctrl {
+  padding: 6px 12px; border-radius: 8px; border: 1.5px solid rgba(139,92,246,0.3);
+  background: rgba(139,92,246,0.05); color: #4c1d95; font-size: 13px; font-weight: 600;
+  font-family: Georgia, serif; cursor: pointer; outline: none;
+}
+.lang-select-ctrl:focus { border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139,92,246,0.1); }
+.lang-select-ctrl:disabled { opacity: 0.5; cursor: not-allowed; }
+.lang-select-ctrl option { background: #fff; color: #374151; }
+
+.trans-status-ok {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11.5px; font-weight: 600; color: #16a34a;
+}
+
+.btn-translate {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 16px; border-radius: 8px; border: none;
+  background: linear-gradient(135deg, #5b21b6, #8b5cf6);
+  color: #fff; font-size: 12px; font-weight: 700;
+  cursor: pointer; font-family: Georgia, serif;
+  box-shadow: 0 2px 10px rgba(139,92,246,0.3); transition: all 0.15s;
+}
+.btn-translate:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(139,92,246,0.4); }
+.btn-translate:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+.btn-finalize {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 16px; border-radius: 8px; border: none;
+  background: linear-gradient(135deg, #8a6a00, #d4af37);
+  color: #fff; font-size: 12px; font-weight: 700;
+  cursor: pointer; font-family: Georgia, serif;
+  box-shadow: 0 2px 10px rgba(212,175,55,0.3); transition: all 0.15s;
+}
+.btn-finalize:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(212,175,55,0.4); }
+
+.trans-error-bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 16px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px;
+  font-size: 12px; color: #991b1b; font-family: Georgia, serif;
+}
+.err-dismiss {
+  margin-left: auto; background: transparent; border: none;
+  color: #991b1b; font-size: 16px; cursor: pointer; line-height: 1;
+}
+
+.trans-loading-card {
+  display: flex; align-items: flex-start; gap: 16px;
+  background: linear-gradient(135deg, #f5f3ff, #ede9fe);
+  border: 1px solid rgba(139,92,246,0.2); border-radius: 14px;
+  padding: 20px 22px;
+}
+.trans-loading-ring {
+  width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+  border: 3px solid rgba(139,92,246,0.2); border-top-color: #8b5cf6;
+  animation: spin 0.8s linear infinite;
+}
+.trans-loading-text {
+  display: flex; flex-direction: column; gap: 4px;
+}
+.trans-loading-text strong {
+  font-size: 14px; font-weight: 700; color: #5b21b6; font-family: Georgia, serif;
+}
+.trans-loading-text span {
+  font-size: 12.5px; color: #6d28d9; font-family: Georgia, serif; line-height: 1.65;
+}
+
+.trans-intro-banner {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 16px; background: rgba(139,92,246,0.06);
+  border: 1px solid rgba(139,92,246,0.18); border-radius: 10px;
+  font-size: 12.5px; color: #5b21b6; font-family: Georgia, serif;
+}
+
+.trans-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; padding: 80px 20px; text-align: center;
+}
+.trans-empty-icon { opacity: 0.5; }
+.trans-empty-title { font-size: 16px; font-weight: 700; color: #374151; font-family: Georgia, serif; margin: 0; }
+.trans-empty-sub { font-size: 13px; color: #9ca3af; font-family: Georgia, serif; margin: 0; max-width: 440px; line-height: 1.7; }
 
 /* ── Code / JSON / Log body ───────────────────────────────────────────────── */
 .code-body {
@@ -497,13 +784,35 @@ import { AdminInsight, AdminQuestion } from '../../models/astro.models';
 })
 export class ReviewPage {
   private router = inject(Router);
+  private api    = inject(ApiService);
   readonly orch  = inject(OrchestratorService);
 
-  readonly activeTab   = signal<'review'|'raw'|'log'>('review');
+  readonly activeTab   = signal<'review'|'translate'|'raw'|'log'>('review');
   readonly editingId   = signal<string|null>(null);
   readonly approvedIds = signal<Set<string>>(new Set());
   readonly rejectedIds = signal<Set<string>>(new Set());
   readonly rawKey      = signal<string>('astrology');
+
+  // Report generation state
+  readonly generating     = signal(false);
+  readonly reportGenerated = signal(false);
+
+  // Translation state
+  readonly translating       = signal(false);
+  readonly translateError    = signal('');
+  readonly pendingLangName   = signal('');
+  selectedTranslateLang      = 'hi'; // default Hindi
+  readonly languages         = signal<LanguageOption[]>(FALLBACK_LANGUAGES);
+
+  // Translated content — per-section list of insights
+  readonly translatedSections = signal<Array<{ question: string; intent: string; insights: Array<{ id: string; content: string; domains: string[]; }> }>>([]);
+  readonly transApprovedIds   = signal<Set<string>>(new Set());
+  readonly transRejectedIds   = signal<Set<string>>(new Set());
+  readonly transEditingId     = signal<string|null>(null);
+
+  // Finalized translated report stored for report page
+  private _translatedReport: any = null;
+  private _translatedLangCode = '';
 
   readonly questionBlocks = computed(() => this.orch.adminReview()?.questions ?? []);
   readonly userName       = computed(() => this.orch.currentInput()?.user_profile.full_name ?? '');
@@ -517,6 +826,17 @@ export class ReviewPage {
     return t ? Math.round(this.approvedCount() / t * 100) : 0;
   });
 
+  readonly translationApprovedCount = computed(() => this.transApprovedIds().size);
+
+  readonly currentLangNative = computed(() => {
+    const lang = this.languages().find(l => l.code === this.selectedTranslateLang);
+    return lang?.native ?? this.selectedTranslateLang;
+  });
+  readonly currentLangName = computed(() => {
+    const lang = this.languages().find(l => l.code === this.selectedTranslateLang);
+    return lang?.name ?? this.selectedTranslateLang;
+  });
+
   readonly rawKeys = computed(() => {
     const out = this.orch.rawOutputs();
     return Object.keys(out).filter(k => (out as any)[k] !== undefined);
@@ -528,6 +848,12 @@ export class ReviewPage {
 
   approvedInBlock(q: AdminQuestion): number {
     return q.insights.filter(i => this.approvedIds().has(i.id)).length;
+  }
+
+  transSectionApprovedCount(si: number): number {
+    const section = this.translatedSections()[si];
+    if (!section) return 0;
+    return section.insights.filter(ins => this.transApprovedIds().has(ins.id)).length;
   }
 
   toggleApprove(id: string) {
@@ -548,10 +874,142 @@ export class ReviewPage {
     this.orch.updateInsight(id, (event.target as HTMLTextAreaElement).value);
   }
 
-  generate() {
-    this.orch.approveAndGenerate([...this.approvedIds()], [...this.rejectedIds()])
-      .then(() => this.router.navigate(['/report']));
+  toggleTransApprove(id: string) {
+    this.transApprovedIds.update(s => { const c = new Set(s); c.has(id) ? c.delete(id) : c.add(id); return c; });
+    this.transRejectedIds.update(s => { const c = new Set(s); c.delete(id); return c; });
+  }
+  toggleTransReject(id: string) {
+    this.transRejectedIds.update(s => { const c = new Set(s); c.has(id) ? c.delete(id) : c.add(id); return c; });
+    this.transApprovedIds.update(s => { const c = new Set(s); c.delete(id); return c; });
+  }
+  toggleTransEdit(id: string) { this.transEditingId.set(this.transEditingId() === id ? null : id); }
+  onTransEdit(si: number, ii: number, event: Event) {
+    const val = (event.target as HTMLTextAreaElement).value;
+    this.translatedSections.update(sections => {
+      const copy = sections.map(s => ({ ...s, insights: [...s.insights] }));
+      if (copy[si]?.insights[ii]) copy[si].insights[ii] = { ...copy[si].insights[ii], content: val };
+      return copy;
+    });
+  }
+
+  async generate() {
+    this.generating.set(true);
+    try {
+      await this.orch.approveAndGenerate([...this.approvedIds()], [...this.rejectedIds()]);
+      this.reportGenerated.set(true);
+      // Load languages from backend for translation tab
+      try {
+        const res = await firstValueFrom(this.api.getLanguages());
+        this.languages.set(res.languages);
+      } catch { /* keep fallback */ }
+    } finally {
+      this.generating.set(false);
+    }
+  }
+
+  async doTranslate() {
+    const report = this.orch.finalReport();
+    if (!report) return;
+
+    const lang = this.languages().find(l => l.code === this.selectedTranslateLang);
+    this.pendingLangName.set(lang?.name ?? this.selectedTranslateLang);
+    this.translating.set(true);
+    this.translateError.set('');
+    this.translatedSections.set([]);
+    this.transApprovedIds.set(new Set());
+    this.transRejectedIds.set(new Set());
+
+    try {
+      const res = await firstValueFrom(this.api.translateReport({
+        session_id:    this.orch.sessionId() ?? '',
+        language_code: this.selectedTranslateLang,
+        report:        report as any,
+      }));
+
+      this._translatedReport = res.final_report;
+      this._translatedLangCode = this.selectedTranslateLang;
+
+      // Extract per-insight translated sections from the translated report
+      const sections = res.final_report?.sections ?? [];
+      this.translatedSections.set(sections.map((sec: any) => ({
+        question: sec.question ?? '',
+        intent:   sec.intent ?? 'general',
+        insights: (sec.insights ?? []).map((ins: any) => ({
+          id:      ins.id,
+          content: ins.content,
+          domains: ins.domains ?? [],
+        })),
+      })));
+
+      // Auto-approve all translated insights by default
+      const allTransIds = sections.flatMap((s: any) => (s.insights ?? []).map((i: any) => i.id));
+      this.transApprovedIds.set(new Set(allTransIds));
+
+    } catch (err: any) {
+      this.translateError.set(
+        err?.message ?? `Translation to ${this.pendingLangName()} failed. Please try again.`
+      );
+    } finally {
+      this.translating.set(false);
+    }
+  }
+
+  finalizeWithTranslation() {
+    if (!this._translatedReport) return;
+
+    // Apply any edits / rejections to the translated report before navigating
+    const modified = { ...this._translatedReport };
+    if (modified.sections) {
+      modified.sections = modified.sections.map((sec: any, si: number) => {
+        const transSec = this.translatedSections()[si];
+        if (!transSec) return sec;
+        return {
+          ...sec,
+          insights: (sec.insights ?? []).map((ins: any, ii: number) => {
+            const transIns = transSec.insights[ii];
+            const rejected = this.transRejectedIds().has(ins.id);
+            return {
+              ...ins,
+              content: transIns?.content ?? ins.content,
+              approved: !rejected,
+            };
+          }).filter((ins: any) => !this.transRejectedIds().has(ins.id)),
+        };
+      });
+    }
+
+    this.orch.finalReport.set(modified);
+    this.router.navigate(['/report']);
+  }
+
+  finalizeReport() {
+    this.router.navigate(['/report']);
   }
 
   goBack() { this.router.navigate(['/']); }
 }
+
+const FALLBACK_LANGUAGES: LanguageOption[] = [
+  { code: 'en',  name: 'English',    native: 'English',       script: 'Latin' },
+  { code: 'hi',  name: 'Hindi',      native: 'हिन्दी',          script: 'Devanagari' },
+  { code: 'bn',  name: 'Bengali',    native: 'বাংলা',           script: 'Bengali' },
+  { code: 'pa',  name: 'Punjabi',    native: 'ਪੰਜਾਬੀ',          script: 'Gurmukhi' },
+  { code: 'gu',  name: 'Gujarati',   native: 'ગુજરાતી',          script: 'Gujarati' },
+  { code: 'mr',  name: 'Marathi',    native: 'मराठी',            script: 'Devanagari' },
+  { code: 'te',  name: 'Telugu',     native: 'తెలుగు',           script: 'Telugu' },
+  { code: 'ta',  name: 'Tamil',      native: 'தமிழ்',            script: 'Tamil' },
+  { code: 'kn',  name: 'Kannada',    native: 'ಕನ್ನಡ',           script: 'Kannada' },
+  { code: 'ml',  name: 'Malayalam',  native: 'മലയാളം',          script: 'Malayalam' },
+  { code: 'or',  name: 'Odia',       native: 'ଓଡ଼ିଆ',           script: 'Odia' },
+  { code: 'as',  name: 'Assamese',   native: 'অসমীয়া',          script: 'Bengali' },
+  { code: 'ur',  name: 'Urdu',       native: 'اردو',             script: 'Nastaliq' },
+  { code: 'ks',  name: 'Kashmiri',   native: 'کٲشُر',            script: 'Perso-Arabic' },
+  { code: 'ne',  name: 'Nepali',     native: 'नेपाली',           script: 'Devanagari' },
+  { code: 'sd',  name: 'Sindhi',     native: 'سنڌي',             script: 'Perso-Arabic' },
+  { code: 'sa',  name: 'Sanskrit',   native: 'संस्कृतम्',         script: 'Devanagari' },
+  { code: 'kok', name: 'Konkani',    native: 'कोंकणी',           script: 'Devanagari' },
+  { code: 'mai', name: 'Maithili',   native: 'मैथिली',           script: 'Devanagari' },
+  { code: 'doi', name: 'Dogri',      native: 'डोगरी',            script: 'Devanagari' },
+  { code: 'mni', name: 'Manipuri',   native: 'মৈতৈলোন্',         script: 'Meitei' },
+  { code: 'sat', name: 'Santali',    native: 'ᱥᱟᱱᱛᱟᱲᱤ',        script: 'Ol Chiki' },
+];
