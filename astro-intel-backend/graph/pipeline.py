@@ -31,6 +31,7 @@ from agents import (
     remedy_agent_node,
     admin_review_agent_node,
 )
+from guardrails import safe_node
 
 
 # ── Parallel domain fan-out ─────────────────────────────────────────────────
@@ -54,11 +55,11 @@ def domain_agents_parallel(state: Dict[str, Any]) -> Dict[str, Any]:
 def build_graph() -> Any:
     builder = StateGraph(dict)
 
-    builder.add_node("question_agent",      question_agent_node)
-    builder.add_node("domain_agents",       domain_agents_parallel)
-    builder.add_node("meta_agent",          meta_agent_node)
-    builder.add_node("remedy_agent",        remedy_agent_node)
-    builder.add_node("admin_review_agent",  admin_review_agent_node)
+    builder.add_node("question_agent",      safe_node(question_agent_node,     "question_agent"))
+    builder.add_node("domain_agents",       safe_node(domain_agents_parallel,  "domain_agents"))
+    builder.add_node("meta_agent",          safe_node(meta_agent_node,         "meta_agent"))
+    builder.add_node("remedy_agent",        safe_node(remedy_agent_node,       "remedy_agent"))
+    builder.add_node("admin_review_agent",  safe_node(admin_review_agent_node, "admin_review_agent"))
 
     builder.set_entry_point("question_agent")
     builder.add_edge("question_agent",     "domain_agents")

@@ -6,7 +6,8 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import analysis_router
+from routers import analysis_router, geocode_router
+import cache as response_cache
 
 # ── App factory ─────────────────────────────────────────────────────────────
 app = FastAPI(
@@ -38,12 +39,24 @@ app.add_middleware(
 
 # ── Routers ──────────────────────────────────────────────────────────────────
 app.include_router(analysis_router)
+app.include_router(geocode_router)
 
 
 # ── Health check ─────────────────────────────────────────────────────────────
 @app.get("/health", tags=["Health"])
 async def health():
     return {"status": "ok", "service": "AstroIntel 360° API", "version": "1.0.0"}
+
+
+# ── Cache management ──────────────────────────────────────────────────────────
+@app.get("/cache/stats", tags=["Cache"])
+async def cache_stats():
+    return response_cache.stats()
+
+@app.delete("/cache/clear", tags=["Cache"])
+async def cache_clear():
+    removed = response_cache.clear()
+    return {"cleared": removed}
 
 
 # ── Root ─────────────────────────────────────────────────────────────────────
@@ -58,6 +71,7 @@ async def root():
             "approve_report":    "POST /api/v1/analysis/approve",
             "get_session":       "GET  /api/v1/analysis/session/{session_id}",
             "get_memory":        "GET  /api/v1/analysis/memory/{session_id}",
+            "geocode":           "GET  /api/v1/geocode?city=Chandigarh",
             "health":            "GET  /health",
         },
     }

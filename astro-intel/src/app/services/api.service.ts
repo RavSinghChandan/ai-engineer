@@ -10,10 +10,14 @@ export interface RunRequest {
     full_name: string; alias_name: string; date_of_birth: string;
     time_of_birth: string; place_of_birth: string; pincode: string;
   };
+  user_id?: string;
+  bypass_cache?: boolean;
   user_question: string;
   questions: string[];
   selected_modules: string[];
   module_inputs: Record<string, any>;
+  geocode?: { lat: number; lon: number; timezone: string } | null;
+  prompt_version?: string;
 }
 
 export interface AdminInsight {
@@ -32,9 +36,19 @@ export interface AdminQuestion {
   insights: AdminInsight[];
 }
 
+export interface ModuleMethodology {
+  label: string;
+  icon: string;
+  branches: string[];
+  engine?: string;
+  ayanamsa?: string;
+  description: string;
+}
+
 export interface AdminReviewResponse {
   subject: string;
   questions: AdminQuestion[];
+  module_methodology?: Record<string, ModuleMethodology>;
 }
 
 export interface NormalizedQuestion {
@@ -49,6 +63,8 @@ export interface NormalizedQuestion {
 export interface RunResponse {
   session_id: string;
   status: string;
+  cache_hit: boolean;
+  cache_key?: string;
   focus_context: Record<string, any>;
   normalized_questions: NormalizedQuestion[];
   memory_keys: Record<string, string[]>;
@@ -88,6 +104,7 @@ export interface FinalReportPayload {
   questions: string[];
   generated_at: string;
   modules_used: string[];
+  module_methodology?: Record<string, ModuleMethodology>;
   sections: ReportSection[];
   disclaimer: string;
   closing_note: string;
@@ -135,7 +152,7 @@ export class ApiService {
   approveReport(req: ApproveRequest): Observable<ApproveResponse> {
     return this.http
       .post<ApproveResponse>(`${BACKEND}/api/v1/analysis/approve`, req)
-      .pipe(timeout(30_000), catchError(this._handleError));
+      .pipe(timeout(120_000), catchError(this._handleError));
   }
 
   getLanguages(): Observable<{ languages: LanguageOption[] }> {

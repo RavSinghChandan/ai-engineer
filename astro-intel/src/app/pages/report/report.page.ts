@@ -1,5 +1,5 @@
 import { Component, inject, computed, signal, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, KeyValuePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { OrchestratorService } from '../../services/orchestrator.service';
@@ -9,7 +9,7 @@ import { firstValueFrom } from 'rxjs';
 @Component({
   selector: 'app-report',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, KeyValuePipe],
   template: `
 <!-- ══ Toolbar ═══════════════════════════════════════════════════════════════ -->
 <div class="toolbar no-print">
@@ -160,6 +160,33 @@ import { firstValueFrom } from 'rxjs';
               </div>
             }
           </div>
+
+          <!-- ── Module Methodology Panel ── -->
+          @if (moduleMethods() | keyvalue; as methods) {
+            @if (methods.length) {
+              <div class="report-method-panel">
+                <div class="rmp-title">Analysis Methodology</div>
+                <div class="rmp-grid">
+                  @for (entry of methods; track entry.key) {
+                    <div class="rmp-item">
+                      <div class="rmp-item-hdr">
+                        <span class="rmp-icon">{{ entry.value.icon }}</span>
+                        <span class="rmp-label">{{ entry.value.label }}</span>
+                      </div>
+                      <div class="rmp-branches">
+                        @for (b of entry.value.branches; track b) {
+                          <span class="rmp-branch">{{ b }}</span>
+                        }
+                      </div>
+                      @if (entry.value.ayanamsa) {
+                        <div class="rmp-meta">Ayanamsa: {{ entry.value.ayanamsa }}</div>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          }
         </div>
       </div>
     </div>
@@ -261,6 +288,37 @@ import { firstValueFrom } from 'rxjs';
                 <span class="cpt-meta-label">Dasha</span><span class="cpt-meta-val">{{ currentDasha() }}</span>
                 <span class="cpt-meta-label">Nakshatra</span><span class="cpt-meta-val">{{ moonNakshatra() }}</span>
               </div>
+              <!-- Chart Basis Panel -->
+              <div class="chart-basis-panel" [class.chart-basis-approx]="isApproxChart()">
+                <div class="cbp-hdr">
+                  <span class="cbp-icon">{{ isApproxChart() ? '⚠' : '✓' }}</span>
+                  <span class="cbp-title">Chart Computation Basis</span>
+                </div>
+                <div class="cbp-rows">
+                  <div class="cbp-row">
+                    <span class="cbp-lbl">System</span>
+                    <span class="cbp-val">Vedic Jyotish — Indian Sidereal</span>
+                  </div>
+                  <div class="cbp-row">
+                    <span class="cbp-lbl">Ayanamsa</span>
+                    <span class="cbp-val cbp-highlight">{{ ayanamsaLabel() }} (Chitra Paksha / Lahiri)</span>
+                  </div>
+                  <div class="cbp-row">
+                    <span class="cbp-lbl">Engine</span>
+                    <span class="cbp-val">{{ chartMethod() || 'VSOP87-simplified + ELP2000-simplified' }}</span>
+                  </div>
+                  <div class="cbp-row">
+                    <span class="cbp-lbl">Birth Time</span>
+                    <span class="cbp-val" [class.cbp-warn]="isApproxChart()">
+                      {{ isApproxChart() ? '⚠ Not provided — Lagna is approximate' : '✓ Provided by client' }}
+                    </span>
+                  </div>
+                  <div class="cbp-row cbp-note-row">
+                    <span class="cbp-lbl">Sun Sign</span>
+                    <span class="cbp-val cbp-note">Vedic sidereal Sun is ~23° earlier than Western tropical — a client born in Oct (Western Libra) will have Vedic Virgo. Both are correct in their respective systems.</span>
+                  </div>
+                </div>
+              </div>
             </div>
             </div><!-- /profile-chart-row -->
           </div><!-- /profile-chart-wrap -->
@@ -274,6 +332,12 @@ import { firstValueFrom } from 'rxjs';
                 <div class="combo-num-title">Sacred Numbers</div>
                 <div class="combo-num-sub">{{ displayReport()!.user_name }}'s numerological blueprint</div>
               </div>
+            </div>
+            <!-- Branch pills -->
+            <div class="num-branch-row">
+              @for (b of numerologyBranches(); track b) {
+                <span class="num-branch-pill">{{ b }}</span>
+              }
             </div>
             <div class="combo-num-grid">
               @for (n of numerologyNumbers(); track n.label) {
@@ -290,6 +354,27 @@ import { firstValueFrom } from 'rxjs';
                 <div class="combo-lp-bar"><div class="combo-lp-fill" [style.width.%]="lifePathPct()"></div></div>
               </div>
             </div>
+            <!-- Per-tradition comparison table -->
+            @if (numerologyTraditions().length > 1) {
+              <div class="num-tradition-table">
+                <div class="ntt-hdr-row">
+                  <span class="ntt-col-label">Tradition</span>
+                  <span class="ntt-col">Life Path</span>
+                  <span class="ntt-col">Name No.</span>
+                  <span class="ntt-col">Destiny</span>
+                  <span class="ntt-col">Soul Urge</span>
+                </div>
+                @for (t of numerologyTraditions(); track t.name) {
+                  <div class="ntt-row">
+                    <span class="ntt-col-label ntt-tradition">{{ t.name }}</span>
+                    <span class="ntt-col" [style.color]="numColor(t.life_path)">{{ t.life_path }}</span>
+                    <span class="ntt-col" [style.color]="numColor(t.name_number)">{{ t.name_number }}</span>
+                    <span class="ntt-col" [style.color]="numColor(t.destiny)">{{ t.destiny }}</span>
+                    <span class="ntt-col" [style.color]="numColor(t.soul_urge)">{{ t.soul_urge }}</span>
+                  </div>
+                }
+              </div>
+            }
           </div>
         }
       </div>
@@ -318,7 +403,32 @@ import { firstValueFrom } from 'rxjs';
               @for (b of section.structured_summary.hw_bullets; track b.label) {
                 <li class="hw-item">
                   <span class="hw-label" [innerHTML]="colorize(despacify(b.label))"></span>
-                  <span class="hw-answer" [innerHTML]="colorize(b.answer)"></span>
+
+                  @if (b.type === 'list') {
+                    <!-- WHO / WHAT / WHERE — numbered list of 3 -->
+                    <ol class="hw-sub-list">
+                      @for (pt of b.answer; track pt; let idx = $index) {
+                        <li class="hw-sub-item">
+                          <span class="hw-sub-num">{{ idx + 1 }}</span>
+                          <span class="hw-sub-text" [innerHTML]="colorize(pt)"></span>
+                        </li>
+                      }
+                    </ol>
+                  } @else if (b.type === 'timing') {
+                    <!-- WHEN — window + peak + duration -->
+                    <div class="hw-timing">
+                      <div class="hw-timing-window">{{ b.answer.window }}</div>
+                      <div class="hw-timing-peak">{{ b.answer.peak }}</div>
+                      <div class="hw-timing-dur">{{ b.answer.duration }}</div>
+                    </div>
+                  } @else if (b.type === 'redirect') {
+                    <!-- HOW — redirect to remedies -->
+                    <span class="hw-redirect" [innerHTML]="colorize(b.answer)"></span>
+                  } @else {
+                    <!-- legacy string fallback -->
+                    <span class="hw-answer" [innerHTML]="colorize(b.answer)"></span>
+                  }
+
                 </li>
               }
             </ul>
@@ -569,6 +679,49 @@ import { firstValueFrom } from 'rxjs';
 .module-icon { font-size: 12px; }
 .module-label { letter-spacing: 0.03em; }
 
+/* ── Numerology Branch Pills & Tradition Table ───────────────────────────── */
+.num-branch-row { display: flex; flex-wrap: wrap; gap: 5px; margin: 6px 0 10px; }
+.num-branch-pill {
+  font-size: 9.5px; font-weight: 700; padding: 2px 9px; border-radius: 99px;
+  background: rgba(99,102,241,0.08); color: #4338ca;
+  border: 1px solid rgba(99,102,241,0.2);
+}
+.num-tradition-table { margin-top: 10px; border-radius: 8px; overflow: hidden; border: 1px solid #e5e7eb; }
+.ntt-hdr-row, .ntt-row { display: grid; grid-template-columns: 110px repeat(4, 1fr); gap: 4px; padding: 6px 10px; font-size: 10px; }
+.ntt-hdr-row { background: #f3f4f6; font-weight: 800; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.06em; }
+.ntt-row { border-top: 1px solid #f5f3ef; }
+.ntt-col-label { font-weight: 700; color: #374151; font-family: Georgia, serif; }
+.ntt-col { text-align: center; font-weight: 700; font-family: monospace; }
+.ntt-tradition { font-size: 10px; }
+
+/* ── Report Methodology Panel ─────────────────────────────────────────────── */
+.report-method-panel {
+  margin-top: 18px; border-radius: 10px;
+  border: 1px solid rgba(99,102,241,0.15); overflow: hidden;
+  background: #fafaf9;
+}
+.rmp-title {
+  padding: 8px 14px; font-size: 9.5px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: #4338ca; border-bottom: 1px solid rgba(99,102,241,0.12);
+  background: rgba(99,102,241,0.05);
+}
+.rmp-grid { display: flex; flex-direction: column; gap: 0; }
+.rmp-item {
+  padding: 10px 14px; border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+.rmp-item:last-child { border-bottom: none; }
+.rmp-item-hdr { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
+.rmp-icon { font-size: 13px; }
+.rmp-label { font-size: 11px; font-weight: 700; color: #1a1a1a; font-family: Georgia, serif; }
+.rmp-branches { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 4px; }
+.rmp-branch {
+  font-size: 9.5px; font-weight: 700; padding: 2px 8px; border-radius: 99px;
+  background: rgba(99,102,241,0.08); color: #4338ca;
+  border: 1px solid rgba(99,102,241,0.18);
+}
+.rmp-meta { font-size: 9px; color: #9ca3af; font-family: Georgia, serif; }
+
 /* ═══════════════════════════════════════════════════════════════════════════
    PAGE 1: COVER
 ═══════════════════════════════════════════════════════════════════════════ */
@@ -709,6 +862,54 @@ import { firstValueFrom } from 'rxjs';
 .cpt-meta-label { font-size: 9px; color: #9ca3af; font-weight: 600; }
 .cpt-meta-val { font-size: 10.5px; font-weight: 700; color: #1d1d1f; }
 
+.chart-approx-note {
+  margin-top: 8px; padding: 7px 10px; border-radius: 7px;
+  background: #fffbeb; border: 1px solid #fcd34d;
+  font-size: 9.5px; color: #92400e; line-height: 1.5;
+  font-family: Georgia, serif;
+}
+.chart-method-note {
+  margin-top: 8px; padding: 7px 10px; border-radius: 7px;
+  background: #f0fdf4; border: 1px solid #6ee7b7;
+  font-size: 9.5px; color: #065f46; line-height: 1.5;
+  font-family: Georgia, serif;
+}
+
+/* ── Chart Basis Panel (report page) ─────────────────────────────────── */
+.chart-basis-panel {
+  margin-top: 10px; border-radius: 10px;
+  background: #f0fdf4; border: 1px solid #6ee7b7;
+  overflow: hidden; font-family: Georgia, serif;
+}
+.chart-basis-approx {
+  background: #fffbeb; border-color: #fcd34d;
+}
+.cbp-hdr {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 10px; border-bottom: 1px solid rgba(0,0,0,0.06);
+  font-size: 10px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.07em; color: #065f46;
+}
+.chart-basis-approx .cbp-hdr { color: #92400e; }
+.cbp-icon { font-size: 11px; }
+.cbp-title { }
+.cbp-rows { padding: 2px 0; }
+.cbp-row {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 5px 10px; border-bottom: 1px solid rgba(0,0,0,0.04);
+  font-size: 9px;
+}
+.cbp-row:last-child { border-bottom: none; }
+.cbp-lbl {
+  min-width: 68px; font-weight: 800; color: #6b7280; flex-shrink: 0;
+  text-transform: uppercase; letter-spacing: 0.05em; padding-top: 1px;
+}
+.cbp-val { color: #374151; line-height: 1.55; }
+.cbp-highlight { color: #065f46; font-weight: 700; }
+.chart-basis-approx .cbp-highlight { color: #92400e; }
+.cbp-warn { color: #b45309; font-weight: 700; }
+.cbp-note { color: #6b7280; font-style: italic; }
+
 .profile-num-block {
   background: #fff; border-radius: 16px; padding: 14px 20px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06); flex-shrink: 0;
@@ -753,14 +954,40 @@ import { firstValueFrom } from 'rxjs';
 }
 .narrative-para { font-size: 15px; font-weight: 400; color: #1f2937; line-height: 2; margin: 0; }
 
-.hw-list { list-style: none; margin: 0 0 20px; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+.hw-list { list-style: none; margin: 0 0 20px; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .hw-item {
-  display: flex; flex-direction: column; gap: 4px;
-  padding: 11px 16px; background: #faf8f3;
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 13px 16px; background: #faf8f3;
   border-left: 3px solid #d4af37; border-radius: 0 8px 8px 0;
 }
 .hw-label { font-size: 11px; font-weight: 700; letter-spacing: 0.03em; text-transform: none; color: #92600a; }
 .hw-answer { font-size: 13.5px; font-weight: 500; color: #1f2937; line-height: 1.75; }
+
+/* WHO / WHAT / WHERE — numbered sub-list */
+.hw-sub-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.hw-sub-item { display: flex; align-items: flex-start; gap: 9px; }
+.hw-sub-num {
+  flex-shrink: 0; width: 20px; height: 20px;
+  background: #d4af37; color: #fff;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; margin-top: 1px;
+}
+.hw-sub-text { font-size: 13px; font-weight: 500; color: #1f2937; line-height: 1.65; }
+
+/* WHEN — timing block */
+.hw-timing { display: flex; flex-direction: column; gap: 4px; }
+.hw-timing-window {
+  font-size: 15px; font-weight: 700; color: #1f2937; letter-spacing: 0.01em;
+}
+.hw-timing-peak {
+  font-size: 12.5px; font-weight: 600; color: #b45309;
+}
+.hw-timing-dur {
+  font-size: 11.5px; font-weight: 400; color: #6b7280;
+}
+
+/* HOW — redirect */
+.hw-redirect { font-size: 13.5px; font-weight: 600; color: #6d28d9; }
 
 .remedy-card {
   margin-top: 20px; padding: 18px 22px;
@@ -1115,41 +1342,54 @@ export class ReportPage implements OnInit {
     return m[rashi] ?? rashi.slice(0,3);
   }
 
+  private _astroRaw(): any {
+    return (this.orch.rawOutputs() as any)?.astrology ?? {};
+  }
+
   lagnaRashi(): string {
-    const raw = this.orch.rawOutputs() as any;
-    return raw?.astrology?.vedic?.chart?.lagna ?? '—';
+    const a = this._astroRaw();
+    return a?.vedic?.chart?.lagna ?? a?.lagna ?? '—';
   }
   currentDasha(): string {
-    const raw = this.orch.rawOutputs() as any;
-    return raw?.astrology?.vedic?.current_dasha ?? '—';
+    const a = this._astroRaw();
+    return a?.vedic?.current_dasha ?? a?.current_dasha ?? '—';
   }
   moonNakshatra(): string {
-    const raw = this.orch.rawOutputs() as any;
-    return raw?.astrology?.vedic?.chart?.nakshatra ?? '—';
+    const a = this._astroRaw();
+    return a?.vedic?.chart?.nakshatra ?? '—';
+  }
+  isApproxChart(): boolean {
+    return !!(this._astroRaw()?.vedic?.chart?.approximate);
+  }
+  chartMethod(): string {
+    return this._astroRaw()?.vedic?.chart?.method ?? '';
+  }
+  ayanamsaLabel(): string {
+    return this._astroRaw()?.vedic?.chart?.ayanamsa ?? 'Lahiri';
   }
 
   // Planet positions and which house they fall in
   planetsInHouses(): Array<{planet:string; house:number; rashi:string; x:number; y:number}> {
-    const raw = this.orch.rawOutputs() as any;
-    const vedic = raw?.astrology?.vedic ?? {};
-    const chart = vedic?.chart ?? {};
-    const lagna = chart.lagna ?? 'Aries';
+    const a     = this._astroRaw();
+    const chart = a?.vedic?.chart ?? {};
+    const lagna = chart.lagna ?? a?.lagna ?? 'Aries';
 
     const RASHIS = ['Aries','Taurus','Gemini','Cancer','Leo','Virgo',
                     'Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
     const lagnaIdx = RASHIS.indexOf(lagna);
 
-    // Planet rashi mapping from raw outputs
+    // Use planets map from vedic.chart if available, else flat planetary_positions, else offsets
+    const chartPlanets = chart.planets ?? a?.planetary_positions ?? {};
     const planets: Record<string,string> = {
-      Sun:     chart.sun_sign   ?? RASHIS[(lagnaIdx+2)%12],
-      Moon:    chart.moon_sign  ?? RASHIS[(lagnaIdx+4)%12],
-      Mars:    RASHIS[(lagnaIdx+6)%12],
-      Mercury: RASHIS[(lagnaIdx+1)%12],
-      Jupiter: RASHIS[(lagnaIdx+8)%12],
-      Venus:   RASHIS[(lagnaIdx+3)%12],
-      Saturn:  RASHIS[(lagnaIdx+9)%12],
-      Rahu:    RASHIS[(lagnaIdx+5)%12],
-      Ketu:    RASHIS[(lagnaIdx+11)%12],
+      Sun:     chartPlanets['Sun']     ?? RASHIS[(lagnaIdx+2)%12],
+      Moon:    chartPlanets['Moon']    ?? chart.moon_sign ?? RASHIS[(lagnaIdx+4)%12],
+      Mars:    chartPlanets['Mars']    ?? RASHIS[(lagnaIdx+6)%12],
+      Mercury: chartPlanets['Mercury'] ?? RASHIS[(lagnaIdx+1)%12],
+      Jupiter: chartPlanets['Jupiter'] ?? RASHIS[(lagnaIdx+8)%12],
+      Venus:   chartPlanets['Venus']   ?? RASHIS[(lagnaIdx+3)%12],
+      Saturn:  chartPlanets['Saturn']  ?? RASHIS[(lagnaIdx+9)%12],
+      Rahu:    chartPlanets['Rahu']    ?? RASHIS[(lagnaIdx+5)%12],
+      Ketu:    chartPlanets['Ketu']    ?? RASHIS[(lagnaIdx+11)%12],
     };
 
     // Planet text centers — pushed inward from edges to avoid colliding
@@ -1210,6 +1450,10 @@ export class ReportPage implements OnInit {
   }
   hasModule(m: string): boolean {
     return (this.displayReport()?.modules_used ?? []).includes(m);
+  }
+
+  moduleMethods(): Record<string, any> {
+    return (this.displayReport() as any)?.module_methodology ?? {};
   }
 
   // ── Donut chart helpers ──────────────────────────────────────────────────────
@@ -1283,23 +1527,89 @@ export class ReportPage implements OnInit {
   }
 
   // ── Numerology numbers ───────────────────────────────────────────────────────
+  // Reads from backend shape: numerology.indian.core_numbers.{life_path, destiny, name_number, soul_urge}
+  // The local fallback is normalized to this same shape by _normalizeLocalNumerology().
+  private _numCore(): Record<string, number> {
+    const raw = (this.orch.rawOutputs() as any)?.numerology;
+    // Backend / normalized-local shape
+    if (raw?.indian?.core_numbers) return raw.indian.core_numbers;
+    // Array shape (raw local service output — safety fallback)
+    if (Array.isArray(raw)) {
+      const indian = raw.find((r: any) => (r.tradition ?? '').toLowerCase() === 'indian') ?? raw[0];
+      if (indian) return {
+        life_path:   indian.life_path_number   ?? indian.life_path   ?? 0,
+        destiny:     indian.destiny_number     ?? indian.destiny     ?? 0,
+        name_number: indian.name_number        ?? 0,
+        soul_urge:   indian.soul_urge_number   ?? indian.soul_urge   ?? 0,
+      };
+    }
+    return {};
+  }
+
   numerologyNumbers(): Array<{label:string; value:string}> {
-    const raw = this.orch.rawOutputs() as any;
-    const indian = raw?.numerology?.indian?.core_numbers ?? {};
+    const c = this._numCore();
     return [
-      { label:'Life Path',  value: String(indian.life_path  ?? '—') },
-      { label:'Destiny',    value: String(indian.destiny    ?? '—') },
-      { label:'Name No.',   value: String(indian.name_number ?? '—') },
-      { label:'Soul Urge',  value: String(indian.soul_urge  ?? '—') },
+      { label:'Life Path',  value: c['life_path']   != null ? String(c['life_path'])   : '—' },
+      { label:'Destiny',    value: c['destiny']      != null ? String(c['destiny'])     : '—' },
+      { label:'Name No.',   value: c['name_number']  != null ? String(c['name_number']) : '—' },
+      { label:'Soul Urge',  value: c['soul_urge']    != null ? String(c['soul_urge'])   : '—' },
     ];
   }
   lifePathNumber(): number {
-    const raw = this.orch.rawOutputs() as any;
-    return raw?.numerology?.indian?.core_numbers?.life_path ?? 0;
+    return this._numCore()['life_path'] ?? 0;
   }
   lifePathPct(): number {
     const lp = this.lifePathNumber();
     return lp ? Math.round((lp / 9) * 100) : 0;
+  }
+
+  numerologyBranches(): string[] {
+    const mm = (this.displayReport() as any)?.module_methodology?.numerology;
+    if (mm?.branches?.length) return mm.branches;
+    return ['Indian Vedic Numerology', 'Chaldean Numerology', 'Pythagorean Numerology'];
+  }
+
+  numerologyTraditions(): Array<{name:string; life_path:string; name_number:string; destiny:string; soul_urge:string}> {
+    const raw = (this.orch.rawOutputs() as any)?.numerology;
+    if (!raw) return [];
+
+    // Backend shape: { indian: {...}, chaldean: {...}, pythagorean: {...} }
+    const MAP: Array<{key: string; label: string}> = [
+      { key: 'indian',      label: 'Indian Vedic' },
+      { key: 'chaldean',    label: 'Chaldean' },
+      { key: 'pythagorean', label: 'Pythagorean' },
+    ];
+
+    const result: Array<{name:string; life_path:string; name_number:string; destiny:string; soul_urge:string}> = [];
+    for (const { key, label } of MAP) {
+      const t = raw[key];
+      if (!t) continue;
+      const c = t.core_numbers ?? t;
+      result.push({
+        name:        label,
+        life_path:   c.life_path   != null ? String(c.life_path)   : '—',
+        name_number: c.name_number != null ? String(c.name_number) : '—',
+        destiny:     c.destiny     != null ? String(c.destiny)     : '—',
+        soul_urge:   c.soul_urge   != null ? String(c.soul_urge)   : '—',
+      });
+    }
+
+    // Also handle question_wise_analysis shape from raw numerology agent
+    if (!result.length && raw?.question_wise_analysis?.length) {
+      const subResults = raw.question_wise_analysis[0]?.sub_agent_results ?? [];
+      for (const sub of subResults) {
+        const c = sub.extra?.core_numbers ?? {};
+        result.push({
+          name:        sub.sub_agent ?? sub.tradition ?? 'Unknown',
+          life_path:   c.life_path   != null ? String(c.life_path)   : '—',
+          name_number: c.name_number != null ? String(c.name_number) : '—',
+          destiny:     c.destiny     != null ? String(c.destiny)     : '—',
+          soul_urge:   c.soul_urge   != null ? String(c.soul_urge)   : '—',
+        });
+      }
+    }
+
+    return result;
   }
 
   numColor(value: string | number): string {

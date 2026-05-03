@@ -8,6 +8,56 @@ from typing import Any, Dict, List
 from agents.agent_prompts import build_prompt
 
 
+# ── Module methodology registry ───────────────────────────────────────────────
+MODULE_METHODOLOGY: Dict[str, Dict[str, Any]] = {
+    "astrology": {
+        "label":       "Vedic Astrology",
+        "icon":        "🪐",
+        "branches":    ["Vedic Jyotish (Parashara)", "KP System", "Western Tropical"],
+        "ayanamsa":    "Lahiri (Chitra Paksha)",
+        "engine":      "VSOP87-simplified (Sun) + ELP2000 60-term (Moon)",
+        "description": "Birth chart computed with Lahiri ayanamsa. Three sub-agents run in parallel: Vedic (Parashara), KP System, and Western Tropical. Insights cross-referenced across all three traditions.",
+    },
+    "numerology": {
+        "label":       "Numerology",
+        "icon":        "🔢",
+        "branches":    ["Indian Vedic Numerology", "Chaldean Numerology", "Pythagorean Numerology"],
+        "engine":      "Life Path, Destiny, Name Number, Soul Urge, Personality Number",
+        "description": "Three numerology traditions computed in parallel from full name and date of birth. Agreements across traditions are flagged as high-confidence insights.",
+    },
+    "palmistry": {
+        "label":       "Palmistry",
+        "icon":        "✋",
+        "branches":    ["Indian Palmistry (Hasta Samudrika)", "Chinese Palmistry", "Western Palmistry"],
+        "engine":      "Hand shape, major lines (life, head, heart, fate), mounts analysis",
+        "description": "Three palmistry traditions analyzed based on hand shape and major line patterns. Where all three agree, the insight is marked as multi-domain.",
+    },
+    "tarot": {
+        "label":       "Tarot",
+        "icon":        "🃏",
+        "branches":    ["Rider-Waite Tarot", "Intuitive Tarot"],
+        "engine":      "3-card or 5-card spread — Past / Present / Future positions",
+        "description": "Two Tarot readers (Rider-Waite and Intuitive) draw from the same spread. Card interpretations are synthesized for maximum clarity and spiritual resonance.",
+    },
+    "vastu": {
+        "label":       "Vastu Shastra",
+        "icon":        "🏠",
+        "branches":    ["Traditional Vastu Shastra (Vedic)", "Modern Vastu Principles"],
+        "engine":      "Facing direction, property type, directional energy mapping",
+        "description": "Two Vastu traditions — classical Vedic and modern adaptations — are applied to the space and facing direction for holistic spatial alignment guidance.",
+    },
+}
+
+
+def build_module_methodology(memory: Dict[str, Any]) -> Dict[str, Any]:
+    """Return methodology entry for each module that was actually run (present in memory)."""
+    result = {}
+    for module, info in MODULE_METHODOLOGY.items():
+        if module in memory:
+            result[module] = info
+    return result
+
+
 def admin_review_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
     # Use question_consensus from meta_agent if available
     question_consensus = state.get("question_consensus", [])
@@ -57,8 +107,9 @@ def admin_review_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
             })
 
         admin_review = {
-            "subject":   name,
-            "questions": questions_output,
+            "subject":            name,
+            "questions":          questions_output,
+            "module_methodology": build_module_methodology(memory),
         }
     else:
         # Fallback: legacy flat section structure
@@ -165,7 +216,8 @@ def admin_review_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
             })
 
         admin_review = {
-            "subject":   name,
+            "subject":            name,
+            "module_methodology": build_module_methodology(memory),
             "questions": [
                 {
                     "question": question or "General life overview.",

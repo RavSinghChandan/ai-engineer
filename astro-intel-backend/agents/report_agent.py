@@ -106,6 +106,7 @@ def _consolidate_section(
     subject: str,
     domains: List[str],
     remedies: Dict[str, Any] = {},
+    memory: Dict[str, Any] = {},
 ) -> Dict[str, Any]:
     """
     Builds a consolidated narrative for one question section.
@@ -113,10 +114,22 @@ def _consolidate_section(
     LLM response.  We also return the 4 prompt variants so the API layer
     can invoke the model with whichever variant the caller prefers.
     """
+    # Filter remedy insights so their text never appears in the narrative.
+    _REMEDY_PREFIXES = ("recommended practice", "mantra recommendation", "remedy:", "remedies:")
+    def _is_remedy_insight(i: Dict[str, Any]) -> bool:
+        ins_id = (i.get("id") or "").lower()
+        content_start = i.get("content", "").strip().lower()[:40]
+        return (
+            ins_id.endswith("_remedy") or "remedy" in ins_id
+            or any(content_start.startswith(p) for p in _REMEDY_PREFIXES)
+        )
+
+    narrative_insights = [i for i in approved_insights if not _is_remedy_insight(i)]
+
     # Deterministic fallback narrative (used when LLM is not called)
-    high  = [i for i in approved_insights if i.get("confidence") == "high"]
-    med   = [i for i in approved_insights if i.get("confidence") == "medium"]
-    other = [i for i in approved_insights if i.get("confidence") not in ("high", "medium")]
+    high  = [i for i in narrative_insights if i.get("confidence") == "high"]
+    med   = [i for i in narrative_insights if i.get("confidence") == "medium"]
+    other = [i for i in narrative_insights if i.get("confidence") not in ("high", "medium")]
 
     ordered = high + med + other
     sentences = [i["content"].rstrip(".") + "." for i in ordered]
@@ -125,7 +138,7 @@ def _consolidate_section(
     direct = sentences[0] if sentences else "The analysis indicates a positive path forward."
 
     # Cross-domain consensus sentences
-    multi = [i["content"] for i in approved_insights if i.get("is_common")]
+    multi = [i["content"] for i in narrative_insights if i.get("is_common")]
     consensus_note = (
         f" Multiple spiritual traditions converge on: {multi[0].rstrip('.')}."
         if multi else ""
@@ -151,7 +164,7 @@ def _consolidate_section(
 
     from .simplify_agent import build_structured_summary
     structured_summary = build_structured_summary(
-        question, intent, approved_insights, remedies, {}
+        question, intent, approved_insights, remedies, memory
     )
 
     return {
@@ -198,6 +211,11 @@ def final_report_agent(
 
     modules_used = [m for m in ["astrology", "numerology", "palmistry", "tarot", "vastu"] if m in memory]
 
+    # Pull methodology from admin_review (already built by admin_review_agent)
+    # or fall back to building it fresh from memory
+    from agents.admin_review_agent import build_module_methodology, MODULE_METHODOLOGY
+    module_methodology = admin_review.get("module_methodology") or build_module_methodology(memory)
+
     for q_block in all_questions:
         question = q_block.get("question", "")
         intent   = q_block.get("intent", "general")
@@ -228,7 +246,7 @@ def final_report_agent(
             qr_list = remedies.get("question_remedies", []) if remedies else []
             qr = next((r for r in qr_list if r.get("question") == question), {})
             section = _consolidate_section(
-                question, intent, approved_insights, subject, modules_used, qr
+                question, intent, approved_insights, subject, modules_used, qr, memory
             )
             report_sections.append(section)
 
@@ -279,7 +297,8 @@ def final_report_agent(
         "user_name":    subject,
         "questions":    all_questions_text,
         "generated_at": now.isoformat(),
-        "modules_used": modules_used,
+        "modules_used":       modules_used,
+        "module_methodology": module_methodology,
 
         "total_insights_reviewed": approved_count + rejected_count,
         "total_insights_approved": approved_count,

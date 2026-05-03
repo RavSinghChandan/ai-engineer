@@ -19,6 +19,7 @@ class UserProfile(BaseModel):
 
 class AnalysisRequest(BaseModel):
     user_profile: UserProfile
+    user_id: str = "anonymous"
     # Accept either a single question string OR a list of questions
     user_question: str = ""
     questions: List[str] = Field(default_factory=list)
@@ -26,6 +27,10 @@ class AnalysisRequest(BaseModel):
         default=["astrology", "numerology", "palmistry", "tarot", "vastu"]
     )
     module_inputs: Dict[str, Any] = Field(default_factory=dict)
+    # Optional geocoded coordinates for precise astronomical computation
+    geocode: Optional[Dict[str, Any]] = None
+    # Prompt version: "v1" (warm/exploratory) or "v2" (laser-sharp) — default v2
+    prompt_version: Optional[str] = "v2"
 
 
 # ── Normalised question ────────────────────────────────────────────────────

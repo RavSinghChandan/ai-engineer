@@ -6,9 +6,12 @@ export class RemedyService {
 
   compute(outputs: AgentOutputs): RemedyResult {
     const colors = this._mergeColors(outputs);
-    const lagna = outputs.astrology?.lagna ?? '';
-    const lifePath = outputs.numerology?.[0]?.life_path_number ?? 1;
-    const dasha = outputs.astrology?.current_dasha ?? '';
+    const lagna = (outputs.astrology as any)?.lagna ?? '';
+    const num = outputs.numerology as any;
+    const lifePath = Array.isArray(num)
+      ? (num[0]?.life_path_number ?? 1)
+      : (num?.indian?.core_numbers?.life_path ?? num?.pythagorean?.core_numbers?.life_path ?? 1);
+    const dasha = (outputs.astrology as any)?.current_dasha ?? '';
 
     return {
       daily_habits: this._habits(lagna, dasha),
@@ -24,8 +27,18 @@ export class RemedyService {
 
   private _mergeColors(o: AgentOutputs): string[] {
     const colors: string[] = [];
-    if (o.numerology) (o.numerology as any[]).forEach((n: any) => colors.push(...(n.lucky_colors ?? [])));
-    if (o.vastu) colors.push(...o.vastu.colors_recommended);
+    if (o.numerology) {
+      const num = o.numerology as any;
+      if (Array.isArray(num)) {
+        num.forEach((n: any) => colors.push(...(n.lucky_colors ?? [])));
+      } else {
+        // normalized shape: { indian, chaldean, pythagorean }
+        ['indian', 'chaldean', 'pythagorean'].forEach(k => {
+          if (num[k]?.lucky_colors) colors.push(...num[k].lucky_colors);
+        });
+      }
+    }
+    if (o.vastu) colors.push(...((o.vastu as any).colors_recommended ?? []));
     return colors;
   }
 

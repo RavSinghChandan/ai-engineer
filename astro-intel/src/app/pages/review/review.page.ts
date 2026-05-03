@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, KeyValuePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { OrchestratorService } from '../../services/orchestrator.service';
@@ -10,7 +10,7 @@ import { firstValueFrom } from 'rxjs';
 @Component({
   selector: 'app-review',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, KeyValuePipe],
   template: `
 <div class="shell">
 
@@ -42,7 +42,11 @@ import { firstValueFrom } from 'rxjs';
       </div>
       <button class="btn-outline-green" (click)="approveAll()">Approve All</button>
       @if (!reportGenerated()) {
-        <button class="btn-primary" [disabled]="approvedCount() === 0 || generating()" (click)="generate()">
+        @if (generateError()) {
+          <span class="generate-err">⚠ {{ generateError() }}</span>
+        }
+        <button class="btn-primary" [disabled]="approvedCount() === 0 || generating()" (click)="generate()"
+                [title]="approvedCount() === 0 ? 'Approve at least one insight first' : ''">
           @if (generating()) {
             <span class="btn-spinner"></span> Generating…
           } @else {
@@ -111,6 +115,10 @@ import { firstValueFrom } from 'rxjs';
         <span class="tab-count">{{ orch.agentLog().length }}</span>
       }
     </button>
+    <button class="tab" [class.tab-on]="activeTab()==='astrology'" (click)="activeTab.set('astrology')">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" stroke-width="1.3"/><path d="M6.5 2v1M6.5 10v1M2 6.5h1M10 6.5h1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Astrology
+    </button>
   </nav>
 
   <!-- ══ REVIEW TAB ═════════════════════════════════════════════════════════ -->
@@ -123,6 +131,13 @@ import { firstValueFrom } from 'rxjs';
           <p class="empty-title">No analysis yet</p>
           <p class="empty-sub">Run the analysis from the intake form first.</p>
           <button class="btn-outline" (click)="goBack()">← Go to Analysis</button>
+        </div>
+      }
+
+      @if (questionBlocks().length && approvedCount() === 0 && !reportGenerated()) {
+        <div class="approve-hint">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="#d4af37" stroke-width="1.4"/><path d="M7 4.5v3M7 9.5v.5" stroke="#d4af37" stroke-width="1.6" stroke-linecap="round"/></svg>
+          Approve at least one insight below — or click <strong>Approve All</strong> — then click <strong>Generate Report</strong>.
         </div>
       }
 
@@ -354,6 +369,156 @@ import { firstValueFrom } from 'rxjs';
     </div>
   }
 
+  <!-- ══ ASTROLOGY TAB ════════════════════════════════════════════════════════ -->
+  @if (activeTab() === 'astrology') {
+    <div class="body">
+
+      @if (!astroRaw()?.vedic) {
+        <div class="empty">
+          <div class="empty-icon">★</div>
+          <p class="empty-title">No astrology data</p>
+          <p class="empty-sub">Run the analysis with the Astrology module enabled first.</p>
+        </div>
+      } @else {
+
+        <!-- ── Module Methodology card ──────────────────────────────────── -->
+        @if (moduleMethodology() | keyvalue; as entries) {
+          @if (entries.length) {
+            <div class="method-card">
+              <div class="method-card-hdr">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="12" height="12" rx="3" stroke="currentColor" stroke-width="1.4"/><path d="M4 5h6M4 7.5h4M4 10h5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                Analysis Methodology — Branches Used
+              </div>
+              <div class="method-modules">
+                @for (entry of entries; track entry.key) {
+                  <div class="method-module">
+                    <div class="mm-header">
+                      <span class="mm-icon">{{ entry.value.icon }}</span>
+                      <span class="mm-label">{{ entry.value.label }}</span>
+                    </div>
+                    <div class="mm-branches">
+                      @for (branch of entry.value.branches; track branch) {
+                        <span class="mm-branch">{{ branch }}</span>
+                      }
+                    </div>
+                    @if (entry.value.ayanamsa) {
+                      <div class="mm-detail">Ayanamsa: <strong>{{ entry.value.ayanamsa }}</strong></div>
+                    }
+                    @if (entry.value.engine) {
+                      <div class="mm-detail">Engine: {{ entry.value.engine }}</div>
+                    }
+                    <div class="mm-desc">{{ entry.value.description }}</div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        }
+
+        <!-- ── Astrology Basis card ───────────────────────────────────────── -->
+        <div class="astro-basis-card">
+          <div class="astro-basis-hdr">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="#d4af37" stroke-width="1.4"/><path d="M7 4.5v3M7 9.5v.5" stroke="#d4af37" stroke-width="1.6" stroke-linecap="round"/></svg>
+            <span>Chart Computation Basis</span>
+          </div>
+          <div class="astro-basis-grid">
+            <div class="basis-row">
+              <span class="basis-label">System</span>
+              <span class="basis-val">Vedic Jyotish (Indian Sidereal)</span>
+            </div>
+            <div class="basis-row">
+              <span class="basis-label">Ayanamsa</span>
+              <span class="basis-val basis-highlight">{{ ayanamsaLabel() }} — Chitra Paksha (Lahiri)</span>
+            </div>
+            <div class="basis-row">
+              <span class="basis-label">Engine</span>
+              <span class="basis-val">VSOP87-simplified (Sun) + ELP2000-simplified (Moon), ~0.3° accuracy</span>
+            </div>
+            <div class="basis-row">
+              <span class="basis-label">Birth Time</span>
+              <span class="basis-val" [class.basis-warn]="isApproxChart()">
+                {{ isApproxChart() ? '⚠ Not provided — Lagna is approximate (noon assumed)' : '✓ Provided by client — used as-is' }}
+              </span>
+            </div>
+            <div class="basis-row">
+              <span class="basis-label">Coordinates</span>
+              <span class="basis-val">{{ coordSource() }}</span>
+            </div>
+            <div class="basis-row">
+              <span class="basis-label">Sun Sign Note</span>
+              <span class="basis-val basis-note">Vedic sidereal Sun is ≈23° earlier than Western tropical — a client born in Oct (tropical Libra) may have Vedic Virgo Sun. This is correct.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Planetary positions table ────────────────────────────────── -->
+        <div class="astro-section-card">
+          <div class="astro-section-hdr">Planetary Positions (Sidereal / Lahiri)</div>
+          <div class="astro-planet-table">
+            <div class="apt-row apt-head">
+              <span>Planet</span><span>Rashi (Sign)</span><span>Longitude</span><span>Nakshatra</span>
+            </div>
+            @for (row of planetRows(); track row.planet) {
+              <div class="apt-row" [class.apt-lagna]="row.planet === 'Lagna'">
+                <span class="apt-planet">
+                  <span class="apt-sym" [style.color]="planetColor(row.planet)">{{ planetSymbol(row.planet) }}</span>
+                  {{ row.planet }}
+                </span>
+                <span class="apt-rashi">{{ row.rashi }}</span>
+                <span class="apt-lon">{{ row.longitude }}</span>
+                <span class="apt-nak">{{ row.nakshatra }}</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- ── Dasha timeline ────────────────────────────────────────────── -->
+        <div class="astro-section-card">
+          <div class="astro-section-hdr">Vimshottari Dasha</div>
+          <div class="astro-dasha-row">
+            <div class="dasha-cell dasha-current">
+              <div class="dasha-label">Current Mahadasha</div>
+              <div class="dasha-val">{{ currentDasha() }}</div>
+            </div>
+            <div class="dasha-cell">
+              <div class="dasha-label">Moon Nakshatra</div>
+              <div class="dasha-val">{{ moonNakshatra() }}</div>
+            </div>
+            <div class="dasha-cell">
+              <div class="dasha-label">Lagna (Ascendant)</div>
+              <div class="dasha-val">{{ lagnaRashi() }}</div>
+            </div>
+          </div>
+          @if (dashaSequence().length) {
+            <div class="dasha-sequence">
+              <div class="dasha-seq-label">Dasha Sequence</div>
+              <div class="dasha-seq-pills">
+                @for (d of dashaSequence(); track d.lord) {
+                  <span class="dasha-pill" [class.dasha-pill-on]="d.current">
+                    {{ d.lord }} <span class="dasha-years">{{ d.years }}y</span>
+                  </span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- ── Active Yogas ───────────────────────────────────────────────── -->
+        @if (activeYogas().length) {
+          <div class="astro-section-card">
+            <div class="astro-section-hdr">Active Yogas</div>
+            <div class="astro-yoga-list">
+              @for (y of activeYogas(); track y) {
+                <span class="yoga-pill">{{ y }}</span>
+              }
+            </div>
+          </div>
+        }
+
+      }
+    </div>
+  }
+
   <!-- ══ RAW JSON TAB ═══════════════════════════════════════════════════════ -->
   @if (activeTab() === 'raw') {
     <div class="code-body">
@@ -463,6 +628,15 @@ import { firstValueFrom } from 'rxjs';
 }
 .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(212,175,55,0.4); }
 .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+.generate-err { font-size: 11px; color: #dc2626; font-weight: 600; white-space: nowrap; }
+
+.approve-hint {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 16px; background: rgba(212,175,55,0.08);
+  border: 1px solid rgba(212,175,55,0.3); border-radius: 10px;
+  font-size: 12.5px; color: #78500a; font-family: Georgia, serif; line-height: 1.5;
+}
 
 .btn-outline {
   padding: 7px 18px; border-radius: 8px;
@@ -745,6 +919,130 @@ import { firstValueFrom } from 'rxjs';
 .trans-empty-title { font-size: 16px; font-weight: 700; color: #374151; font-family: Georgia, serif; margin: 0; }
 .trans-empty-sub { font-size: 13px; color: #9ca3af; font-family: Georgia, serif; margin: 0; max-width: 440px; line-height: 1.7; }
 
+/* ── Module Methodology card ──────────────────────────────────────────────── */
+.method-card {
+  background: #fff; border-radius: 14px;
+  border: 1px solid rgba(0,0,0,0.07);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.03);
+  overflow: hidden;
+}
+.method-card-hdr {
+  display: flex; align-items: center; gap: 8px;
+  padding: 14px 18px; border-bottom: 1px solid rgba(99,102,241,0.12);
+  font-size: 13px; font-weight: 700; color: #4338ca; font-family: Georgia, serif;
+  background: linear-gradient(135deg, #eef2ff, #fff);
+}
+.method-modules {
+  display: flex; flex-direction: column; gap: 0;
+}
+.method-module {
+  padding: 14px 18px; border-bottom: 1px solid #f5f3ef;
+}
+.method-module:last-child { border-bottom: none; }
+.mm-header {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+}
+.mm-icon { font-size: 16px; }
+.mm-label { font-size: 13px; font-weight: 700; color: #1a1a1a; font-family: Georgia, serif; }
+.mm-branches { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 6px; }
+.mm-branch {
+  font-size: 10.5px; font-weight: 700; padding: 3px 10px; border-radius: 99px;
+  background: rgba(99,102,241,0.08); color: #4338ca;
+  border: 1px solid rgba(99,102,241,0.2); font-family: Georgia, serif;
+}
+.mm-detail {
+  font-size: 11px; color: #6b7280; font-family: Georgia, serif;
+  margin-bottom: 3px; line-height: 1.5;
+}
+.mm-detail strong { color: #374151; }
+.mm-desc {
+  font-size: 11.5px; color: #9ca3af; font-family: Georgia, serif;
+  line-height: 1.65; font-style: italic;
+}
+
+/* ── Astrology tab ────────────────────────────────────────────────────────── */
+.astro-basis-card, .astro-section-card {
+  background: #fff; border-radius: 14px;
+  border: 1px solid rgba(0,0,0,0.07);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.03);
+  overflow: hidden;
+}
+.astro-basis-hdr {
+  display: flex; align-items: center; gap: 8px;
+  padding: 14px 18px; border-bottom: 1px solid rgba(212,175,55,0.15);
+  font-size: 13px; font-weight: 700; color: #8a6a00; font-family: Georgia, serif;
+  background: linear-gradient(135deg, #fffbf0, #fff);
+}
+.astro-basis-grid { padding: 4px 0; }
+.basis-row {
+  display: flex; align-items: flex-start; gap: 16px;
+  padding: 10px 18px; border-bottom: 1px solid #f5f3ef;
+  font-size: 12.5px; font-family: Georgia, serif;
+}
+.basis-row:last-child { border-bottom: none; }
+.basis-label {
+  min-width: 110px; font-weight: 700; color: #6b7280; flex-shrink: 0;
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; padding-top: 2px;
+}
+.basis-val { color: #374151; line-height: 1.6; }
+.basis-highlight { color: #8a6a00; font-weight: 600; }
+.basis-warn { color: #b45309; font-weight: 600; }
+.basis-note { color: #6b7280; font-size: 11.5px; font-style: italic; line-height: 1.65; }
+
+.astro-section-hdr {
+  padding: 13px 18px; border-bottom: 1px solid rgba(0,0,0,0.06);
+  font-size: 13px; font-weight: 700; color: #1a1a1a; font-family: Georgia, serif;
+  background: linear-gradient(135deg, #fffbf0, #fff);
+}
+
+.astro-planet-table { padding: 0 18px 12px; }
+.apt-row {
+  display: grid; grid-template-columns: 140px 1fr 90px 1fr;
+  gap: 8px; padding: 8px 0; border-bottom: 1px solid #f5f3ef;
+  font-size: 12.5px; font-family: Georgia, serif; align-items: center;
+}
+.apt-row:last-child { border-bottom: none; }
+.apt-head {
+  font-size: 10px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.07em; color: #9ca3af; padding-bottom: 8px;
+  border-bottom: 1.5px solid #e5e7eb;
+}
+.apt-lagna { background: rgba(212,175,55,0.05); border-radius: 6px; padding: 8px 6px; }
+.apt-planet { display: flex; align-items: center; gap: 6px; font-weight: 700; color: #1a1a1a; }
+.apt-sym { font-size: 15px; }
+.apt-rashi { color: #374151; }
+.apt-lon { font-family: monospace; color: #6b7280; font-size: 11.5px; }
+.apt-nak { color: #7c3aed; font-size: 12px; }
+
+.astro-dasha-row {
+  display: flex; gap: 1px; padding: 0 18px 16px;
+  flex-wrap: wrap;
+}
+.dasha-cell {
+  flex: 1; min-width: 120px; padding: 14px 16px;
+  background: #f9fafb; border-radius: 10px; margin: 8px 4px 0;
+}
+.dasha-current { background: rgba(212,175,55,0.08); border: 1px solid rgba(212,175,55,0.2); }
+.dasha-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: #9ca3af; font-weight: 700; margin-bottom: 4px; }
+.dasha-val { font-size: 15px; font-weight: 700; color: #1a1a1a; font-family: Georgia, serif; }
+.dasha-sequence { padding: 0 18px 18px; }
+.dasha-seq-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: #9ca3af; font-weight: 700; margin-bottom: 8px; }
+.dasha-seq-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.dasha-pill {
+  padding: 4px 12px; border-radius: 99px; font-size: 11.5px; font-weight: 600;
+  background: #f3f4f6; color: #6b7280; font-family: Georgia, serif;
+  border: 1px solid #e5e7eb;
+}
+.dasha-pill-on { background: rgba(212,175,55,0.12); color: #8a6a00; border-color: rgba(212,175,55,0.3); }
+.dasha-years { font-size: 10px; color: #9ca3af; margin-left: 4px; }
+
+.astro-yoga-list { padding: 14px 18px; display: flex; flex-wrap: wrap; gap: 8px; }
+.yoga-pill {
+  padding: 5px 14px; border-radius: 99px; font-size: 12px; font-weight: 600;
+  background: rgba(99,102,241,0.08); color: #4338ca;
+  border: 1px solid rgba(99,102,241,0.2); font-family: Georgia, serif;
+}
+
 /* ── Code / JSON / Log body ───────────────────────────────────────────────── */
 .code-body {
   flex: 1; overflow: hidden; display: flex; flex-direction: column;
@@ -787,7 +1085,7 @@ export class ReviewPage {
   private api    = inject(ApiService);
   readonly orch  = inject(OrchestratorService);
 
-  readonly activeTab   = signal<'review'|'translate'|'raw'|'log'>('review');
+  readonly activeTab   = signal<'review'|'translate'|'raw'|'log'|'astrology'>('review');
   readonly editingId   = signal<string|null>(null);
   readonly approvedIds = signal<Set<string>>(new Set());
   readonly rejectedIds = signal<Set<string>>(new Set());
@@ -892,16 +1190,24 @@ export class ReviewPage {
     });
   }
 
+  readonly generateError = signal('');
+
   async generate() {
+    if (!this.orch.adminReview()) {
+      this.generateError.set('No analysis data found. Please run the analysis first.');
+      return;
+    }
     this.generating.set(true);
+    this.generateError.set('');
     try {
       await this.orch.approveAndGenerate([...this.approvedIds()], [...this.rejectedIds()]);
       this.reportGenerated.set(true);
-      // Load languages from backend for translation tab
       try {
         const res = await firstValueFrom(this.api.getLanguages());
         this.languages.set(res.languages);
       } catch { /* keep fallback */ }
+    } catch (err: any) {
+      this.generateError.set(err?.message ?? 'Failed to generate report. Please try again.');
     } finally {
       this.generating.set(false);
     }
@@ -909,7 +1215,10 @@ export class ReviewPage {
 
   async doTranslate() {
     const report = this.orch.finalReport();
-    if (!report) return;
+    if (!report) {
+      this.translateError.set('Generate the report first before translating.');
+      return;
+    }
 
     const lang = this.languages().find(l => l.code === this.selectedTranslateLang);
     this.pendingLangName.set(lang?.name ?? this.selectedTranslateLang);
@@ -987,6 +1296,98 @@ export class ReviewPage {
   }
 
   goBack() { this.router.navigate(['/']); }
+
+  // ── Module methodology ───────────────────────────────────────────────────
+  moduleMethodology(): Record<string, any> {
+    return (this.orch.adminReview() as any)?.module_methodology ?? {};
+  }
+
+  // ── Astrology tab helpers ────────────────────────────────────────────────
+  astroRaw(): any {
+    return (this.orch.rawOutputs() as any)?.astrology ?? null;
+  }
+
+  private _astroChart(): any {
+    return this.astroRaw()?.vedic?.chart ?? {};
+  }
+
+  lagnaRashi(): string {
+    const a = this.astroRaw();
+    return a?.vedic?.chart?.lagna ?? a?.lagna ?? '—';
+  }
+
+  currentDasha(): string {
+    const a = this.astroRaw();
+    return a?.vedic?.current_dasha ?? '—';
+  }
+
+  moonNakshatra(): string {
+    return this._astroChart().nakshatra ?? '—';
+  }
+
+  isApproxChart(): boolean {
+    return !!(this._astroChart().approximate);
+  }
+
+  ayanamsaLabel(): string {
+    return this._astroChart().ayanamsa ?? 'Lahiri 23.86°';
+  }
+
+  coordSource(): string {
+    const geo = (this.orch.rawOutputs() as any)?.astrology?.vedic?.chart?.coord_source;
+    if (geo === 'geocoded') return 'Geocoded via Nominatim (lat/lon resolved from place name)';
+    if (geo === 'builtin')  return 'Built-in city table (approximate coordinates)';
+    return geo ?? 'Not resolved — chart may use default coordinates';
+  }
+
+  activeYogas(): string[] {
+    return this.astroRaw()?.vedic?.active_yogas ?? [];
+  }
+
+  dashaSequence(): Array<{lord: string; years: number; current: boolean}> {
+    return this.astroRaw()?.vedic?.dasha_sequence ?? [];
+  }
+
+  planetRows(): Array<{planet: string; rashi: string; longitude: string; nakshatra: string}> {
+    const chart = this._astroChart();
+    const planets = chart.planets ?? {};
+    const lons = chart.planet_longitudes ?? {};
+    const naks = chart.planet_nakshatras ?? {};
+
+    const order = ['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'];
+    const rows = order.map(p => ({
+      planet:    p,
+      rashi:     planets[p] ?? '—',
+      longitude: lons[p]    ? `${Number(lons[p]).toFixed(2)}°` : '—',
+      nakshatra: naks[p]    ?? '—',
+    }));
+
+    rows.unshift({
+      planet:    'Lagna',
+      rashi:     chart.lagna ?? '—',
+      longitude: chart.lagna_longitude ? `${Number(chart.lagna_longitude).toFixed(2)}°` : '—',
+      nakshatra: '—',
+    });
+
+    return rows;
+  }
+
+  planetSymbol(planet: string): string {
+    const s: Record<string, string> = {
+      Sun:'☉', Moon:'☽', Mars:'♂', Mercury:'☿', Jupiter:'♃',
+      Venus:'♀', Saturn:'♄', Rahu:'☊', Ketu:'☋', Lagna:'⊕',
+    };
+    return s[planet] ?? planet.slice(0, 2);
+  }
+
+  planetColor(planet: string): string {
+    const c: Record<string, string> = {
+      Sun:'#d97706', Moon:'#7c3aed', Mars:'#dc2626', Mercury:'#16a34a',
+      Jupiter:'#d4af37', Venus:'#db2777', Saturn:'#374151',
+      Rahu:'#0891b2', Ketu:'#92400e', Lagna:'#d4af37',
+    };
+    return c[planet] ?? '#374151';
+  }
 }
 
 const FALLBACK_LANGUAGES: LanguageOption[] = [

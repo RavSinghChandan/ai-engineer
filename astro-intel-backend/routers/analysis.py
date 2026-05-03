@@ -13,6 +13,7 @@ from pydantic import BaseModel
 
 from schemas import AnalysisRequest, ApprovalRequest
 from graph.pipeline import run_pipeline
+import agents.prompt_config as prompt_config
 from agents.report_agent import final_report_agent
 from agents.translation_agent import translation_agent, list_languages
 import memory.store as store
@@ -31,15 +32,34 @@ async def run_analysis(req: AnalysisRequest) -> JSONResponse:
     Accepts single user_question AND/OR list of questions.
     Returns admin_review with question-wise insights.
     """
+    # ── Apply per-request prompt version ─────────────────────────────────────
+    requested_version = (req.prompt_version or "v2").strip().lower()
+    if requested_version in ("v1", "v2"):
+        prompt_config.ACTIVE_PROMPT_VERSION = requested_version
+
+    # ── Cache miss — run the full pipeline ───────────────────────────────────
     session_id = str(uuid.uuid4())
 
     profile_dict = req.user_profile.model_dump()
+
+    # Single source of truth: user_question is the final typed/selected input.
+    # If the UI also sends questions[], deduplicate so question_agent sees only
+    # unique entries (prevents the same text being processed twice).
+    final_question = (req.user_question or "").strip()
+    def _norm(t: str) -> str:
+        return " ".join(t.lower().split())
+    extra_questions = [
+        q for q in (req.questions or [])
+        if q and q.strip() and _norm(q.strip()) != _norm(final_question)
+    ]
+
     initial_state: Dict[str, Any] = {
         "user_profile":        profile_dict,
-        "user_question":       req.user_question or "",
-        "questions":           req.questions or [],
+        "user_question":       final_question,
+        "questions":           extra_questions,
         "selected_modules":    req.selected_modules,
         "module_inputs":       req.module_inputs,
+        "geocode":             req.geocode or {},
         "normalized_questions":[],
         "focus_context":       {},
         "memory":              {},
@@ -62,14 +82,14 @@ async def run_analysis(req: AnalysisRequest) -> JSONResponse:
 
     admin_review = final_state.get("admin_review", {})
 
-    return JSONResponse(content={
-        "session_id":          session_id,
-        "status":              "completed",
-        "focus_context":       final_state.get("focus_context", {}),
+    response_body: Dict[str, Any] = {
+        "session_id":           session_id,
+        "status":               "completed",
+        "focus_context":        final_state.get("focus_context", {}),
         "normalized_questions": final_state.get("normalized_questions", []),
-        "memory_keys":         store.memory_keys(session_id),
-        "admin_review":        admin_review,
-        "agent_log":           final_state.get("agent_log", []),
+        "memory_keys":          store.memory_keys(session_id),
+        "admin_review":         admin_review,
+        "agent_log":            final_state.get("agent_log", []),
         "raw_outputs": {
             "astrology":    final_state.get("memory", {}).get("astrology"),
             "numerology":   final_state.get("memory", {}).get("numerology"),
@@ -79,7 +99,9 @@ async def run_analysis(req: AnalysisRequest) -> JSONResponse:
             "remedies":     final_state.get("remedies"),
             "consolidated": final_state.get("consolidated"),
         },
-    })
+    }
+
+    return JSONResponse(content=response_body)
 
 
 # ── POST /approve — generate final report ────────────────────────────────────
@@ -97,7 +119,8 @@ async def approve_and_generate(req: ApprovalRequest) -> JSONResponse:
         raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found. Run /run first.")
 
     admin_review = state.get("admin_review", {})
-    memory       = state.get("memory", {})
+    # Inject user_profile into memory so simplify_agent can personalise WHEN windows by birth month
+    memory       = {**state.get("memory", {}), "user_profile": state.get("user_profile", {})}
     remedies     = state.get("remedies", {})
 
     report = final_report_agent(

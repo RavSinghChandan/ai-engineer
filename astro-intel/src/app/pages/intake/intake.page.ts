@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { OrchestratorService } from '../../services/orchestrator.service';
+import { GeocodeService } from '../../services/geocode.service';
 import { Module, SystemInput } from '../../models/astro.models';
 import { AgentFlowComponent } from '../../components/agent-flow/agent-flow.component';
 
@@ -121,8 +122,8 @@ function validateProfile(p: {
 
   // ── Time of birth ──
   const tob = p.time_of_birth;
-  if (tob && !/^([01]\d|2[0-3]):[0-5]\d$/.test(tob))
-    e['time_of_birth'] = 'Use HH:MM format (e.g. 14:30).';
+  if (tob && !/^([01]?\d|2[0-3]):[0-5]\d$/.test(tob))
+    e['time_of_birth'] = 'Enter hours (0–23) and minutes (0–59).';
 
   // ── Place of birth ──
   const place = p.place_of_birth.trim();
@@ -282,21 +283,34 @@ function validateProfile(p: {
                     </button>
                   }
                 </div>
-                <!-- Exact time input, shown when "Exact" tod selected or already has value -->
+                <!-- Exact time input — explicit 24h HH:MM spinners -->
                 @if (selectedTod() === 'exact' || profile().time_of_birth) {
-                  <div class="inp-wrap" style="margin-top:6px"
-                       [class.inp-err]="touched()['time_of_birth'] && errors()['time_of_birth']">
-                    <input class="inp" type="time"
-                           [value]="profile().time_of_birth"
-                           (input)="patch('time_of_birth', $any($event.target).value)"
-                           (blur)="touch('time_of_birth')" placeholder="HH:MM"/>
+                  <div class="tob-24h-wrap" style="margin-top:6px"
+                       [class.tob-err]="touched()['time_of_birth'] && errors()['time_of_birth']">
+                    <span class="tob-badge">24h</span>
+                    <input class="tob-hh" type="number" min="0" max="23"
+                           placeholder="HH"
+                           [value]="tobHH()"
+                           (input)="onTobHH($any($event.target).value)"
+                           (blur)="touch('time_of_birth')"
+                           maxlength="2"/>
+                    <span class="tob-sep">:</span>
+                    <input class="tob-mm" type="number" min="0" max="59"
+                           placeholder="MM"
+                           [value]="tobMM()"
+                           (input)="onTobMM($any($event.target).value)"
+                           (blur)="touch('time_of_birth')"
+                           maxlength="2"/>
+                    @if (profile().time_of_birth && !errors()['time_of_birth']) {
+                      <span class="tob-ok">✓ {{ profile().time_of_birth }}</span>
+                    }
                   </div>
                 }
                 @if (touched()['time_of_birth'] && errors()['time_of_birth']) {
                   <span class="ferr">{{ errors()['time_of_birth'] }}</span>
                 }
                 @if (selectedTod() && selectedTod() !== 'exact') {
-                  <span class="field-hint-ok">{{ todHint() }} · Exact time improves accuracy</span>
+                  <span class="field-hint-ok">{{ todHint() }} (24h) · Exact time improves accuracy</span>
                 }
               </div>
             </div>
@@ -325,6 +339,15 @@ function validateProfile(p: {
                   <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="#ef4444" stroke-width="1.2"/><path d="M6 3.5v3M6 8v.5" stroke="#ef4444" stroke-width="1.3" stroke-linecap="round"/></svg>
                   {{ errors()['place_of_birth'] }}
                 </span>
+              }
+              @if (geoResolved()) {
+                <span class="geo-badge">
+                  <svg width="9" height="9" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="#10b981" stroke-width="1.4"/><path d="M3.5 6l2 2L8.5 4" stroke="#10b981" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  {{ geoResolved()!.display_name | slice:0:48 }} · {{ geoResolved()!.lat.toFixed(2) }}°N {{ geoResolved()!.lon.toFixed(2) }}°E
+                </span>
+              }
+              @if (geoResolving()) {
+                <span class="geo-resolving">Resolving coordinates…</span>
               }
             </div>
 
@@ -528,18 +551,77 @@ function validateProfile(p: {
           </div>
         }
 
+        <!-- ── Prompt Version Selector ── -->
+        <div class="pv-card">
+          <div class="pv-label">Report Style</div>
+          <div class="pv-options">
+
+            <button class="pv-opt pv-opt-v1" [class.pv-opt-on]="promptVersion() === 'v1'" (click)="promptVersion.set('v1')">
+              <div class="pv-radio" [class.pv-radio-on]="promptVersion() === 'v1'">
+                @if (promptVersion() === 'v1') { <div class="pv-radio-dot pv-radio-dot-warm"></div> }
+              </div>
+              <div class="pv-icon-wrap pv-icon-warm" [class.pv-icon-on]="promptVersion() === 'v1'">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+              </div>
+              <div class="pv-body">
+                <span class="pv-name">Warm &amp; Exploratory</span>
+                <span class="pv-desc">Gentle · Encouraging · Holistic</span>
+              </div>
+            </button>
+
+            <button class="pv-opt pv-opt-v2" [class.pv-opt-on]="promptVersion() === 'v2'" (click)="promptVersion.set('v2')">
+              <div class="pv-radio" [class.pv-radio-on]="promptVersion() === 'v2'">
+                @if (promptVersion() === 'v2') { <div class="pv-radio-dot pv-radio-dot-sharp"></div> }
+              </div>
+              <div class="pv-icon-wrap pv-icon-sharp" [class.pv-icon-on]="promptVersion() === 'v2'">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              </div>
+              <div class="pv-body">
+                <div class="pv-name-row">
+                  <span class="pv-name">Laser Sharp</span>
+                  <span class="pv-badge">Recommended</span>
+                </div>
+                <span class="pv-desc">Direct answers · Exact timing · Actions</span>
+              </div>
+            </button>
+
+          </div>
+        </div>
+
         <!-- CTA -->
         <div class="cta-row">
           @if (launchError()) { <p class="launch-err">⚠ {{ launchError() }}</p> }
-          <button class="cta" [disabled]="orch.isRunning()" (click)="launch()">
-            @if (orch.isRunning()) {
-              <span class="spinner"></span> Agents Running…
-            } @else {
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke-linejoin="round"/></svg>
-              Begin 360° Reading
-            }
-          </button>
-          <p class="cta-hint">All selected agents run · 20–60 s</p>
+
+          @if (orch.isDone()) {
+            <!-- Results are ready — show Review button prominently -->
+            <div class="results-ready-row">
+              <div class="results-ready-badge">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <circle cx="7" cy="7" r="6" fill="#10b981" opacity="0.15"/>
+                  <path d="M3.5 7l2.5 2.5L10.5 4" stroke="#10b981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Analysis complete
+              </div>
+              <button class="cta cta-review" (click)="goReview()">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="12" height="12" rx="2.5" stroke="currentColor" stroke-width="1.4"/><path d="M4 5h6M4 8h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                View Analysis
+              </button>
+              <button class="cta-rerun" (click)="rerun()">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10 6A4 4 0 1 1 8.5 2.5M10 1v3H7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                New Reading
+              </button>
+            </div>
+          } @else {
+            <button class="cta" [disabled]="orch.isRunning()" (click)="launch()">
+              @if (orch.isRunning()) {
+                <span class="spinner"></span> Agents Running…
+              } @else {
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke-linejoin="round"/></svg>
+                Begin 360° Reading
+              }
+            </button>
+            <p class="cta-hint">All selected agents run · 20–60 s</p>
+          }
         </div>
 
       </div>
@@ -607,14 +689,14 @@ function validateProfile(p: {
           <div class="prog-fill" [style.width.%]="orch.progress()"></div>
         </div>
         <span class="prog-pct">{{ orch.progress() }}%</span>
-        @if (orch.backendError()) {
-          <div class="alert-warn">⚠ {{ orch.backendError() }}</div>
-        }
         @if (orch.sessionId()) {
           <div class="alert-ok">🔑 Session {{ orch.sessionId() }} · Focus: <strong>{{ orch.focusContext()['intent'] | titlecase }}</strong></div>
         }
         @if (orch.isDone()) {
           <div class="done-row">
+            @if (orch.cacheHit()) {
+              <span class="cache-hit-badge">⚡ Response served from cache</span>
+            }
             <span class="done-msg">✦ Reading complete</span>
             <button class="done-btn" (click)="goReview()">Open Review →</button>
           </div>
@@ -916,6 +998,90 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
 .seg-btn { padding: 5px 12px; border-radius: 6px; border: none; background: transparent; font-size: 11.5px; font-weight: 600; color: #6b7280; cursor: pointer; transition: all 0.14s; font-family: inherit; }
 .seg-on { background: #6366f1; color: #fff; box-shadow: 0 1px 4px rgba(99,102,241,0.3); }
 
+/* ══ Prompt Version Selector ══ */
+.pv-card {
+  margin: 10px 0 6px;
+  padding: 10px 12px 12px;
+  background: #f9fafb;
+  border: 1px solid rgba(0,0,0,0.09);
+  border-radius: 12px;
+}
+.pv-label {
+  font-size: 9.5px; font-weight: 700; color: #6b7280;
+  letter-spacing: 0.07em; text-transform: uppercase;
+  margin-bottom: 8px; padding-left: 1px;
+}
+.pv-options { display: flex; flex-direction: column; gap: 6px; }
+
+.pv-opt {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; padding: 9px 11px;
+  border-radius: 9px; border: 1.5px solid rgba(0,0,0,0.09);
+  background: #ffffff;
+  cursor: pointer; font-family: inherit; text-align: left;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+.pv-opt:hover {
+  border-color: rgba(99,102,241,0.3);
+  background: #f5f4ff;
+}
+
+/* V1 selected — amber warm tone */
+.pv-opt-v1.pv-opt-on {
+  border-color: #f59e0b;
+  background: #fffbeb;
+  box-shadow: 0 0 0 3px rgba(245,158,11,0.1);
+}
+/* V2 selected — indigo sharp tone */
+.pv-opt-v2.pv-opt-on {
+  border-color: #6366f1;
+  background: #eef2ff;
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+}
+
+/* Radio */
+.pv-radio {
+  width: 15px; height: 15px; border-radius: 50%;
+  border: 1.5px solid #d1d5db;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: border-color 0.15s;
+}
+.pv-radio-on { border-color: #6366f1; }
+.pv-opt-v1.pv-opt-on .pv-radio { border-color: #f59e0b; }
+.pv-radio-dot { width: 7px; height: 7px; border-radius: 50%; }
+.pv-radio-dot-warm  { background: #f59e0b; }
+.pv-radio-dot-sharp { background: #6366f1; }
+
+/* Icon chip */
+.pv-icon-wrap {
+  width: 28px; height: 28px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all 0.15s;
+}
+.pv-icon-warm  { background: #fef3c7; color: #d97706; }
+.pv-icon-sharp { background: #e0e7ff; color: #6366f1; }
+.pv-icon-on.pv-icon-warm  { background: #fde68a; color: #b45309; }
+.pv-icon-on.pv-icon-sharp { background: #c7d2fe; color: #4338ca; }
+
+/* Text */
+.pv-body { flex: 1; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.pv-name-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.pv-name {
+  font-size: 12px; font-weight: 600;
+  color: #6b7280; transition: color 0.15s;
+}
+.pv-opt-on .pv-name { color: #111827; }
+.pv-desc {
+  font-size: 10px; color: #9ca3af; transition: color 0.15s;
+}
+.pv-opt-on .pv-desc { color: #6b7280; }
+.pv-badge {
+  font-size: 8.5px; font-weight: 700;
+  background: #d1fae5; color: #065f46;
+  padding: 1px 6px; border-radius: 4px;
+  letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap;
+}
+
 /* ══ CTA ══ */
 .cta-row { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 4px 0; }
 .launch-err { font-size: 11px; color: #ef4444; }
@@ -932,6 +1098,30 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
 .cta:hover:not(:disabled) { background-position: right center; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(99,102,241,0.5); }
 .cta:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 .cta-hint { font-size: 10px; color: #9ca3af; }
+
+.results-ready-row {
+  display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%;
+}
+.results-ready-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 14px; border-radius: 99px;
+  background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3);
+  font-size: 11.5px; font-weight: 600; color: #065f46;
+}
+.cta-review {
+  background: linear-gradient(135deg, #059669, #10b981);
+  box-shadow: 0 4px 14px rgba(16,185,129,0.4);
+  padding: 12px 36px; min-width: 180px;
+}
+.cta-review:hover:not(:disabled) { box-shadow: 0 8px 20px rgba(16,185,129,0.5); }
+.cta-rerun {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 16px; border-radius: 99px;
+  border: 1.5px solid rgba(0,0,0,0.12); background: transparent;
+  font-size: 11px; font-weight: 600; color: #6b7280;
+  cursor: pointer; font-family: inherit; transition: all 0.15s;
+}
+.cta-rerun:hover { border-color: #6366f1; color: #4338ca; background: rgba(99,102,241,0.05); }
 
 .spinner {
   width: 14px; height: 14px; border-radius: 50%;
@@ -962,13 +1152,21 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
 .strad { font-size: 9px; background: rgba(99,102,241,0.1); color: #6366f1; padding: 1px 5px; border-radius: 99px; }
 .sstate { font-size: 9.5px; font-weight: 600; }
 
-.alert-warn { margin-top: 8px; padding: 7px 11px; border-radius: 8px; background: #fffbeb; border: 1px solid #fcd34d; font-size: 11px; color: #92400e; }
 .alert-ok   { margin-top: 6px; padding: 7px 11px; border-radius: 8px; background: #f0fdf4; border: 1px solid #6ee7b7; font-size: 11px; color: #065f46; }
 
-.done-row { margin-top: 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; background: #f0fdf4; border: 1px solid #6ee7b7; border-radius: 10px; }
-.done-msg { font-size: 12px; font-weight: 600; color: #065f46; }
-.done-btn { padding: 7px 18px; border-radius: 99px; border: none; background: #10b981; color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; white-space: nowrap; }
-.done-btn:hover { background: #059669; }
+.done-row { margin-top: 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; background: linear-gradient(135deg, #ecfdf5, #d1fae5); border: 1.5px solid #6ee7b7; border-radius: 12px; flex-wrap: wrap; box-shadow: 0 2px 12px rgba(16,185,129,0.12); }
+.done-msg { font-size: 13px; font-weight: 700; color: #065f46; }
+.done-btn { padding: 10px 28px; border-radius: 99px; border: none; background: linear-gradient(135deg, #059669, #10b981); color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; box-shadow: 0 3px 12px rgba(16,185,129,0.35); transition: all 0.18s; letter-spacing: 0.01em; }
+.done-btn:hover { background: linear-gradient(135deg, #047857, #059669); box-shadow: 0 5px 18px rgba(16,185,129,0.45); transform: translateY(-1px); }
+.cache-hit-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 99px;
+  background: linear-gradient(90deg, #fef3c7, #fde68a);
+  border: 1px solid #f59e0b;
+  font-size: 11px; font-weight: 700; color: #92400e;
+  letter-spacing: 0.02em; white-space: nowrap;
+  box-shadow: 0 1px 4px rgba(245,158,11,0.25);
+}
 
 /* ══ FOOTER ══ */
 .ftr {
@@ -1014,6 +1212,15 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
 .field-hint-ok {
   font-size: 10px; color: #10b981; font-weight: 500; margin-top: 3px;
 }
+.geo-badge {
+  display: inline-flex; align-items: center; gap: 4px; margin-top: 4px;
+  font-size: 10px; color: #065f46; font-weight: 500;
+  background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25);
+  border-radius: 6px; padding: 3px 8px;
+}
+.geo-resolving {
+  font-size: 10px; color: #9ca3af; margin-top: 4px; display: block;
+}
 
 /* Grow field takes more space in field-row */
 .field-grow { flex: 2; }
@@ -1033,6 +1240,31 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
   border-color: #6366f1 !important; background: #eef2ff !important; color: #4338ca !important;
   box-shadow: 0 0 0 2px rgba(99,102,241,0.15);
 }
+
+/* ── 24h Time-of-birth widget ── */
+.tob-24h-wrap {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 10px; border-radius: 10px;
+  border: 1.5px solid rgba(0,0,0,0.12); background: #fff;
+  transition: border-color 0.15s;
+}
+.tob-24h-wrap:focus-within { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+.tob-err { border-color: #ef4444 !important; }
+.tob-badge {
+  font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px;
+  background: #eef2ff; color: #4338ca; letter-spacing: 0.06em; flex-shrink: 0;
+}
+.tob-hh, .tob-mm {
+  width: 48px; border: none; outline: none; background: transparent;
+  font-size: 18px; font-weight: 700; color: #1a1a1a; text-align: center;
+  font-family: 'JetBrains Mono', monospace; -moz-appearance: textfield;
+}
+.tob-hh::-webkit-outer-spin-button,
+.tob-hh::-webkit-inner-spin-button,
+.tob-mm::-webkit-outer-spin-button,
+.tob-mm::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.tob-sep { font-size: 20px; font-weight: 700; color: #6b7280; line-height: 1; }
+.tob-ok { font-size: 11px; font-weight: 700; color: #16a34a; margin-left: 4px; white-space: nowrap; }
 
 /* ── Question textarea ── */
 .q-inp-wrap { position: relative; }
@@ -1157,8 +1389,12 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
   `]
 })
 export class IntakePage {
-  private router = inject(Router);
-  readonly orch  = inject(OrchestratorService);
+  private router   = inject(Router);
+  readonly orch    = inject(OrchestratorService);
+  private geoSvc   = inject(GeocodeService);
+
+  readonly geoResolved  = signal<{display_name:string; lat:number; lon:number} | null>(null);
+  readonly geoResolving = signal(false);
 
   readonly allModules = ALL_MODULES;
   readonly directions = DIRECTIONS;
@@ -1174,6 +1410,9 @@ export class IntakePage {
   readonly maxPanel        = signal<'left'|'modules'|'pipeline'|null>(null);
   readonly view            = signal<'home'|'pipeline'>('home');
   readonly showGraph       = signal(false);
+  readonly promptVersion   = signal<'v1'|'v2'>('v2');
+
+  constructor() {}
 
   readonly profileSig = signal({
     full_name: '', alias_name: '', date_of_birth: '',
@@ -1184,7 +1423,23 @@ export class IntakePage {
 
   profile() { return this.profileSig(); }
   touched() { return this.touchedSig(); }
-  patch(field: string, value: string) { this.profileSig.update(p => ({ ...p, [field]: value })); }
+  patch(field: string, value: string) {
+    this.profileSig.update(p => ({ ...p, [field]: value }));
+    if (field === 'place_of_birth') this._geocodeDebounced(value);
+  }
+
+  private _geoTimer: ReturnType<typeof setTimeout> | null = null;
+  private _geocodeDebounced(place: string) {
+    if (this._geoTimer) clearTimeout(this._geoTimer);
+    this.geoResolved.set(null);
+    if (!place || place.trim().length < 3) return;
+    this._geoTimer = setTimeout(async () => {
+      this.geoResolving.set(true);
+      const result = await this.geoSvc.resolve(place);
+      this.geoResolving.set(false);
+      this.geoResolved.set(result ? { display_name: result.display_name, lat: result.lat, lon: result.lon } : null);
+    }, 700);
+  }
   touch(field: string) { this.touchedSig.update(t => ({ ...t, [field]: true })); }
   touchAll() {
     this.touchedSig.update(t => ({ ...t, full_name: true, date_of_birth: true, time_of_birth: true, place_of_birth: true, pincode: true }));
@@ -1221,6 +1476,31 @@ export class IntakePage {
     if (age < 0 || age > 120) return '';
     return `${age} years`;
   });
+
+  // ── 24h time-of-birth HH / MM helpers ───────────────────────────────────
+  tobHH(): string {
+    const tob = this.profile().time_of_birth;
+    if (!tob || !tob.includes(':')) return '';
+    return tob.split(':')[0];
+  }
+  tobMM(): string {
+    const tob = this.profile().time_of_birth;
+    if (!tob || !tob.includes(':')) return '';
+    return tob.split(':')[1];
+  }
+  private _normTob(hh: string, mm: string): string {
+    const h = Math.min(23, Math.max(0, parseInt(hh, 10) || 0));
+    const m = Math.min(59, Math.max(0, parseInt(mm, 10) || 0));
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  }
+  onTobHH(val: string) {
+    const mm = this.tobMM() || '00';
+    this.patch('time_of_birth', this._normTob(val, mm));
+  }
+  onTobMM(val: string) {
+    const hh = this.tobHH() || '00';
+    this.patch('time_of_birth', this._normTob(hh, val));
+  }
 
   // ── Time-of-day quick selector ────────────────────────────────────────────
   readonly timeOfDayOptions = [
@@ -1342,18 +1622,24 @@ export class IntakePage {
     const rawQ = this.userQuestion.trim();
     const input: SystemInput = {
       user_profile:     { ...this.profileSig() },
-      user_question:    rawQ,
-      questions:        rawQ ? [rawQ] : [],
+      user_question:    rawQ,   // single source of truth
+      questions:        [],     // not used for single-question mode
       selected_modules: [...this.selectedModules()],
       module_inputs: {
         palmistry: this.isSelected('palmistry') ? { ...this.palmInput } : undefined,
         tarot:     this.isSelected('tarot')     ? { ...this.tarotInput } : undefined,
         vastu:     this.isSelected('vastu')     ? { ...this.vastuInput } : undefined,
-      }
+      },
+      prompt_version: this.promptVersion(),
     };
     this.view.set('pipeline');
-    this.orch.run(input).then(() => {});
+    this.orch.run(input);
   }
 
   goReview() { this.router.navigate(['/review']); }
+
+  rerun() {
+    this.orch.reset();
+    this.view.set('home');
+  }
 }

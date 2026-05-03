@@ -1,5 +1,6 @@
 import { Component, inject, computed, signal, HostListener, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { OrchestratorService } from '../../services/orchestrator.service';
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -12,72 +13,79 @@ interface GNode {
 interface GEdge { from: string; to: string; label?: string; dashed?: boolean; }
 
 /*
-  Canvas: 960 wide × 1420 tall
+  Canvas: 960 wide × 1340 tall  — matches actual backend pipeline exactly
   Layer centres:
-    inputs      y=80
-    q-agent     y=230   gap=150
-    parallel    y=440   gap=210
-    meta        y=650   gap=210
-    remedy      y=830   gap=180
-    admin       y=990   gap=160
-    translate   y=1160  gap=170
-    output      y=1330  gap=170
+    inputs      y=80   (user profile + questions + prompt version)
+    guardrails  y=175  (always-on wrapper)
+    q-agent     y=210   Node 1
+    parallel    y=400   Node 2
+    meta        y=600   Node 3
+    remedy      y=770   Node 4
+    admin       y=930   Node 5
+    report      y=1090  Node 6  (report_agent + simplify_agent)
+    output      y=1240  END
 */
-const W = 960, H = 1420;
+const W = 960, H = 1300;
 const CX = W / 2;
 
 const NODES: GNode[] = [
   /* Layer 0 — inputs */
-  { id: 'user',      label: 'User Profile',       sub: 'Name · DOB · Place of birth',           icon: '👤', stepIds: [],                                               color: '#6366f1', x: CX - 180, y:   80, r: 44 },
-  { id: 'ques',      label: 'Questions',          sub: 'What you seek to know',                  icon: '💬', stepIds: [],                                               color: '#6366f1', x: CX + 180, y:   80, r: 44 },
+  { id: 'user',    label: 'User Profile',     sub: 'Name · DOB · Time · Place',              icon: '👤', stepIds: [],                                               color: '#6366f1', x: CX - 240, y:   80, r: 40 },
+  { id: 'ques',    label: 'Questions',        sub: 'Intent · Topic · Focus',                 icon: '💬', stepIds: [],                                               color: '#6366f1', x: CX,       y:   80, r: 40 },
+  { id: 'pv',      label: 'Prompt Style',     sub: 'v1 Warm  ·  v2 Laser Sharp',            icon: '⚡', stepIds: [],                                               color: '#818cf8', x: CX + 240, y:   80, r: 40 },
 
-  /* Layer 1 — question agent */
-  { id: 'q',         label: 'Question Agent',     sub: 'Normalize · Classify · Intent',          icon: '🧩', stepIds: ['question'],                                     color: '#f59e0b', x: CX,        y:  230, r: 48 },
+  /* Layer 1 — Question Agent */
+  { id: 'q',       label: 'Question Agent',   sub: 'Normalize · Classify · Intent detect',   icon: '🧩', stepIds: ['question'],                                    color: '#f59e0b', x: CX,       y:  210, r: 46 },
 
-  /* Layer 2 — 5 parallel domain agents */
-  { id: 'astro',     label: 'Astrology',          sub: 'Vedic · KP · Western',                   icon: '🪐', stepIds: ['astro-vedic','astro-kp','astro-western'],       color: '#3b82f6', x:  96,        y:  440, r: 42 },
-  { id: 'num',       label: 'Numerology',         sub: 'Indian · Chaldean · Pythagorean',        icon: '🔢', stepIds: ['num-indian','num-chaldean','num-pythagorean'],  color: '#8b5cf6', x: 280,        y:  440, r: 42 },
-  { id: 'palm',      label: 'Palmistry',          sub: 'Indian · Chinese · Western',             icon: '✋', stepIds: ['palm-indian','palm-chinese','palm-western'],    color: '#10b981', x: CX,         y:  440, r: 42 },
-  { id: 'tarot',     label: 'Tarot',              sub: 'Rider-Waite · Intuitive',                icon: '🃏', stepIds: ['tarot-rw','tarot-int'],                         color: '#f43f5e', x: 680,        y:  440, r: 42 },
-  { id: 'vastu',     label: 'Vastu Shastra',      sub: 'Traditional · Modern',                   icon: '🏠', stepIds: ['vastu-trad','vastu-modern'],                    color: '#f97316', x: 864,        y:  440, r: 42 },
+  /* Layer 2 — Domain Agents (parallel fan-out) */
+  { id: 'astro',   label: 'Astrology',        sub: 'Vedic · KP · Western',                  icon: '🪐', stepIds: ['astro-vedic','astro-kp','astro-western'],       color: '#3b82f6', x:  96,      y:  400, r: 40 },
+  { id: 'num',     label: 'Numerology',       sub: 'Indian · Chaldean · Pythagorean',        icon: '🔢', stepIds: ['num-indian','num-chaldean','num-pythagorean'],  color: '#8b5cf6', x: 280,      y:  400, r: 40 },
+  { id: 'palm',    label: 'Palmistry',        sub: 'Indian · Chinese · Western',             icon: '✋', stepIds: ['palm-indian','palm-chinese','palm-western'],    color: '#10b981', x: CX,       y:  400, r: 40 },
+  { id: 'tarot',   label: 'Tarot',            sub: '3-card · 5-card spread',                icon: '🃏', stepIds: ['tarot-rw','tarot-int'],                         color: '#f43f5e', x: 680,      y:  400, r: 40 },
+  { id: 'vastu',   label: 'Vastu Shastra',    sub: 'Traditional · Modern',                  icon: '🏠', stepIds: ['vastu-trad','vastu-modern'],                    color: '#f97316', x: 864,      y:  400, r: 40 },
 
-  /* Layer 3 — meta consensus */
-  { id: 'meta',      label: 'Meta Consensus',     sub: 'Cross-domain merge · Conflict resolve',  icon: '🧠', stepIds: ['meta'],                                        color: '#7c3aed', x: CX,         y:  650, r: 48 },
+  /* Layer 3 — Meta Agent */
+  { id: 'meta',    label: 'Meta Agent',       sub: 'Cross-tradition merge · Consensus',      icon: '🧠', stepIds: ['meta'],                                        color: '#7c3aed', x: CX,       y:  600, r: 46 },
 
-  /* Layer 4 — remedy */
-  { id: 'remedy',    label: 'Remedy Agent',       sub: 'Habits · Mantras · Colors',              icon: '🌿', stepIds: ['remedy'],                                       color: '#059669', x: CX,         y:  830, r: 44 },
+  /* Layer 4 — Remedy Agent */
+  { id: 'remedy',  label: 'Remedy Agent',     sub: 'Habits · Mantras · Colors · Gems',      icon: '🌿', stepIds: ['remedy'],                                      color: '#059669', x: CX,       y:  770, r: 42 },
 
-  /* Layer 5 — admin review */
-  { id: 'admin',     label: 'Admin Review',       sub: 'Human-in-the-loop · Edit · Approve',     icon: '📋', stepIds: ['admin'],                                        color: '#0ea5e9', x: CX,         y:  990, r: 44 },
+  /* Layer 5 — Admin Review */
+  { id: 'admin',   label: 'Admin Review',     sub: 'Validate · Approve · Quality gate',     icon: '📋', stepIds: ['admin'],                                       color: '#0ea5e9', x: CX,       y:  930, r: 42 },
 
-  /* Layer 6 — translation agent */
-  { id: 'translate', label: 'Translation Agent',  sub: '22 Indian Constitutional Languages',     icon: '🌐', stepIds: ['translate'],                                    color: '#e879f9', x: CX,         y: 1160, r: 46 },
+  /* Layer 6 — Report Agent + Simplify Agent */
+  { id: 'report',  label: 'Report Agent',     sub: 'Narrative · WHO/WHAT/WHEN/WHERE/HOW',   icon: '📝', stepIds: [],                                               color: '#a855f7', x: CX - 130, y: 1090, r: 40 },
+  { id: 'simplify',label: 'Simplify Agent',   sub: 'Structured summary · Plain language',   icon: '✨', stepIds: [],                                               color: '#ec4899', x: CX + 130, y: 1090, r: 40 },
 
-  /* Layer 7 — output */
-  { id: 'out',       label: 'Final Report',       sub: 'PDF-ready · Multilingual · Branded',     icon: '✅', stepIds: [],                                               color: '#16a34a', x: CX,         y: 1330, r: 44 },
+  /* Layer 7 — Final output */
+  { id: 'out',     label: 'Final Report',     sub: 'Branded · 360° · PDF-ready',            icon: '✅', stepIds: [],                                               color: '#16a34a', x: CX,       y: 1240, r: 42 },
 ];
 
 const EDGES: GEdge[] = [
   /* inputs → question agent */
-  { from: 'user',      to: 'q' },
-  { from: 'ques',      to: 'q' },
+  { from: 'user',    to: 'q' },
+  { from: 'ques',    to: 'q' },
+  { from: 'pv',      to: 'q',      label: 'prompt_v' },
   /* question agent → all 5 domain agents */
-  { from: 'q',         to: 'astro',     label: 'norm_q[]' },
-  { from: 'q',         to: 'num' },
-  { from: 'q',         to: 'palm' },
-  { from: 'q',         to: 'tarot' },
-  { from: 'q',         to: 'vastu' },
+  { from: 'q',       to: 'astro',  label: 'norm_q[]' },
+  { from: 'q',       to: 'num' },
+  { from: 'q',       to: 'palm' },
+  { from: 'q',       to: 'tarot' },
+  { from: 'q',       to: 'vastu' },
   /* all domain agents → meta */
-  { from: 'astro',     to: 'meta' },
-  { from: 'num',       to: 'meta' },
-  { from: 'palm',      to: 'meta' },
-  { from: 'tarot',     to: 'meta' },
-  { from: 'vastu',     to: 'meta' },
-  /* sequential pipeline */
-  { from: 'meta',      to: 'remedy',    label: 'consensus[]' },
-  { from: 'remedy',    to: 'admin',     label: 'remedies[]'  },
-  { from: 'admin',     to: 'translate', label: 'approved',   dashed: true },
-  { from: 'translate', to: 'out',       label: 'translated[]' },
+  { from: 'astro',   to: 'meta' },
+  { from: 'num',     to: 'meta' },
+  { from: 'palm',    to: 'meta' },
+  { from: 'tarot',   to: 'meta' },
+  { from: 'vastu',   to: 'meta' },
+  /* sequential core pipeline */
+  { from: 'meta',    to: 'remedy',  label: 'insights[]' },
+  { from: 'remedy',  to: 'admin',   label: 'remedies[]' },
+  { from: 'admin',   to: 'report',  label: 'approved[]' },
+  { from: 'admin',   to: 'simplify' },
+  /* report + simplify → final output */
+  { from: 'report',  to: 'out',     label: 'narrative', dashed: true },
+  { from: 'simplify',to: 'out',     label: 'hw_bullets', dashed: true },
 ];
 
 const NM = new Map(NODES.map(n => [n.id, n]));
@@ -97,39 +105,39 @@ const ALL_DOMAIN_IDS = ['astro-vedic','astro-kp','astro-western','num-indian','n
 
 const DEMO_FRAMES: DemoFrame[] = [
   {
-    label: 'Step 1 · Question Agent normalizing input…',
+    label: 'Node 1 · Question Agent — normalizing & classifying intent…',
     running: ['question'],
-    done: [],
+    done:    [],
   },
   {
-    label: 'Step 2 · All domain agents running in parallel…',
+    label: 'Node 2 · Domain Agents — Astrology · Numerology · Palmistry · Tarot · Vastu running in parallel…',
     running: ALL_DOMAIN_IDS,
     done:    ['question'],
   },
   {
-    label: 'Step 3 · Meta Consensus merging all insights…',
+    label: 'Node 3 · Meta Agent — merging cross-tradition insights & resolving conflicts…',
     running: ['meta'],
     done:    ['question', ...ALL_DOMAIN_IDS],
   },
   {
-    label: 'Step 4 · Remedy Agent generating guidance…',
+    label: 'Node 4 · Remedy Agent — generating habits, mantras, colors & gemstone guidance…',
     running: ['remedy'],
     done:    ['question', ...ALL_DOMAIN_IDS, 'meta'],
   },
   {
-    label: 'Step 5 · Admin Review — awaiting approval…',
+    label: 'Node 5 · Admin Review — validating quality, approving insights…',
     running: ['admin'],
     done:    ['question', ...ALL_DOMAIN_IDS, 'meta', 'remedy'],
   },
   {
-    label: 'Step 6 · Translation Agent — rendering in selected language…',
-    running: ['translate'],
+    label: 'Node 6 · Report Agent — building narrative & WHO/WHAT/WHEN/WHERE/HOW structure…',
+    running: [],
     done:    ['question', ...ALL_DOMAIN_IDS, 'meta', 'remedy', 'admin'],
   },
   {
-    label: '✓ Final Report generated successfully in all languages',
+    label: '✓ Pipeline complete — 360° Final Report ready',
     running: [],
-    done:    ['question', ...ALL_DOMAIN_IDS, 'meta', 'remedy', 'admin', 'translate'],
+    done:    ['question', ...ALL_DOMAIN_IDS, 'meta', 'remedy', 'admin'],
   },
 ];
 
@@ -149,9 +157,12 @@ const DEMO_FRAMES: DemoFrame[] = [
     <div class="af-bar-left">
       <span class="af-dot" [class.af-dot-live]="anyActive()"></span>
       <span class="af-title">Agent Pipeline</span>
-      <span class="af-sub">360° · Multi-Tradition Neural Orchestration</span>
+      <span class="af-sub">6 Nodes · 5 Traditions · Prompt v1/v2 · LangGraph Orchestration</span>
     </div>
     <div class="af-bar-right">
+      @if (orch.cacheHit()) {
+        <span class="af-cache-badge">⚡ Cached</span>
+      }
       <span class="af-leg"><span class="af-led af-led-idle"></span>Queued</span>
       <span class="af-leg"><span class="af-led af-led-run"></span>Running</span>
       <span class="af-leg"><span class="af-led af-led-done"></span>Done</span>
@@ -211,10 +222,17 @@ const DEMO_FRAMES: DemoFrame[] = [
 
     <div class="demo-bar-right">
       @if (demoActive() && demoMode() === 'manual') {
-        <button class="demo-btn demo-btn-next" (click)="nextStep()" [disabled]="demoStep() >= demoFrames.length - 1">
-          Next
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4 2l5 4-5 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
+        @if (demoComplete()) {
+          <button class="demo-btn demo-btn-proceed" (click)="stopDemo(); _navigateWhenReady()">
+            Proceed to Review
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4 2l5 4-5 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        } @else {
+          <button class="demo-btn demo-btn-next" (click)="nextStep()" [disabled]="demoStep() >= demoFrames.length - 1">
+            Next
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4 2l5 4-5 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        }
       }
     </div>
   </div>
@@ -256,27 +274,57 @@ const DEMO_FRAMES: DemoFrame[] = [
       <rect width="100%" height="100%" fill="#fafbff"/>
       <rect width="100%" height="100%" fill="url(#afGrid)"/>
 
-      <!-- Step lane labels — left margin, centred on each layer's Y -->
-      <text x="14" y="230"  class="lane-label">Step 1</text>
-      <text x="14" y="440"  class="lane-label">Step 2</text>
-      <text x="14" y="650"  class="lane-label">Step 3</text>
-      <text x="14" y="830"  class="lane-label">Step 4</text>
-      <text x="14" y="990"  class="lane-label">Step 5</text>
-      <text x="14" y="1160" class="lane-label">Step 6</text>
+      <!-- Guardrails banner — spans full pipeline height -->
+      <rect x="6" y="142" [attr.width]="W - 12" height="1110" rx="14"
+            fill="rgba(99,102,241,0.016)" stroke="rgba(99,102,241,0.16)"
+            stroke-width="1" stroke-dasharray="8 5"/>
+      <rect x="6" y="142" [attr.width]="W - 12" height="28" rx="14"
+            fill="rgba(99,102,241,0.07)"/>
+      <text [attr.x]="CX" y="159" class="lane-label"
+            style="text-anchor:middle;fill:#6366f1;font-size:9px;">
+        🛡 Guardrails — Input Validation · Prompt Version Control · Safety Checks · Output Validation · Retry/Fallback
+      </text>
 
-      <!-- Parallel zone highlight — from just above nodes to just below sub-labels -->
-      <rect x="40" y="386" [attr.width]="W - 80" height="128" rx="18"
-            fill="rgba(99,102,241,0.025)" stroke="rgba(99,102,241,0.13)"
-            stroke-width="1" stroke-dasharray="6 4"/>
-      <text [attr.x]="W - 50" y="452" class="lane-label"
-            style="text-anchor:end;fill:rgba(99,102,241,0.4)">∥ parallel</text>
+      <!-- Node lane labels — left margin -->
+      <text x="20" y="210"  class="lane-label">Node 1</text>
+      <text x="20" y="400"  class="lane-label">Node 2</text>
+      <text x="20" y="600"  class="lane-label">Node 3</text>
+      <text x="20" y="770"  class="lane-label">Node 4</text>
+      <text x="20" y="930"  class="lane-label">Node 5</text>
+      <text x="20" y="1090" class="lane-label">Node 6</text>
 
-      <!-- Translation zone highlight -->
-      <rect x="200" y="1096" width="560" height="128" rx="18"
-            fill="rgba(232,121,249,0.025)" stroke="rgba(232,121,249,0.18)"
+      <!-- Parallel zone highlight -->
+      <rect x="40" y="350" [attr.width]="W - 80" height="110" rx="16"
+            fill="rgba(99,102,241,0.02)" stroke="rgba(99,102,241,0.11)"
             stroke-width="1" stroke-dasharray="6 4"/>
-      <text [attr.x]="W - 50" y="1162" class="lane-label"
-            style="text-anchor:end;fill:rgba(232,121,249,0.45)">🌐 22 langs</text>
+      <text [attr.x]="W - 50" y="408" class="lane-label"
+            style="text-anchor:end;fill:rgba(99,102,241,0.38)">∥ parallel fan-out</text>
+
+      <!-- Report+Simplify zone highlight -->
+      <rect x="280" y="1042" width="400" height="100" rx="14"
+            fill="rgba(168,85,247,0.03)" stroke="rgba(168,85,247,0.15)"
+            stroke-width="1" stroke-dasharray="5 4"/>
+      <text x="480" y="1152" class="lane-label"
+            style="text-anchor:middle;fill:rgba(168,85,247,0.5)">narrative + structured output</text>
+
+      <!-- Cache hit overlay — shown instead of live execution state -->
+      @if (orch.cacheHit() && !demoActive()) {
+        <g>
+          <rect x="300" y="560" width="360" height="72" rx="14"
+                fill="rgba(254,243,199,0.97)" stroke="#f59e0b" stroke-width="1.5"
+                filter="url(#afShadow)"/>
+          <text x="480" y="585" text-anchor="middle"
+                style="font-size:18px;dominant-baseline:middle;">⚡</text>
+          <text x="480" y="604" text-anchor="middle"
+                style="font-size:11px;font-weight:700;fill:#92400e;font-family:'Inter',sans-serif;dominant-baseline:middle;">
+            Response served from cache
+          </text>
+          <text x="480" y="620" text-anchor="middle"
+                style="font-size:9px;fill:#b45309;font-family:'Inter',sans-serif;dominant-baseline:middle;">
+            No LLM calls made · Instant result
+          </text>
+        </g>
+      }
 
       <!-- ── Edges ── -->
       @for (edge of edges(); track edge.from + edge.to) {
@@ -393,6 +441,16 @@ const DEMO_FRAMES: DemoFrame[] = [
 .af-led-run  { background: #f59e0b; box-shadow: 0 0 6px rgba(245,158,11,0.5); animation: dotPulse 1.4s infinite; }
 .af-led-done { background: #10b981; }
 
+.af-cache-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 99px;
+  background: linear-gradient(90deg, #fef3c7, #fde68a);
+  border: 1px solid #f59e0b;
+  font-size: 11px; font-weight: 700; color: #92400e;
+  letter-spacing: 0.02em; white-space: nowrap;
+  box-shadow: 0 1px 4px rgba(245,158,11,0.25);
+}
+
 .af-icon-btn {
   width: 30px; height: 30px; border-radius: 8px; border: 1px solid rgba(99,102,241,0.18);
   background: #f8f9ff; color: #6366f1; display: flex; align-items: center; justify-content: center;
@@ -474,6 +532,12 @@ const DEMO_FRAMES: DemoFrame[] = [
 .demo-btn-next:hover:not(:disabled) { background: #4f46e5; }
 .demo-btn-next:disabled { opacity: 0.4; cursor: not-allowed; }
 
+.demo-btn-proceed {
+  background: #10b981; color: #fff; border-color: #10b981;
+  box-shadow: 0 2px 8px rgba(16,185,129,0.35);
+}
+.demo-btn-proceed:hover { background: #059669; border-color: #059669; }
+
 /* Mode badge */
 .demo-mode-badge {
   display: inline-flex; align-items: center; gap: 4px;
@@ -505,10 +569,11 @@ const DEMO_FRAMES: DemoFrame[] = [
   `]
 })
 export class AgentFlowComponent implements OnDestroy {
-  private orch = inject(OrchestratorService);
+  readonly orch = inject(OrchestratorService);
+  protected readonly router = inject(Router);
 
   readonly maximized = signal(false);
-  readonly W = W; readonly H = H;
+  readonly W = W; readonly H = H; readonly CX = CX;
 
   /* ── Demo state ── */
   readonly demoActive = signal(false);
@@ -521,6 +586,28 @@ export class AgentFlowComponent implements OnDestroy {
   );
 
   private _autoTimer: ReturnType<typeof setInterval> | null = null;
+  private _waitTimer: ReturnType<typeof setInterval> | null = null;
+
+  readonly demoComplete = computed(() =>
+    this.demoActive() && this.demoStep() === DEMO_FRAMES.length - 1
+  );
+
+  _navigateWhenReady() {
+    if (this.orch.isDone()) {
+      this.router.navigate(['/review']);
+      return;
+    }
+    // Poll until orch.run() finishes — timeout after 10s to avoid infinite hang
+    let waited = 0;
+    this._waitTimer = setInterval(() => {
+      waited += 200;
+      if (this.orch.isDone() || waited >= 10000) {
+        clearInterval(this._waitTimer!);
+        this._waitTimer = null;
+        this.router.navigate(['/review']);
+      }
+    }, 200);
+  }
 
   startAuto() {
     this.demoMode.set('auto');
@@ -528,7 +615,11 @@ export class AgentFlowComponent implements OnDestroy {
     this.demoActive.set(true);
     this._autoTimer = setInterval(() => {
       const next = this.demoStep() + 1;
-      if (next >= DEMO_FRAMES.length) { this.stopDemo(); return; }
+      if (next >= DEMO_FRAMES.length) {
+        this.stopDemo();
+        this._navigateWhenReady();
+        return;
+      }
       this.demoStep.set(next);
     }, 1800);
   }
@@ -546,6 +637,7 @@ export class AgentFlowComponent implements OnDestroy {
 
   stopDemo() {
     if (this._autoTimer) { clearInterval(this._autoTimer); this._autoTimer = null; }
+    if (this._waitTimer) { clearInterval(this._waitTimer); this._waitTimer = null; }
     this.demoActive.set(false);
     this.demoStep.set(0);
   }

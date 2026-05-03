@@ -17,10 +17,12 @@ export interface UserProfile {
 // ── System Input ───────────────────────────────────────────────────────────
 export interface SystemInput {
   user_profile: UserProfile;
+  user_id?: string;
   user_question: string;
   questions: string[];
   selected_modules: Module[];
   module_inputs: Record<string, any>;
+  prompt_version?: 'v1' | 'v2';
 }
 
 // ── Normalized Question ────────────────────────────────────────────────────
@@ -66,9 +68,16 @@ export interface ReportInsight {
   editable?: boolean;
 }
 
+export interface HwTimingAnswer {
+  window: string;
+  peak: string;
+  duration: string;
+}
+
 export interface HwBullet {
   label: string;
-  answer: string;
+  type: 'list' | 'timing' | 'redirect';
+  answer: string[] | HwTimingAnswer | string;
 }
 
 export interface RemedyBullets {
