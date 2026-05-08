@@ -50,3 +50,28 @@ htmlcov/
 
 # Chat logs
 *.log
+
+# Node
+node_modules/
+dist/
+.angular/
+
+# FAISS indexes
+*.index
+*.meta
+*.pkl
+*.faiss
+
+# Mac
+.DS_Store
+**/.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Coverage / test artifacts
+coverage/
+*.coverage
+
+# OS
+Thumbs.db
