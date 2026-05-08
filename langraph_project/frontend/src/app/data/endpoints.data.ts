@@ -870,7 +870,7 @@ graph.add_conditional_edges("generate_answer", route_after_answer,
     return END                   # → save to memory
 
 graph.add_conditional_edges("respond", route_after_respond,
-    {"fetch_account": "account_tool", END: END})`, `Intent "${state['intent'] || 'general'}" — routing to END (no account lookup needed for this query).`),
+    {"fetch_account": "account_tool", END: END})`, `Intent routing to END (no account lookup needed for this query).`),
         specialistStep(7, 'history_manager', 'app/graphs/conversation_agent.py', 'update_history()', `def update_history(state: ConversationState):
     # Trim history to last N turns to avoid token bloat
     MAX_TURNS = 10
