@@ -148,12 +148,16 @@ export class OrchestratorService {
 
     if (this.backendMode() === 'backend' && this.sessionId() && !hasEdits) {
       try {
+        this._setStepStatus('report',   'running');
+        this._setStepStatus('simplify', 'running');
         const res = await firstValueFrom(this.api.approveReport({
           session_id:           this.sessionId(),
           approved_insight_ids: approvedIds,
           rejected_insight_ids: rejectedIds,
           brand_name:           'Aura with Rav',
         }));
+        this._setStepStatus('report',   'done');
+        this._setStepStatus('simplify', 'done');
         const report = res.final_report as unknown as FinalReport;
         if (report && (report.sections?.length || report.report_title)) {
           this.finalReport.set(report);
@@ -161,6 +165,8 @@ export class OrchestratorService {
           return report;
         }
       } catch (e) {
+        this._setStepStatus('report',   'done');
+        this._setStepStatus('simplify', 'done');
         console.warn('[orchestrator] Backend /approve failed, falling back to local:', e);
       }
     }
@@ -748,9 +754,12 @@ export class OrchestratorService {
       { id: 'vastu-trad',     label: 'Traditional Vastu Agent',     status: 'idle', tradition: 'Traditional' },
       { id: 'vastu-modern',   label: 'Modern Vastu Agent',          status: 'idle', tradition: 'Modern' },
     );
-    steps.push({ id: 'meta',   label: 'Meta Consensus Agent',           status: 'idle' });
-    steps.push({ id: 'remedy', label: 'Remedy Synthesis Agent',         status: 'idle' });
-    steps.push({ id: 'admin',  label: 'Admin Review Generation Agent',  status: 'idle' });
+    steps.push({ id: 'meta',      label: 'Meta Consensus Agent',           status: 'idle' });
+    steps.push({ id: 'remedy',    label: 'Remedy Synthesis Agent',         status: 'idle' });
+    steps.push({ id: 'admin',     label: 'Admin Review Generation Agent',  status: 'idle' });
+    steps.push({ id: 'report',    label: 'Report Agent',                   status: 'idle' });
+    steps.push({ id: 'simplify',  label: 'Simplify Agent',                 status: 'idle' });
+    steps.push({ id: 'translate', label: 'Translation Agent',              status: 'idle' });
     return steps;
   }
 
@@ -769,6 +778,12 @@ export class OrchestratorService {
   private _markAllDone(steps: AgentStep[]): void {
     steps.forEach(s => s.status = 'done');
     this.steps.set([...steps]);
+  }
+
+  _setStepStatus(id: string, status: 'idle' | 'running' | 'done'): void {
+    this.steps.update(list =>
+      list.map(s => s.id === id ? { ...s, status } : s)
+    );
   }
 
   private _seed(str: string): number {

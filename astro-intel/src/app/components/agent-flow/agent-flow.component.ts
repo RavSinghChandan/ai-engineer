@@ -31,7 +31,8 @@ const Y_NODE4   =  740;   // remedy_agent
 const Y_NODE5   =  895;   // admin_review_agent
 const Y_NODE6A  = 1055;   // report_agent   (post-approve)
 const Y_NODE6B  = 1055;   // simplify_agent (post-approve)
-const Y_OUT     = 1215;   // END
+const Y_NODE7   = 1215;   // translation_agent (optional, on-demand)
+const Y_OUT     = 1375;   // END
 
 const H = Y_OUT + 55;
 
@@ -74,9 +75,13 @@ const NODES: GNode[] = [
 
   /* ── Node 6 — report + simplify (post-approve) ────── */
   { id: 'report',   label: 'Report Agent',   sub: 'Narrative · 360° Analysis', icon: '📝',
-    stepIds: [], color: '#a855f7', x: CX - 120, y: Y_NODE6A, r: 38 },
+    stepIds: ['report'], color: '#a855f7', x: CX - 120, y: Y_NODE6A, r: 38 },
   { id: 'simplify', label: 'Simplify Agent', sub: 'WHO/WHAT/WHEN/WHERE · LLM', icon: '✨',
-    stepIds: [], color: '#ec4899', x: CX + 120, y: Y_NODE6B, r: 38 },
+    stepIds: ['simplify'], color: '#ec4899', x: CX + 120, y: Y_NODE6B, r: 38 },
+
+  /* ── Node 7 — translation_agent (on-demand) ─────────── */
+  { id: 'translate', label: 'Translation Agent', sub: '22 Languages · Parallel · DeepSeek', icon: '🌐',
+    stepIds: ['translate'], color: '#0891b2', x: CX, y: Y_NODE7, r: 42 },
 
   /* ── END — Final Report ───────────────────────────── */
   { id: 'out', label: 'Final Report', sub: 'Branded · PDF-ready · 360°', icon: '✅',
@@ -103,21 +108,28 @@ const EDGES: GEdge[] = [
   /* sequential backbone */
   { from: 'meta',    to: 'remedy', label: 'insights[]' },
   { from: 'remedy',  to: 'admin',  label: 'remedies[]' },
-  { from: 'admin',   to: 'report',   label: 'approved[]' },
-  { from: 'admin',   to: 'simplify' },
-  { from: 'report',   to: 'out', dashed: true, label: 'narrative' },
-  { from: 'simplify', to: 'out', dashed: true, label: 'hw_bullets' },
+  /* POST /approve — dashed to show separate HTTP call */
+  { from: 'admin',   to: 'report',   dashed: true, label: 'POST /approve' },
+  { from: 'admin',   to: 'simplify', dashed: true },
+  /* report + simplify merge into translation (on-demand) */
+  { from: 'report',   to: 'translate', label: 'narrative' },
+  { from: 'simplify', to: 'translate', label: 'hw_bullets' },
+  /* POST /translate — on-demand */
+  { from: 'translate', to: 'out', dashed: true, label: 'POST /translate' },
 ];
 
 const NM = new Map(NODES.map(n => [n.id, n]));
 
 /* Backend node labels in execution order (for the live ticker) */
 const PIPELINE_STEPS: { id: string; label: string }[] = [
-  { id: 'question', label: 'Node 1 · Question Agent — normalizing & classifying intent' },
-  { id: 'domain',   label: 'Node 2 · Domain Agents — Astrology · Numerology · Palmistry · Tarot · Vastu running in parallel' },
-  { id: 'meta',     label: 'Node 3 · Meta Agent — merging cross-tradition insights & resolving conflicts' },
-  { id: 'remedy',   label: 'Node 4 · Remedy Agent — generating habits, mantras, colors & gemstones' },
-  { id: 'admin',    label: 'Node 5 · Admin Review — validating quality, approving insights' },
+  { id: 'question',  label: 'Node 1 · Question Agent — normalizing & classifying intent' },
+  { id: 'domain',    label: 'Node 2 · Domain Agents — Astrology · Numerology · Palmistry · Tarot · Vastu running in parallel' },
+  { id: 'meta',      label: 'Node 3 · Meta Agent — merging cross-tradition insights & resolving conflicts' },
+  { id: 'remedy',    label: 'Node 4 · Remedy Agent — generating habits, mantras, colors & gemstones' },
+  { id: 'admin',     label: 'Node 5 · Admin Review — validating quality, approving insights' },
+  { id: 'report',    label: 'Node 6 · Report Agent — assembling narrative 360° report (POST /approve)' },
+  { id: 'simplify',  label: 'Node 6 · Simplify Agent — structuring WHO/WHAT/WHEN/WHERE bullets (POST /approve)' },
+  { id: 'translate', label: 'Node 7 · Translation Agent — translating to target language via DeepSeek (POST /translate)' },
 ];
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -135,7 +147,7 @@ const PIPELINE_STEPS: { id: string; label: string }[] = [
     <div class="af-bar-left">
       <span class="af-dot" [class.af-dot-live]="anyRunning()"></span>
       <span class="af-title">Agent Pipeline</span>
-      <span class="af-sub">6 Nodes · 5 Traditions · Prompt v1/v2 · LangGraph Orchestration</span>
+      <span class="af-sub">7 Nodes · 5 Traditions · 22 Languages · Prompt v1/v2 · LangGraph Orchestration</span>
     </div>
     <div class="af-bar-right">
       @if (orch.cacheHit()) {
@@ -237,13 +249,22 @@ const PIPELINE_STEPS: { id: string; label: string }[] = [
       <text [attr.x]="W - 44" [attr.y]="Y_NODE2 + 6" class="zone-lbl"
             text-anchor="end">∥ parallel fan-out</text>
 
-      <!-- Node 6 zone -->
+      <!-- Node 6 zone (post-approve) -->
       <rect x="260" [attr.y]="Y_NODE6A - 50" width="300" height="96" rx="12"
             fill="rgba(168,85,247,0.025)" stroke="rgba(168,85,247,0.13)"
             stroke-width="1" stroke-dasharray="5 4"/>
       <text [attr.x]="CX" [attr.y]="Y_NODE6A + 55" class="zone-lbl"
             text-anchor="middle" style="fill:rgba(168,85,247,0.45)">
-        narrative + structured output (post-approve)
+        narrative + structured output (POST /approve)
+      </text>
+
+      <!-- Node 7 zone (on-demand translation) -->
+      <rect x="220" [attr.y]="Y_NODE7 - 52" width="380" height="100" rx="12"
+            fill="rgba(8,145,178,0.022)" stroke="rgba(8,145,178,0.15)"
+            stroke-width="1" stroke-dasharray="5 4"/>
+      <text [attr.x]="CX" [attr.y]="Y_NODE7 + 58" class="zone-lbl"
+            text-anchor="middle" style="fill:rgba(8,145,178,0.45)">
+        22 languages · parallel DeepSeek calls (POST /translate)
       </text>
 
       <!-- Node lane labels -->
@@ -253,6 +274,7 @@ const PIPELINE_STEPS: { id: string; label: string }[] = [
       <text x="14" [attr.y]="Y_NODE4" class="lane-lbl">Node 4</text>
       <text x="14" [attr.y]="Y_NODE5" class="lane-lbl">Node 5</text>
       <text x="14" [attr.y]="Y_NODE6A" class="lane-lbl">Node 6</text>
+      <text x="14" [attr.y]="Y_NODE7"  class="lane-lbl">Node 7</text>
 
       <!-- Cache overlay -->
       @if (orch.cacheHit()) {
@@ -508,6 +530,7 @@ export class AgentFlowComponent implements OnDestroy {
   readonly Y_NODE4 = Y_NODE4;
   readonly Y_NODE5 = Y_NODE5;
   readonly Y_NODE6A = Y_NODE6A;
+  readonly Y_NODE7  = Y_NODE7;
   readonly CX = CX;
 
   ngOnDestroy() {}
@@ -530,9 +553,12 @@ export class AgentFlowComponent implements OnDestroy {
     if (id === 'question') return PIPELINE_STEPS[0].label;
     if (id.startsWith('astro') || id.startsWith('num') || id.startsWith('palm') || id.startsWith('tarot') || id.startsWith('vastu'))
       return PIPELINE_STEPS[1].label;
-    if (id === 'meta')   return PIPELINE_STEPS[2].label;
-    if (id === 'remedy') return PIPELINE_STEPS[3].label;
-    if (id === 'admin')  return PIPELINE_STEPS[4].label;
+    if (id === 'meta')      return PIPELINE_STEPS[2].label;
+    if (id === 'remedy')    return PIPELINE_STEPS[3].label;
+    if (id === 'admin')     return PIPELINE_STEPS[4].label;
+    if (id === 'report')    return PIPELINE_STEPS[5].label;
+    if (id === 'simplify')  return PIPELINE_STEPS[6].label;
+    if (id === 'translate') return PIPELINE_STEPS[7].label;
     return `Running: ${running.label}`;
   });
 

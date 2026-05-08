@@ -333,6 +333,47 @@ def final_report_agent(
             "The insights represent a synthesis of Vedic Astrology, Numerology, Palmistry, Tarot, and Vastu wisdom. "
             "Use this as a compass, not a map."
         ),
+
+        # Letter page body — stored in report so translation agent can translate them
+        "letter_title": f"A Message for {subject}",
+        "letter_para1": (
+            f"Dear {subject},"
+        ),
+        "letter_para2": (
+            "Thank you for trusting Aura with Rav with your questions. This report has been prepared "
+            "with care, drawing on the ancient wisdom of Vedic Astrology, Numerology, and Tarot — "
+            "three traditions that offer a remarkably coherent picture of your journey."
+        ),
+        "letter_para3": (
+            "The insights here are tendencies, patterns, and energies the cosmos reflects at this "
+            "moment in your life. Your awareness and choices remain the most powerful forces at work."
+        ),
+        "letter_para4": (
+            "May these reflections bring you greater clarity, direction, and peace as you navigate "
+            "this chapter of your life."
+        ),
+        "letter_sign": "With light and clarity,",
+        "letter_tagline": "Personal Spiritual Intelligence Report",
+
+        # Cover page — translatable UI strings
+        "cover_eyebrow": "Personal Spiritual Intelligence Report",
+        "cover_sub": "A personalised reading through the combined wisdom of Vedic Astrology · Numerology · Tarot",
+        "cover_footer": "Prepared by Aura with Rav · Confidential · For personal guidance only",
+
+        # Section labels — translatable
+        "label_summary": "Summary",
+        "label_remedies_heading": "Remedies to support your journey",
+        "label_daily_habits": "Daily Habits",
+        "label_mantra": "Mantra",
+        "label_lucky_colors": "Lucky Colors",
+        "label_analysis_methodology": "Analysis Methodology",
+        "label_cosmic_blueprint": "Cosmic Blueprint",
+        "label_spiritual_profile": "Your Spiritual Profile",
+
+        # Closing page — translatable
+        "closing_thank_you": f"Thank you, {subject}",
+        "closing_consult": "For follow-up consultations, personalised sessions, or deeper readings, reach out through Aura with Rav.",
+        "closing_confidential": "Confidential · For personal guidance only",
     }
 
     return report

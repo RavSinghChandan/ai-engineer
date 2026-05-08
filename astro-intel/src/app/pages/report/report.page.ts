@@ -63,7 +63,7 @@ import { firstValueFrom } from 'rxjs';
     </button>
     <button class="tb-btn-primary" (click)="printPdf()">
       <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v8M3 6l3.5 3.5L10 6M1.5 11h10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Save PDF
+      Download PDF
     </button>
   </div>
 
@@ -98,13 +98,10 @@ import { firstValueFrom } from 'rxjs';
         <div class="cover-logo-wrap">
           <img src="rav-logo.png" alt="Aura with Rav" class="cover-logo-img"/>
         </div>
-        <div class="cover-eyebrow">Personal Spiritual Intelligence Report</div>
+        <div class="cover-eyebrow">{{ displayReport()!.cover_eyebrow || 'Personal Spiritual Intelligence Report' }}</div>
         <h1 class="cover-name">{{ displayReport()!.user_name }}</h1>
         <div class="cover-rule"></div>
-        <p class="cover-sub">
-          A personalised reading through the combined wisdom of<br>
-          Vedic Astrology · Numerology · Tarot
-        </p>
+        <p class="cover-sub">{{ displayReport()!.cover_sub || 'A personalised reading through the combined wisdom of Vedic Astrology · Numerology · Tarot' }}</p>
         <div class="cover-date">{{ formatDate(displayReport()!.generated_at) }}</div>
         @if (selectedLang() !== 'en') {
           <div class="cover-lang-badge">
@@ -122,7 +119,7 @@ import { firstValueFrom } from 'rxjs';
         </div>
       </div>
       <div class="cover-footer-bar">
-        Prepared by Aura with Rav · Confidential · For personal guidance only
+        {{ displayReport()!.cover_footer || 'Prepared by Aura with Rav · Confidential · For personal guidance only' }}
       </div>
     </div>
 
@@ -138,17 +135,17 @@ import { firstValueFrom } from 'rxjs';
             <img src="rav-logo.png" alt="Aura with Rav" class="letter-brand-logo"/>
             <div class="letter-brand-text">
               <div class="letter-brand-name">Aura with Rav</div>
-              <div class="letter-brand-tagline">Personal Spiritual Intelligence Report</div>
+              <div class="letter-brand-tagline">{{ displayReport()!.letter_tagline || 'Personal Spiritual Intelligence Report' }}</div>
             </div>
           </div>
-          <h2 class="letter-title">A Message for {{ displayReport()!.user_name }}</h2>
+          <h2 class="letter-title">{{ displayReport()!.letter_title || ('A Message for ' + displayReport()!.user_name) }}</h2>
           <div class="gold-line"></div>
           <div class="letter-paras">
-            <p>Dear {{ displayReport()!.user_name }},</p>
-            <p>Thank you for trusting Aura with Rav with your questions. This report has been prepared with care, drawing on the ancient wisdom of Vedic Astrology, Numerology, and Tarot — three traditions that offer a remarkably coherent picture of your journey.</p>
-            <p>The insights here are tendencies, patterns, and energies the cosmos reflects at this moment in your life. Your awareness and choices remain the most powerful forces at work.</p>
-            <p>May these reflections bring you greater clarity, direction, and peace as you navigate this chapter of your life.</p>
-            <p class="letter-sign">With light and clarity,<br><strong>Rav</strong> &nbsp;·&nbsp; <em>Aura with Rav</em></p>
+            <p>{{ displayReport()!.letter_para1 || ('Dear ' + displayReport()!.user_name + ',') }}</p>
+            <p>{{ displayReport()!.letter_para2 || 'Thank you for trusting Aura with Rav with your questions. This report has been prepared with care, drawing on the ancient wisdom of Vedic Astrology, Numerology, and Tarot — three traditions that offer a remarkably coherent picture of your journey.' }}</p>
+            <p>{{ displayReport()!.letter_para3 || 'The insights here are tendencies, patterns, and energies the cosmos reflects at this moment in your life. Your awareness and choices remain the most powerful forces at work.' }}</p>
+            <p>{{ displayReport()!.letter_para4 || 'May these reflections bring you greater clarity, direction, and peace as you navigate this chapter of your life.' }}</p>
+            <p class="letter-sign">{{ displayReport()!.letter_sign || 'With light and clarity,' }}<br><strong>Rav</strong> &nbsp;·&nbsp; <em>Aura with Rav</em></p>
           </div>
           <div class="letter-divider"></div>
           <div class="letter-disclaimer">{{ displayReport()!.disclaimer }}</div>
@@ -165,7 +162,7 @@ import { firstValueFrom } from 'rxjs';
           @if (moduleMethods() | keyvalue; as methods) {
             @if (methods.length) {
               <div class="report-method-panel">
-                <div class="rmp-title">Analysis Methodology</div>
+                <div class="rmp-title">{{ displayReport()!.label_analysis_methodology || 'Analysis Methodology' }}</div>
                 <div class="rmp-grid">
                   @for (entry of methods; track entry.key) {
                     <div class="rmp-item">
@@ -191,7 +188,7 @@ import { firstValueFrom } from 'rxjs';
       </div>
     </div>
 
-    <!-- ══ PAGE 3: SPIRITUAL PROFILE + BIRTH CHART ════════════════════════════════ -->
+    <!-- ══ PAGE 3: SPIRITUAL PROFILE — astrology + numerology ══ -->
     <div class="pdf-page page-profile">
       <div class="page-hdr">
         <img src="rav-logo.png" alt="Aura with Rav" class="page-hdr-logo"/>
@@ -199,186 +196,552 @@ import { firstValueFrom } from 'rxjs';
       </div>
       <div class="profile-body">
         <div class="profile-heading-row">
-          <p class="cp-eyebrow">Cosmic Blueprint</p>
-          <h2 class="profile-title">Your Spiritual Profile</h2>
+          <p class="cp-eyebrow">{{ displayReport()!.label_cosmic_blueprint || 'Cosmic Blueprint' }}</p>
+          <h2 class="profile-title">{{ displayReport()!.label_spiritual_profile || 'Your Spiritual Profile' }}</h2>
         </div>
 
+        <!-- ══ ASTROLOGY — North Indian Birth Chart ══ -->
         @if (hasModule('astrology')) {
-          <div class="profile-chart-wrap">
-            <!-- chart left, planet table right -->
-            <div class="profile-chart-row">
-            <div class="profile-svg-shell">
-              <svg viewBox="0 0 420 420" class="vedic-svg" xmlns="http://www.w3.org/2000/svg">
-                <!-- Background -->
-                <rect x="0" y="0" width="420" height="420" rx="14" fill="#fafaf9"/>
-                <!-- Outer border -->
-                <rect x="4" y="4" width="412" height="412" rx="10" fill="none" stroke="#d4af37" stroke-width="1.2"/>
-                <!-- Inner square -->
-                <rect x="106" y="106" width="208" height="208" fill="none" stroke="#d4af37" stroke-width="0.8"/>
-                <!-- Diagonal lines -->
-                <line x1="4" y1="4"   x2="416" y2="416" stroke="#d4af37" stroke-width="0.6" opacity="0.4"/>
-                <line x1="416" y1="4" x2="4"   y2="416" stroke="#d4af37" stroke-width="0.6" opacity="0.4"/>
-                <!-- Cross lines -->
-                <line x1="210" y1="4"   x2="210" y2="416" stroke="#d4af37" stroke-width="0.5" opacity="0.3"/>
-                <line x1="4"   y1="210" x2="416" y2="210" stroke="#d4af37" stroke-width="0.5" opacity="0.3"/>
-                <!-- Inner diagonals -->
-                <line x1="106" y1="106" x2="314" y2="314" stroke="#d4af37" stroke-width="0.5" opacity="0.3"/>
-                <line x1="314" y1="106" x2="106" y2="314" stroke="#d4af37" stroke-width="0.5" opacity="0.3"/>
-
-                <!-- House polygons -->
-                @for (h of [1,2,3,4,5,6,7,8,9,10,11,12]; track h) {
-                  <polygon [attr.points]="housePoints(h)" [attr.fill]="houseFill(h)" opacity="0.45"/>
-                }
-
-                <!-- House numbers — at outer corners, small -->
-                @for (h of houseNums(); track h.n) {
-                  <text [attr.x]="h.lx" [attr.y]="h.ly"
-                        text-anchor="middle" dominant-baseline="middle"
-                        font-size="8" fill="#c9a84c" font-weight="700"
-                        font-family="Georgia, serif">{{ h.n }}</text>
-                }
-
-                <!-- Rashi abbreviations — inside the house, offset from numbers -->
-                @for (h of houseNums(); track h.n) {
-                  <text [attr.x]="h.rx" [attr.y]="h.ry"
-                        text-anchor="middle" dominant-baseline="middle"
-                        font-size="7.5" fill="#4b5563" font-weight="600"
-                        font-family="Arial, sans-serif">{{ rashiAbbr(h.rashi) }}</text>
-                }
-
-                <!-- Planet symbols — inward from outer labels -->
-                @for (p of planetsInHouses(); track p.planet) {
-                  <text [attr.x]="p.x" [attr.y]="p.y"
-                        text-anchor="middle" dominant-baseline="middle"
-                        [attr.font-size]="p.planet === 'Lagna' ? '10' : '9.5'"
-                        [attr.font-weight]="p.planet === 'Lagna' ? '900' : '700'"
-                        [attr.fill]="planetColor(p.planet)"
-                        font-family="Arial, sans-serif">{{ planetSymbol(p.planet) }}</text>
-                }
-
-                <!-- Center label -->
-                <rect x="170" y="194" width="80" height="26" rx="4" fill="#fafaf9" opacity="0.85"/>
-                <text x="210" y="203" text-anchor="middle" dominant-baseline="middle"
-                      font-size="8.5" fill="#b8a060" font-weight="800" letter-spacing="1.5"
-                      font-family="Georgia, serif">BIRTH CHART</text>
-              </svg>
+          <div class="mod-block mod-astro">
+            <div class="mod-block-hdr">
+              <div class="mod-block-hdr-left">
+                <div class="mod-icon-wrap mod-icon-astro">
+                  <svg viewBox="0 0 32 32" width="18" height="18" fill="none">
+                    <circle cx="16" cy="16" r="7" fill="#f59e0b" opacity="0.9"/>
+                    <circle cx="16" cy="16" r="13" fill="none" stroke="#f59e0b" stroke-width="1.2" stroke-dasharray="3 2" opacity="0.5"/>
+                    <circle cx="28" cy="8"  r="3" fill="#818cf8"/>
+                    <circle cx="4"  cy="24" r="2" fill="#c084fc"/>
+                    <circle cx="26" cy="23" r="1.5" fill="#34d399"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="mod-title">Vedic Birth Chart</div>
+                  <div class="mod-sub">North Indian · Lahiri Ayanamsa · {{ ayanamsaLabel() }}</div>
+                </div>
+              </div>
+              <div class="mod-badge mod-badge-astro">Jyotish</div>
             </div>
-
-            <div class="profile-planet-grid">
-              <div class="combo-planet-label">Planetary Positions</div>
-              <div class="combo-planet-rows">
-                @for (p of planetsInHouses(); track p.planet) {
-                  @if (p.planet !== 'Lagna') {
-                    <div class="cpt-row">
-                      <span class="cpt-sym" [style.color]="planetColor(p.planet)">{{ planetSymbol(p.planet) }}</span>
-                      <span class="cpt-name">{{ p.planet }}</span>
-                      <span class="cpt-badge">H{{ p.house }}</span>
-                      <span class="cpt-rashi">{{ p.rashi }}</span>
-                    </div>
+            <div class="mod-body-row">
+              <!-- North Indian Chart SVG — full color -->
+              <div class="chart-svg-wrap">
+                <svg viewBox="0 0 440 440" xmlns="http://www.w3.org/2000/svg" class="vedic-svg-v2">
+                  <defs>
+                    <filter id="inkP" x="-5%" y="-5%" width="110%" height="110%">
+                      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
+                      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.6" xChannelSelector="R" yChannelSelector="G"/>
+                    </filter>
+                  </defs>
+                  <!-- Parchment ground -->
+                  <rect width="440" height="440" fill="#f5f0e8"/>
+                  <!-- Subtle paper grain overlay -->
+                  <rect width="440" height="440" fill="none" stroke="#c8b99a" stroke-width="0.3" opacity="0.4"/>
+                  <!-- Outer manuscript border — double rule -->
+                  <rect x="8" y="8" width="424" height="424" fill="none" stroke="#8b6914" stroke-width="1.2" opacity="0.7"/>
+                  <rect x="13" y="13" width="414" height="414" fill="none" stroke="#8b6914" stroke-width="0.5" opacity="0.4"/>
+                  <!-- Corner ornaments — hand-drawn cross marks -->
+                  <line x1="8" y1="24" x2="24" y2="8"   stroke="#8b6914" stroke-width="0.8" opacity="0.5"/>
+                  <line x1="416" y1="8" x2="432" y2="24" stroke="#8b6914" stroke-width="0.8" opacity="0.5"/>
+                  <line x1="8" y1="416" x2="24" y2="432" stroke="#8b6914" stroke-width="0.8" opacity="0.5"/>
+                  <line x1="416" y1="432" x2="432" y2="416" stroke="#8b6914" stroke-width="0.8" opacity="0.5"/>
+                  <!-- Inner North-Indian chart square -->
+                  <rect x="110" y="110" width="220" height="220" fill="#ede6d6" stroke="#8b6914" stroke-width="1" opacity="0.85"/>
+                  <!-- Chart diagonals -->
+                  <line x1="110" y1="110" x2="330" y2="330" stroke="#8b6914" stroke-width="0.7" opacity="0.45"/>
+                  <line x1="330" y1="110" x2="110" y2="330" stroke="#8b6914" stroke-width="0.7" opacity="0.45"/>
+                  <!-- Cross through center -->
+                  <line x1="220" y1="110" x2="220" y2="330" stroke="#8b6914" stroke-width="0.5" opacity="0.3"/>
+                  <line x1="110" y1="220" x2="330" y2="220" stroke="#8b6914" stroke-width="0.5" opacity="0.3"/>
+                  <!-- Sacred circle inscribed in chart square -->
+                  <circle cx="220" cy="220" r="78" fill="none" stroke="#8b6914" stroke-width="0.5" stroke-dasharray="4 3" opacity="0.35"/>
+                  <!-- House polygons — aged parchment tones -->
+                  @for (h of [1,2,3,4,5,6,7,8,9,10,11,12]; track h) {
+                    <polygon [attr.points]="housePoints(h)" [attr.fill]="houseFill(h)" opacity="0.6"/>
+                    <polygon [attr.points]="housePoints(h)" fill="none" stroke="#8b6914" stroke-width="0.8" opacity="0.5"/>
                   }
-                }
-                <div class="cpt-row cpt-lagna">
-                  <span class="cpt-sym" style="color:#c9a227">⊕</span>
-                  <span class="cpt-name">Lagna</span>
-                  <span class="cpt-badge">H1</span>
-                  <span class="cpt-rashi">{{ lagnaRashi() }}</span>
-                </div>
+                  <!-- House numbers — sepia ink -->
+                  @for (h of houseNums(); track h.n) {
+                    <text [attr.x]="h.lx" [attr.y]="h.ly" text-anchor="middle" dominant-baseline="middle"
+                          font-size="11" fill="#5c3d0e" font-weight="700" font-family="Georgia,serif" opacity="0.85">{{ h.n }}</text>
+                  }
+                  <!-- Rashi abbreviations — muted indigo -->
+                  @for (h of houseNums(); track h.n) {
+                    <text [attr.x]="h.rx" [attr.y]="h.ry" text-anchor="middle" dominant-baseline="middle"
+                          font-size="8" fill="#3d3460" font-weight="600" font-family="Georgia,serif" opacity="0.7">{{ rashiAbbr(h.rashi) }}</text>
+                  }
+                  <!-- Planet symbols — manuscript ink -->
+                  @for (p of planetsInHouses(); track p.planet) {
+                    <text [attr.x]="p.x" [attr.y]="p.y" text-anchor="middle" dominant-baseline="middle"
+                          [attr.font-size]="p.planet === 'Lagna' ? '12' : '10'"
+                          [attr.font-weight]="p.planet === 'Lagna' ? '900' : '700'"
+                          [attr.fill]="planetColor(p.planet)"
+                          font-family="Georgia,serif">{{ planetSymbol(p.planet) }}</text>
+                  }
+                  <!-- Center label — engraved style -->
+                  <rect x="174" y="206" width="92" height="26" rx="3" fill="#ede6d6" stroke="#8b6914" stroke-width="0.8" opacity="0.9"/>
+                  <text x="220" y="222" text-anchor="middle" dominant-baseline="middle"
+                        font-size="7.5" fill="#5c3d0e" font-weight="700" letter-spacing="2.5"
+                        font-family="Georgia,serif">BIRTH CHART</text>
+                  <!-- Celestial dot markers — subtle star field on parchment -->
+                  <circle cx="38"  cy="34"  r="1.2" fill="#8b6914" opacity="0.3"/>
+                  <circle cx="402" cy="28"  r="0.9" fill="#8b6914" opacity="0.25"/>
+                  <circle cx="48"  cy="408" r="1"   fill="#8b6914" opacity="0.28"/>
+                  <circle cx="396" cy="404" r="1.1" fill="#8b6914" opacity="0.3"/>
+                  <circle cx="72"  cy="60"  r="0.7" fill="#8b6914" opacity="0.2"/>
+                  <circle cx="370" cy="378" r="0.8" fill="#8b6914" opacity="0.2"/>
+                </svg>
               </div>
-              <div class="combo-planet-meta">
-                <span class="cpt-meta-label">Dasha</span><span class="cpt-meta-val">{{ currentDasha() }}</span>
-                <span class="cpt-meta-label">Nakshatra</span><span class="cpt-meta-val">{{ moonNakshatra() }}</span>
-              </div>
-              <!-- Chart Basis Panel -->
-              <div class="chart-basis-panel" [class.chart-basis-approx]="isApproxChart()">
-                <div class="cbp-hdr">
-                  <span class="cbp-icon">{{ isApproxChart() ? '⚠' : '✓' }}</span>
-                  <span class="cbp-title">Chart Computation Basis</span>
+              <!-- Planet data table -->
+              <div class="astro-data-panel">
+                <div class="astro-data-title">Planetary Positions</div>
+                <div class="planet-table">
+                  @for (p of planetsInHouses(); track p.planet) {
+                    @if (p.planet !== 'Lagna') {
+                      <div class="pt-row">
+                        <span class="pt-sym" [style.color]="planetColor(p.planet)" style="filter:drop-shadow(0 0 3px currentColor)">{{ planetSymbol(p.planet) }}</span>
+                        <span class="pt-name">{{ p.planet }}</span>
+                        <span class="pt-house">H{{ p.house }}</span>
+                        <span class="pt-rashi">{{ p.rashi }}</span>
+                      </div>
+                    }
+                  }
+                  <div class="pt-row pt-lagna">
+                    <span class="pt-sym" style="color:#f5d06e;filter:drop-shadow(0 0 3px #f5d06e)">⊕</span>
+                    <span class="pt-name">Lagna</span>
+                    <span class="pt-house">H1</span>
+                    <span class="pt-rashi">{{ lagnaRashi() }}</span>
+                  </div>
                 </div>
-                <div class="cbp-rows">
-                  <div class="cbp-row">
-                    <span class="cbp-lbl">System</span>
-                    <span class="cbp-val">Vedic Jyotish — Indian Sidereal</span>
+                <div class="astro-meta-grid">
+                  <div class="astro-meta-cell">
+                    <div class="astro-meta-lbl">Dasha</div>
+                    <div class="astro-meta-val">{{ currentDasha() }}</div>
                   </div>
-                  <div class="cbp-row">
-                    <span class="cbp-lbl">Ayanamsa</span>
-                    <span class="cbp-val cbp-highlight">{{ ayanamsaLabel() }} (Chitra Paksha / Lahiri)</span>
+                  <div class="astro-meta-cell">
+                    <div class="astro-meta-lbl">Nakshatra</div>
+                    <div class="astro-meta-val">{{ moonNakshatra() }}</div>
                   </div>
-                  <div class="cbp-row">
-                    <span class="cbp-lbl">Engine</span>
-                    <span class="cbp-val">{{ chartMethod() || 'VSOP87-simplified + ELP2000-simplified' }}</span>
+                  <div class="astro-meta-cell">
+                    <div class="astro-meta-lbl">Ayanamsa</div>
+                    <div class="astro-meta-val">{{ ayanamsaLabel() }}</div>
                   </div>
-                  <div class="cbp-row">
-                    <span class="cbp-lbl">Birth Time</span>
-                    <span class="cbp-val" [class.cbp-warn]="isApproxChart()">
-                      {{ isApproxChart() ? '⚠ Not provided — Lagna is approximate' : '✓ Provided by client' }}
-                    </span>
-                  </div>
-                  <div class="cbp-row cbp-note-row">
-                    <span class="cbp-lbl">Sun Sign</span>
-                    <span class="cbp-val cbp-note">Vedic sidereal Sun is ~23° earlier than Western tropical — a client born in Oct (Western Libra) will have Vedic Virgo. Both are correct in their respective systems.</span>
+                  <div class="astro-meta-cell">
+                    <div class="astro-meta-lbl">Birth Time</div>
+                    <div class="astro-meta-val" [style.color]="isApproxChart() ? '#fbbf24' : '#34d399'">
+                      {{ isApproxChart() ? 'Approximate' : 'Exact' }}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-            </div><!-- /profile-chart-row -->
-          </div><!-- /profile-chart-wrap -->
-        }
-
-        @if (hasModule('numerology')) {
-          <div class="profile-num-block">
-            <div class="combo-num-hdr">
-              <span class="combo-num-icon">∞</span>
-              <div>
-                <div class="combo-num-title">Sacred Numbers</div>
-                <div class="combo-num-sub">{{ displayReport()!.user_name }}'s numerological blueprint</div>
-              </div>
-            </div>
-            <!-- Branch pills -->
-            <div class="num-branch-row">
-              @for (b of numerologyBranches(); track b) {
-                <span class="num-branch-pill">{{ b }}</span>
-              }
-            </div>
-            <div class="combo-num-grid">
-              @for (n of numerologyNumbers(); track n.label) {
-                <div class="combo-num-cell">
-                  <div class="combo-num-val" [style.color]="numColor(n.value)">{{ n.value }}</div>
-                  <div class="combo-num-lbl">{{ n.label }}</div>
-                  <div class="combo-num-meaning">{{ numMeaning(n.label, n.value) }}</div>
-                </div>
-              }
-              <div class="combo-num-cell combo-num-lp">
-                <div class="combo-num-val" style="color:#6366f1">{{ lifePathNumber() }}</div>
-                <div class="combo-num-lbl">Life Path</div>
-                <div class="combo-num-meaning">{{ numMeaning('Life Path', lifePathNumber()) }}</div>
-                <div class="combo-lp-bar"><div class="combo-lp-fill" [style.width.%]="lifePathPct()"></div></div>
-              </div>
-            </div>
-            <!-- Per-tradition comparison table -->
-            @if (numerologyTraditions().length > 1) {
-              <div class="num-tradition-table">
-                <div class="ntt-hdr-row">
-                  <span class="ntt-col-label">Tradition</span>
-                  <span class="ntt-col">Life Path</span>
-                  <span class="ntt-col">Name No.</span>
-                  <span class="ntt-col">Destiny</span>
-                  <span class="ntt-col">Soul Urge</span>
-                </div>
-                @for (t of numerologyTraditions(); track t.name) {
-                  <div class="ntt-row">
-                    <span class="ntt-col-label ntt-tradition">{{ t.name }}</span>
-                    <span class="ntt-col" [style.color]="numColor(t.life_path)">{{ t.life_path }}</span>
-                    <span class="ntt-col" [style.color]="numColor(t.name_number)">{{ t.name_number }}</span>
-                    <span class="ntt-col" [style.color]="numColor(t.destiny)">{{ t.destiny }}</span>
-                    <span class="ntt-col" [style.color]="numColor(t.soul_urge)">{{ t.soul_urge }}</span>
-                  </div>
-                }
-              </div>
-            }
           </div>
         }
+
+        <!-- ══ NUMEROLOGY — Lo Shu Grid ══ -->
+        @if (hasModule('numerology')) {
+          <div class="mod-block mod-num">
+            <div class="mod-block-hdr">
+              <div class="mod-block-hdr-left">
+                <div class="mod-icon-wrap mod-icon-num">
+                  <svg viewBox="0 0 32 32" width="18" height="18" fill="none">
+                    <rect x="2" y="2" width="8" height="8" rx="2" fill="#a78bfa"/>
+                    <rect x="12" y="2" width="8" height="8" rx="2" fill="#818cf8"/>
+                    <rect x="22" y="2" width="8" height="8" rx="2" fill="#c084fc"/>
+                    <rect x="2" y="12" width="8" height="8" rx="2" fill="#818cf8"/>
+                    <rect x="12" y="12" width="8" height="8" rx="2" fill="#6366f1"/>
+                    <rect x="22" y="12" width="8" height="8" rx="2" fill="#818cf8"/>
+                    <rect x="2" y="22" width="8" height="8" rx="2" fill="#c084fc"/>
+                    <rect x="12" y="22" width="8" height="8" rx="2" fill="#818cf8"/>
+                    <rect x="22" y="22" width="8" height="8" rx="2" fill="#a78bfa"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="mod-title">Sacred Numbers</div>
+                  <div class="mod-sub">{{ displayReport()!.user_name }}'s numerological blueprint · Lo Shu Grid</div>
+                </div>
+              </div>
+              <div class="mod-badge mod-badge-num">Numerology</div>
+            </div>
+            <div class="mod-body-row">
+              <!-- Lo Shu Grid SVG -->
+              <div class="loshu-wrap">
+                <svg viewBox="0 0 260 260" xmlns="http://www.w3.org/2000/svg" class="loshu-svg">
+                  <!-- Parchment ground -->
+                  <rect width="260" height="260" fill="#f5f0e8"/>
+                  <!-- Outer double border — manuscript style -->
+                  <rect x="6" y="6" width="248" height="248" fill="none" stroke="#8b6914" stroke-width="1.2" opacity="0.6"/>
+                  <rect x="10" y="10" width="240" height="240" fill="none" stroke="#8b6914" stroke-width="0.4" opacity="0.35"/>
+                  <!-- Corner marks -->
+                  <line x1="6" y1="20"  x2="20" y2="6"   stroke="#8b6914" stroke-width="0.8" opacity="0.45"/>
+                  <line x1="240" y1="6" x2="254" y2="20"  stroke="#8b6914" stroke-width="0.8" opacity="0.45"/>
+                  <line x1="6" y1="240" x2="20" y2="254"  stroke="#8b6914" stroke-width="0.8" opacity="0.45"/>
+                  <line x1="240" y1="254" x2="254" y2="240" stroke="#8b6914" stroke-width="0.8" opacity="0.45"/>
+                  <!-- Grid lines — sepia ruled lines -->
+                  <line x1="92"  y1="14" x2="92"  y2="246" stroke="#8b6914" stroke-width="0.9" opacity="0.4"/>
+                  <line x1="168" y1="14" x2="168" y2="246" stroke="#8b6914" stroke-width="0.9" opacity="0.4"/>
+                  <line x1="14"  y1="92" x2="246" y2="92"  stroke="#8b6914" stroke-width="0.9" opacity="0.4"/>
+                  <line x1="14"  y1="168" x2="246" y2="168" stroke="#8b6914" stroke-width="0.9" opacity="0.4"/>
+                  <!-- Lo Shu cells -->
+                  @for (cell of loShuGrid(); track cell.pos) {
+                    <rect [attr.x]="cell.x+4" [attr.y]="cell.y+4" width="74" height="74"
+                          [attr.fill]="cell.fill" rx="2" opacity="0.88"/>
+                    <!-- Large numeral — engraved -->
+                    <text [attr.x]="cell.x+41" [attr.y]="cell.y+48" text-anchor="middle" dominant-baseline="middle"
+                          font-size="28" font-weight="400" [attr.fill]="cell.numColor"
+                          font-family="Georgia,serif" opacity="0.92">{{ cell.num }}</text>
+                    <!-- Domain label -->
+                    <text [attr.x]="cell.x+41" [attr.y]="cell.y+67" text-anchor="middle"
+                          font-size="6.5" font-weight="600" [attr.fill]="cell.labelColor"
+                          font-family="Georgia,serif" letter-spacing="0.5">{{ cell.label }}</text>
+                  }
+                  <!-- Center diamond ornament -->
+                  <polygon points="130,121 137,130 130,139 123,130" fill="none" stroke="#8b6914" stroke-width="0.8" opacity="0.5"/>
+                  <circle cx="130" cy="130" r="2.5" fill="#8b6914" opacity="0.35"/>
+                </svg>
+              </div>
+              <!-- Number cells -->
+              <div class="num-cells-panel">
+                <div class="num-branch-row">
+                  @for (b of numerologyBranches(); track b) {
+                    <span class="num-branch-pill">{{ b }}</span>
+                  }
+                </div>
+                <div class="num-cards-grid">
+                  @for (n of numerologyNumbers(); track n.label) {
+                    <div class="num-card" [style.border-color]="numColor(n.value)">
+                      <div class="num-card-val" [style.color]="numColor(n.value)">{{ n.value }}</div>
+                      <div class="num-card-lbl">{{ n.label }}</div>
+                      <div class="num-card-meaning">{{ numMeaning(n.label, n.value) }}</div>
+                    </div>
+                  }
+                  <div class="num-card num-card-lp">
+                    <div class="num-card-val" style="color:#a78bfa">{{ lifePathNumber() }}</div>
+                    <div class="num-card-lbl">Life Path</div>
+                    <div class="num-card-meaning">{{ numMeaning('Life Path', lifePathNumber()) }}</div>
+                    <div class="num-lp-bar"><div class="num-lp-fill" [style.width.%]="lifePathPct()"></div></div>
+                  </div>
+                </div>
+                @if (numerologyTraditions().length > 1) {
+                  <div class="num-tradition-table">
+                    <div class="ntt-hdr-row">
+                      <span class="ntt-col-label">Tradition</span>
+                      <span class="ntt-col">Life Path</span>
+                      <span class="ntt-col">Name No.</span>
+                      <span class="ntt-col">Destiny</span>
+                      <span class="ntt-col">Soul Urge</span>
+                    </div>
+                    @for (t of numerologyTraditions(); track t.name) {
+                      <div class="ntt-row">
+                        <span class="ntt-col-label ntt-tradition">{{ t.name }}</span>
+                        <span class="ntt-col" [style.color]="numColor(t.life_path)">{{ t.life_path }}</span>
+                        <span class="ntt-col" [style.color]="numColor(t.name_number)">{{ t.name_number }}</span>
+                        <span class="ntt-col" [style.color]="numColor(t.destiny)">{{ t.destiny }}</span>
+                        <span class="ntt-col" [style.color]="numColor(t.soul_urge)">{{ t.soul_urge }}</span>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
       </div>
     </div>
+
+    <!-- ══ PAGE 4: DIVINATION ARTS — palmistry + tarot + vastu ══ -->
+    @if (hasModule('palmistry') || hasModule('tarot') || hasModule('vastu')) {
+    <div class="pdf-page page-profile">
+      <div class="page-hdr">
+        <img src="rav-logo.png" alt="Aura with Rav" class="page-hdr-logo"/>
+        <span class="page-hdr-right">{{ displayReport()!.user_name }} · {{ formatDate(displayReport()!.generated_at) }}</span>
+      </div>
+      <div class="profile-body">
+        <div class="profile-heading-row">
+          <p class="cp-eyebrow">Divination Arts</p>
+          <h2 class="profile-title">Palmistry · Tarot · Vastu</h2>
+        </div>
+
+        <!-- ══ PALMISTRY — Hand diagram with colored lines ══ -->
+        @if (hasModule('palmistry')) {
+          <div class="mod-block mod-palm">
+            <div class="mod-block-hdr">
+              <div class="mod-block-hdr-left">
+                <div class="mod-icon-wrap mod-icon-palm">
+                  <svg viewBox="0 0 32 32" width="18" height="18" fill="none">
+                    <path d="M16 28 C8 28 4 22 4 16 L4 8 C4 6.9 4.9 6 6 6 C7.1 6 8 6.9 8 8 L8 14" stroke="#f59e0b" stroke-width="1.8" stroke-linecap="round"/>
+                    <path d="M8 10 L8 5 C8 3.9 8.9 3 10 3 C11.1 3 12 3.9 12 5 L12 13" stroke="#f59e0b" stroke-width="1.8" stroke-linecap="round"/>
+                    <path d="M12 9 L12 4 C12 2.9 12.9 2 14 2 C15.1 2 16 2.9 16 4 L16 13" stroke="#f59e0b" stroke-width="1.8" stroke-linecap="round"/>
+                    <path d="M16 10 L16 5 C16 3.9 16.9 3 18 3 C19.1 3 20 3.9 20 5 L20 14" stroke="#f59e0b" stroke-width="1.8" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="mod-title">Palm Reading</div>
+                  <div class="mod-sub">Indian · Chinese · Western — 3 traditions analysed</div>
+                </div>
+              </div>
+              <div class="mod-badge mod-badge-palm">Palmistry</div>
+            </div>
+            <div class="mod-body-row">
+              <!-- Hand SVG with labeled lines -->
+              <div class="hand-svg-wrap">
+                <svg viewBox="0 0 240 320" xmlns="http://www.w3.org/2000/svg" class="hand-svg">
+                  <defs>
+                    <!-- Sepia skin tone — parchment-like -->
+                    <linearGradient id="skinGrad" x1="0" y1="0" x2="0.3" y2="1">
+                      <stop offset="0%" stop-color="#e8d5b0"/>
+                      <stop offset="100%" stop-color="#d4b483"/>
+                    </linearGradient>
+                    <!-- Subtle paper texture filter -->
+                    <filter id="paperH" x="0%" y="0%" width="100%" height="100%">
+                      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" result="noise" seed="2"/>
+                      <feColorMatrix type="saturate" values="0" in="noise" result="grayNoise"/>
+                      <feBlend in="SourceGraphic" in2="grayNoise" mode="multiply" result="blended"/>
+                      <feComposite in="blended" in2="SourceGraphic" operator="in"/>
+                    </filter>
+                  </defs>
+                  <!-- Manuscript parchment ground -->
+                  <rect width="240" height="320" fill="#f0e9d8"/>
+                  <!-- Double border — engraved manuscript -->
+                  <rect x="4" y="4" width="232" height="312" fill="none" stroke="#7a5c2e" stroke-width="1" opacity="0.55"/>
+                  <rect x="7" y="7" width="226" height="306" fill="none" stroke="#7a5c2e" stroke-width="0.4" opacity="0.3"/>
+                  <!-- Corner ornament marks -->
+                  <line x1="4" y1="18"  x2="18" y2="4"   stroke="#7a5c2e" stroke-width="0.8" opacity="0.4"/>
+                  <line x1="222" y1="4" x2="236" y2="18"  stroke="#7a5c2e" stroke-width="0.8" opacity="0.4"/>
+                  <line x1="4" y1="302" x2="18" y2="316"  stroke="#7a5c2e" stroke-width="0.8" opacity="0.4"/>
+                  <line x1="222" y1="316" x2="236" y2="302" stroke="#7a5c2e" stroke-width="0.8" opacity="0.4"/>
+
+                  <!-- PALM SILHOUETTE — ink sketch, anatomical -->
+                  <!-- Main palm & fingers -->
+                  <path d="M75 272 C58 272 43 252 40 222 C38 200 40 178 43 158
+                            L46 108 C46 101 51 96 58 96 C65 96 70 101 70 108 L70 132
+                            L70 83 C70 76 75 71 82 71 C89 71 94 76 94 83 L94 126
+                            L94 76 C94 69 99 64 106 64 C113 64 118 69 118 76 L118 126
+                            L118 80 C118 73 123 68 130 68 C137 68 142 73 142 80 L142 132
+                            L142 113 C142 106 147 101 154 101 C161 101 166 106 166 113 L166 172
+                            C173 188 176 208 173 228 C170 252 156 272 140 272 Z"
+                        fill="url(#skinGrad)" stroke="#7a5c2e" stroke-width="1.4" stroke-linejoin="round"/>
+                  <!-- Thumb -->
+                  <path d="M40 172 C30 162 26 146 30 132 C34 118 46 112 55 118 C59 121 61 128 60 136"
+                        fill="url(#skinGrad)" stroke="#7a5c2e" stroke-width="1.2" stroke-linejoin="round"/>
+                  <!-- Finger separation lines — delicate ink -->
+                  <line x1="70"  y1="108" x2="70"  y2="90" stroke="#7a5c2e" stroke-width="0.6" opacity="0.4"/>
+                  <line x1="94"  y1="83"  x2="94"  y2="68" stroke="#7a5c2e" stroke-width="0.6" opacity="0.4"/>
+                  <line x1="118" y1="76"  x2="118" y2="60" stroke="#7a5c2e" stroke-width="0.6" opacity="0.4"/>
+                  <line x1="142" y1="80"  x2="142" y2="65" stroke="#7a5c2e" stroke-width="0.6" opacity="0.4"/>
+
+                  <!-- LIFE LINE — warm sepia-red, hand-drawn quality -->
+                  <path d="M70 204 C66 178 60 156 58 136 C56 118 61 107 70 104"
+                        fill="none" stroke="#8b3a3a" stroke-width="1.6" stroke-linecap="round" opacity="0.8"/>
+                  <!-- HEAD LINE — muted blue-grey -->
+                  <path d="M66 178 C88 174 114 170 137 164 C154 160 165 157 168 154"
+                        fill="none" stroke="#3d5a80" stroke-width="1.5" stroke-linecap="round" opacity="0.75"/>
+                  <!-- HEART LINE — rose sepia -->
+                  <path d="M70 150 C89 145 114 140 140 132 C155 126 164 122 168 120"
+                        fill="none" stroke="#7a3b52" stroke-width="1.5" stroke-linecap="round" opacity="0.75"/>
+                  <!-- FATE LINE — antique gold, dashed -->
+                  <path d="M106 268 C108 242 110 214 112 184 C114 158 116 138 118 112"
+                        fill="none" stroke="#8b6914" stroke-width="1.3" stroke-linecap="round" stroke-dasharray="5 3" opacity="0.7"/>
+                  <!-- SUN LINE — ochre, fine -->
+                  <path d="M137 258 C138 238 139 218 140 198 C140 178 141 162 142 148"
+                        fill="none" stroke="#a06c1a" stroke-width="1" stroke-linecap="round" stroke-dasharray="3.5 3" opacity="0.65"/>
+
+                  <!-- Mount labels — sepia italic -->
+                  <text x="58"  y="58"  text-anchor="middle" font-size="6" fill="#5c3d0e" font-family="Georgia,serif" font-style="italic" opacity="0.65">Index</text>
+                  <text x="103" y="50"  text-anchor="middle" font-size="6" fill="#5c3d0e" font-family="Georgia,serif" font-style="italic" opacity="0.65">Saturn</text>
+                  <text x="130" y="45"  text-anchor="middle" font-size="6" fill="#5c3d0e" font-family="Georgia,serif" font-style="italic" opacity="0.65">Apollo</text>
+                  <text x="157" y="52"  text-anchor="middle" font-size="6" fill="#5c3d0e" font-family="Georgia,serif" font-style="italic" opacity="0.65">Mercury</text>
+                  <text x="34"  y="220" font-size="6"  fill="#5c3d0e" font-family="Georgia,serif" font-style="italic" opacity="0.6" transform="rotate(-90,34,220)">Life</text>
+                  <text x="174" y="157" font-size="6"  fill="#3d5a80" font-family="Georgia,serif" font-style="italic" opacity="0.7">Head</text>
+                  <text x="174" y="121" font-size="6"  fill="#7a3b52" font-family="Georgia,serif" font-style="italic" opacity="0.7">Heart</text>
+                  <text x="120" y="108" font-size="6"  fill="#8b6914" font-family="Georgia,serif" font-style="italic" opacity="0.7">Fate</text>
+
+                  <!-- Legend — manuscript key at base -->
+                  <line x1="14" y1="291" x2="226" y2="291" stroke="#7a5c2e" stroke-width="0.5" opacity="0.3"/>
+                  <circle cx="20" cy="302" r="2.2" fill="#8b3a3a" opacity="0.75"/>
+                  <text x="25" y="306" font-size="6" fill="#5c3d0e" font-family="Georgia,serif">Life</text>
+                  <circle cx="54" cy="302" r="2.2" fill="#3d5a80" opacity="0.75"/>
+                  <text x="59" y="306" font-size="6" fill="#5c3d0e" font-family="Georgia,serif">Head</text>
+                  <circle cx="95" cy="302" r="2.2" fill="#7a3b52" opacity="0.75"/>
+                  <text x="100" y="306" font-size="6" fill="#5c3d0e" font-family="Georgia,serif">Heart</text>
+                  <circle cx="137" cy="302" r="2.2" fill="#8b6914" opacity="0.75"/>
+                  <text x="142" y="306" font-size="6" fill="#5c3d0e" font-family="Georgia,serif">Fate</text>
+                  <circle cx="172" cy="302" r="2.2" fill="#a06c1a" opacity="0.75"/>
+                  <text x="177" y="306" font-size="6" fill="#5c3d0e" font-family="Georgia,serif">Sun</text>
+                </svg>
+              </div>
+              <!-- Tradition cards -->
+              <div class="palm-trad-panel">
+                @for (t of palmTraditions(); track t.name) {
+                  <div class="palm-trad-card-v2">
+                    <div class="palm-trad-hdr" [style.border-left-color]="t.color">
+                      <span class="palm-trad-name-v2" [style.color]="t.color">{{ t.name }}</span>
+                      <div class="palm-trad-traits">
+                        @for (tr of t.traits.slice(0,3); track tr) {
+                          <span class="palm-trad-trait-v2">{{ tr }}</span>
+                        }
+                      </div>
+                    </div>
+                    <div class="palm-insight-v2">{{ t.focus_insight }}</div>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- ══ TAROT — Celtic Cross / 3-card spread ══ -->
+        @if (hasModule('tarot')) {
+          <div class="mod-block mod-tarot">
+            <div class="mod-block-hdr">
+              <div class="mod-block-hdr-left">
+                <div class="mod-icon-wrap mod-icon-tarot">
+                  <svg viewBox="0 0 32 32" width="18" height="18" fill="none">
+                    <rect x="6" y="2" width="14" height="20" rx="3" fill="#be185d" opacity="0.8"/>
+                    <rect x="12" y="6" width="14" height="20" rx="3" fill="#9d174d" opacity="0.9"/>
+                    <text x="15" y="20" text-anchor="middle" font-size="10" fill="#fce7f3" font-family="serif">★</text>
+                  </svg>
+                </div>
+                <div>
+                  <div class="mod-title">Tarot Reading</div>
+                  <div class="mod-sub">{{ tarotSpread() }} spread · Rider-Waite tradition</div>
+                </div>
+              </div>
+              <div class="mod-badge mod-badge-tarot">Tarot</div>
+            </div>
+            <!-- Card spread -->
+            <div class="tarot-spread-area">
+              @for (c of tarotCards(); track c.position; let i = $index) {
+                <div class="tarot-card-v2" [class.tarot-card-reversed]="c.reversed">
+                  <div class="tc-pos-label">{{ c.position }}</div>
+                  <div class="tc-frame" [style.background]="tarotCardGrad(i)">
+                    <div class="tc-stars">✦ ✧ ✦</div>
+                    <div class="tc-symbol">{{ c.symbol }}</div>
+                    <div class="tc-name">{{ c.name }}</div>
+                    @if (c.reversed) {
+                      <div class="tc-rev-badge">↓ Reversed</div>
+                    }
+                    <div class="tc-border-inner"></div>
+                  </div>
+                  <div class="tc-keywords">{{ c.keywords }}</div>
+                </div>
+              }
+            </div>
+            <div class="tarot-overall-theme">
+              <span class="tarot-theme-icon">✦</span>
+              <span>{{ tarotTheme() }}</span>
+            </div>
+          </div>
+        }
+
+        <!-- ══ VASTU — Mandala compass diagram ══ -->
+        @if (hasModule('vastu')) {
+          <div class="mod-block mod-vastu">
+            <div class="mod-block-hdr">
+              <div class="mod-block-hdr-left">
+                <div class="mod-icon-wrap mod-icon-vastu">
+                  <svg viewBox="0 0 32 32" width="18" height="18" fill="none">
+                    <circle cx="16" cy="16" r="13" fill="none" stroke="#10b981" stroke-width="1.5"/>
+                    <circle cx="16" cy="16" r="5"  fill="#10b981" opacity="0.3"/>
+                    <line x1="16" y1="3"  x2="16" y2="29" stroke="#10b981" stroke-width="1" opacity="0.6"/>
+                    <line x1="3"  y1="16" x2="29" y2="16" stroke="#10b981" stroke-width="1" opacity="0.6"/>
+                    <polygon points="16,5 18,10 16,8 14,10" fill="#10b981"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="mod-title">Vastu Shastra</div>
+                  <div class="mod-sub">{{ vastuPropertyType() }} · {{ vastuFacing() }} facing · Vedic tradition</div>
+                </div>
+              </div>
+              <div class="mod-badge mod-badge-vastu">Vastu</div>
+            </div>
+            <div class="mod-body-row">
+              <!-- Vastu Mandala SVG -->
+              <div class="vastu-svg-wrap">
+                <svg viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg" class="vastu-svg-v2">
+                  <!-- Parchment ground -->
+                  <rect width="280" height="280" fill="#f0e9d8"/>
+                  <!-- Manuscript border -->
+                  <rect x="5" y="5" width="270" height="270" fill="none" stroke="#7a5c2e" stroke-width="1" opacity="0.55"/>
+                  <rect x="8" y="8" width="264" height="264" fill="none" stroke="#7a5c2e" stroke-width="0.4" opacity="0.3"/>
+                  <!-- Corner marks -->
+                  <line x1="5" y1="20"  x2="20" y2="5"    stroke="#7a5c2e" stroke-width="0.8" opacity="0.4"/>
+                  <line x1="260" y1="5" x2="275" y2="20"  stroke="#7a5c2e" stroke-width="0.8" opacity="0.4"/>
+                  <line x1="5" y1="260" x2="20" y2="275"  stroke="#7a5c2e" stroke-width="0.8" opacity="0.4"/>
+                  <line x1="260" y1="275" x2="275" y2="260" stroke="#7a5c2e" stroke-width="0.8" opacity="0.4"/>
+                  <!-- Outer sacred circle -->
+                  <circle cx="140" cy="140" r="126" fill="none" stroke="#8b6914" stroke-width="0.7" opacity="0.35"/>
+                  <!-- Intermediate ring — sacred geometry -->
+                  <circle cx="140" cy="140" r="108" fill="none" stroke="#8b6914" stroke-width="0.5" stroke-dasharray="3 4" opacity="0.25"/>
+                  <!-- Zone wedges — parchment earth tones -->
+                  @for (z of vastuZoneSvg(); track z.label) {
+                    <path [attr.d]="z.pathV2" [attr.fill]="z.fillV2" opacity="0.75"/>
+                    <path [attr.d]="z.pathV2" fill="none" stroke="#7a5c2e" stroke-width="0.9" opacity="0.5"/>
+                  }
+                  <!-- Radial dividing lines — compass rose -->
+                  <line x1="140" y1="32"  x2="140" y2="248" stroke="#7a5c2e" stroke-width="0.5" opacity="0.2"/>
+                  <line x1="32"  y1="140" x2="248" y2="140" stroke="#7a5c2e" stroke-width="0.5" opacity="0.2"/>
+                  <line x1="62"  y1="62"  x2="218" y2="218" stroke="#7a5c2e" stroke-width="0.4" opacity="0.15"/>
+                  <line x1="218" y1="62"  x2="62"  y2="218" stroke="#7a5c2e" stroke-width="0.4" opacity="0.15"/>
+                  <!-- Zone labels — sepia manuscript -->
+                  @for (z of vastuZoneSvg(); track z.label) {
+                    <text [attr.x]="z.lx2" [attr.y]="z.ly2" text-anchor="middle" dominant-baseline="middle"
+                          font-size="8" font-weight="700" [attr.fill]="z.textColor"
+                          font-family="Georgia,serif" opacity="0.9">{{ z.label }}</text>
+                    <text [attr.x]="z.lx2" [attr.y]="z.ly2+10" text-anchor="middle" dominant-baseline="middle"
+                          font-size="6" [attr.fill]="z.textColor" font-family="Georgia,serif" opacity="0.65" font-style="italic">{{ z.deity }}</text>
+                  }
+                  <!-- Brahmasthan — sacred centre -->
+                  <circle cx="140" cy="140" r="32" fill="#f0e9d8" stroke="#8b6914" stroke-width="1.2" opacity="0.95"/>
+                  <circle cx="140" cy="140" r="26" fill="none" stroke="#8b6914" stroke-width="0.5" stroke-dasharray="3 2" opacity="0.5"/>
+                  <!-- Sacred square inside brahma -->
+                  <rect x="128" y="128" width="24" height="24" fill="none" stroke="#8b6914" stroke-width="0.6" opacity="0.4" transform="rotate(45,140,140)"/>
+                  <text x="140" y="137" text-anchor="middle" font-size="6.5" font-weight="700" fill="#5c3d0e" font-family="Georgia,serif" letter-spacing="0.5">BRAHMA</text>
+                  <text x="140" y="147" text-anchor="middle" font-size="6.5" font-weight="700" fill="#5c3d0e" font-family="Georgia,serif" letter-spacing="0.5">STHAN</text>
+                  <!-- Cardinal direction marks — fine arrowheads -->
+                  <polygon points="140,10 136,22 140,18 144,22" fill="#5c3d0e" opacity="0.6"/>
+                  <polygon points="140,270 136,258 140,262 144,258" fill="#5c3d0e" opacity="0.4"/>
+                  <polygon points="10,140 22,136 18,140 22,144" fill="#5c3d0e" opacity="0.4"/>
+                  <polygon points="270,140 258,136 262,140 258,144" fill="#5c3d0e" opacity="0.4"/>
+                  <!-- N S E W labels — engraved -->
+                  <text x="140" y="24" text-anchor="middle" font-size="9" font-weight="700" fill="#5c3d0e" font-family="Georgia,serif" opacity="0.8">N</text>
+                  <text x="140" y="274" text-anchor="middle" font-size="9" font-weight="700" fill="#5c3d0e" font-family="Georgia,serif" opacity="0.6">S</text>
+                  <text x="16"  y="144" text-anchor="middle" font-size="9" font-weight="700" fill="#5c3d0e" font-family="Georgia,serif" opacity="0.6">W</text>
+                  <text x="264" y="144" text-anchor="middle" font-size="9" font-weight="700" fill="#5c3d0e" font-family="Georgia,serif" opacity="0.6">E</text>
+                </svg>
+              </div>
+              <!-- Zone details -->
+              <div class="vastu-detail-panel">
+                <div class="vastu-detail-hdr">Priority Zones</div>
+                @for (z of vastuPriorityZones(); track z.zone) {
+                  <div class="vastu-detail-row">
+                    <div class="vastu-detail-dot"></div>
+                    <div>
+                      <div class="vastu-detail-zone">{{ z.zone }}</div>
+                      <div class="vastu-detail-tip">{{ z.tip }}</div>
+                    </div>
+                  </div>
+                }
+                @if (vastuColors().length) {
+                  <div class="vastu-colors-block">
+                    <div class="vastu-colors-hdr">Recommended Colors</div>
+                    <div class="vastu-colors-list">
+                      @for (c of vastuColors(); track c) {
+                        <span class="vastu-color-pill">{{ c }}</span>
+                      }
+                    </div>
+                  </div>
+                }
+                @if (vastuEnergy()) {
+                  <div class="vastu-energy-note">{{ vastuEnergy() }}</div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+      </div><!-- /profile-body -->
+    </div><!-- /pdf-page page-profile page4 -->
+    }<!-- /@if palmistry||tarot||vastu -->
 
     <!-- ══ QUESTION SECTIONS (one pdf-page each) ═════════════════════════════════ -->
     @for (section of displayReport()!.sections; track section.question; let si = $index) {
@@ -395,7 +758,7 @@ import { firstValueFrom } from 'rxjs';
         </div>
 
         <div class="content-block">
-          <h3 class="block-heading">Summary</h3>
+          <h3 class="block-heading">{{ displayReport()!.label_summary || 'Summary' }}</h3>
           <div class="gold-line"></div>
 
           @if (section.structured_summary && !editMode()) {
@@ -435,10 +798,10 @@ import { firstValueFrom } from 'rxjs';
 
             @if (section.structured_summary.remedy_bullets) {
               <div class="remedy-card">
-                <div class="remedy-card-head">Remedies to support your journey</div>
+                <div class="remedy-card-head">{{ displayReport()!.label_remedies_heading || 'Remedies to support your journey' }}</div>
                 @if (section.structured_summary.remedy_bullets.daily_habits?.length) {
                   <div class="remedy-group">
-                    <div class="remedy-group-label">Daily Habits</div>
+                    <div class="remedy-group-label">{{ displayReport()!.label_daily_habits || 'Daily Habits' }}</div>
                     <ul class="remedy-list">
                       @for (h of section.structured_summary.remedy_bullets.daily_habits; track h) {
                         <li [innerHTML]="colorize(h)"></li>
@@ -448,7 +811,7 @@ import { firstValueFrom } from 'rxjs';
                 }
                 @if (section.structured_summary.remedy_bullets.mantras?.length) {
                   <div class="remedy-group">
-                    <div class="remedy-group-label">Mantra</div>
+                    <div class="remedy-group-label">{{ displayReport()!.label_mantra || 'Mantra' }}</div>
                     <ul class="remedy-list">
                       @for (m of section.structured_summary.remedy_bullets.mantras; track m) {
                         <li [innerHTML]="colorize(m)"></li>
@@ -458,7 +821,7 @@ import { firstValueFrom } from 'rxjs';
                 }
                 @if (section.structured_summary.remedy_bullets.lucky_colors?.length) {
                   <div class="remedy-group">
-                    <div class="remedy-group-label">Lucky Colors</div>
+                    <div class="remedy-group-label">{{ displayReport()!.label_lucky_colors || 'Lucky Colors' }}</div>
                     <ul class="remedy-list">
                       @for (c of section.structured_summary.remedy_bullets.lucky_colors; track c) {
                         <li [innerHTML]="colorize(c)"></li>
@@ -489,15 +852,15 @@ import { firstValueFrom } from 'rxjs';
       </div>
       <div class="closing-body">
         <img src="rav-photo.png" alt="Rav" class="closing-photo"/>
-        <h2 class="closing-name">Thank you, {{ displayReport()!.user_name }}</h2>
+        <h2 class="closing-name">{{ displayReport()!.closing_thank_you || ('Thank you, ' + displayReport()!.user_name) }}</h2>
         <div class="gold-line gold-line-center"></div>
         <p class="closing-text">{{ displayReport()!.closing_note }}</p>
-        <p class="closing-text">For follow-up consultations, personalised sessions, or deeper readings, reach out through <strong>Aura with Rav</strong>.</p>
+        <p class="closing-text">{{ displayReport()!.closing_consult || 'For follow-up consultations, personalised sessions, or deeper readings, reach out through Aura with Rav.' }}</p>
         <div class="closing-seal">✦</div>
       </div>
       <div class="closing-footer">
         <img src="rav-logo.png" alt="Aura with Rav" class="closing-footer-logo"/>
-        <span>{{ formatDate(displayReport()!.generated_at) }} · Confidential · For personal guidance only</span>
+        <span>{{ formatDate(displayReport()!.generated_at) }} · {{ displayReport()!.closing_confidential || 'Confidential · For personal guidance only' }}</span>
       </div>
     </div>
 
@@ -636,8 +999,9 @@ import { firstValueFrom } from 'rxjs';
   background: #fff;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
   position: relative;
+  min-height: 0;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -648,21 +1012,20 @@ import { firstValueFrom } from 'rxjs';
   padding: 10px 40px; border-bottom: 1px solid #f0ece4; background: #fff;
   flex-shrink: 0;
 }
-/* Page header logo — perfect circle, no background */
+/* Page header logo — full logo, transparent bg */
 .page-hdr-logo {
-  width: 36px; height: 36px;
-  border-radius: 50%;
-  object-fit: cover; object-position: center;
+  width: 80px; height: auto;
+  border-radius: 0;
+  object-fit: contain;
   background: transparent;
   flex-shrink: 0;
 }
 .page-hdr-right { font-size: 9px; color: #bbb; letter-spacing: 0.08em; text-transform: uppercase; }
 .page-hdr-dark { background: transparent !important; border-bottom-color: rgba(255,255,255,0.07) !important; }
-/* Dark header logo — same circle, no background or pill */
 .page-hdr-logo-dark {
-  width: 36px; height: 36px;
-  border-radius: 50%;
-  object-fit: cover; object-position: center;
+  width: 80px; height: auto;
+  border-radius: 0;
+  object-fit: contain;
   background: transparent;
   padding: 0;
 }
@@ -750,10 +1113,11 @@ import { firstValueFrom } from 'rxjs';
   box-shadow: none;
 }
 .cover-logo-img {
-  width: 64px; height: 64px;
-  border-radius: 50%;
-  object-fit: cover; object-position: center;
+  width: 160px; height: auto;
+  border-radius: 0;
+  object-fit: contain;
   display: block;
+  background: transparent;
 }
 .cover-eyebrow { font-size: 10px; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase; color: #d4af37; margin-bottom: 14px; }
 .cover-name { font-size: 44px; font-weight: 900; color: #fff; margin: 0 0 16px; line-height: 1.1; letter-spacing: -0.01em; }
@@ -787,8 +1151,8 @@ import { firstValueFrom } from 'rxjs';
 ═══════════════════════════════════════════════════════════════════════════ */
 .page-letter { background: #fff; }
 .letter-page-body {
-  flex: 1; display: flex; align-items: center; justify-content: center;
-  padding: 32px 56px; overflow: hidden;
+  flex: 1; display: flex; align-items: flex-start; justify-content: center;
+  padding: 32px 56px; overflow: visible;
 }
 .letter-inner { width: 100%; max-width: 600px; }
 
@@ -799,9 +1163,10 @@ import { firstValueFrom } from 'rxjs';
   border-bottom: 1px solid #f0ece4;
 }
 .letter-brand-logo {
-  width: 48px; height: 48px;
-  border-radius: 50%;
-  object-fit: cover; object-position: center;
+  width: 100px; height: auto;
+  border-radius: 0;
+  object-fit: contain;
+  background: transparent;
   flex-shrink: 0;
 }
 .letter-brand-text { display: flex; flex-direction: column; gap: 2px; }
@@ -823,7 +1188,7 @@ import { firstValueFrom } from 'rxjs';
    PAGE 3: SPIRITUAL PROFILE — larger chart, side-by-side layout
 ═══════════════════════════════════════════════════════════════════════════ */
 .page-profile { background: #f5f5f7; }
-.profile-body { flex: 1; padding: 18px 28px 20px; display: flex; flex-direction: column; gap: 14px; overflow: hidden; }
+.profile-body { flex: 1; padding: 18px 28px 20px; display: flex; flex-direction: column; gap: 14px; overflow: visible; }
 .profile-heading-row { flex-shrink: 0; padding-bottom: 4px; }
 .cp-eyebrow { font-size: 9.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #b8a060; margin: 0 0 3px; }
 .profile-title { font-size: 21px; font-weight: 700; color: #1d1d1f; margin: 0; letter-spacing: -0.01em; }
@@ -933,6 +1298,135 @@ import { firstValueFrom } from 'rxjs';
 .combo-lp-bar { width: 100%; height: 3px; background: #e5e5ea; border-radius: 99px; margin-top: 3px; overflow: hidden; }
 .combo-lp-fill { height: 100%; background: linear-gradient(90deg,#6366f1,#a5b4fc); border-radius: 99px; }
 
+/* ════════════════════════════════════════════════════════════════════════════
+   UNIFIED MODULE BLOCKS — premium visual style
+════════════════════════════════════════════════════════════════════════════ */
+.mod-block {
+  border-radius: 18px; padding: 16px 20px; margin-top: 14px;
+  break-inside: avoid; page-break-inside: avoid; flex-shrink: 0;
+}
+.mod-block-hdr {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
+}
+.mod-block-hdr-left { display: flex; align-items: center; gap: 10px; }
+.mod-icon-wrap {
+  width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.mod-title { font-size: 14px; font-weight: 800; color: #1d1d1f; }
+.mod-sub   { font-size: 10px; color: #6e6e73; margin-top: 1px; }
+.mod-badge {
+  font-size: 9px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 3px 10px; border-radius: 99px;
+}
+.mod-body-row { display: flex; gap: 16px; align-items: flex-start; }
+
+/* ── Astrology — aged parchment ── */
+.mod-astro { background: #faf6ee; border: 1px solid #c8a96e; }
+.mod-icon-astro { background: #f0e8d0; }
+.mod-badge-astro { background: #f0e8d0; color: #5c3d0e; border: 1px solid #c8a96e; font-family: Georgia,serif; letter-spacing: 0.12em; }
+.chart-svg-wrap { width: 220px; flex-shrink: 0; }
+.vedic-svg-v2 { width: 220px; height: 220px; display: block; border-radius: 4px; box-shadow: 0 2px 12px rgba(92,61,14,0.15); }
+.astro-data-panel { flex: 1; min-width: 0; }
+.astro-data-title { font-size: 9px; font-weight: 700; color: #5c3d0e; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; font-family: Georgia,serif; }
+.planet-table { display: flex; flex-direction: column; gap: 2px; margin-bottom: 10px; }
+.pt-row { display: grid; grid-template-columns: 20px 72px 28px 1fr; align-items: center; gap: 4px; padding: 3px 6px; border-radius: 3px; background: rgba(200,169,110,0.08); border-bottom: 1px solid rgba(200,169,110,0.15); }
+.pt-sym { font-size: 12px; font-weight: 700; text-align: center; font-family: Georgia,serif; }
+.pt-name { font-size: 9px; font-weight: 600; color: #3c2a0e; font-family: Georgia,serif; }
+.pt-house { font-size: 7.5px; font-weight: 700; color: #8b6914; background: rgba(139,105,20,0.1); border-radius: 2px; padding: 1px 3px; text-align: center; }
+.pt-rashi { font-size: 8.5px; color: #5c4020; font-family: Georgia,serif; }
+.pt-lagna { background: rgba(139,105,20,0.12) !important; }
+.astro-meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.astro-meta-cell { background: rgba(200,169,110,0.1); border-radius: 3px; padding: 5px 8px; border: 1px solid rgba(200,169,110,0.25); }
+.astro-meta-lbl { font-size: 7px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em; color: #8b6914; }
+.astro-meta-val { font-size: 10px; font-weight: 700; color: #3c2a0e; margin-top: 1px; font-family: Georgia,serif; }
+
+/* ── Numerology — sacred tablet ── */
+.mod-num { background: #f7f4ee; border: 1px solid #c0a870; }
+.mod-icon-num { background: #ede8d8; }
+.mod-badge-num { background: #ede8d8; color: #3d3460; border: 1px solid #a090c0; font-family: Georgia,serif; letter-spacing: 0.12em; }
+.loshu-wrap { width: 180px; flex-shrink: 0; }
+.loshu-svg { width: 180px; height: 180px; display: block; border-radius: 3px; box-shadow: 0 2px 12px rgba(92,61,14,0.12); }
+.num-cells-panel { flex: 1; min-width: 0; }
+.num-cards-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 5px; margin: 8px 0 10px; }
+.num-card {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 8px 4px; border-radius: 3px;
+  background: rgba(240,232,210,0.6);
+  border: 1px solid rgba(139,105,20,0.3); text-align: center;
+}
+.num-card-lp { grid-column: span 1; border-color: #8b6914; background: rgba(139,105,20,0.08) !important; }
+.num-card-val { font-size: 24px; font-weight: 400; line-height: 1; font-family: Georgia,serif; }
+.num-card-lbl { font-size: 6.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #7a5c2e; }
+.num-card-meaning { font-size: 7.5px; color: #5c4020; line-height: 1.3; font-family: Georgia,serif; font-style: italic; }
+.num-lp-bar { width: 100%; height: 2px; background: rgba(139,105,20,0.15); border-radius: 99px; margin-top: 4px; overflow: hidden; }
+.num-lp-fill { height: 100%; background: #8b6914; border-radius: 99px; }
+
+/* ── Palmistry — manuscript hand sketch ── */
+.mod-palm { background: #f7f3ec; border: 1px solid #c0a870; }
+.mod-icon-palm { background: #ede8d8; }
+.mod-badge-palm { background: #ede8d8; color: #5c3d0e; border: 1px solid #c0a870; font-family: Georgia,serif; letter-spacing: 0.12em; }
+.hand-svg-wrap { width: 160px; flex-shrink: 0; }
+.hand-svg { width: 160px; height: 213px; display: block; border-radius: 3px; box-shadow: 0 2px 10px rgba(92,61,14,0.12); }
+.palm-trad-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 7px; }
+.palm-trad-card-v2 { border-radius: 3px; padding: 8px 10px; background: rgba(240,232,210,0.5); border: 1px solid rgba(200,169,110,0.3); }
+.palm-trad-hdr { border-left: 2px solid; padding-left: 8px; margin-bottom: 4px; }
+.palm-trad-name-v2 { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 3px; font-family: Georgia,serif; }
+.palm-trad-traits { display: flex; flex-wrap: wrap; gap: 3px; }
+.palm-trad-trait-v2 { font-size: 7px; padding: 1px 6px; border-radius: 2px; background: rgba(139,105,20,0.1); color: #5c3d0e; font-weight: 600; border: 1px solid rgba(139,105,20,0.2); }
+.palm-insight-v2 { font-size: 8.5px; color: #3c2a0e; font-style: italic; line-height: 1.55; font-family: Georgia,serif; }
+
+/* ── Tarot — premium occult cards ── */
+.mod-tarot { background: #f5f0ea; border: 1px solid #b8a08a; }
+.mod-icon-tarot { background: #1a1410; border-radius: 6px; }
+.mod-badge-tarot { background: #1a1410; color: #c8a96e; border: 1px solid #4a3828; font-family: Georgia,serif; letter-spacing: 0.12em; }
+.tarot-spread-area { display: flex; gap: 10px; justify-content: center; margin-bottom: 12px; }
+.tarot-card-v2 { display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1; min-width: 0; }
+.tarot-card-reversed .tc-frame { transform: rotate(180deg); }
+.tc-pos-label { font-size: 6.5px; font-weight: 600; color: #5c3d0e; text-transform: uppercase; letter-spacing: 0.1em; text-align: center; font-family: Georgia,serif; }
+.tc-frame {
+  width: 100%; aspect-ratio: 5/8;
+  border-radius: 4px;
+  border: 1px solid rgba(200,169,110,0.35);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; padding: 8px 5px; position: relative; overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(200,169,110,0.15);
+}
+.tc-border-inner {
+  position: absolute; inset: 5px; border-radius: 3px;
+  border: 1px solid rgba(200,169,110,0.2); pointer-events: none;
+}
+.tc-stars { font-size: 7px; color: rgba(200,169,110,0.55); letter-spacing: 3px; }
+.tc-symbol { font-size: 24px; line-height: 1; color: #c8a96e; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.5)); }
+.tc-name { font-size: 7px; font-weight: 600; color: rgba(200,169,110,0.9); text-align: center; line-height: 1.3; font-family: Georgia,serif; letter-spacing: 0.05em; }
+.tc-rev-badge { font-size: 5.5px; font-weight: 600; color: rgba(200,169,110,0.7); background: rgba(200,169,110,0.1); border-radius: 2px; padding: 1px 4px; }
+.tc-keywords { font-size: 7.5px; color: #5c4020; text-align: center; line-height: 1.4; font-style: italic; font-family: Georgia,serif; }
+.tarot-overall-theme {
+  display: flex; align-items: flex-start; gap: 7px;
+  font-size: 9px; color: #3c2a0e; font-style: italic; line-height: 1.55;
+  border-top: 1px solid rgba(200,169,110,0.3); padding-top: 10px; margin-top: 2px;
+  font-family: Georgia,serif;
+}
+.tarot-theme-icon { color: #8b6914; font-size: 10px; flex-shrink: 0; margin-top: 1px; }
+
+/* ── Vastu — sacred mandala ── */
+.mod-vastu { background: #f5f2eb; border: 1px solid #b8a870; }
+.mod-icon-vastu { background: #e8e0c8; }
+.mod-badge-vastu { background: #e8e0c8; color: #2e4a2e; border: 1px solid #8aaa80; font-family: Georgia,serif; letter-spacing: 0.12em; }
+.vastu-svg-wrap { width: 200px; flex-shrink: 0; }
+.vastu-svg-v2 { width: 200px; height: 200px; display: block; border-radius: 3px; box-shadow: 0 2px 10px rgba(92,61,14,0.1); }
+.vastu-detail-panel { flex: 1; min-width: 0; }
+.vastu-detail-hdr { font-size: 9px; font-weight: 700; color: #2e4a2e; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; font-family: Georgia,serif; }
+.vastu-detail-row { display: flex; align-items: flex-start; gap: 7px; margin-bottom: 7px; }
+.vastu-detail-dot { width: 7px; height: 7px; border-radius: 50%; background: #5a7a50; flex-shrink: 0; margin-top: 3px; }
+.vastu-detail-zone { font-size: 9px; font-weight: 700; color: #2e4a2e; font-family: Georgia,serif; }
+.vastu-detail-tip  { font-size: 8px; color: #3c3020; line-height: 1.45; margin-top: 1px; font-style: italic; }
+.vastu-colors-block { margin-top: 9px; }
+.vastu-colors-hdr { font-size: 8px; font-weight: 700; color: #2e4a2e; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.07em; }
+.vastu-colors-list { display: flex; flex-wrap: wrap; gap: 4px; }
+.vastu-color-pill { font-size: 7.5px; padding: 2px 8px; border-radius: 2px; background: rgba(90,122,80,0.1); color: #2e4a2e; font-weight: 600; border: 1px solid rgba(90,122,80,0.3); }
+.vastu-energy-note { font-size: 8px; color: #064e3b; font-style: italic; border-top: 1px solid #86efac; padding-top: 8px; margin-top: 8px; line-height: 1.5; }
+
 /* ═══════════════════════════════════════════════════════════════════════════
    QUESTION PAGES
 ═══════════════════════════════════════════════════════════════════════════ */
@@ -1013,7 +1507,7 @@ import { firstValueFrom } from 'rxjs';
 /* ═══════════════════════════════════════════════════════════════════════════
    CLOSING PAGE — vertically centered, logo on white pill
 ═══════════════════════════════════════════════════════════════════════════ */
-.closing-page { background: #14100c; min-height: 480px; }
+.closing-page { background: #14100c; min-height: 0; }
 .closing-body {
   flex: 1; display: flex; flex-direction: column;
   align-items: center; justify-content: center;
@@ -1031,11 +1525,11 @@ import { firstValueFrom } from 'rxjs';
   padding: 16px 40px; border-top: 1px solid rgba(255,255,255,0.07);
   font-size: 9.5px; color: rgba(255,255,255,0.28); letter-spacing: 0.08em;
 }
-/* Footer logo — circle, no background */
+/* Footer logo — full logo, transparent bg */
 .closing-footer-logo {
-  width: 34px; height: 34px;
-  border-radius: 50%;
-  object-fit: cover; object-position: center;
+  width: 70px; height: auto;
+  border-radius: 0;
+  object-fit: contain;
   background: transparent;
   padding: 0;
 }
@@ -1285,10 +1779,10 @@ export class ReportPage implements OnInit {
     12: '2,2 210,2 106,106',
   };
 
-  // Fill colors per house — warm/cool palette
+  // Fill colors per house — aged parchment tones, manuscript palette
   private readonly HOUSE_FILLS: string[] = [
-    '#fff3cd','#d1ecf1','#d4edda','#f8d7da','#e2d9f3','#fde8d8',
-    '#cfe2ff','#fff3cd','#d4edda','#f8d7da','#d1ecf1','#e2d9f3',
+    '#ede0c4','#e8d5b0','#e4cfa0','#ead5b8','#e0d5c0','#e8dcc8',
+    '#ddd5c0','#ede0c4','#e4cfa0','#ead5b8','#e8d5b0','#e0d5c0',
   ];
 
   housePoints(h: number): string { return this.HOUSE_POLYS[h] ?? ''; }
@@ -1426,12 +1920,13 @@ export class ReportPage implements OnInit {
   }
 
   planetColor(planet: string): string {
+    // Sacred manuscript ink tones — warm sepia palette
     const c: Record<string,string> = {
-      Sun:'#d97706', Moon:'#7c3aed', Mars:'#dc2626', Mercury:'#16a34a',
-      Jupiter:'#d4af37', Venus:'#db2777', Saturn:'#374151',
-      Rahu:'#0891b2', Ketu:'#92400e', Lagna:'#d4af37',
+      Sun:'#8b4513', Moon:'#3d3460', Mars:'#7a2e2e', Mercury:'#2e5c3d',
+      Jupiter:'#6b4c0e', Venus:'#7a3b52', Saturn:'#3c3c3c',
+      Rahu:'#2e4a5c', Ketu:'#5c3d1e', Lagna:'#8b6914',
     };
-    return c[planet] ?? '#374151';
+    return c[planet] ?? '#3c3c3c';
   }
 
   // ── Module helpers ──────────────────────────────────────────────────────────
@@ -1526,6 +2021,162 @@ export class ReportPage implements OnInit {
     ];
   }
 
+  // ── Lo Shu Grid ──────────────────────────────────────────────────────────────
+  loShuGrid(): Array<{pos:number;x:number;y:number;num:string;fill:string;numColor:string;labelColor:string;label:string}> {
+    const c = this._numCore();
+    const lp   = c['life_path']   ?? 0;
+    const dest = c['destiny']     ?? 0;
+    const name = c['name_number'] ?? 0;
+    const soul = c['soul_urge']   ?? 0;
+    // Lo Shu magic square positions: [4,9,2 / 3,5,7 / 8,1,6] — row/col order
+    const LOSHU = [4,9,2,3,5,7,8,1,6];
+    const LABELS = ['4','9','2','3','5','7','8','1','6'];
+    // Sacred manuscript: highlighted cells get antique gold ink; others stay parchment
+    const COLORS = [
+      '#c8a84b','#8b6914','#a07830',
+      '#7a5c2e','#b8960c','#6b4c0e',
+      '#8b6914','#a07830','#c8a84b'
+    ];
+    const LIGHT = [
+      '#ede0c4','#e8d5b0','#e4cfa0',
+      '#ead5b8','#e0d5c0','#e8dcc8',
+      '#ddd5c0','#ede0c4','#e4cfa0'
+    ];
+    const DOMAIN_LABELS = ['Family','Crown','Partnership','Growth','Soul','Spirit','Foundation','Root','Gains'];
+    // highlight cells containing the user's key numbers
+    const keyNums = new Set([lp, dest, name, soul].filter(Boolean).map(String));
+    return LOSHU.map((num, i) => {
+      const col = i % 3, row = Math.floor(i / 3);
+      const isKey = keyNums.has(String(num));
+      return {
+        pos: i, x: col*80 + 10, y: row*80 + 10,
+        num: String(num), label: DOMAIN_LABELS[i],
+        fill: isKey ? COLORS[i] : LIGHT[i],
+        numColor: isKey ? '#3c2a0e' : '#7a5c2e',
+        labelColor: isKey ? '#5c3d0e' : '#9a7d5a',
+      };
+    });
+  }
+
+  // ── Tarot card gradient per position ─────────────────────────────────────────
+  tarotCardGrad(i: number): string {
+    // Premium occult palette — deep charcoal, midnight indigo, dark sepia
+    const grads = [
+      'linear-gradient(170deg,#1a1410 0%,#2c2018 100%)',
+      'linear-gradient(170deg,#12101a 0%,#1e1a2e 100%)',
+      'linear-gradient(170deg,#0e1614 0%,#1a2820 100%)',
+      'linear-gradient(170deg,#16101a 0%,#241830 100%)',
+      'linear-gradient(170deg,#141010 0%,#261818 100%)',
+    ];
+    return grads[i % grads.length];
+  }
+
+  // ── Palmistry helpers ────────────────────────────────────────────────────────
+  palmTraditions(): Array<{name:string; color:string; traits:string[]; lines:Array<{name:string;desc:string}>; focus_insight:string}> {
+    const raw = (this.orch.rawOutputs() as any)?.palmistry ?? {};
+    const COLORS: Record<string,string> = { Indian:'#b45309', Chinese:'#dc2626', Western:'#1d4ed8' };
+    return ['indian','chinese','western'].map(key => {
+      const t = raw[key] ?? {};
+      const lines = t.lines ?? {};
+      return {
+        name:         t.tradition ?? key.charAt(0).toUpperCase() + key.slice(1),
+        color:        COLORS[key.charAt(0).toUpperCase() + key.slice(1)] ?? '#6b7280',
+        traits:       t.traits ?? [],
+        lines:        Object.entries(lines).slice(0, 4).map(([k, v]) => ({
+          name: k.replace(/_/g,' ').replace(/\b\w/g, c => c.toUpperCase()),
+          desc: String(v),
+        })),
+        focus_insight: t.focus_insight ?? '',
+      };
+    }).filter(t => t.lines.length > 0 || t.focus_insight);
+  }
+
+  // ── Tarot helpers ─────────────────────────────────────────────────────────────
+  private _tarotRaw(): any { return (this.orch.rawOutputs() as any)?.tarot ?? {}; }
+
+  tarotSpread(): string {
+    return this._tarotRaw()?.universal?.spread ?? '3-card';
+  }
+
+  tarotTheme(): string {
+    return this._tarotRaw()?.universal?.overall_theme ?? '';
+  }
+
+  tarotCards(): Array<{position:string; name:string; symbol:string; keywords:string; reversed:boolean}> {
+    const cards: any[] = this._tarotRaw()?.universal?.cards ?? [];
+    const positions = ['Past / Root', 'Present Energy', 'Future Potential', 'Hidden Influence', 'Advice'];
+    const SYMBOLS: Record<string,string> = {
+      'The Fool':'☆','The Magician':'✦','The High Priestess':'☽','The Empress':'♀','The Emperor':'♂',
+      'The Hierophant':'☩','The Lovers':'♡','The Chariot':'⚔','Strength':'∞','The Hermit':'🕯',
+      'Wheel of Fortune':'☸','Justice':'⚖','The Hanged Man':'⊕','Temperance':'⚗','The Star':'★',
+      'The Moon':'🌙','The Sun':'☀','Judgement':'📯','The World':'○',
+    };
+    return cards.slice(0, 5).map((c: any, i: number) => ({
+      position: c.position ?? positions[i] ?? `Card ${i+1}`,
+      name:     c.name ?? '—',
+      symbol:   SYMBOLS[c.name] ?? '✦',
+      keywords: (c.keywords ?? []).slice(0,3).join(' · '),
+      reversed: c.orientation === 'reversed',
+    }));
+  }
+
+  // ── Vastu helpers ─────────────────────────────────────────────────────────────
+  private _vastuRaw(): any { return (this.orch.rawOutputs() as any)?.vastu ?? {}; }
+
+  vastuPropertyType(): string {
+    return this._vastuRaw()?.vedic?.property_type ?? 'Home';
+  }
+  vastuFacing(): string {
+    return this._vastuRaw()?.vedic?.facing_direction ?? '—';
+  }
+  vastuColors(): string[] {
+    return this._vastuRaw()?.vedic?.colors_recommended ?? [];
+  }
+  vastuPriorityZones(): Array<{zone:string; tip:string}> {
+    const zoneMap: Record<string,string> = this._vastuRaw()?.vedic?.zone_analysis ?? {};
+    return Object.entries(zoneMap).slice(0, 4).map(([zone, tip]) => ({ zone, tip: String(tip) }));
+  }
+  vastuZoneSvg(): Array<{label:string;path:string;fill:string;lx:number;ly:number;pathV2:string;fillV2:string;textColor:string;lx2:number;ly2:number;deity:string}> {
+    // Old compass (220×220, cx=110)
+    const cx = 110, cy = 110, r1 = 36, r2 = 98;
+    // New mandala (280×280, cx=140)
+    const cx2 = 140, cy2 = 140, r1v2 = 38, r2v2 = 110;
+    // Manuscript earth tones — aged parchment zones, sepia text
+    const zones = [
+      { label:'N',  angle:-90,  fill:'#d4e8d0', fillV2:'#c8d8c0', deity:'Kubera',  textColor:'#2e4a2e' },
+      { label:'NE', angle:-45,  fill:'#e8dcc8', fillV2:'#ddd0b8', deity:'Eeshaan', textColor:'#3c2e10' },
+      { label:'E',  angle:0,    fill:'#d0dce8', fillV2:'#c4d0dc', deity:'Indra',   textColor:'#1e3040' },
+      { label:'SE', angle:45,   fill:'#e8d4c0', fillV2:'#dcbca0', deity:'Agni',    textColor:'#4a2810' },
+      { label:'S',  angle:90,   fill:'#d8d4cc', fillV2:'#ccc8c0', deity:'Yama',    textColor:'#2c2c28' },
+      { label:'SW', angle:135,  fill:'#e4d4b0', fillV2:'#d8c89c', deity:'Nairuti', textColor:'#3c2c08' },
+      { label:'W',  angle:180,  fill:'#c8d4e4', fillV2:'#bcc8d8', deity:'Varuna',  textColor:'#1c2c40' },
+      { label:'NW', angle:225,  fill:'#d8d0e4', fillV2:'#ccc4d8', deity:'Vayu',    textColor:'#2c2040' },
+    ];
+    return zones.map(z => {
+      // Old path
+      const a1 = (z.angle - 22.5) * Math.PI / 180, a2 = (z.angle + 22.5) * Math.PI / 180;
+      const x1o=cx+r2*Math.cos(a1), y1o=cy+r2*Math.sin(a1);
+      const x2o=cx+r2*Math.cos(a2), y2o=cy+r2*Math.sin(a2);
+      const x1i=cx+r1*Math.cos(a1), y1i=cy+r1*Math.sin(a1);
+      const x2i=cx+r1*Math.cos(a2), y2i=cy+r1*Math.sin(a2);
+      const path=`M${x1i} ${y1i} L${x1o} ${y1o} A${r2} ${r2} 0 0 1 ${x2o} ${y2o} L${x2i} ${y2i} A${r1} ${r1} 0 0 0 ${x1i} ${y1i}Z`;
+      const lx=cx+(r1+r2)/2*Math.cos(z.angle*Math.PI/180), ly=cy+(r1+r2)/2*Math.sin(z.angle*Math.PI/180);
+      // New path (mandala)
+      const b1o=cx2+r2v2*Math.cos(a1), b1oy=cy2+r2v2*Math.sin(a1);
+      const b2o=cx2+r2v2*Math.cos(a2), b2oy=cy2+r2v2*Math.sin(a2);
+      const b1i=cx2+r1v2*Math.cos(a1), b1iy=cy2+r1v2*Math.sin(a1);
+      const b2i=cx2+r1v2*Math.cos(a2), b2iy=cy2+r1v2*Math.sin(a2);
+      const pathV2=`M${b1i} ${b1iy} L${b1o} ${b1oy} A${r2v2} ${r2v2} 0 0 1 ${b2o} ${b2oy} L${b2i} ${b2iy} A${r1v2} ${r1v2} 0 0 0 ${b1i} ${b1iy}Z`;
+      const mid=(r1v2+r2v2)/2;
+      const lx2=cx2+mid*Math.cos(z.angle*Math.PI/180), ly2=cy2+mid*Math.sin(z.angle*Math.PI/180);
+      return { label:z.label, path, fill:z.fill, lx, ly, pathV2, fillV2:z.fillV2, textColor:z.textColor, lx2, ly2, deity:z.deity };
+    });
+  }
+
+  vastuEnergy(): string {
+    return this._vastuRaw()?.vedic?.overall_energy ?? '';
+  }
+
   // ── Numerology numbers ───────────────────────────────────────────────────────
   // Reads from backend shape: numerology.indian.core_numbers.{life_path, destiny, name_number, soul_urge}
   // The local fallback is normalized to this same shape by _normalizeLocalNumerology().
@@ -1613,8 +2264,9 @@ export class ReportPage implements OnInit {
   }
 
   numColor(value: string | number): string {
+    // Antique ink tones — no bright colors, manuscript palette
     const n = Number(value) % 9 || 9;
-    const palette = ['#e11d48','#f97316','#eab308','#22c55e','#0ea5e9','#8b5cf6','#ec4899','#14b8a6','#f59e0b'];
+    const palette = ['#7a2e2e','#8b4513','#8b6914','#2e5c3d','#2e4a5c','#3d3460','#7a3b52','#2e5c50','#6b4c0e'];
     return palette[(n - 1) % palette.length];
   }
 
@@ -1667,207 +2319,466 @@ export class ReportPage implements OnInit {
       if (!img.src.startsWith('data:')) img.src = await this.toBase64(img.src);
     }));
 
-    // 2. Inject unscoped print CSS.
-    //    Angular scopes component styles with [_nghost-xxx] which doesn't exist
-    //    in print context — so ALL print rules MUST be injected here globally.
+    // 2. Inject unscoped print CSS globally (Angular scoped styles don't apply in print)
     const style = document.createElement('style');
     style.id = '__aura-print-css';
     style.textContent = `
-      /* ── A4 page geometry ── */
+      /* ══════════════════════════════════════════════════════════════
+         A4 PAGE SETUP
+         margin: 0 so @page handles all spacing; content pads itself.
+         Browser headers/footers: user must disable in print dialog
+         (More settings → Headers and footers → off).
+      ══════════════════════════════════════════════════════════════ */
       @page {
         size: A4 portrait;
         margin: 0;
       }
 
       @media print {
-        /* ── Color accuracy ── */
+
+        /* ════════════════════════════════════════════════════
+           GLOBAL RESET
+        ════════════════════════════════════════════════════ */
         * {
           -webkit-print-color-adjust: exact !important;
           print-color-adjust: exact !important;
           box-sizing: border-box !important;
         }
 
-        /* ── Hide chrome ── */
-        .no-print,
-        .translate-banner,
-        .translate-error-banner { display: none !important; }
+        /* Hide all browser chrome + app UI */
+        .no-print, .toolbar, .translate-banner, .translate-error-banner,
+        button, select, .lang-pill, .tb-btn, .tb-btn-primary, .tb-icon-btn,
+        .edit-toggle-btn, .edit-area { display: none !important; }
 
-        /* ── Reset host + scroll containers ── */
-        app-report {
-          display: block !important;
-          width: 210mm !important;
-          height: auto !important;
-          min-height: 0 !important;
-          overflow: visible !important;
+        html, body {
+          margin: 0 !important; padding: 0 !important;
+          width: 210mm !important; height: auto !important;
+          overflow: visible !important; background: #fff !important;
+        }
+
+        app-report, .report-scroll {
+          display: block !important; width: 210mm !important;
+          height: auto !important; overflow: visible !important;
+          padding: 0 !important; margin: 0 !important;
           background: transparent !important;
         }
-        .report-scroll {
-          display: block !important;
-          padding: 0 !important;
-          margin: 0 !important;
-          overflow: visible !important;
-          width: 210mm !important;
-          height: auto !important;
-          min-height: 0 !important;
-          background: transparent !important;
-        }
+
         .report-wrap {
-          display: block !important;
-          width: 210mm !important;
-          max-width: 210mm !important;
-          height: auto !important;
-          min-height: 0 !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          box-shadow: none !important;
-          border-radius: 0 !important;
-          background: transparent !important;
-          overflow: visible !important;
+          display: block !important; width: 210mm !important;
+          max-width: 210mm !important; height: auto !important;
+          margin: 0 !important; padding: 0 !important;
+          box-shadow: none !important; border-radius: 0 !important;
+          background: transparent !important; overflow: visible !important;
         }
 
-        /* ── Core A4 page primitive ──
-           Each .pdf-page = exactly one A4 page.
-           page-break-after:always pushes the NEXT sibling to a new sheet.
-           overflow:hidden clips content so nothing spills into the next page.
-        ── */
+        /* ════════════════════════════════════════════════════
+           BASE .pdf-page — flows naturally, no forced breaks
+        ════════════════════════════════════════════════════ */
         .pdf-page {
           display: block !important;
+          width: 210mm !important;
+          height: auto !important;
+          min-height: 0 !important;
+          max-height: none !important;
+          overflow: visible !important;
+          position: relative !important;
+          padding: 10mm 12mm !important;
+          margin: 0 !important;
+          page-break-before: auto !important; break-before: auto !important;
+          page-break-after: auto !important;  break-after: auto !important;
+          page-break-inside: auto !important; break-inside: auto !important;
+        }
+
+        /* ════════════════════════════════════════════════════
+           COVER PAGE — full A4, dark, portrait
+        ════════════════════════════════════════════════════ */
+        .cover {
+          background: #14100c !important;
           width: 210mm !important;
           height: 297mm !important;
           min-height: 297mm !important;
           max-height: 297mm !important;
+          padding: 0 !important;
+          position: relative !important;
           overflow: hidden !important;
-          page-break-before: always !important;
-          break-before: page !important;
           page-break-after: always !important;
           break-after: page !important;
-          page-break-inside: avoid !important;
-          break-inside: avoid !important;
-          position: relative !important;
-          box-sizing: border-box !important;
         }
-
-        /* ── First page: no leading blank page ── */
-        .pdf-page:first-of-type {
-          page-break-before: auto !important;
-          break-before: auto !important;
+        .cover-photo-wrap {
+          position: absolute !important; inset: 0 !important;
+          overflow: hidden !important;
         }
-
-        /* ── Cover ── */
-        .cover {
-          background: #14100c !important;
+        .cover-photo {
+          display: block !important; opacity: 0.28 !important;
+          position: absolute !important; right: 0 !important; top: 0 !important;
+          width: 55% !important; height: 100% !important;
+          object-fit: cover !important; object-position: center top !important;
         }
-        .cover-photo-wrap { position: absolute !important; inset: 0 !important; }
-        .cover-photo { display: block !important; opacity: 0.3 !important; width: 52% !important; height: 100% !important; object-fit: cover !important; }
-        .cover-fade { position: absolute !important; inset: 0 !important; }
-        .cover-body { position: relative !important; z-index: 2 !important; padding: 36px 44px !important; }
-        .cover-footer-bar { position: absolute !important; bottom: 0 !important; left: 0 !important; right: 0 !important; z-index: 2 !important; }
-
-        /* ── All logos: perfect circle, no background, no distortion ── */
-        .page-hdr-logo {
-          width: 36px !important; height: 36px !important;
-          border-radius: 50% !important;
-          object-fit: cover !important; object-position: center !important;
-          background: transparent !important;
-          padding: 0 !important; flex-shrink: 0 !important;
+        .cover-fade { position: absolute !important; inset: 0 !important; z-index: 1 !important; }
+        .cover-body {
+          position: relative !important; z-index: 2 !important;
+          padding: 36px 40px 24px !important;
+          height: calc(297mm - 52px) !important;
+          display: flex !important; flex-direction: column !important;
         }
-        .page-hdr-logo-dark {
-          width: 36px !important; height: 36px !important;
-          border-radius: 50% !important;
-          object-fit: cover !important; object-position: center !important;
-          background: transparent !important;
-          padding: 0 !important;
-        }
-
-        /* ── Cover logo ── */
-        .cover-logo-wrap {
-          background: transparent !important;
-          border-radius: 0 !important;
-          padding: 0 !important;
-          box-shadow: none !important;
-        }
-        .cover-logo-img {
-          width: 64px !important; height: 64px !important;
-          border-radius: 50% !important;
-          object-fit: cover !important; object-position: center !important;
-          display: block !important;
-        }
-
-        /* ── Letter brand logo ── */
-        .letter-brand-logo {
-          width: 48px !important; height: 48px !important;
-          border-radius: 50% !important;
-          object-fit: cover !important; object-position: center !important;
-        }
-
-        /* ── Closing footer logo ── */
-        .closing-footer-logo {
-          width: 34px !important; height: 34px !important;
-          border-radius: 50% !important;
-          object-fit: cover !important; object-position: center !important;
-          background: transparent !important;
-          padding: 0 !important;
-          filter: none !important;
-        }
-
-        /* ── Letter page: vertically centered, fills the page ── */
-        .page-letter { background: #fff !important; }
-        .letter-page-body {
-          flex: 1 !important; display: flex !important;
+        .cover-logo-wrap { background: transparent !important; box-shadow: none !important; padding: 0 !important; }
+        .cover-logo-img { width: 88px !important; height: auto !important; object-fit: contain !important; border-radius: 0 !important; background: transparent !important; }
+        .cover-eyebrow { font-size: 8.5px !important; letter-spacing: 3.5px !important; margin-top: 28px !important; }
+        .cover-name { font-size: 42px !important; margin: 10px 0 8px !important; line-height: 1.1 !important; }
+        .cover-rule { width: 40px !important; height: 3px !important; margin-bottom: 14px !important; }
+        .cover-sub { font-size: 11px !important; margin-bottom: 12px !important; max-width: 260px !important; line-height: 1.5 !important; }
+        .cover-date { font-size: 9px !important; letter-spacing: 1.5px !important; margin-bottom: 20px !important; }
+        .cover-questions { margin-top: auto !important; padding-bottom: 8px !important; }
+        .cq-row { display: flex !important; gap: 10px !important; align-items: flex-start !important; margin-bottom: 7px !important; }
+        .cq-num {
+          flex-shrink: 0 !important; width: 20px !important; height: 20px !important;
+          font-size: 9px !important; font-weight: 700 !important;
+          border-radius: 50% !important; display: flex !important;
           align-items: center !important; justify-content: center !important;
-          padding: 28px 44px 20px !important; overflow: hidden !important;
         }
-        .letter-inner { width: 100% !important; max-width: 600px !important; }
+        .cq-text { font-size: 10.5px !important; line-height: 1.45 !important; }
+        .cover-footer-bar {
+          position: absolute !important; bottom: 0 !important;
+          left: 0 !important; right: 0 !important; z-index: 3 !important;
+        }
+
+        /* ════════════════════════════════════════════════════
+           LETTER PAGE (page 2)
+        ════════════════════════════════════════════════════ */
+        .page-letter { background: #fff !important; }
+        .letter-page-body { display: block !important; overflow: visible !important; padding: 0 !important; }
+        .letter-inner { width: 100% !important; max-width: 100% !important; margin: 0 !important; }
         .letter-brand-row {
-          display: flex !important; align-items: center !important; gap: 16px !important;
-          margin-bottom: 28px !important; padding-bottom: 20px !important;
+          display: flex !important; align-items: center !important; gap: 10px !important;
+          margin-bottom: 10px !important; padding-bottom: 10px !important;
           border-bottom: 1px solid #f0ece4 !important;
+          break-after: avoid !important; page-break-after: avoid !important;
         }
-        .letter-brand-logo { width: 48px !important; height: 48px !important; border-radius: 50% !important; object-fit: cover !important; object-position: center !important; }
-        .letter-paras p { font-size: 14px !important; line-height: 1.9 !important; margin: 0 0 14px !important; }
+        .letter-brand-name { font-size: 13px !important; font-weight: 700 !important; }
+        .letter-brand-tagline { font-size: 9px !important; opacity: 0.65 !important; }
+        .letter-title { font-size: 17px !important; margin: 0 0 6px !important; break-after: avoid !important; }
+        .letter-paras p { font-size: 10.5px !important; line-height: 1.6 !important; margin: 0 0 6px !important; }
+        .letter-sign { font-size: 11.5px !important; margin-top: 8px !important; break-inside: avoid !important; }
+        .letter-divider { height: 1px !important; background: #f0ece4 !important; margin: 8px 0 !important; }
+        .letter-disclaimer { padding: 6px 10px !important; font-size: 8.5px !important; line-height: 1.45 !important; break-inside: avoid !important; }
+        .letter-modules { display: flex !important; flex-wrap: wrap !important; gap: 4px !important; margin-top: 6px !important; }
+        .module-chip { font-size: 9px !important; padding: 2px 8px !important; break-inside: avoid !important; }
+        .report-method-panel { margin-top: 10px !important; break-inside: avoid !important; }
+        .rmp-title { font-size: 7px !important; letter-spacing: 2px !important; padding: 3px 8px !important; }
+        .rmp-grid { display: block !important; }
+        .rmp-item { padding: 3px 8px !important; break-inside: avoid !important; }
+        .rmp-item-hdr { display: flex !important; align-items: center !important; gap: 5px !important; }
+        .rmp-icon { font-size: 10px !important; }
+        .rmp-label { font-size: 9.5px !important; font-weight: 600 !important; }
+        .rmp-branches { display: flex !important; flex-wrap: wrap !important; gap: 2px !important; margin: 2px 0 !important; }
+        .rmp-branch { font-size: 7px !important; padding: 1px 5px !important; }
+        .rmp-meta { font-size: 7px !important; color: #999 !important; }
 
-        /* ── Profile page: larger chart, side-by-side layout ── */
-        .page-profile { background: #f5f5f7 !important; }
-        .profile-body { padding: 14px 24px 14px !important; gap: 10px !important; overflow: hidden !important; }
-        .profile-chart-wrap { box-shadow: none !important; border: 1px solid #e5e5ea !important; padding: 12px 16px !important; }
-        .profile-chart-row { display: flex !important; gap: 20px !important; align-items: flex-start !important; }
-        .profile-svg-shell {
-          width: 310px !important; height: 310px !important;
-          flex-shrink: 0 !important;
+        /* ════════════════════════════════════════════════════
+           PAGE HEADER (appears on letter, profile, Q pages)
+        ════════════════════════════════════════════════════ */
+        .page-hdr {
+          display: flex !important; align-items: center !important;
+          justify-content: space-between !important;
+          padding: 0 0 7px !important;
+          border-bottom: 1px solid rgba(212,175,55,0.25) !important;
+          margin-bottom: 10px !important;
+          break-after: avoid !important; page-break-after: avoid !important;
+        }
+        .page-hdr-right { font-size: 8px !important; opacity: 0.55 !important; letter-spacing: 0.05em !important; }
+        .page-hdr-dark { border-bottom-color: rgba(255,255,255,0.1) !important; }
+
+        /* All logos */
+        img { max-width: 100% !important; height: auto !important; }
+        .page-hdr-logo, .page-hdr-logo-dark {
+          width: 40px !important; height: auto !important;
+          border-radius: 0 !important; object-fit: contain !important;
+          background: transparent !important; padding: 0 !important; display: block !important;
+        }
+        .letter-brand-logo {
+          width: 40px !important; height: auto !important;
+          border-radius: 0 !important; object-fit: contain !important;
+          background: transparent !important; display: block !important;
+        }
+
+        /* ════════════════════════════════════════════════════
+           PROFILE PAGE — Cosmic Blueprint (astro + numerology)
+           Always starts on a fresh page
+        ════════════════════════════════════════════════════ */
+        .page-profile {
+          background: #f8f7f4 !important;
+          page-break-before: always !important;
+          break-before: page !important;
+        }
+        .profile-body { display: block !important; overflow: visible !important; height: auto !important; padding: 0 !important; }
+        .profile-heading-row {
+          padding: 2px 0 8px !important;
+          break-after: avoid !important; page-break-after: avoid !important;
+        }
+        .cp-eyebrow { font-size: 7.5px !important; letter-spacing: 2px !important; margin-bottom: 2px !important; }
+        .profile-title { font-size: 19px !important; margin: 0 !important; }
+
+        /* ── Universal section card ── */
+        .mod-block {
+          display: block !important;
+          border: 1px solid rgba(0,0,0,0.07) !important;
+          border-radius: 10px !important;
+          padding: 10px 12px !important;
+          margin-top: 10px !important;
+          background: #fff !important;
           box-shadow: none !important;
-          border: 1px solid rgba(212,175,55,0.3) !important;
-        }
-        .profile-planet-grid { flex: 1 !important; min-width: 0 !important; }
-        .combo-planet-rows { display: grid !important; grid-template-columns: 1fr !important; gap: 1px !important; }
-        .combo-planet-meta { display: grid !important; grid-template-columns: auto 1fr !important; gap: 3px 10px !important; }
-        .profile-num-block { box-shadow: none !important; border: 1px solid #e5e5ea !important; padding: 10px 16px !important; }
-        .combo-num-grid { gap: 5px !important; }
-        .combo-num-cell { padding: 6px 3px !important; }
-        .combo-num-val { font-size: 17px !important; }
-
-        /* ── Question pages ── */
-        .page-question { background: #fff !important; }
-        .q-banner { padding: 24px 40px 0 !important; }
-        .content-block { padding: 16px 40px 0 !important; }
-        .hw-item { break-inside: avoid !important; page-break-inside: avoid !important; }
-        .remedy-card {
           break-inside: avoid !important;
           page-break-inside: avoid !important;
-          margin-top: 14px !important;
-          padding: 13px 16px !important;
+          overflow: visible !important;
         }
-        .remedy-group { break-inside: avoid !important; page-break-inside: avoid !important; }
-        .q-banner { break-after: avoid !important; page-break-after: avoid !important; }
-        .block-heading { break-after: avoid !important; page-break-after: avoid !important; }
-        .edit-area { border: none !important; background: transparent !important; resize: none !important; padding: 0 !important; }
+        .mod-block-hdr {
+          display: flex !important; align-items: center !important;
+          justify-content: space-between !important;
+          margin-bottom: 8px !important; padding-bottom: 5px !important;
+          border-bottom: 1px solid rgba(0,0,0,0.05) !important;
+          break-after: avoid !important; page-break-after: avoid !important;
+        }
+        .mod-block-hdr-left { display: flex !important; align-items: center !important; gap: 8px !important; }
+        .mod-icon-wrap { width: 26px !important; height: 26px !important; flex-shrink: 0 !important; border-radius: 7px !important; display: flex !important; align-items: center !important; justify-content: center !important; }
+        .mod-title { font-size: 11px !important; font-weight: 700 !important; margin: 0 !important; }
+        .mod-sub { font-size: 8px !important; color: #777 !important; margin: 1px 0 0 !important; }
+        .mod-badge { font-size: 7px !important; padding: 2px 7px !important; border-radius: 4px !important; }
+        .mod-body-row { display: flex !important; gap: 10px !important; align-items: flex-start !important; }
 
-        /* ── Closing page ── */
-        .closing-page { background: #14100c !important; }
-        .closing-body { padding: 40px 36px 28px !important; }
+        /* SVGs */
+        svg { overflow: visible !important; }
+        .vedic-svg-v2  { width: 118px !important; height: 118px !important; flex-shrink: 0 !important; box-shadow: none !important; display: block !important; }
+        .chart-svg-wrap { width: 118px !important; flex-shrink: 0 !important; }
+        .hand-svg      { width: 88px !important; height: 117px !important; flex-shrink: 0 !important; box-shadow: none !important; display: block !important; }
+        .hand-svg-wrap { width: 88px !important; flex-shrink: 0 !important; }
+        .vastu-svg-v2  { width: 112px !important; height: 112px !important; flex-shrink: 0 !important; box-shadow: none !important; display: block !important; }
+        .vastu-svg-wrap { width: 112px !important; flex-shrink: 0 !important; }
+        .loshu-svg     { width: 98px !important; height: 98px !important; box-shadow: none !important; display: block !important; }
+        .loshu-wrap    { width: 98px !important; flex-shrink: 0 !important; }
 
-        /* ── Shared ── */
-        .page-hdr { padding: 10px 36px !important; }
-        .gold-line { margin-bottom: 16px !important; }
+        /* Astrology table */
+        .astro-data-panel { flex: 1 !important; min-width: 0 !important; }
+        .astro-data-title { font-size: 7.5px !important; letter-spacing: 1.5px !important; margin-bottom: 4px !important; text-transform: uppercase !important; }
+        .planet-table { display: block !important; }
+        .pt-row { display: flex !important; align-items: center !important; gap: 5px !important; padding: 2px 0 !important; border-bottom: 1px solid rgba(0,0,0,0.04) !important; }
+        .pt-sym { width: 15px !important; text-align: center !important; font-size: 11px !important; flex-shrink: 0 !important; }
+        .pt-name { flex: 1 !important; font-size: 8.5px !important; }
+        .pt-house { font-size: 7.5px !important; color: #999 !important; min-width: 20px !important; }
+        .pt-rashi { font-size: 8.5px !important; min-width: 44px !important; text-align: right !important; }
+        .astro-meta-grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 3px !important; margin-top: 6px !important; }
+        .astro-meta-cell { padding: 3px 6px !important; border-radius: 5px !important; background: rgba(0,0,0,0.03) !important; }
+        .astro-meta-lbl { font-size: 6.5px !important; letter-spacing: 1px !important; color: #999 !important; text-transform: uppercase !important; }
+        .astro-meta-val { font-size: 9px !important; font-weight: 700 !important; }
+
+        /* Numerology */
+        .num-cells-panel { flex: 1 !important; min-width: 0 !important; }
+        .num-branch-row { display: flex !important; flex-wrap: wrap !important; gap: 3px !important; margin-bottom: 6px !important; }
+        .num-branch-pill { font-size: 7px !important; padding: 1px 6px !important; border-radius: 99px !important; }
+        .num-cards-grid { display: flex !important; flex-wrap: wrap !important; gap: 4px !important; margin-bottom: 5px !important; }
+        .num-card {
+          flex: 0 0 auto !important; width: calc(33.3% - 4px) !important;
+          padding: 5px 3px !important; border-radius: 7px !important;
+          border-width: 1px !important; text-align: center !important;
+          break-inside: avoid !important;
+        }
+        .num-card-val { font-size: 17px !important; font-weight: 900 !important; line-height: 1.1 !important; }
+        .num-card-lbl { font-size: 6.5px !important; letter-spacing: 0.5px !important; text-transform: uppercase !important; }
+        .num-card-meaning { font-size: 7px !important; }
+        .num-card-lp { width: 100% !important; }
+        .num-lp-bar { height: 3px !important; margin-top: 3px !important; border-radius: 2px !important; background: rgba(0,0,0,0.07) !important; }
+        .num-lp-fill { height: 100% !important; border-radius: 2px !important; }
+        .num-tradition-table { margin-top: 4px !important; border-radius: 6px !important; overflow: hidden !important; }
+        .ntt-hdr-row, .ntt-row { display: grid !important; grid-template-columns: 1.4fr 1fr 1fr 1fr 1fr !important; padding: 3px 6px !important; }
+        .ntt-hdr-row { font-size: 7px !important; }
+        .ntt-row { font-size: 8.5px !important; }
+        .ntt-col-label { font-size: 8px !important; }
+        .ntt-col { text-align: center !important; font-weight: 700 !important; }
+
+        /* Palmistry */
+        .palm-trad-panel { flex: 1 !important; min-width: 0 !important; display: block !important; }
+        .palm-trad-card-v2 {
+          margin-bottom: 5px !important; padding: 5px 8px !important;
+          border-radius: 6px !important; background: rgba(0,0,0,0.015) !important;
+          break-inside: avoid !important; page-break-inside: avoid !important;
+        }
+        .palm-trad-hdr {
+          display: flex !important; align-items: center !important;
+          flex-wrap: wrap !important; gap: 4px !important;
+          border-left-width: 2px !important; border-left-style: solid !important;
+          padding-left: 6px !important; margin-bottom: 2px !important;
+        }
+        .palm-trad-name-v2 { font-size: 9px !important; font-weight: 700 !important; }
+        .palm-trad-traits { display: flex !important; gap: 3px !important; flex-wrap: wrap !important; }
+        .palm-trad-trait-v2 { font-size: 7px !important; padding: 1px 5px !important; border-radius: 3px !important; }
+        .palm-insight-v2 { font-size: 8.5px !important; line-height: 1.4 !important; color: #555 !important; padding-left: 8px !important; }
+
+        /* Tarot */
+        .tarot-spread-area {
+          display: flex !important; gap: 5px !important; margin-top: 6px !important;
+          break-inside: avoid !important; page-break-inside: avoid !important;
+        }
+        .tarot-card-v2 { flex: 1 !important; min-width: 0 !important; display: flex !important; flex-direction: column !important; align-items: center !important; }
+        .tc-pos-label { font-size: 6px !important; text-align: center !important; margin-bottom: 3px !important; letter-spacing: 0.5px !important; opacity: 0.7 !important; }
+        .tc-frame {
+          width: 100% !important; height: 80px !important;
+          max-height: 80px !important; min-height: 0 !important;
+          aspect-ratio: unset !important; border-radius: 5px !important;
+          box-shadow: none !important; display: flex !important;
+          flex-direction: column !important; align-items: center !important;
+          justify-content: center !important; padding: 4px !important;
+          overflow: hidden !important;
+        }
+        .tc-stars  { font-size: 5px !important; margin-bottom: 2px !important; opacity: 0.7 !important; }
+        .tc-symbol { font-size: 18px !important; line-height: 1 !important; }
+        .tc-name   { font-size: 5.5px !important; text-align: center !important; margin-top: 3px !important; letter-spacing: 0.3px !important; }
+        .tc-border-inner { display: none !important; }
+        .tc-rev-badge { font-size: 5px !important; margin-top: 2px !important; opacity: 0.8 !important; }
+        .tc-keywords { font-size: 6.5px !important; text-align: center !important; margin-top: 3px !important; line-height: 1.3 !important; color: #555 !important; }
+        .tarot-overall-theme {
+          margin-top: 5px !important; font-size: 8.5px !important;
+          padding: 4px 8px !important; line-height: 1.45 !important;
+          break-inside: avoid !important; page-break-inside: avoid !important;
+        }
+
+        /* Vastu */
+        .vastu-detail-panel { flex: 1 !important; min-width: 0 !important; }
+        .vastu-detail-hdr { font-size: 8.5px !important; font-weight: 700 !important; letter-spacing: 1px !important; margin-bottom: 6px !important; text-transform: uppercase !important; }
+        .vastu-detail-row {
+          display: flex !important; gap: 7px !important; align-items: flex-start !important;
+          margin-bottom: 5px !important; break-inside: avoid !important;
+        }
+        .vastu-detail-dot { width: 8px !important; height: 8px !important; border-radius: 50% !important; margin-top: 2px !important; flex-shrink: 0 !important; background: #10b981 !important; }
+        .vastu-detail-zone { font-size: 9px !important; font-weight: 700 !important; }
+        .vastu-detail-tip  { font-size: 8px !important; color: #555 !important; }
+        .vastu-colors-block { margin-top: 6px !important; break-inside: avoid !important; }
+        .vastu-colors-hdr  { font-size: 8px !important; font-weight: 600 !important; margin-bottom: 3px !important; }
+        .vastu-colors-list { display: flex !important; gap: 3px !important; flex-wrap: wrap !important; }
+        .vastu-color-pill  { font-size: 7.5px !important; padding: 1px 6px !important; border-radius: 3px !important; }
+        .vastu-energy-note { font-size: 8px !important; margin-top: 5px !important; font-style: italic !important; color: #666 !important; }
+
+        /* ════════════════════════════════════════════════════
+           QUESTION PAGES
+        ════════════════════════════════════════════════════ */
+        .page-question { background: #fff !important; }
+        .q-banner {
+          display: flex !important; align-items: flex-start !important;
+          gap: 10px !important; padding: 0 0 10px !important;
+          break-after: avoid !important; page-break-after: avoid !important;
+        }
+        .q-circle {
+          flex-shrink: 0 !important; width: 30px !important; height: 30px !important;
+          border-radius: 50% !important; font-size: 12px !important; font-weight: 900 !important;
+          display: flex !important; align-items: center !important; justify-content: center !important;
+        }
+        .q-text { font-size: 14px !important; font-weight: 700 !important; line-height: 1.35 !important; }
+
+        .content-block { padding: 0 !important; }
+        .block-heading {
+          font-size: 11px !important; margin: 0 0 4px !important;
+          break-after: avoid !important; page-break-after: avoid !important;
+        }
+
+        /* hw-items: each is a small card that never splits */
+        .hw-list { list-style: none !important; margin: 6px 0 0 !important; padding: 0 !important; }
+        .hw-item {
+          break-inside: avoid !important; page-break-inside: avoid !important;
+          margin-bottom: 5px !important; padding: 6px 10px !important;
+          background: rgba(212,175,55,0.04) !important;
+          border-radius: 6px !important;
+          border-left: 2px solid rgba(212,175,55,0.45) !important;
+        }
+        .hw-label { font-size: 10px !important; font-weight: 700 !important; display: block !important; margin-bottom: 3px !important; }
+        .hw-sub-list { margin: 3px 0 0 !important; padding: 0 !important; list-style: none !important; }
+        .hw-sub-item {
+          display: flex !important; gap: 6px !important; align-items: flex-start !important;
+          font-size: 9px !important; margin-bottom: 3px !important; line-height: 1.45 !important;
+        }
+        .hw-sub-num {
+          flex-shrink: 0 !important; width: 15px !important; height: 15px !important;
+          border-radius: 50% !important; font-size: 7.5px !important; font-weight: 700 !important;
+          display: flex !important; align-items: center !important; justify-content: center !important;
+          background: rgba(212,175,55,0.15) !important; color: #8a6a00 !important;
+        }
+        .hw-sub-text { flex: 1 !important; }
+        .hw-timing { break-inside: avoid !important; padding: 3px 0 !important; }
+        .hw-timing-window { font-size: 14px !important; font-weight: 800 !important; color: #1a1410 !important; }
+        .hw-timing-peak   { font-size: 10px !important; font-weight: 600 !important; color: #c4963b !important; }
+        .hw-timing-dur    { font-size: 8px !important; color: #999 !important; margin-top: 1px !important; }
+        .hw-redirect { font-size: 9.5px !important; font-style: italic !important; }
+        .hw-answer   { font-size: 9px !important; line-height: 1.5 !important; }
+
+        /* Remedy card */
+        .remedy-card {
+          break-inside: avoid !important; page-break-inside: avoid !important;
+          margin-top: 8px !important; padding: 10px 14px !important;
+          border-radius: 8px !important;
+        }
+        .remedy-card-head { font-size: 10px !important; font-weight: 700 !important; margin-bottom: 6px !important; break-after: avoid !important; }
+        .remedy-group { break-inside: avoid !important; page-break-inside: avoid !important; margin-bottom: 5px !important; }
+        .remedy-group-label { font-size: 8px !important; font-weight: 700 !important; letter-spacing: 0.5px !important; text-transform: uppercase !important; margin-bottom: 3px !important; }
+        .remedy-list { margin: 0 !important; padding-left: 14px !important; }
+        .remedy-list li { font-size: 9.5px !important; line-height: 1.55 !important; margin-bottom: 2px !important; }
+        .narrative-para { font-size: 10.5px !important; line-height: 1.65 !important; }
+
+        /* ════════════════════════════════════════════════════
+           CLOSING PAGE — full A4, dark, premium ending
+        ════════════════════════════════════════════════════ */
+        .closing-page {
+          background: #14100c !important;
+          width: 210mm !important;
+          height: 297mm !important;
+          min-height: 297mm !important;
+          max-height: 297mm !important;
+          padding: 0 !important;
+          overflow: hidden !important;
+          display: flex !important;
+          flex-direction: column !important;
+          page-break-before: always !important;
+          break-before: page !important;
+          break-inside: avoid !important;
+          page-break-inside: avoid !important;
+          page-break-after: avoid !important;
+          break-after: avoid !important;
+        }
+        .closing-body {
+          flex: 1 !important;
+          display: flex !important; flex-direction: column !important;
+          align-items: center !important; justify-content: center !important;
+          padding: 48px 48px 32px !important; text-align: center !important;
+        }
+        .closing-photo {
+          width: 88px !important; height: 88px !important;
+          border-radius: 50% !important; object-fit: cover !important;
+          object-position: center top !important;
+          border: 2px solid rgba(212,175,55,0.4) !important;
+          display: block !important; margin-bottom: 20px !important;
+        }
+        .closing-name { font-size: 26px !important; font-weight: 800 !important; color: #fff !important; margin: 0 0 12px !important; line-height: 1.2 !important; }
+        .gold-line-center { width: 36px !important; height: 2px !important; background: #d4af37 !important; margin: 0 auto 16px !important; border-radius: 1px !important; }
+        .closing-text {
+          font-size: 11.5px !important; color: rgba(255,255,255,0.55) !important;
+          max-width: 320px !important; line-height: 1.7 !important; margin: 0 0 10px !important;
+        }
+        .closing-seal { font-size: 28px !important; color: #d4af37 !important; margin: 20px 0 0 !important; }
+        .closing-footer {
+          flex-shrink: 0 !important;
+          display: flex !important; align-items: center !important;
+          justify-content: center !important; gap: 12px !important;
+          padding: 14px 0 18px !important;
+          border-top: 1px solid rgba(255,255,255,0.07) !important;
+          font-size: 8.5px !important; color: rgba(255,255,255,0.25) !important;
+          letter-spacing: 0.07em !important;
+        }
+        .closing-footer-logo {
+          width: 48px !important; height: auto !important;
+          border-radius: 0 !important; object-fit: contain !important;
+          background: transparent !important; display: block !important;
+        }
+
+        /* ════════════════════════════════════════════════════
+           SHARED
+        ════════════════════════════════════════════════════ */
+        .gold-line { width: 30px !important; height: 2px !important; background: #d4af37 !important; margin-bottom: 8px !important; border-radius: 1px !important; display: block !important; }
       }
     `;
     document.head.appendChild(style);

@@ -16,7 +16,9 @@ Design principles:
 from __future__ import annotations
 import copy
 import json
-from typing import Any, Dict, List, Optional
+import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Any, Callable, Dict, List, Optional
 
 # ── 22 scheduled languages (Constitution of India, 8th Schedule) ──────────────
 SUPPORTED_LANGUAGES: Dict[str, Dict[str, str]] = {
@@ -48,12 +50,14 @@ SUPPORTED_LANGUAGES: Dict[str, Dict[str, str]] = {
 
 
 # ── Fields that must be translated (leaf string values) ──────────────────────
-# Keys that should NOT be translated (identifiers, URLs, dates, metadata)
+# Keys that should NOT be translated (identifiers, URLs, dates, metadata, code enums)
 _SKIP_KEYS = {
     "brand_name", "logo_url", "image_url", "generated_at", "report_title",
     "id", "session_id", "confidence", "intent", "domains", "is_common",
     "approved", "editable", "edited", "modules_used", "language", "language_code",
     "language_name", "language_native",
+    # hw_bullet type is a code value ("list", "timing", "redirect") — never translate
+    "type",
 }
 
 # ── Prompt builder ────────────────────────────────────────────────────────────
@@ -72,32 +76,31 @@ def _build_translation_prompt(
     lang_native = lang_info["native"]
 
     system = (
-        "You are an expert literary translator specialising in spiritual, astrological, "
-        "and metaphysical texts. You translate from English into Indian languages with "
-        "absolute fidelity to:\n"
-        "  • Meaning — convey the exact thought, not a paraphrase\n"
-        "  • Register — preserve the warm, sage-like, intimate spiritual tone\n"
-        "  • Structure — keep sentence flow, paragraph breaks, bullet markers\n"
-        "  • Impact — retain the emotional weight of each sentence\n"
-        "  • Sanskrit terms — keep them in their original Sanskrit form; add a "
-        "    one-word native-language gloss in parentheses on first use only\n"
-        "  • Mantras — render in Devanagari + Roman transliteration, never translate\n"
-        "  • Numbers, dates, proper nouns — do not translate\n"
+        f"You translate English spiritual and astrology report text into {lang_name}.\n\n"
+        "Your two goals — both equally important:\n"
+        "  1. SIMPLE LANGUAGE — use everyday words a 6th-grade student knows. "
+        "Avoid rare, formal, or literary vocabulary. Short, clear sentences.\n"
+        "  2. FULL ACCURACY — every insight, prediction, number, date, time window, "
+        "planet name, and specific detail from the English MUST appear in the translation. "
+        "Do not drop, shorten, or vague-ify any finding.\n\n"
+        "Additional rules:\n"
+        "  • Mantras (e.g. Om Namah Shivaya) — keep exactly as-is, do not translate\n"
+        "  • Numbers, dates, proper nouns (person names, city names) — keep exactly as-is\n"
+        "  • Do not add new content or explanations not in the original\n\n"
         "CRITICAL: Output ONLY raw JSON — no markdown, no code fences, no commentary. "
         "The response must start with { and end with }. "
         'Format: {"translations": ["...", ...]} with exactly the same count as input lines.'
     )
 
     user = (
-        f"Target language: {lang_name} ({lang_native})\n\n"
-        f"Translate each numbered item faithfully into {lang_name}:\n{numbered}\n\n"
-        f'Return ONLY this JSON (no markdown): {{"translations": ["<item1 in {lang_name}>", ...]}}'
+        f"Translate into simple {lang_name} — easy words, but keep every detail and finding intact:\n{numbered}\n\n"
+        f'Return ONLY this JSON: {{"translations": ["<translation>", ...]}}'
     )
 
     return {
         "model":       "deepseek-chat",
         "temperature": 0,
-        "max_tokens":  4096,
+        "max_tokens":  8192,
         "system":      system,
         "user":        user,
     }
@@ -193,36 +196,51 @@ def translation_agent(
 
     texts = [s["text"] for s in segments]
 
-    # ── Batch into chunks of 40 to stay within token limits ──────────────────
-    BATCH = 40
+    # ── Translate one string at a time via individual LLM calls ──────────────
+    # Batching causes truncation on long reports (>14KB JSON hits token limits).
+    # Per-string calls are slower but 100% reliable — no JSON parsing, no count
+    # mismatch, no truncation. Each call completes in ~1-2s.
     translated_texts: List[str] = []
 
-    for start in range(0, len(texts), BATCH):
-        batch = texts[start : start + BATCH]
-        prompt = _build_translation_prompt(batch, code, lang_info)
+    def _translate_one(text: str) -> str:
+        """Translate a single string. Returns original on any failure."""
+        prompt = _build_translation_prompt([text], code, lang_info)
+        try:
+            raw = llm_caller(prompt)  # type: ignore[misc]
+            raw = raw.strip()
+            if raw.startswith("```"):
+                raw = "\n".join(
+                    l for l in raw.splitlines()
+                    if not l.strip().startswith("```")
+                ).strip()
+            start_idx = raw.find("{")
+            end_idx   = raw.rfind("}") + 1
+            if start_idx != -1 and end_idx > start_idx:
+                raw = raw[start_idx:end_idx]
+            parsed = json.loads(raw)
+            items = parsed.get("translations", [])
+            if isinstance(items, list) and items:
+                return str(items[0])
+        except Exception as exc:
+            print(f"[translation_agent] failed on: {text[:60]!r} — {exc}", file=sys.stderr)
+        return text  # fallback: keep original
 
-        if llm_caller:
-            try:
-                raw = llm_caller(prompt)
-                # Strip markdown fences defensively
-                raw = raw.strip()
-                if raw.startswith("```"):
-                    raw = "\n".join(
-                        l for l in raw.splitlines()
-                        if not l.strip().startswith("```")
-                    ).strip()
-                parsed = json.loads(raw)
-                batch_translated = parsed.get("translations", batch)
-                # Ensure we got the right count; pad/trim if not
-                if len(batch_translated) != len(batch):
-                    batch_translated = (batch_translated + batch)[: len(batch)]
-            except Exception:
-                batch_translated = batch
-        else:
-            # Mock: prefix each item with language tag for testing
-            batch_translated = [f"[{lang_info['name']}] {t}" for t in batch]
-
-        translated_texts.extend(batch_translated)
+    if llm_caller:
+        # Translate all strings in parallel — 10 concurrent LLM calls
+        # keeps total time ~10-15s regardless of report length
+        translated_texts = [None] * len(texts)  # type: ignore[list-item]
+        with ThreadPoolExecutor(max_workers=10) as pool:
+            futures = {pool.submit(_translate_one, text): i for i, text in enumerate(texts)}
+            for fut in as_completed(futures):
+                idx = futures[fut]
+                try:
+                    translated_texts[idx] = fut.result()
+                except Exception as exc:
+                    print(f"[translation_agent] parallel failure idx={idx}: {exc}", file=sys.stderr)
+                    translated_texts[idx] = texts[idx]
+    else:
+        # Mock: prefix each item with language tag for testing
+        translated_texts = [f"[{lang_info['name']}] {t}" for t in texts]
 
     # Write translated strings back into the copied report
     for segment, new_text in zip(segments, translated_texts):

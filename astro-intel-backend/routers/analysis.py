@@ -246,7 +246,7 @@ async def translate_report(req: TranslateRequest) -> JSONResponse:
             },
             method="POST",
         )
-        with _urllib.urlopen(req_obj, timeout=120) as resp:
+        with _urllib.urlopen(req_obj, timeout=30) as resp:
             data = _json.loads(resp.read().decode())
         raw = data["choices"][0]["message"]["content"]
         if raw.strip().startswith("```"):

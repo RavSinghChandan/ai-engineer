@@ -1227,6 +1227,7 @@ export class ReviewPage {
     this.translatedSections.set([]);
     this.transApprovedIds.set(new Set());
     this.transRejectedIds.set(new Set());
+    this.orch._setStepStatus('translate', 'running');
 
     try {
       const res = await firstValueFrom(this.api.translateReport({
@@ -1253,8 +1254,10 @@ export class ReviewPage {
       // Auto-approve all translated insights by default
       const allTransIds = sections.flatMap((s: any) => (s.insights ?? []).map((i: any) => i.id));
       this.transApprovedIds.set(new Set(allTransIds));
+      this.orch._setStepStatus('translate', 'done');
 
     } catch (err: any) {
+      this.orch._setStepStatus('translate', 'idle');
       this.translateError.set(
         err?.message ?? `Translation to ${this.pendingLangName()} failed. Please try again.`
       );

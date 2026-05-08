@@ -112,6 +112,31 @@ export interface FinalReportPayload {
   language_code?: string;
   language_name?: string;
   language_native?: string;
+  // Letter page — translatable fields
+  letter_title?: string;
+  letter_para1?: string;
+  letter_para2?: string;
+  letter_para3?: string;
+  letter_para4?: string;
+  letter_sign?: string;
+  letter_tagline?: string;
+  // Cover page — translatable
+  cover_eyebrow?: string;
+  cover_sub?: string;
+  cover_footer?: string;
+  // Section labels — translatable
+  label_summary?: string;
+  label_remedies_heading?: string;
+  label_daily_habits?: string;
+  label_mantra?: string;
+  label_lucky_colors?: string;
+  label_analysis_methodology?: string;
+  label_cosmic_blueprint?: string;
+  label_spiritual_profile?: string;
+  // Closing page — translatable
+  closing_thank_you?: string;
+  closing_consult?: string;
+  closing_confidential?: string;
 }
 
 export interface ApproveResponse {
@@ -164,17 +189,22 @@ export class ApiService {
   translateReport(req: TranslateRequest): Observable<TranslateResponse> {
     return this.http
       .post<TranslateResponse>(`${BACKEND}/api/v1/analysis/translate`, req)
-      .pipe(timeout(60_000), catchError(this._handleError));
+      .pipe(timeout(120_000), catchError(this._handleError));
   }
 
   getHealth(): Observable<any> {
     return this.http.get(`${BACKEND}/health`).pipe(catchError(this._handleError));
   }
 
-  private _handleError(err: HttpErrorResponse): Observable<never> {
-    const msg = err.status === 0
-      ? 'Cannot reach backend — run: cd astro-intel-backend && bash start.sh'
-      : `Backend error ${err.status}: ${err.error?.detail ?? err.message}`;
+  private _handleError(err: any): Observable<never> {
+    let msg: string;
+    if (err?.name === 'TimeoutError') {
+      msg = 'Request timed out — translation can take 2-3 minutes, please try again.';
+    } else if (err?.status === 0) {
+      msg = 'Cannot reach backend — run: cd astro-intel-backend && bash start.sh';
+    } else {
+      msg = `Backend error ${err?.status}: ${err?.error?.detail ?? err?.message ?? 'Unknown error'}`;
+    }
     return throwError(() => new Error(msg));
   }
 }

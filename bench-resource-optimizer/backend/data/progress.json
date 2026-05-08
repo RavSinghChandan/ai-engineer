@@ -1925,5 +1925,506 @@
       "d1t1",
       "d1t2"
     ]
+  },
+  "e8472d02": {
+    "role": "AI/ML Engineer",
+    "plan": {
+      "role": "AI/ML Engineer",
+      "total_days": 22,
+      "focus_skills": [
+        "TensorFlow",
+        "PyTorch",
+        "Scikit-learn",
+        "MLflow",
+        "Git"
+      ],
+      "plan": [
+        {
+          "day": 1,
+          "theme": "TensorFlow Basics",
+          "tasks": [
+            {
+              "id": "d1t1",
+              "title": "Install and configure TensorFlow",
+              "skill": "TensorFlow",
+              "hours": 2,
+              "resource": "https://www.tensorflow.org/tutorials",
+              "description": "Install and configure TensorFlow"
+            },
+            {
+              "id": "d1t2",
+              "title": "Build a simple linear model",
+              "skill": "TensorFlow",
+              "hours": 2,
+              "resource": "https://www.tensorflow.org/tutorials",
+              "description": "Build a simple linear model"
+            }
+          ]
+        },
+        {
+          "day": 2,
+          "theme": "PyTorch Fundamentals",
+          "tasks": [
+            {
+              "id": "d2t1",
+              "title": "Build a linear regression model",
+              "skill": "PyTorch",
+              "hours": 2,
+              "resource": "https://pytorch.org/tutorials/",
+              "description": "Build a linear regression model"
+            },
+            {
+              "id": "d2t2",
+              "title": "Train a simple neural network",
+              "skill": "PyTorch",
+              "hours": 2,
+              "resource": "https://pytorch.org/tutorials/",
+              "description": "Train a simple neural network"
+            }
+          ]
+        },
+        {
+          "day": 3,
+          "theme": "Scikit-learn Essentials",
+          "tasks": [
+            {
+              "id": "d3t1",
+              "title": "Build classification pipeline with sklearn",
+              "skill": "Scikit-learn",
+              "hours": 2,
+              "resource": "https://scikit-learn.org/stable/user_guide.html",
+              "description": "Build classification pipeline with sklearn"
+            },
+            {
+              "id": "d3t2",
+              "title": "Train and evaluate a model",
+              "skill": "Scikit-learn",
+              "hours": 2,
+              "resource": "https://scikit-learn.org/stable/user_guide.html",
+              "description": "Train and evaluate a model"
+            }
+          ]
+        },
+        {
+          "day": 4,
+          "theme": "MLflow Experiment Tracking",
+          "tasks": [
+            {
+              "id": "d4t1",
+              "title": "Log parameters and metrics",
+              "skill": "MLflow",
+              "hours": 2,
+              "resource": "https://mlflow.org/docs/latest/",
+              "description": "Log parameters and metrics"
+            },
+            {
+              "id": "d4t2",
+              "title": "Compare runs in MLflow UI",
+              "skill": "MLflow",
+              "hours": 2,
+              "resource": "https://mlflow.org/docs/latest/",
+              "description": "Compare runs in MLflow UI"
+            }
+          ]
+        },
+        {
+          "day": 5,
+          "theme": "Git Version Control for ML",
+          "tasks": [
+            {
+              "id": "d5t1",
+              "title": "Set up Git LFS for models",
+              "skill": "Git",
+              "hours": 2,
+              "resource": "https://git-scm.com/doc",
+              "description": "Set up Git LFS for models"
+            },
+            {
+              "id": "d5t2",
+              "title": "Version ML experiment with DVC",
+              "skill": "Git",
+              "hours": 2,
+              "resource": "https://git-scm.com/doc",
+              "description": "Version ML experiment with DVC"
+            }
+          ]
+        },
+        {
+          "day": 6,
+          "theme": "TensorFlow Data Pipelines",
+          "tasks": [
+            {
+              "id": "d6t1",
+              "title": "Build tf.data pipeline from CSV",
+              "skill": "TensorFlow",
+              "hours": 2,
+              "resource": "https://www.tensorflow.org/tutorials",
+              "description": "Build tf.data pipeline from CSV"
+            },
+            {
+              "id": "d6t2",
+              "title": "Implement image augmentation pipeline",
+              "skill": "TensorFlow",
+              "hours": 2,
+              "resource": "https://www.tensorflow.org/tutorials",
+              "description": "Implement image augmentation pipeline"
+            }
+          ]
+        },
+        {
+          "day": 7,
+          "theme": "PyTorch Custom Datasets",
+          "tasks": [
+            {
+              "id": "d7t1",
+              "title": "Implement custom Dataset class",
+              "skill": "PyTorch",
+              "hours": 2,
+              "resource": "https://pytorch.org/tutorials/",
+              "description": "Implement custom Dataset class"
+            },
+            {
+              "id": "d7t2",
+              "title": "Build image data loader pipeline",
+              "skill": "PyTorch",
+              "hours": 2,
+              "resource": "https://pytorch.org/tutorials/",
+              "description": "Build image data loader pipeline"
+            }
+          ]
+        },
+        {
+          "day": 8,
+          "theme": "Scikit-learn Model Selection",
+          "tasks": [
+            {
+              "id": "d8t1",
+              "title": "Implement cross-validation for models",
+              "skill": "Scikit-learn",
+              "hours": 2,
+              "resource": "https://scikit-learn.org/stable/user_guide.html",
+              "description": "Implement cross-validation for models"
+            },
+            {
+              "id": "d8t2",
+              "title": "Tune hyperparameters with GridSearchCV",
+              "skill": "Scikit-learn",
+              "hours": 2,
+              "resource": "https://scikit-learn.org/stable/user_guide.html",
+              "description": "Tune hyperparameters with GridSearchCV"
+            }
+          ]
+        },
+        {
+          "day": 9,
+          "theme": "MLflow Model Registry",
+          "tasks": [
+            {
+              "id": "d9t1",
+              "title": "Register model versions in registry",
+              "skill": "MLflow",
+              "hours": 2,
+              "resource": "https://mlflow.org/docs/latest/",
+              "description": "Register model versions in registry"
+            },
+            {
+              "id": "d9t2",
+              "title": "Deploy registered model to staging",
+              "skill": "MLflow",
+              "hours": 2,
+              "resource": "https://mlflow.org/docs/latest/",
+              "description": "Deploy registered model to staging"
+            }
+          ]
+        },
+        {
+          "day": 10,
+          "theme": "Git Branching Strategies",
+          "tasks": [
+            {
+              "id": "d10t1",
+              "title": "Implement GitFlow branching model",
+              "skill": "Git",
+              "hours": 2,
+              "resource": "https://git-scm.com/doc",
+              "description": "Implement GitFlow branching model"
+            },
+            {
+              "id": "d10t2",
+              "title": "Merge feature branch with conflicts",
+              "skill": "Git",
+              "hours": 2,
+              "resource": "https://git-scm.com/doc",
+              "description": "Merge feature branch with conflicts"
+            }
+          ]
+        },
+        {
+          "day": 11,
+          "theme": "TensorFlow Model Optimization",
+          "tasks": [
+            {
+              "id": "d11t1",
+              "title": "Apply weight pruning to model",
+              "skill": "TensorFlow",
+              "hours": 2,
+              "resource": "https://www.tensorflow.org/tutorials",
+              "description": "Apply weight pruning to model"
+            },
+            {
+              "id": "d11t2",
+              "title": "Quantize model with TensorFlow Lite",
+              "skill": "TensorFlow",
+              "hours": 2,
+              "resource": "https://www.tensorflow.org/tutorials",
+              "description": "Quantize model with TensorFlow Lite"
+            }
+          ]
+        },
+        {
+          "day": 12,
+          "theme": "PyTorch Transfer Learning",
+          "tasks": [
+            {
+              "id": "d12t1",
+              "title": "Load pretrained ResNet model",
+              "skill": "PyTorch",
+              "hours": 2,
+              "resource": "https://pytorch.org/tutorials/",
+              "description": "Load pretrained ResNet model"
+            },
+            {
+              "id": "d12t2",
+              "title": "Fine-tune on custom dataset",
+              "skill": "PyTorch",
+              "hours": 2,
+              "resource": "https://pytorch.org/tutorials/",
+              "description": "Fine-tune on custom dataset"
+            }
+          ]
+        },
+        {
+          "day": 13,
+          "theme": "Scikit-learn Ensemble Methods",
+          "tasks": [
+            {
+              "id": "d13t1",
+              "title": "Implement Random Forest Classifier",
+              "skill": "Scikit-learn",
+              "hours": 2,
+              "resource": "https://scikit-learn.org/stable/user_guide.html",
+              "description": "Implement Random Forest Classifier"
+            },
+            {
+              "id": "d13t2",
+              "title": "Build Gradient Boosting Model",
+              "skill": "Scikit-learn",
+              "hours": 2,
+              "resource": "https://scikit-learn.org/stable/user_guide.html",
+              "description": "Build Gradient Boosting Model"
+            }
+          ]
+        },
+        {
+          "day": 14,
+          "theme": "MLflow Deployment Basics",
+          "tasks": [
+            {
+              "id": "d14t1",
+              "title": "Deploy MLflow model to server",
+              "skill": "MLflow",
+              "hours": 2,
+              "resource": "https://mlflow.org/docs/latest/",
+              "description": "Deploy MLflow model to server"
+            },
+            {
+              "id": "d14t2",
+              "title": "Serve model via REST API",
+              "skill": "MLflow",
+              "hours": 2,
+              "resource": "https://mlflow.org/docs/latest/",
+              "description": "Serve model via REST API"
+            }
+          ]
+        },
+        {
+          "day": 15,
+          "theme": "Git Collaboration Workflows",
+          "tasks": [
+            {
+              "id": "d15t1",
+              "title": "Simulate merge conflict resolution",
+              "skill": "Git",
+              "hours": 2,
+              "resource": "https://git-scm.com/doc",
+              "description": "Simulate merge conflict resolution"
+            },
+            {
+              "id": "d15t2",
+              "title": "Collaborate on feature branch workflow",
+              "skill": "Git",
+              "hours": 2,
+              "resource": "https://git-scm.com/doc",
+              "description": "Collaborate on feature branch workflow"
+            }
+          ]
+        },
+        {
+          "day": 16,
+          "theme": "TensorFlow Serving",
+          "tasks": [
+            {
+              "id": "d16t1",
+              "title": "Export SavedModel for serving",
+              "skill": "TensorFlow",
+              "hours": 2,
+              "resource": "https://www.tensorflow.org/tutorials",
+              "description": "Export SavedModel for serving"
+            },
+            {
+              "id": "d16t2",
+              "title": "Deploy model with TensorFlow Serving",
+              "skill": "TensorFlow",
+              "hours": 2,
+              "resource": "https://www.tensorflow.org/tutorials",
+              "description": "Deploy model with TensorFlow Serving"
+            }
+          ]
+        },
+        {
+          "day": 17,
+          "theme": "PyTorch Distributed Training",
+          "tasks": [
+            {
+              "id": "d17t1",
+              "title": "Initialize distributed process group",
+              "skill": "PyTorch",
+              "hours": 2,
+              "resource": "https://pytorch.org/tutorials/",
+              "description": "Initialize distributed process group"
+            },
+            {
+              "id": "d17t2",
+              "title": "Train model with DDP wrapper",
+              "skill": "PyTorch",
+              "hours": 2,
+              "resource": "https://pytorch.org/tutorials/",
+              "description": "Train model with DDP wrapper"
+            }
+          ]
+        },
+        {
+          "day": 18,
+          "theme": "Scikit-learn Feature Engineering",
+          "tasks": [
+            {
+              "id": "d18t1",
+              "title": "Create polynomial interaction features",
+              "skill": "Scikit-learn",
+              "hours": 2,
+              "resource": "https://scikit-learn.org/stable/user_guide.html",
+              "description": "Create polynomial interaction features"
+            },
+            {
+              "id": "d18t2",
+              "title": "Build pipeline with feature selection",
+              "skill": "Scikit-learn",
+              "hours": 2,
+              "resource": "https://scikit-learn.org/stable/user_guide.html",
+              "description": "Build pipeline with feature selection"
+            }
+          ]
+        },
+        {
+          "day": 19,
+          "theme": "MLflow Hyperparameter Tuning",
+          "tasks": [
+            {
+              "id": "d19t1",
+              "title": "Configure MLflow tracking server",
+              "skill": "MLflow",
+              "hours": 2,
+              "resource": "https://mlflow.org/docs/latest/",
+              "description": "Configure MLflow tracking server"
+            },
+            {
+              "id": "d19t2",
+              "title": "Tune hyperparameters with MLflow",
+              "skill": "MLflow",
+              "hours": 2,
+              "resource": "https://mlflow.org/docs/latest/",
+              "description": "Tune hyperparameters with MLflow"
+            }
+          ]
+        },
+        {
+          "day": 20,
+          "theme": "Git Hooks and Automation",
+          "tasks": [
+            {
+              "id": "d20t1",
+              "title": "Write pre-commit hook script",
+              "skill": "Git",
+              "hours": 2,
+              "resource": "https://git-scm.com/doc",
+              "description": "Write pre-commit hook script"
+            },
+            {
+              "id": "d20t2",
+              "title": "Automate linting with Git hooks",
+              "skill": "Git",
+              "hours": 2,
+              "resource": "https://git-scm.com/doc",
+              "description": "Automate linting with Git hooks"
+            }
+          ]
+        },
+        {
+          "day": 21,
+          "theme": "TensorFlow Lite and Edge",
+          "tasks": [
+            {
+              "id": "d21t1",
+              "title": "Convert model to TFLite",
+              "skill": "TensorFlow",
+              "hours": 2,
+              "resource": "https://www.tensorflow.org/tutorials",
+              "description": "Convert model to TFLite"
+            },
+            {
+              "id": "d21t2",
+              "title": "Deploy TFLite on Raspberry Pi",
+              "skill": "TensorFlow",
+              "hours": 2,
+              "resource": "https://www.tensorflow.org/tutorials",
+              "description": "Deploy TFLite on Raspberry Pi"
+            }
+          ]
+        },
+        {
+          "day": 22,
+          "theme": "PyTorch Model Export and Deployment",
+          "tasks": [
+            {
+              "id": "d22t1",
+              "title": "Export model to TorchScript",
+              "skill": "PyTorch",
+              "hours": 2,
+              "resource": "https://pytorch.org/tutorials/",
+              "description": "Export model to TorchScript"
+            },
+            {
+              "id": "d22t2",
+              "title": "Deploy model with TorchServe",
+              "skill": "PyTorch",
+              "hours": 2,
+              "resource": "https://pytorch.org/tutorials/",
+              "description": "Deploy model with TorchServe"
+            }
+          ]
+        }
+      ]
+    },
+    "completed_task_ids": []
   }
 }
