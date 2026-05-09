@@ -324,19 +324,86 @@ import { ApiService } from '../../services/api.service';
     </div>
     }
 
-    <!-- ══ Row 5: Operational ══ -->
+    <!-- ══ Row 5: Token Economics ══ -->
+    @if (metrics().token_economics) {
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">🪙</span>
+        <span class="section-title">Token Economics</span>
+        <span class="section-badge">
+          {{ metrics().token_economics.has_real_data ? 'Live — DeepSeek API usage' : 'No LLM calls in /run pipeline' }}
+        </span>
+      </div>
+
+      @if (!metrics().token_economics.has_real_data) {
+        <div class="panel info-panel">
+          <div class="info-icon">ℹ️</div>
+          <div>
+            <div class="info-title">Domain agents are rule-based — 0 LLM tokens on /run</div>
+            <div class="info-sub">{{ metrics().token_economics.rule_based_note }}</div>
+            <div class="info-sub" style="margin-top:4px">Token data populates when you call <strong>/approve</strong> (report generation) or questions that trigger the WHO/WHAT/WHERE simplify agent.</div>
+          </div>
+        </div>
+      }
+
+      <div class="kpi-row">
+        <div class="kpi-card kpi-accent">
+          <div class="kpi-label">Avg Input Tokens</div>
+          <div class="kpi-value">{{ metrics().token_economics.avg_prompt_tokens || '—' }}</div>
+          <div class="kpi-note">Prompt tokens per run · total {{ metrics().token_economics.total_prompt_tokens }}</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Avg Output Tokens</div>
+          <div class="kpi-value">{{ metrics().token_economics.avg_completion_tokens || '—' }}</div>
+          <div class="kpi-note">Completion tokens per run · total {{ metrics().token_economics.total_completion_tokens }}</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Avg Total Tokens</div>
+          <div class="kpi-value">{{ metrics().token_economics.avg_total_tokens || '—' }}</div>
+          <div class="kpi-note">{{ metrics().token_economics.avg_llm_calls }} LLM call(s) per run avg</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Avg Cost / Run</div>
+          <div class="kpi-value">\${{ metrics().token_economics.avg_cost_per_run_usd }}</div>
+          <div class="kpi-note">Total: \${{ metrics().token_economics.total_cost_usd }} · {{ metrics().token_economics.cost_model }}</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Tokens / Insight</div>
+          <div class="kpi-value">{{ metrics().token_economics.tokens_per_insight || '—' }}</div>
+          <div class="kpi-note">LLM tokens spent per trusted insight generated</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Total LLM Calls</div>
+          <div class="kpi-value">{{ metrics().token_economics.total_llm_calls }}</div>
+          <div class="kpi-note">Across {{ metrics().total_runs }} pipeline run(s)</div>
+        </div>
+      </div>
+
+      @if (hasTokenHistory()) {
+        <div class="panel sparkline-panel">
+          <div class="sparkline-label">Token usage per run (last {{ metrics().token_economics.token_history.length }})</div>
+          <div class="sparkline">
+            @for (t of metrics().token_economics.token_history; track $index) {
+              <div class="spark-bar"
+                [style.height.%]="sparkH(t, metrics().token_economics.token_history)"
+                [title]="t + ' tokens'">
+              </div>
+            }
+          </div>
+          <div class="sparkline-axis"><span>oldest</span><span>latest</span></div>
+        </div>
+      }
+    </div>
+    }
+
+    <!-- ══ Row 6: Operational ══ -->
     <div class="section">
       <div class="section-header">
         <span class="section-icon">📈</span>
         <span class="section-title">Operational KPIs</span>
-        <span class="section-badge">Cost · Reliability · Coverage</span>
+        <span class="section-badge">Reliability · Coverage · Throughput</span>
       </div>
       <div class="kpi-row">
-        <div class="kpi-card">
-          <div class="kpi-label">Cost Per Report</div>
-          <div class="kpi-value">\${{ metrics().cost.avg_per_report_usd }}</div>
-          <div class="kpi-note">~{{ metrics().cost.avg_tokens_per_run }} tokens/run</div>
-        </div>
         <div class="kpi-card" [class.kpi-warn]="metrics().error_rate.rate_pct > 10">
           <div class="kpi-label">Error Rate</div>
           <div class="kpi-value">{{ metrics().error_rate.rate_pct }}%</div>
@@ -559,6 +626,14 @@ import { ApiService } from '../../services/api.service';
     .run-high { color: #10b981; font-weight: 700; }
     .run-low-warn { color: #ef4444; font-weight: 700; }
 
+    /* ── Info panel ── */
+    .info-panel { display: flex; align-items: flex-start; gap: 12px; background: #eff6ff; border-color: rgba(59,130,246,.25); padding: 14px 18px; }
+    .info-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .info-title { font-size: 13px; font-weight: 600; color: #1e40af; margin-bottom: 4px; }
+    .info-sub { font-size: 12px; color: #3b82f6; line-height: 1.5; }
+    /* kpi-row 6-col for token economics */
+    .kpi-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+
     /* ── Hallucination 3-layer ── */
     .layer-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
     .layer-card { padding: 16px 18px; }
@@ -661,6 +736,11 @@ export class MetricsPage implements OnInit, OnDestroy {
 
   getAgentErr(a: string): number {
     return this.metrics()?.error_rate?.agent_breakdown?.[a] ?? 0;
+  }
+
+  hasTokenHistory(): boolean {
+    const h = this.metrics()?.token_economics?.token_history;
+    return Array.isArray(h) && h.some((t: number) => t > 0);
   }
 
   riskPct(level: 'low' | 'medium' | 'high'): number {

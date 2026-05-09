@@ -19,6 +19,7 @@ from agents.report_agent import final_report_agent
 from agents.translation_agent import translation_agent, list_languages
 import memory.store as store
 from metrics.collector import get_collector, RunRecord
+from utils.deepseek_client import get_session_usage, reset_session_usage
 
 router = APIRouter(prefix="/api/v1/analysis", tags=["Analysis"])
 
@@ -75,6 +76,7 @@ async def run_analysis(req: AnalysisRequest) -> JSONResponse:
         "errors":              [],
     }
 
+    reset_session_usage()          # clear token accumulator for this request
     t_start = time.time()
     loop = asyncio.get_event_loop()
     final_state = await loop.run_in_executor(None, run_pipeline, initial_state)
@@ -131,6 +133,9 @@ async def approve_and_generate(req: ApprovalRequest) -> JSONResponse:
     memory       = {**state.get("memory", {}), "user_profile": state.get("user_profile", {})}
     remedies     = state.get("remedies", {})
 
+    reset_session_usage()          # clear accumulator before report generation
+    t_approve_start = time.time()
+
     report = final_report_agent(
         admin_review = admin_review,
         approved_ids = req.approved_insight_ids,
@@ -141,6 +146,10 @@ async def approve_and_generate(req: ApprovalRequest) -> JSONResponse:
         memory       = memory,
         remedies     = remedies,
     )
+
+    t_approve_end = time.time()
+    # Record approve-phase token usage back into the session's run record
+    _record_approve_tokens(session_id, t_approve_start, t_approve_end)
 
     _sessions[session_id]["final_report"] = report
     await store.write_meta(session_id, "final_report", report)
@@ -224,10 +233,20 @@ def _record_metrics(session_id: str, state: dict, t_start: float, t_end: float) 
     # Errors
     errors = state.get("errors", [])
 
-    # Token estimate: rule-based agents use ~0 tokens.
-    # report_agent uses ~1 LLM call — estimate 800 tokens input + 1200 output.
-    has_report = bool(state.get("final_report"))
-    estimated_tokens = 2000 if has_report else 400
+    # Real token economics from DeepSeek API usage
+    tok = get_session_usage()
+    prompt_tokens     = tok["prompt_tokens"]
+    completion_tokens = tok["completion_tokens"]
+    total_tokens      = tok["total_tokens"]
+    llm_calls         = tok["calls"]
+    # DeepSeek pricing: $0.14/1M input + $0.28/1M output
+    cost_usd = round(
+        prompt_tokens     * 0.14 / 1_000_000 +
+        completion_tokens * 0.28 / 1_000_000,
+        6
+    )
+    # Fallback estimate when no real LLM calls happened in /run
+    estimated_tokens = total_tokens if total_tokens > 0 else (2000 if state.get("final_report") else 400)
 
     # Pull hallucination audit results
     h_audit = state.get("hallucination_audit", {})
@@ -247,6 +266,11 @@ def _record_metrics(session_id: str, state: dict, t_start: float, t_end: float) 
         estimated_tokens=estimated_tokens,
         questions_count=total_questions,
         high_confidence_questions=high_conf_questions,
+        prompt_tokens=prompt_tokens,
+        completion_tokens=completion_tokens,
+        total_tokens=total_tokens,
+        llm_calls=llm_calls,
+        cost_usd=cost_usd,
         hallucination_risk=h_audit.get("overall_risk", "unknown"),
         hallucination_rate_pct=h_audit.get("hallucination_rate_pct", 0.0),
         single_source_flags=h_l2.get("single_source_flags", 0),
@@ -257,6 +281,34 @@ def _record_metrics(session_id: str, state: dict, t_start: float, t_end: float) 
         coverage_gap=h_l2.get("coverage_gap", False),
     )
     get_collector().record(record)
+
+
+def _record_approve_tokens(session_id: str, t_start: float, t_end: float) -> None:
+    """
+    After /approve, update the existing run record for this session with
+    real token counts from the report generation LLM call(s).
+    We update the collector's last record if it matches this session.
+    """
+    tok = get_session_usage()
+    if tok["calls"] == 0:
+        return  # no LLM calls happened (e.g. no DEEPSEEK_API_KEY or fallback path)
+
+    cost_usd = round(
+        tok["prompt_tokens"]     * 0.14 / 1_000_000 +
+        tok["completion_tokens"] * 0.28 / 1_000_000,
+        6
+    )
+    collector = get_collector()
+    # Find the matching run in deque and update in-place
+    for record in reversed(list(collector._runs)):
+        if record.session_id == session_id:
+            record.prompt_tokens     += tok["prompt_tokens"]
+            record.completion_tokens += tok["completion_tokens"]
+            record.total_tokens      += tok["total_tokens"]
+            record.llm_calls         += tok["calls"]
+            record.cost_usd          += cost_usd
+            record.estimated_tokens   = record.total_tokens
+            break
 
 
 # ── GET /languages — list all supported translation languages ─────────────────

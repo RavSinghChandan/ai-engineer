@@ -38,9 +38,15 @@ class RunRecord:
     domains_active: int                     # 0–5
     error_count: int
     errors: List[str]
-    estimated_tokens: int
+    estimated_tokens: int                   # fallback if no real data
     questions_count: int
     high_confidence_questions: int          # questions that got HIGH consensus
+    # Real token economics (from DeepSeek API usage field)
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    total_tokens: int = 0
+    llm_calls: int = 0
+    cost_usd: float = 0.0
     # Hallucination audit fields
     hallucination_risk: str = "unknown"     # low / medium / high
     hallucination_rate_pct: float = 0.0
@@ -107,7 +113,16 @@ class MetricsCollector:
         error_rate = round(error_runs / n * 100, 1)
 
         avg_domains = round(sum(r.domains_active for r in runs) / n, 2)
-        avg_cost    = round(sum(r.estimated_tokens for r in runs) / n * _COST_PER_1K_TOKENS / 1000, 4)
+        # Use real token data where available, fall back to estimate
+        runs_with_real = [r for r in runs if r.total_tokens > 0]
+        has_real_tokens = len(runs_with_real) > 0
+
+        avg_cost = round(
+            sum(r.cost_usd for r in runs_with_real) / max(len(runs_with_real), 1)
+            if has_real_tokens else
+            sum(r.estimated_tokens for r in runs) / n * _COST_PER_1K_TOKENS / 1000,
+            6
+        )
 
         # Throughput — requests in last 60 seconds
         now = time.time()
@@ -173,11 +188,31 @@ class MetricsCollector:
                 "max_possible": 5,
                 "coverage_pct": round(avg_domains / 5 * 100, 1),
             },
-            "cost": {
-                "avg_per_report_usd": avg_cost,
-                "total_estimated_usd": round(sum(r.estimated_tokens for r in runs) * _COST_PER_1K_TOKENS / 1000, 4),
-                "avg_tokens_per_run": round(sum(r.estimated_tokens for r in runs) / n),
-                "model_note": "GPT-4o-mini blended rate — rule-based agents have ~0 LLM cost",
+            "token_economics": {
+                "has_real_data": has_real_tokens,
+                "data_source": "DeepSeek API usage field" if has_real_tokens else "estimate (no LLM calls in /run pipeline)",
+                # Per-run averages
+                "avg_prompt_tokens":     round(sum(r.prompt_tokens for r in runs_with_real) / max(len(runs_with_real), 1)) if has_real_tokens else 0,
+                "avg_completion_tokens": round(sum(r.completion_tokens for r in runs_with_real) / max(len(runs_with_real), 1)) if has_real_tokens else 0,
+                "avg_total_tokens":      round(sum(r.total_tokens for r in runs_with_real) / max(len(runs_with_real), 1)) if has_real_tokens else 0,
+                "avg_llm_calls":         round(sum(r.llm_calls for r in runs_with_real) / max(len(runs_with_real), 1), 1) if has_real_tokens else 0,
+                # Totals across all runs
+                "total_prompt_tokens":     sum(r.prompt_tokens for r in runs),
+                "total_completion_tokens": sum(r.completion_tokens for r in runs),
+                "total_tokens_all_runs":   sum(r.total_tokens for r in runs),
+                "total_llm_calls":         sum(r.llm_calls for r in runs),
+                # Cost
+                "avg_cost_per_run_usd":  avg_cost,
+                "total_cost_usd":        round(sum(r.cost_usd for r in runs), 6),
+                "cost_model": "DeepSeek: $0.14/1M input + $0.28/1M output (deepseek-chat)",
+                "rule_based_note": "Domain agents (astrology/numerology/palmistry/tarot/vastu) = 0 tokens. LLM only in simplify_agent (WHO/WHAT/WHERE) and /approve report_agent.",
+                # Efficiency metrics
+                "tokens_per_insight": round(
+                    sum(r.total_tokens for r in runs_with_real) /
+                    max(sum(r.confidence_counts.get("high", 0) + r.confidence_counts.get("medium", 0) for r in runs_with_real), 1), 1
+                ) if has_real_tokens else 0,
+                "cost_history_usd": [round(r.cost_usd, 6) for r in list(runs)[-20:]],
+                "token_history": [r.total_tokens for r in list(runs)[-20:]],
             },
             "throughput": {
                 "requests_last_60s": throughput_rpm,
@@ -244,7 +279,7 @@ class MetricsCollector:
             "answer_relevance_proxy": {"rate_pct": 0, "label": "No data"},
             "error_rate": {"rate_pct": 0, "total_error_runs": 0, "agent_breakdown": {}},
             "domain_coverage": {"avg_domains_per_run": 0, "max_possible": 5, "coverage_pct": 0},
-            "cost": {"avg_per_report_usd": 0, "total_estimated_usd": 0, "avg_tokens_per_run": 0},
+            "token_economics": {"has_real_data": False, "avg_total_tokens": 0, "avg_cost_per_run_usd": 0, "total_cost_usd": 0, "data_source": "no data"},
             "throughput": {"requests_last_60s": 0, "total_sessions": 0},
             "agent_latency_avg_ms": {},
             "recent_runs": [],

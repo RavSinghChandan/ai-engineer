@@ -133,18 +133,105 @@ def self_consistency_check(query: str, context: str, runs: int = 3) -> str:
 
 ## 6. Example (From Your Projects)
 
-**AstroIntel 360° — Multi-agent consensus as hallucination mitigation:**
+**AstroIntel 360° — 3-Layer Hallucination Detection & Mitigation (actually implemented):**
 
-In AstroIntel, each domain agent (Astrology, Numerology, Palmistry, Tarot, Vastu) generates an independent insight.
-The Meta Consensus Agent cross-validates:
-- If 3+ agents give consistent signals → HIGH confidence
-- If 2 agents agree → MEDIUM confidence
-- If only 1 agent gives a result → LOW confidence (single source = hallucination risk)
+The existing multi-agent consensus architecture already acted as Layer 1 prevention.
+On top of it, a full 3-layer detection and mitigation system was implemented in `guardrails/hallucination.py` — additive, no existing nodes modified.
 
-This is not just a confidence score — it is a hallucination containment architecture. A single agent hallucinating a result is diluted by the consensus layer. The user sees "LOW confidence" and is implicitly warned.
+---
 
-**Lesson for interview:**
-"We did not try to prevent hallucination at the prompt level alone. We designed the architecture so that a single agent hallucinating would not propagate unchecked to the user. The consensus layer is our production hallucination filter."
+**Layer 1 — Prevention (architecture — already built in):**
+- Multi-agent consensus: 5 independent domain agents (Astrology, Numerology, Palmistry, Tarot, Vastu)
+- Structured output: agents return typed dicts, not free text
+- Domain isolation: each agent fires independently, cross-validation happens only at meta_agent
+- Result: a single hallucinating agent produces LOW confidence, not a reliable answer
+
+---
+
+**Layer 2 — Detection (`guardrails/hallucination.py` — `run_hallucination_check`):**
+
+Inserted as a new LangGraph node between `meta_agent` and `remedy_agent`. Reads from `state["question_consensus"]` (written by meta_agent).
+
+Four detectors:
+
+1. **Single-source detector** — `_detect_single_source(insight)`:
+   ```python
+   if len(domains) <= 1 and confidence == "low":
+       flag as single_source — unverified claim
+   ```
+
+2. **Hedge-phrase scanner** — `_detect_hedge_phrases(insight)`:
+   ```python
+   # regex: \b(might|may|possibly|perhaps|unclear|uncertain|not sure|could be|
+   #         it seems|appears to|likely|probably|roughly|approximately|...)\b
+   # match in insight text → hedge_phrase flag
+   ```
+
+3. **Cross-domain contradiction detector** — `_detect_cross_domain_contradiction(insights, question)`:
+   ```python
+   # scans all insights for same question
+   # if one insight has positive keywords (growth, success, favorable)
+   # AND another has negative keywords (decline, failure, challenging)
+   # from different domains → contradiction_flag
+   ```
+
+4. **Coverage gap detector** — `_detect_coverage_gap(memory)`:
+   ```python
+   if active_domains < 3:   # fewer than 3 of 5 contributed
+       coverage_gap = True
+   ```
+
+---
+
+**Layer 3 — Recovery (`_suppress_low_confidence` + `_fallback_insight`):**
+
+- `_suppress_low_confidence(insights, flagged_ids)`: quarantines LOW-confidence flagged insights. HIGH/MEDIUM are never suppressed.
+- `_fallback_insight(question, domains_active)`: if ALL insights for a question were suppressed (0 trusted answers), injects a calibrated fallback:
+  ```
+  "Insufficient cross-domain consensus was reached for: '<question>'.
+   The available data from <domains> suggests reviewing this question with more specific details."
+  ```
+- All events recorded in `state["hallucination_audit"]` → picked up by MetricsCollector
+
+---
+
+**Pipeline change (additive — existing nodes untouched):**
+```python
+# graph/pipeline.py — before:
+builder.add_edge("meta_agent", "remedy_agent")
+
+# graph/pipeline.py — after:
+builder.add_node("hallucination_check", run_hallucination_check)
+builder.add_edge("meta_agent",          "hallucination_check")
+builder.add_edge("hallucination_check", "remedy_agent")
+```
+
+---
+
+**Live test result on a well-formed 5-domain run:**
+```
+layer2_detection:
+  total_insights_checked: 3
+  single_source_flags:    0
+  hedge_phrase_flags:     0
+  contradiction_flags:    0
+  coverage_gap:           false
+layer3_recovery:
+  suppressed_count:  0
+  fallback_injected: 0
+overall_risk:            "low"
+hallucination_rate_pct:  0.0
+```
+All 3 insights were HIGH confidence (3 domains each) → nothing flagged → 0% hallucination rate.
+This confirms the consensus architecture is the primary prevention layer — the detection layer correctly finds nothing to flag when the architecture is working.
+
+---
+
+**In a senior interview, frame it this way:**
+"AstroIntel's consensus architecture is already Layer 1 prevention — a hallucinating single agent gets LOW confidence and doesn't propagate.
+On top of that, I added a dedicated detection node that scans for single-source claims, hedge phrases, and cross-domain contradictions.
+Layer 3 suppresses LOW-confidence flagged insights before they reach the user and injects a calibrated fallback if a question would otherwise have 0 trusted answers.
+All three layers are additive — they did not change the existing pipeline, they only added a node between meta_agent and remedy_agent."
 
 ---
 

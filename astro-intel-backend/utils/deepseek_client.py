@@ -1,12 +1,38 @@
 """
 Shared DeepSeek API client.
 Used by any agent that needs LLM inference via DeepSeek.
+
+Token economics tracking:
+  Every call() updates a thread-local accumulator with real token counts
+  from the API `usage` field. Callers (e.g. _record_metrics) read it via:
+    get_session_usage()   → {"prompt_tokens": N, "completion_tokens": N, "total_tokens": N, "calls": N}
+    reset_session_usage() → clears the accumulator for the current thread
 """
 from __future__ import annotations
 import json
 import os
+import threading
 import urllib.request
 from typing import Any, Dict, Optional
+
+# ── Thread-local token accumulator ───────────────────────────────────────────
+_usage_local = threading.local()
+
+
+def _acc() -> Dict[str, int]:
+    if not hasattr(_usage_local, "data"):
+        _usage_local.data = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "calls": 0}
+    return _usage_local.data
+
+
+def get_session_usage() -> Dict[str, int]:
+    """Return accumulated token counts for the current thread since last reset."""
+    return dict(_acc())
+
+
+def reset_session_usage() -> None:
+    """Reset token accumulator for the current thread (call before each pipeline run)."""
+    _usage_local.data = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "calls": 0}
 
 
 def _load_key() -> str:
@@ -69,6 +95,14 @@ def call(
     )
     with urllib.request.urlopen(req, timeout=120) as resp:
         data = json.loads(resp.read().decode())
+
+    # ── Accumulate real token counts from API response ────────────────────────
+    usage = data.get("usage", {})
+    acc = _acc()
+    acc["prompt_tokens"]     += usage.get("prompt_tokens", 0)
+    acc["completion_tokens"] += usage.get("completion_tokens", 0)
+    acc["total_tokens"]      += usage.get("total_tokens", 0)
+    acc["calls"]             += 1
 
     raw = data["choices"][0]["message"]["content"]
     # Strip markdown code fences if present

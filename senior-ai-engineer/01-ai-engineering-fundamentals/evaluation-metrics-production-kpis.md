@@ -153,16 +153,63 @@ Respond in JSON: {{"faithfulness": X, "relevance": X, "reasoning": "..."}}"""
 
 ## 6. Example (From Your Projects)
 
-**AstroIntel 360° — what you actually measured:**
+**AstroIntel 360° — Production Metrics Dashboard (actually implemented):**
 
-In production, the key metrics were:
-- Hallucination rate: Meta Consensus Agent reduced per-domain hallucination by cross-validating across 5 agents. If only 1 agent gave a result, confidence = LOW (signal: high hallucination risk).
-- Latency P95: parallel agent execution brought P95 down from ~6 minutes to ~15 seconds.
-- Translation faithfulness: verified that LLM-translated text preserved meaning by spot-checking high-frequency strings — caught `hw_bullet.type` enum corruption early.
-- Cost per report: capped max_tokens per agent. Estimated 40% cost reduction vs uncapped.
+Standard RAGAS metrics don't apply to AstroIntel — it's a rule-based multi-agent system, not a RAG pipeline. There is no retrieval context to measure faithfulness against.
+Instead, a custom `MetricsCollector` was built in `metrics/collector.py` that tracks 10 production KPIs mapped directly to what a senior AI engineer would defend in an interview.
+
+**What was built — `RunRecord` dataclass (every pipeline run recorded):**
+```
+session_id, started_at, ended_at, total_latency_ms
+agent_latencies (per agent)
+confidence_counts (high/medium/low insight counts)
+domains_active (0–5)
+error_count, errors
+prompt_tokens, completion_tokens, total_tokens, llm_calls, cost_usd
+hallucination_risk, hallucination_rate_pct
+single_source_flags, hedge_phrase_flags, contradiction_flags
+suppressed_count, fallback_injected, coverage_gap
+```
+
+**Dashboard endpoint — `/api/v1/metrics` (GET):**
+
+Returns a JSON payload with these sections:
+- `latency` — P50, P95, P99, avg, min, max, history_ms (last 20 runs sparkline)
+- `confidence` — high/medium/low counts + %, across all runs
+- `hallucination_proxy` — % of LOW-confidence insights across all runs; labels: Low/Medium/High Risk
+- `answer_relevance_proxy` — % of questions that received HIGH-confidence consensus; labels: High/Medium/Low Relevance
+- `error_rate` — % of runs with at least 1 error + per-agent breakdown
+- `domain_coverage` — avg domains active per run out of 5
+- `token_economics` — real input/output/total tokens, avg cost per run, total cost, tokens_per_insight
+- `hallucination_audit` — avg rate_pct, risk distribution (low/medium/high runs), layer-by-layer summary
+- `recent_runs` — last 10 runs table (latency, confidence, errors, hallucination risk, flags)
+- `throughput` — requests in last 60 seconds + total sessions
+
+**Why not RAGAS:**
+Rule-based domain agents (astrology/numerology/palmistry/tarot/vastu) fire no LLM calls.
+LLM is only called in `simplify_agent` (WHO/WHAT/WHERE windows) and in `/approve` (final report generation).
+Using consensus confidence as the reliability proxy: HIGH = 3+ traditions agree, LOW = single source = hallucination risk signal.
+
+**Live numbers from first real test run:**
+```
+latency.avg_ms: ~2,000ms
+confidence: 3 high, 0 medium, 0 low (all insights were HIGH on a full 5-domain run)
+hallucination_proxy.rate_pct: 0%  →  label: "Low Risk"
+answer_relevance_proxy.rate_pct: 100%  →  label: "High Relevance"
+domain_coverage: 5/5  →  100%
+token_economics.has_real_data: true
+  avg_prompt_tokens:     437
+  avg_completion_tokens: 272
+  avg_total_tokens:      709
+  avg_llm_calls:         1
+  avg_cost_per_run_usd:  $0.000137
+```
 
 **In a senior interview, frame it this way:**
-"We did not have formal RAGAS scores for AstroIntel because it's a generative insight system without ground truth. Instead, we used consensus as a proxy for reliability and tracked latency + token cost per report as our production KPIs."
+"AstroIntel is not a RAG system — standard RAGAS metrics don't apply.
+We built a custom MetricsCollector that captures latency percentiles, consensus confidence distribution as a hallucination proxy, domain coverage, and real token economics from the DeepSeek API usage field.
+The dashboard shows P50/P95/P99 latency, answer relevance proxy (% of questions that got HIGH-confidence multi-domain consensus), and actual cost per report — currently $0.000137.
+That's the kind of domain-adapted metrics design a production AI engineer applies when standard frameworks don't fit."
 
 ---
 

@@ -162,22 +162,136 @@ def route_to_model(query: str, context_length: int) -> str:
 
 ## 6. Example (From Your Projects)
 
-**AstroIntel 360° — Token cost optimization:**
+**AstroIntel 360° — Real Token Economics Tracking (actually implemented):**
 
-Five parallel agents, each calling GPT-4 for insights.
-Without cost control: each agent could generate 1000+ tokens of verbose output.
-What we did:
-- Capped max_tokens at 400 per agent (enough for a structured insight, not a novel)
-- Used a focused system prompt per agent (not a generic prompt with everything)
-- Translation agent: 55 strings × avg 50 tokens output = 2,750 output tokens per translation job
-  Estimated cost per full report (5 agents + translation): ~$0.05 on GPT-4o-mini
+The key insight for AstroIntel: domain agents (astrology, numerology, palmistry, tarot, vastu) are fully rule-based — they fire zero LLM calls.
+LLM is only called in:
+- `simplify_agent` (WHO/WHAT/WHERE timing windows — called during `/run`)
+- `final_report_agent` (full report generation — called during `/approve`)
 
-In a senior interview: "We tracked cost per report as a core KPI. At 1000 reports/month, the difference between capped and uncapped token output was approximately 40% in monthly spend."
+This means the cost model is: **cost per report = cost of 1 simplify_agent call + cost of 1 report_agent call.**
 
-**LangChain Service:**
-- FAISS vector search: zero token cost for retrieval (local index, no API call)
-- Only LLM call costs money: retrieve first, then call LLM once with context
-- Caching identical queries: same question asked twice = second call is free
+---
+
+**Thread-local token accumulator (`utils/deepseek_client.py`):**
+
+```python
+import threading
+_usage_local = threading.local()
+
+def _acc() -> Dict[str, int]:
+    if not hasattr(_usage_local, "data"):
+        _usage_local.data = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "calls": 0}
+    return _usage_local.data
+
+def get_session_usage() -> Dict[str, int]:
+    return dict(_acc())
+
+def reset_session_usage() -> None:
+    _usage_local.data = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "calls": 0}
+```
+
+Inside `call()` — after every DeepSeek API response:
+```python
+usage = data.get("usage", {})
+acc = _acc()
+acc["prompt_tokens"]     += usage.get("prompt_tokens", 0)
+acc["completion_tokens"] += usage.get("completion_tokens", 0)
+acc["total_tokens"]      += usage.get("total_tokens", 0)
+acc["calls"]             += 1
+```
+
+No new function signature, no breaking change — accumulation happens transparently inside the existing `call()` function.
+
+---
+
+**Cost formula — DeepSeek pricing (`routers/analysis.py`):**
+```python
+# DeepSeek pricing: $0.14/1M input + $0.28/1M output
+cost_usd = round(
+    prompt_tokens     * 0.14 / 1_000_000 +
+    completion_tokens * 0.28 / 1_000_000,
+    6
+)
+```
+
+---
+
+**Per-phase token reset — prevents cross-request contamination:**
+```python
+# Before /run pipeline:
+reset_session_usage()
+t_start = time.time()
+final_state = await loop.run_in_executor(None, run_pipeline, initial_state)
+t_end = time.time()
+tok = get_session_usage()   # real counts from this run
+
+# Before /approve report generation:
+reset_session_usage()
+report = final_report_agent(...)
+tok = get_session_usage()   # real counts from this approve call
+# Update the existing RunRecord in the deque with approve-phase tokens
+```
+
+---
+
+**`_record_approve_tokens()` — updates existing record in-place:**
+```python
+for record in reversed(list(collector._runs)):
+    if record.session_id == session_id:
+        record.prompt_tokens     += tok["prompt_tokens"]
+        record.completion_tokens += tok["completion_tokens"]
+        record.total_tokens      += tok["total_tokens"]
+        record.llm_calls         += tok["calls"]
+        record.cost_usd          += cost_usd
+        record.estimated_tokens   = record.total_tokens
+        break
+```
+
+This means after a full cycle (run + approve), the RunRecord holds the total real token cost for the complete user session.
+
+---
+
+**Token Economics section in the metrics dashboard (`/api/v1/metrics`):**
+```json
+"token_economics": {
+  "has_real_data": true,
+  "data_source": "DeepSeek API usage field",
+  "avg_prompt_tokens":     437,
+  "avg_completion_tokens": 272,
+  "avg_total_tokens":      709,
+  "avg_llm_calls":         1,
+  "avg_cost_per_run_usd":  0.000137,
+  "total_cost_usd":        0.000137,
+  "cost_model":            "DeepSeek: $0.14/1M input + $0.28/1M output (deepseek-chat)",
+  "tokens_per_insight":    101.3,
+  "rule_based_note": "Domain agents = 0 tokens. LLM only in simplify_agent + /approve report_agent."
+}
+```
+
+---
+
+**Live numbers from first real test:**
+```
+prompt_tokens:     437
+completion_tokens: 272
+total_tokens:      709
+llm_calls:         1
+cost_per_report:   $0.000137
+tokens_per_insight: 101.3
+```
+At 1,000 reports/month: $0.137/month total LLM cost — because only 1 LLM call per report.
+This is the architecture-level cost optimization: rule-based agents doing the heavy lifting, LLM only for synthesis.
+
+---
+
+**In a senior interview, frame it this way:**
+"AstroIntel's token economics are unusual — 5 domain agents fire zero LLM calls because they're rule-based.
+The entire system makes exactly 1 LLM call during /run (simplify_agent for timing windows) and 1 during /approve (report generation).
+I track this with a thread-local accumulator inside the shared DeepSeek client — every call() automatically adds to the session's token count.
+Real measured cost: 437 input tokens, 272 output tokens, $0.000137 per report.
+At 10,000 reports/month that's $1.37 — not a cost problem.
+The token economics dashboard also shows `tokens_per_insight` as an efficiency metric — currently 101.3 tokens to produce each HIGH or MEDIUM confidence insight."
 
 ---
 
