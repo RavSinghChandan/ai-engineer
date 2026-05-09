@@ -208,7 +208,123 @@ import { ApiService } from '../../services/api.service';
       </div>
     </div>
 
-    <!-- ══ Row 3: Operational ══ -->
+    <!-- ══ Row 3: Hallucination Audit (3-Layer) ══ -->
+    @if (metrics().hallucination_audit) {
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">🔍</span>
+        <span class="section-title">Hallucination Detection & Mitigation</span>
+        <span class="section-badge">3-Layer Architecture · Senior Interview Feature</span>
+      </div>
+
+      <!-- Layer cards -->
+      <div class="layer-row">
+        <!-- Layer 1 -->
+        <div class="panel layer-card layer-1">
+          <div class="layer-tag">Layer 1</div>
+          <div class="layer-name">Prevention</div>
+          <div class="layer-status always-on">Always Active</div>
+          <ul class="layer-list">
+            <li>Multi-agent consensus (5 independent domains)</li>
+            <li>Structured typed output — no free-form LLM generation</li>
+            <li>Domain isolation — agents don't see each other's output</li>
+          </ul>
+        </div>
+
+        <!-- Layer 2 -->
+        <div class="panel layer-card layer-2">
+          <div class="layer-tag">Layer 2</div>
+          <div class="layer-name">Detection</div>
+          <div class="layer-status runs-live">Runs After meta_agent</div>
+          <ul class="layer-list">
+            <li>Single-source detector: 1 domain = unverified</li>
+            <li>Hedge-phrase scanner: "might", "possibly", "unclear"</li>
+            <li>Cross-domain contradiction: opposing predictions flagged</li>
+            <li>Coverage gap: &lt; 3 of 5 domains = warning</li>
+          </ul>
+          <div class="layer-counts">
+            <span class="lc-item">
+              <span class="lc-num">{{ metrics().hallucination_audit.total_single_source_flags }}</span>
+              <span class="lc-lbl">Single-source</span>
+            </span>
+            <span class="lc-item">
+              <span class="lc-num">{{ metrics().hallucination_audit.total_hedge_phrase_flags }}</span>
+              <span class="lc-lbl">Hedge phrases</span>
+            </span>
+            <span class="lc-item">
+              <span class="lc-num warn-num">{{ metrics().hallucination_audit.total_contradiction_flags }}</span>
+              <span class="lc-lbl">Contradictions</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Layer 3 -->
+        <div class="panel layer-card layer-3">
+          <div class="layer-tag">Layer 3</div>
+          <div class="layer-name">Recovery</div>
+          <div class="layer-status runs-live">Runs After Detection</div>
+          <ul class="layer-list">
+            <li>Suppress: LOW-confidence flagged insights quarantined</li>
+            <li>Retry: logged as retry signal for guardrails</li>
+            <li>Fallback: calibrated message replaces empty responses</li>
+          </ul>
+          <div class="layer-counts">
+            <span class="lc-item">
+              <span class="lc-num">{{ metrics().hallucination_audit.total_suppressed }}</span>
+              <span class="lc-lbl">Suppressed</span>
+            </span>
+            <span class="lc-item">
+              <span class="lc-num">{{ metrics().hallucination_audit.total_fallbacks_injected }}</span>
+              <span class="lc-lbl">Fallbacks</span>
+            </span>
+            <span class="lc-item">
+              <span class="lc-num">{{ metrics().hallucination_audit.coverage_gap_runs }}</span>
+              <span class="lc-lbl">Gap runs</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Risk distribution -->
+      <div class="panel risk-panel">
+        <div class="risk-header">
+          <span class="panel-inner-title" style="margin:0">Risk Distribution Across All Runs</span>
+          <span class="avg-rate-badge">Avg hallucination rate: {{ metrics().hallucination_audit.avg_rate_pct }}%</span>
+        </div>
+        <div class="risk-bars">
+          <div class="risk-row">
+            <span class="risk-dot dot-green"></span>
+            <span class="risk-lbl">Low Risk</span>
+            <div class="conf-track">
+              <div class="conf-fill fill-high"
+                [style.width.%]="riskPct('low')"></div>
+            </div>
+            <span class="risk-n">{{ metrics().hallucination_audit.risk_distribution.low }} run(s)</span>
+          </div>
+          <div class="risk-row">
+            <span class="risk-dot dot-amber"></span>
+            <span class="risk-lbl">Medium Risk</span>
+            <div class="conf-track">
+              <div class="conf-fill fill-med"
+                [style.width.%]="riskPct('medium')"></div>
+            </div>
+            <span class="risk-n">{{ metrics().hallucination_audit.risk_distribution.medium }} run(s)</span>
+          </div>
+          <div class="risk-row">
+            <span class="risk-dot dot-red"></span>
+            <span class="risk-lbl">High Risk</span>
+            <div class="conf-track">
+              <div class="conf-fill fill-low"
+                [style.width.%]="riskPct('high')"></div>
+            </div>
+            <span class="risk-n">{{ metrics().hallucination_audit.risk_distribution.high }} run(s)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    }
+
+    <!-- ══ Row 5: Operational ══ -->
     <div class="section">
       <div class="section-header">
         <span class="section-icon">📈</span>
@@ -272,17 +388,22 @@ import { ApiService } from '../../services/api.service';
       </div>
       <div class="panel table-panel">
         <div class="tbl-row tbl-head runs-head">
-          <span>Session</span><span>Latency</span><span>HIGH</span><span>LOW</span><span>Domains</span><span>Tokens</span><span>Errors</span>
+          <span>Session</span><span>Latency</span><span>HIGH</span><span>Domains</span><span>H.Risk</span><span>H.Flags</span><span>Suppressed</span>
         </div>
         @for (run of metrics().recent_runs; track run.session_id) {
           <div class="tbl-row runs-row" [class.tbl-row-err]="run.errors > 0">
             <span class="run-id">{{ run.session_id }}</span>
             <span [class.tbl-lat-warn]="run.latency_ms > 30000">{{ fmt(run.latency_ms) }}</span>
             <span class="run-high">{{ run.confidence_high }}</span>
-            <span [class.run-low-warn]="run.confidence_low > 2">{{ run.confidence_low }}</span>
             <span>{{ run.domains_active }}/5</span>
-            <span>~{{ run.tokens_est }}</span>
-            <span [class.tbl-err-red]="run.errors > 0">{{ run.errors }}</span>
+            <span class="risk-chip"
+              [class.chip-green]="run.h_risk === 'low'"
+              [class.chip-amber]="run.h_risk === 'medium'"
+              [class.chip-red]="run.h_risk === 'high'">
+              {{ run.h_risk ?? '—' }}
+            </span>
+            <span [class.tbl-err-red]="run.h_flags > 0">{{ run.h_flags }}</span>
+            <span [class.tbl-err-red]="run.h_suppressed > 0">{{ run.h_suppressed }}</span>
           </div>
         }
       </div>
@@ -438,6 +559,41 @@ import { ApiService } from '../../services/api.service';
     .run-high { color: #10b981; font-weight: 700; }
     .run-low-warn { color: #ef4444; font-weight: 700; }
 
+    /* ── Hallucination 3-layer ── */
+    .layer-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .layer-card { padding: 16px 18px; }
+    .layer-tag  { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: #9ca3af; margin-bottom: 4px; }
+    .layer-name { font-size: 15px; font-weight: 700; color: #1e1b4b; margin-bottom: 6px; }
+    .layer-status { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; display: inline-block; margin-bottom: 12px; }
+    .always-on   { background: #d1fae5; color: #065f46; }
+    .runs-live   { background: #dbeafe; color: #1e40af; }
+    .layer-list  { list-style: none; display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+    .layer-list li { font-size: 12px; color: #4b5563; padding-left: 14px; position: relative; line-height: 1.5; }
+    .layer-list li::before { content: "·"; position: absolute; left: 0; color: #6366f1; font-weight: 700; }
+    .layer-1 { border-top: 3px solid #10b981; }
+    .layer-2 { border-top: 3px solid #6366f1; }
+    .layer-3 { border-top: 3px solid #f59e0b; }
+    .layer-counts { display: flex; gap: 16px; padding-top: 12px; border-top: 1px solid rgba(0,0,0,0.06); }
+    .lc-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .lc-num  { font-size: 20px; font-weight: 800; color: #374151; }
+    .lc-num.warn-num { color: #ef4444; }
+    .lc-lbl  { font-size: 10px; color: #9ca3af; text-align: center; }
+    .risk-panel { padding: 16px 20px; }
+    .risk-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .avg-rate-badge { font-size: 11px; font-weight: 700; background: #f3f4f6; border: 1px solid rgba(0,0,0,0.08); border-radius: 20px; padding: 3px 10px; color: #374151; }
+    .risk-bars { display: flex; flex-direction: column; gap: 10px; }
+    .risk-row  { display: flex; align-items: center; gap: 10px; }
+    .risk-dot  { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dot-green { background: #10b981; }
+    .dot-amber { background: #f59e0b; }
+    .dot-red   { background: #ef4444; }
+    .risk-lbl  { font-size: 12px; color: #4b5563; width: 82px; font-weight: 500; }
+    .risk-n    { font-size: 11px; color: #9ca3af; width: 64px; text-align: right; }
+    .risk-chip { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; text-transform: uppercase; letter-spacing: .04em; background: #f3f4f6; color: #6b7280; }
+    .chip-green { background: #d1fae5; color: #065f46; }
+    .chip-amber { background: #fef3c7; color: #92400e; }
+    .chip-red   { background: #fee2e2; color: #991b1b; }
+
     /* ── Explainer ── */
     .explainer-panel { background: rgba(99,102,241,.03); border-color: rgba(99,102,241,.2); }
     .explainer-text { font-size: 13px; color: #374151; line-height: 1.8; }
@@ -505,5 +661,13 @@ export class MetricsPage implements OnInit, OnDestroy {
 
   getAgentErr(a: string): number {
     return this.metrics()?.error_rate?.agent_breakdown?.[a] ?? 0;
+  }
+
+  riskPct(level: 'low' | 'medium' | 'high'): number {
+    const dist = this.metrics()?.hallucination_audit?.risk_distribution;
+    if (!dist) return 0;
+    const total = (dist.low ?? 0) + (dist.medium ?? 0) + (dist.high ?? 0);
+    if (!total) return 0;
+    return Math.round((dist[level] ?? 0) / total * 100);
   }
 }

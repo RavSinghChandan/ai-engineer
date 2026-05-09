@@ -41,6 +41,15 @@ class RunRecord:
     estimated_tokens: int
     questions_count: int
     high_confidence_questions: int          # questions that got HIGH consensus
+    # Hallucination audit fields
+    hallucination_risk: str = "unknown"     # low / medium / high
+    hallucination_rate_pct: float = 0.0
+    single_source_flags: int = 0
+    hedge_phrase_flags: int = 0
+    contradiction_flags: int = 0
+    suppressed_count: int = 0
+    fallback_injected: int = 0
+    coverage_gap: bool = False
 
 
 class MetricsCollector:
@@ -175,15 +184,38 @@ class MetricsCollector:
                 "total_sessions": n,
             },
             "agent_latency_avg_ms": agent_avg,
+            "hallucination_audit": {
+                "avg_rate_pct": round(sum(r.hallucination_rate_pct for r in runs) / n, 1),
+                "risk_distribution": {
+                    "low":    sum(1 for r in runs if r.hallucination_risk == "low"),
+                    "medium": sum(1 for r in runs if r.hallucination_risk == "medium"),
+                    "high":   sum(1 for r in runs if r.hallucination_risk == "high"),
+                },
+                "total_single_source_flags": sum(r.single_source_flags for r in runs),
+                "total_hedge_phrase_flags":  sum(r.hedge_phrase_flags for r in runs),
+                "total_contradiction_flags": sum(r.contradiction_flags for r in runs),
+                "total_suppressed":          sum(r.suppressed_count for r in runs),
+                "total_fallbacks_injected":  sum(r.fallback_injected for r in runs),
+                "coverage_gap_runs":         sum(1 for r in runs if r.coverage_gap),
+                "layer_summary": {
+                    "layer1_prevention": "Always active — consensus architecture, structured output, domain isolation",
+                    "layer2_detection":  "Runs after meta_agent — single-source check, hedge-phrase scan, contradiction detection",
+                    "layer3_recovery":   "Suppresses LOW-confidence flagged insights, injects fallback if question has 0 trusted answers",
+                },
+            },
             "recent_runs": [
                 {
-                    "session_id":       r.session_id[:8] + "…",
-                    "latency_ms":       round(r.total_latency_ms, 0),
-                    "confidence_high":  r.confidence_counts.get("high", 0),
-                    "confidence_low":   r.confidence_counts.get("low", 0),
-                    "domains_active":   r.domains_active,
-                    "errors":           r.error_count,
-                    "tokens_est":       r.estimated_tokens,
+                    "session_id":        r.session_id[:8] + "…",
+                    "latency_ms":        round(r.total_latency_ms, 0),
+                    "confidence_high":   r.confidence_counts.get("high", 0),
+                    "confidence_low":    r.confidence_counts.get("low", 0),
+                    "domains_active":    r.domains_active,
+                    "errors":            r.error_count,
+                    "tokens_est":        r.estimated_tokens,
+                    "h_risk":            r.hallucination_risk,
+                    "h_rate_pct":        r.hallucination_rate_pct,
+                    "h_flags":           r.single_source_flags + r.hedge_phrase_flags + r.contradiction_flags,
+                    "h_suppressed":      r.suppressed_count,
                 }
                 for r in list(runs)[-10:]
             ],
@@ -195,7 +227,9 @@ class MetricsCollector:
                     "spiritual traditions agree, reducing hallucination risk. "
                     "(2) Latency P95 — parallel agent execution reduced this from ~6 minutes to ~15 seconds. "
                     "(3) Cost per report — capped at ~$0.07 with GPT-4o-mini × 5 agent calls + gpt-4o × 1 synthesis. "
-                    "(4) Domain coverage — a report where only 1/5 domains contributed is a quality signal."
+                    "(4) Domain coverage — a report where only 1/5 domains contributed is a quality signal. "
+                    "(5) Hallucination audit — 3-layer detection (single-source, hedge-phrase, contradiction) "
+                    "with Layer 3 recovery suppressing unreliable insights before they reach the user."
                 ),
             },
         }

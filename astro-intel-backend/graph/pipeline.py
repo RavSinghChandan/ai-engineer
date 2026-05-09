@@ -31,7 +31,7 @@ from agents import (
     remedy_agent_node,
     admin_review_agent_node,
 )
-from guardrails import safe_node
+from guardrails import safe_node, run_hallucination_check
 
 
 # ── Parallel domain fan-out ─────────────────────────────────────────────────
@@ -55,18 +55,20 @@ def domain_agents_parallel(state: Dict[str, Any]) -> Dict[str, Any]:
 def build_graph() -> Any:
     builder = StateGraph(dict)
 
-    builder.add_node("question_agent",      safe_node(question_agent_node,     "question_agent"))
-    builder.add_node("domain_agents",       safe_node(domain_agents_parallel,  "domain_agents"))
-    builder.add_node("meta_agent",          safe_node(meta_agent_node,         "meta_agent"))
-    builder.add_node("remedy_agent",        safe_node(remedy_agent_node,       "remedy_agent"))
-    builder.add_node("admin_review_agent",  safe_node(admin_review_agent_node, "admin_review_agent"))
+    builder.add_node("question_agent",        safe_node(question_agent_node,     "question_agent"))
+    builder.add_node("domain_agents",         safe_node(domain_agents_parallel,  "domain_agents"))
+    builder.add_node("meta_agent",            safe_node(meta_agent_node,         "meta_agent"))
+    builder.add_node("hallucination_check",   run_hallucination_check)
+    builder.add_node("remedy_agent",          safe_node(remedy_agent_node,       "remedy_agent"))
+    builder.add_node("admin_review_agent",    safe_node(admin_review_agent_node, "admin_review_agent"))
 
     builder.set_entry_point("question_agent")
-    builder.add_edge("question_agent",     "domain_agents")
-    builder.add_edge("domain_agents",      "meta_agent")
-    builder.add_edge("meta_agent",         "remedy_agent")
-    builder.add_edge("remedy_agent",       "admin_review_agent")
-    builder.add_edge("admin_review_agent", END)
+    builder.add_edge("question_agent",       "domain_agents")
+    builder.add_edge("domain_agents",        "meta_agent")
+    builder.add_edge("meta_agent",           "hallucination_check")
+    builder.add_edge("hallucination_check",  "remedy_agent")
+    builder.add_edge("remedy_agent",         "admin_review_agent")
+    builder.add_edge("admin_review_agent",   END)
 
     return builder.compile()
 

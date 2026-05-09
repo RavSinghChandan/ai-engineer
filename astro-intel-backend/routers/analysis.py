@@ -97,6 +97,7 @@ async def run_analysis(req: AnalysisRequest) -> JSONResponse:
         "memory_keys":          store.memory_keys(session_id),
         "admin_review":         admin_review,
         "agent_log":            final_state.get("agent_log", []),
+        "hallucination_audit":  final_state.get("hallucination_audit", {}),
         "raw_outputs": {
             "astrology":    final_state.get("memory", {}).get("astrology"),
             "numerology":   final_state.get("memory", {}).get("numerology"),
@@ -228,6 +229,11 @@ def _record_metrics(session_id: str, state: dict, t_start: float, t_end: float) 
     has_report = bool(state.get("final_report"))
     estimated_tokens = 2000 if has_report else 400
 
+    # Pull hallucination audit results
+    h_audit = state.get("hallucination_audit", {})
+    h_l2 = h_audit.get("layer2_detection", {})
+    h_l3 = h_audit.get("layer3_recovery", {})
+
     record = RunRecord(
         session_id=session_id,
         started_at=t_start,
@@ -241,6 +247,14 @@ def _record_metrics(session_id: str, state: dict, t_start: float, t_end: float) 
         estimated_tokens=estimated_tokens,
         questions_count=total_questions,
         high_confidence_questions=high_conf_questions,
+        hallucination_risk=h_audit.get("overall_risk", "unknown"),
+        hallucination_rate_pct=h_audit.get("hallucination_rate_pct", 0.0),
+        single_source_flags=h_l2.get("single_source_flags", 0),
+        hedge_phrase_flags=h_l2.get("hedge_phrase_flags", 0),
+        contradiction_flags=h_l2.get("contradiction_flags", 0),
+        suppressed_count=h_l3.get("suppressed_count", 0),
+        fallback_injected=h_l3.get("fallback_injected", 0),
+        coverage_gap=h_l2.get("coverage_gap", False),
     )
     get_collector().record(record)
 
