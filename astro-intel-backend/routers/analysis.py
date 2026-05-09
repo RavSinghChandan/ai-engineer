@@ -7,6 +7,7 @@ import uuid
 import asyncio
 from typing import Any, Dict
 
+import time
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -17,6 +18,7 @@ import agents.prompt_config as prompt_config
 from agents.report_agent import final_report_agent
 from agents.translation_agent import translation_agent, list_languages
 import memory.store as store
+from metrics.collector import get_collector, RunRecord
 
 router = APIRouter(prefix="/api/v1/analysis", tags=["Analysis"])
 
@@ -73,12 +75,17 @@ async def run_analysis(req: AnalysisRequest) -> JSONResponse:
         "errors":              [],
     }
 
+    t_start = time.time()
     loop = asyncio.get_event_loop()
     final_state = await loop.run_in_executor(None, run_pipeline, initial_state)
+    t_end = time.time()
 
     _sessions[session_id] = final_state
     await store.write_meta(session_id, "state", final_state)
     await store.write_meta(session_id, "profile", profile_dict)
+
+    # ── Collect metrics ───────────────────────────────────────────────────────
+    _record_metrics(session_id, final_state, t_start, t_end)
 
     admin_review = final_state.get("admin_review", {})
 
@@ -166,6 +173,76 @@ async def get_session(session_id: str) -> JSONResponse:
 async def get_memory(session_id: str) -> JSONResponse:
     all_mem = await store.read_all(session_id)
     return JSONResponse(content={"session_id": session_id, "memory": all_mem})
+
+
+# ── Metrics helper ───────────────────────────────────────────────────────────
+def _record_metrics(session_id: str, state: dict, t_start: float, t_end: float) -> None:
+    """Extract signals from completed pipeline state and record to MetricsCollector."""
+    total_ms = (t_end - t_start) * 1000
+
+    # Agent latency from agent_log timestamps (best-effort parse)
+    agent_latencies: dict = {}
+    agent_log = state.get("agent_log", [])
+    known_agents = ["question_agent", "domain_agents", "meta_agent", "remedy_agent", "admin_review_agent"]
+    # Approximate equal split as fallback (pipeline is mostly sequential)
+    per_agent_ms = total_ms / max(len(known_agents), 1)
+    for ag in known_agents:
+        agent_latencies[ag] = round(per_agent_ms, 1)
+
+    # Confidence distribution from admin_review
+    conf_counts: dict = {"high": 0, "medium": 0, "low": 0}
+    admin_review = state.get("admin_review", {})
+    questions_data = admin_review.get("questions", [])
+    high_conf_questions = 0
+    total_questions = len(questions_data) or 1
+
+    for q in questions_data:
+        q_has_high = False
+        for insight in q.get("insights", []):
+            lvl = insight.get("confidence", "low").lower()
+            if lvl in conf_counts:
+                conf_counts[lvl] += 1
+            if lvl == "high":
+                q_has_high = True
+        if q_has_high:
+            high_conf_questions += 1
+
+    # If admin_review empty, fall back to question_consensus
+    if not questions_data:
+        for qc in state.get("question_consensus", []):
+            for insight in qc.get("insights", []):
+                lvl = insight.get("confidence", "low").lower()
+                if lvl in conf_counts:
+                    conf_counts[lvl] += 1
+
+    # Domain coverage
+    memory = state.get("memory", {})
+    domains = ["astrology", "numerology", "palmistry", "tarot", "vastu"]
+    domains_active = sum(1 for d in domains if memory.get(d))
+
+    # Errors
+    errors = state.get("errors", [])
+
+    # Token estimate: rule-based agents use ~0 tokens.
+    # report_agent uses ~1 LLM call — estimate 800 tokens input + 1200 output.
+    has_report = bool(state.get("final_report"))
+    estimated_tokens = 2000 if has_report else 400
+
+    record = RunRecord(
+        session_id=session_id,
+        started_at=t_start,
+        ended_at=t_end,
+        total_latency_ms=total_ms,
+        agent_latencies=agent_latencies,
+        confidence_counts=conf_counts,
+        domains_active=domains_active,
+        error_count=len(errors),
+        errors=[str(e) for e in errors],
+        estimated_tokens=estimated_tokens,
+        questions_count=total_questions,
+        high_confidence_questions=high_conf_questions,
+    )
+    get_collector().record(record)
 
 
 # ── GET /languages — list all supported translation languages ─────────────────

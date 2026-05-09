@@ -196,6 +196,10 @@ export class ApiService {
     return this.http.get(`${BACKEND}/health`).pipe(catchError(this._handleError));
   }
 
+  getMetrics(): Observable<any> {
+    return this.http.get(`${BACKEND}/api/v1/metrics`).pipe(catchError(this._handleError));
+  }
+
   private _handleError(err: any): Observable<never> {
     let msg: string;
     if (err?.name === 'TimeoutError') {

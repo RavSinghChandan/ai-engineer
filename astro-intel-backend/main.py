@@ -6,7 +6,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import analysis_router, geocode_router
+from routers import analysis_router, geocode_router, metrics_router
 import cache as response_cache
 
 # ── App factory ─────────────────────────────────────────────────────────────
@@ -40,6 +40,7 @@ app.add_middleware(
 # ── Routers ──────────────────────────────────────────────────────────────────
 app.include_router(analysis_router)
 app.include_router(geocode_router)
+app.include_router(metrics_router)
 
 
 # ── Health check ─────────────────────────────────────────────────────────────
@@ -73,5 +74,6 @@ async def root():
             "get_memory":        "GET  /api/v1/analysis/memory/{session_id}",
             "geocode":           "GET  /api/v1/geocode?city=Chandigarh",
             "health":            "GET  /health",
+            "metrics":           "GET  /api/v1/metrics",
         },
     }

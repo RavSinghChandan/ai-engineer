@@ -170,6 +170,10 @@ function validateProfile(p: {
       <span class="hdr-nav-item">🏠 Vastu</span>
     </nav>
     <div class="hdr-user">
+      <button class="metrics-btn" (click)="router.navigate(['/metrics'])" title="View Production Metrics">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="7" width="3" height="6" rx="1" fill="currentColor"/><rect x="5.5" y="4" width="3" height="9" rx="1" fill="currentColor"/><rect x="10" y="1" width="3" height="12" rx="1" fill="currentColor"/></svg>
+        Metrics
+      </button>
       <img src="rav-photo.png" alt="Rav Singh" class="hdr-avatar"/>
       <div class="hdr-user-text">
         <span class="hdr-uname">Rav Singh</span>
@@ -771,6 +775,8 @@ function validateProfile(p: {
 .hdr-nav-item:hover { background: rgba(99,102,241,0.07); color: #4338ca; }
 .hdr-sep { color: rgba(0,0,0,0.15); font-size: 18px; }
 .hdr-user { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+.metrics-btn { display: flex; align-items: center; gap: 5px; background: rgba(99,102,241,.08); border: 1px solid rgba(99,102,241,.22); color: #4338ca; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; white-space: nowrap; }
+.metrics-btn:hover { background: rgba(99,102,241,.15); border-color: rgba(99,102,241,.4); }
 .hdr-avatar { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; object-position: top; border: 2.5px solid rgba(99,102,241,0.35); }
 .hdr-user-text { display: flex; flex-direction: column; gap: 2px; text-align: right; }
 .hdr-uname { font-size: 16px; font-weight: 600; color: #1e1b4b; line-height: 1.2; }
@@ -1389,7 +1395,7 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
   `]
 })
 export class IntakePage {
-  private router   = inject(Router);
+  readonly router  = inject(Router);
   readonly orch    = inject(OrchestratorService);
   private geoSvc   = inject(GeocodeService);
 
