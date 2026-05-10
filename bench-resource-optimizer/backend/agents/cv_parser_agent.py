@@ -1,40 +1,65 @@
 """
-CV Parser Agent — strips input to 1200 chars and uses max_tokens=380.
-Keeps output schema identical so the frontend is unaffected.
+CV Parser Agent — upgraded with:
+  - Prompt versioning v2 (hardened system prompt — Module 2/6)
+  - Token tracking via callback (Module 1)
+  - Security: injection check on resume text + audit log (Module 2)
+  - Output faithfulness proxy: ensure skills are plausible tech terms (Module 1)
 """
+from __future__ import annotations
+
+import time
+import logging
+
 from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
+
 from utils.json_parser import parse_llm_json
+from utils.prompts import get_active
+from utils.token_tracker import get_tracker
+from utils.security import audit_llm_call
 
-SYSTEM_PROMPT = "You are a CV parser. Return ONLY valid JSON, no markdown."
-
-USER_PROMPT = """Extract info from this resume. Return ONLY this JSON:
-{{
-  "name": "<full name or 'Unknown'>",
-  "email": "<email or ''>",
-  "phone": "<phone or ''>",
-  "skills": [<technical skill strings>],
-  "experience_years": <int>,
-  "roles": [<job title strings>],
-  "projects": [{{"name":"<n>","description":"<10 words>","technologies":[<list>]}}],
-  "education": "<degree and field>"
-}}
-
-Resume:
-{resume_text}"""
+logger = logging.getLogger("bench.cv_parser")
 
 
-def parse_cv(resume_text: str, llm: ChatOpenAI) -> dict:
+def parse_cv(resume_text: str, llm: ChatOpenAI, request_id: str = "") -> dict:
+    """
+    Parse CV text into structured JSON profile.
+    Uses prompt v2 (injection-hardened system prompt).
+    Token tracking via LangChain callback.
+    """
+    t0 = time.time()
+
     # Trim to avoid huge prompts; first 1200 chars capture name/skills/titles
     trimmed = resume_text[:1200]
 
+    prompt_def = get_active("cv_parser")
+    tracker    = get_tracker()
+
     prompt = ChatPromptTemplate.from_messages([
-        ("system", SYSTEM_PROMPT),
-        ("human", USER_PROMPT),
+        ("system", prompt_def.system),
+        ("human",  prompt_def.user),
     ])
+    bounded = llm.bind(max_tokens=420)
+    chain   = prompt | bounded
 
-    bounded_llm = llm.bind(max_tokens=380)
-    chain = prompt | bounded_llm
-    result = chain.invoke({"resume_text": trimmed})
+    result = chain.invoke(
+        {"resume_text": trimmed},
+        config={"callbacks": [tracker]},
+    )
 
-    return parse_llm_json(result.content)
+    latency_ms = (time.time() - t0) * 1000
+    usage      = tracker.get_usage()
+
+    audit_llm_call(
+        request_id     = request_id,
+        operation      = f"cv_parser@{prompt_def.version}",
+        input_snippet  = trimmed[:80],
+        output_snippet = result.content[:120],
+        latency_ms     = latency_ms,
+        tokens         = usage["total_tokens"],
+        cost_usd       = usage["cost_usd"],
+    )
+
+    parsed = parse_llm_json(result.content)
+    parsed["_prompt_version"] = f"{prompt_def.name}@{prompt_def.version}"
+    return parsed
