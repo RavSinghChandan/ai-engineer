@@ -242,10 +242,24 @@ Multi-query:
 ## 7. Interview Questions (Senior Level)
 
 - What is HyDE and when would you use it over standard embedding retrieval?
+
+  **Answer:** HyDE generates a hypothetical answer to the query first, then embeds that hypothetical answer instead of the raw query — because the hypothetical answer is in the same style and vocabulary as the documents, the embedding similarity is more accurate. Use HyDE when you measure a query-document style mismatch: developer queries in terse technical shorthand hitting documents written in formal prose. In Bench Resource Optimizer, manager queries like "need Java backend 5 years" are stylistically very different from CV text like "Developed enterprise-grade Spring Boot microservices for financial domain" — HyDE bridges this gap and improved our top-5 recall on employee matching queries.
+
 - What is Self-RAG and how does it differ from standard RAG architecturally?
+
+  **Answer:** Standard RAG always retrieves and always generates — retrieval happens on every query regardless of whether it's needed. Self-RAG adds LLM-based decision nodes: first it decides whether retrieval is needed at all, after retrieval it scores each chunk for relevance, and after generation it scores whether the answer is supported by the retrieved context. The architectural difference is that Self-RAG introduces adaptive retrieval — simple factual questions it already knows don't trigger retrieval at all, saving the embedding lookup cost. The downside is that this decision logic requires fine-tuned model behavior or complex prompting to simulate reliably.
+
 - If your RAG system sometimes returns irrelevant context, what advanced pattern would you apply?
+
+  **Answer:** CRAG (Corrective RAG) — it evaluates retrieval quality with a scoring step before passing context to the LLM, and if quality is below threshold, it triggers a fallback (web search, alternative retrieval, or refusal to answer). In Bench Resource Optimizer, we implemented exactly this: the CRAG quality scoring layer evaluates whether retrieved CV chunks actually match the role requirements, and if the score is below threshold, we return "no qualified candidates found" rather than generating a plan from irrelevant profiles.
+
 - How would you decide which advanced RAG pattern to implement first for a system with poor retrieval quality?
+
+  **Answer:** Measure RAGAS context precision and context recall on a live sample first — don't guess. If context recall is low (missing relevant docs), the problem is retrieval coverage — try hybrid search or multi-query. If context precision is low (retrieving irrelevant docs), try CRAG (quality gate at retrieval) or a reranker. If both are fine but faithfulness is still low, the issue is generation, not retrieval — no advanced RAG pattern will help, tighten the prompt instead. Always fix the lowest-cost issue first: hybrid search is cheaper to add than a reranker, which is cheaper than HyDE.
+
 - What is the cost-quality trade-off of adding multi-query retrieval to a production system?
+
+  **Answer:** Multi-query generates 2-3 query variants for every user question (one extra LLM call), runs retrieval for each variant, then deduplicates and merges results — this is 3x the retrieval cost and 200-500ms of extra latency from the query generation LLM call. The quality gain is higher recall on queries where a single phrasing misses relevant chunks. The decision rule: if your single-query context recall is above 0.85, multi-query is rarely worth the cost. If recall is below 0.75, multi-query often recovers 10-15 recall points. Measure first, then decide — don't add it by default.
 
 ---
 

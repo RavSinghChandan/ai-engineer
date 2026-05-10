@@ -322,10 +322,24 @@ Prompt compression:
 ## 8. Interview Questions (Senior Level)
 
 - How do you estimate the monthly LLM cost for a system that handles 50,000 daily requests?
+
+  **Answer:** Take your average prompt + completion tokens per request (e.g., 1,000 tokens), multiply by 50,000 requests/day × 30 days = 1.5B tokens/month. Divide by 1M and multiply by the model's per-1M rate — GPT-4o-mini costs ~$0.22/month for 1.5B input tokens; GPT-4o costs ~$7,500. This calculation is why I always present cost estimates before model selection, not after.
+
 - Your LLM bill doubled this month. Walk me through your investigation.
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q1 — skipped to avoid duplication.)*
+
 - How do you decide which tasks use GPT-4o vs GPT-4o-mini?
+
+  **Answer:** I classify tasks by reasoning complexity and error cost. Simple extraction, classification, or FAQ answering goes to GPT-4o-mini — it's 30-50x cheaper and fast enough. Complex multi-step reasoning, document synthesis, or tasks where a wrong answer has downstream consequences get GPT-4o. In Bench Resource Optimizer, the gap analysis and plan generation use DeepSeek (similar capability tier to GPT-4o) while validation checks use a cheaper model — the quality requirement drove the model choice, not preference.
+
 - What is the difference between P50 and P95 latency and why does it matter for an LLM API?
+
+  **Answer:** P50 is the median — half of requests are faster, half are slower. P95 is the 95th percentile — 5% of requests are slower than this number. For an LLM API, P95 tells you the worst-case experience for 1 in 20 users, which is what defines your SLA. In AstroIntel, our P50 was ~2,000ms but P99 was much higher due to occasional network retries — I monitor both because optimizing only P50 while ignoring P99 means your slowest users get a broken experience.
+
 - How do you implement semantic caching and what hit rate would you expect on a typical enterprise chatbot?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q2 — skipped to avoid duplication.)*
 
 ---
 

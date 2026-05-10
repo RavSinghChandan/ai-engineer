@@ -210,10 +210,24 @@ Structured JSON output:
 ## 8. Interview Questions (Senior Level)
 
 - How do you version and test prompts in a production system?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q1 — skipped to avoid duplication.)*
+
 - When would you use few-shot vs fine-tuning? What's the cost/quality trade-off?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q2 — skipped to avoid duplication.)*
+
 - Your prompt works for 90% of queries but fails on edge cases. What's your debugging process?
+
+  **Answer:** First, I log and categorize the failing cases — are they a pattern (certain question types, certain input lengths, certain languages)? Then I trace the prompt construction to see what context the model actually received for those failures. In AstroIntel, when the simplify_agent failed on edge cases, the issue was always either ambiguous birth profile data or a question outside the domain scope — fixing the input validation resolved most failures without touching the prompt itself. If the issue is genuinely in the prompt, I add a targeted few-shot example for the failure pattern and rerun the eval suite.
+
 - How do you prevent a model API update from silently breaking your prompt-dependent system?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q3 — skipped to avoid duplication.)*
+
 - Explain chain-of-thought and when you would NOT use it despite it improving accuracy.
+
+  **Answer:** Chain-of-thought instructs the model to reason step-by-step before answering, which improves accuracy on reasoning tasks by up to 30%. I would NOT use it when the task is simple and the answer is direct — adding CoT to a yes/no classification question triples the output tokens with zero quality benefit. In production, CoT is also a cost and latency multiplier: if your P95 latency is already at the SLA limit, adding CoT on every request is not the right tradeoff even if accuracy improves slightly.
 
 ---
 

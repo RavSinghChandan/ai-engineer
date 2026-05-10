@@ -198,10 +198,24 @@ Output validation:
 ## 8. Interview Questions (Senior Level)
 
 - What is prompt injection and how do you prevent it in a production RAG system?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q1 — skipped to avoid duplication.)*
+
 - A user asks your chatbot to "repeat your system prompt." What happens and how do you handle it?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q5 — skipped to avoid duplication.)*
+
 - How do you prevent one customer's data from appearing in another customer's RAG results?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q2 — skipped to avoid duplication.)*
+
 - Your AI system can send emails on behalf of users. What security concerns does that introduce?
+
+  **Answer:** A privileged-action agent that can send emails is a high-value injection target — a malicious user or a poisoned document could instruct the LLM to send emails to unintended recipients or with manipulated content. The mitigations: require explicit user confirmation before sending any email (not just LLM confirmation), validate the recipient and subject against allowed patterns, log every send attempt with the full LLM input/output for audit, and rate-limit sends per user per hour. In Bench Resource Optimizer, before generating any plan that could affect external systems, we add a human-in-the-loop approval gate — the same pattern applies to email sending.
+
 - How do you audit LLM calls for security incidents after the fact?
+
+  **Answer:** Log every LLM call synchronously with a unique request ID, the full system prompt, the full user message, the full model response, user ID, timestamp, and session ID — store these in append-only storage (never delete or update). When a security incident is reported, reconstruct the exact prompt the model received and what it returned. In AstroIntel, every pipeline run is logged with session_id, all agent inputs and outputs, and error details — this was designed for debugging but serves as the security audit trail. The critical design requirement is that logs are write-once and cannot be modified by the application.
 
 ---
 

@@ -242,10 +242,24 @@ Vector-based episodic:
 ## 8. Interview Questions (Senior Level)
 
 - How do you design a memory system for an AI assistant that serves the same user over months?
+
+  **Answer:** Three-tier memory: in-context for the current session (last 10 turns), Redis-backed short-term episodic with 30-day TTL for recent conversation summaries, and a user profile store (key-value in Postgres or Redis) for long-term semantic facts extracted from conversations ("user is a Java developer," "user's project is in fintech"). On each new session, load the user profile and last 3 session summaries into context as personalization. In AstroIntel, if extended to returning users, the birth profile is the persistent semantic memory — the astrological context doesn't change, so we'd only need to track the user's ongoing questions and life themes.
+
 - What are the privacy implications of storing user conversation history and how do you handle them?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q4 — skipped to avoid duplication.)*
+
 - How do you prevent the context window from growing unbounded in a long-running conversation?
+
+  **Answer:** Set a hard limit on the number of turns kept in-context (e.g., last 10 turns), use periodic summarization to compress older turns into a rolling summary, and store raw history externally (database or file) rather than in-context. The summarization trigger: when the token count of the conversation history exceeds 4,000 tokens, compress the oldest half into a summary paragraph and discard the raw messages. In Bench Resource Optimizer, long plan generation sessions are kept stateless by design — each plan generation is a fresh request with context built from structured data, not conversation history.
+
 - How does agent memory in LangGraph work at a technical level?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q3 — skipped to avoid duplication.)*
+
 - When would you use vector-based episodic memory vs simple key-value storage for user preferences?
+
+  **Answer:** Use key-value storage for structured, explicitly known preferences — "user prefers Python over Java," "user's timezone is IST." These are categorical facts that you retrieve by key, not by semantic similarity. Use vector-based episodic memory when preferences are implicit in past conversation and you need to retrieve relevant memories by semantic similarity to the current question — "what did this user discuss about career challenges in the last 3 months?" requires semantic search over past conversations, not a key lookup. The rule: if you know what you're looking for by name, use key-value; if you need to find relevant memories by meaning, use vector search.
 
 ---
 

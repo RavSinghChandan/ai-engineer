@@ -225,10 +225,24 @@ Hierarchical:
 ## 8. Interview Questions (Senior Level)
 
 - Why is chunking more important than people think in a RAG system?
+
+  **Answer:** Chunking determines what the retriever can find — if a chunk boundary splits a key fact in half, the retriever will never return complete context and the LLM will hallucinate to fill the gap. Most RAG failures that look like "retrieval isn't finding the right docs" are actually chunking failures where the relevant information is spread across chunk boundaries. In Bench Resource Optimizer, switching from 1000-token fixed chunks to 512-token recursive chunks with overlap improved retrieval precision measurably because employee CV facts stopped getting split mid-sentence.
+
 - What chunking strategy would you use for a 500-page PDF of legal contracts?
+
+  **Answer:** Structure-aware chunking first to detect section boundaries (clauses, articles, definitions), then hierarchical chunking — small child chunks of 256 tokens for precise retrieval, large parent chunks covering the full clause for LLM context. Legal contracts have explicit structure (numbered sections, defined terms) that recursive character splitting ignores entirely. Never use fixed-size chunking on legal text — you will split liability clauses mid-sentence and the retrieved context will be legally meaningless.
+
 - How do you detect that your chunking strategy is hurting retrieval quality?
+
+  **Answer:** Run RAGAS and watch context recall — if it's consistently below 0.8, the retriever is not returning all relevant information, which points to chunking splitting relevant content across boundaries. The direct test: take 10 user questions where the answer is in the document, manually check which chunk the answer ended up in, and see if retrieval is returning that chunk. In Bench Resource Optimizer I used LLM-as-judge to score whether retrieved CV chunks actually contained the skills being queried — a chunk quality metric independent of end-to-end RAGAS.
+
 - What is hierarchical chunking and when would you choose it over flat chunking?
+
+  **Answer:** Hierarchical chunking maintains two indexes — small child chunks (256 tokens) for retrieval precision and large parent chunks (full sections, 1024+ tokens) for LLM context. At query time, you retrieve by child chunks to find the right location, then return the parent chunk to the LLM so it has full surrounding context. Choose hierarchical when your queries are precise (find specific facts) but the LLM needs surrounding context to answer correctly — this is the case for legal documents, technical manuals, and employee CVs where a specific skill is mentioned in one sentence but only makes sense in context of the full experience section.
+
 - How do you handle tables and code blocks in a chunking pipeline?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q2/Q5 — skipped to avoid duplication.)*
 
 ---
 

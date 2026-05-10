@@ -244,10 +244,24 @@ LLM-as-judge:
 ## 8. Interview Questions (Senior Level)
 
 - How do you evaluate a RAG system when you have no labeled ground truth?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q2 — skipped to avoid duplication.)*
+
 - What does it mean if context precision is high but context recall is low?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q1 — skipped to avoid duplication.)*
+
 - Your faithfulness score is 0.91 but users are complaining about wrong answers. What do you investigate?
+
+  **Answer:** RAGAS faithfulness measures whether the answer is grounded in retrieved context — a 0.91 score means 91% of answers stick to the context. But if users complain about wrong answers, the issue is likely in retrieval, not generation: the LLM is faithfully generating from retrieved context that itself is wrong or outdated. Check context precision — is the retriever pulling the right chunks? Check document freshness — are documents in the index stale? In Bench Resource Optimizer, when LLM-as-judge scores were high but user feedback was negative, the root cause was always that retrieved employee CVs were outdated; the generation was faithful to wrong data.
+
 - How do you build and maintain a RAG eval dataset over time?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q2 — skipped to avoid duplication.)*
+
 - What is the difference between evaluating retrieval vs evaluating generation in a RAG system?
+
+  **Answer:** Retrieval evaluation measures whether the right chunks were fetched — metrics are context precision (retrieved chunks are relevant) and context recall (all relevant chunks were retrieved). Generation evaluation measures whether the LLM used those chunks correctly — metrics are faithfulness (answer is grounded in context) and answer relevance (answer addresses the question). The key insight: a system can have perfect retrieval and poor generation (LLM ignores context), or poor retrieval and seemingly good generation (LLM hallucinates a correct-sounding answer from training data). You must evaluate both independently to diagnose which component is failing.
 
 ---
 

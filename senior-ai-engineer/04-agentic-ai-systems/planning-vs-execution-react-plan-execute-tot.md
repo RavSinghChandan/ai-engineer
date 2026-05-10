@@ -226,10 +226,24 @@ Tree-of-Thought:
 ## 7. Interview Questions (Senior Level)
 
 - When would you choose Plan-and-Execute over a simple ReAct agent?
+
+  **Answer:** When the task has more than ~5 steps and requires global coherence across those steps — document synthesis, research reports, multi-phase analysis. ReAct works one step at a time without maintaining an overall structure, so by step 8 it has often lost sight of what it set out to do. In Bench Resource Optimizer, plan generation is a Plan-and-Execute pattern: the planner structures the 30-day resource plan first, then the executor populates each day with specific assignments — without a plan, the executor would generate random allocations without coherence across the month.
+
 - What are the failure modes of Plan-and-Execute that ReAct handles better?
+
+  **Answer:** Plan-and-Execute fails when the plan is wrong from the start (the planner made incorrect assumptions about what would be found during execution) and the executor blindly follows a broken plan without adapting. ReAct handles this better because it re-evaluates after each action and can course-correct dynamically. The second failure mode: Plan-and-Execute can get "stuck" executing a plan step that produces nothing, with no mechanism to skip or replan — a ReAct agent would naturally try a different approach when a step yields no useful result.
+
 - How do you handle a case where the plan needs to change halfway through execution?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q1 — skipped to avoid duplication.)*
+
 - Explain Tree-of-Thought and give a concrete use case where it outperforms ReAct.
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q2 — skipped to avoid duplication.)*
+
 - What is the token cost difference between ReAct and Plan-and-Execute for a 10-step task?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q3 — skipped to avoid duplication.)*
 
 ---
 

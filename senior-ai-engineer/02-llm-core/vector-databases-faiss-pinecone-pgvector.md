@@ -200,10 +200,24 @@ Weaviate/Qdrant:
 ## 8. Interview Questions (Senior Level)
 
 - You have 5 million documents and 200 enterprise customers. Which vector DB and why?
+
+  **Answer:** Pinecone or Qdrant with namespace-per-tenant isolation. At 5M documents × 200 tenants = up to 1B potential vectors, this exceeds pgvector's practical range without serious optimization and is too large and multi-tenant for FAISS. Pinecone handles this with managed namespaces, automatic scaling, and real-time upserts — the operational overhead stays low. In Bench Resource Optimizer, even at a smaller scale, we chose FAISS for MVP but the path to production for a multi-tenant enterprise system always involves moving to a managed vector store.
+
 - What is HNSW and why is it used instead of exact nearest neighbor search?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q1 — skipped to avoid duplication.)*
+
 - How do you ensure vector search returns fresh results when documents are frequently updated?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q2 — skipped to avoid duplication.)*
+
 - How does pgvector compare to a dedicated vector database for an application already on PostgreSQL?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q5 — skipped to avoid duplication.)*
+
 - Your FAISS index works in development but you need to scale to production. Walk me through the migration.
+
+  **Answer:** Export all document texts and metadata from FAISS, batch re-upsert to Pinecone or pgvector (whichever your production target is), validate retrieval quality on a held-out eval set comparing FAISS vs new store, then cut over with dual-read during the transition window. The key risk is that FAISS's flat index gives exact results while HNSW-based stores give approximate results — run your RAGAS context recall metric on both to confirm quality is equivalent before switching live traffic over.
 
 ---
 

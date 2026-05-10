@@ -208,10 +208,24 @@ Hierarchical:
 ## 7. Interview Questions (Senior Level)
 
 - Explain the supervisor pattern and when you would use it over parallel agents.
+
+  **Answer:** The supervisor pattern uses an orchestrator LLM that dynamically routes each step to the appropriate specialist agent based on the current state. Use it when tasks are heterogeneous and the right specialist depends on what was discovered in previous steps — for example, a customer support agent that might call a billing specialist, a shipping specialist, or a technical support specialist depending on the issue type. Parallel agents are the right choice when tasks are independent and homogeneous — like AstroIntel's 5 domain agents all analyzing the same birth profile in parallel. Parallel is faster and cheaper; supervisor is more flexible but adds an LLM routing cost and a failure point.
+
 - How do you handle partial failure in a multi-agent system where 2 of 5 agents fail?
+
+  **Answer:** Design the consensus/merge layer to handle partial output gracefully: process whichever agents succeeded, mark failed agents as "unavailable" in the state, and reduce the confidence threshold accordingly. In AstroIntel, if a domain agent fails, the consensus agent has fewer inputs — the result is a lower-confidence output rather than a total system failure. The key design principle: never let one agent's failure block the entire pipeline. Each agent runs independently; the orchestrator handles absent outputs without panicking.
+
 - How do you prevent agents from passing contradictory information to each other?
+
+  **Answer:** Enforce structured contracts between agents — each agent writes to its own named output field in the shared state (e.g., `astrology_output`, `numerology_output`), never overwriting another agent's output. Contradiction detection happens in the consensus layer, which explicitly compares outputs and flags disagreements as lower confidence rather than silently picking one. In AstroIntel, the Meta Consensus Agent compares insights across all 5 agents and uses cross-domain agreement as the quality signal — contradictions lower the confidence from HIGH to LOW, which is the correct handling rather than hiding the disagreement.
+
 - What is the cost implication of running 5 parallel LLM agents vs 1 sequential agent?
+
+  **Answer:** Token cost is identical whether you run 5 agents in parallel or sequentially — you're making the same 5 LLM calls either way. The difference is wall time: 5 parallel agents on a 5-second task each = 5 seconds total with parallelism vs 25 seconds sequential. But parallel does increase peak API load — if each agent uses 1,000 tokens and you have 100 concurrent users, 5 parallel agents × 100 users = 500 simultaneous LLM calls hitting your rate limit. In AstroIntel, because the 5 domain agents are rule-based (zero LLM tokens), parallelism is nearly free — only the final LLM call adds cost.
+
 - How does the consensus pattern reduce hallucination in multi-agent systems?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q5 — skipped to avoid duplication.)*
 
 ---
 

@@ -239,10 +239,24 @@ Query rewriting:
 ## 8. Interview Questions (Senior Level)
 
 - What is the difference between a bi-encoder and a cross-encoder in retrieval?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q1 — skipped to avoid duplication.)*
+
 - When would hybrid search NOT improve retrieval quality?
+
+  **Answer:** When your document corpus uses consistent natural language with no exact identifiers, and your users phrase queries semantically — in this case dense retrieval already captures everything BM25 would find, so hybrid adds complexity with no benefit. Also when your corpus is very small (under 1,000 documents) — at that scale, retrieval quality is rarely the bottleneck and the RRF fusion overhead isn't justified. In AstroIntel, because the domain agents are rule-based with no retrieval layer, hybrid search is irrelevant — it only matters when you actually have a retrieval step.
+
 - Your RAG system retrieves 5 chunks that are all basically saying the same thing. How do you fix it?
+
+  **Answer:** Apply MMR (Maximal Marginal Relevance) instead of pure similarity ranking — it balances relevance against diversity so each additional retrieved chunk adds new information rather than duplicating what's already included. Set the MMR lambda parameter (typically 0.5-0.7) to control the relevance-diversity tradeoff. In Bench Resource Optimizer, redundant CV chunks were a real problem — multiple sections of the same employee's CV scoring high for the same query. MMR combined with a max-one-chunk-per-document filter resolved it.
+
 - How does Reciprocal Rank Fusion work and why is it used instead of score normalization?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q2 — skipped to avoid duplication.)*
+
 - Walk me through how you would improve RAG retrieval quality after deploying the initial version.
+
+  **Answer:** Start with measurement: run RAGAS context precision and recall on a 50-query sample from live traffic. If context recall is low (< 0.75), the retriever is missing relevant chunks — add hybrid search (BM25 + dense). If context precision is low despite decent recall, add a reranker to filter the top-K to top-4. If both are fine but faithfulness is low, the issue is in generation, not retrieval — tighten the system prompt. In Bench Resource Optimizer, the first optimization after baseline was adding HyDE for the employee matching queries because developer-style CV language and manager-style query language had a style mismatch that dense retrieval struggled with.
 
 ---
 

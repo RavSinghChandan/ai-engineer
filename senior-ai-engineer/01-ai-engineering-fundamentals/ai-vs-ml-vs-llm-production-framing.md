@@ -202,10 +202,24 @@ Senior framing for interviews:
 ## 8. Interview Questions (Senior Level)
 
 - Walk me through a decision where you chose an LLM over a classical ML model. What trade-offs did you accept?
+
+  **Answer:** In AstroIntel, the core domain reasoning (astrology, numerology, tarot) is rule-based — zero LLM calls — but the synthesis and translation layer uses an LLM because you cannot write rules to convert structured insight objects into natural language narrative. We accepted ~500ms LLM latency and $0.000137/report cost; we mitigated cost by keeping rule-based agents for all domain computation and using the LLM only for final synthesis. In Bench Resource Optimizer, we chose LLM for the plan generation step because the task is open-ended language reasoning on employee CVs — no labeled training data exists for this, making classical ML impossible.
+
 - How do you control LLM output format in a production system where downstream code parses the response?
+
+  **Answer:** JSON schema enforcement in the system prompt with a concrete example, plus a parsing wrapper with a JSON repair retry on `JSONDecodeError`. In AstroIntel, each domain agent's system prompt specifies the exact JSON schema and the Meta Consensus Agent parses it — if parsing fails, we retry with an explicit repair instruction rather than crashing. In Bench Resource Optimizer, we use Pydantic models for all LLM outputs with a validation layer; if the model returns malformed JSON, we log the failure, increment an error counter, and return a cached or fallback response rather than propagating a stack trace to the user.
+
 - What happens in your system if the LLM call fails or times out? How do you handle it?
+
+  **Answer:** Retry with exponential backoff for transient errors (429 rate limit, 503 timeout), circuit breaker to stop retrying after 3 consecutive failures, and a fallback to cached response or a deterministic non-LLM response. In AstroIntel, the rule-based domain agents never fail because they make no external calls — only the simplify_agent LLM call can fail, and we have a fallback that returns the raw structured output without narrative synthesis rather than returning an error to the user.
+
 - How do you monitor whether your LLM-based feature is degrading over time in production?
+
+  **Answer:** Daily automated RAGAS scoring on a sample of live traffic, LLM-as-judge scoring for relevance and faithfulness, plus user-signal monitoring (follow-up correction queries, thumbs down). In AstroIntel's metrics dashboard, I track hallucination_risk (LOW/MEDIUM/HIGH confidence distribution) and answer_relevance_proxy (% of HIGH-confidence multi-domain consensus responses) as time-series metrics — a drop in either triggers investigation. The key is that quality metrics are tracked continuously, not just at launch.
+
 - How does your Java/backend experience help you build better AI systems compared to someone coming from pure data science?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q5 — skipped to avoid duplication.)*
 
 ---
 

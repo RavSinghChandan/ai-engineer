@@ -192,10 +192,24 @@ Chunking large documents before embedding:
 ## 8. Interview Questions (Senior Level)
 
 - You switch from text-embedding-ada-002 to text-embedding-3-small. What breaks and how do you migrate?
+
+  **Answer:** Everything breaks immediately — the existing FAISS index contains ada-002 vectors in ada-002's semantic space, and 3-small vectors live in a completely different space. Cosine similarity between an ada-002 query vector and a 3-small document vector is meaningless. The migration is a full re-embed: build a new index with 3-small embeddings in the background, A/B test on 10% of queries comparing RAGAS context precision on both indexes, then cut over once quality is confirmed equal or better. This is zero-downtime but not instant — re-embedding a large corpus takes time and budget for the embedding API calls.
+
 - How do you detect embedding quality degradation in production?
+
+  **Answer:** Track RAGAS context precision and context recall on a daily sample — a drop in context recall means the retriever is missing relevant documents, which is the primary signal of embedding quality degradation. The secondary signal is user behavior: if users start asking follow-up questions like "that wasn't what I asked" or abandonment rates increase, investigate retrieval quality. In Bench Resource Optimizer, I cross-checked embedding quality by running a random sample of CV queries against known employee matches and verifying the top-5 retrieved chunks contained the expected employee.
+
 - What is the difference between semantic similarity and keyword search and when do you use each?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q1 — skipped to avoid duplication.)*
+
 - How do you embed a 200-page document for RAG retrieval?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q4 — skipped to avoid duplication.)*
+
 - Why can't you mix embeddings from different models in the same vector store?
+
+  **Answer:** Each embedding model projects text into its own learned semantic space — different dimensions, different coordinate systems, different meanings for each dimension. A cosine similarity between a vector from model A and a vector from model B compares coordinates that mean entirely different things, producing a random number that looks like a similarity score. In Bench Resource Optimizer, we store `model_version` metadata alongside every document vector precisely so we can detect and prevent mixed-model queries during migrations.
 
 ---
 

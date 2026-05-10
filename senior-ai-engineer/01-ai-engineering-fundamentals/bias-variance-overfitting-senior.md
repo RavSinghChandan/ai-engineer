@@ -144,10 +144,24 @@ More training data:
 ## 8. Interview Questions (Senior Level)
 
 - Your fraud model worked in UAT but accuracy dropped 12% in production after 2 weeks. What happened and what do you do?
+
+  **Answer:** The most likely cause is data distribution shift — UAT used historical data that doesn't match current transaction patterns. First, compare feature distributions between UAT data and the 2-week production window using PSI; a PSI above 0.2 on a key feature confirms drift. Second, check if there was an external event (new payment method, seasonal spike, a merchant onboarding) that changed transaction patterns. The fix is retraining on recent production data, not tuning the model — the model is correct, the world changed around it.
+
 - What is data distribution shift and how do you detect it in production?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q1 — skipped to avoid duplication.)*
+
 - How do you apply bias-variance thinking to LLM systems where you don't control training?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q2 — skipped to avoid duplication.)*
+
 - A fine-tuned model overfits the training examples. What three things do you try first?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q4 — skipped to avoid duplication.)*
+
 - How do you decide whether to get more data vs simplify the model when facing high variance?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q3 — skipped to avoid duplication.)*
 
 ---
 

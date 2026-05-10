@@ -198,10 +198,24 @@ Agent:
 ## 8. Interview Questions (Senior Level)
 
 - Describe a situation where you would use a workflow instead of an agent, even though an agent could technically do the same thing.
+
+  **Answer:** Document ingestion pipeline: chunk → embed → upsert to vector store. An agent could technically do this by deciding each step, but the sequence is always the same and correctness matters — you cannot have the LLM decide whether to skip the embedding step. AstroIntel's 5-step pipeline is exactly this: a workflow with LLM-powered nodes (the simplify agent, the report agent) but a fixed sequence that is always execute in the same order. Predictability, testability, and auditability all favor the workflow pattern when the business logic doesn't require dynamic decision-making.
+
 - How do you test an agent-based system when the execution path is non-deterministic?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q2 — skipped to avoid duplication.)*
+
 - What are the failure modes of an LLM agent that a workflow does not have?
+
+  **Answer:** Infinite loops (the agent keeps calling tools without making progress), hallucinated tool arguments (calls a real tool with a made-up parameter value), wrong tool selection (picks the wrong tool for the task), and context accumulation (the agent's working memory grows with each step until it hits the context limit and starts losing early context). None of these are possible in a workflow because the sequence and tool calls are fixed in code. In AstroIntel, I chose a workflow specifically to avoid these failure modes — each agent is a deterministic function, not an LLM making tool selection decisions.
+
 - How do you add guardrails to prevent an agent from taking unintended actions?
+
+  **Answer:** Allowlist the tools the agent can access — don't give an agent write access to a database if it only needs read access. Validate tool call arguments against a schema before executing the tool — reject calls with parameters outside expected ranges. Add a confirmation step for high-risk actions (writes, sends, deletions) that requires explicit human or system approval before execution. In Bench Resource Optimizer, before any plan is generated that could affect resource allocation, the human-in-the-loop approval gate requires explicit manager sign-off — the LLM proposes, a human confirms.
+
 - How does the agent vs workflow decision change when the system must be auditable for compliance?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q4 — skipped to avoid duplication.)*
 
 ---
 

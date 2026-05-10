@@ -248,10 +248,24 @@ Reranking:
 ## 8. Interview Questions (Senior Level)
 
 - Walk me through a production RAG pipeline end-to-end including failure handling.
+
+  **Answer:** Ingestion: document → chunking (512 tokens, recursive, with overlap) → embedding model → vector store upsert, with metadata (source, updated_at, text_hash). Query: user question → embed query → hybrid search (BM25 + vector, RRF merge) → similarity threshold gate (reject below 0.7) → reranker → top-4 chunks → LLM generation with source attribution → faithfulness check before returning. Failure handling at each stage: if embedding fails, retry with backoff; if retrieval returns nothing, return a "no relevant context" message rather than hallucinating; if LLM call fails, circuit breaker kicks in and serves cached response. In Bench Resource Optimizer, the CRAG quality scoring layer sits between retrieval and generation — if retrieved chunks score below threshold, we route to web search or refuse to answer.
+
 - What are the most common ways RAG systems fail in production?
+
+  **Answer:** Five failure modes in order of frequency: (1) poor chunking splits key facts across boundaries — retrieval looks good by score but the retrieved content is incomplete; (2) the query is a paraphrase that doesn't match the vocabulary in chunks — semantic search misses it; (3) the vector index is stale — document was updated but re-embedding hasn't run; (4) top-K retrieval returns irrelevant chunks above the relevance threshold — no similarity filter — and the LLM hallucinates to fill the gap; (5) the LLM ignores the context and answers from training data when the context doesn't clearly contain the answer. I address these with hybrid search (fixes 2), a similarity threshold gate (fixes 4), event-driven re-embedding (fixes 3), and a faithfulness check (detects 5).
+
 - How do you handle a query where no relevant documents are retrieved?
+
+  **Answer:** Return a clean "I don't have information about this in the provided documents" response rather than letting the LLM answer from its training data. Implement a similarity threshold gate — if the highest-scoring retrieved chunk is below 0.7 cosine similarity, treat retrieval as failed and return the fallback. Never send empty or low-relevance context to the LLM and expect it to say "I don't know" — models hallucinate when given no relevant context to work with. Log these no-retrieval events as they indicate coverage gaps in your document corpus.
+
 - How do you keep your RAG index fresh when underlying documents change frequently?
+
+  **Answer:** Event-driven re-embedding triggered by document updates — whenever a document changes in the CMS or database, emit an event to a queue; the embedding worker processes it and upserts the new vector, replacing the old one by document ID. Track `text_hash` per chunk so the worker skips re-embedding if content hasn't actually changed. For batch updates, run a nightly reconciliation job that compares source document checksums against stored hash values and re-embeds any that have drifted. FAISS cannot handle this cleanly — it's another reason production RAG systems move to pgvector or Pinecone where upsert is a first-class operation.
+
 - What is the difference between recall and precision in retrieval and how do you tune the trade-off?
+
+  **Answer:** Recall = of all relevant documents in the corpus, what fraction did retrieval return. Precision = of all retrieved documents, what fraction were actually relevant. High K (retrieve more chunks) improves recall but hurts precision — you return more irrelevant context and inflate the prompt. Adding a reranker after retrieval recovers precision without sacrificing recall: retrieve top-20 for high recall, rerank to top-4 for high precision. In Bench Resource Optimizer, we tune this by evaluating LLM-as-judge scores on generated plans — if the judge scores drop, we increase K or adjust the reranker threshold.
 
 ---
 

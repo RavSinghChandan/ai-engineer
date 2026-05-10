@@ -201,10 +201,24 @@ Map-Reduce for documents:
 ## 8. Interview Questions (Senior Level)
 
 - How do you handle a user conversation that has grown to 200 turns in your chatbot?
+
+  **Answer:** Switch from full history to a sliding window plus summarization memory. Keep the last 10 turns verbatim (working context), periodically compress older turns into a rolling summary ("User is asking about X, established Y, decided Z"), and store the summary at the top of the context. In Bench Resource Optimizer's plan generation, we avoid this problem entirely by keeping each generation request stateless — the full context for that request is built fresh from the employee data and job requirements, not from conversation history.
+
 - Design a system to summarize a 500-page legal document using an LLM with a 128K token context.
+
+  **Answer:** Map-reduce: chunk the document into 4,000-token sections, summarize each section independently (map phase), then combine section summaries in a final synthesis call (reduce phase). The 500 pages at ~500 tokens/page = 250,000 tokens — far exceeding even 128K context. A two-level map-reduce works: summarize groups of sections first, then summarize the group summaries. Preserve section headers as chunk metadata so the reduce phase can reference "Section 4.2: Liability Clauses" rather than losing document structure.
+
 - What happens to LLM quality when you approach the context limit?
+
+  **Answer:** The "lost in the middle" problem kicks in — research shows LLMs perform significantly better when relevant information is near the beginning or end of the context window. Information in the middle of a very long context gets effectively ignored. Additionally, as context grows, TTFT increases dramatically and coherence across the full context degrades. I monitor average context size as a metric and set hard limits on context construction — if injected context exceeds 80% of the window, I truncate the least-relevant chunks rather than risk quality degradation silently.
+
 - How do you manage context when running multiple agents that need to share state?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q2 — skipped to avoid duplication.)*
+
 - Why is a 1M token context window not the solution to all context management problems?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q1 — skipped to avoid duplication.)*
 
 ---
 

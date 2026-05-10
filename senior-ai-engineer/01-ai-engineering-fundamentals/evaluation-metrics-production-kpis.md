@@ -236,10 +236,24 @@ LLM-as-judge:
 ## 8. Interview Questions (Senior Level)
 
 - Your RAG system accuracy is 87% — is that good? How do you decide?
+
+  **Answer:** "Accuracy" is the wrong framing for a RAG system — I'd reject the premise and ask what failure mode we're measuring. An 87% score is meaningless without knowing: 87% on what metric (faithfulness? relevance? format compliance?), measured on what dataset, and what the business cost of the 13% failure rate is. In Bench Resource Optimizer, we tracked LLM-as-judge scores on four dimensions — a system could score 87% relevance while still having unacceptable hallucination rate. You need the full picture.
+
 - How do you evaluate an LLM system when you have no ground truth?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q1 — skipped to avoid duplication.)*
+
 - What metric would you use to detect hallucination in production at scale?
+
+  **Answer:** RAGAS faithfulness for RAG systems — it measures whether the answer is grounded in retrieved context without requiring labeled ground truth. For non-RAG systems like AstroIntel, I built a proxy metric: LOW-confidence insights from the consensus layer (single-source, no cross-domain agreement) are flagged as hallucination risk. In Bench Resource Optimizer, CRAG quality scoring at the retrieval stage prevents hallucination at the source by refusing to generate answers from low-quality retrieved context, routing to web search or a "cannot answer" response instead.
+
 - How do you monitor LLM quality without a human in the loop for every request?
+
+  **Answer:** Three-layer approach: automated RAGAS on a daily 50-sample batch from live logs, LLM-as-judge scoring every response asynchronously (Bench Resource Optimizer uses this with a 3.5/5 threshold), and user signals (thumbs down, follow-up "that's wrong" queries) as implicit quality indicators. Human review is only triggered when automated scores drop below threshold or when a user explicitly flags a response — this keeps human cost proportional to actual quality problems rather than reviewing every request.
+
 - Production alert went off — LLM latency P95 jumped from 2s to 8s. What do you check first?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q2 — skipped to avoid duplication.)*
 
 ---
 
