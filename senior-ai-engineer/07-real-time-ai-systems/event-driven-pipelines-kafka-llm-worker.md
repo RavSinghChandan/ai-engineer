@@ -217,10 +217,24 @@ RQ / Celery (simpler queue):
 ## 7. Interview Questions (Senior Level)
 
 - How does your Kafka experience apply to AI pipeline design?
+
+  **Answer:** Directly — document upload triggers a Kafka event, a consumer group picks it up, runs the ingestion pipeline (chunk → embed → upsert), and emits a completion event. The LLM is just a new type of I/O call within the consumer. All the patterns I applied in Java (manual offset commit, idempotency via deduplication, dead letter queue for permanent failures, consumer group scaling) apply identically to AI pipelines. In Bench Resource Optimizer, CV upload events flow through a queue to ingestion workers — the same architecture I would use with Kafka, just implemented with Celery+Redis for operational simplicity at current scale.
+
 - How do you handle message replay for an AI ingestion pipeline?
+
+  **Answer:** Kafka's offset reset capability (`--from-beginning` or to a specific offset) enables replay of the full ingestion event stream. Before replaying, clear the affected tenant's vectors from the vector store and reset their metadata DB status to `pending`. Then reset the consumer group offset to the replay point — consumers will re-process all events from that point. The ingestion consumers must be idempotent (upsert, not insert, by doc_id + chunk_index) so replay doesn't create duplicate vectors. This is the standard pattern for recovering from a bad embedding model migration or a corrupted index.
+
 - What is the dead letter queue pattern and when does it trigger?
+
+  **Answer:** After a consumer exhausts its retry limit (e.g., 3 attempts with backoff) on a message that keeps failing, the message is moved to a dead letter topic (e.g., `document-events-dlq`) instead of being discarded. The DLQ accumulates messages that require human investigation — a monitor alert fires when DLQ depth grows. The root causes are typically: malformed document the parser can't handle, embedding API returning 400 errors for specific content, or a schema mismatch between producer and consumer. DLQ messages are inspected manually, the root cause is fixed, and messages are replayed after the fix.
+
 - How do you scale Kafka consumers for LLM workloads?
+
+  **Answer:** Add consumer instances up to the number of topic partitions (you can't have more active consumers than partitions in a consumer group). Scale based on consumer lag (queue depth) as the autoscaling signal — if lag grows past 1,000 messages, add consumers. For LLM-bound consumers (where the bottleneck is the LLM API latency, not CPU), you often hit LLM rate limits before partition limits — scale horizontally within your API rate limit, use separate API keys per consumer instance if needed to increase the effective rate limit across the pool.
+
 - How do you implement at-least-once vs exactly-once semantics for document ingestion?
+
+  **Answer:** At-least-once: set `enable.auto.commit=false`, manually commit offsets only after successful processing. Failed processing = no commit = message redelivered on consumer restart. Idempotent processing (upsert by doc_id + chunk_index) makes at-least-once safe — duplicate delivery produces the same result. Exactly-once requires Kafka Transactions: the consumer reads, the producer writes (to a result topic or transactional DB), and both operations are committed atomically. For document ingestion into a vector store, at-least-once with idempotent upserts is the practical choice — exactly-once adds significant complexity and most vector stores don't support distributed transactions anyway.
 
 ---
 

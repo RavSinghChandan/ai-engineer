@@ -214,10 +214,24 @@ Fine-tuning: more powerful for domain-specific behavior, but requires 50+ exampl
 ## 7. Interview Questions (Senior Level)
 
 - How do you build a feedback loop for an AI chatbot without a dedicated ML team?
+
+  **Answer:** Collect implicit signals (thumbs up/down, edit actions, follow-up correction queries) and log them with query_id, user_id, and timestamp — this requires no ML expertise to set up. Weekly, review the bottom 20 responses by rating and identify patterns: are they failing on a specific query type, topic, or output format? Update few-shot examples or system prompt constraints based on patterns — this is prompt engineering, not ML. AstroIntel's admin review (approve/edit/reject) is exactly this feedback loop at a higher quality level — human experts provide direct correction signals that accumulate as training data.
+
 - What is DPO and how does it differ from RLHF?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q1 — skipped to avoid duplication.)*
+
 - When would you update few-shot examples vs fine-tuning?
+
+  **Answer:** Update few-shot examples when the failure pattern is consistent and reproducible (specific query type consistently gets wrong format, specific domain consistently gets wrong tone) and you have 1-5 clear examples of the correct behavior. Fine-tune when the failure pattern is pervasive across many query types and requires deep behavioral change that few examples cannot anchor — typically after accumulating 50+ high-quality preference pairs. The practical rule: few-shot update takes hours and is reversible in minutes; fine-tuning takes days and costs money. Always exhaust few-shot improvement first before investing in fine-tuning.
+
 - How do you measure whether the feedback loop is actually improving model quality?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q3 — skipped to avoid duplication.)*
+
 - What is the minimum number of training examples needed for effective fine-tuning?
+
+  **Answer:** OpenAI's guidance is 50-100 examples as the practical minimum; below 50, the model doesn't generalize the new behavior well. For DPO fine-tuning with LoRA on open-source models, 200-500 preference pairs typically produce meaningful behavioral change. The quality of examples matters more than quantity — 50 high-quality, diverse examples from different query patterns beats 500 similar examples that all look alike. In AstroIntel, the admin review generates ~10-20 preference pairs per day of active usage; after 1-2 months, there would be enough data to run a domain-specific DPO fine-tune on the specialist agents.
 
 ---
 

@@ -154,10 +154,24 @@ BentoML:
 ## 7. Interview Questions (Senior Level)
 
 - When would you use vLLM instead of the OpenAI API?
+
+  **Answer:** Two cases: data sovereignty (your data cannot leave your infrastructure — financial, legal, healthcare) and cost at scale (when token volume is high enough that GPU hosting is cheaper than API fees, typically above 100M tokens/day). For AstroIntel and Bench Resource Optimizer at current scale, the OpenAI/DeepSeek API is clearly correct — no data sovereignty requirement and token volume is low. vLLM would only enter the picture for an enterprise customer who requires on-premises deployment or for a product that has reached the scale where per-token API costs exceed GPU amortization costs.
+
 - How do you deploy a FastAPI-based AI service to Kubernetes?
+
+  **Answer:** Docker container (multi-stage build, non-root user, gunicorn + uvicorn workers), Kubernetes Deployment with 2+ replicas, HorizontalPodAutoscaler on CPU/memory, liveness probe on `GET /health`, readiness probe that also checks LLM API connectivity before accepting traffic, ConfigMap for environment config, Secrets for API keys (never baked into image), `terminationGracePeriodSeconds: 120` to complete in-flight LLM calls during rolling updates. Both AstroIntel and Bench Resource Optimizer are FastAPI services that map directly to this deployment pattern — the same Dockerfile and Kubernetes manifests apply.
+
 - What is continuous batching in vLLM and why does it matter for throughput?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q2 — skipped to avoid duplication.)*
+
 - How do you handle model versioning for a production AI service?
+
+  **Answer:** Pin model versions as configuration values (never hardcoded), expose the active model version in the `/health` endpoint for observability, log the model version alongside every request for audit, and use blue-green deployment when upgrading model versions — bring up a parallel deployment with the new model, run smoke tests, then shift traffic atomically. For fine-tuned models, store model artifacts in an artifact registry (MLflow, S3 with versioned paths) with semantic versioning. The same rollback discipline applies: if the new model version degrades quality, shift traffic back to the previous version without a code deployment.
+
 - What monitoring do you add to a FastAPI AI service beyond standard HTTP metrics?
+
+  **Answer:** LLM-specific metrics: tokens per request (input/output separately), cost per request (tokens × model price), TTFT (time to first token from the upstream LLM), cache hit rate (L1 and L2), model latency separate from total endpoint latency, and quality metrics (faithfulness, answer relevance from nightly RAGAS eval). In AstroIntel's metrics endpoint, we expose all of these — the `/api/v1/metrics` dashboard shows P50/P95/P99 latency, confidence distribution, hallucination audit, and token economics alongside the standard error rate. The key principle: HTTP 200 response rate tells you the server is up; faithfulness score tells you whether the AI is actually working correctly.
 
 ---
 

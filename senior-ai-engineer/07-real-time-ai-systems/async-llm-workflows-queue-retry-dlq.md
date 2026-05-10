@@ -207,10 +207,24 @@ Async with SSE:
 ## 7. Interview Questions (Senior Level)
 
 - How do you design a system where users submit AI tasks and get results when ready?
+
+  **Answer:** REST endpoint accepts the task, generates a UUID task_id, enqueues the task to Celery+Redis, returns 202 Accepted with the task_id. The worker processes the task asynchronously: runs the LLM pipeline, stores the result in Redis or Postgres keyed by task_id. User polls `GET /tasks/{task_id}/status` for progress and result, or receives a webhook callback when complete. In Bench Resource Optimizer, the plan generation follows exactly this pattern — the Angular frontend submits the bench analysis request, polls for completion, and displays the streaming result when ready. Long-running AI tasks should never block a synchronous HTTP response.
+
 - How does your Spring Boot @Async experience map to Celery task workers?
+
+  **Answer:** Spring's `@Async` annotation runs a method in a thread pool — same concept as Celery tasks running in worker processes. `ThreadPoolTaskExecutor` in Spring maps to Celery worker concurrency settings. `CompletableFuture` in Spring maps to the Celery `AsyncResult` object. The key difference: Spring @Async is in-process (same JVM), while Celery workers are separate processes connected via a message broker (Redis/RabbitMQ) — Celery is more resilient to process crashes and scales horizontally. Both use the same conceptual pattern: submit work, track by ID, retrieve result when done.
+
 - What is jitter in exponential backoff and why does it matter?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q1 — skipped to avoid duplication.)*
+
 - How do you handle a Celery worker that crashes mid-task?
+
+  **Answer:** Set `task_acks_late=True` — the task message is not acknowledged from the queue until the task completes successfully. If the worker crashes, the unacknowledged message is requeued by Redis/RabbitMQ and picked up by another worker. Combine with idempotency: check at the start of each task whether it was already completed (by task_id lookup in Redis) to prevent duplicate execution when the task is retried. After max retries are exhausted, move the task to the dead letter queue and fire an alert — a human needs to investigate why the task keeps failing.
+
 - How do you prioritize premium users' tasks over free tier users?
+
+  **Answer:** Two separate Celery queues — `high_priority` and `default` — with dedicated worker pools for each. Premium user tasks go to `high_priority`; free tier tasks go to `default`. Workers polling `high_priority` always consume the queue before starting on `default`. This prevents a large batch of free-tier tasks from starving premium users — separate queues with dedicated workers guarantee isolation. The alternative (single queue with task priority score) works for moderate load but breaks under high concurrency when the broker doesn't enforce ordering strictly.
 
 ---
 

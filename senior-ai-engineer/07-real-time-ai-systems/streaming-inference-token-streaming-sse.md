@@ -262,10 +262,24 @@ Mixed approach (most common):
 ## 7. Interview Questions (Senior Level)
 
 - How do you handle a streaming LLM response that contains function/tool calls?
+
+  **Answer:** Buffer chunks until a complete tool call JSON is accumulated (tool calls arrive in delta chunks across multiple SSE events), execute the tool, then resume streaming the text response. The stream has two modes: text tokens (stream immediately to client) and tool call deltas (buffer silently, execute, inject result back into the next LLM call). In Bench Resource Optimizer, the plan generation can trigger tool calls mid-stream for real-time data lookups; the Angular frontend handles `tool_call_start` and `tool_call_end` event types to show a "searching..." indicator while the tool executes, then resumes showing text tokens.
+
 - What is the Angular pattern for consuming an SSE stream and updating the UI reactively?
+
+  **Answer:** Angular `EventSource` API subscribed in a service, with incoming message data parsed and pushed to a BehaviorSubject or Signal. The template uses `async` pipe or `effect()` to reactively update as tokens arrive. On component destroy, close the EventSource to prevent memory leaks. In AstroIntel, the streaming service updates Angular Signals with each token chunk — the template renders the accumulated text reactively without manual change detection. The same pattern applies to Bench Resource Optimizer's plan generation SSE stream.
+
 - How do you measure TTFT (time to first token) for a streaming response?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q1 — skipped to avoid duplication.)*
+
 - How do you implement stream cancellation when a user navigates away?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q2 — skipped to avoid duplication.)*
+
 - What are the nginx configuration requirements for SSE to work correctly?
+
+  **Answer:** Three requirements: `proxy_buffering off` (nginx must not buffer the proxied response), `X-Accel-Buffering: no` header in the FastAPI response (overrides nginx default), and `proxy_read_timeout` increased beyond the default 60 seconds (LLM responses can take 30+ seconds to complete). Missing `proxy_buffering off` is the most common deployment failure — the client receives all tokens in a single burst at the end instead of progressively, which means SSE is silently broken in production while working fine in local development without nginx.
 
 ---
 
