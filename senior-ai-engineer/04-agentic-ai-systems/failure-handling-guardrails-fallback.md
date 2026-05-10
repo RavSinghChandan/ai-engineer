@@ -249,10 +249,24 @@ Strict output validation (reject on parse error):
 ## 8. Interview Questions (Senior Level)
 
 - How do you design a retry strategy for LLM API calls?
+
+  **Answer:** Exponential backoff with jitter for rate limit errors (429) and server errors (503): start at 1 second, double on each retry, add random jitter to prevent thundering herd, cap at 60 seconds, max 3 retries. Do not retry on 4xx client errors (bad request, invalid API key) — these will never succeed. In Bench Resource Optimizer, the LLM client wraps every call with this strategy using the `tenacity` library, and all retry attempts are logged so we can distinguish transient failures from systemic ones.
+
 - What is a circuit breaker and how does it apply to an LLM-powered service?
+
+  **Answer:** A circuit breaker tracks the failure rate of LLM calls over a rolling window — when failure rate exceeds a threshold (e.g., 50% over 60 seconds), it "opens" and stops sending requests to the LLM entirely, returning a fallback response immediately. This prevents cascading failures where a degraded LLM causes your entire service to time out. In AstroIntel, the circuit breaker is per-agent — if the simplify_agent's LLM call circuit opens, the system returns the raw structured output from rule-based agents without the narrative synthesis layer, degrading gracefully rather than failing completely.
+
 - How do you ensure an AI agent fails gracefully without showing the user a stack trace?
+
+  **Answer:** Top-level exception handler in every endpoint catches all exceptions and maps them to user-friendly messages — the stack trace goes to logs with a correlation ID, the user sees "I'm having trouble with this request right now, please try again." Each agent in AstroIntel is wrapped in a try/except that catches any failure and returns a LOW confidence placeholder output rather than re-raising the exception. The user always receives a response; confidence levels reflect what data was available.
+
 - Your LLM regularly returns malformed JSON. What is your systematic fix?
+
+  **Answer:** Three-layer approach: first, add explicit JSON schema enforcement in the system prompt with a concrete example ("respond ONLY with valid JSON like: {...}"). Second, wrap the JSON parse call with a repair retry — on JSONDecodeError, send the raw response back to the LLM with "Fix this JSON, return only valid JSON" instruction. Third, if the repair also fails, log the raw output and return a structured fallback. In AstroIntel, each domain agent's prompt includes the exact schema and an example; the consensus agent validates on parse and triggers repair if needed. The repair retry resolves about 90% of parse failures without human intervention.
+
 - How do you test failure handling in an AI system where failures are non-deterministic?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q1 — skipped to avoid duplication.)*
 
 ---
 

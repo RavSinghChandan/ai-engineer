@@ -185,10 +185,24 @@ Token-based: more accurate — one long document query costs 100× more than a s
 ## 7. Interview Questions (Senior Level)
 
 - How do you implement per-tenant token quota in an LLM API service?
+
+  **Answer:** Store a token counter per tenant_id in Redis with a daily (or monthly) reset. Before every LLM call, atomically check and decrement the quota using Redis INCRBY — if the remaining quota would go negative, return a 402 error with the quota reset time. After the LLM call completes, record actual tokens used (from the API response usage field) and reconcile against the atomic reservation. In Bench Resource Optimizer, each tenant's token budget is tracked this way, and the gateway middleware runs the quota check before request routing — the LLM never gets the request if quota is exhausted.
+
 - What is the difference between rate limiting and quota management?
+
+  **Answer:** Rate limiting is time-window based — max N requests per minute, enforced with a sliding window or token bucket in Redis. It prevents burst abuse and protects the upstream LLM API from being flooded. Quota management is total volume based — max M tokens per billing period. It controls total cost per tenant. Both are needed: rate limiting prevents a single buggy client from spiking, quota prevents a well-behaved client from simply running too much. A client can comply with rate limits and still exhaust monthly quota; a circuit breaker alone doesn't solve cost overrun.
+
 - How do you design automatic LLM provider failover?
+
+  **Answer:** Circuit breaker per provider tracks failure rate over a rolling window — when OpenAI exceeds 30% error rate in 60 seconds, the circuit opens and routes new requests to the fallback provider (Claude Haiku or Anthropic Sonnet). The circuit half-opens after a cooldown period to test recovery. Route on circuit open, not on individual request failure — you don't want to wait for 3 retries per request before failing over. In Bench Resource Optimizer, the fallback chain is: DeepSeek → OpenAI → cached response. Each has a circuit breaker; the gateway selects the first open (working) option.
+
 - How do you prevent a single tenant from exhausting your shared LLM API quota?
+
+  **Answer:** Per-tenant rate limits (requests per minute and tokens per minute) that are a fraction of total API quota. Alert when any single tenant exceeds 20% of total daily token spend — that's a signal of either a bug or a legitimate spike requiring quota negotiation. Hard cap at 50% of API quota for any single tenant even if their purchased quota is higher — this protects other tenants from API-level rate limiting that would affect everyone. In AstroIntel's current single-user design this isn't needed, but for the multi-tenant production version I would add this as the first gateway control.
+
 - How does your Java/Spring API gateway experience translate to building an AI API gateway?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q4 — skipped to avoid duplication.)*
 
 ---
 

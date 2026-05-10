@@ -237,10 +237,24 @@ No confirmation:
 ## 8. Interview Questions (Senior Level)
 
 - How do you prevent an LLM agent from calling a tool with hallucinated arguments?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q1 — skipped to avoid duplication.)*
+
 - What is the difference between tool validation and tool authorization?
+
+  **Answer:** Validation checks whether the arguments are structurally correct — right types, required fields present, values within expected ranges (Pydantic does this). Authorization checks whether this user or agent is permitted to call this tool with these arguments — a user can only query their own employee records, not another tenant's. Both are necessary: validation happens at the tool interface before execution, authorization checks against the user context before even invoking the tool. In Bench Resource Optimizer, the CV search tool validates the query format and authorizes that the requesting user has access to the searched employee pool — both checks run before any database query executes.
+
 - How do you handle a tool that fails intermittently in a production agent?
+
+  **Answer:** Retry with exponential backoff for transient failures (network timeouts, database busy), return a structured error message to the LLM (not an exception) so the LLM can decide its next step, and track tool failure rate as a metric to detect when "intermittent" becomes "systemic." The structured error message is critical — if the tool raises an exception that the agent doesn't catch, the whole agent fails; if the tool returns `{"error": "temporarily unavailable, please try a different approach"}`, the LLM can pivot to an alternative tool or inform the user gracefully.
+
 - An LLM agent has access to a database write tool. What safeguards do you put in place?
+
+  **Answer:** Idempotency keys on every write (prevent duplicate execution from retries), Pydantic validation of all arguments before execution, a mandatory human confirmation step in the agent flow before the write tool is called (the LLM proposes, a human approves), rollback capability (soft delete or version history rather than hard delete), and rate limiting on writes per session. In Bench Resource Optimizer, resource allocation writes go through the human-in-the-loop approval gate — the LLM generates a plan, a manager reviews it, and only after explicit approval does the system write any allocation records.
+
 - How do you design tool descriptions to minimize wrong tool selection?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q3 — skipped to avoid duplication.)*
 
 ---
 

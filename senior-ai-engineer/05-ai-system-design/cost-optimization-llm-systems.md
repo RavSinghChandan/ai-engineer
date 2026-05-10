@@ -227,10 +227,24 @@ Prompt compression:
 ## 7. Interview Questions (Senior Level)
 
 - Your LLM bill doubled this month without a traffic increase. Walk me through investigating it.
+
+  **Answer:** First, pull per-feature, per-model token counts for the current vs previous month — the spike will be in one specific feature or model tier. Most common causes: a developer removed a `max_tokens` cap ("for better answers"), a new feature added context that inflated the system prompt, or model tier routing broke and all traffic is hitting GPT-4o instead of mini. In AstroIntel, the token economics dashboard tracks `avg_prompt_tokens` and `avg_completion_tokens` per run — a doubling of either number in the dashboard immediately identifies whether input or output grew, pointing to prompt bloat vs uncapped output.
+
 - How do you decide which tasks should use GPT-4o vs GPT-4o-mini?
+
+  **Answer:** Run a quality A/B test on your specific task: send the same 50 queries to both models, evaluate with LLM-as-judge on faithfulness, relevance, and format compliance. If the quality gap is less than 5%, always use mini — it's 30x cheaper. Use GPT-4o only when the task requires complex multi-step reasoning, nuanced judgment, or when quality degradation on mini causes measurable user impact (conversion drop, user complaints). In Bench Resource Optimizer, the gap analysis and plan generation require nuanced reasoning about employee skills vs role requirements — that's the task that warrants the more capable model; simple intent classification and query routing use the cheaper option.
+
 - What is the business case for investing in semantic caching?
+
+  **Answer:** At 30% cache hit rate, 30% of LLM calls are eliminated — at $0.0002/call on mini, 10,000 calls/day = $2/day saved from caching alone = $60/month. The engineering investment to add a Redis-backed semantic cache is 1-2 days. Payback period at moderate traffic is weeks. At 100K calls/day the savings are $600/month — enough to justify a dedicated cache infrastructure. The secondary benefit is latency: cache hits return in < 10ms vs 1,500ms for LLM calls, improving P50 latency significantly and making the system feel much more responsive for repeated query patterns.
+
 - How does prompt caching (provider-side) work and how does it differ from semantic caching?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q2 — skipped to avoid duplication.)*
+
 - At 100,000 daily queries, what is your cost optimization strategy?
+
+  **Answer:** Five levers in ROI order: (1) model tiering — route 80% of queries to mini, only 20% to GPT-4o based on complexity classification; (2) semantic caching — 30% hit rate eliminates 30K LLM calls/day; (3) max_tokens discipline — cap each use case at its maximum needed output length; (4) prompt compression — remove redundant instruction text from system prompts, target 20% reduction; (5) provider caching — use Anthropic or OpenAI's prompt caching for static system prompt prefixes. At 100K queries/day, the combination of model tiering and semantic caching alone typically achieves 60-70% cost reduction versus unoptimized GPT-4o usage.
 
 ---
 

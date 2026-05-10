@@ -296,10 +296,24 @@ Aggressive reranker:
 ## 8. Interview Questions (Senior Level)
 
 - How do you achieve sub-2-second end-to-end RAG response time?
+
+  **Answer:** Allocate a latency budget per component: embedding 100ms, retrieval 50ms, reranking 150ms, LLM TTFT 1,500ms — leaving 200ms buffer for serialization and network. Cache at L1 (exact match, < 5ms) and L2 (semantic similarity, < 50ms) to eliminate the LLM call entirely on cache hits. Use streaming so the user sees the first token in ~1,500ms even if total generation takes longer. In Bench Resource Optimizer, the semantic cache handles repeated role queries; TTFT for fresh queries is reduced by using DeepSeek which has faster TTFT than GPT-4o on comparable tasks.
+
 - Semantic cache returns a stale answer after a document is updated. How do you handle this?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q1 — skipped to avoid duplication.)*
+
 - How do you monitor latency regressions in a RAG pipeline?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q2 — skipped to avoid duplication.)*
+
 - At what point does a semantic cache stop being helpful and start causing more problems?
+
+  **Answer:** When hit rate drops below ~15% — at that point you're paying embedding cost (to compute the query vector for cache lookup) on every request and only saving the LLM call 15% of the time. The embedding lookup plus cache search overhead (20-50ms) may exceed the net latency saving at low hit rates. Also when document update frequency is high — if 30% of your corpus changes daily, cached answers go stale rapidly and the TTL must be so short that effective hit rate collapses. Monitor hit rate and stale-serve rate as dashboard metrics; if hit rate falls below 20%, evaluate whether the cache complexity is still justified.
+
 - How do you balance retrieval quality (more chunks = better) with latency (more chunks = slower)?
+
+  **Answer:** Retrieve larger K (top-20) for recall, then apply a fast reranker to compress to top-4 before LLM context injection — the reranker adds ~150ms but enables high recall retrieval without inflating the LLM context window. The alternative is a two-stage budget: start with top-5, check faithfulness of the generated answer, and if faithfulness is low, re-retrieve with top-20 and regenerate. This adaptive approach keeps P50 latency low (most queries work with top-5) while handling edge cases with more context. In Bench Resource Optimizer, top-10 retrieval with CRAG quality scoring handles the balance — poor quality chunks are discarded before the LLM call regardless of how many were retrieved.
 
 ---
 
