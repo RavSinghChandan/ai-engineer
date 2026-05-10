@@ -1,71 +1,99 @@
 {
+  "_meta": {
+    "source": "company-internal",
+    "classification": "confidential",
+    "owner": "HR Engineering",
+    "note": "This file is a company-internal role requirements template. It is NOT sourced from public internet. Maintained by the HR team and updated each quarter. Do not share externally."
+  },
   "roles": [
     {
       "id": "java-microservices-dev",
       "title": "Java Microservices Developer",
-      "description": "Builds scalable backend microservices using Java/Spring Boot ecosystem.",
+      "description": "Designs and builds resilient backend microservices aligned to our internal service-mesh architecture. Engineers are expected to follow the company's internal API contract standards and use the approved tech stack.",
       "required_skills": ["Java", "Spring Boot", "REST API", "JWT", "Docker", "Kubernetes", "Maven", "PostgreSQL", "RabbitMQ", "Git"],
+      "preferred_skills": ["Kafka", "Redis", "OpenTelemetry", "Helm"],
       "experience_years": 2,
+      "internal_notes": "Role is mapped to Band 3. Candidates must clear the internal Java design-pattern assessment before deployment.",
       "learning_resources": {
-        "Java": "https://docs.oracle.com/en/java/",
-        "Spring Boot": "https://spring.io/guides",
-        "Docker": "https://docs.docker.com/get-started/"
+        "Java": "internal://knowledge-portal/java-microservices-track",
+        "Spring Boot": "internal://knowledge-portal/spring-boot-internal-patterns",
+        "Docker": "internal://knowledge-portal/docker-company-runbook",
+        "Kubernetes": "internal://knowledge-portal/k8s-cluster-guide",
+        "RabbitMQ": "internal://knowledge-portal/messaging-patterns"
       }
     },
     {
       "id": "frontend-angular-dev",
       "title": "Frontend Angular Developer",
-      "description": "Builds responsive web applications using Angular framework.",
+      "description": "Builds and maintains the company's customer-facing and internal Angular applications. Must adhere to the internal component library and design-system standards.",
       "required_skills": ["Angular", "TypeScript", "RxJS", "HTML5", "CSS3", "REST API", "Git", "NgRx", "Jasmine", "Webpack"],
+      "preferred_skills": ["Storybook", "Cypress", "Micro-frontends", "GraphQL"],
       "experience_years": 2,
+      "internal_notes": "All UI changes require UX sign-off. Accessibility (WCAG 2.1 AA) is a hard gate before release.",
       "learning_resources": {
-        "Angular": "https://angular.io/docs",
-        "TypeScript": "https://www.typescriptlang.org/docs/",
-        "RxJS": "https://rxjs.dev/guide/overview"
+        "Angular": "internal://knowledge-portal/angular-internal-guidelines",
+        "TypeScript": "internal://knowledge-portal/ts-standards",
+        "RxJS": "internal://knowledge-portal/reactive-patterns-internal",
+        "NgRx": "internal://knowledge-portal/state-management-handbook"
       }
     },
     {
       "id": "fullstack-react-node",
       "title": "Fullstack React Node Developer",
-      "description": "Builds full-stack web apps with React frontend and Node.js backend.",
+      "description": "Delivers end-to-end features across the company's React frontends and Node.js BFF (Backend For Frontend) layer. Works closely with product and mobile teams.",
       "required_skills": ["React", "Node.js", "Express.js", "JavaScript", "TypeScript", "MongoDB", "REST API", "Git", "Redux", "Docker"],
+      "preferred_skills": ["GraphQL", "tRPC", "Turborepo", "Playwright"],
       "experience_years": 3,
+      "internal_notes": "BFF layer follows internal API-gateway contract. All data mutations must go through the internal audit-log middleware.",
       "learning_resources": {
-        "React": "https://react.dev/learn",
-        "Node.js": "https://nodejs.org/en/docs"
+        "React": "internal://knowledge-portal/react-company-patterns",
+        "Node.js": "internal://knowledge-portal/node-bff-guide",
+        "MongoDB": "internal://knowledge-portal/nosql-data-standards"
       }
     },
     {
       "id": "devops-engineer",
       "title": "DevOps Engineer",
-      "description": "Manages CI/CD pipelines, cloud infrastructure, and deployment automation.",
+      "description": "Owns CI/CD pipeline infrastructure, cloud cost optimisation, and platform reliability within the company's multi-cloud environment (AWS primary, GCP secondary).",
       "required_skills": ["Docker", "Kubernetes", "Jenkins", "Terraform", "AWS", "Linux", "Git", "Bash", "Ansible", "Prometheus"],
+      "preferred_skills": ["ArgoCD", "Vault", "Grafana", "Datadog", "Crossplane"],
       "experience_years": 3,
+      "internal_notes": "Must hold or be working toward AWS SAA certification. All infra changes go through the internal change-advisory board (CAB) process.",
       "learning_resources": {
-        "Kubernetes": "https://kubernetes.io/docs/",
-        "Terraform": "https://developer.hashicorp.com/terraform/docs"
+        "Kubernetes": "internal://knowledge-portal/k8s-ops-handbook",
+        "Terraform": "internal://knowledge-portal/iac-standards",
+        "AWS": "internal://knowledge-portal/cloud-cost-runbook",
+        "Jenkins": "internal://knowledge-portal/cicd-pipeline-guide"
       }
     },
     {
       "id": "python-data-engineer",
       "title": "Python Data Engineer",
-      "description": "Builds data pipelines and ETL workflows using Python and cloud services.",
+      "description": "Builds and maintains the company's data platform: ingestion pipelines, transformation layers, and data-quality checks. Interfaces with the internal data-catalogue and governance tooling.",
       "required_skills": ["Python", "PySpark", "SQL", "Airflow", "Pandas", "AWS S3", "Kafka", "Docker", "Git", "dbt"],
+      "preferred_skills": ["Delta Lake", "Great Expectations", "Iceberg", "Flink"],
       "experience_years": 2,
+      "internal_notes": "All new pipelines must register metadata with the internal data-catalogue before going to production. GDPR tagging is mandatory for PII fields.",
       "learning_resources": {
-        "PySpark": "https://spark.apache.org/docs/latest/api/python/",
-        "Airflow": "https://airflow.apache.org/docs/"
+        "PySpark": "internal://knowledge-portal/spark-data-platform-guide",
+        "Airflow": "internal://knowledge-portal/airflow-dag-standards",
+        "dbt": "internal://knowledge-portal/transformation-layer-handbook",
+        "Kafka": "internal://knowledge-portal/streaming-ingestion-patterns"
       }
     },
     {
       "id": "ai-ml-engineer",
       "title": "AI/ML Engineer",
-      "description": "Develops and deploys machine learning models for production use cases.",
+      "description": "Designs, trains, and deploys ML models into the company's internal MLOps platform. Responsible for model lifecycle management, drift monitoring, and integration with product APIs.",
       "required_skills": ["Python", "TensorFlow", "PyTorch", "Scikit-learn", "SQL", "MLflow", "Docker", "FastAPI", "Git", "LangChain"],
+      "preferred_skills": ["Kubeflow", "Ray Serve", "Triton", "ONNX", "Weights & Biases"],
       "experience_years": 3,
+      "internal_notes": "All models must pass the internal AI Ethics review board before production deployment. Explainability report (SHAP/LIME) is a mandatory deliverable.",
       "learning_resources": {
-        "PyTorch": "https://pytorch.org/tutorials/",
-        "LangChain": "https://python.langchain.com/docs/"
+        "PyTorch": "internal://knowledge-portal/ml-model-training-standards",
+        "LangChain": "internal://knowledge-portal/genai-platform-guide",
+        "MLflow": "internal://knowledge-portal/mlops-handbook",
+        "FastAPI": "internal://knowledge-portal/model-serving-patterns"
       }
     }
   ]

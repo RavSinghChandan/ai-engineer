@@ -555,6 +555,114 @@ async def evaluate_output(request: Request, req: EvaluateRequest):
         raise HTTPException(500, f"Evaluation failed: {e}")
 
 
+# ── Admin: Internal Document Management ──────────────────────────────────────
+#
+# Privacy architecture:
+#   - Only HR admins upload role templates and internal training docs here.
+#   - Employee CVs go through /upload-cv (separate flow, separate store).
+#   - Internal docs are chunked + embedded LOCALLY using HuggingFace model.
+#   - Only chunk text (not raw bytes) enters the FAISS index — nothing external.
+#   - LLM never receives raw document content; only retrieved chunk text.
+
+@app.post("/admin/upload-resource", tags=["Admin"])
+async def admin_upload_resource(
+    request: Request,
+    file: UploadFile = File(...),
+    skill_tags: str = "",
+    classification: str = "internal",
+):
+    """
+    Upload a company-internal training document (PDF or .txt).
+
+    This document is:
+      1. Text-extracted locally (bytes discarded after extraction)
+      2. Chunked into 512-word segments with 50-word overlap
+      3. Embedded with local HuggingFace model (no external API)
+      4. Indexed into internal FAISS document store (separate from roles store)
+
+    Use: HR/admin uploads internal handbooks, role runbooks, team wikis, etc.
+    These replace public internet links as task resources in training plans.
+
+    classification: 'internal' | 'confidential' | 'restricted'
+    skill_tags:     comma-separated list of skills this doc covers
+                    e.g. "Java,Spring Boot,Docker"
+    """
+    from rag.document_store import index_internal_document, load_internal_store
+
+    t_start = time.time()
+    rid     = _req_id(request)
+
+    if not file.filename:
+        raise HTTPException(400, "No file provided.")
+
+    fname = file.filename.lower()
+    if not (fname.endswith(".pdf") or fname.endswith(".txt")):
+        raise HTTPException(400, "Only PDF and .txt files are accepted for internal resources.")
+
+    raw_bytes = await file.read()
+    if len(raw_bytes) > 50 * 1024 * 1024:  # 50MB limit
+        raise HTTPException(400, "File too large. Maximum 50 MB.")
+
+    # Extract text locally
+    if fname.endswith(".pdf"):
+        text = extract_text_from_pdf(raw_bytes)
+    else:
+        text = raw_bytes.decode("utf-8", errors="ignore")
+
+    if len(text.strip()) < 50:
+        raise HTTPException(400, "Document appears empty or unreadable.")
+
+    # Parse skill_tags
+    tags = [t.strip() for t in skill_tags.split(",") if t.strip()] if skill_tags else []
+    doc_id = file.filename.rsplit(".", 1)[0].lower().replace(" ", "_")
+    title  = file.filename.rsplit(".", 1)[0].replace("_", " ").replace("-", " ").title()
+
+    # Get the embeddings model (already initialised at startup)
+    from rag.knowledge_base import get_embeddings
+    embeddings = get_embeddings()
+
+    # Load or create internal doc store
+    from rag.document_store import load_internal_store
+    internal_store = load_internal_store(embeddings)
+
+    store, chunk_count = index_internal_document(
+        doc_id         = doc_id,
+        title          = title,
+        text           = text,
+        skill_tags     = tags,
+        classification = classification,
+        embeddings     = embeddings,
+        existing_store = internal_store,
+    )
+
+    _record(request, "/admin/upload-resource", t_start, 200)
+    return {
+        "doc_id":         doc_id,
+        "title":          title,
+        "skill_tags":     tags,
+        "classification": classification,
+        "chunks_indexed": chunk_count,
+        "source":         "company-internal",
+        "message":        "Document indexed successfully into internal knowledge base.",
+    }
+
+
+@app.get("/admin/resources", tags=["Admin"])
+async def list_internal_resources():
+    """
+    List all indexed internal documents and the internal resource registry.
+    Returns metadata only — no document content or chunk text.
+    """
+    from rag.document_store import list_indexed_documents, _resource_registry
+    return {
+        "indexed_documents":   list_indexed_documents(),
+        "resource_registry":   list(_resource_registry.keys()),
+        "total_skill_mappings": len(_resource_registry),
+        "source":              "company-internal",
+        "note":                "All resources are internal. No public internet links.",
+    }
+
+
 # ── Root ──────────────────────────────────────────────────────────────────────
 
 @app.get("/", tags=["Root"])

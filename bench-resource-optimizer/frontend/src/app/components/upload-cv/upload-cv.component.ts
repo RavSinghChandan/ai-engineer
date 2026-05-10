@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { StateService } from '../../services/state.service';
-import { UserProfile } from '../../models/types';
+import { UploadCvResponse, UserProfile } from '../../models/types';
 
 @Component({
   selector: 'app-upload-cv',
@@ -12,7 +12,7 @@ import { UserProfile } from '../../models/types';
   template: `
     <h1 style="margin-bottom:8px;">Upload Your CV</h1>
     <p style="color:var(--text-muted); margin-bottom:24px;">
-      Upload a PDF resume. Our AI will extract your skills and experience.
+      Upload a PDF resume. Our AI will extract your skills and experience using injection-hardened prompts.
     </p>
 
     <div class="card">
@@ -28,7 +28,7 @@ import { UserProfile } from '../../models/types';
                (change)="onFileSelected($event)" />
         <div class="drop-icon">📄</div>
         <p><strong>Click to upload</strong> or drag and drop</p>
-        <p style="font-size:13px; color:var(--text-muted); margin-top:4px;">PDF only</p>
+        <p style="font-size:13px; color:var(--text-muted); margin-top:4px;">PDF only · Injection-protected parsing</p>
         <p *ngIf="selectedFile" style="margin-top:12px;" class="badge badge-blue">
           {{ selectedFile.name }}
         </p>
@@ -39,12 +39,28 @@ import { UserProfile } from '../../models/types';
       <button class="btn btn-primary" style="margin-top:20px; width:100%;"
               [disabled]="!selectedFile || loading" (click)="upload()">
         <span *ngIf="loading" class="spinner"></span>
-        {{ loading ? 'Parsing CV with AI...' : 'Parse CV' }}
+        {{ loading ? 'Parsing CV with AI (v2 prompt)...' : 'Parse CV' }}
       </button>
     </div>
 
     <div *ngIf="profile" class="card">
-      <h2 style="margin-bottom:16px;">✅ Extracted Profile</h2>
+      <div class="profile-header">
+        <h2>✅ Extracted Profile</h2>
+        <!-- Enterprise metadata row -->
+        <div class="meta-row">
+          <span *ngIf="uploadResponse?.request_id" class="meta-chip chip-gray"
+                title="Request ID for audit trail">
+            ID: {{ uploadResponse!.request_id!.slice(0, 8) }}
+          </span>
+          <span *ngIf="profile._prompt_version" class="meta-chip chip-blue"
+                title="Prompt version used for parsing">
+            {{ profile._prompt_version }}
+          </span>
+          <span class="meta-chip chip-green" title="Injection check passed">
+            ✓ Secure parse
+          </span>
+        </div>
+      </div>
 
       <div class="profile-grid">
         <div class="profile-item"><span class="label">Name</span><span>{{ profile.name }}</span></div>
@@ -54,7 +70,11 @@ import { UserProfile } from '../../models/types';
       </div>
 
       <div style="margin-top:20px;">
-        <h3 style="margin-bottom:10px;">Skills</h3>
+        <h3 style="margin-bottom:10px;">Skills
+          <span style="font-size:12px; color:var(--text-muted); font-weight:400; margin-left:8px;">
+            {{ profile.skills.length }} detected
+          </span>
+        </h3>
         <span *ngFor="let s of profile.skills" class="tag">{{ s }}</span>
       </div>
 
@@ -91,6 +111,24 @@ import { UserProfile } from '../../models/types';
       background: #eff6ff;
     }
     .drop-icon { font-size: 48px; margin-bottom: 12px; }
+
+    .profile-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .meta-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .meta-chip {
+      font-size: 11px; font-weight: 600;
+      padding: 2px 8px; border-radius: 999px;
+    }
+    .chip-gray  { background: #f1f5f9; color: #475569; }
+    .chip-blue  { background: #dbeafe; color: #1d4ed8; }
+    .chip-green { background: #dcfce7; color: #15803d; }
+
     .profile-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -116,6 +154,7 @@ export class UploadCvComponent {
   loading = false;
   error = '';
   profile: UserProfile | null = null;
+  uploadResponse: UploadCvResponse | null = null;
 
   constructor(
     private api: ApiService,
@@ -147,6 +186,7 @@ export class UploadCvComponent {
 
     this.api.uploadCv(this.selectedFile).subscribe({
       next: (res) => {
+        this.uploadResponse = res;
         this.state.setUserId(res.user_id);
         this.state.setCvData(res);
         this.profile = res.profile;

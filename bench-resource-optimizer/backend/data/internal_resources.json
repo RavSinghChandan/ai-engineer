@@ -1,0 +1,306 @@
+{
+  "_meta": {
+    "source": "company-internal",
+    "classification": "confidential-internal-use-only",
+    "owner": "Learning & Development Team",
+    "note": "All resources listed here are company-owned internal training assets. They are NOT public internet links. Access requires company SSO authentication. Admins can upload additional documents via the /admin/upload-resource endpoint."
+  },
+  "resources": {
+    "java": {
+      "title": "Internal Java Engineering Handbook",
+      "location": "internal://knowledge-portal/java-microservices-track",
+      "type": "internal-portal",
+      "format": "pdf+videos",
+      "owner": "Platform Engineering",
+      "classification": "internal"
+    },
+    "spring boot": {
+      "title": "Spring Boot Internal Patterns & Standards",
+      "location": "internal://knowledge-portal/spring-boot-internal-patterns",
+      "type": "internal-portal",
+      "format": "pdf",
+      "owner": "Backend Guild",
+      "classification": "internal"
+    },
+    "docker": {
+      "title": "Company Docker & Container Runbook",
+      "location": "internal://knowledge-portal/docker-company-runbook",
+      "type": "internal-runbook",
+      "format": "pdf",
+      "owner": "DevOps CoE",
+      "classification": "internal"
+    },
+    "kubernetes": {
+      "title": "Internal Kubernetes Cluster Operations Guide",
+      "location": "internal://knowledge-portal/k8s-cluster-guide",
+      "type": "internal-runbook",
+      "format": "pdf+labs",
+      "owner": "Platform Engineering",
+      "classification": "internal"
+    },
+    "jwt": {
+      "title": "Internal Auth & Token Standards",
+      "location": "internal://knowledge-portal/auth-token-standards",
+      "type": "internal-portal",
+      "format": "pdf",
+      "owner": "Security Team",
+      "classification": "confidential"
+    },
+    "angular": {
+      "title": "Company Angular Component Library & Guidelines",
+      "location": "internal://knowledge-portal/angular-internal-guidelines",
+      "type": "internal-portal",
+      "format": "storybook+pdf",
+      "owner": "Frontend Guild",
+      "classification": "internal"
+    },
+    "typescript": {
+      "title": "Internal TypeScript Coding Standards",
+      "location": "internal://knowledge-portal/ts-standards",
+      "type": "internal-portal",
+      "format": "pdf",
+      "owner": "Frontend Guild",
+      "classification": "internal"
+    },
+    "rxjs": {
+      "title": "Reactive Patterns — Internal Handbook",
+      "location": "internal://knowledge-portal/reactive-patterns-internal",
+      "type": "internal-portal",
+      "format": "pdf",
+      "owner": "Frontend Guild",
+      "classification": "internal"
+    },
+    "ngrx": {
+      "title": "State Management Handbook",
+      "location": "internal://knowledge-portal/state-management-handbook",
+      "type": "internal-portal",
+      "format": "pdf",
+      "owner": "Frontend Guild",
+      "classification": "internal"
+    },
+    "react": {
+      "title": "Internal React Patterns & BFF Integration Guide",
+      "location": "internal://knowledge-portal/react-company-patterns",
+      "type": "internal-portal",
+      "format": "pdf",
+      "owner": "Product Engineering",
+      "classification": "internal"
+    },
+    "node.js": {
+      "title": "Node.js BFF Architecture Guide",
+      "location": "internal://knowledge-portal/node-bff-guide",
+      "type": "internal-portal",
+      "format": "pdf",
+      "owner": "Product Engineering",
+      "classification": "internal"
+    },
+    "mongodb": {
+      "title": "NoSQL Data Standards & Patterns",
+      "location": "internal://knowledge-portal/nosql-data-standards",
+      "type": "internal-portal",
+      "format": "pdf",
+      "owner": "Data Engineering",
+      "classification": "internal"
+    },
+    "postgresql": {
+      "title": "Relational DB Standards & Query Optimisation Guide",
+      "location": "internal://knowledge-portal/rdbms-standards",
+      "type": "internal-portal",
+      "format": "pdf",
+      "owner": "Data Engineering",
+      "classification": "internal"
+    },
+    "jenkins": {
+      "title": "Internal CI/CD Pipeline Design Guide",
+      "location": "internal://knowledge-portal/cicd-pipeline-guide",
+      "type": "internal-runbook",
+      "format": "pdf",
+      "owner": "DevOps CoE",
+      "classification": "internal"
+    },
+    "terraform": {
+      "title": "IaC Standards & Terraform Modules Registry",
+      "location": "internal://knowledge-portal/iac-standards",
+      "type": "internal-portal",
+      "format": "pdf+modules",
+      "owner": "Platform Engineering",
+      "classification": "internal"
+    },
+    "aws": {
+      "title": "Cloud Cost Optimisation & AWS Architecture Runbook",
+      "location": "internal://knowledge-portal/cloud-cost-runbook",
+      "type": "internal-runbook",
+      "format": "pdf",
+      "owner": "Cloud CoE",
+      "classification": "internal"
+    },
+    "ansible": {
+      "title": "Configuration Management Internal Playbooks",
+      "location": "internal://knowledge-portal/config-mgmt-playbooks",
+      "type": "internal-runbook",
+      "format": "pdf",
+      "owner": "DevOps CoE",
+      "classification": "internal"
+    },
+    "prometheus": {
+      "title": "Observability & Monitoring Standards",
+      "location": "internal://knowledge-portal/observability-standards",
+      "type": "internal-portal",
+      "format": "pdf",
+      "owner": "SRE Team",
+      "classification": "internal"
+    },
+    "python": {
+      "title": "Internal Python Engineering Standards",
+      "location": "internal://knowledge-portal/python-engineering-standards",
+      "type": "internal-portal",
+      "format": "pdf",
+      "owner": "AI/Data Guild",
+      "classification": "internal"
+    },
+    "pyspark": {
+      "title": "Spark Data Platform Engineering Guide",
+      "location": "internal://knowledge-portal/spark-data-platform-guide",
+      "type": "internal-portal",
+      "format": "pdf+labs",
+      "owner": "Data Engineering",
+      "classification": "internal"
+    },
+    "airflow": {
+      "title": "Airflow DAG Standards & Internal Operator Library",
+      "location": "internal://knowledge-portal/airflow-dag-standards",
+      "type": "internal-portal",
+      "format": "pdf",
+      "owner": "Data Engineering",
+      "classification": "internal"
+    },
+    "kafka": {
+      "title": "Streaming Ingestion Patterns & Kafka Runbook",
+      "location": "internal://knowledge-portal/streaming-ingestion-patterns",
+      "type": "internal-runbook",
+      "format": "pdf",
+      "owner": "Data Engineering",
+      "classification": "internal"
+    },
+    "dbt": {
+      "title": "Data Transformation Layer Handbook",
+      "location": "internal://knowledge-portal/transformation-layer-handbook",
+      "type": "internal-portal",
+      "format": "pdf",
+      "owner": "Data Engineering",
+      "classification": "internal"
+    },
+    "sql": {
+      "title": "SQL Query Optimisation & Data Governance Standards",
+      "location": "internal://knowledge-portal/sql-governance-standards",
+      "type": "internal-portal",
+      "format": "pdf",
+      "owner": "Data Engineering",
+      "classification": "internal"
+    },
+    "tensorflow": {
+      "title": "ML Model Training Standards (TF track)",
+      "location": "internal://knowledge-portal/ml-model-training-standards",
+      "type": "internal-portal",
+      "format": "pdf+notebooks",
+      "owner": "AI/ML Guild",
+      "classification": "internal"
+    },
+    "pytorch": {
+      "title": "ML Model Training Standards (PyTorch track)",
+      "location": "internal://knowledge-portal/ml-model-training-standards",
+      "type": "internal-portal",
+      "format": "pdf+notebooks",
+      "owner": "AI/ML Guild",
+      "classification": "internal"
+    },
+    "scikit-learn": {
+      "title": "Classical ML Patterns & Model Selection Guide",
+      "location": "internal://knowledge-portal/classical-ml-guide",
+      "type": "internal-portal",
+      "format": "pdf",
+      "owner": "AI/ML Guild",
+      "classification": "internal"
+    },
+    "mlflow": {
+      "title": "Internal MLOps Handbook & Experiment Registry",
+      "location": "internal://knowledge-portal/mlops-handbook",
+      "type": "internal-portal",
+      "format": "pdf",
+      "owner": "AI/ML Guild",
+      "classification": "internal"
+    },
+    "langchain": {
+      "title": "GenAI Platform Engineering Guide",
+      "location": "internal://knowledge-portal/genai-platform-guide",
+      "type": "internal-portal",
+      "format": "pdf+notebooks",
+      "owner": "AI/ML Guild",
+      "classification": "internal"
+    },
+    "fastapi": {
+      "title": "Model Serving Patterns & API Standards",
+      "location": "internal://knowledge-portal/model-serving-patterns",
+      "type": "internal-portal",
+      "format": "pdf",
+      "owner": "AI/ML Guild",
+      "classification": "internal"
+    },
+    "git": {
+      "title": "Internal Git Branching Strategy & Code Review Standards",
+      "location": "internal://knowledge-portal/git-workflow-standards",
+      "type": "internal-portal",
+      "format": "pdf",
+      "owner": "Engineering Excellence",
+      "classification": "internal"
+    },
+    "linux": {
+      "title": "Linux Server Administration — Internal Runbook",
+      "location": "internal://knowledge-portal/linux-admin-runbook",
+      "type": "internal-runbook",
+      "format": "pdf",
+      "owner": "DevOps CoE",
+      "classification": "internal"
+    },
+    "rabbitmq": {
+      "title": "Messaging Patterns & RabbitMQ Internal Config Guide",
+      "location": "internal://knowledge-portal/messaging-patterns",
+      "type": "internal-runbook",
+      "format": "pdf",
+      "owner": "Platform Engineering",
+      "classification": "internal"
+    },
+    "rest api": {
+      "title": "Internal REST API Contract Standards",
+      "location": "internal://knowledge-portal/api-contract-standards",
+      "type": "internal-portal",
+      "format": "pdf",
+      "owner": "Architecture Board",
+      "classification": "internal"
+    },
+    "maven": {
+      "title": "Build & Dependency Management Internal Standards",
+      "location": "internal://knowledge-portal/build-standards",
+      "type": "internal-portal",
+      "format": "pdf",
+      "owner": "Backend Guild",
+      "classification": "internal"
+    },
+    "redux": {
+      "title": "Frontend State Architecture Guide",
+      "location": "internal://knowledge-portal/state-management-handbook",
+      "type": "internal-portal",
+      "format": "pdf",
+      "owner": "Frontend Guild",
+      "classification": "internal"
+    },
+    "redis": {
+      "title": "Caching Strategy & Redis Configuration Guide",
+      "location": "internal://knowledge-portal/caching-strategy-guide",
+      "type": "internal-portal",
+      "format": "pdf",
+      "owner": "Platform Engineering",
+      "classification": "internal"
+    }
+  }
+}

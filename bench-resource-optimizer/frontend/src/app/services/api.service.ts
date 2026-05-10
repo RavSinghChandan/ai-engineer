@@ -2,8 +2,9 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, Subject } from 'rxjs';
 import {
-  HealthReady, JudgeScores, MetricsData,
-  Plan, Role, RoleMapping, StreamEvent, TrackingResult, UploadCvResponse
+  AdminUploadResponse, HealthReady, JudgeScores, MetricsData,
+  Plan, ResourceRegistryResponse, Role, RoleMapping,
+  StreamEvent, TrackingResult, UploadCvResponse
 } from '../models/types';
 
 @Injectable({ providedIn: 'root' })
@@ -133,5 +134,21 @@ export class ApiService {
 
   getProgress(userId: string): Observable<any> {
     return this.http.get(`${this.base}/progress/${userId}`);
+  }
+
+  adminUploadResource(
+    file: File,
+    skillTags: string,
+    classification: string,
+  ): Observable<AdminUploadResponse> {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('skill_tags', skillTags);
+    fd.append('classification', classification);
+    return this.http.post<AdminUploadResponse>(`${this.base}/admin/upload-resource`, fd);
+  }
+
+  getAdminResources(): Observable<ResourceRegistryResponse> {
+    return this.http.get<ResourceRegistryResponse>(`${this.base}/admin/resources`);
   }
 }

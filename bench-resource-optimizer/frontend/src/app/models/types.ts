@@ -39,7 +39,39 @@ export interface Task {
   description: string;
   hours: number;
   skill: string;
-  resource: string;
+  // Internal resource fields — all internal:// URIs, never public URLs
+  resource: string;               // internal:// location URI
+  resource_title?: string;        // human-readable title
+  resource_owner?: string;        // team that owns this resource
+  resource_classification?: string; // 'internal' | 'confidential'
+  resource_type?: string;         // 'internal-portal' | 'internal-runbook'
+}
+
+export interface InternalDocument {
+  doc_id: string;
+  title: string;
+  skill_tags: string[];
+  classification: string;
+  chunk_count: number;
+  uploaded_at: number;
+}
+
+export interface AdminUploadResponse {
+  doc_id: string;
+  title: string;
+  skill_tags: string[];
+  classification: string;
+  chunks_indexed: number;
+  source: string;
+  message: string;
+}
+
+export interface ResourceRegistryResponse {
+  indexed_documents: InternalDocument[];
+  resource_registry: string[];
+  total_skill_mappings: number;
+  source: string;
+  note: string;
 }
 
 export interface DayPlan {

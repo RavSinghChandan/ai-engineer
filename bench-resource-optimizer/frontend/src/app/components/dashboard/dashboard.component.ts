@@ -314,14 +314,19 @@ export class DashboardComponent implements OnInit {
     },
     {
       headerName: 'Resource',
-      field: 'resource',
-      width: 95,
-      cellRenderer: (p: any) =>
-        p.value
-          ? `<a href="${p.value}" target="_blank"
-               onclick="event.stopPropagation()"
-               style="color:#3b82f6;font-size:12px;">📚 Open</a>`
-          : '<span style="color:#cbd5e1;">—</span>',
+      field: 'resource_title',
+      width: 160,
+      tooltipValueGetter: (p: any) =>
+        p.data?.resource
+          ? `${p.data.resource_title || 'Internal Resource'}\nLocation: ${p.data.resource}\nOwner: ${p.data.resource_owner || '—'}\nClassification: ${p.data.resource_classification || 'internal'}`
+          : 'No resource',
+      cellRenderer: (p: any) => {
+        const title = p.value || 'Internal Resource';
+        const classification = p.data?.resource_classification || 'internal';
+        const cls = classification === 'confidential' ? '#7e22ce' : '#1d4ed8';
+        const bg  = classification === 'confidential' ? '#f3e8ff' : '#dbeafe';
+        return `<span style="background:${bg};color:${cls};padding:2px 7px;border-radius:999px;font-size:10px;font-weight:600;cursor:default;" title="${p.data?.resource || ''}">🔒 ${title.slice(0, 22)}${title.length > 22 ? '…' : ''}</span>`;
+      },
     },
   ];
 

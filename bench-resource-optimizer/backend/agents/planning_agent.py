@@ -4,8 +4,11 @@ Planning Agent — two-phase async parallel generation.
 Phase 1 (1 call, pipe-delimited text): get N day themes   → fast, never mis-parsed
 Phase 2 (N parallel calls):            generate 2 tasks per day  → asyncio.gather
 
-Resources injected from static map (no LLM) — removes URL truncation risk.
+Resources injected from internal_resources.json (company-internal, no public URLs).
 In-memory cache: same (role, skills, num_days) returns instantly on repeat.
+
+Privacy: LLM only receives skill names, role title, and day themes.
+It never receives raw CV text, employee PII, or internal document content.
 """
 import asyncio
 import json
@@ -15,53 +18,20 @@ from typing import List
 from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 from utils.json_parser import parse_llm_json
+from rag.document_store import get_internal_resource, resource_location_for
 
-# ── Static resource map ───────────────────────────────────────────────────────
-SKILL_RESOURCES: dict = {
-    "java":           "https://docs.oracle.com/en/java/",
-    "spring boot":    "https://spring.io/guides",
-    "docker":         "https://docs.docker.com/get-started/",
-    "kubernetes":     "https://kubernetes.io/docs/tutorials/",
-    "jwt":            "https://jwt.io/introduction/",
-    "angular":        "https://angular.io/tutorial",
-    "typescript":     "https://www.typescriptlang.org/docs/",
-    "rxjs":           "https://rxjs.dev/guide/overview",
-    "react":          "https://react.dev/learn",
-    "node.js":        "https://nodejs.org/en/docs",
-    "tensorflow":     "https://www.tensorflow.org/tutorials",
-    "pytorch":        "https://pytorch.org/tutorials/",
-    "scikit-learn":   "https://scikit-learn.org/stable/user_guide.html",
-    "mlflow":         "https://mlflow.org/docs/latest/",
-    "langchain":      "https://python.langchain.com/docs/",
-    "python":         "https://docs.python.org/3/tutorial/",
-    "fastapi":        "https://fastapi.tiangolo.com/tutorial/",
-    "sql":            "https://www.w3schools.com/sql/",
-    "postgresql":     "https://www.postgresql.org/docs/",
-    "kafka":          "https://kafka.apache.org/quickstart",
-    "airflow":        "https://airflow.apache.org/docs/",
-    "aws":            "https://docs.aws.amazon.com/",
-    "terraform":      "https://developer.hashicorp.com/terraform/tutorials",
-    "jenkins":        "https://www.jenkins.io/doc/tutorials/",
-    "git":            "https://git-scm.com/doc",
-    "linux":          "https://linuxcommand.org/",
-    "pyspark":        "https://spark.apache.org/docs/latest/api/python/",
-    "maven":          "https://maven.apache.org/guides/",
-    "rest api":       "https://restfulapi.net/",
-    "mongodb":        "https://www.mongodb.com/docs/manual/tutorial/",
-    "redux":          "https://redux.js.org/tutorials/essentials/part-1-overview-concepts",
-    "ansible":        "https://docs.ansible.com/ansible/latest/getting_started/",
-    "prometheus":     "https://prometheus.io/docs/introduction/overview/",
-    "ngrok":          "https://ngrok.com/docs/",
-    "pandas":         "https://pandas.pydata.org/docs/getting_started/",
-    "dbt":            "https://docs.getdbt.com/docs/introduction",
-}
 
 def _resource_for(skill: str) -> str:
-    key = skill.lower().split(",")[0].strip()
-    return SKILL_RESOURCES.get(
-        key,
-        f"https://www.google.com/search?q={key.replace(' ', '+')}+tutorial"
-    )
+    """
+    Returns the internal knowledge-portal location for a skill.
+    Always returns an internal:// URI — never a public internet URL.
+    """
+    return resource_location_for(skill)
+
+
+def _resource_meta_for(skill: str) -> dict:
+    """Returns full internal resource metadata (title, location, owner, classification)."""
+    return get_internal_resource(skill)
 
 
 # ── Phase 1: pipe-delimited outline (reliable, never mis-parsed) ─────────────
@@ -149,9 +119,15 @@ async def _generate_one_day(day_info: dict, role: str, llm) -> dict:
                  "skill": day_info["skill"], "hours": 2},
             ]
         }
-    # Inject resource URLs (never ask LLM for URLs)
+    # Inject internal resource metadata (never ask LLM for resources)
     for task in day.get("tasks", []):
-        task["resource"] = _resource_for(task.get("skill", day_info["skill"]))
+        skill = task.get("skill", day_info["skill"])
+        meta  = _resource_meta_for(skill)
+        task["resource"]              = meta["location"]   # internal:// URI
+        task["resource_title"]        = meta["title"]
+        task["resource_owner"]        = meta["owner"]
+        task["resource_classification"] = meta["classification"]
+        task["resource_type"]         = meta["type"]
         # Ensure description field exists for frontend
         task.setdefault("description", task["title"])
     return day
