@@ -383,7 +383,7 @@ Circuit breaker:
 
 - What is the difference between RPM and TPM rate limits and which do you hit first at scale?
 
-  **Answer:** RPM (requests per minute) limits the number of API calls regardless of size; TPM (tokens per minute) limits the total token volume. At scale, TPM is almost always the binding constraint — a single long-context RAG query (2000 input tokens + 500 output tokens) consumes 2,500 TPM while counting as only 1 RPM. AstroIntel makes 5-6 parallel LLM calls per user request, each burning ~400 tokens — a burst of 10 concurrent users = 6 × 10 × 400 = 24,000 TPM in under a second. The proactive `RateLimitBudget` tracker routes to `gpt-4o-mini` before hitting the TPM limit rather than reacting with retries after the 429.
+  **Answer:** RPM (requests per minute) limits the number of API calls regardless of size; TPM (tokens per minute) limits the total token volume. At scale, TPM is almost always the binding constraint — a single long-context RAG query (2000 input tokens + 500 output tokens) consumes 2,500 TPM while counting as only 1 RPM. AstroIntel makes 5-6 parallel LLM calls per user request, each burning ~400 tokens — a burst of 10 concurrent users = 6 × 10 × 400 = 24,000 TPM in under a second. The proactive `RateLimitBudget` tracker routes to `gpt-4o-mini` before hitting the TPM limit rather than reacting with retries after the 429. In Bench Resource Optimizer, `asyncio.gather` fires 30 day-plan LLM calls simultaneously per user — proactive rate limiting there means capping concurrent coroutines with an `asyncio.Semaphore(10)` so no single user bursts through the TPM limit in one gather call.
 
 - How does your Resilience4j experience map to LLM API resilience patterns?
 

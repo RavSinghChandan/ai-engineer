@@ -221,7 +221,7 @@ Hierarchical:
 
 - What is the cost implication of running 5 parallel LLM agents vs 1 sequential agent?
 
-  **Answer:** Token cost is identical whether you run 5 agents in parallel or sequentially — you're making the same 5 LLM calls either way. The difference is wall time: 5 parallel agents on a 5-second task each = 5 seconds total with parallelism vs 25 seconds sequential. But parallel does increase peak API load — if each agent uses 1,000 tokens and you have 100 concurrent users, 5 parallel agents × 100 users = 500 simultaneous LLM calls hitting your rate limit. In AstroIntel, because the 5 domain agents are rule-based (zero LLM tokens), parallelism is nearly free — only the final LLM call adds cost.
+  **Answer:** Token cost is identical whether you run 5 agents in parallel or sequentially — you're making the same 5 LLM calls either way. The difference is wall time: 5 parallel agents on a 5-second task each = 5 seconds total with parallelism vs 25 seconds sequential. But parallel does increase peak API load — if each agent uses 1,000 tokens and you have 100 concurrent users, 5 parallel agents × 100 users = 500 simultaneous LLM calls hitting your rate limit. In AstroIntel, because the 5 domain agents are rule-based (zero LLM tokens), parallelism is nearly free — only the final LLM call adds cost. In Bench Resource Optimizer, `asyncio.gather` fires 30 simultaneous DeepSeek calls for day plan generation — total cost is 30 × $0.0003 = $0.009 per plan, and wall time drops from ~21 seconds sequential to ~4 seconds parallel. The TPM budget is the binding constraint, not latency.
 
 - How does the consensus pattern reduce hallucination in multi-agent systems?
 

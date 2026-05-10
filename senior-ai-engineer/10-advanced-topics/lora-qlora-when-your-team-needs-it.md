@@ -259,7 +259,7 @@ Many epochs: needed for small datasets (<200 examples), high overfitting risk on
 
 - When would you use LoRA instead of OpenAI fine-tuning?
 
-  **Answer:** Use LoRA when: data is sensitive and can't leave your infrastructure (legal, medical, financial PII), you need to iterate faster than OpenAI's fine-tune queue allows (days vs hours), you need to serve from your own infrastructure for data sovereignty, or you're working with open-source models that OpenAI fine-tuning doesn't support. Use OpenAI fine-tuning when: you don't have GPU infrastructure, your data privacy requirements allow sending training data to OpenAI, and GPT-4o-mini's base quality is sufficient — it's operationally simpler with no GPU management.
+  **Answer:** Use LoRA when: data is sensitive and can't leave your infrastructure (legal, medical, financial PII), you need to iterate faster than OpenAI's fine-tune queue allows (days vs hours), you need to serve from your own infrastructure for data sovereignty, or you're working with open-source models that OpenAI fine-tuning doesn't support. Use OpenAI fine-tuning when: you don't have GPU infrastructure, your data privacy requirements allow sending training data to OpenAI, and GPT-4o-mini's base quality is sufficient — it's operationally simpler with no GPU management. In Bench Resource Optimizer, if employee CV data is confidential (common in enterprise HR systems), LoRA on a self-hosted Llama 3.1 8B would be the right choice for the plan generation step — the CV data never leaves the company's infrastructure during training, unlike OpenAI fine-tuning which requires uploading training data to OpenAI's API.
 
 - How do you evaluate whether a LoRA-trained model is good enough for production?
 
