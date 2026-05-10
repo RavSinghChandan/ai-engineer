@@ -117,12 +117,12 @@ export class ApiService {
     });
   }
 
-  getMetrics(): Observable<MetricsData> {
-    return this.http.get<MetricsData>(`${this.base}/metrics`);
+  getMetrics(): Observable<any> {
+    return this.http.get<any>(`${this.base}/metrics`);
   }
 
-  getHealthReady(): Observable<HealthReady> {
-    return this.http.get<HealthReady>(`${this.base}/health/ready`);
+  getHealthReady(): Observable<any> {
+    return this.http.get<any>(`${this.base}/health/ready`);
   }
 
   updateProgress(userId: string, completedTaskIds: string[]): Observable<TrackingResult> {
