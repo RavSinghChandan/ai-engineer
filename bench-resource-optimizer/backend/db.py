@@ -23,34 +23,29 @@ import aiosqlite
 
 DB_PATH = Path(__file__).parent / "data" / "bench.db"
 
-
-async def _conn() -> aiosqlite.Connection:
-    """Return an open WAL-mode connection. Caller must close."""
-    db = await aiosqlite.connect(DB_PATH)
-    await db.execute("PRAGMA journal_mode=WAL")
-    await db.execute("PRAGMA synchronous=NORMAL")
-    db.row_factory = aiosqlite.Row
-    return db
+_PRAGMAS = "PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;"
 
 
 async def init_db() -> None:
     """Create tables if they don't exist. Called once at startup."""
-    async with await _conn() as db:
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("PRAGMA journal_mode=WAL")
+        await db.execute("PRAGMA synchronous=NORMAL")
         await db.execute("""
             CREATE TABLE IF NOT EXISTS users (
-                user_id       TEXT PRIMARY KEY,
-                profile_json  TEXT NOT NULL,
+                user_id        TEXT PRIMARY KEY,
+                profile_json   TEXT NOT NULL,
                 resume_snippet TEXT,
-                created_at    REAL NOT NULL
+                created_at     REAL NOT NULL
             )
         """)
         await db.execute("""
             CREATE TABLE IF NOT EXISTS progress (
-                user_id              TEXT PRIMARY KEY,
-                role                 TEXT NOT NULL,
-                plan_json            TEXT NOT NULL,
-                completed_task_ids   TEXT NOT NULL DEFAULT '[]',
-                updated_at           REAL NOT NULL
+                user_id            TEXT PRIMARY KEY,
+                role               TEXT NOT NULL,
+                plan_json          TEXT NOT NULL,
+                completed_task_ids TEXT NOT NULL DEFAULT '[]',
+                updated_at         REAL NOT NULL
             )
         """)
         await db.commit()
@@ -59,7 +54,8 @@ async def init_db() -> None:
 # ── User CRUD ────────────────────────────────────────────────────────────────
 
 async def save_user(user_id: str, profile: dict, resume_snippet: str = "") -> None:
-    async with await _conn() as db:
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("PRAGMA journal_mode=WAL")
         await db.execute(
             """
             INSERT INTO users (user_id, profile_json, resume_snippet, created_at)
@@ -74,7 +70,8 @@ async def save_user(user_id: str, profile: dict, resume_snippet: str = "") -> No
 
 
 async def get_user(user_id: str) -> Optional[dict]:
-    async with await _conn() as db:
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
         async with db.execute(
             "SELECT profile_json, resume_snippet FROM users WHERE user_id = ?",
             (user_id,),
@@ -83,15 +80,16 @@ async def get_user(user_id: str) -> Optional[dict]:
     if not row:
         return None
     return {
-        "profile": json.loads(row["profile_json"]),
-        "resume_snippet": row["resume_snippet"],
+        "profile":         json.loads(row["profile_json"]),
+        "resume_snippet":  row["resume_snippet"],
     }
 
 
 # ── Progress CRUD ─────────────────────────────────────────────────────────────
 
 async def save_progress(user_id: str, role: str, plan: dict, completed_task_ids: list) -> None:
-    async with await _conn() as db:
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("PRAGMA journal_mode=WAL")
         await db.execute(
             """
             INSERT INTO progress (user_id, role, plan_json, completed_task_ids, updated_at)
@@ -108,7 +106,8 @@ async def save_progress(user_id: str, role: str, plan: dict, completed_task_ids:
 
 
 async def get_progress(user_id: str) -> Optional[dict]:
-    async with await _conn() as db:
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
         async with db.execute(
             "SELECT role, plan_json, completed_task_ids FROM progress WHERE user_id = ?",
             (user_id,),
@@ -117,15 +116,16 @@ async def get_progress(user_id: str) -> Optional[dict]:
     if not row:
         return None
     return {
-        "role": row["role"],
-        "plan": json.loads(row["plan_json"]),
+        "role":               row["role"],
+        "plan":               json.loads(row["plan_json"]),
         "completed_task_ids": json.loads(row["completed_task_ids"]),
     }
 
 
 async def update_completed_tasks(user_id: str, completed_task_ids: list) -> bool:
-    """Update only the completed tasks list. Returns False if user has no plan."""
-    async with await _conn() as db:
+    """Update only the completed task list. Returns False if user has no plan."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("PRAGMA journal_mode=WAL")
         cur = await db.execute(
             """
             UPDATE progress
