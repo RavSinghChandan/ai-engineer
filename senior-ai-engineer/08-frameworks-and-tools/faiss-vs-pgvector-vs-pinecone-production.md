@@ -397,10 +397,24 @@ Qdrant (honorable mention):
 ## 7. Interview Questions (Senior Level)
 
 - When would you choose pgvector over Pinecone?
+
+  **Answer:** When your team already runs PostgreSQL (adding pgvector is a single `CREATE EXTENSION` command), when your data is under 5 million vectors (pgvector HNSW handles this with sub-20ms latency), and when you need SQL joins between vector results and relational data (user profile, document metadata). Pinecone adds $70+/month, network round-trip latency, and a new operational system for no meaningful gain at that scale. In AstroIntel, I would choose pgvector for any astrological knowledge base because we already have Postgres for user data — pgvector is an extension install, not a new infrastructure dependency.
+
 - How does FAISS handle metadata filtering and what is the production limitation?
+
+  **Answer:** FAISS has no native metadata filtering — you retrieve N×10 candidates from the index and then post-filter in Python. This is expensive at scale: to guarantee top-5 results for a specific tenant in a 1M-vector shared index, you need to retrieve ~50× more vectors and filter down, which is 10× slower than index-level filtering and returns garbage results if fewer than 5 matching vectors exist in the oversampled set. pgvector and Pinecone filter at query time at the index level. For FAISS in production: either maintain separate per-tenant indexes (operationally expensive) or accept the post-filter overhead at small scale.
+
 - What is HNSW and why does it matter for pgvector at scale?
+
+  **Answer:** HNSW (Hierarchical Navigable Small World) is the approximate nearest neighbor algorithm used by pgvector's best-performing index. It builds a multi-layer graph where each vector connects to its nearest neighbors at varying granularity levels — queries traverse from coarse to fine, finding approximate neighbors in O(log N) time instead of O(N) for exact search. Without an HNSW or IVFFlat index, pgvector performs exact KNN scan (O(N)) — fine for 10K vectors, unusable for 5M vectors. Creating HNSW index on 1M vectors takes ~20-60 minutes and significant RAM. The key tuning parameter `m` (default 16, controls graph connectivity) affects the recall/speed tradeoff — higher `m` = better recall, slower build.
+
 - How do you implement multi-tenancy in each vector store?
+
+  **Answer:** FAISS: separate index files per tenant (index_tenant_id.faiss + metadata file), loaded into memory per request — expensive at scale. pgvector: `tenant_id` column + WHERE filter on every query, plus row-level security (RLS) in Postgres for strict isolation. Pinecone: one namespace per tenant — searches are scoped at the API level with `namespace=tenant_id`, no cross-tenant data is ever returned. Qdrant: separate collection per tenant or payload filter. For production multi-tenancy, Pinecone namespaces or pgvector with RLS are the most reliable — they enforce isolation at the storage layer, not just in application code. In Bench Resource Optimizer, all employee CV vectors use `org_id` as the mandatory filter on every pgvector query.
+
 - What does migration look like when moving from FAISS to Pinecone?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q2 — skipped to avoid duplication.)*
 
 ---
 

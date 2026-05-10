@@ -183,3 +183,125 @@ Key numbers to annotate:
 - Total: 15-20s
 - LLM calls: 6 (5 agents + 1 synthesis, plus classifier)
 - Cost: ~$0.07 (gpt-4o-mini × 5 + gpt-4o × 1)
+
+---
+
+## 6. Bench Resource Optimizer — Deep Dive Script
+
+### Level 1: 30-Second Summary (for "tell me briefly about your projects")
+
+"Bench Resource Optimizer is an AI-powered workforce planning tool that matches bench employees — those currently unassigned — to open project roles. The user uploads employee CVs and a role requirements document. The system runs a 6-stage pipeline: CV ingestion, role gap analysis via hybrid RAG, async parallel plan generation for each day, LLM-as-judge quality scoring, and a semantic cache layer for repeated queries. The key decision was using `asyncio.gather` to parallelize the day plan generation, reducing total planning time from ~21 seconds to ~4 seconds."
+
+---
+
+### Level 2: 2-Minute Architecture Walk (for "walk me through the architecture")
+
+"Bench Resource Optimizer has six stages.
+
+**Stage 1 — CV Ingestion:** Employee CVs are uploaded and parsed. A circuit-breaker-protected CV Parser Agent extracts structured skills, experience, and technology proficiencies. The extracted content is embedded using `text-embedding-3-small` and stored in a FAISS index with internal:// URIs as document IDs (avoiding filesystem dependencies). Each vector carries metadata: `employee_id`, `skills[]`, and `org_id` for tenant isolation.
+
+**Stage 2 — Role Gap Analysis:** The user provides a role requirements document. A Role Mapper Agent compares the requirements against candidate CVs using a hybrid BM25 + FAISS retrieval with RRF (Reciprocal Rank Fusion) to combine sparse and dense scores. This returns a ranked list of candidates with skill gap percentages. A CRAG quality gate evaluates retrieved chunks before they enter the LLM context — chunks below relevance threshold are discarded to prevent hallucinated gap assessments.
+
+**Stage 3 — HyDE Query Enhancement:** Instead of embedding the raw role requirement query, the system generates a Hypothetical Document Embedding — the LLM writes a hypothetical 'ideal CV' for the role, embeds that, and uses it as the search vector. This improves retrieval precision significantly for roles where the requirement text uses different terminology than the CVs.
+
+**Stage 4 — Async Parallel Plan Generation:** For a 30-day bench plan, each day's assignment is generated as an independent LLM call. Using `asyncio.gather`, all 30 day-plan calls run concurrently. Result: ~21 seconds sequential → ~4 seconds parallel. The output is streamed to the Angular frontend via SSE so users see assignments appearing in real time.
+
+**Stage 5 — LLM-as-Judge Quality Gate:** After the plan is generated, a second DeepSeek call scores each assignment on four dimensions: Relevance (does the skill match?), Completeness (are all role requirements covered?), Accuracy (is the assignment realistic?), and Actionability (can a manager act on this immediately?). Each dimension is scored 1-5. Assignments scoring below 3.5 average are flagged for manual review.
+
+**Stage 6 — Semantic Cache + Progress Tracker:** L1 cache is SHA-256 exact match (1-hour TTL). L2 cache is cosine similarity ≥ 0.92 against previous queries (30-minute TTL). Cache hit rate is ~35% for repeated role queries. A progress tracker logs each plan execution step with timestamps, enabling the `/api/v1/metrics` dashboard showing P50/P95/P99 latency, plan quality scores, and token economics.
+
+Total pipeline time: 4-6 seconds for fresh queries, under 50ms for cache hits. LLM cost per plan: approximately $0.0003 per day plan × 30 days = $0.009 per full bench plan."
+
+---
+
+### Level 3: Decision Deep Dives (for follow-up questions)
+
+**Why asyncio.gather instead of ThreadPoolExecutor?**
+"ThreadPoolExecutor works well for CPU-bound or blocking I/O tasks. Day plan generation is pure async I/O — each call waits for a DeepSeek API response. `asyncio.gather` runs all 30 coroutines on the same event loop with zero thread overhead. It also integrates naturally with FastAPI's async request handling and the SSE streaming response. The Python GIL is not a constraint here because we're waiting on network I/O, not executing Python code. The measured improvement: 21 seconds sequential → 4 seconds parallel."
+
+**Why LLM-as-judge instead of RAGAS?**
+"RAGAS requires ground truth answers to compute faithfulness and answer relevance — we don't have ground truth for workforce plans because there is no single correct plan. LLM-as-judge evaluates plan quality on dimensions that matter to the business: does this assignment make skill-level sense? Is it actionable? A hiring manager can validate these judgments intuitively. We use a second DeepSeek call rather than a different model to keep output format consistent and reduce provider dependencies. The judge prompt specifies four rubrics with explicit 1-5 scoring criteria, which makes the scores deterministic enough to use as a hard threshold (3.5) for flagging."
+
+**Why internal:// URIs for FAISS document IDs?**
+"Filesystem paths as document IDs create deployment coupling — the path that works locally (`/home/user/uploads/cv_001.pdf`) breaks in Docker, in Kubernetes, and when files are stored in S3. `internal://cv_001` is a stable, environment-agnostic identifier that maps to the actual storage location through a resolver. The FAISS index stores the internal URI, and the retrieval layer resolves it to wherever the file actually is. This separation means the vector index doesn't need to be rebuilt when the deployment environment changes."
+
+**Why circuit breakers on CV Parser and Role Mapper agents?**
+"Both agents call external APIs — the embedding service and DeepSeek. If the embedding API has elevated latency, without a circuit breaker every request waits 30 seconds before timing out. With the circuit breaker in OPEN state, requests fail immediately (< 1ms) and the system returns a graceful degradation response rather than queuing up retries that amplify the latency. The pattern: CLOSED (normal) → OPEN (after 5 consecutive failures in 60 seconds) → HALF_OPEN (one probe request after 30-second cooldown) → CLOSED (on success). This is Resilience4j's CircuitBreaker pattern applied to Python service calls."
+
+**Why hybrid BM25 + FAISS with RRF?**
+"Pure semantic search (FAISS) misses exact keyword matches — if a role requires 'Kubernetes' and a CV says 'Kubernetes', semantic search might rank a CV mentioning 'container orchestration' higher. BM25 catches exact terms. Pure BM25 misses semantic equivalents — 'React.js' vs 'React' vs 'ReactJS'. Hybrid retrieval with RRF combines both: `RRF_score = 1/(k + rank_bm25) + 1/(k + rank_faiss)`. This consistently outperforms either alone by 8-15% on recall@10 in our benchmark. The `k` parameter (default 60) controls the relative weighting and was tuned empirically on a test set of 50 CV-role pairs."
+
+**What are the failure modes?**
+"Three main failure modes:
+
+1. CV parsing hallucination: the CV Parser Agent extracts skills that don't exist in the CV. Mitigation: the CRAG quality gate scores each extracted skill against the source text. Skills with a relevance score below 0.75 are discarded before entering the skill graph. This catches ~15% of LLM hallucinations at the extraction stage.
+
+2. asyncio timeout: one of the 30 day-plan LLM calls hangs. Mitigation: `asyncio.wait_for(day_plan_coroutine, timeout=15)` wraps each call. If a day plan times out, its slot is filled with a 'manual review required' placeholder — the remaining 29 days are valid and the plan is still useful. The progress tracker logs which days had timeouts.
+
+3. Cache staleness: a cached plan for 'Senior Java Developer' is returned for a query about 'Lead Java Engineer' with similar embedding (cosine ≥ 0.92). Mitigation: the L2 cache TTL is 30 minutes (not 24 hours) and the cache key includes an org_id filter. Role queries change frequently as positions are filled. 30-minute TTL balances cost savings against staleness risk."
+
+**How would you scale this to 10,000 employees?**
+"Three bottlenecks emerge at 10K employees:
+
+1. FAISS in-memory: 10K CVs × 20 chunks each × 1536 dimensions = 3.1GB RAM just for vectors. Move to pgvector with HNSW index — same query interface, persistent, supports horizontal scaling via read replicas.
+
+2. asyncio.gather at 30 days: 30 concurrent LLM calls per user is manageable. At 100 concurrent users, that's 3,000 simultaneous LLM calls — need rate limiter per user session and queue-based backpressure.
+
+3. Embedding freshness: 10K CVs need re-embedding when the embedding model is upgraded. Move to event-driven re-ingestion: each CV update emits a Kafka event, a consumer group handles re-embedding at sustainable throughput, and the metadata DB tracks `last_embedded_at` per CV."
+
+---
+
+### Level 4: Connecting Both Projects in Interviews
+
+**When asked "what's the difference between your two AI projects?":**
+
+"AstroIntel and Bench Resource Optimizer represent two different AI engineering challenges.
+
+AstroIntel is about multi-agent orchestration: parallel specialist agents, consensus building across conflicting outputs, human-in-the-loop review, and the challenge of synthesizing five independent expert opinions into a coherent final answer. The key patterns are parallel execution, consensus scoring, and LangGraph state management.
+
+Bench Resource Optimizer is about RAG at production scale: hybrid retrieval for skill matching, quality gates to prevent hallucinated gap analysis, async parallelism for plan generation performance, and semantic caching to manage LLM costs at query volume. The key patterns are HyDE query enhancement, CRAG quality filtering, asyncio parallelism, and LLM-as-judge evaluation.
+
+Together they demonstrate I can work at both extremes of AI engineering: agent orchestration complexity in AstroIntel, and retrieval pipeline optimization in Bench Resource Optimizer."
+
+---
+
+### The One Slide Architecture Summary (Whiteboard)
+
+```
+Bench Resource Optimizer Architecture (Whiteboard)
+
+Inputs: {employee_cvs[], role_requirements.pdf, plan_config}
+    ↓
+[CV Parser Agent] → extracted_skills (circuit-breaker protected)
+    ↓
+FAISS Index (internal:// URIs, org_id metadata filter)
+    ↓
+[Role Mapper Agent]
+  ├── HyDE: generate hypothetical CV → embed → search
+  ├── Hybrid BM25 + FAISS → RRF fusion → top-20 candidates
+  └── CRAG quality gate → discard low-relevance chunks
+    ↓
+[RAG Planner] → candidate_rankings with skill_gap %
+    ↓
+[asyncio.gather: 30 Day Plans in parallel]
+  ├── Day 1 plan (DeepSeek call)
+  ├── Day 2 plan (DeepSeek call)
+  └── ... Day 30 plan (DeepSeek call)  → SSE stream to frontend
+    ↓
+[LLM-as-Judge] → quality_scores (Relevance/Completeness/Accuracy/Actionability 1-5)
+  → flag if avg < 3.5
+    ↓
+[Semantic Cache L1 (SHA-256, 1h) + L2 (cosine≥0.92, 30min)]
+    ↓
+[Progress Tracker] → /api/v1/metrics (P50/P95/P99, quality, cost)
+    ↓
+30-Day Bench Plan Output
+```
+
+Key numbers to annotate:
+- Async plan generation: ~4s (was 21s sequential)
+- Cache hit rate: ~35% for repeated role queries
+- Cache hit latency: < 50ms
+- LLM cost per full plan: ~$0.009
+- LLM-as-judge threshold: 3.5 / 5.0 average
+- Circuit breaker: OPEN after 5 failures / 60s window

@@ -153,10 +153,24 @@ LangChain LCEL:
 ## 7. Interview Questions (Senior Level)
 
 - When would you NOT use LangChain in a production system?
+
+  **Answer:** When you need fine-grained reliability — circuit breakers, per-request token cost tracking, multi-tenant isolation, or precise control over what goes into the LLM context. LangChain's chain abstractions hide these details, making production debugging painful. In Bench Resource Optimizer I use LangChain's `PyPDFLoader` and `RecursiveCharacterTextSplitter` for document ingestion, but all LLM calls go through a direct DeepSeek SDK wrapper so I can track tokens, apply retries with exponential backoff, and enforce circuit breakers — none of which LangChain's `RetrievalQA` exposes cleanly.
+
 - How do you add cost tracking to a LangChain pipeline?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q1 — see `get_openai_callback()` and `CostTrackingCallback` pattern below.)*
+
 - What is LCEL and what problem does it solve?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q2 — see LCEL pipe `|` operator and `RunnableParallel` pattern below.)*
+
 - How do you use LangChain callbacks for custom monitoring?
+
+  **Answer:** Implement `BaseCallbackHandler` and override `on_llm_start`, `on_llm_end`, and `on_chain_error`. In `on_llm_end` you get the raw `LLMResult` including `token_usage` — push those to your metrics store. Attach it via `chain.invoke(input, config={"callbacks": [MyCallback()]})`. In AstroIntel I used a `CostTrackingCallback` that fired on every DeepSeek call, accumulated `prompt_tokens` and `completion_tokens` into a thread-local accumulator, and exposed them at `/api/v1/metrics` as real token economics — `avg_cost_per_run_usd: $0.000137`.
+
 - What is the escape hatch if LangChain's abstraction is too limiting?
+
+  **Answer:** Keep LangChain only for the parts where it adds value — document loaders (`PyPDFLoader`, `UnstructuredLoader`) and text splitters (`RecursiveCharacterTextSplitter`) — and bypass it entirely for LLM calls, retrieval, and chain execution. Replace `RetrievalQA` with your own function: embed the query directly, call FAISS `similarity_search` directly, construct the prompt manually, and call the LLM SDK directly. This gives you full observability and control while keeping the 100+ document loader ecosystem. I call this the "LangChain at the edges, direct SDK at the core" pattern — it is what I use in both AstroIntel and Bench Resource Optimizer.
 
 ---
 

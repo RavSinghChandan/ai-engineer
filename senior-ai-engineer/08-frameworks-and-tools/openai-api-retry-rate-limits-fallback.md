@@ -382,10 +382,24 @@ Circuit breaker:
 ## 7. Interview Questions (Senior Level)
 
 - What is the difference between RPM and TPM rate limits and which do you hit first at scale?
+
+  **Answer:** RPM (requests per minute) limits the number of API calls regardless of size; TPM (tokens per minute) limits the total token volume. At scale, TPM is almost always the binding constraint — a single long-context RAG query (2000 input tokens + 500 output tokens) consumes 2,500 TPM while counting as only 1 RPM. AstroIntel makes 5-6 parallel LLM calls per user request, each burning ~400 tokens — a burst of 10 concurrent users = 6 × 10 × 400 = 24,000 TPM in under a second. The proactive `RateLimitBudget` tracker routes to `gpt-4o-mini` before hitting the TPM limit rather than reacting with retries after the 429.
+
 - How does your Resilience4j experience map to LLM API resilience patterns?
+
+  **Answer:** Line-for-line equivalent. `@Retry` with exponential backoff in Spring → `tenacity` library or manual backoff loop on `RateLimitError`/`APITimeoutError`. `@CircuitBreaker` with failure rate threshold → `_circuit_open_until` dict or Redis-based circuit state per model. `@Bulkhead` isolating thread pools → separate `asyncio.Semaphore` limits for each model tier. `@RateLimiter` with token bucket → `RateLimitBudget` sliding window in Python. The only difference is the domain: instead of protecting against a slow downstream REST service, I protect against LLM API rate limits and transient outages. The patterns and configuration reasoning are identical.
+
 - What errors should NOT be retried and why?
+
+  **Answer:** `BadRequestError` (400): the request itself is malformed — wrong parameter types, context length exceeded, or invalid content. Retrying the same bad request will fail identically every time; fix the request first. `AuthenticationError` (401): your API key is invalid or revoked. Retrying doesn't help and wastes retries. `InvalidRequestError` (400 for context length exceeded): retrying the same oversized prompt will always fail — truncate the context first, then retry with a corrected request. The rule: only retry on infrastructure failures (rate limits, timeouts, server errors). Never retry on client errors where the request itself is the problem.
+
 - How do you implement provider fallback between OpenAI and Anthropic?
+
+  **Answer:** After exhausting OpenAI retries (both GPT-4o and GPT-4o-mini), call the Anthropic client with the same messages converted to Anthropic's message format (system prompt is a separate parameter, not a "system" role message). The key preparation: test your full prompt suite against Claude Haiku before going to production — output format and instruction-following behavior differ subtly between providers and may break downstream JSON parsing. Log `fallback_used=True` on every Anthropic call so you can track fallback frequency and investigate root cause. In AstroIntel, Anthropic is the last resort for OpenAI infrastructure outages — in practice this has triggered once during a major OpenAI incident.
+
 - How do you share circuit breaker state across multiple FastAPI worker processes?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q2 — skipped to avoid duplication.)*
 
 ---
 

@@ -218,10 +218,24 @@ Senior choice: always LangGraph for production agents.
 ## 7. Interview Questions (Senior Level)
 
 - How does LangGraph differ from LangChain's agent executor?
+
+  **Answer:** LangChain's agent executor is a black box — you give it tools and a prompt and it runs a hidden loop that's hard to debug or extend. LangGraph is a white box: you define explicit nodes (functions), explicit edges (transitions), and an explicit state schema (TypedDict). Every state transition is logged and inspectable, every conditional branch is testable as a plain Python function. In AstroIntel, I use LangGraph because the interrupt/resume pattern for admin review and the parallel agent fan-out are impossible to implement cleanly with the agent executor.
+
 - How do you implement human-in-the-loop with LangGraph?
+
+  **Answer:** Define a node for the human approval step, compile the graph with `interrupt_before=["that_node"]`, and use a persistent checkpointer (SqliteSaver or Postgres). On the first `invoke`, the graph pauses before the review node and returns with `__interrupt__` in the result. State is persisted by the checkpointer under the `thread_id`. When the human submits feedback, call `invoke` again with the feedback injected into state and the same `thread_id` — LangGraph loads the checkpoint and resumes from the interrupt point. In AstroIntel, admin review works exactly this way: the analysis pauses at the review node, the admin approves or edits insights, and the graph resumes with the corrected data.
+
 - What is a conditional edge and give a production example?
+
+  **Answer:** A conditional edge is a function that reads the current state and returns a string key that determines which node to route to next. It replaces a hard-coded edge with a dynamic branch. Production example from AstroIntel: after the executor node runs a plan step, the `should_continue` function checks `step_count >= len(plan)` (all steps done → go to review), `step_count >= 10` (loop guard → go to synthesize), or neither (continue executing). This prevents infinite loops while enabling dynamic plan execution. The conditional function is testable independently with unit tests — just pass different state dictionaries and assert the output string.
+
 - How do you persist agent state across multiple user sessions using LangGraph?
+
+  **Answer:** Use a persistent checkpointer backed by Postgres or SQLite rather than the in-memory `MemorySaver`. Every `invoke` or `stream` call takes a `config={"configurable": {"thread_id": session_id}}` parameter. LangGraph stores the complete state snapshot after each node execution, keyed by thread_id. When the user returns hours or days later, calling `invoke` with the same thread_id loads the last checkpoint and the graph continues from exactly where it left off. In AstroIntel, each analysis session gets a UUID as thread_id — if the admin closes the browser mid-review, the state is preserved in the checkpointer and the review can resume later.
+
 - What is a subgraph and when would you use one?
+
+  **Answer:** A subgraph is a compiled LangGraph that is used as a node inside a parent graph. It receives state from the parent, runs its own internal node loop, and returns updated state back to the parent. Use subgraphs when a node's logic is complex enough to need its own internal state machine — for example, a retrieval subgraph that has its own query → retrieve → rerank → threshold check loop. In Bench Resource Optimizer, the role gap analysis could be a subgraph: it runs its own plan (fetch CV → fetch requirements → compare → generate gap report) and returns a structured gap_analysis result to the parent planning graph, keeping the parent graph clean and the subgraph independently testable.
 
 ---
 

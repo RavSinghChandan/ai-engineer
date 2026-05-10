@@ -212,10 +212,26 @@ AI-generated (LLM-as-judge): cheaper, scalable, but inherits the judge model's b
 ## 8. Interview Questions (Senior Level)
 
 - Explain the three phases of RLHF.
+
+  **Answer:** Phase 1 — Supervised Fine-tuning (SFT): fine-tune the pretrained LLM on curated (prompt, ideal response) pairs written by human annotators, producing a model that follows instructions. Phase 2 — Reward Model Training: generate multiple responses per prompt with the SFT model, have humans rank them, and train a separate reward model (RM) to predict human preference scores for any (prompt, response) pair. Phase 3 — PPO Optimization: use Proximal Policy Optimization to fine-tune the SFT model to maximize the RM score — the model generates responses, the RM scores them, and the policy is updated to produce higher-scoring outputs, with a KL divergence penalty keeping it close to the SFT model to prevent reward hacking.
+
 - What is the reward model and how is it trained?
+
+  **Answer:** The reward model is a classifier trained on human preference comparisons — it takes a (prompt, response) pair as input and outputs a scalar score representing how much a human would prefer that response. It is trained on a dataset of (prompt, response_A, response_B, human_preference) quadruples: the model learns to score the preferred response higher than the rejected one using a ranking loss. The RM is not a generative model — it never produces text, only scores text. Its quality determines the ceiling of RLHF alignment: a poorly calibrated RM leads to reward hacking where the policy finds responses that score well on the RM but are not actually useful to humans.
+
 - What is DPO and why do practitioners prefer it to RLHF for fine-tuning?
+
+  **Answer:** DPO (Direct Preference Optimization) achieves the same goal as RLHF — learning from human preferences — but skips the reward model and PPO training loop entirely. It fine-tunes the model directly on (prompt, chosen, rejected) triples using a contrastive loss that increases the probability of preferred responses and decreases the probability of rejected ones. Practitioners prefer DPO because PPO is notoriously unstable (sensitive to hyperparameters, requires careful tuning), requires maintaining two models (policy + reward model), and DPO achieves comparable empirical results with a single fine-tuning run. For team-scale projects with LoRA, DPO is 3-5× simpler to implement and the practical choice for iterative alignment.
+
 - What is reward hacking and how does the KL penalty prevent it?
+
+  **Answer:** Reward hacking is when the model learns to generate text that receives high reward model scores but is not actually useful to humans — for example, generating verbose repetitive text that the RM (trained on limited data) happens to score highly, or exploiting patterns the annotators didn't cover. The KL divergence penalty constrains how far the RLHF-optimized policy can drift from the SFT model: it adds a term to the PPO objective that penalizes the policy for producing a distribution very different from the SFT baseline. Intuitively it says "maximize reward, but don't change your behavior so radically that you're no longer recognizable as the original model." The beta hyperparameter in DPO serves the same role — higher beta = stronger constraint against drifting from the reference model.
+
 - How would you collect preference data for your project?
+
+  **Answer:** AstroIntel's admin review mechanism already generates preference data: when an admin edits an insight, the original response is the rejected pair and the edited version is the chosen pair. When an admin approves without editing, the approved response is a positive example. When an admin rejects, the response is a negative example. This accumulates naturally during normal usage — after 1-2 months of active use with 10-20 admin reviews per day, there would be 300-600 preference pairs, enough for a DPO fine-tune with LoRA on the domain specialist agents. The key design requirement: log the original LLM output alongside the admin's edit, not just the final approved version.
+
+
 
 ---
 
