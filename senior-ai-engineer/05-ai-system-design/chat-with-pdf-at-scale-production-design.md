@@ -220,10 +220,24 @@ Async: always right for production. User gets immediate response, webhook/pollin
 ## 8. Interview Questions (Senior Level)
 
 - Design a system where 10,000 users can each upload documents and query only their own files.
+
+  **Answer:** Per-user namespace isolation in Pinecone (or per-tenant collection in Qdrant), asynchronous ingestion via queue (Celery + Redis) so upload API returns immediately with a job ID, and a metadata DB (Postgres) storing doc_id → user_id mapping for authorization checks on every query. The query flow adds a mandatory `tenant_id` filter on every vector search — even if a user somehow obtains another user's doc_id, the namespace filter ensures they cannot retrieve those vectors. The same pattern applies in Bench Resource Optimizer: every employee CV search is filtered by `org_id` before any vector similarity comparison runs.
+
 - How do you handle a 500-page PDF upload without timing out?
+
+  **Answer:** Async ingestion: the upload endpoint accepts the file, stores it in S3/object storage, queues an ingestion job, and returns a 202 Accepted with a job ID immediately. The ingestion worker processes the PDF in the background: extract text with PyMuPDF, chunk, embed in batches, upsert to vector store. For 500 pages at ~500 tokens/page = 250K tokens of embedding calls — at batch size 100, this takes 30-60 seconds on the worker, never touching the upload timeout. The user polls or receives a webhook notification when indexing is complete. Sync ingestion for 500 pages will always timeout at any normal HTTP gateway.
+
 - How do you ensure a user cannot retrieve another user's documents?
+
+  **Answer:** Three-layer isolation: (1) namespace or collection per user/tenant in the vector store — searches are scoped at the store level; (2) metadata filter on every query enforcing `user_id = current_user` even within a shared namespace; (3) authorization check in the application layer before the vector search runs, verifying the queried doc_id belongs to the requesting user. Defense in depth: any single layer failing doesn't expose data because two other layers still enforce isolation. In Bench Resource Optimizer, the employee CV search enforces `org_id` filtering at all three levels.
+
 - How do you keep query latency under 2 seconds end-to-end?
+
+  **Answer:** Latency budget: embedding 100ms + vector search 50ms + LLM TTFT 1,500ms + buffer 350ms = 2,000ms. Use streaming so the user sees the first token at 1,500ms even if total generation takes longer. Add L1 (exact match) and L2 (semantic similarity) cache in Redis — repeated queries return in < 10ms. Pre-embed common queries if your traffic has predictable patterns. In Bench Resource Optimizer, the semantic cache (L1 SHA-256 exact + L2 cosine ≥ 0.92) handles repeated role matching queries; fresh queries hit the 1,800ms budget with DeepSeek streaming.
+
 - What is the monthly LLM cost for this system at 10,000 active daily users?
+
+  **Answer:** 10,000 users × 10 queries/day = 100K queries/day × 700 avg tokens (300 prompt + 400 completion) = 70M tokens/day. On GPT-4o-mini: 70M × $0.15/1M input + 40M × $0.60/1M output = $10.50 + $24 = $34.50/day = ~$1,050/month. With semantic caching at 30% hit rate: $735/month. This is the calculation I'd present to stakeholders — not "it depends" but a concrete number with assumptions stated. Adding 10K document uploads/month at 250K tokens each = 2.5B embedding tokens × $0.02/1M = $50/month additional for embedding.
 
 ---
 

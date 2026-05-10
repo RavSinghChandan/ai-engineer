@@ -212,10 +212,24 @@ Full response: simpler implementation, easier to validate the complete output be
 ## 7. Interview Questions (Senior Level)
 
 - How do you implement token streaming from an LLM API to an Angular frontend?
+
+  **Answer:** FastAPI `StreamingResponse` with `text/event-stream` content type, yielding SSE-formatted chunks from the LLM's streaming API. Angular subscribes via `EventSource`, reads each `message` event, and appends tokens to a reactive signal or BehaviorSubject — the template updates automatically. In Bench Resource Optimizer, the plan generation endpoint streams tokens from DeepSeek; Angular renders the plan progressively as it generates, which reduces perceived latency significantly compared to waiting for the full response.
+
 - What is the difference between SSE and WebSocket and when do you use each?
+
+  **Answer:** SSE is unidirectional (server → client) over standard HTTP with automatic browser reconnection — simpler to implement and deploy, works through standard HTTP proxies. WebSocket is bidirectional full-duplex — needed when the client must also push data to the server in real-time (chat interruption, mid-stream cancellation signal). For LLM token streaming, SSE is almost always sufficient and simpler — the client doesn't need to send anything while the model is generating. Use WebSocket only if you need the user to be able to interrupt or modify the generation in real time.
+
 - How do you handle a user closing the browser tab while streaming is in progress?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q4 — skipped to avoid duplication.)*
+
 - What is X-Accel-Buffering and why does it matter for SSE?
+
+  **Answer:** Nginx buffers proxied responses by default — it waits for the upstream server to close the connection before forwarding the response to the client. This completely breaks SSE because the client never sees any tokens until the entire response is complete (defeating the purpose of streaming). Setting `X-Accel-Buffering: no` in the FastAPI response headers tells Nginx to forward each chunk immediately without buffering. This is the most common deployment gotcha when moving SSE from local development (no Nginx) to production (behind Nginx proxy).
+
 - How do you add output guardrails (like topic filtering) to a streaming response?
+
+  **Answer:** Buffer tokens until a sentence boundary (period, newline), then run the guardrail on the complete sentence before forwarding to the client — this catches violations at the sentence level without waiting for the full response. The trade-off: each sentence has a ~50ms moderation latency added to the stream. The alternative is post-stream validation with a client-side retraction event, but showing and then retracting content is a poor user experience for enterprise applications. In AstroIntel, the topic guardrail runs on the full response after the LLM call completes, before sending — we chose batch validation over streaming guardrails because the output is always short enough that full-response latency is acceptable.
 
 ---
 

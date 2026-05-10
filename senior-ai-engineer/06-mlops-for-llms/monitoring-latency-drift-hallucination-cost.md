@@ -217,10 +217,24 @@ Real-time faithfulness scoring:
 ## 7. Interview Questions (Senior Level)
 
 - How do you detect that your LLM system's quality is degrading over time?
+
+  **Answer:** Nightly RAGAS evaluation on a 50-sample random batch from live traffic — track faithfulness, answer relevance, and context precision as time series. Set alert thresholds (faithfulness < 0.85 triggers investigation). Secondary signals: user behavior (follow-up correction queries, thumbs-down rate), and LLM-as-judge scores on every response if latency budget allows. In AstroIntel's metrics dashboard, the hallucination_proxy metric (LOW-confidence insight rate) and confidence distribution are tracked across all runs — a shift in the HIGH/LOW ratio is the earliest signal of degradation.
+
 - What metrics do you track for an LLM service beyond standard API metrics?
+
+  **Answer:** Beyond HTTP latency and error rate: TTFT (time to first token) as the user-perceived latency metric; faithfulness and answer relevance scores from RAGAS or LLM-as-judge; hallucination rate proxy (low-confidence response rate); cost per query (tokens × model price); cache hit rate (L1 exact and L2 semantic); embedding freshness (% of documents re-embedded within the last N days); and retrieval quality metrics (context precision, context recall). In AstroIntel's `/api/v1/metrics` endpoint, we expose all of these: P50/P95/P99 latency, confidence distribution, hallucination audit, token economics, and domain coverage — 10 KPIs total.
+
 - How do you build a dashboard that shows the health of a RAG system?
+
+  **Answer:** Six panels: (1) latency sparkline — P50/P95/P99 over the last 7 days; (2) quality trend — faithfulness and answer relevance from nightly eval; (3) cost tracker — daily token spend with alert line at 80% of budget; (4) cache efficiency — L1 and L2 hit rates; (5) retrieval health — context precision and recall trend; (6) error breakdown — by type (retrieval failure, LLM failure, parse failure, timeout). In AstroIntel, the metrics dashboard covers most of these; extending it for a RAG system would add the RAGAS metrics as a seventh panel with daily trend lines.
+
 - Your faithfulness score has been declining for 2 weeks. What do you investigate?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q1 — skipped to avoid duplication.)*
+
 - How do you monitor cost and alert before you go over budget?
+
+  **Answer:** Daily spend alert at 80% of budget (warning) and 100% (critical). Per-feature and per-model token counters tracked in Prometheus. Track average tokens per request as a time series — prompt bloat shows up as a gradual cost increase over days before it becomes a crisis. The most actionable metric is `avg_tokens_per_request` by feature — if one feature's average token count doubles, that's the cost regression to investigate. In AstroIntel, the token economics section of the metrics dashboard tracks `avg_total_tokens` per run; a spike in this number correlates directly to cost increase and is visible immediately.
 
 ---
 

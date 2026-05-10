@@ -192,10 +192,24 @@ File-based prompt versioning:
 ## 7. Interview Questions (Senior Level)
 
 - How do you prevent an OpenAI model update from silently breaking your production system?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q3 — skipped to avoid duplication.)*
+
 - What happens if you change your embedding model without re-embedding existing documents?
+
+  **Answer:** All retrieval breaks silently — queries are embedded with the new model and compared against vectors from the old model, producing meaningless cosine similarity scores that look plausible but retrieve random documents. There's no error, no exception — the system continues to serve answers, but retrieval quality drops to essentially random. This is one of the most dangerous silent failures in a RAG system. In Bench Resource Optimizer, every document vector stores `embedding_model_version` in metadata; the ingestion pipeline validates that the current model version matches before serving queries, and alerts on mismatch rather than silently continuing.
+
 - How do you deploy a prompt change with the ability to roll back?
+
+  **Answer:** Treat the prompt as a config value (not hardcoded), deploy the new version alongside the old in your config store, run canary routing (10% of traffic to new prompt, 90% to old) while monitoring faithfulness and format compliance metrics. If quality drops, flip the routing back to 100% old version — this is a config change, not a code deployment. In AstroIntel, the active prompt version is a config value; rolling back is changing one line in the config file and restarting, with no code change required. The old prompt is still in the repository and immediately available.
+
 - What is the minimum viable model versioning strategy for a startup AI team?
+
+  **Answer:** *(Already covered in Advanced Follow-ups Q3 — skipped to avoid duplication.)*
+
 - How do you audit what model and prompt version was active when a specific query was processed?
+
+  **Answer:** Log `model_version` and `prompt_version` with every query at the time of the call — not the current version, the version that was actually used for that specific request. Store this in your query log table alongside `query_id`, `user_id`, and `timestamp`. When investigating a complaint about a specific response, retrieve the log entry by query_id and you have the exact model, prompt, retrieved documents, and response that were active. In AstroIntel, every RunRecord captures the session_id and all inputs; extending this to include prompt_version and model_version is a one-line addition to the RunRecord dataclass.
 
 ---
 
