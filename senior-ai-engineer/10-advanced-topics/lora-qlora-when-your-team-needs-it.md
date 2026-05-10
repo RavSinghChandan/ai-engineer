@@ -250,10 +250,24 @@ Many epochs: needed for small datasets (<200 examples), high overfitting risk on
 ## 7. Interview Questions (Senior Level)
 
 - What is LoRA and why does it use fewer parameters than full fine-tuning?
+
+  **Answer:** LoRA (Low-Rank Adaptation) inserts two small trainable matrices (A and B, rank r) into each transformer weight matrix instead of updating the full matrix. For a weight matrix of shape (d × d), LoRA adds A (d × r) and B (r × d) where r << d — typically r=8 or r=16. The update is W + AB, but only A and B are trained. A 7B model has ~7 billion parameters; LoRA with r=8 on attention layers trains ~4-16 million parameters — less than 0.2% of the total. This dramatically reduces VRAM requirements, training time, and storage (LoRA adapters are 10-100MB vs 14GB for the full model).
+
 - What is the difference between LoRA and QLoRA?
+
+  **Answer:** LoRA trains small adapter matrices on top of a full-precision (float16 or bfloat16) frozen base model — still requires loading the full model in VRAM. QLoRA adds 4-bit NormalFloat quantization to the frozen base model, reducing its VRAM footprint by ~4×. A 7B model goes from ~14GB (float16) to ~4GB (4-bit) VRAM. This makes fine-tuning a 7B model feasible on a single RTX 4090 (24GB VRAM) or even a T4 (16GB VRAM). The adapter weights stay in float16 for training precision; only the frozen base is quantized. Production inference: you either merge the LoRA adapter back into the base (requires dequantizing) or serve with the adapter applied at inference time.
+
 - When would you use LoRA instead of OpenAI fine-tuning?
+
+  **Answer:** Use LoRA when: data is sensitive and can't leave your infrastructure (legal, medical, financial PII), you need to iterate faster than OpenAI's fine-tune queue allows (days vs hours), you need to serve from your own infrastructure for data sovereignty, or you're working with open-source models that OpenAI fine-tuning doesn't support. Use OpenAI fine-tuning when: you don't have GPU infrastructure, your data privacy requirements allow sending training data to OpenAI, and GPT-4o-mini's base quality is sufficient — it's operationally simpler with no GPU management.
+
 - How do you evaluate whether a LoRA-trained model is good enough for production?
+
+  **Answer:** Three gates: (1) Task eval on hold-out set — run the fine-tuned model on 20% of examples held out from training, compare format compliance, task accuracy, and domain-specific quality metrics against the base model. (2) Regression eval — run a set of general capability tests (instructions following, basic reasoning) to verify the LoRA hasn't caused catastrophic forgetting on capabilities you need. (3) Human blind eval — present outputs from base model and LoRA-fine-tuned model to domain experts without labels; 60%+ preference for the LoRA output is a meaningful improvement signal. If the LoRA scores equal or worse on the hold-out set, the training data was insufficient or of poor quality.
+
 - What is catastrophic forgetting and how does LoRA help prevent it?
+
+  **Answer:** Catastrophic forgetting is when fine-tuning on a specific task causes the model to "forget" previously learned general capabilities — it becomes good at the fine-tuned task but worse at everything else. Full fine-tuning is most susceptible because it updates all weights. LoRA mitigates this significantly: the base model weights are completely frozen and never modified. The adapter matrices are small deltas added at inference time. The model retains all pre-trained knowledge in the unchanged base weights; the adapter only adds task-specific behavior. The rank r parameter also controls forgetting risk — lower rank = smaller adaptation = less chance of overriding base capabilities.
 
 ---
 

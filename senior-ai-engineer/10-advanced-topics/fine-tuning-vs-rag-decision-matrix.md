@@ -284,10 +284,24 @@ RAG + Fine-tuning (combined):
 ## 9. Interview Questions (Senior Level)
 
 - When would you choose fine-tuning over RAG?
+
+  **Answer:** Fine-tuning when the need is behavioral — consistent output format, domain-specific reasoning style, or specialized vocabulary the base model doesn't handle well. RAG when the need is factual — external knowledge that changes over time, documents that require attribution, or domains where the corpus is too large to bake into training. A medical coding assistant is a good fine-tuning candidate: the ICD-10 coding workflow and reasoning structure are stable and expensive to reliably get via prompting alone. A customer support chatbot over a live product knowledge base is a RAG candidate: the product changes weekly, citations matter, and hallucination on product specifics destroys trust.
+
 - What is the minimum dataset size for effective fine-tuning?
+
+  **Answer:** For OpenAI fine-tuning on GPT-4o-mini: 50 examples is the documented minimum, but 100-200 well-curated examples produces meaningfully better generalization. For DPO fine-tuning with LoRA on open-source models: 200-500 preference pairs is the practical minimum for behavioral change that generalizes beyond the training examples. Quality matters more than quantity — 50 diverse high-quality examples that cover different patterns and edge cases beats 500 similar examples that all look like the same narrow pattern. If you have fewer than 50 examples, update few-shot examples in the system prompt first — that is cheaper, faster, and often achieves comparable improvement.
+
 - How do you evaluate whether fine-tuning improved your model?
+
+  **Answer:** Three measurements: (1) RAGAS eval suite before and after — run the same 50-100 test queries through both models, compare faithfulness, answer relevance, and format compliance. (2) Human A/B preference test — show outputs from both models to 3-5 domain experts without labeling which is which; preference rate for the fine-tuned model is the cleanest quality signal. (3) Production canary — route 10% of live traffic to the fine-tuned model, compare thumbs-up rate and task completion rate against the baseline. If RAGAS improves but behavioral metrics don't, the fine-tuning optimized for the eval distribution, not for actual user value — investigate what users care about that RAGAS doesn't measure.
+
 - Can you use RAG and fine-tuning together? When?
+
+  **Answer:** Yes — this is often the best production architecture for specialized domains. Fine-tune for behavior: train the model to follow the domain's reasoning structure, output format, and vocabulary. Add RAG for factual grounding: at query time, retrieve current knowledge from the corpus and inject it as context. Example: Bench Resource Optimizer fine-tuned on skill-gap analysis examples would learn the right format and reasoning depth for comparing CVs to requirements; RAG still retrieves the specific employee CV chunks and role requirements for each query so the model works with current data, not stale training examples. The combination gives you consistent behavior (fine-tuning) + accurate facts (RAG).
+
 - What are the risks of fine-tuning on poor-quality data?
+
+  **Answer:** Three serious risks: (1) Behavior embedding — if your training data contains bad patterns (wrong format, hallucinations, incorrect reasoning), the model learns them and reproduces them consistently. Unlike a bad prompt you can fix in minutes, a bad fine-tune requires a new training run to correct. (2) Catastrophic drift — fine-tuning on too-narrow data makes the model worse at tasks outside the training distribution; it "forgets" general capabilities in favor of the narrow trained behavior. (3) Bias amplification — systematic errors in the training data become amplified in the fine-tuned model's behavior. Mitigation: review every training example manually before fine-tuning, run a RAGAS eval on a hold-out set before deploying, and keep the baseline model available for rollback.
 
 ---
 

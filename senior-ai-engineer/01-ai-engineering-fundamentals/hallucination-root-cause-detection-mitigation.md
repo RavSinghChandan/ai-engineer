@@ -262,10 +262,24 @@ Human review queue:
 ## 8. Interview Questions (Senior Level)
 
 - How did you handle hallucination in your production AI system?
+
+  **Answer:** Three-layer defence in AstroIntel: (1) Grounding — each domain agent receives explicit birth profile fields in the prompt with an instruction to reference at least two data points per insight, preventing free-form generation from training knowledge. (2) Multi-agent consensus — five independent agents run in parallel; an insight that only one agent supports gets LOW confidence and is filtered before reaching the user. (3) Faithfulness proxy — the hallucination_audit flag in the consensus layer counts insights suppressed per run. In Bench Resource Optimizer, a CRAG quality gate scores each retrieved chunk's relevance before it enters the LLM context — chunks below 0.75 are discarded, preventing the LLM from generating answers from weak or tangential context.
+
 - What is the difference between intrinsic and extrinsic hallucination?
+
+  **Answer:** Intrinsic hallucination is when the model contradicts the source document it was given — the context says X but the answer says not-X. Extrinsic hallucination is when the model adds information not present in the source at all, fabricating plausible-sounding details from training knowledge. RAGAS faithfulness score catches both: it checks each claim in the answer against the retrieved context. The more dangerous one in production is extrinsic — users read fabricated details in a confident tone and have no way to know they aren't in the source.
+
 - How do you detect hallucination at scale without a human reviewing every response?
+
+  **Answer:** Two automated signals: (1) RAGAS faithfulness scoring — nightly evaluation on a 50-sample batch compares each answer claim against retrieved context chunks, flagging answers with faithfulness < 0.75. (2) LLM-as-judge — a second LLM call scores each response on factual grounding using explicit rubrics; scores below threshold are flagged for human review rather than surfaced to users. In AstroIntel, the hallucination_audit field in every run record tracks suppressed LOW-confidence insights — a rising suppression rate over days is the automated signal that hallucination frequency is increasing without anyone manually reviewing responses.
+
 - Your RAG system has a faithfulness score of 0.72. What do you investigate?
+
+  **Answer:** Four hypotheses in order: (1) Prompt weakening — was "answer only from context" removed or softened recently? Check git history on system prompts. (2) Retrieval quality collapse — are the top-K chunks actually relevant? If average retrieval similarity dropped, the LLM is answering from training knowledge because context is weak. (3) Document staleness — are documents being queried before re-embedding after updates? Stale embeddings return outdated content, and the LLM adds current-knowledge details that contradict the stale chunks. (4) Query distribution shift — are users asking new types of questions outside the document coverage? Sample the lowest-faithfulness responses and look for patterns in query type and retrieved chunk quality.
+
 - A customer complains the chatbot gave them wrong information. Walk me through your post-mortem process.
+
+  **Answer:** Retrieve the query log by user_id and timestamp — every query in production stores query_text, retrieved_doc_ids, retrieved_chunks, answer_text, faithfulness_score, prompt_version, and model_version. Step 1: read the exact answer returned and identify the specific wrong claim. Step 2: check the faithfulness score for that query — if it was already below 0.75, the guardrail should have flagged it (why didn't it surface as a review item?). Step 3: inspect the retrieved chunks — was the wrong information in the context (retrieval failure) or was it added by the LLM beyond the context (hallucination)? Step 4: check the prompt_version and model_version active at that time. Step 5: add this query to the adversarial test suite so the same failure is caught in CI before future deployments.
 
 ---
 

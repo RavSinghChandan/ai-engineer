@@ -378,10 +378,24 @@ Whole document: not viable for LLMs — even 200K context windows hit rate limit
 ## 7. Interview Questions (Senior Level)
 
 - How do you handle a PDF that contains charts and tables, not just text?
+
+  **Answer:** Hybrid extraction pipeline: first attempt standard text extraction with pdfplumber (fast, cheap, handles text-only pages). For pages where text extraction yields low character count relative to page area (likely chart/image-heavy pages), render the page to a 1024×1024 PNG using pdf2image and pass to the vision LLM for structured caption extraction. Tables: use pdfplumber's `.extract_tables()` to get structured row/column data and convert to a text representation with headers preserved. Images/charts: vision LLM generates a caption ("This bar chart shows quarterly revenue by region for 2024...") stored as a text chunk with page_number and chart_type metadata. This way you only pay vision LLM costs for pages that genuinely need it.
+
 - What is the difference between "high" and "low" detail in the GPT-4o vision API?
+
+  **Answer:** Low detail: the API resizes the image to 512×512 and processes it as a single tile — costs a fixed 85 tokens regardless of image size. Fast, cheap, suitable for basic image classification or scene description where fine details aren't needed. High detail: the API tiles the image into 512×512 segments and processes each tile individually plus a full-image thumbnail. A 1024×1024 image generates 4 tiles + 1 thumbnail = ~1,445 tokens. For documents with fine print, small chart labels, or dense tables, high detail is required — low detail will miss important information. Default to low detail for image classification tasks; use high detail for document understanding and any case where text within the image matters.
+
 - How would you build a RAG pipeline that handles both text and image content?
+
+  **Answer:** Unified embedding strategy: extract text from text pages normally; for image/chart pages, generate a text caption via vision LLM, then embed the caption with the same text embedding model as regular chunks. Store both in the same vector index with a `content_type` metadata field (text, table, chart, figure). At query time, retrieve top-K chunks regardless of type — the query embedding finds relevant text, tables, and chart captions by semantic similarity. Include a `[Chart: quarterly revenue by region, 2024]` prefix in the caption so the LLM answer-generation step knows to tell the user to refer to the original chart rather than fabricating numbers from a caption.
+
 - What are the cost implications of vision LLMs vs text-only LLMs?
+
+  **Answer:** Significant. A 500-word text passage costs ~$0.0001 on GPT-4o-mini. The same information in a chart image at high detail costs ~$0.01-0.03 per image — 100-300× more expensive. For document processing at scale: profile your corpus first. If 80% of your pages are text-only, apply vision selectively only to image-heavy pages. Use low detail unless fine text in the image is required. Cache vision extraction results aggressively — re-processing the same chart image on every re-ingestion is wasteful. In Bench Resource Optimizer, CV analysis uses text extraction exclusively because CVs are text documents; the visual processing cost would be unjustifiable.
+
 - How do you handle image compression before sending to the vision API?
+
+  **Answer:** Resize to the minimum resolution that preserves necessary detail — the vision API tiles at 512×512, so a 2048×2048 image creates 16+ tiles at high cost, while a 1024×1024 version creates 4 tiles with equivalent information for most document use cases. Compress to JPEG at 85% quality before encoding to base64 — this typically reduces file size by 60-70% vs PNG with minimal visual quality loss for document images. Never send raw phone photos (often 4-12MB) without resizing first. For charts specifically: scale to 1024 pixels on the longest side before processing. Rule: if the image's text is readable at 1024px, that's sufficient detail for the vision LLM.
 
 ---
 

@@ -360,10 +360,24 @@ Direct OpenAI Java SDK:
 ## 7. Interview Questions (Senior Level)
 
 - How would you integrate LLM APIs into an existing Spring Boot microservice?
+
+  **Answer:** Two approaches: (1) Sidecar/internal service — call a FastAPI Python service from Spring Boot via WebClient. Spring handles business logic, auth, DB; FastAPI handles LLM orchestration, RAG, and agent logic. Clean separation, team specialization, independent scaling. (2) Direct Java SDK — use the OpenAI Java SDK or Spring AI to call the LLM API directly from Spring Boot. Simpler deployment, no second service, but sacrifices the Python LLM ecosystem (LangGraph, RAGAS, etc.). For AstroIntel-level complexity (multi-agent, LangGraph state machine), the sidecar pattern is clearly better. For simple single LLM calls (classify a support ticket, generate an email draft), direct Java SDK is sufficient.
+
 - How does Resilience4j circuit breaker apply to LLM API calls?
+
+  **Answer:** Apply `@CircuitBreaker` on the method that calls the LLM API. Configure failure rate threshold (e.g., 50% failures in a 10-call sliding window triggers OPEN state), wait duration in OPEN (60 seconds), and permitted calls in HALF_OPEN (2 probe calls). The fallback method returns a cached response, a static default, or a "service temporarily unavailable" message. For token-specific errors (rate limit 429), use `@Retry` with exponential backoff before the circuit breaker evaluates — retried calls that ultimately succeed don't count as failures. This is identical to Resilience4j protecting any slow or fallible downstream service — the LLM API is just another external dependency.
+
 - Why use WebClient (reactive) instead of RestTemplate for LLM calls?
+
+  **Answer:** LLM calls take 2-30 seconds — blocking a thread for that duration with RestTemplate ties up a thread from Spring's thread pool for the entire wait. Under concurrent load (20 users × 15-second LLM calls = 20 blocked threads), this exhausts a typical thread pool quickly. WebClient with Project Reactor doesn't block threads — the call is registered as a future and the thread is released to handle other requests. When the LLM responds, Reactor picks up any available thread to process the result. For SSE streaming from the LLM: WebClient's `.bodyToFlux(String.class)` streams each token as it arrives, which RestTemplate cannot do. WebClient is the Spring-native approach for any IO-bound call that might be slow.
+
 - How do you handle long-running AI tasks in a Spring Boot endpoint?
+
+  **Answer:** `@Async` with a `CompletableFuture` return type, backed by a dedicated thread pool (`ThreadPoolTaskExecutor`). The HTTP endpoint accepts the request, submits the task to the async executor, and returns immediately with a `202 Accepted` and a `task_id`. A separate `GET /tasks/{task_id}/status` endpoint polls the result stored in Redis by the async worker. This is equivalent to Python's Celery + FastAPI pattern — the conceptual model is identical, just different language. For streaming progress back to the client: use Spring's `SseEmitter` — the async worker emits events as each stage completes, and the client receives them via SSE without polling.
+
 - What's the Spring Boot equivalent of Python's async/await for LLM calls?
+
+  **Answer:** Project Reactor's `Mono` and `Flux` are the Spring Boot equivalent. `Mono<String>` = a single async value (like Python's `Awaitable[str]`). `Flux<String>` = a stream of values (like Python's `AsyncGenerator[str]`). `WebClient` returns `Mono` or `Flux` natively. To run parallel LLM calls (like `asyncio.gather`): `Mono.zip(agent1Call, agent2Call, agent3Call)` runs all three in parallel and combines results when all complete — equivalent to `asyncio.gather(coro1, coro2, coro3)`. Virtual threads in Java 21+ (Project Loom) offer a third option: write blocking code that runs on virtual threads, similar to Python's async/await in behavior without the explicit reactive syntax.
 
 ---
 

@@ -426,10 +426,24 @@ Shadow evaluation (eval after deploy):
 ## 7. Interview Questions (Senior Level)
 
 - How does your Jenkins/GitHub Actions experience apply to AI CI/CD?
+
+  **Answer:** The pipeline structure transfers directly: lint → unit test → build → deploy. The AI-specific addition is an eval gate between build and deploy — instead of just code coverage, I add a RAGAS quality gate that runs 20-50 known test queries through the pipeline and validates faithfulness and answer relevancy against thresholds. Secrets management is the same: OpenAI API keys in GitHub Secrets, injected as environment variables, never in code or Docker images. Rollback is the same: if the eval gate fails, the PR is blocked; if a production canary degrades, roll back to the previous image tag. The discipline is identical — what changes is the test assertions.
+
 - What is an eval gate and why does AI deployment need one?
+
+  **Answer:** An eval gate is a CI step that runs automated quality evaluation on the AI pipeline before allowing a deployment to proceed. Traditional code tests verify correctness via assertions — an AI eval gate verifies quality via RAGAS metrics or LLM-as-judge scores on a fixed test set. AI needs this because prompt changes, model version updates, and document changes can silently degrade output quality without triggering any unit test or type checker. A change that looks correct in code review (rewording a system prompt for clarity) can drop faithfulness from 0.92 to 0.78 — invisible without the eval gate. In CI, I run 30-50 fixed question-answer pairs through the pipeline and fail the build if RAGAS faithfulness drops below 0.85.
+
 - How do you version prompts and model IDs in a production system?
+
+  **Answer:** Prompts as text files in the repository under `prompts/v{N}/task_name_system.txt`. The active version is a config value (`PROMPT_VERSION = "v2"`), not hardcoded in business logic. Model IDs pinned to dated versions (`gpt-4o-mini-2024-07-18`, never `gpt-4o-mini`). Docker image tag encodes all three: `{service}:{git-sha}-p{prompt_version}-m{model_date}`. This means any production issue is traceable to a specific code commit, prompt version, and model version. Rolling back is a matter of deploying the previous image tag — no separate config change needed.
+
 - What is a canary deployment for an AI service?
+
+  **Answer:** Route a small percentage (5-10%) of live traffic to the new version while the remaining 90-95% stays on the stable version. Monitor quality metrics (faithfulness score, RAGAS relevancy, user thumbs-up rate) on both canary and stable for 24-48 hours. If canary metrics are equal to or better than stable, promote to 100%. If canary degrades, shift 100% back to stable. The key difference from a traditional service canary: latency and error rate are not sufficient signals — a prompt change can produce 200 OK responses at the same latency while silently degrading answer quality. You need quality metrics (faithfulness, user satisfaction) as the canary success criteria, not just infrastructure metrics.
+
 - How do you test an LLM-based service without making real API calls in CI?
+
+  **Answer:** Three techniques: (1) Mock the LLM client — inject a mock that returns pre-recorded responses for known test prompts. This tests all application logic (chunking, retrieval, prompt construction, response parsing) without API costs. (2) Recorded responses (VCR pattern) — record real API responses once, replay them in subsequent test runs. Tests are deterministic and fast. (3) Local model for integration tests — run Ollama with a small model (Llama 3.2 3B) as a test-time LLM. Responses aren't GPT-4o quality but the pipeline behavior is testable end-to-end. For the eval gate specifically: use real API calls on a nightly schedule (not every PR) to control cost while still catching quality regressions regularly.
 
 ---
 

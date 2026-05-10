@@ -168,10 +168,24 @@ Sweet spot (90 seconds):
 ## 7. Interview Questions (Senior Level)
 
 - Walk me through AstroIntel's architecture.
+
+  **Answer:** AstroIntel is a multi-agent astrology analysis system. A user submits their birth profile and a question — the request enters a LangGraph StateGraph. Five domain agents (sun sign, moon, rising, planetary aspects, houses) run in parallel via ThreadPoolExecutor, each producing a structured JSON analysis. A consensus agent aggregates their outputs into a unified insight. An admin review interrupt allows a human to approve or modify the analysis before the final response is delivered. The pipeline uses Redis pub/sub for SSE streaming, so the user sees partial results as each agent completes rather than waiting for all five. The architecture was designed to handle the 3-4 second LLM latency per agent — running them sequentially would take 15-20 seconds, parallel brings it under 5.
+
 - What was the hardest technical decision you made in this project?
+
+  **Answer:** The hardest decision was the state schema design for the LangGraph interrupt/resume mechanism. Human-in-the-loop interruption requires the graph to pause mid-execution and resume later — potentially after the process restarts. The state had to be serializable to SQLite via SqliteSaver at every node boundary. I chose an append-only state design: each agent writes only its own key, never overwrites prior keys. This meant any node could resume from a checkpoint without corrupting what other agents had already written. The alternative — a single mutable result dict — was simpler to build but impossible to safely checkpoint across agent boundaries.
+
 - What would you change if you had to rebuild it today?
+
+  **Answer:** Two things. First, I would add RAGAS evaluation as part of the pipeline — faithfulness and answer relevancy scores generated alongside every response, written to a metrics table. This gives continuous quality monitoring from day one rather than retrofitting it later. Second, I would separate the admin review interrupt into its own microservice with a proper queue (SQS or Redis streams) rather than keeping it in-process. In-process interrupts are fragile under load — if the process restarts during a pause, the interrupt state is recoverable from SqliteSaver but the in-memory signal is lost. A queue-backed interrupt is more operationally robust.
+
 - How would this scale to 10,000 daily users?
+
+  **Answer:** At 10,000 daily users, assuming peak concurrency of 200 simultaneous analyses, the bottleneck is the five parallel LLM calls per request (200 × 5 = 1,000 concurrent OpenAI requests). Mitigation: semantic caching at the Redis layer — birth profiles repeat in patterns, and similar queries can reuse cached agent outputs (cache key = birth profile hash + question embedding similarity). For the compute layer: ECS Fargate auto-scales horizontally — at 70% CPU, add tasks. The Celery worker pool scales on SQS queue depth for async analyses. Vector store (pgvector) handles the embedding queries with HNSW indexing. The real cost driver at 10K users is OpenAI API spend — semantic cache hit rate is the primary cost control lever.
+
 - What monitoring would you add to make this production-ready?
+
+  **Answer:** Four layers. (1) Business metrics: analysis completion rate, agent failure rate by agent type, interrupt resolution time. (2) AI quality metrics: RAGAS faithfulness per agent and per consensus output, sampled at 10% of production requests; alert when faithfulness drops below 0.75 across a 1-hour window. (3) Infrastructure metrics: LLM API latency (p50/p95/p99), token cost per request, circuit breaker state transitions, queue depth for async jobs. (4) Cost monitoring: daily token spend by model (GPT-4o vs GPT-4o-mini), with budget alerts at 80% of monthly cap. All metrics to CloudWatch custom metrics; faithfulness scores to a PostgreSQL `analysis_quality` table for trend analysis. PagerDuty alert on: faithfulness below threshold, error rate above 5%, or daily cost exceeding budget.
 
 ---
 

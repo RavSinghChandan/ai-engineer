@@ -328,10 +328,24 @@ Decision: SageMaker for teams new to ML serving. ECS + vLLM for teams with conta
 ## 7. Interview Questions (Senior Level)
 
 - How would you deploy AstroIntel on AWS?
+
+  **Answer:** ECS Fargate with Application Load Balancer. Two Fargate services: `astro-api` (FastAPI + LangGraph pipeline, 2 vCPU / 4GB, 2 tasks minimum) and `astro-worker` (Celery workers for async analysis jobs, same sizing, auto-scales on queue depth). ALB in front of `astro-api` with target group health checks on `GET /health`. Redis via ElastiCache (SSE pub/sub, semantic cache). Postgres via RDS for session data and LangGraph checkpoints. OpenAI API key in SSM Parameter Store, injected as ECS task secret. CloudWatch for logs and custom metrics (faithfulness score, token cost per run). S3 for audit log storage. Total infrastructure cost at demo scale: ~$50-80/month.
+
 - What instance type would you use for self-hosted LLM inference?
+
+  **Answer:** For a 7B parameter model (Llama 3.1 8B, Mistral 7B): `g4dn.xlarge` — 1× NVIDIA T4 GPU, 16GB VRAM, $0.53/hr on-demand. At float16 precision a 7B model fits in ~14GB VRAM with 2GB left for KV cache. For a 13B model or higher throughput: `g4dn.2xlarge` (still 1× T4, more CPU/RAM, $0.75/hr) or `g5.xlarge` (A10G GPU, 24GB VRAM, $1.01/hr). For 70B models: `p3.8xlarge` (4× V100, 64GB total VRAM) or multi-GPU `g5.12xlarge`. The break-even vs OpenAI API for a 7B model on g4dn.xlarge: ~24/hr × $0.53 = $12.72/day fixed vs OpenAI at $0.15/1M input tokens — break-even at approximately 85M tokens/day.
+
 - How do you manage API keys in an ECS Fargate deployment?
+
+  **Answer:** API keys are stored in AWS SSM Parameter Store (SecureString type, encrypted at rest by KMS). The ECS task definition references them as secrets: `{"name": "OPENAI_API_KEY", "valueFrom": "arn:aws:ssm:region:account:parameter/prod/openai-api-key"}`. ECS pulls the value from SSM at task startup using the task execution role's IAM permission (`ssm:GetParameters`). Keys are never in the Docker image, never in environment variable plaintext in the task definition, and never in source control. Key rotation: update the SSM parameter, restart the ECS tasks — they pick up the new value on next start. Same pattern in GCP: Secret Manager + Cloud Run's `--set-secrets` flag.
+
 - How do you handle SSE (streaming) with Cloud Run?
+
+  **Answer:** Cloud Run's default HTTP request timeout is 60 seconds — SSE connections for LLM streaming can last 30-120 seconds. Set `timeoutSeconds: 300` in the Cloud Run service configuration. Set `cpu-throttling: false` so the container gets consistent CPU between token emissions (default throttling can cause uneven streaming). Set `max-instances` high enough to handle concurrent SSE connections — each SSE stream holds one container instance busy for the duration. On the FastAPI side: no changes needed from the standard SSE implementation. On the client side: ensure the load balancer or CDN in front doesn't buffer SSE — Cloud Run's built-in HTTPS endpoints don't buffer, but a custom CDN in front might.
+
 - What is the cost difference between Fargate and a reserved EC2 instance for an AI service?
+
+  **Answer:** Fargate at AstroIntel scale (2 tasks, 2 vCPU / 4GB each): ~2 × 2 vCPU × $0.04048/vCPU-hr + 2 × 4GB × $0.004445/GB-hr × 730 hrs/month ≈ $110-130/month. Reserved EC2 t3.medium (2 vCPU, 4GB, 1-year reserved): ~$21/month. Fargate is ~5× more expensive per compute unit. Fargate wins on: no server management, scales to zero (if configured), no patching, no capacity planning. EC2 wins on: cost efficiency at sustained load, predictable capacity, ability to run GPU instances for self-hosted LLMs. Decision rule: use Fargate for demo/startup phase or variable traffic. Switch to reserved EC2 when you have sustained predictable load and the cost difference justifies operational overhead.
 
 ---
 
