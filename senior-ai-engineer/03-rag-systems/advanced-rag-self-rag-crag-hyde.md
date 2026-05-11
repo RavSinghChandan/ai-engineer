@@ -208,14 +208,41 @@ HyDE application:
 The LangChain service handles queries about technical documentation. User asks "connection pool error spring boot" — a terse developer query. The document might say "Configure the maximum number of pooled connections using spring.datasource.hikari.maximum-pool-size". These have different embeddings.
 HyDE would generate "A connection pool error in Spring Boot typically occurs when HikariCP exhausts the maximum-pool-size..." — this hypothetical answer matches the documentation style much better.
 
-Multi-query application:
-AstroIntel could benefit if it had a document RAG layer. A question like "when will I get married?" would generate variants:
-- "Marriage timing prediction in Vedic astrology"
-- "Transit aspects indicating marriage"
-- "Dasha periods associated with relationship"
-Multi-query ensures all relevant astrological literature is retrieved, not just documents that match the literal phrasing.
+Multi-query application — implemented in AstroIntel:
+AstroIntel uses keyword-based intent classification (question_agent.py → _classify()). The problem: abstractly phrased questions like "Will my ventures prosper?" have zero keyword overlap with the career intent bucket — keyword-only returns confidence=low. Multi-Query RAG is applied at the question normalization step: before _classify() runs, an LLM generates 2 semantic variants of the question, all 3 are classified, and the highest-confidence result wins. On "Will my ventures prosper?", keyword-only returned confidence=low but multi-query returned confidence=medium.
 
-In interview: "I know these advanced patterns and would apply them selectively. HyDE when query-document style mismatch is measured. Multi-query when single-query recall is below target. I would not apply all of them by default — each adds latency and complexity that must be justified by measured quality improvement."
+AstroIntel implementation (implemented):
+- `astro-intel-backend/rag/multi_query.py` — standalone module, no vector DB, applies Multi-Query RAG to intent classification
+  - `_generate_variants(question)`: DeepSeek call, max_tokens=80, temperature=0, returns 2 semantic variants
+  - `multi_query_classify(question)`: classifies original + variants, returns highest-confidence result
+  - Graceful fallback: if LLM unavailable, falls back to single-query keyword _classify()
+- `astro-intel-backend/agents/question_agent.py` — additive integration: tries to import `multi_query_classify`, falls back to `_classify` on ImportError; core _classify() and normalize_questions() completely unchanged
+- UI: agent-flow graph Node 1 sub-label updated to "Multi-Query RAG · Normalize · Intent"; amber RAG annotation box added to the right of Node 1 in SVG; pipeline ticker updated; header shows "Multi-Query RAG" in subtitle
+
+Test results (5/5 PASS):
+- Clear questions classify correctly at high/medium confidence (unchanged behavior)
+- Multi-question split still works correctly
+- Ambiguous query "Will my ventures prosper in life?" — keyword confidence=low → multi-query confidence=medium
+- _classify() still exported and works standalone as a fallback
+
+Bench Resource Optimizer — advanced RAG pipeline (implemented):
+BRO uses a full enterprise advanced RAG stack in `rag/advanced_retrieval.py` wired into `agents/role_mapping_agent.py`.
+- HyDE (`generate_hypothetical_doc`): LLM generates a hypothetical role description first; its embedding matches role document style better than the terse manager query. System prompt now version-controlled via `prompts/v1/hyde.txt` (ACTIVE_VERSIONS["hyde"]) — prompt A/B testing without code deploy.
+- BM25 (`BM25Index`): in-memory sparse retrieval; catches exact skill names like "RabbitMQ", "NestJS" that dense embeddings miss.
+- Hybrid search (`hybrid_retrieve`): FAISS dense + BM25 sparse → Reciprocal Rank Fusion merge → cross-encoder reranker → top-N final.
+- CRAG (`crag_retrieve`): scores retrieval quality (lexical overlap 0–1); score ≥ 0.5 = HIGH, 0.25–0.5 = AMBIGUOUS (supplement with fallback), < 0.25 = POOR (use fallback only).
+- Cross-encoder reranker (`CrossEncoderReranker`): re-orders top-20 candidates → top-3; position-weighted keyword overlap (production replacement: sentence-transformers cross-encoder/ms-marco-MiniLM-L-6-v2).
+- UI: RAG Planner node (NODE 4) now shows 4 amber badges: HyDE · BM25 · RRF · CRAG; click → description shows full pipeline detail; header updated to show "HyDE · BM25+FAISS+RRF · CRAG".
+
+Test results (6/6 PASS):
+- HyDE versioned prompt loads from prompts/v1/hyde.txt
+- HyDE user template has {role_title} placeholder
+- CRAG score: relevant doc = 1.00, irrelevant doc = 0.00
+- BM25 index: Java query → Java doc ranks first
+- ACTIVE_VERSIONS consistent across all agents
+- All 4 BRO versioned prompts load cleanly
+
+In interview: "I know these advanced patterns and would apply them selectively. HyDE when query-document style mismatch is measured. Multi-query when single-query recall is below target. I would not apply all of them by default — each adds latency and complexity that must be justified by measured quality improvement. In AstroIntel I applied Multi-Query RAG to intent classification — not document retrieval — because the failure mode was abstractly-phrased questions that keyword classifiers missed, and the fix required no vector DB or embeddings. In BRO I applied the full stack (HyDE + hybrid + CRAG + reranker) because the problem is a real retrieval quality gap: manager query style vs CV document style are semantically distant."
 
 ---
 

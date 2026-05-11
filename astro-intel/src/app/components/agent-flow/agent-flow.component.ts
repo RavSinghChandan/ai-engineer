@@ -51,7 +51,7 @@ const NODES: GNode[] = [
     stepIds: ['security'], color: '#dc2626', x: CX, y: Y_SEC, r: 44 },
 
   /* ── Node 1 — question_agent ──────────────────────── */
-  { id: 'q', label: 'Question Agent', sub: 'Normalize · Classify · Intent', icon: '🧩',
+  { id: 'q', label: 'Question Agent', sub: 'Multi-Query RAG · Normalize · Intent', icon: '🧩',
     stepIds: ['question'], color: '#f59e0b', x: CX, y: Y_NODE1, r: 44 },
 
   /* ── Node 2 — domain_agents (fan-out display) ─────── */
@@ -130,7 +130,7 @@ const NM = new Map(NODES.map(n => [n.id, n]));
 /* Backend node labels in execution order (for the live ticker) */
 const PIPELINE_STEPS: { id: string; label: string }[] = [
   { id: 'security',  label: 'Node 0 · Security Check — injection detection, jailbreak guard, audit logging (Layer 1–4)' },
-  { id: 'question',  label: 'Node 1 · Question Agent — normalizing & classifying intent' },
+  { id: 'question',  label: 'Node 1 · Question Agent — Multi-Query RAG: 2 variants → best-confidence intent classification' },
   { id: 'domain',    label: 'Node 2 · Domain Agents — Astrology · Numerology · Palmistry · Tarot · Vastu running in parallel' },
   { id: 'meta',      label: 'Node 3 · Meta Agent — merging cross-tradition insights & resolving conflicts' },
   { id: 'remedy',    label: 'Node 4 · Remedy Agent — generating habits, mantras, colors & gemstones' },
@@ -155,7 +155,7 @@ const PIPELINE_STEPS: { id: string; label: string }[] = [
     <div class="af-bar-left">
       <span class="af-dot" [class.af-dot-live]="anyRunning()"></span>
       <span class="af-title">Agent Pipeline</span>
-      <span class="af-sub">8 Nodes · 4-Layer Security · 5 Traditions · 22 Languages · Prompt v1/v2 · LangGraph Orchestration</span>
+      <span class="af-sub">8 Nodes · 4-Layer Security · Multi-Query RAG · 5 Traditions · 22 Languages · Prompt v1/v2 · LangGraph</span>
     </div>
     <div class="af-bar-right">
       @if (orch.cacheHit()) {
@@ -269,6 +269,27 @@ const PIPELINE_STEPS: { id: string; label: string }[] = [
             fill="rgba(99,102,241,0.065)"/>
       <text [attr.x]="CX" [attr.y]="Y_NODE1 - 51" class="guard-lbl" text-anchor="middle">
         🛡 Guardrails · SECURITY_HEADER/FOOTER injected · Output Validation · Hallucination Check · Retry / Fallback
+      </text>
+
+      <!-- Multi-Query RAG annotation (Node 1 — question_agent sub-step) -->
+      <rect x="560" [attr.y]="Y_NODE1 - 46" width="220" height="68" rx="9"
+            fill="rgba(245,158,11,0.06)" stroke="rgba(245,158,11,0.3)"
+            stroke-width="1" stroke-dasharray="4 3"/>
+      <text [attr.x]="670" [attr.y]="Y_NODE1 - 30" class="zone-lbl"
+            text-anchor="middle" style="fill:rgba(180,113,9,0.75);font-size:8.5px;font-weight:700">
+        Multi-Query RAG
+      </text>
+      <text [attr.x]="670" [attr.y]="Y_NODE1 - 16" class="zone-lbl"
+            text-anchor="middle" style="fill:rgba(180,113,9,0.6);font-size:7.5px">
+        LLM → 2 query variants
+      </text>
+      <text [attr.x]="670" [attr.y]="Y_NODE1 - 3" class="zone-lbl"
+            text-anchor="middle" style="fill:rgba(180,113,9,0.6);font-size:7.5px">
+        Best confidence wins
+      </text>
+      <text [attr.x]="670" [attr.y]="Y_NODE1 + 12" class="zone-lbl"
+            text-anchor="middle" style="fill:rgba(180,113,9,0.5);font-size:7px">
+        Fallback: keyword classifier
       </text>
 
       <!-- Parallel zone band -->

@@ -2,6 +2,11 @@
 STEP 1 — Question Normalization Agent
 Accepts single question string OR list of questions.
 Breaks each into an atomic normalised record with intent classification.
+
+RAG Pattern (Module 3 — Multi-Query RAG):
+  multi_query_classify() wraps _classify() to generate 2 semantic variants
+  of each question and return the highest-confidence classification across
+  all variants. Falls back to single-query _classify() if LLM is unavailable.
 """
 from __future__ import annotations
 import re
@@ -185,9 +190,15 @@ def normalize_questions(raw_questions: List[str], single_question: str) -> List[
     if not all_q:
         all_q = ["Please give me a general life overview."]
 
+    # Import Multi-Query RAG wrapper — falls back to _classify() if LLM unavailable
+    try:
+        from rag.multi_query import multi_query_classify as _classify_fn
+    except ImportError:
+        _classify_fn = _classify
+
     normalized = []
     for idx, q in enumerate(all_q):
-        classification = _classify(q)
+        classification = _classify_fn(q)
         normalized.append({
             "question":          q,
             "intent":            classification["intent"],

@@ -50,7 +50,7 @@ const GRAPH_NODES: GNode[] = [
     row: 4, col: 0, color: '#0ea5e9', nodeTag: 'NODE 3', api: 'POST /map-role', type: 'agent' },
 
   // ── Row 5: RAG Planner ────────────────────────────────────────────────────
-  { id: 'rag',      label: 'RAG Planner',    icon: '⟳',  sub: 'BM25 · FAISS · HyDE · RRF',
+  { id: 'rag',      label: 'RAG Planner',    icon: '⟳',  sub: 'HyDE · BM25+FAISS · RRF · CRAG',
     row: 5, col: 0, color: '#f59e0b', nodeTag: 'NODE 4', api: 'POST /generate-plan', type: 'agent' },
 
   // ── Row 6: Quality Gate ───────────────────────────────────────────────────
@@ -147,7 +147,7 @@ const API_CALLS: { step: number; method: string; path: string; body: any }[] = [
       <span class="ag-icon">⬡</span>
       <div>
         <h1>Agent Graph</h1>
-        <p>Bench Resource Optimizer · 4-Layer Security · Live execution trace · DeepSeek LLM · FAISS RAG · FastAPI</p>
+        <p>Bench Resource Optimizer · 4-Layer Security · HyDE · BM25+FAISS+RRF · CRAG · Prompt v1/v2 · FastAPI</p>
       </div>
     </div>
     <div class="ag-actions">
@@ -287,12 +287,18 @@ const API_CALLS: { step: number; method: string; path: string; body: any }[] = [
     <!-- Row 5: RAG Planner -->
     <div class="graph-row row-single">
       @for (n of row(5); track n.id) {
-        <div class="agent-node" [class.gn-active]="isActive(n.id)" [class.gn-done]="isDone(n.id)" [style.--nc]="n.color"
+        <div class="agent-node rag-node" [class.gn-active]="isActive(n.id)" [class.gn-done]="isDone(n.id)" [style.--nc]="n.color"
              (click)="selectNode(n)">
           @if (n.nodeTag) { <div class="node-tag">{{ n.nodeTag }}</div> }
           <div class="an-icon">{{ n.icon }}</div>
           <div class="an-label">{{ n.label }}</div>
           <div class="an-sub">{{ n.sub }}</div>
+          <div class="rag-layers">
+            <span class="rag-badge">HyDE</span>
+            <span class="rag-badge">BM25</span>
+            <span class="rag-badge">RRF</span>
+            <span class="rag-badge">CRAG</span>
+          </div>
           @if (n.api) { <div class="an-api">{{ n.api }}</div> }
           @if (isActive(n.id)) { <div class="an-pulse-ring"></div> }
         </div>
@@ -496,6 +502,20 @@ const API_CALLS: { step: number; method: string; path: string; body: any }[] = [
       font-size: 9px; font-weight: 700; padding: 2px 6px;
       background: rgba(220,38,38,0.09); color: #b91c1c;
       border: 1px solid rgba(220,38,38,0.2); border-radius: 99px;
+    }
+
+    /* ── RAG Planner node ───────────────────────────────────────────────── */
+    .rag-node {
+      border-color: rgba(245,158,11,0.35) !important;
+      background: rgba(245,158,11,0.04) !important;
+    }
+    .rag-layers {
+      display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; margin-top: 4px;
+    }
+    .rag-badge {
+      font-size: 9px; font-weight: 700; padding: 2px 6px;
+      background: rgba(245,158,11,0.10); color: #92400e;
+      border: 1px solid rgba(245,158,11,0.25); border-radius: 99px;
     }
 
     /* ── Graph canvas ────────────────────────────────────────────────────── */
@@ -780,7 +800,7 @@ export class AgentGraphComponent implements OnDestroy {
       'data':     'Scores the candidate against Data Science requirements: Python, ML, Pandas, model deployment.',
       'fullstack':'Scores the candidate against Full Stack requirements: Angular, Node, REST, databases.',
       'role-map': 'FAISS similarity_search(target_role, k=3) retrieves role requirements. DeepSeek compares candidate skills — returns match%, missing_skills, recommendation.',
-      'rag':      'Hybrid RAG: BM25 + FAISS retrieval with RRF fusion. HyDE generates a hypothetical document to improve embedding quality. CRAG scores chunk quality.',
+      'rag':      'Advanced RAG pipeline (Module 3): HyDE generates a hypothetical role description so the embedding query matches document style. BM25 (sparse) + FAISS (dense) run in parallel. RRF merges both ranked lists. CRAG scores retrieval quality — if score < 0.5, fallback context is injected. Cross-encoder reranker re-orders top-20 → top-3. HyDE system prompt is version-controlled via prompts/v1/hyde.txt (ACTIVE_VERSIONS["hyde"]).',
       'judge':    'Second LLM call scores the plan on Relevance · Completeness · Accuracy · Actionability (1–5). Average ≥ 3.5 passes quality gate.',
       'plan-out': 'Two-phase async planner: 1 LLM call for N day themes, then N parallel asyncio.gather() calls for tasks. Injects internal:// resource URIs.',
       'cache':    'L1 cache: SHA-256 exact hash (1h TTL). L2 cache: cosine similarity ≥ 0.92 (30min TTL). Avoids redundant DeepSeek calls.',

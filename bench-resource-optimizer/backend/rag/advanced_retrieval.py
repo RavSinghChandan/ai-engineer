@@ -39,23 +39,29 @@ logger = logging.getLogger("bench.rag")
 
 
 # ── 1. HyDE — Hypothetical Document Embeddings ───────────────────────────────
+# System prompt is now version-controlled via prompts/v1/hyde.txt (Module 6 — prompt versioning).
+# Switch version: ACTIVE_VERSIONS["hyde"] in utils/prompts.py — no code deploy needed.
 
-HYDE_PROMPT = """You are a technical job specification writer.
-Write a 3-sentence role requirement description for: {role_title}
-Focus on: required technical skills, experience level, key responsibilities.
-Write in the style of a job description, not a question. Be specific."""
+_HYDE_USER_TEMPLATE = (
+    "Write a 3-sentence role requirement description for: {role_title}\n"
+    "Focus on: required technical skills, experience level, key responsibilities.\n"
+    "Write in the style of a job description, not a question. Be specific."
+)
 
 
 def generate_hypothetical_doc(role_title: str, llm) -> str:
     """
     Generate a hypothetical role description to use as retrieval query.
     Answers find answers — hypothetical doc embedding matches real doc style better.
+    System prompt loaded from versioned prompt file (prompts/v1/hyde.txt or v2).
     """
     from langchain.prompts import ChatPromptTemplate
-    from utils.json_parser import parse_llm_json
+    from prompts.loader import load_system_prompt
 
+    hyde_system = load_system_prompt("hyde")
     prompt = ChatPromptTemplate.from_messages([
-        ("human", HYDE_PROMPT),
+        ("system", hyde_system),
+        ("human",  _HYDE_USER_TEMPLATE),
     ])
     bounded = llm.bind(max_tokens=120)
     chain   = prompt | bounded
