@@ -179,7 +179,36 @@ This is production prompt engineering:
 - Versioned: if an agent's prompt needs updating, only that agent is touched
 - Tested: before deploying a new system prompt, run it against 20 sample inputs and compare output quality
 
-In interview: "We did not use one generic prompt for everything. Each agent had a versioned, domain-specific system prompt. This reduced hallucination and gave us consistent JSON output the consensus layer could parse reliably."
+**AstroIntel — versioned prompt folder system (implemented):**
+
+Refactored all hardcoded system prompt strings out of `agents/agent_prompts.py` into a versioned file structure:
+
+```
+astro-intel-backend/
+  prompts/
+    loader.py          ← load_system_prompt(agent, version) with LRU cache + v1 fallback
+    v1/                ← warm, exploratory style (11 agents)
+      astrology.txt  numerology.txt  tarot.txt  palmistry.txt  vastu.txt
+      meta.txt  remedy.txt  admin_review.txt  report.txt  simplify.txt  question.txt
+    v2/                ← laser-sharp, direct, conversion-focused (11 agents)
+      astrology.txt  numerology.txt  meta.txt  report.txt  simplify.txt
+      (+ v1 copies for agents with no v2 variant — tarot, palmistry, vastu, remedy, admin_review)
+```
+
+Version switch: `agents/prompt_config.py` → `ACTIVE_PROMPT_VERSION = "v1" | "v2"` — one line change switches all agents simultaneously. Per-agent override also supported: `AGENT_VERSION_OVERRIDES = {"meta": "v2"}`.
+
+`prompts/loader.py` — `load_system_prompt(agent, version)`:
+- Reads `prompts/{version}/{agent}.txt` from disk
+- Graceful fallback: if v2 file does not exist, silently uses v1
+- `@lru_cache(maxsize=64)` — file is read once at startup, cached in-process for zero disk I/O on every LLM call
+- Restart server to pick up prompt edits — no code change, no redeploy of logic
+
+`agents/agent_prompts.py` — every `"system": f"""..."""` replaced with `load_system_prompt("agent")`. All `user_template` strings (which contain `{placeholders}` for `.format()`) stay in Python — unchanged.
+
+Agents with separate v1/v2 variants: `astrology`, `numerology`, `meta`, `report`, `simplify`.
+Agents with single prompt (same in both versions): `question`, `tarot`, `palmistry`, `vastu`, `remedy`, `admin_review`.
+
+In interview: "We did not use one generic prompt for everything. Each agent had a versioned, domain-specific system prompt. This reduced hallucination and gave us consistent JSON output the consensus layer could parse reliably. The prompts live in a versioned folder — `prompts/v1/` and `prompts/v2/` — so switching between warm exploratory tone and laser-sharp conversion tone is a one-line config change in `prompt_config.py`. Prompt edits never require a code change or logic redeploy."
 
 ---
 
