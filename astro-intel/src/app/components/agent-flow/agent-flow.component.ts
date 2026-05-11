@@ -24,15 +24,16 @@ const CX = W / 2;
 
 /* Y positions — each layer needs: circle(r=44) + sub-text(~18px) + gap(30px) = ~92px min */
 const Y_INPUT   =   70;
-const Y_NODE1   =  200;   // question_agent
-const Y_NODE2   =  390;   // domain_agents (parallel fan-out display)
-const Y_NODE3   =  590;   // meta_agent
-const Y_NODE4   =  740;   // remedy_agent
-const Y_NODE5   =  895;   // admin_review_agent
-const Y_NODE6A  = 1055;   // report_agent   (post-approve)
-const Y_NODE6B  = 1055;   // simplify_agent (post-approve)
-const Y_NODE7   = 1215;   // translation_agent (optional, on-demand)
-const Y_OUT     = 1375;   // END
+const Y_SEC     =  200;   // security_check (NEW Node 0 — LangGraph entry point)
+const Y_NODE1   =  360;   // question_agent
+const Y_NODE2   =  550;   // domain_agents (parallel fan-out display)
+const Y_NODE3   =  750;   // meta_agent
+const Y_NODE4   =  900;   // remedy_agent
+const Y_NODE5   = 1055;   // admin_review_agent
+const Y_NODE6A  = 1215;   // report_agent   (post-approve)
+const Y_NODE6B  = 1215;   // simplify_agent (post-approve)
+const Y_NODE7   = 1375;   // translation_agent (optional, on-demand)
+const Y_OUT     = 1535;   // END
 
 const H = Y_OUT + 55;
 
@@ -44,6 +45,10 @@ const NODES: GNode[] = [
   { id: 'inp-profile',  label: 'User Profile',   sub: 'Name · DOB · Time · Place',        icon: '👤', stepIds: [],                                               color: '#6366f1', x: CX - 200, y: Y_INPUT, r: 36 },
   { id: 'inp-question', label: 'Questions',       sub: 'Topic · Intent · Focus',           icon: '💬', stepIds: [],                                               color: '#6366f1', x: CX,       y: Y_INPUT, r: 36 },
   { id: 'inp-prompt',   label: 'Prompt Style',    sub: 'v1 Warm · v2 Laser-Sharp',         icon: '⚡', stepIds: [],                                               color: '#818cf8', x: CX + 200, y: Y_INPUT, r: 36 },
+
+  /* ── Node 0 — security_check (LangGraph entry point) ─ */
+  { id: 'security', label: 'Security Check', sub: 'Inject · Jailbreak · Leak · Audit', icon: '🛡',
+    stepIds: ['security'], color: '#dc2626', x: CX, y: Y_SEC, r: 44 },
 
   /* ── Node 1 — question_agent ──────────────────────── */
   { id: 'q', label: 'Question Agent', sub: 'Normalize · Classify · Intent', icon: '🧩',
@@ -89,10 +94,12 @@ const NODES: GNode[] = [
 ];
 
 const EDGES: GEdge[] = [
-  /* inputs → question agent */
-  { from: 'inp-profile',  to: 'q' },
-  { from: 'inp-question', to: 'q' },
-  { from: 'inp-prompt',   to: 'q', label: 'prompt_v' },
+  /* inputs → security_check (new LangGraph entry point) */
+  { from: 'inp-profile',  to: 'security' },
+  { from: 'inp-question', to: 'security' },
+  { from: 'inp-prompt',   to: 'security', label: 'prompt_v' },
+  /* security_check → question_agent */
+  { from: 'security', to: 'q', label: 'validated' },
   /* question agent → all 5 domain agents */
   { from: 'q', to: 'astro', label: 'intent[]' },
   { from: 'q', to: 'num' },
@@ -122,6 +129,7 @@ const NM = new Map(NODES.map(n => [n.id, n]));
 
 /* Backend node labels in execution order (for the live ticker) */
 const PIPELINE_STEPS: { id: string; label: string }[] = [
+  { id: 'security',  label: 'Node 0 · Security Check — injection detection, jailbreak guard, audit logging (Layer 1–4)' },
   { id: 'question',  label: 'Node 1 · Question Agent — normalizing & classifying intent' },
   { id: 'domain',    label: 'Node 2 · Domain Agents — Astrology · Numerology · Palmistry · Tarot · Vastu running in parallel' },
   { id: 'meta',      label: 'Node 3 · Meta Agent — merging cross-tradition insights & resolving conflicts' },
@@ -147,7 +155,7 @@ const PIPELINE_STEPS: { id: string; label: string }[] = [
     <div class="af-bar-left">
       <span class="af-dot" [class.af-dot-live]="anyRunning()"></span>
       <span class="af-title">Agent Pipeline</span>
-      <span class="af-sub">7 Nodes · 5 Traditions · 22 Languages · Prompt v1/v2 · LangGraph Orchestration</span>
+      <span class="af-sub">8 Nodes · 4-Layer Security · 5 Traditions · 22 Languages · Prompt v1/v2 · LangGraph Orchestration</span>
     </div>
     <div class="af-bar-right">
       @if (orch.cacheHit()) {
@@ -231,6 +239,27 @@ const PIPELINE_STEPS: { id: string; label: string }[] = [
       <rect width="100%" height="100%" fill="#fafbff"/>
       <rect width="100%" height="100%" fill="url(#afGrid)"/>
 
+      <!-- Security node zone (Node 0 highlight) -->
+      <rect x="220" [attr.y]="Y_SEC - 58" width="380" height="118" rx="14"
+            fill="rgba(220,38,38,0.028)" stroke="rgba(220,38,38,0.22)"
+            stroke-width="1.2" stroke-dasharray="6 4"/>
+      <text [attr.x]="W - 44" [attr.y]="Y_SEC - 38" class="zone-lbl"
+            text-anchor="end" style="fill:rgba(220,38,38,0.55);font-size:8px">
+        Layer 1: Injection · Jailbreak
+      </text>
+      <text [attr.x]="W - 44" [attr.y]="Y_SEC - 26" class="zone-lbl"
+            text-anchor="end" style="fill:rgba(220,38,38,0.55);font-size:8px">
+        Layer 2: Prompt Hardening
+      </text>
+      <text [attr.x]="W - 44" [attr.y]="Y_SEC - 14" class="zone-lbl"
+            text-anchor="end" style="fill:rgba(220,38,38,0.55);font-size:8px">
+        Layer 3: Output Leak Detection
+      </text>
+      <text [attr.x]="W - 44" [attr.y]="Y_SEC + 50" class="zone-lbl"
+            text-anchor="end" style="fill:rgba(220,38,38,0.45);font-size:8px">
+        Layer 4: Audit Log · Rate Limit
+      </text>
+
       <!-- Guardrails band -->
       <rect x="6" [attr.y]="Y_NODE1 - 62" [attr.width]="W - 12"
             [attr.height]="Y_NODE5 - Y_NODE1 + 148" rx="14"
@@ -239,7 +268,7 @@ const PIPELINE_STEPS: { id: string; label: string }[] = [
       <rect x="6" [attr.y]="Y_NODE1 - 62" [attr.width]="W - 12" height="22" rx="14"
             fill="rgba(99,102,241,0.065)"/>
       <text [attr.x]="CX" [attr.y]="Y_NODE1 - 51" class="guard-lbl" text-anchor="middle">
-        🛡 Guardrails · Input Validation · Prompt Version Control · Safety Checks · Retry / Fallback
+        🛡 Guardrails · SECURITY_HEADER/FOOTER injected · Output Validation · Hallucination Check · Retry / Fallback
       </text>
 
       <!-- Parallel zone band -->
@@ -268,6 +297,7 @@ const PIPELINE_STEPS: { id: string; label: string }[] = [
       </text>
 
       <!-- Node lane labels -->
+      <text x="14" [attr.y]="Y_SEC"   class="lane-lbl" style="fill:rgba(220,38,38,0.55)">Node 0</text>
       <text x="14" [attr.y]="Y_NODE1" class="lane-lbl">Node 1</text>
       <text x="14" [attr.y]="Y_NODE2" class="lane-lbl">Node 2</text>
       <text x="14" [attr.y]="Y_NODE3" class="lane-lbl">Node 3</text>
@@ -524,6 +554,7 @@ export class AgentFlowComponent implements OnDestroy {
   readonly EDGES = EDGES;
   readonly W = W;
   readonly H = H;
+  readonly Y_SEC   = Y_SEC;
   readonly Y_NODE1 = Y_NODE1;
   readonly Y_NODE2 = Y_NODE2;
   readonly Y_NODE3 = Y_NODE3;
@@ -550,15 +581,16 @@ export class AgentFlowComponent implements OnDestroy {
 
     // Map individual step ID → pipeline stage label
     const id = running.id;
-    if (id === 'question') return PIPELINE_STEPS[0].label;
+    if (id === 'security') return PIPELINE_STEPS[0].label;
+    if (id === 'question') return PIPELINE_STEPS[1].label;
     if (id.startsWith('astro') || id.startsWith('num') || id.startsWith('palm') || id.startsWith('tarot') || id.startsWith('vastu'))
-      return PIPELINE_STEPS[1].label;
-    if (id === 'meta')      return PIPELINE_STEPS[2].label;
-    if (id === 'remedy')    return PIPELINE_STEPS[3].label;
-    if (id === 'admin')     return PIPELINE_STEPS[4].label;
-    if (id === 'report')    return PIPELINE_STEPS[5].label;
-    if (id === 'simplify')  return PIPELINE_STEPS[6].label;
-    if (id === 'translate') return PIPELINE_STEPS[7].label;
+      return PIPELINE_STEPS[2].label;
+    if (id === 'meta')      return PIPELINE_STEPS[3].label;
+    if (id === 'remedy')    return PIPELINE_STEPS[4].label;
+    if (id === 'admin')     return PIPELINE_STEPS[5].label;
+    if (id === 'report')    return PIPELINE_STEPS[6].label;
+    if (id === 'simplify')  return PIPELINE_STEPS[7].label;
+    if (id === 'translate') return PIPELINE_STEPS[8].label;
     return `Running: ${running.label}`;
   });
 

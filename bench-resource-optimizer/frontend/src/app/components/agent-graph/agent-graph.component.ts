@@ -30,47 +30,54 @@ const GRAPH_NODES: GNode[] = [
   { id: 'role-req', label: 'Role Requirement', icon: '👔', sub: 'Target Role · Gap Analysis',   row: 0, col: 1, color: '#6366f1', type: 'input' },
   { id: 'config',   label: 'Plan Config',      icon: '⚙️', sub: 'Days · Prompt v1 / v2',        row: 0, col: 2, color: '#6366f1', type: 'input' },
 
-  // ── Row 1: CV Parser Agent ────────────────────────────────────────────────
+  // ── Row 1: Security Gate (Node 0) ─────────────────────────────────────────
+  { id: 'security', label: 'Security Gate', icon: '🛡', sub: 'Injection · Jailbreak · Leak · Audit',
+    row: 1, col: 0, color: '#dc2626', nodeTag: 'NODE 0', api: 'run_security_check()', type: 'agent' },
+
+  // ── Row 2: CV Parser Agent ────────────────────────────────────────────────
   { id: 'cv-agent', label: 'CV Parser Agent', icon: '🧠', sub: 'Extract · Normalize · Classify',
-    row: 1, col: 0, color: '#7c3aed', nodeTag: 'NODE 1', api: 'POST /upload-cv', type: 'agent' },
+    row: 2, col: 0, color: '#7c3aed', nodeTag: 'NODE 1', api: 'POST /upload-cv', type: 'agent' },
 
-  // ── Row 2: Skill agents (parallel) ───────────────────────────────────────
-  { id: 'java',     label: 'Java Agent',     icon: '☕', sub: 'Spring · Microservices · JVM',    row: 2, col: 0, color: '#8b5cf6', nodeTag: 'NODE 2', type: 'parallel' },
-  { id: 'react',    label: 'React Agent',    icon: '⚛️', sub: 'Hooks · Redux · TypeScript',      row: 2, col: 1, color: '#8b5cf6', nodeTag: 'NODE 2', type: 'parallel' },
-  { id: 'devops',   label: 'DevOps Agent',   icon: '🐳', sub: 'Docker · K8s · CI/CD',            row: 2, col: 2, color: '#8b5cf6', nodeTag: 'NODE 2', type: 'parallel' },
-  { id: 'data',     label: 'Data Sci Agent', icon: '📊', sub: 'Python · ML · Pandas',            row: 2, col: 3, color: '#8b5cf6', nodeTag: 'NODE 2', type: 'parallel' },
-  { id: 'fullstack',label: 'Fullstack Agent',icon: '🔗', sub: 'Angular · Node · REST',           row: 2, col: 4, color: '#8b5cf6', nodeTag: 'NODE 2', type: 'parallel' },
+  // ── Row 3: Skill agents (parallel) ───────────────────────────────────────
+  { id: 'java',     label: 'Java Agent',     icon: '☕', sub: 'Spring · Microservices · JVM',    row: 3, col: 0, color: '#8b5cf6', nodeTag: 'NODE 2', type: 'parallel' },
+  { id: 'react',    label: 'React Agent',    icon: '⚛️', sub: 'Hooks · Redux · TypeScript',      row: 3, col: 1, color: '#8b5cf6', nodeTag: 'NODE 2', type: 'parallel' },
+  { id: 'devops',   label: 'DevOps Agent',   icon: '🐳', sub: 'Docker · K8s · CI/CD',            row: 3, col: 2, color: '#8b5cf6', nodeTag: 'NODE 2', type: 'parallel' },
+  { id: 'data',     label: 'Data Sci Agent', icon: '📊', sub: 'Python · ML · Pandas',            row: 3, col: 3, color: '#8b5cf6', nodeTag: 'NODE 2', type: 'parallel' },
+  { id: 'fullstack',label: 'Fullstack Agent',icon: '🔗', sub: 'Angular · Node · REST',           row: 3, col: 4, color: '#8b5cf6', nodeTag: 'NODE 2', type: 'parallel' },
 
-  // ── Row 3: Role Mapper (meta / merge) ────────────────────────────────────
+  // ── Row 4: Role Mapper (meta / merge) ────────────────────────────────────
   { id: 'role-map', label: 'Role Mapper',    icon: '🎯', sub: 'FAISS · Gap Score · Readiness',
-    row: 3, col: 0, color: '#0ea5e9', nodeTag: 'NODE 3', api: 'POST /map-role', type: 'agent' },
+    row: 4, col: 0, color: '#0ea5e9', nodeTag: 'NODE 3', api: 'POST /map-role', type: 'agent' },
 
-  // ── Row 4: RAG Planner ────────────────────────────────────────────────────
+  // ── Row 5: RAG Planner ────────────────────────────────────────────────────
   { id: 'rag',      label: 'RAG Planner',    icon: '⟳',  sub: 'BM25 · FAISS · HyDE · RRF',
-    row: 4, col: 0, color: '#f59e0b', nodeTag: 'NODE 4', api: 'POST /generate-plan', type: 'agent' },
+    row: 5, col: 0, color: '#f59e0b', nodeTag: 'NODE 4', api: 'POST /generate-plan', type: 'agent' },
 
-  // ── Row 5: Quality Gate ───────────────────────────────────────────────────
+  // ── Row 6: Quality Gate ───────────────────────────────────────────────────
   { id: 'judge',    label: 'LLM Judge',      icon: '⚖️', sub: 'Relevance · Accuracy · Score ≥ 3.5',
-    row: 5, col: 0, color: '#ef4444', nodeTag: 'NODE 5', api: 'POST /evaluate', type: 'agent' },
+    row: 6, col: 0, color: '#ef4444', nodeTag: 'NODE 5', api: 'POST /evaluate', type: 'agent' },
 
-  // ── Row 6: Output agents (parallel) ──────────────────────────────────────
-  { id: 'plan-out', label: 'Plan Agent',     icon: '📅', sub: 'Day Tasks · asyncio.gather',      row: 6, col: 0, color: '#10b981', nodeTag: 'NODE 6', type: 'parallel' },
-  { id: 'cache',    label: 'Cache Layer',    icon: '⚡', sub: 'L1 SHA-256 · L2 Cosine 0.92',     row: 6, col: 1, color: '#10b981', nodeTag: 'NODE 6', type: 'parallel' },
+  // ── Row 7: Output agents (parallel) ──────────────────────────────────────
+  { id: 'plan-out', label: 'Plan Agent',     icon: '📅', sub: 'Day Tasks · asyncio.gather',      row: 7, col: 0, color: '#10b981', nodeTag: 'NODE 6', type: 'parallel' },
+  { id: 'cache',    label: 'Cache Layer',    icon: '⚡', sub: 'L1 SHA-256 · L2 Cosine 0.92',     row: 7, col: 1, color: '#10b981', nodeTag: 'NODE 6', type: 'parallel' },
 
-  // ── Row 7: Progress Tracker ───────────────────────────────────────────────
+  // ── Row 8: Progress Tracker ───────────────────────────────────────────────
   { id: 'tracker',  label: 'Progress Tracker', icon: '✅', sub: 'Readiness % · Skill Coverage',
-    row: 7, col: 0, color: '#06b6d4', nodeTag: 'NODE 7', api: 'POST /update-progress', type: 'agent' },
+    row: 8, col: 0, color: '#06b6d4', nodeTag: 'NODE 7', api: 'POST /update-progress', type: 'agent' },
 
-  // ── Row 8: Final output ───────────────────────────────────────────────────
+  // ── Row 9: Final output ───────────────────────────────────────────────────
   { id: 'output',   label: 'Learning Plan',  icon: '🎓', sub: 'N-Day Plan · Internal Resources · PDF',
-    row: 8, col: 0, color: '#22c55e', type: 'output' },
+    row: 9, col: 0, color: '#22c55e', type: 'output' },
 ];
 
 const GRAPH_EDGES: GEdge[] = [
-  // Inputs → CV Parser
-  { from: 'cv',       to: 'cv-agent' },
-  { from: 'role-req', to: 'cv-agent' },
-  { from: 'config',   to: 'cv-agent' },
+  // Inputs → Security Gate (Node 0)
+  { from: 'cv',       to: 'security' },
+  { from: 'role-req', to: 'security' },
+  { from: 'config',   to: 'security' },
+
+  // Security Gate → CV Parser
+  { from: 'security', to: 'cv-agent', label: 'validated' },
 
   // CV Parser → skill agents
   { from: 'cv-agent', to: 'java',      label: 'skills[]' },
@@ -107,6 +114,7 @@ const GRAPH_EDGES: GEdge[] = [
 // Execution sequence: which nodes light up in order when "Run" is clicked
 const EXEC_SEQUENCE = [
   ['cv', 'role-req', 'config'],
+  ['security'],
   ['cv-agent'],
   ['java', 'react', 'devops', 'data', 'fullstack'],
   ['role-map'],
@@ -119,11 +127,11 @@ const EXEC_SEQUENCE = [
 
 // Which real API to call per sequence step
 const API_CALLS: { step: number; method: string; path: string; body: any }[] = [
-  { step: 1, method: 'GET',  path: '/health', body: null },
-  { step: 2, method: 'GET',  path: '/roles',  body: null },
-  { step: 3, method: 'POST', path: '/map-role', body: { user_id: 'demo-user-001', target_role: 'Java Backend Developer' } },
-  { step: 4, method: 'POST', path: '/generate-plan', body: { user_id: 'demo-user-001', target_role: 'Java Backend Developer', missing_skills: ['Docker', 'Kubernetes'], num_days: 3 } },
-  { step: 6, method: 'GET',  path: '/progress/demo-user-001', body: null },
+  { step: 2, method: 'GET',  path: '/health', body: null },
+  { step: 3, method: 'GET',  path: '/roles',  body: null },
+  { step: 4, method: 'POST', path: '/map-role', body: { user_id: 'demo-user-001', target_role: 'Java Backend Developer' } },
+  { step: 5, method: 'POST', path: '/generate-plan', body: { user_id: 'demo-user-001', target_role: 'Java Backend Developer', missing_skills: ['Docker', 'Kubernetes'], num_days: 3 } },
+  { step: 7, method: 'GET',  path: '/progress/demo-user-001', body: null },
 ];
 
 @Component({
@@ -139,7 +147,7 @@ const API_CALLS: { step: number; method: string; path: string; body: any }[] = [
       <span class="ag-icon">⬡</span>
       <div>
         <h1>Agent Graph</h1>
-        <p>Bench Resource Optimizer · Live execution trace · DeepSeek LLM · FAISS RAG · FastAPI</p>
+        <p>Bench Resource Optimizer · 4-Layer Security · Live execution trace · DeepSeek LLM · FAISS RAG · FastAPI</p>
       </div>
     </div>
     <div class="ag-actions">
@@ -157,8 +165,12 @@ const API_CALLS: { step: number; method: string; path: string; body: any }[] = [
 
   <!-- Guardrails bar -->
   <div class="guardrails-bar">
-    <span class="gr-icon">🛡️</span>
-    Guardrails &nbsp;·&nbsp; Input Validation &nbsp;·&nbsp; Prompt Version Control &nbsp;·&nbsp; Safety Checks &nbsp;·&nbsp; Retry / Fallback &nbsp;·&nbsp; Circuit Breaker &nbsp;·&nbsp; Semantic Cache
+    <span class="gr-icon">🛡</span>
+    4-Layer Security &nbsp;·&nbsp;
+    <span class="gr-layer">L1 Injection/Jailbreak Guard</span> &nbsp;·&nbsp;
+    <span class="gr-layer">L2 SECURITY_HEADER/FOOTER Prompt Hardening</span> &nbsp;·&nbsp;
+    <span class="gr-layer">L3 Output Leak Detection</span> &nbsp;·&nbsp;
+    <span class="gr-layer">L4 Audit Log · Rate Limit · Tenant Isolation</span>
   </div>
 
   <!-- Graph canvas -->
@@ -175,14 +187,43 @@ const API_CALLS: { step: number; method: string; path: string; body: any }[] = [
       }
     </div>
 
-    <!-- Arrow down from inputs to node 1 -->
+    <!-- Arrow down from inputs to security gate -->
     <div class="row-connector">
       <div class="conn-line" [class.conn-active]="isDone('cv')"></div>
     </div>
 
-    <!-- Row 1: CV Parser (single center) -->
+    <!-- Row 1: Security Gate (Node 0) -->
     <div class="graph-row row-single">
       @for (n of row(1); track n.id) {
+        <ng-container>
+          <div class="agent-node security-node" [class.gn-active]="isActive(n.id)" [class.gn-done]="isDone(n.id)" [style.--nc]="n.color"
+               (click)="selectNode(n)">
+            @if (n.nodeTag) { <div class="node-tag node-tag-sec">{{ n.nodeTag }}</div> }
+            <div class="an-icon">{{ n.icon }}</div>
+            <div class="an-label">{{ n.label }}</div>
+            <div class="an-sub">{{ n.sub }}</div>
+            <div class="sec-layers">
+              <span class="sec-badge">L1 Validate</span>
+              <span class="sec-badge">L2 Harden</span>
+              <span class="sec-badge">L3 Output</span>
+              <span class="sec-badge">L4 Audit</span>
+            </div>
+            @if (n.api) { <div class="an-api">{{ n.api }}</div> }
+            @if (isActive(n.id)) { <div class="an-pulse-ring"></div> }
+          </div>
+          <div class="an-edge-label">validated ✓</div>
+        </ng-container>
+      }
+    </div>
+
+    <!-- Arrow down from security to CV Parser -->
+    <div class="row-connector">
+      <div class="conn-line" [class.conn-active]="isDone('security')"></div>
+    </div>
+
+    <!-- Row 2: CV Parser (single center) -->
+    <div class="graph-row row-single">
+      @for (n of row(2); track n.id) {
         <ng-container>
           <div class="agent-node" [class.gn-active]="isActive(n.id)" [class.gn-done]="isDone(n.id)" [style.--nc]="n.color"
                (click)="selectNode(n)">
@@ -198,14 +239,14 @@ const API_CALLS: { step: number; method: string; path: string; body: any }[] = [
       }
     </div>
 
-    <!-- Fan-out connector row 1→2 -->
+    <!-- Fan-out connector row 2→3 -->
     <div class="fanout-connector" [class.conn-active]="isDone('cv-agent')">
       <div class="fanout-line"></div>
     </div>
 
-    <!-- Row 2: Skill agents (5 parallel) -->
+    <!-- Row 3: Skill agents (5 parallel) -->
     <div class="graph-row row-parallel">
-      @for (n of row(2); track n.id) {
+      @for (n of row(3); track n.id) {
         <div class="agent-node agent-node-sm" [class.gn-active]="isActive(n.id)" [class.gn-done]="isDone(n.id)" [style.--nc]="n.color"
              (click)="selectNode(n)">
           @if ($first) { <div class="node-tag">{{ n.nodeTag }}</div> }
@@ -217,15 +258,15 @@ const API_CALLS: { step: number; method: string; path: string; body: any }[] = [
       }
     </div>
 
-    <!-- Fan-in connector row 2→3 -->
+    <!-- Fan-in connector row 3→4 -->
     <div class="fanout-connector fanin" [class.conn-active]="isDone('java')">
       <div class="fanout-line"></div>
     </div>
     <div class="an-edge-label">gap[]</div>
 
-    <!-- Row 3: Role Mapper -->
+    <!-- Row 4: Role Mapper -->
     <div class="graph-row row-single">
-      @for (n of row(3); track n.id) {
+      @for (n of row(4); track n.id) {
         <div class="agent-node" [class.gn-active]="isActive(n.id)" [class.gn-done]="isDone(n.id)" [style.--nc]="n.color"
              (click)="selectNode(n)">
           @if (n.nodeTag) { <div class="node-tag">{{ n.nodeTag }}</div> }
@@ -243,9 +284,9 @@ const API_CALLS: { step: number; method: string; path: string; body: any }[] = [
       <div class="conn-label">missing_skills[]</div>
     </div>
 
-    <!-- Row 4: RAG Planner -->
+    <!-- Row 5: RAG Planner -->
     <div class="graph-row row-single">
-      @for (n of row(4); track n.id) {
+      @for (n of row(5); track n.id) {
         <div class="agent-node" [class.gn-active]="isActive(n.id)" [class.gn-done]="isDone(n.id)" [style.--nc]="n.color"
              (click)="selectNode(n)">
           @if (n.nodeTag) { <div class="node-tag">{{ n.nodeTag }}</div> }
@@ -263,9 +304,9 @@ const API_CALLS: { step: number; method: string; path: string; body: any }[] = [
       <div class="conn-label">draft_plan</div>
     </div>
 
-    <!-- Row 5: LLM Judge -->
+    <!-- Row 6: LLM Judge -->
     <div class="graph-row row-single">
-      @for (n of row(5); track n.id) {
+      @for (n of row(6); track n.id) {
         <div class="agent-node" [class.gn-active]="isActive(n.id)" [class.gn-done]="isDone(n.id)" [style.--nc]="n.color"
              (click)="selectNode(n)">
           @if (n.nodeTag) { <div class="node-tag">{{ n.nodeTag }}</div> }
@@ -284,9 +325,9 @@ const API_CALLS: { step: number; method: string; path: string; body: any }[] = [
     </div>
     <div class="an-edge-label">approved</div>
 
-    <!-- Row 6: Plan Agent + Cache (parallel) -->
+    <!-- Row 7: Plan Agent + Cache (parallel) -->
     <div class="graph-row row-parallel row-parallel-2">
-      @for (n of row(6); track n.id) {
+      @for (n of row(7); track n.id) {
         <div class="agent-node agent-node-sm" [class.gn-active]="isActive(n.id)" [class.gn-done]="isDone(n.id)" [style.--nc]="n.color"
              (click)="selectNode(n)">
           @if ($first) { <div class="node-tag">{{ n.nodeTag }}</div> }
@@ -298,14 +339,14 @@ const API_CALLS: { step: number; method: string; path: string; body: any }[] = [
       }
     </div>
 
-    <!-- Fan-in connector row 6→7 -->
+    <!-- Fan-in connector row 7→8 -->
     <div class="fanout-connector fanin fanout-2" [class.conn-active]="isDone('plan-out')">
       <div class="fanout-line"></div>
     </div>
 
-    <!-- Row 7: Progress Tracker -->
+    <!-- Row 8: Progress Tracker -->
     <div class="graph-row row-single">
-      @for (n of row(7); track n.id) {
+      @for (n of row(8); track n.id) {
         <div class="agent-node" [class.gn-active]="isActive(n.id)" [class.gn-done]="isDone(n.id)" [style.--nc]="n.color"
              (click)="selectNode(n)">
           @if (n.nodeTag) { <div class="node-tag">{{ n.nodeTag }}</div> }
@@ -323,9 +364,9 @@ const API_CALLS: { step: number; method: string; path: string; body: any }[] = [
       <div class="conn-label">readiness%</div>
     </div>
 
-    <!-- Row 8: Final output -->
+    <!-- Row 9: Final output -->
     <div class="graph-row row-single">
-      @for (n of row(8); track n.id) {
+      @for (n of row(9); track n.id) {
         <div class="output-node" [class.gn-active]="isActive(n.id)" [class.gn-done]="isDone(n.id)" [style.--nc]="n.color"
              (click)="selectNode(n)">
           <div class="an-icon">{{ n.icon }}</div>
@@ -417,13 +458,45 @@ const API_CALLS: { step: number; method: string; path: string; body: any }[] = [
 
     /* ── Guardrails bar ──────────────────────────────────────────────────── */
     .guardrails-bar {
-      background: #e0e7ff; color: #3730a3;
-      font-size: 12px; font-weight: 600;
-      padding: 8px 32px;
-      display: flex; align-items: center; gap: 8px;
-      border-bottom: 1px solid #c7d2fe;
+      background: #fee2e2; color: #991b1b;
+      font-size: 11px; font-weight: 600;
+      padding: 7px 32px;
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+      border-bottom: 1px solid #fca5a5;
     }
     .gr-icon { font-size: 14px; }
+    .gr-layer {
+      background: rgba(220,38,38,0.12); color: #b91c1c;
+      padding: 2px 7px; border-radius: 99px;
+      font-size: 10.5px; font-weight: 700;
+      border: 1px solid rgba(220,38,38,0.2);
+    }
+
+    /* ── Security node styling ───────────────────────────────────────────── */
+    .security-node {
+      border-color: #fca5a5 !important;
+      background: #fff5f5 !important;
+      min-width: 200px;
+    }
+    .security-node.gn-active {
+      border-color: #dc2626 !important;
+      box-shadow: 0 0 0 4px rgba(220,38,38,0.18), 0 6px 16px rgba(220,38,38,0.15) !important;
+    }
+    .security-node.gn-done {
+      background: rgba(220,38,38,0.04) !important;
+    }
+    .node-tag-sec {
+      background: #fee2e2 !important; color: #b91c1c !important;
+      border-color: #fca5a5 !important;
+    }
+    .sec-layers {
+      display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; margin-top: 4px;
+    }
+    .sec-badge {
+      font-size: 9px; font-weight: 700; padding: 2px 6px;
+      background: rgba(220,38,38,0.09); color: #b91c1c;
+      border: 1px solid rgba(220,38,38,0.2); border-radius: 99px;
+    }
 
     /* ── Graph canvas ────────────────────────────────────────────────────── */
     .graph-canvas {
@@ -697,6 +770,7 @@ export class AgentGraphComponent implements OnDestroy {
   nodeDescription(id: string): string {
     const map: Record<string, string> = {
       'cv':       'Employee CV uploaded as PDF. Parsed locally using pdfminer — raw text never sent to external APIs.',
+      'security': 'Layer 1: validate_cv_text() and validate_role_name() check for prompt injection and jailbreak patterns before any LLM sees the input. Layer 2: SECURITY_HEADER/FOOTER constants injected into every agent system prompt. Layer 3: check_plan_output_safe() scans output for system prompt leakage and off-topic content. Layer 4: audit_llm_call() logs every call with SHA-256 input hash; rate limiting at 60 req/min/IP.',
       'role-req': 'Target role requirement from company HR. Used for gap analysis against candidate skills.',
       'config':   'Plan configuration: number of days, active prompt version (v1 Warm / v2 Laser-Sharp), temperature.',
       'cv-agent': 'LangChain agent that calls DeepSeek to extract name, skills, experience, projects from the CV text (trimmed to 1200 chars). Returns structured JSON.',

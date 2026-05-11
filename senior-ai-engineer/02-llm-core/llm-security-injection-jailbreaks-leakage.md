@@ -182,7 +182,14 @@ Layer 4 — Audit Logging (`audit_llm_call()` in `guardrails/security.py`):
 
 **Session isolation (architecture-level):** Each pipeline invocation starts with a fresh `initial_state` dict — zero shared state between users. This was always true; `security_check` now makes it an explicit documented guarantee in the pipeline flow.
 
-In interview: "AstroIntel has a dedicated `security_check` node that is the new pipeline entry point — it runs before `question_agent` and validates both the user question and all birth profile text fields for injection. The 12-pattern detector covers DAN jailbreaks, override attempts, and system prompt extraction requests. Layer 2 SECURITY_HEADER is injected into every agent's system prompt — even if injection bypasses Layer 1, the model is explicitly instructed to treat embedded instructions as data. Layer 3 output scanning catches prompt leakage before it reaches the user. Layer 4 audit logs every LLM call with an input hash — PII-safe logging that still provides a full security audit trail."
+UI Agent Graph (`astro-intel/src/app/components/agent-flow/agent-flow.component.ts`):
+- Added **Node 0 — Security Check** (red circle, 🛡 icon) as the topmost SVG node above question_agent. Sub-label: `Inject · Jailbreak · Leak · Audit`.
+- Red dashed zone drawn around Node 0 with all four layer annotations visible on the right side of the canvas.
+- All three input nodes (User Profile, Questions, Prompt Style) now connect to `security_check` first. `security_check` connects to `question_agent` with a `validated` edge label.
+- Red "Node 0" lane label on the left margin. Header subtitle updated to "8 Nodes · 4-Layer Security · …". Guardrails band updated to reference SECURITY_HEADER/FOOTER and output validation.
+- Live ticker shows "Node 0 · Security Check — injection detection, jailbreak guard, audit logging (Layer 1–4)" when the security step is active.
+
+In interview: "AstroIntel has a dedicated `security_check` node that is the new pipeline entry point — it runs before `question_agent` and validates both the user question and all birth profile text fields for injection. The 15-pattern detector covers DAN jailbreaks, override attempts, and system prompt extraction requests. Layer 2 SECURITY_HEADER is injected into every agent's system prompt — even if injection bypasses Layer 1, the model is explicitly instructed to treat embedded instructions as data. Layer 3 output scanning catches prompt leakage before it reaches the user. Layer 4 audit logs every LLM call with an input hash — PII-safe logging that still provides a full security audit trail. This is visible in the live demo — Node 0 is a red Security Check node with all four layers annotated on the agent graph."
 
 ---
 
