@@ -217,7 +217,14 @@ Layer 4 — Audit Logging (`audit_cv_parse()` / `audit_plan_generation()` in `gu
 - Tenant isolation: all FAISS queries scoped by `org_id` via internal:// URIs — documents from one organization cannot appear in another organization's retrieval results.
 - Rate limiting: 60 req/min/IP enforced at the middleware layer (RateLimitMiddleware in `main.py`).
 
-In interview: "In Bench Resource Optimizer, the most important injection surface is the CV upload — users can embed arbitrary text in a PDF. A malicious CV containing 'ignore all previous instructions' would reach the cv_parser_agent which makes a real LLM call. Layer 1 scans the extracted CV text with a 12-pattern detector before the text enters any prompt. Layer 2 SECURITY_HEADER in every agent's system prompt adds a second line of defense. Layer 3 faithfulness checking ensures that skill gaps the LLM claims to find are actually in the retrieved context — this catches both hallucination and injection-induced fabrication. Layer 4 audit logs the CV parse call with cv_len but not cv_text — PII-safe logging."
+UI Agent Graph (`bench-resource-optimizer/frontend/src/app/components/agent-graph/agent-graph.component.ts`):
+- Added **Node 0 — Security Gate** (red-tinted card, 🛡 icon) as row 1 between the 3 input nodes and CV Parser Agent. All existing nodes shifted down one row.
+- Four sub-badges inside the card visible at a glance: `L1 Validate` · `L2 Harden` · `L3 Output` · `L4 Audit`. API tag shows `run_security_check()`.
+- "validated ✓" edge label on the connector from Security Gate → CV Parser Agent.
+- Guardrails bar updated to show all 4 layers as red pill badges: `L1 Injection/Jailbreak Guard` · `L2 SECURITY_HEADER/FOOTER Prompt Hardening` · `L3 Output Leak Detection` · `L4 Audit Log · Rate Limit · Tenant Isolation`.
+- Security Gate animates at step 2 in Run Flow sequence. Clicking it shows the full 4-layer description including the CV injection attack scenario in the detail panel.
+
+In interview: "In Bench Resource Optimizer, the most important injection surface is the CV upload — users can embed arbitrary text in a PDF. A malicious CV containing 'ignore all previous instructions' would reach the cv_parser_agent which makes a real LLM call. Layer 1 scans the extracted CV text with a 15-pattern detector before the text enters any prompt. Layer 2 SECURITY_HEADER in every agent's system prompt adds a second line of defense. Layer 3 faithfulness checking ensures that skill gaps the LLM claims to find are actually in the retrieved context — this catches both hallucination and injection-induced fabrication. Layer 4 audit logs the CV parse call with cv_len but not cv_text — PII-safe logging. In the live demo, Node 0 is a red Security Gate card with four layer badges — anyone watching can see the security architecture at a glance."
 
 ---
 
