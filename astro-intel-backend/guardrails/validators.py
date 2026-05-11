@@ -1,26 +1,27 @@
 """
 Per-node input and output validators.
 Each validator returns (ok: bool, reason: str).
+
+Security note: injection detection delegates to guardrails.security (Layer 1)
+which uses the full 12-pattern set from the senior-ai-engineer Module 2 skeleton.
+Output leak detection delegates to guardrails.security.validate_output (Layer 3).
 """
 from __future__ import annotations
 import re
 from typing import Any, Dict, Tuple
 
+from guardrails.security import detect_injection, validate_output
+
 ValidationResult = Tuple[bool, str]
 
 # ── helpers ──────────────────────────────────────────────────────────────────
-
-INJECTION_PATTERNS = re.compile(
-    r"(ignore previous|ignore all|jailbreak|act as|you are now|system prompt|"
-    r"forget your instructions|disregard|override instructions)",
-    re.IGNORECASE,
-)
 
 GARBAGE_PATTERN = re.compile(r"^[^a-zA-Z0-9\s]{4,}$")
 
 
 def _has_injection(text: str) -> bool:
-    return bool(INJECTION_PATTERNS.search(text))
+    detected, _ = detect_injection(text, "validator")
+    return detected
 
 
 def _is_garbage(text: str) -> bool:
