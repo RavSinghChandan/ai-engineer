@@ -210,6 +210,32 @@ Agents with single prompt (same in both versions): `question`, `tarot`, `palmist
 
 In interview: "We did not use one generic prompt for everything. Each agent had a versioned, domain-specific system prompt. This reduced hallucination and gave us consistent JSON output the consensus layer could parse reliably. The prompts live in a versioned folder — `prompts/v1/` and `prompts/v2/` — so switching between warm exploratory tone and laser-sharp conversion tone is a one-line config change in `prompt_config.py`. Prompt edits never require a code change or logic redeploy."
 
+**Bench Resource Optimizer — versioned prompt folder system (implemented):**
+
+Refactored all hardcoded system prompt strings out of `utils/prompts.py` into a versioned file structure:
+
+```
+bench-resource-optimizer/backend/
+  prompts/
+    loader.py          ← load_system_prompt(agent, version) with LRU cache + v1 fallback
+    v1/                ← baseline prompts (4 agents)
+      cv_parser.txt  role_mapper.txt  hyde.txt  llm_judge.txt
+    v2/                ← production-hardened prompts (4 agents)
+      cv_parser.txt  role_mapper.txt
+      (hyde + llm_judge are copies of v1 — no v2 variant yet)
+```
+
+Version switch: `utils/prompts.py` → `ACTIVE_VERSIONS` dict — one dict change switches any agent. Current active: `cv_parser=v2`, `role_mapper=v2`, `planner=v1`, `hyde=v1`, `llm_judge=v1`.
+
+`prompts/loader.py` — same pattern as AstroIntel: `load_system_prompt(agent, version)` reads from disk, `@lru_cache(maxsize=32)`, graceful v1 fallback if v2 file missing. Restart server to pick up file edits — no code change, no redeploy of logic.
+
+`utils/prompts.py` — every `system=` string in each `PromptVersion(...)` registration replaced with `load_system_prompt("agent", "v1/v2")`. All `user=` template strings (which contain `{placeholders}`) stay in Python — unchanged. The `PromptVersion` dataclass, `_REGISTRY`, `register()`, `get_prompt()`, `get_active()`, and `list_prompts()` are all untouched.
+
+Agents with separate v1/v2 system prompts: `cv_parser` (v2 adds injection-resistance clause), `role_mapper` (v2 adds `readiness_level` field and precision instruction).
+Agents with single prompt (same in both versions): `hyde`, `llm_judge`.
+
+In interview: "In Bench Resource Optimizer, every agent prompt lives in a versioned text file — `prompts/v1/` and `prompts/v2/`. The active version per agent is set in one dict in `utils/prompts.py`. Rollback means changing one line — no code deploy. The cv_parser v2 prompt adds an explicit injection-resistance clause because users upload arbitrary PDF CVs. The role_mapper v2 adds a `readiness_level` field that feeds the training plan generator. Prompt and code changes are fully decoupled."
+
 ---
 
 ## 7. Trade-offs
