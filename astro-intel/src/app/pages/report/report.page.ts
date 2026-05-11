@@ -2373,6 +2373,8 @@ export class ReportPage implements OnInit {
 
         /* ════════════════════════════════════════════════════
            BASE .pdf-page — flows naturally, no forced breaks
+           Question pages intentionally allow page-break-inside
+           so long content can span multiple A4 sheets.
         ════════════════════════════════════════════════════ */
         .pdf-page {
           display: block !important;
@@ -2387,6 +2389,14 @@ export class ReportPage implements OnInit {
           page-break-before: auto !important; break-before: auto !important;
           page-break-after: auto !important;  break-after: auto !important;
           page-break-inside: auto !important; break-inside: auto !important;
+        }
+
+        /* Each question gets its own page start */
+        .page-question {
+          page-break-before: always !important;
+          break-before: page !important;
+          page-break-inside: auto !important;
+          break-inside: auto !important;
         }
 
         /* ════════════════════════════════════════════════════
@@ -2476,6 +2486,8 @@ export class ReportPage implements OnInit {
 
         /* ════════════════════════════════════════════════════
            PAGE HEADER (appears on letter, profile, Q pages)
+           On question pages the header is also repeated via
+           CSS page counters in @page top margin.
         ════════════════════════════════════════════════════ */
         .page-hdr {
           display: flex !important; align-items: center !important;
@@ -2658,8 +2670,14 @@ export class ReportPage implements OnInit {
 
         /* ════════════════════════════════════════════════════
            QUESTION PAGES
+           Each question starts on a new A4 page.
+           Content inside (hw-items, remedy-card) flows freely
+           across continuation sheets — individual cards avoid
+           internal splits but the section as a whole can span
+           as many pages as needed.
         ════════════════════════════════════════════════════ */
         .page-question { background: #fff !important; }
+
         .q-banner {
           display: flex !important; align-items: flex-start !important;
           gap: 10px !important; padding: 0 0 10px !important;
@@ -2672,52 +2690,142 @@ export class ReportPage implements OnInit {
         }
         .q-text { font-size: 14px !important; font-weight: 700 !important; line-height: 1.35 !important; }
 
-        .content-block { padding: 0 !important; }
+        /* Gold rule under SUMMARY heading */
+        .gold-line {
+          display: block !important;
+          width: 36px !important; height: 2px !important;
+          background: #d4af37 !important;
+          margin: 3px 0 8px !important;
+          break-after: avoid !important;
+        }
+
+        .content-block { display: block !important; padding: 0 !important; }
         .block-heading {
-          font-size: 11px !important; margin: 0 0 4px !important;
+          display: block !important;
+          font-size: 11px !important; font-weight: 700 !important;
+          letter-spacing: 1.5px !important; text-transform: uppercase !important;
+          color: #8a6a00 !important;
+          margin: 0 0 2px !important;
           break-after: avoid !important; page-break-after: avoid !important;
         }
 
-        /* hw-items: each is a small card that never splits */
-        .hw-list { list-style: none !important; margin: 6px 0 0 !important; padding: 0 !important; }
-        .hw-item {
-          break-inside: avoid !important; page-break-inside: avoid !important;
-          margin-bottom: 5px !important; padding: 6px 10px !important;
-          background: rgba(212,175,55,0.04) !important;
-          border-radius: 6px !important;
-          border-left: 2px solid rgba(212,175,55,0.45) !important;
+        /* ── hw bullet list — flows across pages, cards stay intact ── */
+        .hw-list {
+          display: block !important;
+          list-style: none !important;
+          margin: 6px 0 0 !important; padding: 0 !important;
         }
-        .hw-label { font-size: 10px !important; font-weight: 700 !important; display: block !important; margin-bottom: 3px !important; }
-        .hw-sub-list { margin: 3px 0 0 !important; padding: 0 !important; list-style: none !important; }
+
+        /* Each bullet card: never split internally, always gap below */
+        .hw-item {
+          display: block !important;
+          break-inside: avoid !important; page-break-inside: avoid !important;
+          margin-bottom: 7px !important; padding: 8px 12px !important;
+          background: rgba(212,175,55,0.04) !important;
+          border-radius: 7px !important;
+          border-left: 3px solid rgba(212,175,55,0.5) !important;
+        }
+
+        /* Label row — glued to its content below */
+        .hw-label {
+          display: block !important;
+          font-size: 10px !important; font-weight: 700 !important;
+          color: #8a6a00 !important;
+          margin-bottom: 4px !important;
+          break-after: avoid !important; page-break-after: avoid !important;
+        }
+
+        /* WHO/WHAT/WHERE numbered list */
+        .hw-sub-list {
+          display: block !important;
+          list-style: none !important;
+          margin: 2px 0 0 !important; padding: 0 !important;
+        }
         .hw-sub-item {
-          display: flex !important; gap: 6px !important; align-items: flex-start !important;
-          font-size: 9px !important; margin-bottom: 3px !important; line-height: 1.45 !important;
+          display: flex !important; gap: 7px !important; align-items: flex-start !important;
+          font-size: 9.5px !important; margin-bottom: 4px !important; line-height: 1.5 !important;
+          break-inside: avoid !important;
         }
         .hw-sub-num {
-          flex-shrink: 0 !important; width: 15px !important; height: 15px !important;
-          border-radius: 50% !important; font-size: 7.5px !important; font-weight: 700 !important;
+          flex-shrink: 0 !important;
+          width: 16px !important; height: 16px !important;
+          border-radius: 50% !important;
+          font-size: 7.5px !important; font-weight: 700 !important;
           display: flex !important; align-items: center !important; justify-content: center !important;
-          background: rgba(212,175,55,0.15) !important; color: #8a6a00 !important;
+          background: rgba(212,175,55,0.18) !important; color: #8a6a00 !important;
         }
-        .hw-sub-text { flex: 1 !important; }
-        .hw-timing { break-inside: avoid !important; padding: 3px 0 !important; }
-        .hw-timing-window { font-size: 14px !important; font-weight: 800 !important; color: #1a1410 !important; }
-        .hw-timing-peak   { font-size: 10px !important; font-weight: 600 !important; color: #c4963b !important; }
-        .hw-timing-dur    { font-size: 8px !important; color: #999 !important; margin-top: 1px !important; }
-        .hw-redirect { font-size: 9.5px !important; font-style: italic !important; }
-        .hw-answer   { font-size: 9px !important; line-height: 1.5 !important; }
+        .hw-sub-text { flex: 1 !important; display: block !important; }
 
-        /* Remedy card */
-        .remedy-card {
+        /* WHEN timing block */
+        .hw-timing {
+          display: block !important;
           break-inside: avoid !important; page-break-inside: avoid !important;
-          margin-top: 8px !important; padding: 10px 14px !important;
-          border-radius: 8px !important;
+          padding: 2px 0 !important;
         }
-        .remedy-card-head { font-size: 10px !important; font-weight: 700 !important; margin-bottom: 6px !important; break-after: avoid !important; }
-        .remedy-group { break-inside: avoid !important; page-break-inside: avoid !important; margin-bottom: 5px !important; }
-        .remedy-group-label { font-size: 8px !important; font-weight: 700 !important; letter-spacing: 0.5px !important; text-transform: uppercase !important; margin-bottom: 3px !important; }
-        .remedy-list { margin: 0 !important; padding-left: 14px !important; }
-        .remedy-list li { font-size: 9.5px !important; line-height: 1.55 !important; margin-bottom: 2px !important; }
+        .hw-timing-window {
+          display: block !important;
+          font-size: 17px !important; font-weight: 900 !important;
+          color: #1a1410 !important; line-height: 1.2 !important;
+          margin-bottom: 2px !important;
+        }
+        .hw-timing-peak {
+          display: block !important;
+          font-size: 10px !important; font-weight: 600 !important;
+          color: #c4963b !important; margin-bottom: 2px !important;
+        }
+        .hw-timing-dur {
+          display: block !important;
+          font-size: 8px !important; color: #999 !important; margin-top: 1px !important;
+        }
+
+        /* HOW redirect */
+        .hw-redirect {
+          display: block !important;
+          font-size: 9.5px !important; font-style: italic !important;
+          color: #8a6a00 !important;
+        }
+        .hw-answer { display: block !important; font-size: 9.5px !important; line-height: 1.55 !important; }
+
+        /* ── Remedy card — split allowed between groups ── */
+        .remedy-card {
+          display: block !important;
+          page-break-inside: auto !important; break-inside: auto !important;
+          margin-top: 10px !important; padding: 10px 14px !important;
+          border-radius: 8px !important;
+          border: 1px solid rgba(212,175,55,0.25) !important;
+          background: rgba(212,175,55,0.02) !important;
+        }
+        .remedy-card-head {
+          display: block !important;
+          font-size: 11px !important; font-weight: 700 !important;
+          margin-bottom: 8px !important;
+          break-after: avoid !important; page-break-after: avoid !important;
+          color: #8a6a00 !important;
+        }
+        /* Each remedy group (Daily Habits / Mantra / Lucky Colors) stays together */
+        .remedy-group {
+          display: block !important;
+          break-inside: avoid !important; page-break-inside: avoid !important;
+          margin-bottom: 7px !important;
+        }
+        .remedy-group-label {
+          display: block !important;
+          font-size: 8px !important; font-weight: 700 !important;
+          letter-spacing: 0.8px !important; text-transform: uppercase !important;
+          color: #8a6a00 !important; margin-bottom: 3px !important;
+          break-after: avoid !important;
+        }
+        .remedy-list {
+          display: block !important;
+          margin: 0 !important; padding-left: 16px !important;
+          list-style: disc !important;
+        }
+        .remedy-list li {
+          display: list-item !important;
+          font-size: 9.5px !important; line-height: 1.6 !important;
+          margin-bottom: 2px !important;
+        }
+
         .narrative-para { font-size: 10.5px !important; line-height: 1.65 !important; }
 
         /* ════════════════════════════════════════════════════
