@@ -198,6 +198,47 @@ In interview: "I started with LangChain's RecursiveCharacterTextSplitter as a ba
 
 ---
 
+**Bench Resource Optimizer — chunking choice (implemented):**
+
+Document type: HR policy documents and internal company training materials uploaded by admins (PDFs and .txt files). Short-to-medium structured text — each paragraph states one complete rule or fact.
+
+Strategy chosen: **paragraph-boundary chunking with character overlap**
+
+Why not fixed-size word chunking (the previous approach):
+- HR policy text has clear paragraph boundaries — each paragraph = one policy rule
+- Fixed word count (512 words) cuts mid-paragraph, splitting a rule like "Hotel booking is allowed only for travel exceeding 100 km" across two chunks
+- Neither chunk contains the full sentence → retrieval misses the exact fact → LLM gets incomplete context → hallucination risk
+
+Why paragraph-boundary fits this data:
+- Each paragraph is semantically complete — it states one policy, one procedure, one rule
+- Grouping paragraphs up to max_chars (1200) keeps related rules together
+- Character overlap (150 chars) ensures boundary sentences appear in at least one full chunk
+
+Implementation (`rag/document_store.py`):
+```python
+def _chunk_text(text: str, max_chars: int = 1200, overlap_chars: int = 150) -> List[str]:
+    paragraphs = [p.strip() for p in re.split(r'\n\s*\n', text) if p.strip()]
+    chunks, buffer = [], ""
+    for para in paragraphs:
+        if len(buffer) + len(para) + 1 <= max_chars:
+            buffer = (buffer + "\n" + para).strip() if buffer else para
+        else:
+            if buffer:
+                chunks.append(buffer)
+                buffer = buffer[-overlap_chars:].strip() + "\n" + para
+            else:
+                buffer = para
+    if buffer.strip():
+        chunks.append(buffer.strip())
+    return chunks
+```
+
+Metadata added: `chunk_strategy: "paragraph-boundary"` stored per chunk in FAISS — allows retrieval analysis by strategy type.
+
+UI change: Admin upload success card now displays `Chunk Strategy` field, so HR admins can see which strategy was applied to each document.
+
+---
+
 ## 7. Trade-offs
 
 Small chunks (128-256 tokens):

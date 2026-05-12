@@ -637,13 +637,14 @@ async def admin_upload_resource(
 
     _record(request, "/admin/upload-resource", t_start, 200)
     return {
-        "doc_id":         doc_id,
-        "title":          title,
-        "skill_tags":     tags,
-        "classification": classification,
-        "chunks_indexed": chunk_count,
-        "source":         "company-internal",
-        "message":        "Document indexed successfully into internal knowledge base.",
+        "doc_id":           doc_id,
+        "title":            title,
+        "skill_tags":       tags,
+        "classification":   classification,
+        "chunks_indexed":   chunk_count,
+        "chunk_strategy":   "paragraph-boundary",
+        "source":           "company-internal",
+        "message":          "Document indexed successfully into internal knowledge base.",
     }
 
 

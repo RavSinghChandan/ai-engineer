@@ -123,6 +123,12 @@ import { AdminUploadResponse, InternalDocument, ResourceRegistryResponse } from 
           <span class="upload-meta-val">{{ lastUpload.chunks_indexed }}</span>
         </div>
         <div class="upload-meta-item">
+          <span class="upload-meta-key">Chunk Strategy</span>
+          <span class="upload-meta-val strategy-badge">
+            {{ lastUpload.chunk_strategy || 'paragraph-boundary' }}
+          </span>
+        </div>
+        <div class="upload-meta-item">
           <span class="upload-meta-key">Skills Tagged</span>
           <span class="upload-meta-val">{{ lastUpload.skill_tags.join(', ') || '—' }}</span>
         </div>
@@ -240,7 +246,11 @@ import { AdminUploadResponse, InternalDocument, ResourceRegistryResponse } from 
 
     /* Upload success */
     .upload-success { border-left: 4px solid var(--success); }
-    .upload-meta-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 12px; }
+    .upload-meta-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 12px; }
+    .strategy-badge {
+      font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+      background: #d1fae5; color: #065f46;
+    }
     .upload-meta-item { display: flex; flex-direction: column; gap: 3px; }
     .upload-meta-key { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
     .upload-meta-val { font-size: 13px; font-weight: 600; }

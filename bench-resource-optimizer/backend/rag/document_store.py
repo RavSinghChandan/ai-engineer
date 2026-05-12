@@ -3,11 +3,19 @@ Internal Document Store — admin upload pipeline.
 
 Company internal documents (PDFs, text files) uploaded by HR/admins are:
   1. Text-extracted locally (never sent raw to any external API)
-  2. Chunked (512 tokens, 50 overlap)
+  2. Chunked using paragraph-boundary strategy (split on double newlines,
+     group paragraphs up to max_chars, carry overlap across boundaries)
   3. Embedded with local HuggingFace model (all-MiniLM-L6-v2, runs on-premise)
   4. Indexed into a separate FAISS store (internal_docs_index)
   5. Retrieved during role mapping and plan generation to find relevant
      internal training material — no public internet references
+
+Chunking strategy — paragraph-boundary with overlap:
+  Why: HR policy/training documents are structured as paragraphs where each
+  paragraph states one complete fact or rule. Fixed-size word splitting cuts
+  across paragraph boundaries, breaking facts mid-sentence and degrading
+  retrieval precision. Paragraph-boundary chunking keeps each fact whole and
+  uses character-based overlap (not word-count) to prevent boundary losses.
 
 Privacy guarantee:
   - CV text: extracted locally, only the parsed JSON profile (name/skills/years)
@@ -82,15 +90,48 @@ def resource_location_for(skill: str) -> str:
 
 # ── Chunk text ─────────────────────────────────────────────────────────────────
 
-def _chunk_text(text: str, chunk_size: int = 512, overlap: int = 50) -> List[str]:
-    """Split text into overlapping chunks (word-boundary aware)."""
-    words  = text.split()
-    chunks = []
-    i = 0
-    while i < len(words):
-        chunk = " ".join(words[i:i + chunk_size])
-        chunks.append(chunk)
-        i += chunk_size - overlap
+def _chunk_text(text: str, max_chars: int = 1200, overlap_chars: int = 150) -> List[str]:
+    """
+    Paragraph-boundary chunking with character overlap.
+
+    Strategy: split on blank lines (paragraph boundaries), group consecutive
+    paragraphs into a chunk up to max_chars, then carry the last overlap_chars
+    of the current chunk into the next one so facts near boundaries are not lost.
+
+    Why paragraph boundaries instead of fixed word count:
+      HR policy and training documents state one rule or fact per paragraph.
+      Splitting mid-paragraph breaks the fact across two chunks — neither chunk
+      contains the complete sentence, so retrieval misses it. Paragraph-boundary
+      chunking keeps each fact whole, improving retrieval precision.
+    """
+    import re
+    paragraphs = [p.strip() for p in re.split(r'\n\s*\n', text) if p.strip()]
+
+    chunks: List[str] = []
+    buffer = ""
+
+    for para in paragraphs:
+        if len(buffer) + len(para) + 1 <= max_chars:
+            buffer = (buffer + "\n" + para).strip() if buffer else para
+        else:
+            if buffer:
+                chunks.append(buffer)
+                # carry overlap forward so boundary sentences appear in next chunk
+                buffer = buffer[-overlap_chars:].strip() + "\n" + para
+            else:
+                # single paragraph exceeds max_chars — include as its own chunk
+                buffer = para
+
+    if buffer.strip():
+        chunks.append(buffer.strip())
+
+    # Fallback: if the document has no paragraph breaks, use character windows
+    if not chunks:
+        i = 0
+        while i < len(text):
+            chunks.append(text[i:i + max_chars])
+            i += max_chars - overlap_chars
+
     return chunks
 
 
@@ -134,6 +175,7 @@ def index_internal_document(
                 "classification": classification,
                 "chunk_index":    i,
                 "source":         "company-internal",
+                "chunk_strategy": "paragraph-boundary",
             }
         )
         for i, chunk in enumerate(chunks)

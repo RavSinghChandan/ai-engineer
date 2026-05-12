@@ -62,6 +62,7 @@ export interface AdminUploadResponse {
   skill_tags: string[];
   classification: string;
   chunks_indexed: number;
+  chunk_strategy?: string;
   source: string;
   message: string;
 }
