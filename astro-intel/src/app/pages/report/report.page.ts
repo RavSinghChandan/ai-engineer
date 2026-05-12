@@ -2334,6 +2334,7 @@ export class ReportPage implements OnInit {
         margin: 0;
       }
 
+
       @media print {
 
         /* ════════════════════════════════════════════════════
@@ -2391,16 +2392,21 @@ export class ReportPage implements OnInit {
           page-break-inside: auto !important; break-inside: auto !important;
         }
 
-        /* Each question gets its own page start */
+        /* Each question starts on a new A4 sheet.
+           Content flows freely across continuation sheets.
+           .pdf-page padding (10mm 12mm) is inherited for internal spacing. */
         .page-question {
           page-break-before: always !important;
           break-before: page !important;
           page-break-inside: auto !important;
           break-inside: auto !important;
+          background: #fff !important;
         }
 
         /* ════════════════════════════════════════════════════
            COVER PAGE — full A4, dark, portrait
+           .cover IS the .pdf-page, so override its padding to 0
+           and set exact A4 dimensions for edge-to-edge bleed.
         ════════════════════════════════════════════════════ */
         .cover {
           background: #14100c !important;
@@ -2409,6 +2415,7 @@ export class ReportPage implements OnInit {
           min-height: 297mm !important;
           max-height: 297mm !important;
           padding: 0 !important;
+          margin: 0 !important;
           position: relative !important;
           overflow: hidden !important;
           page-break-after: always !important;
@@ -2428,7 +2435,7 @@ export class ReportPage implements OnInit {
         .cover-body {
           position: relative !important; z-index: 2 !important;
           padding: 36px 40px 24px !important;
-          height: calc(297mm - 52px) !important;
+          height: 100% !important;
           display: flex !important; flex-direction: column !important;
         }
         .cover-logo-wrap { background: transparent !important; box-shadow: none !important; padding: 0 !important; }
@@ -2676,8 +2683,6 @@ export class ReportPage implements OnInit {
            internal splits but the section as a whole can span
            as many pages as needed.
         ════════════════════════════════════════════════════ */
-        .page-question { background: #fff !important; }
-
         .q-banner {
           display: flex !important; align-items: flex-start !important;
           gap: 10px !important; padding: 0 0 10px !important;
@@ -2689,15 +2694,6 @@ export class ReportPage implements OnInit {
           display: flex !important; align-items: center !important; justify-content: center !important;
         }
         .q-text { font-size: 14px !important; font-weight: 700 !important; line-height: 1.35 !important; }
-
-        /* Gold rule under SUMMARY heading */
-        .gold-line {
-          display: block !important;
-          width: 36px !important; height: 2px !important;
-          background: #d4af37 !important;
-          margin: 3px 0 8px !important;
-          break-after: avoid !important;
-        }
 
         .content-block { display: block !important; padding: 0 !important; }
         .block-heading {
@@ -2830,6 +2826,8 @@ export class ReportPage implements OnInit {
 
         /* ════════════════════════════════════════════════════
            CLOSING PAGE — full A4, dark, premium ending
+           .closing-page IS the .pdf-page, so override padding to 0
+           and set exact A4 dimensions for full edge-to-edge coverage.
         ════════════════════════════════════════════════════ */
         .closing-page {
           background: #14100c !important;
@@ -2838,6 +2836,7 @@ export class ReportPage implements OnInit {
           min-height: 297mm !important;
           max-height: 297mm !important;
           padding: 0 !important;
+          margin: 0 !important;
           overflow: hidden !important;
           display: flex !important;
           flex-direction: column !important;
@@ -2886,7 +2885,14 @@ export class ReportPage implements OnInit {
         /* ════════════════════════════════════════════════════
            SHARED
         ════════════════════════════════════════════════════ */
-        .gold-line { width: 30px !important; height: 2px !important; background: #d4af37 !important; margin-bottom: 8px !important; border-radius: 1px !important; display: block !important; }
+        .gold-line {
+          display: block !important;
+          width: 36px !important; height: 2px !important;
+          background: #d4af37 !important;
+          border-radius: 1px !important;
+          margin: 3px 0 8px !important;
+          break-after: avoid !important;
+        }
       }
     `;
     document.head.appendChild(style);

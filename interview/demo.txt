@@ -1,0 +1,43 @@
+
+documents = [
+
+    {
+
+        "id": "leave_policy",
+
+        "text": """
+
+Employees are entitled to 12 casual leaves annually.
+
+Unused casual leaves cannot be carried forward.
+
+Sick leave requires manager approval for more than 2 consecutive days.
+
+"""
+
+    },
+
+    {
+
+        "id": "travel_policy",
+
+        "text": """
+
+Employees traveling within city limits can claim cab reimbursement up to INR 1500 per day.
+
+Hotel booking is allowed only for travel exceeding 100 km.
+
+"""
+
+    }
+
+]
+ 
+queries = [
+
+    "Can I carry forward my casual leaves?",
+
+    "Can I claim hotel reimbursement for local travel?"
+
+]
+ 
