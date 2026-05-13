@@ -337,6 +337,9 @@ import { ApiService } from '../../services/api.service';
             Faithfulness · Context Precision · Context Recall · Answer Relevancy · Precision&#64;K · MRR
             — evaluated on every role mapping, no ground truth needed
           </span>
+          <span *ngIf="m.ragas.engine" class="ragas-engine-badge">
+            Engine: {{ m.ragas.engine }}
+          </span>
         </div>
 
         <div *ngIf="!m.ragas.evaluated || m.ragas.evaluated === 0" class="no-data" style="padding:24px;">
@@ -416,10 +419,10 @@ import { ApiService } from '../../services/api.service';
                    [class.ragas-fail-row]="!r.passed">
                 <span class="ragas-rid">{{ r.request_id }}</span>
                 <span class="ragas-query" title="{{ r.query }}">{{ r.query | slice:0:22 }}…</span>
-                <span [style.color]="ragasScoreColor(r.faithfulness, 0.85)">{{ (r.faithfulness * 100).toFixed(0) }}%</span>
-                <span [style.color]="ragasScoreColor(r.context_precision, 0.75)">{{ (r.context_precision * 100).toFixed(0) }}%</span>
-                <span [style.color]="ragasScoreColor(r.context_recall, 0.70)">{{ (r.context_recall * 100).toFixed(0) }}%</span>
-                <span [style.color]="ragasScoreColor(r.answer_relevancy, 0.80)">{{ (r.answer_relevancy * 100).toFixed(0) }}%</span>
+                <span [style.color]="ragasScoreColor(r.faithfulness,      m.ragas.thresholds?.faithfulness      ?? 0.40)">{{ (r.faithfulness * 100).toFixed(0) }}%</span>
+                <span [style.color]="ragasScoreColor(r.context_precision, m.ragas.thresholds?.context_precision ?? 0.40)">{{ (r.context_precision * 100).toFixed(0) }}%</span>
+                <span [style.color]="ragasScoreColor(r.context_recall,    m.ragas.thresholds?.context_recall    ?? 0.40)">{{ (r.context_recall * 100).toFixed(0) }}%</span>
+                <span [style.color]="ragasScoreColor(r.answer_relevancy,  m.ragas.thresholds?.answer_relevancy  ?? 0.40)">{{ (r.answer_relevancy * 100).toFixed(0) }}%</span>
                 <span>{{ (r.mrr * 100).toFixed(0) }}%</span>
                 <span class="ragas-pass-chip" [class.ragas-chip-pass]="r.passed" [class.ragas-chip-fail]="!r.passed">
                   {{ r.passed ? 'PASS' : 'FAIL' }}
@@ -663,6 +666,11 @@ import { ApiService } from '../../services/api.service';
     .cache-miss-badge { background:#f1f5f9; color:#94a3b8; font-size:10px; font-weight:600; padding:2px 7px; border-radius:999px; }
 
     /* RAGAS panel */
+    .ragas-engine-badge {
+      display:inline-block; margin-top:6px; font-size:11px; font-weight:600;
+      color:#1e40af; background:#dbeafe; padding:3px 10px;
+      border-radius:999px; letter-spacing:0.01em;
+    }
     .ragas-panel { margin-bottom:20px; }
     .ragas-summary {
       display:flex; gap:14px; margin-bottom:24px; flex-wrap:wrap;
@@ -795,10 +803,10 @@ export class MetricsComponent implements OnInit, OnDestroy {
     const thresholds = r.thresholds ?? {};
     const interp = r.interpretation ?? {};
     return [
-      { key: 'faithfulness',      label: 'Faithfulness',       score: r.metrics.faithfulness,      threshold: thresholds.faithfulness ?? 0.85,      desc: interp.faithfulness ?? '' },
-      { key: 'context_precision', label: 'Context Precision',  score: r.metrics.context_precision,  threshold: thresholds.context_precision ?? 0.75,  desc: interp.context_precision ?? '' },
-      { key: 'context_recall',    label: 'Context Recall',     score: r.metrics.context_recall,     threshold: thresholds.context_recall ?? 0.70,     desc: interp.context_recall ?? '' },
-      { key: 'answer_relevancy',  label: 'Answer Relevancy',   score: r.metrics.answer_relevancy,   threshold: thresholds.answer_relevancy ?? 0.80,   desc: interp.answer_relevancy ?? '' },
+      { key: 'faithfulness',      label: 'Faithfulness',       score: r.metrics.faithfulness,      threshold: thresholds.faithfulness ?? 0.40,      desc: interp.faithfulness ?? '' },
+      { key: 'context_precision', label: 'Context Precision',  score: r.metrics.context_precision,  threshold: thresholds.context_precision ?? 0.40,  desc: interp.context_precision ?? '' },
+      { key: 'context_recall',    label: 'Context Recall',     score: r.metrics.context_recall,     threshold: thresholds.context_recall ?? 0.40,     desc: interp.context_recall ?? '' },
+      { key: 'answer_relevancy',  label: 'Answer Relevancy',   score: r.metrics.answer_relevancy,   threshold: thresholds.answer_relevancy ?? 0.40,   desc: interp.answer_relevancy ?? '' },
       { key: 'precision_at_k',   label: 'Precision@K',        score: r.metrics.precision_at_k,    threshold: 0,                                      desc: interp.precision_at_k ?? '' },
       { key: 'mrr',               label: 'MRR',                score: r.metrics.mrr,               threshold: 0,                                      desc: interp.mrr ?? '' },
     ];

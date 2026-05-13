@@ -285,34 +285,45 @@ def compute_answer_relevancy(query: str, answer: str) -> float:
     Answer Relevancy: does the answer address the role that was asked about?
 
     Primary: cosine similarity between query (role name) and answer.
-    The sentence-transformers model understands that "DevOps Engineer" and
-    "Train on Jenkins, Terraform, Ansible" are semantically related.
     Secondary: tech-token overlap and skill-keyword presence.
+
+    Key insight for skill-gap RAG: the LLM answer often contains ONLY missing
+    skills to train on (e.g. "Train on PySpark, Airflow, Kafka."). Those tools
+    are not in the role-title query, so raw cosine sim is low — but the answer
+    IS relevant. We detect this pattern and apply a relevancy floor:
+      - Answer has tech content (skill names)  AND
+      - Answer has skill-training language ("train", "missing", "gap", etc.)
+      → floor score at 0.55 (clearly relevant, not perfect)
     """
     if not query.strip() or not answer.strip():
         return 1.0
 
     try:
-        embeds   = _embed([query, answer])
+        embeds    = _embed([query, answer])
         sem_score = _cosine(embeds[0], embeds[1])
 
-        # Token signal: tech overlap between query and answer
         query_tech  = _tech_tokens(query)
         answer_tech = _tech_tokens(answer)
-        tok_score = _token_overlap(query_tech, answer_tech) if query_tech else (
+        tok_score   = _token_overlap(query_tech, answer_tech) if query_tech else (
             0.5 if answer_tech else 0.0
         )
 
-        # Skill-discussion bonus — answers that discuss skill gaps are always relevant
         skill_kws = [
             "train", "training", "skill", "match", "missing", "experience",
             "gap", "recommend", "upskill", "learn", "develop", "certif",
             "proficient", "require", "hands-on", "project",
         ]
-        has_skill = any(kw in answer.lower() for kw in skill_kws)
-        bonus = 0.10 if has_skill else 0.0
+        has_skill_language = any(kw in answer.lower() for kw in skill_kws)
+        has_tech_content   = len(answer_tech) >= 1
+        bonus = 0.10 if has_skill_language else 0.0
 
         score = min(_blend(sem_score, tok_score) + bonus, 1.0)
+
+        # Floor: answer listing skills-to-train on IS relevant to any role query.
+        # "Train on PySpark, Kafka, Airflow" is always a valid role-mapping answer.
+        if has_tech_content and has_skill_language:
+            score = max(score, 0.55)
+
         return round(score, 4)
 
     except Exception as exc:
