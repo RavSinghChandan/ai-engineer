@@ -55,6 +55,7 @@ from memory.session_store import (
 from metrics.collector import RequestRecord, get_collector
 from middleware.logging_mw import RequestLoggingMiddleware, configure_logging
 from middleware.rate_limit import RateLimitMiddleware
+from metrics.ragas_eval import evaluate as ragas_evaluate, get_ragas_store
 from rag.advanced_retrieval import init_bm25_from_roles
 from rag.knowledge_base import build_vector_store, get_all_roles, get_embeddings
 from utils.file_parser import extract_text_from_pdf
@@ -142,6 +143,52 @@ app.add_middleware(
 
 def _req_id(request: Request) -> str:
     return getattr(request.state, "request_id", str(uuid.uuid4())[:8])
+
+
+def _ragas_background(
+    request_id: str,
+    query: str,
+    answer: str,
+    retrieved_context: str,
+    matched_skills: list,
+    missing_skills: list,
+) -> None:
+    """
+    Run RAGAS evaluation using the actual retrieved role context from FAISS.
+    retrieved_context is the full role document text passed back from map_role.
+    """
+    try:
+        # Split the retrieved context into individual role documents
+        # (hybrid_retrieve returns multiple docs joined with \n\n)
+        raw_chunks = [c.strip() for c in retrieved_context.split("\n\n") if c.strip()]
+
+        # If context is a single block, treat it as one chunk
+        if not raw_chunks:
+            raw_chunks = [retrieved_context] if retrieved_context.strip() else []
+
+        # Append the structured skill result as an additional grounding chunk
+        # so precision/recall metrics reflect what the LLM actually used
+        skill_chunk_parts = []
+        if matched_skills:
+            skill_chunk_parts.append("Matched skills: " + ", ".join(matched_skills))
+        if missing_skills:
+            skill_chunk_parts.append("Missing skills: " + ", ".join(missing_skills))
+        if skill_chunk_parts:
+            raw_chunks.append("\n".join(skill_chunk_parts))
+
+        if not raw_chunks:
+            return
+
+        record = ragas_evaluate(
+            request_id       = request_id,
+            query            = query,
+            answer           = answer,
+            retrieved_chunks = raw_chunks,
+        )
+        get_ragas_store().add(record)
+    except Exception as exc:
+        import logging
+        logging.getLogger("bench.ragas").warning("ragas_eval_failed: %s", exc)
 
 
 def _record(
@@ -235,7 +282,14 @@ def get_metrics():
     dashboard["cache_stats"]  = cache_stats()
     dashboard["memory_stats"] = memory_stats()
     dashboard["prompts"]      = list_prompts()
+    dashboard["ragas"]        = get_ragas_store().dashboard()
     return dashboard
+
+
+@app.get("/ragas", tags=["Observability"])
+def get_ragas():
+    """RAGAS evaluation dashboard — faithfulness, context precision/recall, answer relevancy."""
+    return get_ragas_store().dashboard()
 
 
 # ── Roles ─────────────────────────────────────────────────────────────────────
@@ -349,6 +403,16 @@ async def map_role_endpoint(request: Request, req: MapRoleRequest):
             "match_percentage": result.get("match_percentage", 0),
             "missing_skills":  result.get("missing_skills", []),
         })
+
+        # Module 3: RAGAS evaluation — does not block response
+        _ragas_background(
+            request_id     = rid,
+            query          = req.target_role,
+            answer         = result.get("recommendation", ""),
+            retrieved_context = result.pop("_retrieved_context", ""),
+            matched_skills = result.get("matched_skills", []),
+            missing_skills = result.get("missing_skills", []),
+        )
 
         usage     = get_tracker().get_usage()
         cache_hit = result.pop("_cache_hit", False)

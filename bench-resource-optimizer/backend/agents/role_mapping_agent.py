@@ -130,6 +130,7 @@ def map_role(
     mapping["faithfulness_score"] = round(faith_score, 3)
     mapping["prompt_version"]     = f"{prompt_def.name}@{prompt_def.version}"
     mapping["retrieval_method"]   = "hybrid+rerank" if use_hybrid else "crag"
+    mapping["_retrieved_context"] = role_context  # used by RAGAS evaluator in main.py
 
     if not is_faithful:
         mapping["_faithfulness_warning"] = faith_reason

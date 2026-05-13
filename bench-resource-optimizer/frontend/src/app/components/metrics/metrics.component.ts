@@ -329,6 +329,108 @@ import { ApiService } from '../../services/api.service';
 
       </div>
 
+      <!-- ── Row 5: RAGAS Evaluation Dashboard ─────────────────────────── -->
+      <div class="card ragas-panel" *ngIf="m.ragas">
+        <div class="card-header" style="margin-bottom:20px;">
+          <h3>RAGAS Evaluation — RAG Quality Metrics (Module 3)</h3>
+          <span class="card-why">
+            Faithfulness · Context Precision · Context Recall · Answer Relevancy · Precision&#64;K · MRR
+            — evaluated on every role mapping, no ground truth needed
+          </span>
+        </div>
+
+        <div *ngIf="!m.ragas.evaluated || m.ragas.evaluated === 0" class="no-data" style="padding:24px;">
+          No role mappings evaluated yet — map a role to populate RAGAS metrics.
+        </div>
+
+        <ng-container *ngIf="m.ragas.evaluated > 0">
+
+          <!-- Pass / Fail summary -->
+          <div class="ragas-summary">
+            <div class="ragas-sum-item ragas-sum-pass">
+              <span class="ragas-sum-val">{{ m.ragas.pass_rate_pct?.toFixed(1) }}%</span>
+              <span class="ragas-sum-key">Pass Rate</span>
+              <span class="ragas-sum-note">All 4 metrics above threshold</span>
+            </div>
+            <div class="ragas-sum-item">
+              <span class="ragas-sum-val">{{ m.ragas.evaluated }}</span>
+              <span class="ragas-sum-key">Evaluated</span>
+              <span class="ragas-sum-note">Role mappings scored</span>
+            </div>
+            <div class="ragas-sum-item" *ngIf="m.ragas.alerts?.length > 0" style="background:#fff5f5; border-color:#fca5a5;">
+              <span class="ragas-sum-val" style="color:#dc2626;">{{ m.ragas.alerts.length }}</span>
+              <span class="ragas-sum-key" style="color:#dc2626;">Alerts</span>
+              <span class="ragas-sum-note" style="color:#dc2626;">Metrics below threshold</span>
+            </div>
+            <div class="ragas-sum-item" *ngIf="!m.ragas.alerts?.length">
+              <span class="ragas-sum-val" style="color:#15803d;">✓</span>
+              <span class="ragas-sum-key">Alerts</span>
+              <span class="ragas-sum-note">All metrics healthy</span>
+            </div>
+          </div>
+
+          <!-- 6 metric bars -->
+          <div class="ragas-metrics-grid">
+            <div *ngFor="let metric of ragasMetricList" class="ragas-metric-row">
+              <div class="ragas-metric-head">
+                <span class="ragas-metric-name">{{ metric.label }}</span>
+                <span class="ragas-metric-score"
+                      [style.color]="ragasScoreColor(metric.score, metric.threshold)">
+                  {{ (metric.score * 100).toFixed(1) }}%
+                </span>
+              </div>
+              <div class="ragas-bar-track">
+                <div class="ragas-bar-fill"
+                     [style.width.%]="metric.score * 100"
+                     [style.background]="ragasScoreColor(metric.score, metric.threshold)">
+                </div>
+                <div class="ragas-threshold-line" [style.left.%]="metric.threshold * 100"></div>
+              </div>
+              <div class="ragas-metric-meta">
+                <span class="ragas-threshold-label">target ≥ {{ (metric.threshold * 100).toFixed(0) }}%</span>
+                <span class="ragas-metric-desc">{{ metric.desc }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Alerts -->
+          <div *ngIf="m.ragas.alerts?.length > 0" class="ragas-alerts">
+            <p class="ragas-alert-title">Action Required</p>
+            <div *ngFor="let a of m.ragas.alerts" class="ragas-alert-row">
+              <span class="ragas-alert-metric">{{ a.metric }}</span>
+              <span class="ragas-alert-score">{{ (a.score * 100).toFixed(1) }}% vs target {{ (a.threshold * 100).toFixed(0) }}%</span>
+              <span class="ragas-alert-gap">-{{ (a.gap * 100).toFixed(1) }}%</span>
+            </div>
+          </div>
+
+          <!-- Recent evaluations table -->
+          <div *ngIf="m.ragas.recent?.length" style="margin-top:20px;">
+            <p class="section-sublabel">Recent Evaluations</p>
+            <div class="ragas-recent-table">
+              <div class="ragas-recent-head">
+                <span>ID</span><span>Query</span><span>Faith</span>
+                <span>Ctx Prec</span><span>Ctx Rec</span><span>Ans Rel</span>
+                <span>MRR</span><span>Pass</span>
+              </div>
+              <div *ngFor="let r of m.ragas.recent" class="ragas-recent-row"
+                   [class.ragas-fail-row]="!r.passed">
+                <span class="ragas-rid">{{ r.request_id }}</span>
+                <span class="ragas-query" title="{{ r.query }}">{{ r.query | slice:0:22 }}…</span>
+                <span [style.color]="ragasScoreColor(r.faithfulness, 0.85)">{{ (r.faithfulness * 100).toFixed(0) }}%</span>
+                <span [style.color]="ragasScoreColor(r.context_precision, 0.75)">{{ (r.context_precision * 100).toFixed(0) }}%</span>
+                <span [style.color]="ragasScoreColor(r.context_recall, 0.70)">{{ (r.context_recall * 100).toFixed(0) }}%</span>
+                <span [style.color]="ragasScoreColor(r.answer_relevancy, 0.80)">{{ (r.answer_relevancy * 100).toFixed(0) }}%</span>
+                <span>{{ (r.mrr * 100).toFixed(0) }}%</span>
+                <span class="ragas-pass-chip" [class.ragas-chip-pass]="r.passed" [class.ragas-chip-fail]="!r.passed">
+                  {{ r.passed ? 'PASS' : 'FAIL' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+        </ng-container>
+      </div>
+
       <!-- ── Recent Requests ─────────────────────────────────────────────── -->
       <div class="card" *ngIf="m.recent_requests?.length">
         <div class="card-header">
@@ -559,6 +661,64 @@ import { ApiService } from '../../services/api.service';
     .req-cost { color:#64748b; font-family:monospace; }
     .cache-hit-badge  { background:#dcfce7; color:#15803d; font-size:10px; font-weight:700; padding:2px 7px; border-radius:999px; }
     .cache-miss-badge { background:#f1f5f9; color:#94a3b8; font-size:10px; font-weight:600; padding:2px 7px; border-radius:999px; }
+
+    /* RAGAS panel */
+    .ragas-panel { margin-bottom:20px; }
+    .ragas-summary {
+      display:flex; gap:14px; margin-bottom:24px; flex-wrap:wrap;
+    }
+    .ragas-sum-item {
+      flex:1; min-width:130px; background:#f8fafc;
+      border:1px solid #e2e8f0; border-radius:10px; padding:14px;
+      display:flex; flex-direction:column; gap:3px;
+    }
+    .ragas-sum-pass { background:#f0fdf4; border-color:#bbf7d0; }
+    .ragas-sum-val  { font-size:26px; font-weight:800; color:#0f172a; }
+    .ragas-sum-key  { font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.4px; }
+    .ragas-sum-note { font-size:11px; color:#94a3b8; }
+
+    .ragas-metrics-grid { display:flex; flex-direction:column; gap:14px; margin-bottom:20px; }
+    .ragas-metric-row { display:flex; flex-direction:column; gap:4px; }
+    .ragas-metric-head { display:flex; justify-content:space-between; align-items:center; }
+    .ragas-metric-name { font-size:13px; font-weight:600; color:#1e293b; }
+    .ragas-metric-score { font-size:14px; font-weight:800; }
+    .ragas-bar-track {
+      height:8px; background:#f1f5f9; border-radius:999px;
+      overflow:visible; position:relative;
+    }
+    .ragas-bar-fill { height:100%; border-radius:999px; transition:width 0.5s ease; }
+    .ragas-threshold-line {
+      position:absolute; top:-3px; width:2px; height:14px;
+      background:#94a3b8; border-radius:1px;
+    }
+    .ragas-metric-meta { display:flex; justify-content:space-between; }
+    .ragas-threshold-label { font-size:10px; color:#94a3b8; font-weight:600; }
+    .ragas-metric-desc { font-size:10px; color:#94a3b8; text-align:right; max-width:60%; }
+
+    .ragas-alerts { background:#fff5f5; border:1px solid #fca5a5; border-radius:8px; padding:14px; margin-bottom:16px; }
+    .ragas-alert-title { font-size:12px; font-weight:700; color:#b91c1c; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.4px; }
+    .ragas-alert-row { display:flex; gap:12px; align-items:center; padding:5px 0; border-bottom:1px solid #fee2e2; }
+    .ragas-alert-row:last-child { border-bottom:none; }
+    .ragas-alert-metric { font-size:13px; font-weight:600; color:#1e293b; flex:1; }
+    .ragas-alert-score { font-size:12px; color:#64748b; }
+    .ragas-alert-gap { font-size:12px; font-weight:700; color:#dc2626; }
+
+    .ragas-recent-table { font-size:12px; }
+    .ragas-recent-head, .ragas-recent-row {
+      display:grid;
+      grid-template-columns:70px 1fr 60px 70px 70px 70px 50px 55px;
+      gap:8px; padding:7px 10px; border-radius:6px; align-items:center;
+    }
+    .ragas-recent-head {
+      font-size:10px; font-weight:700; color:#94a3b8;
+      text-transform:uppercase; letter-spacing:0.4px; background:#f8fafc; margin-bottom:3px;
+    }
+    .ragas-fail-row { background:#fff5f5; }
+    .ragas-rid   { font-family:monospace; font-size:11px; color:#64748b; }
+    .ragas-query { color:#1e293b; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .ragas-pass-chip { font-size:10px; font-weight:700; padding:2px 7px; border-radius:999px; text-align:center; }
+    .ragas-chip-pass { background:#dcfce7; color:#15803d; }
+    .ragas-chip-fail { background:#fee2e2; color:#b91c1c; }
   `],
 })
 export class MetricsComponent implements OnInit, OnDestroy {
@@ -627,5 +787,27 @@ export class MetricsComponent implements OnInit, OnDestroy {
     if (state === 'closed') return 'cb-badge cb-closed';
     if (state === 'open')   return 'cb-badge cb-open';
     return 'cb-badge cb-half';
+  }
+
+  get ragasMetricList(): any[] {
+    const r = this.m?.ragas;
+    if (!r?.metrics) return [];
+    const thresholds = r.thresholds ?? {};
+    const interp = r.interpretation ?? {};
+    return [
+      { key: 'faithfulness',      label: 'Faithfulness',       score: r.metrics.faithfulness,      threshold: thresholds.faithfulness ?? 0.85,      desc: interp.faithfulness ?? '' },
+      { key: 'context_precision', label: 'Context Precision',  score: r.metrics.context_precision,  threshold: thresholds.context_precision ?? 0.75,  desc: interp.context_precision ?? '' },
+      { key: 'context_recall',    label: 'Context Recall',     score: r.metrics.context_recall,     threshold: thresholds.context_recall ?? 0.70,     desc: interp.context_recall ?? '' },
+      { key: 'answer_relevancy',  label: 'Answer Relevancy',   score: r.metrics.answer_relevancy,   threshold: thresholds.answer_relevancy ?? 0.80,   desc: interp.answer_relevancy ?? '' },
+      { key: 'precision_at_k',   label: 'Precision@K',        score: r.metrics.precision_at_k,    threshold: 0,                                      desc: interp.precision_at_k ?? '' },
+      { key: 'mrr',               label: 'MRR',                score: r.metrics.mrr,               threshold: 0,                                      desc: interp.mrr ?? '' },
+    ];
+  }
+
+  ragasScoreColor(score: number, threshold: number): string {
+    if (threshold === 0) return '#3b82f6';
+    if (score >= threshold)                   return '#15803d';
+    if (score >= threshold - 0.1)             return '#d97706';
+    return '#dc2626';
   }
 }

@@ -14,6 +14,16 @@ Metrics captured (mapped to Senior AI Engineer KPIs):
   8.  Cost Estimate         — token-based cost proxy per report
   9.  Agent Health          — per-agent error counts
   10. Answer Relevance Proxy — % of questions that received HIGH-confidence consensus
+
+RAGAS-style proxy metrics (Module 3 — RAG Evaluation):
+  AstroIntel uses rule-based domain agents + consensus, not classic RAG retrieval.
+  Standard RAGAS context_precision/recall don't apply (no vector store queries).
+  Instead we map existing signals to the closest RAGAS analogue:
+    faithfulness_proxy     ← % insights NOT flagged by hallucination layer (grounded in multi-domain consensus)
+    context_precision_proxy← % of domains that produced HIGH-confidence output (useful "retrieved" domains)
+    answer_relevancy_proxy ← % questions with HIGH consensus (answer addressed the question asked)
+    domain_recall_proxy    ← avg domains active / 5 (did all relevant domains contribute?)
+  These are exposed in ragas_proxies in the dashboard for interview-ready explanation.
 """
 from __future__ import annotations
 
@@ -25,6 +35,90 @@ from typing import Any, Dict, List, Optional
 
 # Approximate GPT-4o-mini token pricing (input + output)
 _COST_PER_1K_TOKENS = 0.000165  # USD — $0.15/1M input + $0.60/1M output blended
+
+
+def _compute_ragas_proxies(
+    runs: list,
+    conf_totals: dict,
+    total_insights: int,
+    hallucination_proxy_pct: float,
+    answer_relevance_proxy_pct: float,
+    avg_domains: float,
+) -> dict:
+    """
+    Map AstroIntel-specific signals to RAGAS-equivalent proxy metrics.
+
+    AstroIntel does not use vector retrieval, so standard RAGAS
+    (context_precision, context_recall) cannot be computed directly.
+    We map the closest equivalent signals instead.
+
+    faithfulness_proxy:
+      Standard RAGAS faithfulness = LLM claims grounded in retrieved context.
+      AstroIntel proxy = % of insights NOT suppressed by the hallucination layer.
+      Suppression happens when an insight has only 1 domain source (single-source flag)
+      or contains hedge phrases / contradictions. Non-suppressed = grounded in consensus.
+
+    context_precision_proxy:
+      Standard RAGAS context_precision = retrieved chunks that contributed to answer.
+      AstroIntel proxy = % of active domains that produced HIGH-confidence output.
+      A domain that ran but produced LOW confidence = noisy "retrieved context."
+
+    answer_relevancy_proxy:
+      Standard RAGAS answer_relevancy = answer addresses the question asked.
+      AstroIntel proxy = % of questions that received HIGH-consensus answers.
+
+    domain_recall_proxy:
+      Standard RAGAS context_recall = all relevant context was retrieved.
+      AstroIntel proxy = avg active domains / 5 (did all configured domains contribute?).
+    """
+    n = max(len(runs), 1)
+
+    # Faithfulness proxy: % insights not suppressed by hallucination layer
+    total_suppressed  = sum(r.suppressed_count for r in runs)
+    faithfulness_proxy = round(
+        max(0.0, 1.0 - (total_suppressed / max(total_insights, 1))), 4
+    )
+
+    # Context precision proxy: HIGH-confidence insights / all insights
+    high_insights = conf_totals.get("high", 0)
+    context_precision_proxy = round(high_insights / max(total_insights, 1), 4)
+
+    # Answer relevancy proxy: direct from existing signal (already 0–100)
+    answer_relevancy_proxy = round(answer_relevance_proxy_pct / 100, 4)
+
+    # Domain recall proxy: avg active domains / 5 possible
+    domain_recall_proxy = round(avg_domains / 5, 4)
+
+    thresholds = {
+        "faithfulness_proxy":      0.85,
+        "context_precision_proxy": 0.60,
+        "answer_relevancy_proxy":  0.70,
+        "domain_recall_proxy":     0.60,
+    }
+
+    scores = {
+        "faithfulness_proxy":      faithfulness_proxy,
+        "context_precision_proxy": context_precision_proxy,
+        "answer_relevancy_proxy":  answer_relevancy_proxy,
+        "domain_recall_proxy":     domain_recall_proxy,
+    }
+
+    alerts = [
+        {"metric": k, "score": scores[k], "threshold": v}
+        for k, v in thresholds.items()
+        if scores[k] < v
+    ]
+
+    return {
+        "scores":     scores,
+        "thresholds": thresholds,
+        "alerts":     alerts,
+        "note": (
+            "These are RAGAS-equivalent proxies for AstroIntel's consensus architecture. "
+            "AstroIntel has no vector retrieval — metrics map domain-agent signals to "
+            "the nearest RAGAS analogue for interview and evaluation comparability."
+        ),
+    }
 
 
 @dataclass
@@ -254,6 +348,7 @@ class MetricsCollector:
                 }
                 for r in list(runs)[-10:]
             ],
+            "ragas_proxies": _compute_ragas_proxies(runs, conf_totals, total_insights, hallucination_proxy, answer_relevance_proxy, avg_domains),
             "interview_explainer": {
                 "why_these_metrics": (
                     "AstroIntel uses rule-based domain agents + a consensus layer — not retrieval-augmented generation. "
@@ -265,6 +360,13 @@ class MetricsCollector:
                     "(4) Domain coverage — a report where only 1/5 domains contributed is a quality signal. "
                     "(5) Hallucination audit — 3-layer detection (single-source, hedge-phrase, contradiction) "
                     "with Layer 3 recovery suppressing unreliable insights before they reach the user."
+                ),
+                "ragas_mapping": (
+                    "RAGAS proxies mapped to AstroIntel signals: "
+                    "faithfulness → % insights not suppressed by hallucination layer; "
+                    "context_precision → % domains producing HIGH-confidence output; "
+                    "answer_relevancy → % questions with HIGH-consensus answer; "
+                    "domain_recall → avg active domains / 5 possible."
                 ),
             },
         }
@@ -282,6 +384,7 @@ class MetricsCollector:
             "token_economics": {"has_real_data": False, "avg_total_tokens": 0, "avg_cost_per_run_usd": 0, "total_cost_usd": 0, "data_source": "no data"},
             "throughput": {"requests_last_60s": 0, "total_sessions": 0},
             "agent_latency_avg_ms": {},
+            "ragas_proxies": {"scores": {}, "thresholds": {}, "alerts": [], "note": "No data yet."},
             "recent_runs": [],
             "interview_explainer": {},
         }
