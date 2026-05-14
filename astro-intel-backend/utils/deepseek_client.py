@@ -14,6 +14,7 @@ import os
 import threading
 import urllib.request
 from typing import Any, Dict, Optional
+from guardrails.production import llm_circuit_breaker, CircuitOpenError
 
 # ── Thread-local token accumulator ───────────────────────────────────────────
 _usage_local = threading.local()
@@ -84,7 +85,7 @@ def call(
         ],
     }).encode()
 
-    req = urllib.request.Request(
+    http_req = urllib.request.Request(
         "https://api.deepseek.com/chat/completions",
         data=payload,
         headers={
@@ -93,8 +94,16 @@ def call(
         },
         method="POST",
     )
-    with urllib.request.urlopen(req, timeout=120) as resp:
-        data = json.loads(resp.read().decode())
+
+    def _do_http_call():
+        with urllib.request.urlopen(http_req, timeout=120) as resp:
+            return json.loads(resp.read().decode())
+
+    # ── G2: Circuit Breaker wraps the actual HTTP call ────────────────────────
+    try:
+        data = llm_circuit_breaker.call(_do_http_call)
+    except CircuitOpenError as exc:
+        raise RuntimeError(str(exc)) from exc
 
     # ── Accumulate real token counts from API response ────────────────────────
     usage = data.get("usage", {})

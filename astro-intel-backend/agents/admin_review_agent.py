@@ -6,6 +6,7 @@ Each insight has: id, content, confidence, domains[], is_common, editable.
 from __future__ import annotations
 from typing import Any, Dict, List
 from agents.agent_prompts import build_prompt
+from guardrails.production import filter_pii_from_admin_review
 
 
 # ── Module methodology registry ───────────────────────────────────────────────
@@ -237,9 +238,14 @@ def admin_review_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
             domain_outputs=domain_texts,
         )
 
+    # ── G4: PII Filter — scrub raw birth data echoed in insight content ──────
+    profile = state.get("user_profile", {})
+    admin_review, scrub_count = filter_pii_from_admin_review(admin_review, profile)
+
     state["admin_review"] = admin_review
     total_insights = sum(len(q["insights"]) for q in admin_review["questions"])
     state.setdefault("agent_log", []).append(
-        f"[AdminReviewAgent] Generated {total_insights} insights across {len(admin_review['questions'])} question(s)."
+        f"[AdminReviewAgent] Generated {total_insights} insights across {len(admin_review['questions'])} question(s). "
+        f"PII scrubbed from {scrub_count} insight(s)."
     )
     return state

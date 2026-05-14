@@ -25,6 +25,7 @@ from __future__ import annotations
 import json
 import logging
 from typing import Any, Dict, List
+from guardrails.production import repair_json
 
 logger = logging.getLogger("astro.rag.multi_query")
 
@@ -49,7 +50,14 @@ def _generate_variants(question: str) -> List[str]:
             temperature=0,
             max_tokens=80,
         )
-        variants = json.loads(raw)
+        # ── G3: JSON Repair — handle malformed LLM JSON array output ─────────
+        parsed, was_repaired = repair_json(raw)
+        if parsed is None:
+            logger.debug("multi_query: JSON repair failed, skipping variants")
+            return []
+        if was_repaired:
+            logger.info("multi_query: repaired malformed JSON from LLM")
+        variants = parsed if isinstance(parsed, list) else parsed.get("variants", []) if isinstance(parsed, dict) else []
         if isinstance(variants, list):
             return [str(v).strip() for v in variants if v and str(v).strip()][:2]
     except Exception as exc:

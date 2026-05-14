@@ -11,6 +11,15 @@ from guardrails.security import (
     SECURITY_FOOTER,
     SecurityError,
 )
+from guardrails.production import (
+    rate_limiter,
+    llm_circuit_breaker,
+    CircuitOpenError,
+    repair_json,
+    filter_pii_from_insight,
+    filter_pii_from_admin_review,
+    all_guardrail_stats,
+)
 
 __all__ = [
     "safe_node",
@@ -26,4 +35,12 @@ __all__ = [
     "SECURITY_HEADER",
     "SECURITY_FOOTER",
     "SecurityError",
+    # production guardrails
+    "rate_limiter",
+    "llm_circuit_breaker",
+    "CircuitOpenError",
+    "repair_json",
+    "filter_pii_from_insight",
+    "filter_pii_from_admin_review",
+    "all_guardrail_stats",
 ]

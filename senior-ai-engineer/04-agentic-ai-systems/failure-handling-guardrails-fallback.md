@@ -226,6 +226,120 @@ In interview: "The failure handling in AstroIntel was designed so that no single
 
 ---
 
+**AstroIntel — Production Guardrails (G1–G4) — implemented 2026-05-14:**
+
+Four production guardrails were added non-invasively to the pipeline without touching graph structure or agent core logic. All implemented in `guardrails/production.py` and wired at the correct boundary points.
+
+**G1 — Rate Limiter** (`guardrails/production.py` → wired in `routers/analysis.py`):
+
+Sliding-window rate limiter, keyed per `user_id`. Default: 10 requests per 60 seconds.
+Uses a `deque` per user to track timestamps — evicts timestamps outside the window on each check, O(1) amortized.
+Wired at the very top of `POST /api/v1/analysis/run`, before cache check or any LLM call.
+Returns HTTP 429 with retry-in seconds when the limit is exceeded.
+
+```python
+# routers/analysis.py — wired at top of run_analysis()
+from guardrails.production import rate_limiter
+
+allowed, reason = rate_limiter.is_allowed(req.user_id or "anonymous")
+if not allowed:
+    raise HTTPException(status_code=429, detail=reason)
+```
+
+Test results (live HTTP):
+- Requests 1–10 → HTTP 200 (allowed)
+- Request 11 → HTTP 429 with `"Rate limit exceeded: 10 requests per 60s. Retry in 59.3s."`
+- Different user_id → allowed independently (isolated sliding windows)
+
+**G2 — Circuit Breaker** (`guardrails/production.py` → wired in `utils/deepseek_client.py`):
+
+Three-state machine: CLOSED → OPEN (after 5 failures) → HALF_OPEN (after 60s recovery timeout) → CLOSED (after successful probe).
+Wraps the actual `urllib.request.urlopen()` HTTP call, not the whole `call()` function — so token accounting and response parsing still happen correctly on success.
+Raises `CircuitOpenError` (subclass of Exception) when OPEN, caught at the router level and returned as 503.
+
+```python
+# utils/deepseek_client.py
+from guardrails.production import llm_circuit_breaker, CircuitOpenError
+
+def _do_http_call():
+    with urllib.request.urlopen(http_req, timeout=120) as resp:
+        return json.loads(resp.read().decode())
+
+try:
+    data = llm_circuit_breaker.call(_do_http_call)
+except CircuitOpenError as exc:
+    raise RuntimeError(str(exc)) from exc
+```
+
+Test results (unit):
+- 3 consecutive failures → state transitions CLOSED → OPEN
+- Call while OPEN → fails fast, no HTTP request made
+- After 2s recovery timeout → state HALF_OPEN, one probe allowed
+- Successful probe → state CLOSED (recovered)
+- Failed probe in HALF_OPEN → state OPEN again
+
+Admin endpoints added:
+- `GET /guardrails/stats` — live state of rate limiter and circuit breaker
+- `POST /guardrails/circuit-breaker/reset` — manual reset to CLOSED (for ops team)
+
+**G3 — JSON Output Repair** (`guardrails/production.py` → wired in `rag/multi_query.py`):
+
+4-level repair cascade:
+1. Direct `json.loads()` — clean parse, no repair flag
+2. Strip markdown code fences (` ```json ... ``` `) — LLM often wraps JSON in fences
+3. Regex extraction — find first `{...}` or `[...]` block in prose output
+4. LLM repair call — send malformed output back to LLM with "fix this JSON" prompt (optional, requires `llm_caller` arg)
+
+Wired in `rag/multi_query.py` where the LLM returns a JSON array of query variants:
+
+```python
+# rag/multi_query.py
+from guardrails.production import repair_json
+
+parsed, was_repaired = repair_json(raw)
+if parsed is None:
+    return []  # graceful degradation — use original query
+if was_repaired:
+    logger.info("multi_query: repaired malformed JSON from LLM")
+variants = parsed if isinstance(parsed, list) else []
+```
+
+Test results (unit):
+- Valid JSON → (dict, False) — no repair, fast path
+- Markdown-fenced → (dict, True) — fence-stripped
+- JSON buried in prose → (dict, True) — regex extracted
+- Completely broken text → (None, True) — graceful None, caller degrades
+- Partial `{` without close → (None, True) — graceful None
+
+**G4 — PII Output Filter** (`guardrails/production.py` → wired in `agents/admin_review_agent.py`):
+
+Two-layer scrub:
+1. Exact field replacement — replaces verbatim profile values (DOB, time of birth, place, pincode) with `[birth date]`, `[birth time]`, `[birth place]`, `[pincode]` placeholders
+2. Regex pattern scan — flags date patterns (YYYY-MM-DD, DD/MM/YYYY), time patterns, and coordinate patterns even if not an exact field match
+
+Wired at the final step of `admin_review_agent_node()`, after all insight content is assembled, before writing to state:
+
+```python
+# agents/admin_review_agent.py
+from guardrails.production import filter_pii_from_admin_review
+
+profile = state.get("user_profile", {})
+admin_review, scrub_count = filter_pii_from_admin_review(admin_review, profile)
+state["admin_review"] = admin_review
+```
+
+Test results (unit):
+- Clean insight → passes through unchanged, pii_found=False
+- DOB `1992-04-15` in insight → replaced with `[birth date]`
+- `Chandigarh` in insight → replaced with `[birth place]`
+- `06:30 AM` pattern → regex flags it, pii_found=True
+- Full admin_review with 2 insights (1 dirty, 1 clean) → 1 scrubbed, 1 untouched, scrub_count=1
+
+All 4 guardrails tested: 26 unit tests (positive + negative scenarios) — all pass.
+Live HTTP tests: rate limiter fires at request 11 (HTTP 429), guardrail stats endpoint returns correct state, circuit breaker reset endpoint works.
+
+---
+
 ## 7. Trade-offs
 
 Aggressive retry:

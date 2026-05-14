@@ -212,6 +212,14 @@ export class ApiService {
     return this.http.delete(`${BACKEND}/cache/clear`).pipe(catchError(this._handleError));
   }
 
+  getGuardrailStats(): Observable<any> {
+    return this.http.get(`${BACKEND}/guardrails/stats`).pipe(catchError(this._handleError));
+  }
+
+  resetCircuitBreaker(): Observable<any> {
+    return this.http.post(`${BACKEND}/guardrails/circuit-breaker/reset`, {}).pipe(catchError(this._handleError));
+  }
+
   private _handleError(err: any): Observable<never> {
     let msg: string;
     if (err?.name === 'TimeoutError') {

@@ -21,6 +21,7 @@ import memory.store as store
 import cache.store as response_cache
 from metrics.collector import get_collector, RunRecord
 from utils.deepseek_client import get_session_usage, reset_session_usage
+from guardrails.production import rate_limiter
 
 router = APIRouter(prefix="/api/v1/analysis", tags=["Analysis"])
 
@@ -36,6 +37,11 @@ async def run_analysis(req: AnalysisRequest) -> JSONResponse:
     Accepts single user_question AND/OR list of questions.
     Returns admin_review with question-wise insights.
     """
+    # ── G1: Rate Limiter ─────────────────────────────────────────────────────
+    allowed, reason = rate_limiter.is_allowed(req.user_id or "anonymous")
+    if not allowed:
+        raise HTTPException(status_code=429, detail=reason)
+
     # ── Apply per-request prompt version ─────────────────────────────────────
     requested_version = (req.prompt_version or "v2").strip().lower()
     if requested_version in ("v1", "v2"):

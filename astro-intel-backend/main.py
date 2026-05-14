@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from routers import analysis_router, geocode_router, metrics_router
 import cache as response_cache
+from guardrails.production import all_guardrail_stats
 
 # ── App factory ─────────────────────────────────────────────────────────────
 app = FastAPI(
@@ -69,6 +70,20 @@ async def cache_invalidate(key: str):
     """Admin endpoint — invalidate a single cache entry by key."""
     removed = response_cache.invalidate(key)
     return {"key": key, "removed": removed}
+
+
+# ── Production Guardrail Stats ────────────────────────────────────────────────
+@app.get("/guardrails/stats", tags=["Guardrails"])
+async def guardrail_stats():
+    """Admin endpoint — live stats for all production guardrails."""
+    return all_guardrail_stats()
+
+@app.post("/guardrails/circuit-breaker/reset", tags=["Guardrails"])
+async def reset_circuit_breaker():
+    """Admin endpoint — manually reset the LLM circuit breaker to CLOSED."""
+    from guardrails.production import llm_circuit_breaker
+    llm_circuit_breaker.reset()
+    return {"status": "reset", "state": llm_circuit_breaker.state}
 
 
 # ── Root ─────────────────────────────────────────────────────────────────────
