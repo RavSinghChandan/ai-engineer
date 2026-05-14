@@ -54,10 +54,21 @@ async def health():
 async def cache_stats():
     return response_cache.stats()
 
+@app.get("/cache/entries", tags=["Cache"])
+async def cache_entries():
+    """Admin endpoint — list all cached users with metadata for the dashboard."""
+    return {"entries": response_cache.entries(), "stats": response_cache.stats()}
+
 @app.delete("/cache/clear", tags=["Cache"])
 async def cache_clear():
     removed = response_cache.clear()
     return {"cleared": removed}
+
+@app.delete("/cache/invalidate/{key}", tags=["Cache"])
+async def cache_invalidate(key: str):
+    """Admin endpoint — invalidate a single cache entry by key."""
+    removed = response_cache.invalidate(key)
+    return {"key": key, "removed": removed}
 
 
 # ── Root ─────────────────────────────────────────────────────────────────────

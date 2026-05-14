@@ -31,6 +31,8 @@ class AnalysisRequest(BaseModel):
     geocode: Optional[Dict[str, Any]] = None
     # Prompt version: "v1" (warm/exploratory) or "v2" (laser-sharp) — default v2
     prompt_version: Optional[str] = "v2"
+    # Set True to skip cache and force a fresh pipeline run (admin use)
+    bypass_cache: bool = False
 
 
 # ── Normalised question ────────────────────────────────────────────────────

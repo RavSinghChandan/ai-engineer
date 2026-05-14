@@ -18,6 +18,7 @@ import agents.prompt_config as prompt_config
 from agents.report_agent import final_report_agent
 from agents.translation_agent import translation_agent, list_languages
 import memory.store as store
+import cache.store as response_cache
 from metrics.collector import get_collector, RunRecord
 from utils.deepseek_client import get_session_usage, reset_session_usage
 
@@ -40,21 +41,36 @@ async def run_analysis(req: AnalysisRequest) -> JSONResponse:
     if requested_version in ("v1", "v2"):
         prompt_config.ACTIVE_PROMPT_VERSION = requested_version
 
-    # ── Cache miss — run the full pipeline ───────────────────────────────────
-    session_id = str(uuid.uuid4())
-
-    profile_dict = req.user_profile.model_dump()
-
-    # Single source of truth: user_question is the final typed/selected input.
-    # If the UI also sends questions[], deduplicate so question_agent sees only
-    # unique entries (prevents the same text being processed twice).
+    profile_dict   = req.user_profile.model_dump()
     final_question = (req.user_question or "").strip()
+
     def _norm(t: str) -> str:
         return " ".join(t.lower().split())
+
     extra_questions = [
         q for q in (req.questions or [])
         if q and q.strip() and _norm(q.strip()) != _norm(final_question)
     ]
+
+    # ── Cache check (skip if bypass_cache=true) ───────────────────────────────
+    bypass = req.bypass_cache
+    cache_key = response_cache.make_key(
+        user_id       = getattr(req, "user_id", "") or "",
+        questions     = extra_questions,
+        user_question = final_question,
+        profile       = profile_dict,
+    )
+
+    if not bypass:
+        cached = response_cache.get(cache_key, ttl=response_cache.PROFILE_TTL_SECONDS)
+        if cached is not None:
+            # Return cached response instantly — no LLM calls, no pipeline
+            cached["cache_hit"]  = True
+            cached["cache_key"]  = cache_key
+            return JSONResponse(content=cached)
+
+    # ── Cache miss — run the full pipeline ────────────────────────────────────
+    session_id = str(uuid.uuid4())
 
     initial_state: Dict[str, Any] = {
         "user_profile":        profile_dict,
@@ -76,7 +92,7 @@ async def run_analysis(req: AnalysisRequest) -> JSONResponse:
         "errors":              [],
     }
 
-    reset_session_usage()          # clear token accumulator for this request
+    reset_session_usage()
     t_start = time.time()
     loop = asyncio.get_event_loop()
     final_state = await loop.run_in_executor(None, run_pipeline, initial_state)
@@ -94,6 +110,8 @@ async def run_analysis(req: AnalysisRequest) -> JSONResponse:
     response_body: Dict[str, Any] = {
         "session_id":           session_id,
         "status":               "completed",
+        "cache_hit":            False,
+        "cache_key":            cache_key,
         "focus_context":        final_state.get("focus_context", {}),
         "normalized_questions": final_state.get("normalized_questions", []),
         "memory_keys":          store.memory_keys(session_id),
@@ -110,6 +128,19 @@ async def run_analysis(req: AnalysisRequest) -> JSONResponse:
             "consolidated": final_state.get("consolidated"),
         },
     }
+
+    # ── Store in cache for future requests from same user ─────────────────────
+    response_cache.set(
+        cache_key,
+        response_body,
+        ttl  = response_cache.PROFILE_TTL_SECONDS,
+        meta = {
+            "key_type":      "profile",
+            "user_name":     profile_dict.get("full_name", ""),
+            "date_of_birth": profile_dict.get("date_of_birth", ""),
+            "place_of_birth": profile_dict.get("place_of_birth", ""),
+        },
+    )
 
     return JSONResponse(content=response_body)
 

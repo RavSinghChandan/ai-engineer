@@ -493,8 +493,117 @@ import { ApiService } from '../../services/api.service';
 
     } <!-- end total_runs > 0 -->
 
-  </div>
-  </div>
+    <!-- ══ CACHE PANEL ════════════════════════════════════════════════════════ -->
+    <div class="cache-section">
+
+    <div class="cache-header-row">
+      <div class="cache-title-group">
+        <span class="cache-icon">🗄️</span>
+        <div>
+          <div class="cache-title">User Cache  <span class="cache-badge">30-day birth chart cache</span></div>
+          <div class="cache-sub">Returning users get instant results — no LLM calls, zero cost</div>
+        </div>
+      </div>
+      <div class="cache-actions">
+        <button class="cache-btn cache-btn-refresh" (click)="loadCache()">
+          <svg width="12" height="12" viewBox="0 0 14 14" fill="none" [class.spin]="cacheLoading()">
+            <path d="M12 7A5 5 0 1 1 7 2M12 2v4H8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Refresh
+        </button>
+        @if (cacheData()?.stats?.total_entries > 0) {
+          <button class="cache-btn cache-btn-danger" (click)="clearCache()">
+            Clear All
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Stats strip -->
+    @if (cacheData()?.stats) {
+    <div class="cache-stats-row">
+      <div class="cstat">
+        <div class="cstat-val">{{ cacheData().stats.total_entries }}</div>
+        <div class="cstat-lbl">Cached Users</div>
+      </div>
+      <div class="cstat cstat-green">
+        <div class="cstat-val">{{ cacheData().stats.hits ?? 0 }}</div>
+        <div class="cstat-lbl">Cache Hits</div>
+      </div>
+      <div class="cstat">
+        <div class="cstat-val">{{ cacheData().stats.misses ?? 0 }}</div>
+        <div class="cstat-lbl">Cache Misses</div>
+      </div>
+      <div class="cstat cstat-accent">
+        <div class="cstat-val">{{ cacheData().stats.hit_rate_pct ?? 0 }}%</div>
+        <div class="cstat-lbl">Hit Rate</div>
+      </div>
+      <div class="cstat">
+        <div class="cstat-val">{{ cacheData().stats.profile_ttl_days }}d</div>
+        <div class="cstat-lbl">TTL</div>
+      </div>
+    </div>
+    }
+
+    <!-- Entry table -->
+    @if (cacheData()?.entries?.length > 0) {
+    <div class="cache-table-wrap">
+      <table class="cache-table">
+        <thead>
+          <tr>
+            <th>User Name</th>
+            <th>Date of Birth</th>
+            <th>Place of Birth</th>
+            <th>Cached</th>
+            <th>Expires In</th>
+            <th>Hits</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (entry of cacheData().entries; track entry.key) {
+          <tr>
+            <td class="td-name">{{ entry.user_name || '—' }}</td>
+            <td>{{ entry.date_of_birth || '—' }}</td>
+            <td>{{ entry.place_of_birth || '—' }}</td>
+            <td class="td-age">{{ fmtAge(entry.age_seconds) }} ago</td>
+            <td>
+              <span class="expiry-pill" [class.expiry-near]="entry.expires_in_days < 3">
+                {{ entry.expires_in_days }}d
+              </span>
+            </td>
+            <td>
+              <span class="hit-badge" [class.hit-badge-active]="entry.hit_count > 0">
+                {{ entry.hit_count }}x
+              </span>
+            </td>
+            <td>
+              <button class="cache-btn cache-btn-sm cache-btn-danger"
+                (click)="invalidateEntry(entry.key, entry.user_name)">
+                Invalidate
+              </button>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    } @else if (!cacheLoading()) {
+      <div class="cache-empty">
+        <div class="cache-empty-icon">🗃️</div>
+        <div class="cache-empty-text">No cached users yet</div>
+        <div class="cache-empty-sub">Run an analysis — the results will be cached here for 30 days</div>
+      </div>
+    }
+
+    @if (cacheError()) {
+      <div class="cache-error">{{ cacheError() }}</div>
+    }
+
+    </div><!-- cache-section -->
+
+  </div><!-- metrics-wrap -->
+  </div><!-- metrics-scroll -->
   } <!-- end metrics() -->
 
 </div><!-- workspace -->
@@ -681,12 +790,86 @@ import { ApiService } from '../../services/api.service';
     .btn-primary { background: #6366f1; border: none; color: #fff; border-radius: 8px; padding: 10px 22px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
     .btn-primary:hover { background: #4f46e5; }
 
+    /* ── Cache Panel ── */
+    .cache-section {
+      background: #fff; border: 1px solid rgba(0,0,0,0.07); border-radius: 16px;
+      margin: 0 32px 32px; padding: 24px 28px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .cache-header-row {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;
+    }
+    .cache-title-group { display: flex; align-items: center; gap: 14px; }
+    .cache-icon { font-size: 26px; }
+    .cache-title { font-size: 17px; font-weight: 700; color: #111827; display: flex; align-items: center; gap: 10px; }
+    .cache-badge {
+      font-size: 11px; font-weight: 600; background: #ede9fe; color: #6d28d9;
+      border-radius: 20px; padding: 3px 10px; letter-spacing: 0.02em;
+    }
+    .cache-sub { font-size: 13px; color: #6b7280; margin-top: 3px; }
+    .cache-actions { display: flex; gap: 8px; }
+    .cache-btn {
+      display: flex; align-items: center; gap: 5px;
+      border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 600;
+      cursor: pointer; font-family: inherit; border: 1px solid transparent; transition: all 0.15s;
+    }
+    .cache-btn-refresh { background: #f9fafb; border-color: rgba(0,0,0,0.12); color: #374151; }
+    .cache-btn-refresh:hover { background: #f3f4f6; }
+    .cache-btn-danger { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
+    .cache-btn-danger:hover { background: #fee2e2; }
+    .cache-btn-sm { padding: 4px 10px; font-size: 11px; }
+
+    .cache-stats-row {
+      display: flex; gap: 12px; margin-bottom: 18px; flex-wrap: wrap;
+    }
+    .cstat {
+      background: #f9fafb; border: 1px solid rgba(0,0,0,0.07); border-radius: 10px;
+      padding: 12px 18px; min-width: 90px; text-align: center;
+    }
+    .cstat-val { font-size: 22px; font-weight: 700; color: #111827; }
+    .cstat-lbl { font-size: 11px; color: #6b7280; margin-top: 2px; }
+    .cstat-green .cstat-val { color: #059669; }
+    .cstat-accent .cstat-val { color: #6366f1; }
+
+    .cache-table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid rgba(0,0,0,0.07); }
+    .cache-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .cache-table thead tr { background: #f8fafc; }
+    .cache-table th {
+      padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 700;
+      color: #6b7280; letter-spacing: 0.06em; text-transform: uppercase;
+      border-bottom: 1px solid rgba(0,0,0,0.07);
+    }
+    .cache-table td { padding: 11px 14px; border-bottom: 1px solid rgba(0,0,0,0.05); color: #374151; }
+    .cache-table tbody tr:last-child td { border-bottom: none; }
+    .cache-table tbody tr:hover { background: #fafafa; }
+    .td-name { font-weight: 600; color: #111827; }
+    .td-age { color: #9ca3af; font-size: 12px; }
+    .expiry-pill {
+      display: inline-block; background: #d1fae5; color: #065f46;
+      border-radius: 20px; padding: 2px 9px; font-size: 11px; font-weight: 700;
+    }
+    .expiry-near { background: #fef3c7; color: #92400e; }
+    .hit-badge {
+      display: inline-block; background: #f3f4f6; color: #6b7280;
+      border-radius: 20px; padding: 2px 9px; font-size: 11px; font-weight: 600;
+    }
+    .hit-badge-active { background: #ede9fe; color: #6d28d9; }
+
+    .cache-empty {
+      text-align: center; padding: 36px 20px; color: #9ca3af;
+    }
+    .cache-empty-icon { font-size: 32px; margin-bottom: 8px; }
+    .cache-empty-text { font-size: 15px; font-weight: 600; color: #6b7280; margin-bottom: 4px; }
+    .cache-empty-sub { font-size: 13px; }
+    .cache-error { color: #dc2626; font-size: 13px; margin-top: 10px; padding: 8px 12px; background: #fef2f2; border-radius: 8px; }
+
     /* ── Responsive ── */
     @media (max-width: 900px) {
       .kpi-row { grid-template-columns: repeat(2, 1fr); }
       .quality-row { grid-template-columns: 1fr; }
       .metrics-scroll { padding: 16px 16px 40px; }
       .hdr { padding: 0 20px; }
+      .cache-section { margin: 0 16px 24px; padding: 18px 16px; }
+      .cache-stats-row { gap: 8px; }
     }
   `]
 })
@@ -694,14 +877,18 @@ export class MetricsPage implements OnInit, OnDestroy {
   readonly router = inject(Router);
   private api = inject(ApiService);
 
-  metrics = signal<any>(null);
-  loading = signal(false);
-  error = signal('');
+  metrics      = signal<any>(null);
+  loading      = signal(false);
+  error        = signal('');
+  cacheData    = signal<any>(null);
+  cacheLoading = signal(false);
+  cacheError   = signal('');
   private _timer: any;
 
   ngOnInit() {
     this.loadMetrics();
-    this._timer = setInterval(() => this.loadMetrics(), 10_000);
+    this.loadCache();
+    this._timer = setInterval(() => { this.loadMetrics(); this.loadCache(); }, 10_000);
   }
 
   ngOnDestroy() {
@@ -714,6 +901,48 @@ export class MetricsPage implements OnInit, OnDestroy {
       next: (d) => { this.metrics.set(d); this.loading.set(false); this.error.set(''); },
       error: (e) => { this.error.set(e.message ?? 'Failed to load metrics'); this.loading.set(false); },
     });
+  }
+
+  loadCache() {
+    this.cacheLoading.set(true);
+    this.api.getCacheEntries().subscribe({
+      next: (d) => { this.cacheData.set(d); this.cacheLoading.set(false); this.cacheError.set(''); },
+      error: (e) => {
+        this.cacheLoading.set(false);
+        // Suppress parse/proxy errors — means backend needs restart, show empty state silently
+        const msg: string = e.message ?? '';
+        if (msg.includes('parsing') || msg.includes('Cannot reach')) {
+          this.cacheError.set('');
+          if (!this.cacheData()) this.cacheData.set({ entries: [], stats: null });
+        } else {
+          this.cacheError.set(msg || 'Failed to load cache');
+        }
+      },
+    });
+  }
+
+  invalidateEntry(key: string, name: string) {
+    if (!confirm(`Remove cache entry for "${name || key}"?`)) return;
+    this.api.invalidateCacheEntry(key).subscribe({
+      next: () => this.loadCache(),
+      error: (e) => this.cacheError.set(e.message ?? 'Failed to invalidate'),
+    });
+  }
+
+  clearCache() {
+    if (!confirm('Clear ALL cached users? They will need a full LLM run on next visit.')) return;
+    this.api.clearAllCache().subscribe({
+      next: () => this.loadCache(),
+      error: (e) => this.cacheError.set(e.message ?? 'Failed to clear cache'),
+    });
+  }
+
+  fmtAge(seconds: number): string {
+    if (!seconds) return 'just now';
+    if (seconds < 60) return `${Math.round(seconds)}s`;
+    if (seconds < 3600) return `${Math.round(seconds / 60)}m`;
+    if (seconds < 86400) return `${Math.round(seconds / 3600)}h`;
+    return `${Math.round(seconds / 86400)}d`;
   }
 
   fmt(ms: number): string {

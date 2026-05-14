@@ -200,6 +200,18 @@ export class ApiService {
     return this.http.get(`${BACKEND}/api/v1/metrics`).pipe(catchError(this._handleError));
   }
 
+  getCacheEntries(): Observable<any> {
+    return this.http.get(`${BACKEND}/cache/entries`).pipe(catchError(this._handleError));
+  }
+
+  invalidateCacheEntry(key: string): Observable<any> {
+    return this.http.delete(`${BACKEND}/cache/invalidate/${encodeURIComponent(key)}`).pipe(catchError(this._handleError));
+  }
+
+  clearAllCache(): Observable<any> {
+    return this.http.delete(`${BACKEND}/cache/clear`).pipe(catchError(this._handleError));
+  }
+
   private _handleError(err: any): Observable<never> {
     let msg: string;
     if (err?.name === 'TimeoutError') {
