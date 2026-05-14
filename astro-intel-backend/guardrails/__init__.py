@@ -18,6 +18,7 @@ from guardrails.production import (
     repair_json,
     filter_pii_from_insight,
     filter_pii_from_admin_review,
+    degradation_tracker,
     all_guardrail_stats,
 )
 
@@ -42,5 +43,6 @@ __all__ = [
     "repair_json",
     "filter_pii_from_insight",
     "filter_pii_from_admin_review",
+    "degradation_tracker",
     "all_guardrail_stats",
 ]

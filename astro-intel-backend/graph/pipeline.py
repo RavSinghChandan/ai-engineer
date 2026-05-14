@@ -48,22 +48,50 @@ from agents import (
     admin_review_agent_node,
 )
 from guardrails import safe_node, run_hallucination_check, run_security_check
+from guardrails.production import degradation_tracker
 
 
 # ── Parallel domain fan-out ─────────────────────────────────────────────────
 def domain_agents_parallel(state: Dict[str, Any]) -> Dict[str, Any]:
     """
     Run all selected domain agents sequentially in one node.
-    LangGraph handles concurrency at the graph level — for a pure-Python
-    implementation without an LLM, sequential within a single node is
-    identical in output to true parallel execution.
+    Each agent is wrapped in a try/except so one failure never
+    kills the others — the failed domain contributes a LOW confidence
+    placeholder (graceful degradation pattern).
     """
-    state = numerology_agent_node(state)
-    state = astrology_agent_node(state)
-    state = palmistry_agent_node(state)
-    state = tarot_agent_node(state)
-    state = vastu_agent_node(state)
+    selected = set(state.get("selected_modules", ["numerology","astrology","palmistry","tarot","vastu"]))
+    agent_map = {
+        "numerology": numerology_agent_node,
+        "astrology":  astrology_agent_node,
+        "palmistry":  palmistry_agent_node,
+        "tarot":      tarot_agent_node,
+        "vastu":      vastu_agent_node,
+    }
+
+    for domain, agent_fn in agent_map.items():
+        if domain not in selected:
+            continue
+        try:
+            state = agent_fn(state)
+        except Exception as exc:
+            # Domain failed — inject LOW confidence placeholder, keep pipeline alive
+            state.setdefault("memory", {})[domain] = {
+                "_degraded": True,
+                "_reason":   str(exc),
+                "confidence": "low",
+                "question_wise_analysis": [],
+            }
+            state.setdefault("agent_log", []).append(
+                f"[DomainLayer] {domain} FAILED — degraded placeholder injected. Reason: {exc}"
+            )
+            state.setdefault("errors", []).append(f"{domain}: {exc}")
+
     state.setdefault("agent_log", []).append("[DomainLayer] All selected domain agents completed.")
+
+    # G5: Record degradation snapshot for this run
+    session_id = state.get("session_id", "unknown")
+    degradation_tracker.record_run(session_id, state.get("memory", {}))
+
     return state
 
 

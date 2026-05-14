@@ -385,12 +385,187 @@ def filter_pii_from_admin_review(
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# G5 — GRACEFUL DEGRADATION TRACKER
+# Records per-domain agent failure events so the pipeline keeps running
+# even when individual agents fail. The system degrades gracefully:
+#   - FULL      : agent returned valid output
+#   - PARTIAL   : agent returned output but with reduced confidence
+#   - FALLBACK  : agent failed, pipeline-injected LOW confidence placeholder used
+#   - SKIPPED   : agent not selected for this request
+#
+# Wired into domain_agents_parallel in graph/pipeline.py.
+# Does NOT touch any agent logic.
+# ══════════════════════════════════════════════════════════════════════════════
+
+DOMAINS = ["numerology", "astrology", "palmistry", "tarot", "vastu"]
+
+class GracefulDegradationTracker:
+    """
+    Tracks per-domain, per-run degradation status.
+    Each run gets a snapshot. History kept for last MAX_HISTORY runs.
+    """
+    MAX_HISTORY = 50
+
+    def __init__(self) -> None:
+        self._runs: deque = deque(maxlen=self.MAX_HISTORY)
+        self._total_full     = 0
+        self._total_partial  = 0
+        self._total_fallback = 0
+
+    def record_run(self, session_id: str, domain_results: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Call after domain_agents_parallel completes.
+        domain_results: the memory dict keyed by domain name.
+        Returns the degradation snapshot for this run.
+        """
+        snapshot: Dict[str, Any] = {
+            "session_id": session_id,
+            "ts":         time.time(),
+            "domains":    {},
+            "overall":    "full",
+        }
+
+        fallback_count  = 0
+        partial_count   = 0
+        full_count      = 0
+
+        for domain in DOMAINS:
+            data = domain_results.get(domain)
+            if data is None:
+                status   = "skipped"
+                reason   = "not selected for this request"
+                confidence = "—"
+            elif isinstance(data, dict) and data.get("_degraded"):
+                status   = "fallback"
+                reason   = data.get("_reason", "agent error")
+                confidence = "low"
+                fallback_count += 1
+                self._total_fallback += 1
+            elif isinstance(data, dict) and data.get("question_wise_analysis"):
+                # Check if any sub-agent produced real output
+                qwa = data.get("question_wise_analysis", [])
+                has_real = any(
+                    sub.get("prediction", "").strip()
+                    for q in qwa
+                    for sub in q.get("sub_agent_results", [])
+                )
+                if has_real:
+                    status     = "full"
+                    reason     = "agent completed normally"
+                    confidence = "high"
+                    full_count += 1
+                    self._total_full += 1
+                else:
+                    status     = "partial"
+                    reason     = "agent ran but returned empty predictions"
+                    confidence = "medium"
+                    partial_count += 1
+                    self._total_partial += 1
+            elif isinstance(data, dict) and len(data) > 0:
+                status     = "partial"
+                reason     = "legacy flat output (pre-enterprise schema)"
+                confidence = "medium"
+                partial_count += 1
+                self._total_partial += 1
+            else:
+                status     = "fallback"
+                reason     = "empty or missing output"
+                confidence = "low"
+                fallback_count += 1
+                self._total_fallback += 1
+
+            snapshot["domains"][domain] = {
+                "status":     status,
+                "reason":     reason,
+                "confidence": confidence,
+            }
+
+        # Overall health
+        active = full_count + partial_count + fallback_count
+        if fallback_count == 0 and active > 0:
+            snapshot["overall"] = "full"
+        elif fallback_count > 0 and full_count + partial_count > 0:
+            snapshot["overall"] = "degraded"
+        elif active == 0:
+            snapshot["overall"] = "skipped"
+        else:
+            snapshot["overall"] = "failed"
+
+        snapshot["counts"] = {
+            "full": full_count,
+            "partial": partial_count,
+            "fallback": fallback_count,
+            "skipped": len(DOMAINS) - active,
+        }
+
+        self._runs.append(snapshot)
+        logger.info(
+            "[DegradationTracker] session=%s overall=%s full=%d partial=%d fallback=%d",
+            session_id, snapshot["overall"], full_count, partial_count, fallback_count,
+        )
+        return snapshot
+
+    def stats(self) -> Dict[str, Any]:
+        runs_list = list(self._runs)
+        total_runs = len(runs_list)
+
+        # Aggregate domain health across all runs
+        domain_health: Dict[str, Dict[str, int]] = {
+            d: {"full": 0, "partial": 0, "fallback": 0, "skipped": 0}
+            for d in DOMAINS
+        }
+        overall_counts = {"full": 0, "degraded": 0, "failed": 0, "skipped": 0}
+
+        for run in runs_list:
+            overall_counts[run.get("overall", "full")] = overall_counts.get(run.get("overall", "full"), 0) + 1
+            for domain, info in run.get("domains", {}).items():
+                s = info.get("status", "skipped")
+                if domain in domain_health and s in domain_health[domain]:
+                    domain_health[domain][s] += 1
+
+        # Availability % per domain (full+partial / non-skipped)
+        domain_availability: Dict[str, float] = {}
+        for domain, counts in domain_health.items():
+            non_skipped = counts["full"] + counts["partial"] + counts["fallback"]
+            if non_skipped:
+                domain_availability[domain] = round((counts["full"] + counts["partial"]) / non_skipped * 100, 1)
+            else:
+                domain_availability[domain] = 100.0  # never used → not a failure
+
+        recent = runs_list[-5:]  # last 5 runs for the live feed
+        return {
+            "total_runs":          total_runs,
+            "lifetime_full":       self._total_full,
+            "lifetime_partial":    self._total_partial,
+            "lifetime_fallback":   self._total_fallback,
+            "overall_counts":      overall_counts,
+            "domain_health":       domain_health,
+            "domain_availability": domain_availability,
+            "recent_runs": [
+                {
+                    "session_id": r["session_id"][-8:],
+                    "ts":         r["ts"],
+                    "overall":    r["overall"],
+                    "counts":     r["counts"],
+                    "domains":    r["domains"],
+                }
+                for r in reversed(recent)
+            ],
+        }
+
+
+# Singleton degradation tracker
+degradation_tracker = GracefulDegradationTracker()
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # GUARDRAIL STATS — single endpoint for admin dashboard
 # ══════════════════════════════════════════════════════════════════════════════
 
 def all_guardrail_stats() -> Dict[str, Any]:
     """Aggregate stats from all production guardrails for the admin dashboard."""
     return {
-        "rate_limiter":     rate_limiter.stats(),
-        "circuit_breaker":  llm_circuit_breaker.stats(),
+        "rate_limiter":        rate_limiter.stats(),
+        "circuit_breaker":     llm_circuit_breaker.stats(),
+        "graceful_degradation": degradation_tracker.stats(),
     }

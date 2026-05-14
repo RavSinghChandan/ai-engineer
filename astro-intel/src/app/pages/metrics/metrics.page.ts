@@ -175,6 +175,18 @@ export class MetricsPage implements OnInit, OnDestroy {
     return s.replace('_', '-').toUpperCase();
   }
 
+  gdDomains(): string[] {
+    return ['numerology', 'astrology', 'palmistry', 'tarot', 'vastu'];
+  }
+
+  gdAvail(domain: string): number {
+    return this.grData()?.graceful_degradation?.domain_availability?.[domain] ?? 100;
+  }
+
+  gdHealth(domain: string, status: 'full' | 'partial' | 'fallback'): number {
+    return this.grData()?.graceful_degradation?.domain_health?.[domain]?.[status] ?? 0;
+  }
+
   // ── Shared helpers ─────────────────────────────────────────────────────────
 
   fmtAge(seconds: number): string {

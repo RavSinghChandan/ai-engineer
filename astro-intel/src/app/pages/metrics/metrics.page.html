@@ -808,6 +808,106 @@
 
       </div><!-- gr-cards -->
 
+      <!-- ── G5: Graceful Degradation Panel ── -->
+      <div class="gd-panel">
+        <div class="gd-header">
+          <div class="gd-header-left">
+            <div class="gr-g-tag g5-tag">G5</div>
+            <div>
+              <div class="gd-title">Graceful Degradation</div>
+              <div class="gd-sub">Pipeline keeps running even when individual domain agents fail — failed agent → LOW confidence placeholder, not system crash</div>
+            </div>
+          </div>
+          <div class="gd-kpis">
+            <div class="gd-kpi">
+              <div class="gd-kpi-val gd-kpi-green">{{ grData().graceful_degradation?.lifetime_full ?? 0 }}</div>
+              <div class="gd-kpi-lbl">Full outputs</div>
+            </div>
+            <div class="gd-kpi">
+              <div class="gd-kpi-val gd-kpi-amber">{{ grData().graceful_degradation?.lifetime_partial ?? 0 }}</div>
+              <div class="gd-kpi-lbl">Partial outputs</div>
+            </div>
+            <div class="gd-kpi">
+              <div class="gd-kpi-val gd-kpi-red">{{ grData().graceful_degradation?.lifetime_fallback ?? 0 }}</div>
+              <div class="gd-kpi-lbl">Fallbacks used</div>
+            </div>
+            <div class="gd-kpi">
+              <div class="gd-kpi-val">{{ grData().graceful_degradation?.total_runs ?? 0 }}</div>
+              <div class="gd-kpi-lbl">Total runs tracked</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Domain availability bars -->
+        <div class="gd-body">
+          <div class="gd-domains">
+            <div class="gd-domains-title">Domain Agent Availability</div>
+            @for (domain of gdDomains(); track domain) {
+              <div class="gd-domain-row">
+                <span class="gd-domain-name">{{ domain }}</span>
+                <div class="gd-avail-track">
+                  <div class="gd-avail-fill"
+                    [style.width.%]="gdAvail(domain)"
+                    [class.gd-avail-warn]="gdAvail(domain) < 80"
+                    [class.gd-avail-danger]="gdAvail(domain) < 50">
+                  </div>
+                </div>
+                <span class="gd-avail-pct" [class.gd-pct-warn]="gdAvail(domain) < 80">{{ gdAvail(domain) }}%</span>
+                <div class="gd-domain-counts">
+                  <span class="gd-dc gd-dc-full" [title]="'Full: ' + gdHealth(domain, 'full')">{{ gdHealth(domain, 'full') }}F</span>
+                  <span class="gd-dc gd-dc-partial" [title]="'Partial: ' + gdHealth(domain, 'partial')">{{ gdHealth(domain, 'partial') }}P</span>
+                  <span class="gd-dc gd-dc-fallback" [title]="'Fallback: ' + gdHealth(domain, 'fallback')">{{ gdHealth(domain, 'fallback') }}X</span>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Recent runs feed -->
+          <div class="gd-runs">
+            <div class="gd-runs-title">Recent Runs — Per-Domain Status</div>
+            @if ((grData().graceful_degradation?.recent_runs ?? []).length === 0) {
+              <div class="gd-runs-empty">No runs yet — submit an analysis to see degradation tracking</div>
+            }
+            @for (run of grData().graceful_degradation?.recent_runs ?? []; track run.session_id) {
+              <div class="gd-run-row">
+                <div class="gd-run-top">
+                  <span class="gd-run-id">…{{ run.session_id }}</span>
+                  <span class="gd-run-badge"
+                    [class.gd-badge-full]="run.overall === 'full'"
+                    [class.gd-badge-degraded]="run.overall === 'degraded'"
+                    [class.gd-badge-failed]="run.overall === 'failed'">
+                    {{ run.overall.toUpperCase() }}
+                  </span>
+                  <span class="gd-run-counts">
+                    <span class="gd-rc-full">{{ run.counts.full }}F</span>
+                    <span class="gd-rc-partial">{{ run.counts.partial }}P</span>
+                    <span class="gd-rc-fallback">{{ run.counts.fallback }}X</span>
+                  </span>
+                </div>
+                <div class="gd-run-domains">
+                  @for (domain of gdDomains(); track domain) {
+                    <div class="gd-domain-pip"
+                      [class.pip-full]="run.domains[domain]?.status === 'full'"
+                      [class.pip-partial]="run.domains[domain]?.status === 'partial'"
+                      [class.pip-fallback]="run.domains[domain]?.status === 'fallback'"
+                      [class.pip-skipped]="run.domains[domain]?.status === 'skipped'"
+                      [title]="domain + ': ' + run.domains[domain]?.status + ' — ' + run.domains[domain]?.reason">
+                      {{ domain.slice(0,3).toUpperCase() }}
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="gd-rule">
+          Rule: each domain agent wrapped in try/except in graph/pipeline.py —
+          failure injects <code>&#123;"_degraded": true, "confidence": "low"&#125;</code> placeholder.
+          Pipeline always reaches admin_review_agent regardless of domain failures.
+        </div>
+      </div><!-- gd-panel -->
+
       <!-- ── Pipeline Wire Diagram ── -->
       <div class="gr-wire-panel">
         <div class="gr-wire-title">Guardrail Wire Map — Where Each Fires in the Pipeline</div>
