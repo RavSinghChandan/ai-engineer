@@ -17,6 +17,7 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
           <a routerLink="/upload"    routerLinkActive="nav-active" class="nav-link">1. Upload CV</a>
           <a routerLink="/mapping"   routerLinkActive="nav-active" class="nav-link">2. Role Mapping</a>
           <a routerLink="/dashboard" routerLinkActive="nav-active" class="nav-link">3. Dashboard</a>
+          <a routerLink="/memory"    routerLinkActive="nav-active" class="nav-link nav-link-memory">Memory</a>
           <a routerLink="/metrics"   routerLinkActive="nav-active" class="nav-link nav-link-outline">Metrics</a>
           <a routerLink="/admin"     routerLinkActive="nav-active" class="nav-link nav-link-admin">HR Admin</a>
           <a routerLink="/graph"     routerLinkActive="nav-active" class="nav-link nav-link-graph">Agent Graph</a>
@@ -118,6 +119,20 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
     }
     .nav-link-admin.nav-active {
       background: #dc2626;
+      color: #ffffff;
+      border-color: transparent;
+    }
+    .nav-link-memory {
+      color: #c4b5fd;
+      border: 1px solid rgba(167,139,250,0.3);
+    }
+    .nav-link-memory:hover {
+      color: #ffffff;
+      background: rgba(124,58,237,0.2);
+      border-color: rgba(167,139,250,0.5);
+    }
+    .nav-link-memory.nav-active {
+      background: #7c3aed;
       color: #ffffff;
       border-color: transparent;
     }

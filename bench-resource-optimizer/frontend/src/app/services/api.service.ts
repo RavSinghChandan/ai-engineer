@@ -136,6 +136,10 @@ export class ApiService {
     return this.http.get(`${this.base}/progress/${userId}`);
   }
 
+  getMemory(userId: string): Observable<any> {
+    return this.http.get<any>(`${this.base}/memory/${userId}`);
+  }
+
   adminUploadResource(
     file: File,
     skillTags: string,

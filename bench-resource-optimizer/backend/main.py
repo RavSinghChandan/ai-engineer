@@ -49,7 +49,7 @@ from db import (
 )
 from guardrails.hallucination import run_llm_judge
 from memory.session_store import (
-    build_memory_context, get_user_facts,
+    build_memory_context, get_user_facts, get_recent_sessions,
     memory_stats, update_user_facts, write_session_summary,
 )
 from metrics.collector import RequestRecord, get_collector
@@ -693,6 +693,30 @@ async def get_progress_endpoint(request: Request, user_id: str):
     progress["_user_facts"]     = get_user_facts(user_id)
     _record(request, "/progress", t_start, 200)
     return progress
+
+
+# ── Memory inspection (Module 4) ─────────────────────────────────────────────
+
+@app.get("/memory/{user_id}", tags=["Memory"])
+async def get_memory_endpoint(request: Request, user_id: str):
+    """
+    Return full memory profile for a user: episodic sessions + long-term facts
+    + rendered context string used in LLM prompts.
+    Used by the Memory / Resume page in the frontend.
+    """
+    t_start = time.time()
+    sessions = get_recent_sessions(user_id, n=10)
+    facts    = get_user_facts(user_id)
+    context  = build_memory_context(user_id)
+    _record(request, "/memory", t_start, 200)
+    return {
+        "user_id":         user_id,
+        "episodic_sessions": sessions,
+        "long_term_facts":   facts,
+        "memory_context":    context,
+        "session_count":     len(sessions),
+        "has_facts":         bool(facts),
+    }
 
 
 # ── LLM-as-Judge evaluation (Module 1) ───────────────────────────────────────

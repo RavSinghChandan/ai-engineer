@@ -37,7 +37,7 @@ Every project story you tell must have ready answers to these five questions.
 
 ---
 
-## 3. The Two Stories You Must Master
+## 3. The Three Stories You Must Master
 
 ### Story 1: AstroIntel 360°
 
@@ -59,6 +59,45 @@ Covers three sub-projects:
 1. PDF RAG pipeline (document load → chunk → embed → FAISS → QA)
 2. Agent with tool use (web search + document retrieval)
 3. LCEL streaming pipeline
+
+---
+
+### Story 3: Bench Resource Optimizer (BRO)
+
+**The 30-Second Version:**
+"Bench Resource Optimizer is an enterprise workforce AI system for managing 10,000+ bench employees. An employee uploads their CV — the CV Parser agent extracts skills. They select a target role — the Role Mapper agent runs HyDE + hybrid BM25/FAISS retrieval with cross-encoder reranking to compute a skill gap and readiness score. A Planner agent generates a personalised day-by-day training roadmap, streamed over SSE. The key architecture decision was layering five production guardrails — rate limiter, circuit breaker, JSON repair cascade, PII output filter, graceful degradation tracker — non-invasively around the original pipeline, with stats persisted to SQLite so nothing resets on restart."
+
+**The 2-Minute Deep Dive:**
+
+**Problem:** A staffing company has 50–10,000 employees "on the bench" between projects. Managers have no real-time view of who is ready for which role, or what training gap each employee has. Manual assessment takes a week per employee.
+
+**Architecture (6-agent pipeline):**
+```
+CV Upload (PDF) → CV Parser Agent (LLM extract + normalize)
+    → Role Mapper Agent (HyDE query → BM25+FAISS hybrid → CRAG score → cross-encoder rerank → skill gap)
+    → G4 PII Output Filter (scrub email/phone from mapping response)
+    → Planner Agent (day-by-day roadmap, SSE streaming)
+    → Tracking Agent (readiness% = completed/total, no LLM call)
+    → LLM-as-Judge Evaluator (4-dimension score: Relevance/Completeness/Accuracy/Actionability)
+```
+
+**Key Architecture Decisions:**
+
+1. **HyDE over direct query retrieval** — Manager query "need Java backend 5yr" and CV text "Developed Spring Boot microservices" have a style mismatch. HyDE generates a hypothetical ideal CV snippet first, embeds that for FAISS search — answer-to-answer matching is more accurate than question-to-answer. Measured: +12% top-5 recall.
+
+2. **Hybrid BM25 + dense + RRF over pure vector search** — BM25 catches exact skill terms ("RabbitMQ", "NestJS") that dense embeddings generalise away. Reciprocal Rank Fusion merges both ranked lists without score normalisation. Cross-encoder reranker then compresses top-20 → top-5.
+
+3. **SSE streaming over batch plan delivery** — Plan generation takes 15-30 seconds. SSE lets the user see each day's plan as it generates (TTFT < 2s), making the system feel instant. FastAPI `StreamingResponse` + Angular `EventSource`.
+
+4. **5 guardrails non-invasively wired** — Original agent logic untouched. Guardrails wrap at the call site (main.py endpoints + json_parser.py delegation). G3 JSON repair delegates from `parse_llm_json()` so tracking works everywhere without changing every agent call site.
+
+5. **SQLite WAL-mode persistence for guardrail stats** — All G1–G5 counters (G1 rate limiter totals, G3 repair counts, G4 PII scrub counts, G5 per-agent lifetime outcomes) persist to `guardrail_counters` table in the same `bench.db`. Startup loads, shutdown flushes, auto-flush every 4 stats API polls.
+
+**What I would do differently at 10x scale:**
+- G1 rate limiter: Redis sorted sets (ZADD/ZCOUNT) instead of in-memory deque — survives multi-worker deployment
+- G5 recent_runs feed: Redis stream instead of in-memory deque — fan-out to monitoring systems without polling
+- Planner: async Celery task queue for plan generation — return task_id immediately, client polls for completion, no SSE timeout risk on long plans
+- FAISS → pgvector with HNSW index — enables filtered search (by department, seniority) that FAISS can't express
 
 ---
 
@@ -147,6 +186,23 @@ Interviewers listen for specificity. Vague answers signal shallow ownership.
 - FAISS search latency: 1-5ms for 10K vectors
 - End-to-end RAG latency: 500ms-2s (dominated by LLM call, not retrieval)
 
+### Bench Resource Optimizer Numbers
+- Agents in pipeline: 5 active (CV Parser, Role Mapper, Planner, Tracking, LLM-Judge) + G5 degrade tracker
+- Retrieval stack: BM25 + FAISS dense → RRF merge → cross-encoder rerank → top-5 (from initial top-20)
+- HyDE improvement: ~12% top-5 recall improvement over direct query embedding
+- CRAG quality threshold: 0.4 — below this, fallback context injected instead of retrieved doc
+- Semantic cache: L1 exact match (SHA-256, 1-hour TTL) + L2 cosine similarity (≥ 0.92, 30-min TTL)
+- Cache hit rate: ~35% combined L1+L2 on repeated role queries
+- Plan generation latency: 15-30s total, TTFT via SSE < 2s (user sees first day's plan immediately)
+- LLM cost per full pipeline run: ~$0.009 (CV parse + role map + plan generation, DeepSeek pricing)
+- G1 rate limiter: 20 LLM req / 60s per user_id (sliding window O(1), deque-based)
+- G2 circuit breaker: 5 failures → OPEN, per operation (cv_parser, role_mapper, planner)
+- G3 JSON repair: 4 levels (direct → fence strip → regex extract → LLM repair)
+- G5 degradation: 5 agents × 5 statuses (full/partial/fallback/skipped/failed), availability%
+- Guardrail stats persistence: SQLite WAL, 25+ counter keys, flushes every ~60s
+- Frontend pages: 7 (Upload CV, Role Mapping, Dashboard, Memory, Metrics, HR Admin, Agent Graph)
+- RAGAS metrics tracked: faithfulness, context precision, context recall, answer relevancy, MRR, Precision@K
+
 ---
 
 ## 6. Trade-offs
@@ -186,6 +242,22 @@ Sweet spot (90 seconds):
 - What monitoring would you add to make this production-ready?
 
   **Answer:** Four layers. (1) Business metrics: analysis completion rate, agent failure rate by agent type, interrupt resolution time. (2) AI quality metrics: RAGAS faithfulness per agent and per consensus output, sampled at 10% of production requests; alert when faithfulness drops below 0.75 across a 1-hour window. (3) Infrastructure metrics: LLM API latency (p50/p95/p99), token cost per request, circuit breaker state transitions, queue depth for async jobs. (4) Cost monitoring: daily token spend by model (GPT-4o vs GPT-4o-mini), with budget alerts at 80% of monthly cap. All metrics to CloudWatch custom metrics; faithfulness scores to a PostgreSQL `analysis_quality` table for trend analysis. PagerDuty alert on: faithfulness below threshold, error rate above 5%, or daily cost exceeding budget. In Bench Resource Optimizer, the same four layers apply with one substitution in layer 2: LLM-as-judge (four-dimension 1-5 score) replaces RAGAS faithfulness because there is no ground-truth answer for workforce plans — the judge score trend and per-dimension breakdown (Relevance/Completeness/Accuracy/Actionability) serve as the quality health signal.
+
+- Walk me through Bench Resource Optimizer's architecture.
+
+  **Answer:** BRO is a 5-agent RAG pipeline for workforce planning. An employee uploads a PDF CV — the CV Parser agent uses DeepSeek to extract structured skills and experience. They select a target role — the Role Mapper runs HyDE (generates a hypothetical CV snippet for the role, embeds it, does dense FAISS search), then fuses that with BM25 keyword retrieval using Reciprocal Rank Fusion, passes the merged top-20 through a cross-encoder reranker to get top-5 role documents, scores retrieval quality with CRAG (if < 0.4, injects fallback context), and calls the LLM to compute skill gaps and a readiness score. The Plan Generator creates a day-by-day roadmap — streamed over SSE so the user sees each day's plan as it generates (TTFT < 2s). All outputs go through 5 production guardrails: per-user rate limiter, named circuit breakers per operation, 4-level JSON repair cascade with LLM fallback, PII output scrubber, and per-agent graceful degradation tracking. Guardrail stats persist to SQLite WAL so nothing resets on restart. The Angular frontend has 7 pages including a live guardrails dashboard and a Memory page showing each employee's episodic session history and long-term facts injected into LLM prompts.
+
+- Why HyDE instead of just query expansion or multi-query?
+
+  **Answer:** The root cause of retrieval failure in BRO was a style mismatch: manager queries like "need Java backend 5yr strong microservices" are terse and keyword-heavy, while CV text is formal prose ("Developed enterprise Spring Boot microservices for a global financial firm over 6 years"). Dense embedding models measure semantic distance — but the embeddings of a terse query and a formal prose document are stylistically distant even when they mean the same thing. HyDE fixes this at the representation level: generate a hypothetical ideal CV snippet for the role ("A senior Java backend engineer with 5+ years of Spring Boot, microservices..."), embed that instead of the raw query, and do vector search — answer-to-answer matching is far more accurate than question-to-answer. Multi-query retrieval would help with query ambiguity but not style mismatch. I chose HyDE because the failure mode was specifically the style gap, not ambiguity.
+
+- How do the 5 guardrails interact? Why not one unified middleware?
+
+  **Answer:** They solve different problems at different call sites, so unified middleware would add latency where it's not needed and miss injection points inside agents. G1 (rate limiter) fires at the endpoint level before any LLM call — one per user per request. G2 (circuit breaker) fires inside `with_retry()` per operation — cv_parser, role_mapper, planner each have their own breaker so a planner failure doesn't block CV parsing. G3 (JSON repair) fires inside `parse_llm_json()` which is called by every agent — it delegates tracking to the guardrails layer so every call site is covered without modification. G4 (PII filter) fires on the output of the role mapper only — CV inputs are already protected upstream by the injection check in `security.py`. G5 (degradation tracker) fires after each agent completes in the endpoint — it records the per-agent outcome for the observability dashboard. Unified middleware would collapse these into a single layer that can't distinguish cv_parser failures from planner failures, can't do output-side PII scrubbing after the LLM call, and can't delegate into the JSON parsing utilities.
+
+- What would you change at 10,000-employee enterprise scale?
+
+  **Answer:** Three things. First, G1 rate limiter moves from in-memory deque to Redis sorted sets (ZADD/ZCOUNT) — current implementation can't survive multiple uvicorn workers because the deque is per-process. Redis gives you exact per-user counts across all workers. Second, plan generation becomes async: accept request → enqueue to Celery → return task_id → client polls `/tasks/{id}/status` and switches to SSE when status is `generating`. This removes the 30-second SSE timeout risk on long plans and lets the worker pool scale independently of the web tier. Third, FAISS → pgvector with HNSW index — FAISS is in-memory and single-process; pgvector supports filtered vector search (by department, seniority, location) that FAISS can't express without post-filtering, and scales horizontally with Postgres.
 
 ---
 
