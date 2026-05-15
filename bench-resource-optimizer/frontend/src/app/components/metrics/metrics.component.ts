@@ -578,7 +578,21 @@ import { ApiService } from '../../services/api.service';
               <div class="gr-step-arrow">↓</div>
               <div class="gr-step" [class.gr-step-active]="(gr.g3_json_repair?.regex_pct ?? 0) > 0">③ Regex Extract</div>
               <div class="gr-step-arrow">↓</div>
-              <div class="gr-step gr-step-fallback" [class.gr-step-active]="(gr.g3_json_repair?.fallback_pct ?? 0) > 0">④ Fallback</div>
+              <div class="gr-step gr-step-llm"
+                   [class.gr-step-active]="(gr.g3_json_repair?.llm_repair_pct ?? 0) > 0"
+                   [class.gr-step-unavailable]="!gr.g3_json_repair?.llm_repair_available">
+                ④ LLM Repair
+                <span class="gr-llm-avail-dot"
+                      [class.dot-avail]="gr.g3_json_repair?.llm_repair_available"
+                      [class.dot-unavail]="!gr.g3_json_repair?.llm_repair_available"
+                      [title]="gr.g3_json_repair?.llm_repair_available ? 'LLM wired — repair active' : 'LLM not registered'">
+                </span>
+                <span *ngIf="(gr.g3_json_repair?.llm_repair_pct ?? 0) > 0" class="gr-llm-pct">
+                  {{ gr.g3_json_repair?.llm_repair_pct }}%
+                </span>
+              </div>
+              <div class="gr-step-arrow">↓</div>
+              <div class="gr-step gr-step-fallback" [class.gr-step-active]="(gr.g3_json_repair?.fallback_pct ?? 0) > 0">⑤ Fallback Dict</div>
             </div>
           </div>
 
@@ -1119,6 +1133,15 @@ import { ApiService } from '../../services/api.service';
     }
     .gr-step.gr-step-active { background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; font-weight:600; }
     .gr-step-fallback.gr-step-active { background:#fef3c7; color:#92400e; border-color:#fde68a; }
+    .gr-step-llm { display:flex; align-items:center; gap:5px; }
+    .gr-step-llm.gr-step-active { background:#f3e8ff; color:#7c3aed; border-color:#ddd6fe; font-weight:600; }
+    .gr-step-llm.gr-step-unavailable { opacity:0.55; }
+    .gr-llm-avail-dot {
+      width:7px; height:7px; border-radius:50%; flex-shrink:0; display:inline-block;
+    }
+    .dot-avail   { background:#22c55e; }
+    .dot-unavail { background:#cbd5e1; }
+    .gr-llm-pct  { font-size:10px; font-weight:700; background:#ede9fe; color:#7c3aed; padding:1px 5px; border-radius:999px; margin-left:auto; }
     .gr-step-arrow { font-size:10px; color:#cbd5e1; text-align:center; line-height:1; }
 
     /* G4 PII chips */
@@ -1221,6 +1244,7 @@ import { ApiService } from '../../services/api.service';
     .ev-ok   .ev-msg { color:#86efac; }
     .ev-warn .ev-msg { color:#fde68a; }
     .ev-block .ev-msg { color:#f87171; }
+    .ev-info .ev-msg { color:#c4b5fd; }
 
     /* Explainer */
     .gr-explainer { background:#eff6ff; border:1px solid #bfdbfe; }
@@ -1309,11 +1333,29 @@ export class MetricsComponent implements OnInit, OnDestroy {
       }
     }
 
-    // G3 — first repair event
+    // G3 — repair cascade events
     const prevFail = prev.g3_json_repair?.total_failures ?? 0;
     const currFail = curr.g3_json_repair?.total_failures ?? 0;
     if (currFail > prevFail) {
       events.unshift({ ts: now, g: 'G3', type: 'warn', msg: `JSON repair failed — ${currFail} total failures` });
+    }
+    const prevLlm = prev.g3_json_repair?.llm_repair ?? 0;
+    const currLlm = curr.g3_json_repair?.llm_repair ?? 0;
+    if (currLlm > prevLlm) {
+      const delta = currLlm - prevLlm;
+      events.unshift({ ts: now, g: 'G3', type: 'info', msg: `LLM repair fired — fixed ${delta} malformed JSON response${delta > 1 ? 's' : ''} (${currLlm} total)` });
+    }
+    const prevRegex = prev.g3_json_repair?.regex_extract ?? 0;
+    const currRegex = curr.g3_json_repair?.regex_extract ?? 0;
+    if (currRegex > prevRegex) {
+      const delta = currRegex - prevRegex;
+      events.unshift({ ts: now, g: 'G3', type: 'info', msg: `Regex extract used — recovered ${delta} fence-wrapped JSON response${delta > 1 ? 's' : ''}` });
+    }
+    const prevFence = prev.g3_json_repair?.fence_strip ?? 0;
+    const currFence = curr.g3_json_repair?.fence_strip ?? 0;
+    if (currFence > prevFence) {
+      const delta = currFence - prevFence;
+      events.unshift({ ts: now, g: 'G3', type: 'info', msg: `Fence strip used — stripped markdown from ${delta} LLM response${delta > 1 ? 's' : ''}` });
     }
 
     // G4 — PII scrub event

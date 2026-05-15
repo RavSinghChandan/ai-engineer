@@ -24,6 +24,8 @@ from guardrails.production import (
     pii_filter_stats,
     degradation_tracker,
     all_guardrail_stats,
+    init_guardrail_persistence,
+    flush_guardrail_stats,
 )
 
 __all__ = [
@@ -55,4 +57,6 @@ __all__ = [
     "pii_filter_stats",
     "degradation_tracker",
     "all_guardrail_stats",
+    "init_guardrail_persistence",
+    "flush_guardrail_stats",
 ]

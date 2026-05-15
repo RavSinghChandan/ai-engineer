@@ -47,6 +47,11 @@ from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger("bench.guardrails.production")
 
+# Persistence flush interval: write DB every N calls to all_guardrail_stats()
+# (stats endpoint is polled every 15s by frontend — flush every 4th poll = ~60s)
+_FLUSH_EVERY = 4
+_flush_counter = 0
+
 # ══════════════════════════════════════════════════════════════════════════════
 # G1 — Per-user sliding-window rate limiter
 # ══════════════════════════════════════════════════════════════════════════════
@@ -69,6 +74,12 @@ class UserRateLimiter:
         self._lock           = Lock()
         self._total_allowed  = 0
         self._total_blocked  = 0
+
+    def load_from_db(self, saved: Dict[str, int]) -> None:
+        """Seed lifetime counters from persisted values at startup."""
+        with self._lock:
+            self._total_allowed = saved.get("g1_total_allowed", 0)
+            self._total_blocked = saved.get("g1_total_blocked", 0)
 
     def is_allowed(self, user_id: str) -> Tuple[bool, str]:
         """Return (allowed, reason). Thread-safe."""
@@ -207,6 +218,15 @@ class _JsonRepairStats:
         self.fallback_used  = 0   # Level 4 — LLM also failed, used fallback
         self.total_failures = 0   # All 4 levels exhausted, no fallback
 
+    def load_from_db(self, saved: Dict[str, int]) -> None:
+        self.total_calls    = saved.get("g3_total_calls",    0)
+        self.direct_parse   = saved.get("g3_direct_parse",   0)
+        self.fence_strip    = saved.get("g3_fence_strip",    0)
+        self.regex_extract  = saved.get("g3_regex_extract",  0)
+        self.llm_repair     = saved.get("g3_llm_repair",     0)
+        self.fallback_used  = saved.get("g3_fallback_used",  0)
+        self.total_failures = saved.get("g3_total_failures", 0)
+
 _json_stats = _JsonRepairStats()
 
 # LLM instance registered by main.py after startup — None until then
@@ -335,6 +355,10 @@ def json_repair_stats() -> Dict[str, Any]:
         "fallback_pct":   round(s.fallback_used / total * 100, 1),
         "failure_pct":    round(s.total_failures / total * 100, 1),
         "total_failures":  s.total_failures,
+        # raw counts for frontend delta detection in event log
+        "fence_strip":    s.fence_strip,
+        "regex_extract":  s.regex_extract,
+        "llm_repair":     s.llm_repair,
         "llm_repair_available": _repair_llm is not None,
     }
 
@@ -356,6 +380,12 @@ _PII_PATTERNS = [
 ]
 
 _pii_filter_stats = {"total_checked": 0, "total_scrubbed": 0, "fields_scrubbed": 0}
+
+
+def _load_pii_stats_from_db(saved: Dict[str, int]) -> None:
+    _pii_filter_stats["total_checked"]  = saved.get("g4_total_checked",  0)
+    _pii_filter_stats["total_scrubbed"] = saved.get("g4_total_scrubbed", 0)
+    _pii_filter_stats["fields_scrubbed"]= saved.get("g4_fields_scrubbed",0)
 
 
 def filter_pii_from_output(text: str, user_profile: Optional[Dict] = None) -> Tuple[str, int]:
@@ -444,6 +474,14 @@ class GracefulDegradationTracker:
             a: {"full": 0, "partial": 0, "fallback": 0, "skipped": 0, "failed": 0}
             for a in _AGENTS
         }
+
+    def load_from_db(self, saved: Dict[str, int]) -> None:
+        """Seed lifetime agent counts from persisted values at startup."""
+        with self._lock:
+            for agent in _AGENTS:
+                for status in ("full", "partial", "fallback", "skipped", "failed"):
+                    key = f"g5_{agent}_{status}"
+                    self._lifetime[agent][status] = saved.get(key, 0)
 
     def record_run(
         self,
@@ -534,14 +572,19 @@ degradation_tracker = GracefulDegradationTracker()
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# Master stats aggregator
+# Master stats aggregator + persistence
 # ══════════════════════════════════════════════════════════════════════════════
 
 def all_guardrail_stats() -> Dict[str, Any]:
     """
     Single call that returns all 5 guardrail stat blocks.
-    Used by GET /guardrails/stats.
+    Used by GET /guardrails/stats. Flushes to SQLite every _FLUSH_EVERY calls.
     """
+    global _flush_counter
+    _flush_counter += 1
+    if _flush_counter >= _FLUSH_EVERY:
+        _flush_counter = 0
+        _flush_to_db()
     return {
         "g1_rate_limiter":         rate_limiter.stats(),
         "g2_circuit_breakers":     all_breaker_stats(),
@@ -549,3 +592,67 @@ def all_guardrail_stats() -> Dict[str, Any]:
         "g4_pii_filter":           pii_filter_stats(),
         "g5_graceful_degradation": degradation_tracker.stats(),
     }
+
+
+def _build_counters_dict() -> Dict[str, int]:
+    """Collect all persistable counters into a flat key→value dict."""
+    s = _json_stats
+    pii = _pii_filter_stats
+    lt  = degradation_tracker._lifetime
+
+    counters: Dict[str, int] = {
+        # G1
+        "g1_total_allowed":  rate_limiter._total_allowed,
+        "g1_total_blocked":  rate_limiter._total_blocked,
+        # G3
+        "g3_total_calls":    s.total_calls,
+        "g3_direct_parse":   s.direct_parse,
+        "g3_fence_strip":    s.fence_strip,
+        "g3_regex_extract":  s.regex_extract,
+        "g3_llm_repair":     s.llm_repair,
+        "g3_fallback_used":  s.fallback_used,
+        "g3_total_failures": s.total_failures,
+        # G4
+        "g4_total_checked":  pii["total_checked"],
+        "g4_total_scrubbed": pii["total_scrubbed"],
+        "g4_fields_scrubbed":pii["fields_scrubbed"],
+    }
+    # G5 — per-agent per-status
+    for agent in _AGENTS:
+        for status in ("full", "partial", "fallback", "skipped", "failed"):
+            counters[f"g5_{agent}_{status}"] = lt[agent].get(status, 0)
+    return counters
+
+
+def _flush_to_db() -> None:
+    try:
+        from guardrails.persistence import save_counters
+        save_counters(_build_counters_dict())
+    except Exception as exc:
+        logger.warning('{"event":"guardrail_flush_failed","error":"%s"}', str(exc)[:80])
+
+
+def init_guardrail_persistence() -> None:
+    """
+    Load persisted counters from SQLite into all in-memory accumulators.
+    Call once at startup (from main.py lifespan) AFTER init_persistence() runs.
+    """
+    try:
+        from guardrails.persistence import init_persistence, load_counters
+        init_persistence()
+        saved = load_counters()
+        if not saved:
+            logger.info('{"event":"guardrail_persistence_first_run"}')
+            return
+        rate_limiter.load_from_db(saved)
+        _json_stats.load_from_db(saved)
+        _load_pii_stats_from_db(saved)
+        degradation_tracker.load_from_db(saved)
+        logger.info('{"event":"guardrail_counters_loaded","keys":%d}', len(saved))
+    except Exception as exc:
+        logger.warning('{"event":"guardrail_load_failed","error":"%s"}', str(exc)[:80])
+
+
+def flush_guardrail_stats() -> None:
+    """Explicit flush — call from main.py shutdown lifespan to save final state."""
+    _flush_to_db()

@@ -75,6 +75,8 @@ from guardrails.production import (
     filter_pii_from_mapping,
     degradation_tracker,
     register_repair_llm,
+    init_guardrail_persistence,
+    flush_guardrail_stats,
 )
 
 load_dotenv()
@@ -112,6 +114,10 @@ async def lifespan(app: FastAPI):
     await init_db()
     print("✅ Database ready.")
 
+    # Guardrail persistence: create table + load saved counters into memory
+    init_guardrail_persistence()
+    print("✅ Guardrail counters loaded from SQLite.")
+
     print("⏳ Loading embeddings + building vector stores...")
     embeddings    = get_embeddings()
     _vector_store = build_vector_store(embeddings)
@@ -122,6 +128,10 @@ async def lifespan(app: FastAPI):
     print(f"✅ FAISS + BM25 hybrid index ready ({len(roles)} roles).")
     print("✅ Enterprise backend v3.0 ready.")
     yield
+
+    # Shutdown: flush final guardrail counters to SQLite
+    flush_guardrail_stats()
+    print("✅ Guardrail counters flushed to SQLite.")
 
 
 # ── App ───────────────────────────────────────────────────────────────────────
