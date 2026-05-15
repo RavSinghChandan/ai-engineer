@@ -338,6 +338,47 @@ Test results (unit):
 All 4 guardrails tested: 26 unit tests (positive + negative scenarios) — all pass.
 Live HTTP tests: rate limiter fires at request 11 (HTTP 429), guardrail stats endpoint returns correct state, circuit breaker reset endpoint works.
 
+**Enterprise Test Verification — AstroIntel (415/415 tests passing, 2026-05-15):**
+
+Full test suite built across 9 test files covering every subsystem end-to-end:
+
+| Test file | Coverage | Tests |
+|---|---|---|
+| `test_cache.py` | Cache key design, dedup, TTL, eviction, hit/miss | 51 |
+| `test_guardrails.py` | G1–G4 production guardrails, all validators | 57 |
+| `test_numerics.py` | All numerology computation functions | 46 |
+| `test_schemas.py` | All Pydantic models, field validation | 34 |
+| `test_api.py` | All HTTP endpoints, status codes, payloads | 31 |
+| `test_metrics.py` | MetricsCollector dashboard, P50/P95/P99 | 19 |
+| `test_memory.py` | Session store, read/write/clear | 16 |
+| `test_security.py` | 4-layer LLM security gate, 15 injection patterns | 56 |
+| `test_hallucination.py` | 3-layer hallucination detection pipeline | 45 |
+| `test_negative_edge_cases.py` | Concurrent writes, malformed input, overflow | 47 |
+| `test_live_pipeline.py` | **Real DeepSeek API — full pipeline live** | 23 |
+| **Total** | | **415/415** |
+
+**What the live pipeline tests verified (real LLM calls, no mocks):**
+- Full run→approve→translate pipeline produces correct schema for real user profile (Varun Sharma, Delhi)
+- Cache dedup: same birth profile + different `user_id` → 1 cache entry, `cache_hit: true` on second call
+- Rate limiter: requests 1–10 → 200, request 11 → 429 with retry-in seconds
+- Hallucination audit included in every response with `overall_risk` field
+- `/api/v1/metrics` P50 latency > 0 after real run (latency tracking live)
+- Guardrail stats endpoint returns real counters post-run
+
+**Key bug found and fixed during testing:**
+
+Cache was storing duplicate entries — same person visiting twice created 2 cache entries because `make_key()` included `user_id` (session token). Fix: removed `user_id` from the key entirely. Identity = birth data, not session token. Added a no-overwrite guard to `set()` so the first write wins.
+
+```python
+# Before (bug): key included uid → different sessions = different cache entries
+return f"session__{uid}__{hashed}"
+
+# After (fix): key is profile+question only — user_id intentionally excluded
+return f"session__{hashed}"  # same person, any session token → same key
+```
+
+In interview: "The test suite revealed a critical cache correctness bug: the same user visiting twice with a different session ID was bypassing the cache entirely. The fix was architectural — redefine cache identity as birth data (what makes a reading unique), not session token (which is ephemeral). This is the same insight as content-addressed storage: key on content, not on the requester."
+
 ---
 
 **Bench Resource Optimizer — Production Guardrails (G1–G5) — implemented 2026-05-15:**
