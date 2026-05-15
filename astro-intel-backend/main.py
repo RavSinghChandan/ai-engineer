@@ -12,12 +12,14 @@ from leads.router import router as leads_router
 from auth.dependencies import require_role, get_tenant_ctx
 from auth.models import Role, TenantContext
 import auth.store as auth_store
+import auth.users as users_store
 import leads.store as leads_store
 import cache as response_cache
 from guardrails.production import all_guardrail_stats
 
 # ── Bootstrap stores from disk ───────────────────────────────────────────────
 auth_store.load()
+users_store.load()
 leads_store.load()
 
 # ── App factory ──────────────────────────────────────────────────────────────

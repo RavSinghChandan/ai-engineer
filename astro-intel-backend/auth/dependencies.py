@@ -37,12 +37,16 @@ _JWT_TTL_SEC   = int(os.environ.get("JWT_TTL_SECONDS", "86400"))   # 24 hours de
 # ── Token creation (used by /auth/token endpoint) ─────────────────────────────
 
 def create_access_token(tenant_id: str, role: Role,
-                        api_key: str, tenant_name: str = "") -> str:
+                        api_key: str = "", tenant_name: str = "",
+                        user_id: str = "", email: str = "", name: str = "") -> str:
     payload = {
         "tenant_id":   tenant_id,
         "role":        role.value,
         "api_key":     api_key,
         "tenant_name": tenant_name,
+        "user_id":     user_id,
+        "email":       email,
+        "name":        name,
         "exp":         int(time.time()) + _JWT_TTL_SEC,
     }
     return jwt.encode(payload, _JWT_SECRET, algorithm=_JWT_ALGORITHM)
@@ -93,8 +97,9 @@ async def get_tenant_ctx(
         token = authorization.removeprefix("Bearer ").strip()
         ctx   = verify_token(token)
         if ctx:
-            # Verify the originating API key is still active
-            if not store.lookup_key(ctx.api_key):
+            # For API-key-based JWTs, verify the key is still active.
+            # User-based JWTs (email+password login) have no api_key — skip check.
+            if ctx.api_key and not store.lookup_key(ctx.api_key):
                 raise HTTPException(
                     status_code = status.HTTP_401_UNAUTHORIZED,
                     detail      = "Token's API key has been revoked.",

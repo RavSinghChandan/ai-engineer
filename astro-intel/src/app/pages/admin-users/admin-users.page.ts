@@ -27,17 +27,30 @@ interface NewTenantForm {
   admin_description: string;
 }
 
-interface LeadRow {
-  lead_id: string;
-  name: string;
+interface UserRow {
+  user_id: string;
   email: string;
-  phone: string;
-  dob: string;
-  consent: boolean;
-  status: string;
+  name: string;
+  role: string;
+  is_active: boolean;
   created_at: number;
-  updated_at: number;
-  notes: string;
+}
+
+interface LeadRow {
+  lead_id:        string;
+  name:           string;
+  email:          string;
+  phone:          string;
+  dob:            string;
+  consent:        boolean;
+  status:         string;
+  created_at:     number;
+  updated_at:     number;
+  notes:          string;
+  place_of_birth: string;
+  time_of_birth:  string;
+  alias_name:     string;
+  question:       string;
 }
 
 @Component({
@@ -72,6 +85,90 @@ interface LeadRow {
   @if (error()) {
     <div class="au-error-banner">⚠ {{ error() }}</div>
   }
+
+  <!-- Users section — SUPERADMIN only -->
+  @if (auth.isSuperAdmin()) {
+  <div class="au-section">
+    <div class="au-section-header">
+      <h2 class="au-section-title">Users & Admins</h2>
+      <button class="au-toggle-btn" (click)="showCreateAdmin.set(!showCreateAdmin())">
+        {{ showCreateAdmin() ? 'Cancel' : '+ Create Admin' }}
+      </button>
+    </div>
+
+    @if (showCreateAdmin()) {
+      <div class="au-create-form" style="margin-bottom:16px">
+        <div class="au-field">
+          <label class="au-label">Full Name</label>
+          <input class="au-input" type="text" [value]="newAdmin.name"
+            (input)="newAdmin.name = $any($event.target).value" placeholder="Admin's name"/>
+        </div>
+        <div class="au-field">
+          <label class="au-label">Email</label>
+          <input class="au-input" type="email" [value]="newAdmin.email"
+            (input)="newAdmin.email = $any($event.target).value" placeholder="admin@example.com"/>
+        </div>
+        <div class="au-field">
+          <label class="au-label">Password</label>
+          <input class="au-input" type="password" [value]="newAdmin.password"
+            (input)="newAdmin.password = $any($event.target).value" placeholder="Min 8 characters"/>
+        </div>
+        <button class="au-btn-primary" [disabled]="creatingAdmin()" (click)="createAdmin()">
+          @if (creatingAdmin()) { Creating… } @else { Create Admin Account }
+        </button>
+        @if (adminCreated()) {
+          <div class="au-key-reveal">
+            ✓ Admin account created for <strong>{{ adminCreated() }}</strong>.
+            They can now log in at the Sign In page.
+          </div>
+        }
+      </div>
+    }
+
+    @if (userList().length === 0 && !loading()) {
+      <p class="au-empty">No users yet.</p>
+    }
+    <div class="au-table-wrap">
+      <table class="au-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (u of userList(); track u.user_id) {
+            <tr [class.au-row-locked]="!u.is_active">
+              <td class="au-cell-name">{{ u.name }}</td>
+              <td class="au-cell-id" style="font-family:inherit;font-size:13px">{{ u.email }}</td>
+              <td>
+                <span class="au-key-role-badge" [class]="u.role">{{ u.role }}</span>
+              </td>
+              <td>
+                <span class="au-status-badge" [class.active]="u.is_active" [class.locked]="!u.is_active">
+                  {{ u.is_active ? 'Active' : 'Locked' }}
+                </span>
+              </td>
+              <td class="au-cell-actions">
+                @if (u.role !== 'superadmin') {
+                  @if (u.is_active) {
+                    <button class="au-btn-lock" (click)="lockUser(u.email)">🔒 Lock</button>
+                  } @else {
+                    <button class="au-btn-unlock" (click)="unlockUser(u.email)">🔓 Unlock</button>
+                  }
+                  <button class="au-btn-danger" (click)="deleteUser(u.email)">🗑 Delete</button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+  } <!-- end users section -->
 
   <!-- Create tenant panel — SUPERADMIN only -->
   @if (auth.isSuperAdmin()) {
@@ -470,8 +567,16 @@ interface LeadRow {
 .lstat-admin_notified  { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
 .lstat-expert_analysis { background: #f5f3ff; color: #5b21b6; border: 1px solid #ddd6fe; }
 .lstat-report_ready    { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
-.au-lead-actions { display: flex; gap: 8px; align-items: center; }
+.au-lead-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .au-lead-select { max-width: 220px; }
+.au-btn-do-reading {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 16px; border-radius: 8px; font-size: 12px; font-weight: 700;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed); color: #fff;
+  border: none; cursor: pointer; font-family: inherit;
+  box-shadow: 0 2px 8px rgba(99,102,241,0.35); transition: all .15s; white-space: nowrap;
+}
+.au-btn-do-reading:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(99,102,241,0.5); }
   `]
 })
 export class AdminUsersPage implements OnInit {
@@ -492,9 +597,14 @@ export class AdminUsersPage implements OnInit {
   readonly deleteTarget   = signal<TenantRow | null>(null);
   readonly addedKey       = signal('');
 
-  readonly newLeadCount = signal(0);
+  readonly newLeadCount    = signal(0);
+  readonly userList        = signal<UserRow[]>([]);
+  readonly showCreateAdmin = signal(false);
+  readonly creatingAdmin   = signal(false);
+  readonly adminCreated    = signal('');
 
   newTenant: NewTenantForm = { name: '', admin_description: 'Primary admin key' };
+  newAdmin = { name: '', email: '', password: '' };
   newKeyRole = 'user';
   newKeyDesc = '';
 
@@ -513,15 +623,17 @@ export class AdminUsersPage implements OnInit {
       this.error.set(e?.error?.detail ?? 'Failed to load leads.');
     }
 
-    // Only SUPERADMIN can see all tenants + all keys
+    // Only SUPERADMIN can see all tenants + all keys + all users
     if (this.auth.isSuperAdmin()) {
       try {
-        const [tenants, keys] = await Promise.all([
+        const [tenants, keys, users] = await Promise.all([
           firstValueFrom(this.http.get<TenantRow[]>(`${BACKEND}/admin/tenants`)),
           firstValueFrom(this.http.get<KeyRow[]>(`${BACKEND}/admin/all-keys`)),
+          firstValueFrom(this.http.get<UserRow[]>(`${BACKEND}/admin/users`)),
         ]);
         this.tenants.set(tenants ?? []);
         this.allKeys.set(keys ?? []);
+        this.userList.set(users ?? []);
       } catch (e: any) {
         this.error.set(e?.error?.detail ?? 'Failed to load tenant data.');
       }
@@ -642,15 +754,65 @@ export class AdminUsersPage implements OnInit {
     }
   }
 
+  async createAdmin() {
+    if (!this.newAdmin.name || !this.newAdmin.email || !this.newAdmin.password) {
+      this.error.set('All fields are required.'); return;
+    }
+    this.creatingAdmin.set(true);
+    this.adminCreated.set('');
+    this.error.set('');
+    try {
+      await firstValueFrom(this.http.post(`${BACKEND}/admin/users`, this.newAdmin));
+      this.adminCreated.set(this.newAdmin.email);
+      this.newAdmin = { name: '', email: '', password: '' };
+      await this.loadData();
+    } catch (e: any) {
+      this.error.set(e?.error?.detail ?? 'Failed to create admin.');
+    } finally {
+      this.creatingAdmin.set(false);
+    }
+  }
+
+  async lockUser(email: string) {
+    try {
+      await firstValueFrom(this.http.patch(`${BACKEND}/admin/users/${encodeURIComponent(email)}/lock`, {}));
+      await this.loadData();
+    } catch (e: any) {
+      this.error.set(e?.error?.detail ?? 'Failed to lock user.');
+    }
+  }
+
+  async unlockUser(email: string) {
+    try {
+      await firstValueFrom(this.http.patch(`${BACKEND}/admin/users/${encodeURIComponent(email)}/unlock`, {}));
+      await this.loadData();
+    } catch (e: any) {
+      this.error.set(e?.error?.detail ?? 'Failed to unlock user.');
+    }
+  }
+
+  async deleteUser(email: string) {
+    if (!confirm(`Permanently delete user ${email}?`)) return;
+    try {
+      await firstValueFrom(this.http.delete(`${BACKEND}/admin/users/${encodeURIComponent(email)}`));
+      await this.loadData();
+    } catch (e: any) {
+      this.error.set(e?.error?.detail ?? 'Failed to delete user.');
+    }
+  }
+
   doReadingForLead(lead: LeadRow) {
-    // Navigate to intake with lead data encoded as query params
     this.router.navigate(['/'], {
       queryParams: {
-        leadId:  lead.lead_id,
-        name:    lead.name,
-        dob:     lead.dob,
-        email:   lead.email,
-        phone:   lead.phone,
+        leadId:         lead.lead_id,
+        name:           lead.name,
+        alias_name:     lead.alias_name     || '',
+        dob:            lead.dob,
+        time_of_birth:  lead.time_of_birth  || '',
+        place_of_birth: lead.place_of_birth || '',
+        question:       lead.question       || '',
+        email:          lead.email,
+        phone:          lead.phone,
       }
     });
   }

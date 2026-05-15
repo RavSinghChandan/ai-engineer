@@ -1,0 +1,74 @@
+{
+  "users": [
+    {
+      "user_id": "user_superadmin",
+      "email": "admin@aura.local",
+      "name": "AstroIntel Admin",
+      "role": "superadmin",
+      "pw_hash": "4acd60d24b2a7d8259f8ec789d26ee1ead34b24bbe9d593e4f6ff1af7c897146",
+      "is_active": true,
+      "created_at": 1778866899.49255,
+      "tenant_id": "tenant_master"
+    },
+    {
+      "user_id": "user_b61d4a2a15f681c2",
+      "email": "testuser@example.com",
+      "name": "Test User",
+      "role": "user",
+      "pw_hash": "7fd4745008f1f6507f1fb1ffb5d8ed318234fcd51e0493478063806ef5ec2b6c",
+      "is_active": true,
+      "created_at": 1778867069.0625558,
+      "tenant_id": "tenant_39912110e60b"
+    },
+    {
+      "user_id": "user_a5d910714fc90e3d",
+      "email": "rav@aura.local",
+      "name": "Rav Admin",
+      "role": "admin",
+      "pw_hash": "cf9f628e7a6899edcd33223695951b09245cc19acf58b930f3c6b5c048d405b8",
+      "is_active": true,
+      "created_at": 1778867101.20465,
+      "tenant_id": "tenant_2944bfd07c2a"
+    },
+    {
+      "user_id": "user_2ad185963a9b2aca",
+      "email": "sunita_test@example.com",
+      "name": "Sunita Sharma",
+      "role": "user",
+      "pw_hash": "d3185b1f8f5b864316637acf2c4de21a8bc35962d7366ef3bf175e5abb688e15",
+      "is_active": true,
+      "created_at": 1778867919.728107,
+      "tenant_id": "tenant_6720a263af89"
+    },
+    {
+      "user_id": "user_739fdbf007b8b97c",
+      "email": "rav@gamil.com",
+      "name": "rav",
+      "role": "admin",
+      "pw_hash": "77dd83c02c457c25fb69c38da062bb135b03edf1c5b541be7eeb78f2bd30a85e",
+      "is_active": true,
+      "created_at": 1778868308.227966,
+      "tenant_id": "tenant_c1a26af702c2"
+    },
+    {
+      "user_id": "user_0092e329358dde15",
+      "email": "rav@gmail.com",
+      "name": "rav",
+      "role": "user",
+      "pw_hash": "77dd83c02c457c25fb69c38da062bb135b03edf1c5b541be7eeb78f2bd30a85e",
+      "is_active": true,
+      "created_at": 1778868426.294889,
+      "tenant_id": "tenant_9178f3325db0"
+    },
+    {
+      "user_id": "user_cba25ca2b19bb877",
+      "email": "chandan@gmail.com",
+      "name": "chandan",
+      "role": "user",
+      "pw_hash": "26b142a54837454347fd1206d60da39d6bb1028b10a85e61d98cd1010d11740e",
+      "is_active": true,
+      "created_at": 1778868880.331588,
+      "tenant_id": "tenant_1a618242e5ff"
+    }
+  ]
+}

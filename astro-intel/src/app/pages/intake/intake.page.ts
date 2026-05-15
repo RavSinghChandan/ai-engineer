@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { OrchestratorService } from '../../services/orchestrator.service';
 import { GeocodeService } from '../../services/geocode.service';
@@ -207,6 +207,15 @@ function validateProfile(p: {
       </button>
     </div>
   </header>
+
+  <!-- Lead reading mode banner -->
+  @if (leadReadingMode()) {
+    <div class="lead-reading-banner">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="6.5" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.2"/><path d="M7.5 4v4M7.5 10v.5" stroke="#92400e" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <span>Expert Reading Mode — completing analysis for <strong>{{ profileSig().full_name || 'client' }}</strong>. This reading will be delivered to them automatically.</span>
+      <button class="lead-reading-cancel" (click)="leadReadingMode.set(false); leadReadingId.set(''); router.navigate(['/admin/users'])">← Back to Leads</button>
+    </div>
+  }
 
   <!-- ══ VIEW: HOME — Birth Profile (center) + Modules (right) ══ -->
   @if (view() === 'home') {
@@ -768,14 +777,36 @@ function validateProfile(p: {
         <div class="lead-field-row">
           <div class="lead-field">
             <label class="lead-label">Full Name *</label>
-            <input class="lead-input" type="text" [value]="leadForm.name"
+            <input class="lead-input" type="text" [value]="leadForm.name || profile().full_name"
               (input)="leadForm.name = $any($event.target).value"
               placeholder="Your full name"/>
           </div>
           <div class="lead-field">
-            <label class="lead-label">Date of Birth</label>
-            <input class="lead-input" type="date" [value]="leadForm.dob"
+            <label class="lead-label">Known As (optional)</label>
+            <input class="lead-input" type="text" [value]="leadForm.alias_name || profile().alias_name"
+              (input)="leadForm.alias_name = $any($event.target).value"
+              placeholder="Nickname"/>
+          </div>
+        </div>
+        <div class="lead-field-row">
+          <div class="lead-field">
+            <label class="lead-label">Date of Birth *</label>
+            <input class="lead-input" type="date" [value]="leadForm.dob || profile().date_of_birth"
               (input)="leadForm.dob = $any($event.target).value"/>
+          </div>
+          <div class="lead-field">
+            <label class="lead-label">Time of Birth *</label>
+            <input class="lead-input" type="text" [value]="leadForm.time_of_birth || profile().time_of_birth"
+              (input)="leadForm.time_of_birth = $any($event.target).value"
+              placeholder="e.g. 10:30 (HH:MM)"/>
+          </div>
+        </div>
+        <div class="lead-field-row">
+          <div class="lead-field lead-field-grow">
+            <label class="lead-label">Place of Birth *</label>
+            <input class="lead-input" type="text" [value]="leadForm.place_of_birth || profile().place_of_birth"
+              (input)="leadForm.place_of_birth = $any($event.target).value"
+              placeholder="City, State, Country"/>
           </div>
         </div>
         <div class="lead-field-row">
@@ -790,6 +821,16 @@ function validateProfile(p: {
             <input class="lead-input" type="tel" [value]="leadForm.phone"
               (input)="leadForm.phone = $any($event.target).value"
               placeholder="+91 98765 43210"/>
+          </div>
+        </div>
+        <div class="lead-field-row">
+          <div class="lead-field lead-field-grow">
+            <label class="lead-label">Your Question for the Astrologer *</label>
+            <textarea class="lead-input lead-textarea"
+              [value]="leadForm.question || userQuestion"
+              (input)="leadForm.question = $any($event.target).value"
+              placeholder="e.g. Will my career grow this year? What should I focus on?"
+              rows="2"></textarea>
           </div>
         </div>
         <label class="lead-consent">
@@ -824,6 +865,8 @@ function validateProfile(p: {
 @if (leadSubmitted()) {
   <div class="lead-overlay">
     <div class="lead-card lead-tracker-card">
+
+      <!-- Header -->
       <div class="lead-card-header">
         <div class="lead-check-badge">
           <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
@@ -831,84 +874,142 @@ function validateProfile(p: {
             <path d="M8 14l4 4 8-8" stroke="#059669" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
-        <h2 class="lead-title">Request Sent to Expert Astrologer</h2>
+        <h2 class="lead-title">Reading Request Sent!</h2>
         <p class="lead-subtitle">
-          Our astrologer has received your reading request. You'll be contacted shortly on the details you've shared.
+          Your expert astrologer has been notified. Track your reading progress below — this updates automatically.
         </p>
       </div>
 
-      <!-- 4-step tracker -->
-      <div class="tracker-wrap">
-        <div class="tracker-step" [class.tracker-active]="isStepActive('submitted')" [class.tracker-done]="isStepDone('submitted')">
-          <div class="tracker-dot">
+      <!-- ── Colorful 4-step journey tracker ── -->
+      <div class="journey-wrap">
+
+        <!-- Step 1: Submitted -->
+        <div class="journey-step" [class.js-done]="isStepDone('submitted')" [class.js-active]="isStepActive('submitted')">
+          <div class="js-icon-wrap js-color-blue">
             @if (isStepDone('submitted')) {
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 9l4.5 4.5 7.5-7.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            } @else {
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M14 3.5L4 8l4 2 2 4 4.5-10z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>
             }
           </div>
-          <div class="tracker-content">
-            <span class="tracker-label">Request Submitted</span>
-            <span class="tracker-desc">Your birth details & question received</span>
+          <div class="js-body">
+            <div class="js-row">
+              <span class="js-label">Request Submitted</span>
+              @if (isStepDone('submitted') && !isStepActive('submitted')) {
+                <span class="js-badge js-badge-done">Done</span>
+              } @else if (isStepActive('submitted')) {
+                <span class="js-badge js-badge-active">In Progress</span>
+              }
+            </div>
+            <span class="js-desc">Your birth details & question have been received by our team</span>
           </div>
         </div>
-        <div class="tracker-line" [class.tracker-line-done]="isStepDone('admin_notified')"></div>
-        <div class="tracker-step" [class.tracker-active]="isStepActive('admin_notified')" [class.tracker-done]="isStepDone('admin_notified')">
-          <div class="tracker-dot">
+
+        <div class="js-connector" [class.js-connector-done]="isStepDone('admin_notified')"></div>
+
+        <!-- Step 2: Astrologer Notified -->
+        <div class="journey-step" [class.js-done]="isStepDone('admin_notified')" [class.js-active]="isStepActive('admin_notified')">
+          <div class="js-icon-wrap js-color-violet">
             @if (isStepDone('admin_notified')) {
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 9l4.5 4.5 7.5-7.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            } @else {
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2a5 5 0 0 1 5 5c0 2.5-1.5 4.5-3 5.5H7C5.5 11.5 4 9.5 4 7a5 5 0 0 1 5-5z" stroke="#fff" stroke-width="1.5"/><path d="M6.5 14.5h5M9 16v1" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>
             }
           </div>
-          <div class="tracker-content">
-            <span class="tracker-label">Astrologer Notified</span>
-            <span class="tracker-desc">Expert has been assigned your request</span>
+          <div class="js-body">
+            <div class="js-row">
+              <span class="js-label">Astrologer Notified</span>
+              @if (isStepDone('admin_notified') && !isStepActive('admin_notified')) {
+                <span class="js-badge js-badge-done">Done</span>
+              } @else if (isStepActive('admin_notified')) {
+                <span class="js-badge js-badge-active">Active</span>
+              }
+            </div>
+            <span class="js-desc">Your dedicated expert astrologer has been assigned and notified</span>
           </div>
         </div>
-        <div class="tracker-line" [class.tracker-line-done]="isStepDone('expert_analysis')"></div>
-        <div class="tracker-step" [class.tracker-active]="isStepActive('expert_analysis')" [class.tracker-done]="isStepDone('expert_analysis')">
-          <div class="tracker-dot">
+
+        <div class="js-connector" [class.js-connector-done]="isStepDone('expert_analysis')"></div>
+
+        <!-- Step 3: Expert Analysis -->
+        <div class="journey-step" [class.js-done]="isStepDone('expert_analysis')" [class.js-active]="isStepActive('expert_analysis')">
+          <div class="js-icon-wrap js-color-amber">
             @if (isStepDone('expert_analysis')) {
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 9l4.5 4.5 7.5-7.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            } @else {
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="3" fill="#fff"/><path d="M9 1v2M9 15v2M1 9h2M15 9h2M3.2 3.2l1.4 1.4M13.4 13.4l1.4 1.4M3.2 14.8l1.4-1.4M13.4 4.6l1.4-1.4" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>
             }
           </div>
-          <div class="tracker-content">
-            <span class="tracker-label">Expert Analysis</span>
-            <span class="tracker-desc">Personalised reading being prepared</span>
+          <div class="js-body">
+            <div class="js-row">
+              <span class="js-label">Expert Analysis</span>
+              @if (isStepDone('expert_analysis') && !isStepActive('expert_analysis')) {
+                <span class="js-badge js-badge-done">Done</span>
+              } @else if (isStepActive('expert_analysis')) {
+                <span class="js-badge js-badge-amber">Preparing</span>
+              }
+            </div>
+            <span class="js-desc">Your personalised 360° Vedic reading is being crafted for you</span>
           </div>
         </div>
-        <div class="tracker-line" [class.tracker-line-done]="isStepDone('report_ready')"></div>
-        <div class="tracker-step" [class.tracker-active]="isStepActive('report_ready')" [class.tracker-done]="isStepDone('report_ready')">
-          <div class="tracker-dot">
+
+        <div class="js-connector" [class.js-connector-done]="isStepDone('report_ready')"></div>
+
+        <!-- Step 4: Report Ready -->
+        <div class="journey-step" [class.js-done]="isStepDone('report_ready')" [class.js-active]="isStepActive('report_ready')">
+          <div class="js-icon-wrap js-color-green">
             @if (isStepDone('report_ready')) {
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 9l4.5 4.5 7.5-7.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            } @else {
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2v8M5.5 7l3.5 4 3.5-4" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 14h12" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/></svg>
             }
           </div>
-          <div class="tracker-content">
-            <span class="tracker-label">Report Ready</span>
-            <span class="tracker-desc">Your personalised report delivered</span>
+          <div class="js-body">
+            <div class="js-row">
+              <span class="js-label">Report Ready</span>
+              @if (isStepDone('report_ready')) {
+                <span class="js-badge js-badge-green">Ready!</span>
+              }
+            </div>
+            <span class="js-desc">Your personalised report is delivered — also sent to your email</span>
           </div>
         </div>
+
       </div>
 
+      <!-- Status message + download -->
       <div class="tracker-status-msg">
         @if (leadStatus() === 'submitted') {
           <span class="status-pill status-pending">⏳ Awaiting expert assignment</span>
         } @else if (leadStatus() === 'admin_notified') {
           <span class="status-pill status-active">🔔 Expert notified — reviewing your chart</span>
         } @else if (leadStatus() === 'expert_analysis') {
-          <span class="status-pill status-active">✦ Expert is preparing your personalised reading</span>
+          <span class="status-pill status-amber">✦ Your personalised reading is being prepared</span>
         } @else if (leadStatus() === 'report_ready') {
-          <span class="status-pill status-done">🎉 Your report is ready! Check your email.</span>
+          <div class="report-ready-block">
+            <div class="report-ready-glow">🎉</div>
+            <p class="report-ready-msg">Your personalised astrology report is ready!</p>
+            <p class="report-ready-sub">Check your email too — we sent it there automatically.</p>
+            <button class="lead-submit-btn report-dl-btn" (click)="downloadLeadReport()">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M3.5 6.5l3.5 4 3.5-4M1.5 12h11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Open My Full Report
+            </button>
+          </div>
         }
       </div>
 
+      <!-- Auto-poll indicator + manual refresh -->
       <div class="lead-actions">
-        <button class="lead-submit-btn" (click)="pollLeadStatus()">
-          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M11 6.5A4.5 4.5 0 1 1 9 2.8M11 1.5v3H8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Refresh Status
-        </button>
-        <button class="lead-cancel-btn" (click)="leadSubmitted.set(false); rerun()">
-          Start a New Reading
+        <span class="auto-poll-note">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" class="pulse-dot-svg"><circle cx="5" cy="5" r="4" fill="#6366f1" opacity="0.3"/><circle cx="5" cy="5" r="2" fill="#6366f1"/></svg>
+          Updating automatically every 15 seconds
+        </span>
+        <button class="lead-submit-btn lead-submit-btn-sm" (click)="pollLeadStatus()">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10.5 6A4.5 4.5 0 1 1 8.5 2.3M10.5 1v3H7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Refresh Now
         </button>
       </div>
+
     </div>
   </div>
 }
@@ -978,6 +1079,19 @@ function validateProfile(p: {
   border-radius: 99px; font-size: 10px; font-weight: 700;
   line-height: 1;
 }
+.lead-reading-banner {
+  display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+  background: #fffbeb; border-bottom: 1.5px solid #fde68a;
+  padding: 9px 20px; font-size: 12.5px; color: #78350f;
+}
+.lead-reading-banner strong { color: #92400e; }
+.lead-reading-cancel {
+  margin-left: auto; padding: 4px 12px; border-radius: 6px;
+  border: 1px solid #fde68a; background: transparent;
+  color: #92400e; font-size: 11.5px; font-weight: 600;
+  cursor: pointer; font-family: inherit; white-space: nowrap;
+}
+.lead-reading-cancel:hover { background: #fef3c7; }
 .hdr-avatar { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; object-position: top; border: 2.5px solid rgba(99,102,241,0.35); }
 .hdr-user-text { display: flex; flex-direction: column; gap: 2px; text-align: right; }
 .hdr-uname { font-size: 16px; font-weight: 600; color: #1e1b4b; line-height: 1.2; }
@@ -1368,6 +1482,8 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
 .lead-form { display: flex; flex-direction: column; gap: 14px; }
 .lead-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .lead-field { display: flex; flex-direction: column; gap: 5px; }
+.lead-field-grow { grid-column: 1 / -1; }
+.lead-textarea { resize: vertical; min-height: 60px; }
 .lead-label { font-size: 12px; font-weight: 600; color: #374151; }
 .lead-input {
   padding: 10px 13px; border: 1.5px solid #e5e7eb; border-radius: 10px;
@@ -1704,9 +1820,14 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
 })
 export class IntakePage {
   readonly router  = inject(Router);
+  private route    = inject(ActivatedRoute);
   readonly orch    = inject(OrchestratorService);
   private geoSvc   = inject(GeocodeService);
   readonly auth    = inject(AuthService);
+
+  // Set when admin navigates here via "Do Reading" from a lead
+  readonly leadReadingMode = signal(false);
+  readonly leadReadingId   = signal('');
 
   readonly geoResolved  = signal<{display_name:string; lat:number; lon:number} | null>(null);
   readonly geoResolving = signal(false);
@@ -1734,7 +1855,8 @@ export class IntakePage {
   readonly leadError       = signal('');
   readonly newLeadCount    = signal(0);
 
-  leadForm = { name: '', email: '', phone: '', dob: '', consent: false };
+  leadForm = { name: '', email: '', phone: '', dob: '', consent: false,
+               place_of_birth: '', time_of_birth: '', alias_name: '', question: '' };
 
   private http = inject(HttpClient);
 
@@ -1743,6 +1865,33 @@ export class IntakePage {
     if (typeof window !== 'undefined') {
       this._pollLeadCount();
       setInterval(() => this._pollLeadCount(), 30000);
+    }
+
+    // Pre-fill from lead query params when admin comes via "Do Reading"
+    const p = this.route.snapshot.queryParams;
+    if (p['leadId']) {
+      this.leadReadingMode.set(true);
+      this.leadReadingId.set(p['leadId']);
+      // Pre-fill birth profile with all lead data — admin should not re-type anything
+      this.profileSig.update(prof => ({
+        ...prof,
+        full_name:      p['name']           || prof.full_name,
+        alias_name:     p['alias_name']     || prof.alias_name,
+        date_of_birth:  p['dob']            || prof.date_of_birth,
+        time_of_birth:  p['time_of_birth']  || prof.time_of_birth,
+        place_of_birth: p['place_of_birth'] || prof.place_of_birth,
+      }));
+      // Pre-fill user question
+      if (p['question']) {
+        this.userQuestion = p['question'];
+        this.questionTouched.set(true);
+      }
+      // Trigger geocode for place if present
+      if (p['place_of_birth']) {
+        this._geocodeDebounced(p['place_of_birth']);
+      }
+      // Clear query params from URL without navigation
+      this.router.navigate([], { replaceUrl: true });
     }
   }
 
@@ -1961,13 +2110,18 @@ export class IntakePage {
     this.launchError.set('');
 
     // USER on 2nd run+ → show lead capture form instead of running AI
-    if (!this.auth.isAdmin() && this.orch.runCount() >= 1) {
+    // Skip when admin is doing a reading for a specific lead
+    if (!this.auth.isAdmin() && this.orch.runCount() >= 1 && !this.leadReadingMode()) {
       const profile = this.profileSig();
-      this.leadForm.name  = profile.full_name || '';
-      this.leadForm.dob   = profile.date_of_birth || '';
-      this.leadForm.email = '';
-      this.leadForm.phone = '';
-      this.leadForm.consent = false;
+      this.leadForm.name           = profile.full_name || '';
+      this.leadForm.alias_name     = profile.alias_name || '';
+      this.leadForm.dob            = profile.date_of_birth || '';
+      this.leadForm.time_of_birth  = profile.time_of_birth || '';
+      this.leadForm.place_of_birth = profile.place_of_birth || '';
+      this.leadForm.question       = this.userQuestion || '';
+      this.leadForm.email          = '';
+      this.leadForm.phone          = '';
+      this.leadForm.consent        = false;
       this.leadError.set('');
       this.showLeadForm.set(true);
       return;
@@ -1992,7 +2146,10 @@ export class IntakePage {
 
   async goReview() {
     if (this.auth.isAdmin()) {
-      this.router.navigate(['/review']);
+      // Navigate to review, passing leadId so review page can attach report after approval
+      this.router.navigate(['/review'], {
+        queryParams: this.leadReadingMode() ? { leadId: this.leadReadingId() } : {}
+      });
       return;
     }
     // USER — auto-approve all insights, generate PDF directly
@@ -2021,14 +2178,18 @@ export class IntakePage {
     if (!this.leadForm.email.trim()) { this.leadError.set('Please enter your email address.'); return; }
     if (!this.leadForm.consent) { this.leadError.set('Please confirm your consent to share details.'); return; }
 
-    // Pre-fill from profile if user left fields blank
+    // Always pull from the birth profile — leadForm fields shadow it
     const profile = this.profileSig();
     const payload = {
-      name:    this.leadForm.name || profile.full_name,
-      email:   this.leadForm.email,
-      phone:   this.leadForm.phone,
-      dob:     this.leadForm.dob || profile.date_of_birth,
-      consent: this.leadForm.consent,
+      name:           this.leadForm.name           || profile.full_name,
+      alias_name:     this.leadForm.alias_name     || profile.alias_name,
+      email:          this.leadForm.email,
+      phone:          this.leadForm.phone,
+      dob:            this.leadForm.dob            || profile.date_of_birth,
+      place_of_birth: this.leadForm.place_of_birth || profile.place_of_birth,
+      time_of_birth:  this.leadForm.time_of_birth  || profile.time_of_birth,
+      question:       this.leadForm.question       || this.userQuestion,
+      consent:        this.leadForm.consent,
     };
 
     this.leadSubmitting.set(true);
@@ -2051,6 +2212,20 @@ export class IntakePage {
       const res: any = await firstValueFrom(this.http.get(`${BACKEND}/leads/${this.leadId()}`));
       this.leadStatus.set(res.status);
     } catch { /* silent */ }
+  }
+
+  async downloadLeadReport() {
+    if (!this.leadId()) return;
+    try {
+      const report = await firstValueFrom(
+        this.http.get(`${BACKEND}/leads/${this.leadId()}/report`)
+      );
+      this.orch.setFinalReport(report);
+      this.router.navigate(['/report']);
+    } catch {
+      // report not ready yet — just refresh status
+      await this.pollLeadStatus();
+    }
   }
 
   private readonly STEP_ORDER = ['submitted', 'admin_notified', 'expert_analysis', 'report_ready'];

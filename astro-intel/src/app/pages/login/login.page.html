@@ -1,6 +1,7 @@
 <div class="login-shell">
   <div class="login-card">
-    <!-- Logo / Brand -->
+
+    <!-- Brand -->
     <div class="brand">
       <div class="brand-avatar">
         <img src="rav-logo.png" alt="" class="brand-avatar-bg"/>
@@ -11,42 +12,137 @@
       <p class="tagline-sub">360° Astro-Spiritual Intelligence Platform</p>
     </div>
 
-    <!-- Form -->
-    <div class="form-group">
-      <label for="apiKey">API Key</label>
-      <div class="input-row">
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn" [class.active]="tab() === 'signin'" (click)="switchTab('signin')">Sign In</button>
+      <button class="tab-btn" [class.active]="tab() === 'signup'" (click)="switchTab('signup')">Create Account</button>
+    </div>
+
+    <!-- ── SIGN IN ── -->
+    @if (tab() === 'signin') {
+      <div class="form-group">
+        <label for="siEmail">Email</label>
         <input
-          id="apiKey"
-          [type]="showKey() ? 'text' : 'password'"
-          placeholder="sk-..."
-          [ngModel]="apiKey()"
-          (ngModelChange)="apiKey.set($event)"
-          (keydown)="onKeyDown($event)"
-          autocomplete="off"
-          spellcheck="false"
+          id="siEmail"
+          type="email"
+          placeholder="you@example.com"
+          [ngModel]="siEmail()"
+          (ngModelChange)="siEmail.set($event)"
+          (keydown)="onKey($event)"
+          autocomplete="email"
           [disabled]="loading()"
         />
-        <button class="toggle-btn" type="button" (click)="showKey.set(!showKey())" tabindex="-1">
-          {{ showKey() ? '🙈' : '👁️' }}
-        </button>
       </div>
-      <span class="hint">Enter the API key provided by your administrator.</span>
-    </div>
 
-    @if (error()) {
-      <div class="error-box">⚠ {{ error() }}</div>
+      <div class="form-group">
+        <label for="siPass">Password</label>
+        <div class="input-row">
+          <input
+            id="siPass"
+            [type]="showPass() ? 'text' : 'password'"
+            placeholder="••••••••"
+            [ngModel]="siPassword()"
+            (ngModelChange)="siPassword.set($event)"
+            (keydown)="onKey($event)"
+            autocomplete="current-password"
+            [disabled]="loading()"
+          />
+          <button class="toggle-btn" type="button" (click)="showPass.set(!showPass())" tabindex="-1">
+            {{ showPass() ? '🙈' : '👁️' }}
+          </button>
+        </div>
+      </div>
+
+      @if (error()) {
+        <div class="error-box">⚠ {{ error() }}</div>
+      }
+
+      <button class="login-btn" (click)="signIn()" [disabled]="loading()">
+        @if (loading()) { <span class="spinner"></span> Signing in… }
+        @else { Sign In }
+      </button>
+
+      <div class="footer-note">
+        New to AURA? Click <strong>Create Account</strong> above to get started free.
+      </div>
     }
 
-    <button class="login-btn" (click)="submit()" [disabled]="loading()">
-      @if (loading()) {
-        <span class="spinner"></span> Authenticating…
-      } @else {
-        Sign In
-      }
-    </button>
+    <!-- ── SIGN UP ── -->
+    @if (tab() === 'signup') {
+      <div class="form-group">
+        <label for="suName">Full Name</label>
+        <input
+          id="suName"
+          type="text"
+          placeholder="Your name"
+          [ngModel]="suName()"
+          (ngModelChange)="suName.set($event)"
+          (keydown)="onKey($event)"
+          autocomplete="name"
+          [disabled]="loading()"
+        />
+      </div>
 
-    <div class="footer-note">
-      Don't have a key? Contact your AstroIntel administrator.
-    </div>
+      <div class="form-group">
+        <label for="suEmail">Email</label>
+        <input
+          id="suEmail"
+          type="email"
+          placeholder="you@example.com"
+          [ngModel]="suEmail()"
+          (ngModelChange)="suEmail.set($event)"
+          (keydown)="onKey($event)"
+          autocomplete="email"
+          [disabled]="loading()"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="suPass">Password</label>
+        <div class="input-row">
+          <input
+            id="suPass"
+            [type]="showPass() ? 'text' : 'password'"
+            placeholder="At least 8 characters"
+            [ngModel]="suPassword()"
+            (ngModelChange)="suPassword.set($event)"
+            (keydown)="onKey($event)"
+            autocomplete="new-password"
+            [disabled]="loading()"
+          />
+          <button class="toggle-btn" type="button" (click)="showPass.set(!showPass())" tabindex="-1">
+            {{ showPass() ? '🙈' : '👁️' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="suConfirm">Confirm Password</label>
+        <input
+          id="suConfirm"
+          [type]="showPass() ? 'text' : 'password'"
+          placeholder="Repeat password"
+          [ngModel]="suConfirm()"
+          (ngModelChange)="suConfirm.set($event)"
+          (keydown)="onKey($event)"
+          autocomplete="new-password"
+          [disabled]="loading()"
+        />
+      </div>
+
+      @if (error()) {
+        <div class="error-box">⚠ {{ error() }}</div>
+      }
+
+      <button class="login-btn" (click)="signUp()" [disabled]="loading()">
+        @if (loading()) { <span class="spinner"></span> Creating account… }
+        @else { Create Free Account }
+      </button>
+
+      <div class="footer-note">
+        By creating an account you get one free reading. Your first consultation is on us.
+      </div>
+    }
+
   </div>
 </div>

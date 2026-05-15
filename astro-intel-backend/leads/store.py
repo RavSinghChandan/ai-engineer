@@ -14,17 +14,21 @@ VALID_STATUSES = {"submitted", "admin_notified", "expert_analysis", "report_read
 
 @dataclass
 class Lead:
-    lead_id:     str
-    name:        str
-    email:       str
-    phone:       str
-    dob:         str
-    consent:     bool
-    status:      str        # submitted | admin_notified | expert_analysis | report_ready
-    created_at:  float
-    updated_at:  float
-    notes:       str = ""
-    report_json: str = ""   # JSON-serialized final report, set when admin completes reading
+    lead_id:        str
+    name:           str
+    email:          str
+    phone:          str
+    dob:            str
+    consent:        bool
+    status:         str        # submitted | admin_notified | expert_analysis | report_ready
+    created_at:     float
+    updated_at:     float
+    notes:          str = ""
+    report_json:    str = ""   # JSON-serialized final report, set when admin completes reading
+    place_of_birth: str = ""
+    time_of_birth:  str = ""
+    alias_name:     str = ""
+    question:       str = ""
 
 _leads: Dict[str, Lead] = {}
 
@@ -48,13 +52,17 @@ def load() -> None:
             pass
 
 
-def create_lead(name: str, email: str, phone: str, dob: str, consent: bool) -> Lead:
+def create_lead(name: str, email: str, phone: str, dob: str, consent: bool,
+                place_of_birth: str = "", time_of_birth: str = "",
+                alias_name: str = "", question: str = "") -> Lead:
     lid = f"lead_{secrets.token_hex(6)}"
     now = time.time()
     lead = Lead(
         lead_id=lid, name=name, email=email, phone=phone,
         dob=dob, consent=consent,
         status="submitted", created_at=now, updated_at=now,
+        place_of_birth=place_of_birth, time_of_birth=time_of_birth,
+        alias_name=alias_name, question=question,
     )
     _leads[lid] = lead
     _flush()

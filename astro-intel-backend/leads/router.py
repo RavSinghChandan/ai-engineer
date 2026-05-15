@@ -23,28 +23,36 @@ router = APIRouter(tags=["Leads"])
 
 
 class LeadRequest(BaseModel):
-    name:    str
-    email:   str
-    phone:   str
-    dob:     str
-    consent: bool
+    name:           str
+    email:          str
+    phone:          str
+    dob:            str
+    consent:        bool
+    place_of_birth: str = ""
+    time_of_birth:  str = ""
+    alias_name:     str = ""
+    question:       str = ""
 
 class LeadStatusUpdate(BaseModel):
     status: str
     notes:  Optional[str] = ""
 
 class LeadOut(BaseModel):
-    lead_id:     str
-    name:        str
-    email:       str
-    phone:       str
-    dob:         str
-    consent:     bool
-    status:      str
-    created_at:  float
-    updated_at:  float
-    notes:       str
-    report_json: str = ""
+    lead_id:        str
+    name:           str
+    email:          str
+    phone:          str
+    dob:            str
+    consent:        bool
+    status:         str
+    created_at:     float
+    updated_at:     float
+    notes:          str
+    report_json:    str = ""
+    place_of_birth: str = ""
+    time_of_birth:  str = ""
+    alias_name:     str = ""
+    question:       str = ""
 
 class AttachReportRequest(BaseModel):
     report_json: str   # full report object serialized as JSON string
@@ -63,6 +71,10 @@ async def submit_lead(
         phone=req.phone.strip(),
         dob=req.dob.strip(),
         consent=req.consent,
+        place_of_birth=req.place_of_birth.strip(),
+        time_of_birth=req.time_of_birth.strip(),
+        alias_name=req.alias_name.strip(),
+        question=req.question.strip(),
     )
     return {
         "lead_id": lead.lead_id,

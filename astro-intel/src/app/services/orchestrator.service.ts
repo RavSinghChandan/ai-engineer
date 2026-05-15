@@ -406,6 +406,11 @@ export class OrchestratorService {
     });
   }
 
+  setFinalReport(report: any): void {
+    this.finalReport.set(report);
+    this.isDone.set(true);
+  }
+
   reset(): void {
     this.steps.set([]);
     this.isRunning.set(false);

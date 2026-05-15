@@ -28,7 +28,7 @@ export const routes: Routes = [
   },
   {
     path: 'admin/users',
-    canActivate: [superadminGuard],
+    canActivate: [adminGuard],
     loadComponent: () => import('./pages/admin-users/admin-users.page').then(m => m.AdminUsersPage),
   },
   { path: '**', redirectTo: '' }

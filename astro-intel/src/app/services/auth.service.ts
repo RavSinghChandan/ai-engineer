@@ -12,7 +12,10 @@ export interface AuthMeta {
   tenant_id:   string;
   tenant_name: string;
   role:        'user' | 'admin' | 'superadmin';
-  expires_at:  number; // epoch ms
+  expires_at:  number;
+  user_id:     string;
+  email:       string;
+  name:        string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -20,32 +23,33 @@ export class AuthService {
   private _token = signal<string | null>(null);
   private _meta  = signal<AuthMeta | null>(null);
 
-  readonly isLoggedIn  = computed(() => !!this._token() && !this._isExpired());
-  readonly role        = computed(() => this._meta()?.role ?? null);
-  readonly tenantName  = computed(() => this._meta()?.tenant_name ?? '');
-  readonly isAdmin     = computed(() => ['admin','superadmin'].includes(this.role() ?? ''));
+  readonly isLoggedIn   = computed(() => !!this._token() && !this._isExpired());
+  readonly role         = computed(() => this._meta()?.role ?? null);
+  readonly tenantName   = computed(() => this._meta()?.tenant_name ?? '');
+  readonly userName     = computed(() => this._meta()?.name ?? this._meta()?.email ?? '');
+  readonly userEmail    = computed(() => this._meta()?.email ?? '');
+  readonly isAdmin      = computed(() => ['admin','superadmin'].includes(this.role() ?? ''));
   readonly isSuperAdmin = computed(() => this.role() === 'superadmin');
 
   constructor(private http: HttpClient, private router: Router) {
     this._restore();
   }
 
-  login(apiKey: string) {
-    return this.http.post<any>(`${BACKEND}/auth/token`, { api_key: apiKey }).pipe(
-      tap(res => {
-        const meta: AuthMeta = {
-          tenant_id:   res.tenant_id,
-          tenant_name: res.tenant_name,
-          role:        res.role,
-          expires_at:  Date.now() + res.expires_in * 1000,
-        };
-        this._token.set(res.access_token);
-        this._meta.set(meta);
-        sessionStorage.setItem(TOKEN_KEY, res.access_token);
-        sessionStorage.setItem(META_KEY, JSON.stringify(meta));
-      }),
+  login(email: string, password: string) {
+    return this.http.post<any>(`${BACKEND}/auth/login`, { email, password }).pipe(
+      tap(res => this._persist(res)),
       catchError(err => {
-        const msg = err?.error?.detail ?? 'Invalid API key. Please try again.';
+        const msg = err?.error?.detail ?? 'Invalid email or password. Please try again.';
+        return throwError(() => new Error(msg));
+      })
+    );
+  }
+
+  register(name: string, email: string, password: string) {
+    return this.http.post<any>(`${BACKEND}/auth/register`, { name, email, password }).pipe(
+      tap(res => this._persist(res)),
+      catchError(err => {
+        const msg = err?.error?.detail ?? 'Registration failed. Please try again.';
         return throwError(() => new Error(msg));
       })
     );
@@ -65,6 +69,22 @@ export class AuthService {
 
   getMeta(): AuthMeta | null {
     return this._meta();
+  }
+
+  private _persist(res: any) {
+    const meta: AuthMeta = {
+      tenant_id:   res.tenant_id,
+      tenant_name: res.tenant_name,
+      role:        res.role,
+      expires_at:  Date.now() + res.expires_in * 1000,
+      user_id:     res.user_id ?? '',
+      email:       res.email ?? '',
+      name:        res.name ?? '',
+    };
+    this._token.set(res.access_token);
+    this._meta.set(meta);
+    sessionStorage.setItem(TOKEN_KEY, res.access_token);
+    sessionStorage.setItem(META_KEY, JSON.stringify(meta));
   }
 
   private _restore() {

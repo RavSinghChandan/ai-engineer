@@ -1,12 +1,15 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule, KeyValuePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { OrchestratorService } from '../../services/orchestrator.service';
 import { ApiService, LanguageOption } from '../../services/api.service';
 import { AdminInsight, AdminQuestion } from '../../models/astro.models';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
+
+const BACKEND = 'http://localhost:8080';
 
 @Component({
   selector: 'app-review',
@@ -31,6 +34,9 @@ import { AuthService } from '../../services/auth.service';
       </div>
       @if (userName()) {
         <span class="user-chip">{{ userName() }}</span>
+      }
+      @if (leadId()) {
+        <span class="lead-chip">📋 Expert Reading for Client</span>
       }
     </div>
 
@@ -599,6 +605,12 @@ import { AuthService } from '../../services/auth.service';
   font-size: 11.5px; font-weight: 600;
   border: 1px solid rgba(212,175,55,0.25);
 }
+.lead-chip {
+  padding: 3px 12px; border-radius: 99px;
+  background: rgba(79,70,229,0.1); color: #4338ca;
+  font-size: 11.5px; font-weight: 600;
+  border: 1px solid rgba(79,70,229,0.25);
+}
 
 /* Progress pill */
 .progress-pill {
@@ -1090,9 +1102,14 @@ import { AuthService } from '../../services/auth.service';
 })
 export class ReviewPage {
   private router = inject(Router);
+  private route  = inject(ActivatedRoute);
+  private http   = inject(HttpClient);
   private api    = inject(ApiService);
   readonly orch  = inject(OrchestratorService);
   readonly auth  = inject(AuthService);
+
+  // Set when admin arrives from "Do Reading" for a lead
+  readonly leadId = signal(this.route.snapshot.queryParams['leadId'] ?? '');
 
   readonly activeTab   = signal<'review'|'translate'|'raw'|'log'|'astrology'>('review');
   readonly editingId   = signal<string|null>(null);
@@ -1215,6 +1232,17 @@ export class ReviewPage {
         const res = await firstValueFrom(this.api.getLanguages());
         this.languages.set(res.languages);
       } catch { /* keep fallback */ }
+
+      // If this was a lead reading, attach the report to the lead → triggers user's tracker to report_ready
+      if (this.leadId()) {
+        try {
+          const report = this.orch.finalReport();
+          await firstValueFrom(this.http.post(
+            `${BACKEND}/admin/leads/${this.leadId()}/attach-report`,
+            { report_json: JSON.stringify(report) }
+          ));
+        } catch { /* non-blocking — report still usable locally */ }
+      }
     } catch (err: any) {
       this.generateError.set(err?.message ?? 'Failed to generate report. Please try again.');
     } finally {

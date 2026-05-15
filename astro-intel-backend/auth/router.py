@@ -23,11 +23,34 @@ from typing import List, Optional
 from auth.models import Role, TenantContext
 from auth.dependencies import create_access_token, get_tenant_ctx, require_role
 import auth.store as store
+import auth.users as users
 
 router = APIRouter(tags=["Auth & Tenants"])
 
 
 # ── Request / Response schemas ────────────────────────────────────────────────
+
+class RegisterRequest(BaseModel):
+    email:    str
+    name:     str
+    password: str
+
+class LoginRequest(BaseModel):
+    email:    str
+    password: str
+
+class CreateAdminRequest(BaseModel):
+    email:    str
+    name:     str
+    password: str
+
+class UserOut(BaseModel):
+    user_id:    str
+    email:      str
+    name:       str
+    role:       str
+    is_active:  bool
+    created_at: float
 
 class TokenRequest(BaseModel):
     api_key: str
@@ -38,7 +61,10 @@ class TokenResponse(BaseModel):
     tenant_id:    str
     role:         str
     tenant_name:  str
-    expires_in:   int   # seconds
+    expires_in:   int
+    user_id:      str = ""
+    email:        str = ""
+    name:         str = ""
 
 class CreateTenantRequest(BaseModel):
     name:              str
@@ -60,6 +86,88 @@ class KeyOut(BaseModel):
     role:        str
     description: str
     is_active:   bool
+
+
+# ── POST /auth/register — self-registration (USER) ───────────────────────────
+
+@router.post("/auth/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
+async def register(req: RegisterRequest):
+    """
+    Self-register as a USER. Creates an account + personal tenant instantly.
+    Returns a JWT so the user is logged in immediately.
+    """
+    try:
+        user = users.create_user(req.email, req.name, req.password)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+    tenant = store.get_tenant(user.tenant_id)
+    import os
+    ttl = int(os.environ.get("JWT_TTL_SECONDS", "86400"))
+    from auth.dependencies import create_access_token as _create_token
+    token = _create_token(
+        tenant_id   = user.tenant_id,
+        role        = Role(user.role),
+        api_key     = "",
+        tenant_name = tenant.name if tenant else req.name,
+        user_id     = user.user_id,
+        email       = user.email,
+        name        = user.name,
+    )
+    return TokenResponse(
+        access_token = token,
+        tenant_id    = user.tenant_id,
+        role         = user.role,
+        tenant_name  = tenant.name if tenant else req.name,
+        expires_in   = ttl,
+        user_id      = user.user_id,
+        email        = user.email,
+        name         = user.name,
+    )
+
+
+# ── POST /auth/login — email + password login ────────────────────────────────
+
+@router.post("/auth/login", response_model=TokenResponse)
+async def login(req: LoginRequest):
+    """
+    Login with email + password. Works for USER, ADMIN, and SUPERADMIN.
+    Returns a JWT. No API key is ever exposed.
+    """
+    user = users.get_by_email(req.email)
+    if not user or not users.verify_password(user, req.password):
+        raise HTTPException(
+            status_code = status.HTTP_401_UNAUTHORIZED,
+            detail      = "Invalid email or password.",
+        )
+    if not user.is_active:
+        raise HTTPException(
+            status_code = status.HTTP_403_FORBIDDEN,
+            detail      = "Account is disabled. Contact your administrator.",
+        )
+    tenant = store.get_tenant(user.tenant_id)
+    import os
+    ttl = int(os.environ.get("JWT_TTL_SECONDS", "86400"))
+    from auth.dependencies import create_access_token as _create_token
+    token = _create_token(
+        tenant_id   = user.tenant_id,
+        role        = Role(user.role),
+        api_key     = "",
+        tenant_name = tenant.name if tenant else user.name,
+        user_id     = user.user_id,
+        email       = user.email,
+        name        = user.name,
+    )
+    return TokenResponse(
+        access_token = token,
+        tenant_id    = user.tenant_id,
+        role         = user.role,
+        tenant_name  = tenant.name if tenant else user.name,
+        expires_in   = ttl,
+        user_id      = user.user_id,
+        email        = user.email,
+        name         = user.name,
+    )
 
 
 # ── POST /auth/token — exchange API key for JWT ───────────────────────────────
@@ -276,6 +384,83 @@ async def all_keys(
         )
         for k in store.list_all_keys()
     ]
+
+
+# ── User management (SUPERADMIN only) ────────────────────────────────────────
+
+@router.get("/admin/users", response_model=List[UserOut])
+async def list_users(ctx: TenantContext = Depends(require_role(Role.SUPERADMIN))):
+    """SUPERADMIN: list all registered users."""
+    return [
+        UserOut(
+            user_id    = u.user_id,
+            email      = u.email,
+            name       = u.name,
+            role       = u.role,
+            is_active  = u.is_active,
+            created_at = u.created_at,
+        )
+        for u in users.list_users()
+    ]
+
+
+@router.post("/admin/users", response_model=UserOut, status_code=status.HTTP_201_CREATED)
+async def create_admin_user(
+    req: CreateAdminRequest,
+    ctx: TenantContext = Depends(require_role(Role.SUPERADMIN)),
+):
+    """SUPERADMIN: create an ADMIN account with email+password."""
+    try:
+        user = users.create_admin_user(req.email, req.name, req.password)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    return UserOut(
+        user_id    = user.user_id,
+        email      = user.email,
+        name       = user.name,
+        role       = user.role,
+        is_active  = user.is_active,
+        created_at = user.created_at,
+    )
+
+
+@router.patch("/admin/users/{email}/lock")
+async def lock_user(
+    email: str,
+    ctx: TenantContext = Depends(require_role(Role.SUPERADMIN)),
+):
+    """SUPERADMIN: disable a user account."""
+    ok = users.set_active(email, False)
+    if not ok:
+        raise HTTPException(status_code=404, detail="User not found.")
+    return {"email": email, "status": "locked"}
+
+
+@router.patch("/admin/users/{email}/unlock")
+async def unlock_user(
+    email: str,
+    ctx: TenantContext = Depends(require_role(Role.SUPERADMIN)),
+):
+    """SUPERADMIN: re-enable a user account."""
+    ok = users.set_active(email, True)
+    if not ok:
+        raise HTTPException(status_code=404, detail="User not found.")
+    return {"email": email, "status": "unlocked"}
+
+
+@router.delete("/admin/users/{email}")
+async def delete_user(
+    email: str,
+    ctx: TenantContext = Depends(require_role(Role.SUPERADMIN)),
+):
+    """SUPERADMIN: permanently delete a user account."""
+    try:
+        ok = users.delete_user(email)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    if not ok:
+        raise HTTPException(status_code=404, detail="User not found.")
+    return {"email": email, "status": "deleted"}
 
 
 # ── GET /auth/me — who am I? (any authenticated user) ────────────────────────
