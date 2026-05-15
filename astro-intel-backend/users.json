@@ -69,6 +69,16 @@
       "is_active": true,
       "created_at": 1778868880.331588,
       "tenant_id": "tenant_1a618242e5ff"
+    },
+    {
+      "user_id": "user_a459253b057cff2c",
+      "email": "ananya_test2@example.com",
+      "name": "Ananya Kapoor",
+      "role": "user",
+      "pw_hash": "6bca177e640a3a80319a3969a1ce015737ae9b5e2afd6431c13987c658ad6ad6",
+      "is_active": true,
+      "created_at": 1778869911.742945,
+      "tenant_id": "tenant_238caa3aabfd"
     }
   ]
 }

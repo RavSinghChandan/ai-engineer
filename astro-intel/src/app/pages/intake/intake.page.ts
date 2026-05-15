@@ -1521,34 +1521,97 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
   animation: spin 0.8s linear infinite; flex-shrink: 0;
 }
 
-/* ══ 4-STEP TRACKER ══ */
-.lead-tracker-card { max-width: 500px; }
-.tracker-wrap { display: flex; flex-direction: column; gap: 0; }
-.tracker-step { display: flex; align-items: flex-start; gap: 14px; padding: 6px 0; }
-.tracker-dot {
-  width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
-  border: 2.5px solid #e5e7eb; background: #f9fafb;
+/* ══ COLORFUL JOURNEY TRACKER ══ */
+.lead-tracker-card { max-width: 520px; }
+
+.journey-wrap {
+  display: flex; flex-direction: column; gap: 0;
+  background: #f8fafc; border-radius: 14px;
+  padding: 6px 12px; border: 1px solid #e5e7eb;
+  margin: 4px 0;
+}
+
+.journey-step {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 14px 4px; opacity: 0.4; transition: opacity .3s;
+}
+.journey-step.js-done, .journey-step.js-active { opacity: 1; }
+
+.js-icon-wrap {
+  width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   transition: all .3s;
 }
-.tracker-step.tracker-done .tracker-dot { background: #059669; border-color: #059669; }
-.tracker-step.tracker-active .tracker-dot { background: #6366f1; border-color: #6366f1; animation: tracker-pulse 1.8s ease-in-out infinite; }
-@keyframes tracker-pulse { 0%,100%{ box-shadow:0 0 0 0 rgba(99,102,241,0.4); } 50%{ box-shadow:0 0 0 6px rgba(99,102,241,0); } }
-.tracker-content { display: flex; flex-direction: column; gap: 2px; padding-top: 4px; }
-.tracker-label { font-size: 13px; font-weight: 700; color: #111827; }
-.tracker-step.tracker-done .tracker-label { color: #059669; }
-.tracker-step.tracker-active .tracker-label { color: #4f46e5; }
-.tracker-desc { font-size: 11.5px; color: #9ca3af; }
-.tracker-line {
-  width: 2px; height: 24px; background: #e5e7eb; margin-left: 13px;
-  transition: background .4s;
+.js-color-blue   { background: linear-gradient(135deg, #3b82f6, #6366f1); box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
+.js-color-violet { background: linear-gradient(135deg, #8b5cf6, #a855f7); box-shadow: 0 4px 12px rgba(139,92,246,0.3); }
+.js-color-amber  { background: linear-gradient(135deg, #f59e0b, #ef4444); box-shadow: 0 4px 12px rgba(245,158,11,0.3); }
+.js-color-green  { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
+
+/* Dim icon when not yet reached */
+.journey-step:not(.js-done):not(.js-active) .js-icon-wrap {
+  background: #e5e7eb !important; box-shadow: none !important;
 }
-.tracker-line-done { background: #059669; }
-.tracker-status-msg { text-align: center; }
+
+.js-body { display: flex; flex-direction: column; gap: 3px; flex: 1; padding-top: 8px; }
+.js-row  { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.js-label { font-size: 13.5px; font-weight: 700; color: #111827; }
+.js-desc  { font-size: 12px; color: #6b7280; line-height: 1.4; }
+
+.js-badge {
+  font-size: 10px; font-weight: 700; padding: 2px 9px;
+  border-radius: 99px; letter-spacing: 0.04em;
+}
+.js-badge-done   { background: #dcfce7; color: #166534; }
+.js-badge-active { background: #e0e7ff; color: #3730a3; }
+.js-badge-amber  { background: #fef3c7; color: #92400e; }
+.js-badge-green  { background: #d1fae5; color: #065f46; }
+
+.js-connector {
+  width: 2px; height: 18px; background: #e5e7eb;
+  margin-left: 31px; transition: background .4s;
+}
+.js-connector-done { background: linear-gradient(to bottom, #6366f1, #10b981); }
+
+/* ── Active step pulse on icon ── */
+.journey-step.js-active .js-icon-wrap {
+  animation: js-pulse 2s ease-in-out infinite;
+}
+@keyframes js-pulse {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+
+/* ── Report ready celebration block ── */
+.report-ready-block {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+  border: 1.5px solid #6ee7b7; border-radius: 14px;
+  padding: 20px 24px; text-align: center;
+}
+.report-ready-glow { font-size: 2.5rem; line-height: 1; }
+.report-ready-msg  { font-size: 15px; font-weight: 700; color: #065f46; margin: 0; }
+.report-ready-sub  { font-size: 12px; color: #047857; margin: 0; }
+.report-dl-btn {
+  background: linear-gradient(135deg, #059669, #10b981) !important;
+  box-shadow: 0 4px 14px rgba(16,185,129,0.4) !important;
+  padding: 12px 28px !important; font-size: 14px !important;
+}
+
+/* ── Auto-poll note ── */
+.auto-poll-note {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11.5px; color: #9ca3af; flex: 1;
+}
+.lead-submit-btn-sm {
+  padding: 8px 16px !important; font-size: 12px !important;
+}
+
+.tracker-status-msg { text-align: center; margin: 4px 0; }
 .status-pill {
   display: inline-block; padding: 7px 18px; border-radius: 99px;
   font-size: 12.5px; font-weight: 600;
 }
+.status-amber { background: #fef3c7; color: #92400e; }
 .status-pending { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
 .status-active  { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
 .status-done    { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
@@ -1859,6 +1922,23 @@ export class IntakePage {
                place_of_birth: '', time_of_birth: '', alias_name: '', question: '' };
 
   private http = inject(HttpClient);
+
+  private _autoPollTimer: ReturnType<typeof setInterval> | null = null;
+
+  startAutoPoll() {
+    if (this._autoPollTimer) return;
+    this._autoPollTimer = setInterval(async () => {
+      await this.pollLeadStatus();
+      if (this.leadStatus() === 'report_ready') {
+        clearInterval(this._autoPollTimer!);
+        this._autoPollTimer = null;
+      }
+    }, 15000);
+  }
+
+  stopAutoPoll() {
+    if (this._autoPollTimer) { clearInterval(this._autoPollTimer); this._autoPollTimer = null; }
+  }
 
   constructor() {
     // Poll new lead count for admins every 30s
@@ -2199,6 +2279,7 @@ export class IntakePage {
       this.leadStatus.set('submitted');
       this.showLeadForm.set(false);
       this.leadSubmitted.set(true);
+      this.startAutoPoll();
     } catch (e: any) {
       this.leadError.set(e?.error?.detail ?? 'Something went wrong. Please try again.');
     } finally {

@@ -120,7 +120,34 @@ async def attach_report_to_lead(
     lead = store.attach_report(lead_id, req.report_json)
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found.")
-    return {"lead_id": lead.lead_id, "status": lead.status, "message": "Report attached. User can now download it."}
+
+    # Fire email notification — non-blocking, never raises
+    import json as _json
+    from email_service import send_report_ready
+    import asyncio, concurrent.futures
+
+    def _send_email():
+        try:
+            report_data = _json.loads(req.report_json)
+            summary = (
+                report_data.get("summary")
+                or report_data.get("meta_analysis", {}).get("summary", "")
+                or "Your complete personalised reading is ready — log in to view it."
+            )
+            if isinstance(summary, dict):
+                summary = summary.get("text", str(summary))
+            send_report_ready(
+                to_email     = lead.email,
+                to_name      = lead.alias_name or lead.name.split()[0],
+                report_summary = str(summary)[:400],
+            )
+        except Exception:
+            pass  # never block the response
+
+    loop = asyncio.get_event_loop()
+    loop.run_in_executor(concurrent.futures.ThreadPoolExecutor(max_workers=1), _send_email)
+
+    return {"lead_id": lead.lead_id, "status": lead.status, "message": "Report attached. Email notification sent to user."}
 
 
 @router.get("/leads/{lead_id}/report")
