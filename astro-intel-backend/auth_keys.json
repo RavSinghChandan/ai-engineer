@@ -1,0 +1,42 @@
+{
+  "tenants": [
+    {
+      "tenant_id": "tenant_master",
+      "name": "Master",
+      "is_active": true,
+      "created_at": 1778854705.610899
+    },
+    {
+      "tenant_id": "tenant_abc123",
+      "name": "Test Corp",
+      "is_active": true,
+      "created_at": 1778854705.611048
+    }
+  ],
+  "api_keys": [
+    {
+      "key": "sk-master-test-superadmin",
+      "tenant_id": "tenant_master",
+      "role": "superadmin",
+      "description": "test",
+      "is_active": true,
+      "created_at": 1778854705.6109009
+    },
+    {
+      "key": "sk-tenant-test-admin-key",
+      "tenant_id": "tenant_abc123",
+      "role": "admin",
+      "description": "test",
+      "is_active": false,
+      "created_at": 1778854705.61105
+    },
+    {
+      "key": "sk-tenant-test-user-key",
+      "tenant_id": "tenant_abc123",
+      "role": "user",
+      "description": "test",
+      "is_active": true,
+      "created_at": 1778854705.611051
+    }
+  ]
+}

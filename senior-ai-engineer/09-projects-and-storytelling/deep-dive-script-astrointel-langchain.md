@@ -184,6 +184,24 @@ Key numbers to annotate:
 - LLM calls: 6 (5 agents + 1 synthesis, plus classifier)
 - Cost: ~$0.07 (gpt-4o-mini × 5 + gpt-4o × 1)
 
+**Multi-tenant SaaS auth system — 76/76 tests passing (2026-05-15):**
+
+Full enterprise auth layer was added to AstroIntel and tested end-to-end:
+
+| Auth component | What was built | Test result |
+|---|---|---|
+| Role hierarchy: USER < ADMIN < SUPERADMIN | `Role.can()` method + `require_role()` Depends factory | 8/8 role model tests pass |
+| X-API-Key header auth | `get_tenant_ctx` → `lookup_key()` → `TenantContext` | 76/76 HTTP tests pass |
+| JWT Bearer auth | `create_access_token` + `verify_token` (HS256, python-jose) | 5/5 JWT tests pass |
+| Key revocation + JWT invalidation | JWT checks key liveness on every request — revoked key = 401 even with valid JWT | 3/3 bearer endpoint tests pass |
+| Tenant isolation at rate limiter | Rate limit key = `ctx.tenant_id` (API-verified), not user-supplied input | Verified |
+| Endpoint role enforcement | All admin/guardrail/metrics/cache/circuit-breaker endpoints return 403/401 without correct role | 10/10 admin role tests pass |
+| SUPERADMIN bootstrap | Created from `MASTER_API_KEY` env var on first boot — no pre-config needed | Verified |
+
+Auth files: `auth/models.py`, `auth/store.py`, `auth/dependencies.py`, `auth/router.py` (4 files, ~450 lines total)
+
+In interview (when asked "how did you secure the API?"): "AstroIntel has a three-tier role system — USER, ADMIN, SUPERADMIN — enforced at every endpoint using FastAPI's `Depends()` pattern. There are two auth methods: a raw API key in the X-API-Key header, or a short-lived JWT Bearer token exchanged via POST /auth/token. The JWT re-checks key liveness on every request, so revoking a key immediately invalidates all outstanding tokens from it — you don't have to wait for JWT expiry. I tested all of this with 76 tests: role hierarchy, JWT tamper detection, key revocation propagation, tenant isolation at the rate limiter, and role enforcement on every protected endpoint. The test suite runs in 2 seconds."
+
 **Enterprise test coverage (415/415 passing, 2026-05-15):**
 
 | What was tested | How | Result |

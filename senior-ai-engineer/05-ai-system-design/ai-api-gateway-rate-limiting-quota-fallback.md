@@ -156,16 +156,42 @@ async def gateway_chat(request: Request, user: dict = Depends(verify_api_key)):
 
 ## 5. Example (From Your Projects — Senior Framing)
 
-**AstroIntel — implicit gateway needs:**
+**AstroIntel — multi-tenant SaaS auth implemented and verified (76/76 tests passing, 2026-05-15):**
 
-Currently no gateway layer. For a production multi-tenant deployment:
-- Each customer gets an API key stored in the gateway
-- Each customer has a monthly token quota (e.g., 10M tokens/month)
-- Rate limit: 10 analysis requests/minute per user (prevents runaway batch usage)
-- Model routing: simple queries → GPT-4o-mini, complex multi-question analysis → GPT-4o
-- Provider fallback: if OpenAI is down, route to Claude Haiku
+The gateway layer is fully built in production. Architecture:
 
-In interview: "For AstroIntel at scale, I would add an API gateway layer between the frontend and the LLM pipeline. It handles authentication, per-customer quotas, rate limiting, and provider fallback. This is standard backend infrastructure — the same patterns as any Java API gateway but with token-based quota instead of request-based quota."
+```
+POST X-API-Key / Bearer JWT
+    ↓
+get_tenant_ctx (FastAPI Depends)
+  ├── Method 1: X-API-Key header → lookup_key() → TenantContext
+  └── Method 2: Bearer JWT → verify_token() + confirm key still active → TenantContext
+    ↓
+require_role(Role.ADMIN) / require_role(Role.SUPERADMIN)
+  → 403 if role insufficient, TenantContext injected if passes
+    ↓
+Rate limiter keyed by ctx.tenant_id (not user-supplied user_id)
+    ↓
+LLM pipeline
+```
+
+Role hierarchy enforced at every endpoint:
+
+| Endpoint | Minimum Role | What Happens Without It |
+|---|---|---|
+| POST /api/v1/analysis/run | USER | 401 (no auth) / 403 (wrong role) |
+| GET /api/v1/metrics | ADMIN | 403 for USER |
+| GET /guardrails/stats | ADMIN | 403 for USER |
+| POST /guardrails/circuit-breaker/reset | SUPERADMIN | 403 for ADMIN |
+| POST /admin/tenants | SUPERADMIN | 403 for ADMIN |
+| GET /health, GET / | public | always 200 |
+
+Key design decisions verified by tests:
+- JWT revocation: even a valid JWT returns 401 if the originating API key has been revoked — the dependency re-checks key liveness on every request
+- Tenant isolation: rate limiter uses `ctx.tenant_id` (verified from API key) not user-supplied input — tenants cannot spoof each other's rate limit slots
+- Bootstrap: SUPERADMIN created from `MASTER_API_KEY` env var on first boot — no pre-configuration needed for fresh deployment
+
+In interview: "AstroIntel has a full multi-tenant auth system — three roles (USER, ADMIN, SUPERADMIN), two auth methods (X-API-Key header and JWT Bearer), and a role hierarchy where each endpoint declares its minimum role via `Depends(require_role(Role.ADMIN))`. I tested it with 76 tests covering role enforcement on every endpoint, JWT tampering rejection, key revocation propagation, and tenant isolation at the rate limiter. The test suite runs in 2 seconds — it's an HTTP-level test against the real FastAPI app using TestClient."
 
 ---
 

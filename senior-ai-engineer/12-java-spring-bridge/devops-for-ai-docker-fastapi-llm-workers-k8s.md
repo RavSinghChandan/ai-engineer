@@ -404,23 +404,63 @@ Benefits:
 
 ## 6. Example (From Your Projects)
 
-**AstroIntel Containerization:**
+**AstroIntel Containerization (with multi-tenant auth):**
 
-AstroIntel has two components: the FastAPI server and a Celery worker (for the async upgrade path).
+AstroIntel has a full multi-tenant auth layer that adds specific Docker/deploy considerations:
 
 ```
 services:
-  astro-gateway: FastAPI (8000) — handles analysis requests, SSE streaming
-  astro-worker: Celery — processes long-running analyses asynchronously
-  redis: broker + result backend
-  postgres: user data + (future) knowledge base with pgvector
+  astro-gateway: FastAPI (8080) — auth + analysis pipeline + SSE streaming
+  redis: semantic cache + rate limiter state
+  postgres: (future) user data + pgvector knowledge base
+
+Auth-specific Docker concerns:
+  - MASTER_API_KEY: injected as environment variable (never in Dockerfile or image)
+  - JWT_SECRET: injected as environment variable
+  - auth_keys.json: mounted as host volume — tenants and API keys persist across restarts
+    Without this volume, every container restart loses all tenant data
 ```
 
-Docker Compose runs all four locally. In production (ECS or Cloud Run):
-- `astro-gateway` → ECS Fargate service, 2 tasks minimum, ALB in front
-- `astro-worker` → ECS Fargate service, scale based on Celery queue depth
-- `redis` → ElastiCache
-- `postgres` → RDS
+Minimal production Dockerfile for AstroIntel (auth-aware):
+```dockerfile
+FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+RUN useradd -m appuser && chown -R appuser:appuser /app
+USER appuser
+# auth_keys.json lives at /data/auth_keys.json (mounted volume)
+ENV AUTH_STORE_PATH=/data/auth_keys.json
+HEALTHCHECK --interval=30s CMD curl -f http://localhost:8080/health || exit 1
+EXPOSE 8080
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "4"]
+```
+
+docker-compose for local dev (auth-complete):
+```yaml
+services:
+  astro-gateway:
+    build: .
+    ports: ["8080:8080"]
+    environment:
+      - MASTER_API_KEY=${MASTER_API_KEY}  # from .env — never hardcode
+      - JWT_SECRET=${JWT_SECRET}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - AUTH_STORE_PATH=/data/auth_keys.json
+    volumes:
+      - auth_data:/data  # persists tenant/key store across restarts
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+volumes:
+  auth_data:
+```
+
+In production (EC2 single-server):
+- `astro-gateway` → Docker container, Nginx reverse proxy, HTTPS via Let's Encrypt
+- `auth_keys.json` → host volume at `/var/astro/auth_keys.json`
+- `MASTER_API_KEY`, `JWT_SECRET` → set in `/etc/environment` on EC2 (not in source control)
+- Auth is fully tested (76/76 tests passing) — Docker deploy is the next phase
 
 ---
 

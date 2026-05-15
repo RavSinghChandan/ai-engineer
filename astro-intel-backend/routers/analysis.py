@@ -8,7 +8,7 @@ import asyncio
 from typing import Any, Dict
 
 import time
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
@@ -22,6 +22,8 @@ import cache.store as response_cache
 from metrics.collector import get_collector, RunRecord
 from utils.deepseek_client import get_session_usage, reset_session_usage
 from guardrails.production import rate_limiter
+from auth.dependencies import get_tenant_ctx
+from auth.models import TenantContext
 
 router = APIRouter(prefix="/api/v1/analysis", tags=["Analysis"])
 
@@ -31,14 +33,17 @@ _sessions: Dict[str, Dict[str, Any]] = {}
 
 # ── POST /run — start full analysis ──────────────────────────────────────────
 @router.post("/run")
-async def run_analysis(req: AnalysisRequest) -> JSONResponse:
+async def run_analysis(
+    req: AnalysisRequest,
+    ctx: TenantContext = Depends(get_tenant_ctx),
+) -> JSONResponse:
     """
     Execute the full LangGraph pipeline.
     Accepts single user_question AND/OR list of questions.
     Returns admin_review with question-wise insights.
     """
-    # ── G1: Rate Limiter ─────────────────────────────────────────────────────
-    allowed, reason = rate_limiter.is_allowed(req.user_id or "anonymous")
+    # ── G1: Rate Limiter — keyed by tenant_id so tenants are isolated ────────
+    allowed, reason = rate_limiter.is_allowed(ctx.tenant_id)
     if not allowed:
         raise HTTPException(status_code=429, detail=reason)
 
@@ -153,7 +158,10 @@ async def run_analysis(req: AnalysisRequest) -> JSONResponse:
 
 # ── POST /approve — generate final report ────────────────────────────────────
 @router.post("/approve")
-async def approve_and_generate(req: ApprovalRequest) -> JSONResponse:
+async def approve_and_generate(
+    req: ApprovalRequest,
+    ctx: TenantContext = Depends(get_tenant_ctx),
+) -> JSONResponse:
     """
     Accept admin approvals by insight ID, generate final report.
     Uses approved_insight_ids / rejected_insight_ids (enterprise schema).
@@ -362,7 +370,10 @@ class TranslateRequest(BaseModel):
 
 
 @router.post("/translate")
-async def translate_report(req: TranslateRequest) -> JSONResponse:
+async def translate_report(
+    req: TranslateRequest,
+    ctx: TenantContext = Depends(get_tenant_ctx),
+) -> JSONResponse:
     """
     Translate a FinalReport into one of the 22 Indian Constitutional languages.
     Preserves tone, structure, impact, and spiritual register.

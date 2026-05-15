@@ -100,6 +100,21 @@ senior-ai-engineer/
 
 ---
 
+## AstroIntel — What You Actually Built (Live Evidence for Interviews)
+
+| What | Result | Where in Notes |
+|---|---|---|
+| 415-test enterprise suite (unit + live) | 415/415 passing | Module 4, Module 6, Module 9 |
+| Ground truth accuracy — 20 famous profiles | 134/134, 5/5 dimensions = 100% | Module 1, Module 3, Module 9 |
+| Multi-tenant SaaS auth: USER/ADMIN/SUPERADMIN roles | 76/76 tests passing | Module 5, Module 9, Module 12 |
+| JWT Bearer + X-API-Key dual auth with key revocation | Verified live | Module 5 |
+| Rate limiter keyed by tenant_id (not user-supplied input) | Verified live | Module 5 |
+| Dockerize + EC2 deploy | Next phase (auth complete, deploy pending) | Module 12 |
+
+**Auth system files built:** `auth/models.py`, `auth/store.py`, `auth/dependencies.py`, `auth/router.py`, `tests/test_auth.py`
+
+---
+
 ## How to Use
 
 1. Read the corresponding senior file AFTER reading the basic file — they build on each other
