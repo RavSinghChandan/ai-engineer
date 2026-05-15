@@ -3,7 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, timeout } from 'rxjs/operators';
 
-const BACKEND = '';
+const BACKEND = 'http://localhost:8080';
 
 export interface RunRequest {
   user_profile: {

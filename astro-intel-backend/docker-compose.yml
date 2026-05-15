@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  astro-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: astrointel:latest
+    container_name: astrointel-api
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      - AUTH_STORE_PATH=/data/auth_keys.json
+    volumes:
+      - auth_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+    restart: unless-stopped
+
+volumes:
+  auth_data:
+    driver: local

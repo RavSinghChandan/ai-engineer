@@ -7,6 +7,10 @@
 # Allow only example/template env files
 !**/.env.example
 
+# Auth key store — contains real API keys, never commit
+auth_keys.json
+**/auth_keys.json
+
 # Python
 __pycache__/
 *.py[cod]

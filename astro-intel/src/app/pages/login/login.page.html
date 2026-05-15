@@ -1,0 +1,52 @@
+<div class="login-shell">
+  <div class="login-card">
+    <!-- Logo / Brand -->
+    <div class="brand">
+      <div class="brand-avatar">
+        <img src="rav-logo.png" alt="" class="brand-avatar-bg"/>
+        <img src="rav-photo.png" alt="Rav Singh" class="brand-avatar-photo"/>
+      </div>
+      <h1>AURA <em>with Rav</em></h1>
+      <p class="tagline">See life — as it is.</p>
+      <p class="tagline-sub">360° Astro-Spiritual Intelligence Platform</p>
+    </div>
+
+    <!-- Form -->
+    <div class="form-group">
+      <label for="apiKey">API Key</label>
+      <div class="input-row">
+        <input
+          id="apiKey"
+          [type]="showKey() ? 'text' : 'password'"
+          placeholder="sk-..."
+          [ngModel]="apiKey()"
+          (ngModelChange)="apiKey.set($event)"
+          (keydown)="onKeyDown($event)"
+          autocomplete="off"
+          spellcheck="false"
+          [disabled]="loading()"
+        />
+        <button class="toggle-btn" type="button" (click)="showKey.set(!showKey())" tabindex="-1">
+          {{ showKey() ? '🙈' : '👁️' }}
+        </button>
+      </div>
+      <span class="hint">Enter the API key provided by your administrator.</span>
+    </div>
+
+    @if (error()) {
+      <div class="error-box">⚠ {{ error() }}</div>
+    }
+
+    <button class="login-btn" (click)="submit()" [disabled]="loading()">
+      @if (loading()) {
+        <span class="spinner"></span> Authenticating…
+      } @else {
+        Sign In
+      }
+    </button>
+
+    <div class="footer-note">
+      Don't have a key? Contact your AstroIntel administrator.
+    </div>
+  </div>
+</div>

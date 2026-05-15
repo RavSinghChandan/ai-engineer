@@ -6,6 +6,7 @@ import { OrchestratorService } from '../../services/orchestrator.service';
 import { GeocodeService } from '../../services/geocode.service';
 import { Module, SystemInput } from '../../models/astro.models';
 import { AgentFlowComponent } from '../../components/agent-flow/agent-flow.component';
+import { AuthService } from '../../services/auth.service';
 
 const ALL_MODULES: { id: Module; label: string; icon: string; desc: string; glyph: string }[] = [
   { id: 'astrology',  label: 'Vedic Astrology', icon: '🪐', glyph: '♈', desc: 'Lagna · Planets · Dasha · Doshas' },
@@ -170,15 +171,25 @@ function validateProfile(p: {
       <span class="hdr-nav-item">🏠 Vastu</span>
     </nav>
     <div class="hdr-user">
-      <button class="metrics-btn" (click)="router.navigate(['/metrics'])" title="View Production Metrics">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="7" width="3" height="6" rx="1" fill="currentColor"/><rect x="5.5" y="4" width="3" height="9" rx="1" fill="currentColor"/><rect x="10" y="1" width="3" height="12" rx="1" fill="currentColor"/></svg>
-        Metrics
-      </button>
+      @if (auth.isAdmin()) {
+        <button class="metrics-btn" (click)="router.navigate(['/metrics'])" title="View Production Metrics">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="7" width="3" height="6" rx="1" fill="currentColor"/><rect x="5.5" y="4" width="3" height="9" rx="1" fill="currentColor"/><rect x="10" y="1" width="3" height="12" rx="1" fill="currentColor"/></svg>
+          Metrics
+        </button>
+      }
       <img src="rav-photo.png" alt="Rav Singh" class="hdr-avatar"/>
       <div class="hdr-user-text">
-        <span class="hdr-uname">Rav Singh</span>
-        <span class="hdr-urole">Spiritual Intelligence Expert</span>
+        <span class="hdr-uname">{{ auth.tenantName() || 'Rav Singh' }}</span>
+        <span class="hdr-urole">
+          <span class="hdr-role-badge" [class]="auth.role()">{{ auth.role() | uppercase }}</span>
+        </span>
       </div>
+      <button class="signout-btn" (click)="auth.logout()" title="Sign Out">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        Sign Out
+      </button>
     </div>
   </header>
 
@@ -780,7 +791,12 @@ function validateProfile(p: {
 .hdr-avatar { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; object-position: top; border: 2.5px solid rgba(99,102,241,0.35); }
 .hdr-user-text { display: flex; flex-direction: column; gap: 2px; text-align: right; }
 .hdr-uname { font-size: 16px; font-weight: 600; color: #1e1b4b; line-height: 1.2; }
-.hdr-urole { font-size: 12px; color: #94a3b8; }
+.hdr-urole { font-size: 12px; color: #94a3b8; display: flex; align-items: center; justify-content: flex-end; }
+.hdr-role-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; letter-spacing: 0.07em; background: rgba(99,102,241,0.1); color: #6366f1; border: 1px solid rgba(99,102,241,0.22); }
+.hdr-role-badge.admin      { color: #059669; background: rgba(5,150,105,0.08); border-color: rgba(5,150,105,0.22); }
+.hdr-role-badge.superadmin { color: #d97706; background: rgba(217,119,6,0.08); border-color: rgba(217,119,6,0.22); }
+.signout-btn { display: flex; align-items: center; gap: 5px; background: transparent; border: 1px solid rgba(0,0,0,0.12); color: #6b7280; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all .15s; white-space: nowrap; }
+.signout-btn:hover { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
 
 /* ══ WORKSPACE ══ */
 .workspace {
@@ -1398,6 +1414,7 @@ export class IntakePage {
   readonly router  = inject(Router);
   readonly orch    = inject(OrchestratorService);
   private geoSvc   = inject(GeocodeService);
+  readonly auth    = inject(AuthService);
 
   readonly geoResolved  = signal<{display_name:string; lat:number; lon:number} | null>(null);
   readonly geoResolving = signal(false);

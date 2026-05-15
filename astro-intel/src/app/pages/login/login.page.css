@@ -1,0 +1,221 @@
+:host {
+  display: block;
+  height: 100dvh;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.login-shell {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+  padding: 1.5rem;
+}
+
+.login-card {
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 1.25rem;
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 4px 24px rgba(99,102,241,0.08), 0 1px 3px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Brand */
+.brand {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Layered avatar: logo as background of the circle, photo clipped inside */
+.brand-avatar {
+  position: relative;
+  width: 112px;
+  height: 112px;
+  margin-bottom: 0.5rem;
+  border-radius: 50%;
+  /* logo as background image of the circle */
+  background: #fff url('/rav-logo.png') center / 80% no-repeat;
+  border: 3px solid rgba(99,102,241,0.35);
+  box-shadow: 0 4px 20px rgba(99,102,241,0.15);
+  overflow: hidden;
+}
+
+/* hide the bg img tag — background-image handles it */
+.brand-avatar-bg {
+  display: none;
+}
+
+.brand-avatar-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  /* bottom half shows photo, top reveals logo — fade the photo bottom edge */
+  -webkit-mask-image: linear-gradient(to top, transparent 0%, black 38%);
+  mask-image: linear-gradient(to top, transparent 0%, black 38%);
+}
+
+.brand h1 {
+  margin: 0;
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: #1e1b4b;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+}
+
+.brand h1 em {
+  font-style: normal;
+  font-weight: 400;
+  color: #6366f1;
+}
+
+.tagline {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #374151;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.tagline-sub {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  letter-spacing: 0.02em;
+}
+
+/* Form */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #374151;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.input-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+input {
+  flex: 1;
+  background: #f9fafb;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 0.6rem;
+  padding: 0.7rem 0.9rem;
+  color: #111827;
+  font-size: 0.95rem;
+  font-family: 'Menlo', 'Consolas', monospace;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+}
+
+input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+  background: #fff;
+}
+
+input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toggle-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 0.3rem;
+  border-radius: 0.4rem;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+}
+
+.toggle-btn:hover { opacity: 1; }
+
+.hint {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* Error */
+.error-box {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.6rem;
+  padding: 0.6rem 0.9rem;
+  font-size: 0.85rem;
+  color: #dc2626;
+}
+
+/* Button */
+.login-btn {
+  background: #6366f1;
+  color: #fff;
+  border: none;
+  border-radius: 0.7rem;
+  padding: 0.8rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  box-shadow: 0 2px 8px rgba(99,102,241,0.25);
+}
+
+.login-btn:hover:not(:disabled) {
+  background: #4338ca;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99,102,241,0.35);
+}
+
+.login-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.footer-note {
+  text-align: center;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
