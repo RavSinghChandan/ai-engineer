@@ -67,6 +67,15 @@ from utils.prompts import ACTIVE_VERSIONS, list_prompts
 from utils.retry import breaker_status, with_retry
 from utils.security import SecurityError, audit_llm_call, check_injection
 from utils.token_tracker import get_tracker, reset_tracker
+from guardrails.production import (
+    rate_limiter,
+    all_guardrail_stats,
+    reset_all_breakers,
+    reset_breaker,
+    filter_pii_from_mapping,
+    degradation_tracker,
+    register_repair_llm,
+)
 
 load_dotenv()
 
@@ -95,6 +104,9 @@ async def lifespan(app: FastAPI):
         openai_api_base=base_url,
         temperature=0,
     )
+
+    # G3: register LLM for Level-4 JSON repair
+    register_repair_llm(_llm)
 
     print("⏳ Initialising SQLite database...")
     await init_db()
@@ -277,12 +289,13 @@ def health():
 
 @app.get("/metrics", tags=["Observability"])
 def get_metrics():
-    """Production KPI dashboard."""
+    """Production KPI dashboard — includes guardrail stats."""
     dashboard = get_collector().dashboard()
     dashboard["cache_stats"]  = cache_stats()
     dashboard["memory_stats"] = memory_stats()
     dashboard["prompts"]      = list_prompts()
     dashboard["ragas"]        = get_ragas_store().dashboard()
+    dashboard["guardrails"]   = all_guardrail_stats()
     return dashboard
 
 
@@ -290,6 +303,34 @@ def get_metrics():
 def get_ragas():
     """RAGAS evaluation dashboard — faithfulness, context precision/recall, answer relevancy."""
     return get_ragas_store().dashboard()
+
+
+# ── Guardrails API (G1-G5) ────────────────────────────────────────────────────
+
+@app.get("/guardrails/stats", tags=["Guardrails"])
+def guardrail_stats():
+    """
+    Live stats for all 5 production guardrails:
+      G1 — per-user rate limiter
+      G2 — circuit breakers (all registered breakers)
+      G3 — JSON repair cascade
+      G4 — PII output filter
+      G5 — graceful degradation tracker
+    """
+    return all_guardrail_stats()
+
+
+@app.post("/guardrails/circuit-breaker/reset", tags=["Guardrails"])
+def reset_circuit_breakers():
+    """Admin endpoint: force all LLM circuit breakers to CLOSED state."""
+    result = reset_all_breakers()
+    return result
+
+
+@app.post("/guardrails/circuit-breaker/{name}/reset", tags=["Guardrails"])
+def reset_named_circuit_breaker(name: str):
+    """Admin endpoint: force a named circuit breaker to CLOSED state."""
+    return reset_breaker(name)
 
 
 # ── Roles ─────────────────────────────────────────────────────────────────────
@@ -339,10 +380,19 @@ async def upload_cv(request: Request, file: UploadFile = File(...)):
         parsed = validate_parsed_profile(parsed)
 
         user_id = str(uuid.uuid4())[:8]
+
+        # G1: per-user rate check (after user_id is assigned)
+        allowed, reason = rate_limiter.is_allowed(user_id)
+        if not allowed:
+            raise HTTPException(429, reason)
+
         await save_user(user_id, parsed, resume_text[:500])
 
         # Module 4: update long-term user facts (initial skill set)
         update_user_facts(user_id, {"initial_skills": parsed.get("skills", [])})
+
+        # G5: record agent outcome
+        degradation_tracker.record_run(rid, {"cv_parser": {"status": "full", "note": "parsed ok"}})
 
         usage = get_tracker().get_usage()
         _record(request, "/upload-cv", t_start, 200,
@@ -376,6 +426,11 @@ async def map_role_endpoint(request: Request, req: MapRoleRequest):
     reset_tracker()
 
     try:
+        # G1: per-user rate limit on LLM-backed operations
+        allowed, reason = rate_limiter.is_allowed(req.user_id)
+        if not allowed:
+            raise HTTPException(429, reason)
+
         user = await get_user(req.user_id)
         if not user:
             raise HTTPException(404, f"User '{req.user_id}' not found.")
@@ -414,8 +469,21 @@ async def map_role_endpoint(request: Request, req: MapRoleRequest):
             missing_skills = result.get("missing_skills", []),
         )
 
-        usage     = get_tracker().get_usage()
+        # G4: scrub PII from recommendation before returning to client
+        user_profile = user.get("profile", {})
+        result, _pii_count = filter_pii_from_mapping(result, user_profile)
+
+        # G5: record agent outcome
         cache_hit = result.pop("_cache_hit", False)
+        degradation_tracker.record_run(rid, {
+            "role_mapper": {
+                "status": "partial" if cache_hit else "full",
+                "note":   "cache_hit" if cache_hit else "llm_call",
+            },
+            "retrieval": {"status": "full", "note": result.get("retrieval_method", "")},
+        })
+
+        usage = get_tracker().get_usage()
         _record(
             request, "/map-role", t_start, 200,
             prompt_tokens=usage["prompt_tokens"],
@@ -429,12 +497,15 @@ async def map_role_endpoint(request: Request, req: MapRoleRequest):
         raise
     except (SecurityError, GuardrailError) as e:
         _record(request, "/map-role", t_start, 400, error=str(e))
+        degradation_tracker.record_run(rid, {"role_mapper": {"status": "failed", "note": str(e)[:80]}})
         raise HTTPException(400, str(e))
     except RuntimeError as e:
         _record(request, "/map-role", t_start, 503, error=str(e))
+        degradation_tracker.record_run(rid, {"role_mapper": {"status": "fallback", "note": str(e)[:80]}})
         raise HTTPException(503, str(e))
     except Exception as e:
         _record(request, "/map-role", t_start, 500, error=str(e))
+        degradation_tracker.record_run(rid, {"role_mapper": {"status": "failed", "note": str(e)[:80]}})
         raise HTTPException(500, f"Role mapping failed: {e}")
 
 
@@ -447,14 +518,23 @@ async def generate_plan_endpoint(request: Request, req: GeneratePlanRequest):
     reset_tracker()
 
     try:
+        # G1: per-user rate limit on LLM-backed plan generation
+        allowed, reason = rate_limiter.is_allowed(req.user_id)
+        if not allowed:
+            raise HTTPException(429, reason)
+
         user = await get_user(req.user_id)
         if not user:
             raise HTTPException(404, f"User '{req.user_id}' not found.")
 
         current_skills = user["profile"].get("skills", [])
         cache_before   = time.time()
-        plan = await generate_plan(
-            req.target_role, req.missing_skills, current_skills, _llm, req.num_days
+
+        # G2: wrap plan generation with named planner circuit breaker
+        plan = await with_retry(
+            generate_plan,
+            req.target_role, req.missing_skills, current_skills, _llm, req.num_days,
+            breaker_name="planner",
         )
         is_cache_hit = (time.time() - cache_before) < 0.05
 
@@ -462,6 +542,14 @@ async def generate_plan_endpoint(request: Request, req: GeneratePlanRequest):
 
         # Module 4: update user facts with skills being trained
         update_user_facts(req.user_id, {"training_role": req.target_role})
+
+        # G5: record planner outcome
+        degradation_tracker.record_run(req.user_id, {
+            "planner": {
+                "status": "partial" if is_cache_hit else "full",
+                "note":   "cache_hit" if is_cache_hit else "llm_call",
+            }
+        })
 
         usage = get_tracker().get_usage()
         _record(request, "/generate-plan", t_start, 200,
@@ -474,9 +562,11 @@ async def generate_plan_endpoint(request: Request, req: GeneratePlanRequest):
         raise
     except RuntimeError as e:
         _record(request, "/generate-plan", t_start, 503, error=str(e))
+        degradation_tracker.record_run(req.user_id, {"planner": {"status": "fallback", "note": str(e)[:80]}})
         raise HTTPException(503, str(e))
     except Exception as e:
         _record(request, "/generate-plan", t_start, 500, error=str(e))
+        degradation_tracker.record_run(req.user_id, {"planner": {"status": "failed", "note": str(e)[:80]}})
         raise HTTPException(500, f"Plan generation failed: {e}")
 
 
@@ -492,6 +582,11 @@ async def generate_plan_stream(request: Request, req: GeneratePlanRequest):
     Module 5/7 pattern: StreamingResponse with media_type="text/event-stream"
     Use: Angular EventSource consumer subscribes and updates UI progressively.
     """
+    # G1: per-user rate limit on SSE plan generation
+    allowed, reason = rate_limiter.is_allowed(req.user_id)
+    if not allowed:
+        raise HTTPException(429, reason)
+
     user = await get_user(req.user_id)
     if not user:
         raise HTTPException(404, f"User '{req.user_id}' not found.")
@@ -502,9 +597,11 @@ async def generate_plan_stream(request: Request, req: GeneratePlanRequest):
         try:
             yield f"data: {json.dumps({'event': 'start', 'role': req.target_role, 'total_days': req.num_days})}\n\n"
 
-            # Run full plan generation (already async + parallel internally)
-            plan = await generate_plan(
-                req.target_role, req.missing_skills, current_skills, _llm, req.num_days
+            # G2: planner circuit breaker on SSE path too
+            plan = await with_retry(
+                generate_plan,
+                req.target_role, req.missing_skills, current_skills, _llm, req.num_days,
+                breaker_name="planner",
             )
 
             await save_progress(req.user_id, req.target_role, plan, [])
@@ -598,6 +695,7 @@ async def evaluate_output(request: Request, req: EvaluateRequest):
     Use: QA pipeline, regression testing, production quality monitoring.
     """
     t_start = time.time()
+    rid     = _req_id(request)
     reset_tracker()
     try:
         scores = await asyncio.get_event_loop().run_in_executor(
@@ -607,15 +705,25 @@ async def evaluate_output(request: Request, req: EvaluateRequest):
             req.context,
             req.output,
             _llm,
-            _req_id(request),
+            rid,
         )
         usage = get_tracker().get_usage()
         _record(request, "/evaluate", t_start, 200,
                 prompt_tokens=usage["prompt_tokens"],
                 completion_tokens=usage["completion_tokens"])
+
+        # G5: track llm_judge outcome
+        judge_status = "full" if scores.get("passed") else "partial"
+        degradation_tracker.record_run(rid, {
+            "llm_judge": {"status": judge_status, "note": f"avg_score={scores.get('avg_score', 0)}"},
+        })
+
         return scores
     except Exception as e:
         _record(request, "/evaluate", t_start, 500, error=str(e))
+        degradation_tracker.record_run(rid, {
+            "llm_judge": {"status": "failed", "note": str(e)[:80]},
+        })
         raise HTTPException(500, f"Evaluation failed: {e}")
 
 

@@ -151,4 +151,16 @@ export class ApiService {
   getAdminResources(): Observable<ResourceRegistryResponse> {
     return this.http.get<ResourceRegistryResponse>(`${this.base}/admin/resources`);
   }
+
+  getGuardrailStats(): Observable<any> {
+    return this.http.get<any>(`${this.base}/guardrails/stats`);
+  }
+
+  resetAllCircuitBreakers(): Observable<any> {
+    return this.http.post<any>(`${this.base}/guardrails/circuit-breaker/reset`, {});
+  }
+
+  resetNamedCircuitBreaker(name: string): Observable<any> {
+    return this.http.post<any>(`${this.base}/guardrails/circuit-breaker/${name}/reset`, {});
+  }
 }

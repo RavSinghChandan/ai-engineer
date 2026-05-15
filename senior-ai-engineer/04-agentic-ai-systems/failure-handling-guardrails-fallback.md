@@ -340,6 +340,123 @@ Live HTTP tests: rate limiter fires at request 11 (HTTP 429), guardrail stats en
 
 ---
 
+**Bench Resource Optimizer — Production Guardrails (G1–G5) — implemented 2026-05-15:**
+
+Five production guardrails added non-invasively to the RAG-heavy BRO pipeline. Architecture: all guardrails in `guardrails/production.py`, wired at the correct boundary in `main.py` without touching existing agent logic.
+
+Key design difference from AstroIntel: BRO is a request-per-user pipeline (not a multi-agent graph), so guardrails fire inside FastAPI endpoint handlers rather than as LangGraph nodes.
+
+**G1 — Per-user Rate Limiter** (`guardrails/production.py → UserRateLimiter` → `main.py upload_cv + map_role`):
+
+BRO already had an IP-level rate limiter (60 req/min, `middleware/rate_limit.py`).
+G1 adds a finer-grained per-user_id limit: 20 LLM-backed requests per 60 seconds.
+Motivation: an office Wi-Fi shares one IP. 100 employees share one IP address. The IP limiter can't prevent one employee from consuming all the DeepSeek budget for the others. G1 fixes this.
+Wired in `upload_cv()` after `user_id` is assigned (new CV) and at the top of `map_role_endpoint()` before the LLM call.
+Returns HTTP 429 with a specific reason string identifying the user_id.
+Stats exposed at `GET /guardrails/stats → g1_rate_limiter`: tracked_users, current_counts per uid, total_allowed, total_blocked.
+
+```python
+# main.py — map_role_endpoint()
+from guardrails.production import rate_limiter
+allowed, reason = rate_limiter.is_allowed(req.user_id)
+if not allowed:
+    raise HTTPException(429, reason)
+```
+
+**G2 — Circuit Breaker Persistent Stats + Admin Reset** (`guardrails/production.py → all_breaker_stats()` → `main.py /guardrails/stats + /guardrails/circuit-breaker/reset`):
+
+BRO already had a `CircuitBreaker` class per LLM operation in `utils/retry.py` (cv_parser, role_mapper).
+The existing class tracks current failure count but has no persistent lifetime counters and no admin-accessible API.
+G2 adds persistent `total_failures`, `total_successes`, `total_rejected` counters by monkey-patching `record_failure` / `record_success` at first stats export (idempotent).
+Exposes `GET /guardrails/stats → g2_circuit_breakers` with all registered breakers.
+`POST /guardrails/circuit-breaker/reset` forces all breakers to CLOSED (admin endpoint).
+`POST /guardrails/circuit-breaker/{name}/reset` resets a specific breaker by name.
+
+```python
+# guardrails/production.py — all_breaker_stats()
+from utils.retry import _breakers
+for name, cb in _breakers.items():
+    if not hasattr(cb, "_total_failures"):
+        cb._total_failures = cb._total_successes = cb._total_rejected = 0
+    # wrap record_failure / record_success to increment counters
+```
+
+**G3 — JSON Repair Cascade** (`guardrails/production.py → repair_json()` → `utils/json_parser.py → parse_llm_json()`):
+
+BRO had `utils/json_parser.py` with fence-strip + regex extract, but no repair tracking and no graceful fallback return.
+G3 extends it with a 4-level cascade: direct parse → fence strip → regex extract → fallback.
+`parse_llm_json()` now delegates to `repair_json()` which tracks each level call count.
+Stats exposed at `GET /guardrails/stats → g3_json_repair`: total_calls, direct_pct, fence_pct, regex_pct, fallback_pct, failure_pct.
+If all 4 levels fail, returns `None` so the caller can handle gracefully instead of raising `JSONDecodeError`.
+
+```python
+# utils/json_parser.py — now delegates to G3
+from guardrails.production import repair_json
+parsed, level = repair_json(text, fallback=None)
+if parsed is not None:
+    return parsed
+# fallback to original logic if G3 not importable
+```
+
+**G4 — PII Output Filter** (`guardrails/production.py → filter_pii_from_mapping()` → `main.py map_role_endpoint()`):
+
+BRO already had input PII protection (injection detection on CV text in `guardrails/security.py`).
+G4 adds output-side PII scrubbing: the role-mapping recommendation could echo back email or phone if the LLM was given user profile context.
+`filter_pii_from_mapping(result, user_profile)` runs exact-match scrub on profile fields + regex scan for email/phone/date patterns.
+Wired just before `return result` in `map_role_endpoint()`, after RAGAS eval.
+Stats: `GET /guardrails/stats → g4_pii_filter`: total_outputs_checked, outputs_with_pii, fields_scrubbed.
+
+```python
+# main.py — map_role_endpoint() just before return
+from guardrails.production import filter_pii_from_mapping
+result, _pii_count = filter_pii_from_mapping(result, user.get("profile", {}))
+```
+
+**G5 — Graceful Degradation Tracker** (`guardrails/production.py → GracefulDegradationTracker` → `main.py` per endpoint):
+
+Records per-request agent outcomes (cv_parser, role_mapper, planner, retrieval, llm_judge).
+Status per agent: full / partial / fallback / failed / skipped.
+`degradation_tracker.record_run(request_id, {agent: {status, note}})` called after each endpoint operation.
+Domain availability% = (full + partial) / (full + partial + fallback + failed) * 100.
+Stats: `GET /guardrails/stats → g5_graceful_degradation`: total_runs, overall_counts, agent_availability per agent, agent_health matrix, recent_runs feed (last 5).
+
+```python
+# main.py — after successful map_role
+degradation_tracker.record_run(rid, {
+    "role_mapper": {"status": "partial" if cache_hit else "full", "note": "cache_hit or llm_call"},
+    "retrieval":   {"status": "full", "note": result.get("retrieval_method", "")},
+})
+# On failure:
+degradation_tracker.record_run(rid, {"role_mapper": {"status": "failed", "note": str(e)[:80]}})
+```
+
+**Admin endpoints:**
+```
+GET  /guardrails/stats                         — all 5 guardrail stat blocks
+POST /guardrails/circuit-breaker/reset         — reset all breakers → CLOSED
+POST /guardrails/circuit-breaker/{name}/reset  — reset named breaker → CLOSED
+```
+
+**Frontend dashboard:**
+Added to `metrics.component.ts`:
+- G1–G4 card row: live stats, per-user bar charts, CB badge table, JSON cascade step diagram, PII chip grid
+- G5 panel: KPI row (full/partial/fallback/failed/total), per-agent availability bars + health chip matrix, recent-runs feed with agent pip badges (CV/MAP/PLN/RAG/JDG)
+- Pipeline Wire Map: visual showing exactly where each guardrail fires in the request flow
+- Live Event Log: dark terminal, auto-detects state changes between 15s polls, color-coded by G1–G5 and event type
+- Interview Explainer: enterprise-level justification for each guardrail visible at bottom of dashboard
+
+**Verified live:**
+- `GET /guardrails/stats` returns correct data after each request
+- G1 tracks per-user counts in sliding window
+- G2 both cv_parser and role_mapper breakers appear after first LLM calls
+- G3 tracks every `parse_llm_json` call (direct parse = 100% on clean LLM output)
+- G4 checks every map-role output, no PII in test profile
+- G5 records 3 runs with `overall: full` after 3 requests
+- CB reset returns `{status: reset, count: 2, state: closed}`
+- Angular component compiles cleanly, `Application bundle generation complete`
+
+---
+
 ## 7. Trade-offs
 
 Aggressive retry:

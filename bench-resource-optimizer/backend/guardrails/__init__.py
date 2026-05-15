@@ -11,13 +11,27 @@ from guardrails.security import (
     SECURITY_FOOTER,
     SecurityError,
 )
+from guardrails.production import (
+    rate_limiter,
+    all_breaker_stats,
+    reset_breaker,
+    reset_all_breakers,
+    repair_json,
+    json_repair_stats,
+    register_repair_llm,
+    filter_pii_from_output,
+    filter_pii_from_mapping,
+    pii_filter_stats,
+    degradation_tracker,
+    all_guardrail_stats,
+)
 
 __all__ = [
-    # Hallucination (Layer 1/2/3 — faithfulness + LLM-as-judge)
+    # Hallucination
     "check_faithfulness",
     "run_llm_judge",
     "FAITHFULNESS_FALLBACK",
-    # Security (4-layer LLM security)
+    # Security
     "run_security_check",
     "validate_cv_text",
     "validate_role_name",
@@ -28,4 +42,17 @@ __all__ = [
     "SECURITY_HEADER",
     "SECURITY_FOOTER",
     "SecurityError",
+    # Production guardrails
+    "rate_limiter",
+    "all_breaker_stats",
+    "reset_breaker",
+    "reset_all_breakers",
+    "repair_json",
+    "json_repair_stats",
+    "register_repair_llm",
+    "filter_pii_from_output",
+    "filter_pii_from_mapping",
+    "pii_filter_stats",
+    "degradation_tracker",
+    "all_guardrail_stats",
 ]

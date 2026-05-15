@@ -470,6 +470,314 @@ import { ApiService } from '../../services/api.service';
         </div>
       </div>
 
+      <!-- ── Production Guardrails Dashboard ─────────────────────────────── -->
+      <div class="section-title-row" style="margin-top:8px;">
+        <h2 style="margin:0;">Production Guardrails
+          <span class="gr-live-pill">● Live · 5 Active</span>
+        </h2>
+        <span style="font-size:12px;color:#64748b;">Real-time analytics for G1 Rate Limiter · G2 Circuit Breakers · G3 JSON Repair · G4 PII Filter · G5 Graceful Degradation</span>
+      </div>
+
+      <div *ngIf="grLoading && !gr" style="color:#94a3b8;font-size:13px;padding:12px 0;">Loading guardrail stats…</div>
+
+      <ng-container *ngIf="gr">
+
+        <!-- G1 + G2 + G3 + G4 cards row -->
+        <div class="gr-cards">
+
+          <!-- G1 Rate Limiter -->
+          <div class="gr-card">
+            <div class="gr-card-head">
+              <span class="gr-badge gr-badge-blue">G1</span>
+              <span class="gr-card-title">Rate Limiter</span>
+              <span class="gr-card-sub">Per-user sliding window</span>
+            </div>
+            <div class="gr-stats">
+              <div class="gr-stat">
+                <span class="gr-stat-val">{{ gr.g1_rate_limiter?.tracked_users ?? 0 }}</span>
+                <span class="gr-stat-key">Tracked Users</span>
+              </div>
+              <div class="gr-stat">
+                <span class="gr-stat-val">{{ gr.g1_rate_limiter?.max_requests ?? 20 }}</span>
+                <span class="gr-stat-key">Max Req / {{ gr.g1_rate_limiter?.window_seconds ?? 60 }}s</span>
+              </div>
+              <div class="gr-stat" [class.gr-stat-danger]="(gr.g1_rate_limiter?.total_blocked ?? 0) > 0">
+                <span class="gr-stat-val">{{ gr.g1_rate_limiter?.total_blocked ?? 0 }}</span>
+                <span class="gr-stat-key">Total Blocked</span>
+              </div>
+              <div class="gr-stat">
+                <span class="gr-stat-val gr-stat-green">{{ gr.g1_rate_limiter?.total_allowed ?? 0 }}</span>
+                <span class="gr-stat-key">Total Allowed</span>
+              </div>
+            </div>
+            <div class="gr-user-list" *ngIf="topRateLimitUsers().length">
+              <div *ngFor="let u of topRateLimitUsers()" class="gr-user-row">
+                <span class="gr-user-id">{{ u.uid }}</span>
+                <div class="gr-user-bar-track">
+                  <div class="gr-user-bar"
+                       [style.width.%]="(u.count / (gr.g1_rate_limiter?.max_requests ?? 20)) * 100"
+                       [class.gr-bar-warn]="u.count >= (gr.g1_rate_limiter?.max_requests ?? 20) * 0.8"
+                       [class.gr-bar-danger]="u.count >= (gr.g1_rate_limiter?.max_requests ?? 20)">
+                  </div>
+                </div>
+                <span class="gr-user-count">{{ u.count }}/{{ gr.g1_rate_limiter?.max_requests ?? 20 }}</span>
+              </div>
+            </div>
+            <div class="gr-rule">Rule: HTTP 429 after {{ gr.g1_rate_limiter?.max_requests ?? 20 }} req / {{ gr.g1_rate_limiter?.window_seconds ?? 60 }}s per user_id</div>
+          </div>
+
+          <!-- G2 Circuit Breakers -->
+          <div class="gr-card">
+            <div class="gr-card-head">
+              <span class="gr-badge gr-badge-orange">G2</span>
+              <span class="gr-card-title">Circuit Breakers</span>
+              <span class="gr-card-sub">Per-operation LLM protection</span>
+            </div>
+            <div *ngFor="let b of breakerList()" class="gr-cb-row">
+              <span class="gr-cb-name">{{ b.name }}</span>
+              <span class="gr-cb-badge" [ngClass]="grCbClass(b.state)">{{ b.state.toUpperCase().replace('_','-') }}</span>
+              <span class="gr-cb-fail">{{ b.failures }}/{{ b.failure_threshold }} fail</span>
+            </div>
+            <div *ngIf="!breakerList().length" class="gr-no-data">No LLM calls yet</div>
+            <div class="gr-cb-totals" *ngIf="breakerList().length">
+              <span>Total failures: {{ totalCbFailures() }}</span>
+              <span>Total successes: {{ totalCbSuccesses() }}</span>
+            </div>
+            <button class="gr-reset-btn" (click)="resetAllCB()">Reset All → CLOSED</button>
+          </div>
+
+          <!-- G3 JSON Repair -->
+          <div class="gr-card">
+            <div class="gr-card-head">
+              <span class="gr-badge gr-badge-purple">G3</span>
+              <span class="gr-card-title">JSON Repair</span>
+              <span class="gr-card-sub">4-level LLM output cascade</span>
+            </div>
+            <div class="gr-stats">
+              <div class="gr-stat">
+                <span class="gr-stat-val">{{ gr.g3_json_repair?.total_calls ?? 0 }}</span>
+                <span class="gr-stat-key">Total Parsed</span>
+              </div>
+              <div class="gr-stat gr-stat-green">
+                <span class="gr-stat-val gr-stat-green">{{ gr.g3_json_repair?.direct_pct ?? 100 }}%</span>
+                <span class="gr-stat-key">Direct Parse</span>
+              </div>
+              <div class="gr-stat">
+                <span class="gr-stat-val">{{ gr.g3_json_repair?.fence_pct ?? 0 }}%</span>
+                <span class="gr-stat-key">Fence Strip</span>
+              </div>
+              <div class="gr-stat" [class.gr-stat-danger]="(gr.g3_json_repair?.failure_pct ?? 0) > 0">
+                <span class="gr-stat-val">{{ gr.g3_json_repair?.failure_pct ?? 0 }}%</span>
+                <span class="gr-stat-key">Failed</span>
+              </div>
+            </div>
+            <div class="gr-cascade-steps">
+              <div class="gr-step" [class.gr-step-active]="(gr.g3_json_repair?.direct_pct ?? 100) === 100">① Direct Parse</div>
+              <div class="gr-step-arrow">↓</div>
+              <div class="gr-step" [class.gr-step-active]="(gr.g3_json_repair?.fence_pct ?? 0) > 0">② Fence Strip</div>
+              <div class="gr-step-arrow">↓</div>
+              <div class="gr-step" [class.gr-step-active]="(gr.g3_json_repair?.regex_pct ?? 0) > 0">③ Regex Extract</div>
+              <div class="gr-step-arrow">↓</div>
+              <div class="gr-step gr-step-fallback" [class.gr-step-active]="(gr.g3_json_repair?.fallback_pct ?? 0) > 0">④ Fallback</div>
+            </div>
+          </div>
+
+          <!-- G4 PII Filter -->
+          <div class="gr-card">
+            <div class="gr-card-head">
+              <span class="gr-badge gr-badge-red">G4</span>
+              <span class="gr-card-title">PII Filter</span>
+              <span class="gr-card-sub">Output scrubber for role mapping</span>
+            </div>
+            <div class="gr-stats">
+              <div class="gr-stat">
+                <span class="gr-stat-val">{{ gr.g4_pii_filter?.total_outputs_checked ?? 0 }}</span>
+                <span class="gr-stat-key">Outputs Checked</span>
+              </div>
+              <div class="gr-stat" [class.gr-stat-danger]="(gr.g4_pii_filter?.outputs_with_pii ?? 0) > 0">
+                <span class="gr-stat-val">{{ gr.g4_pii_filter?.outputs_with_pii ?? 0 }}</span>
+                <span class="gr-stat-key">PII Detected</span>
+              </div>
+              <div class="gr-stat">
+                <span class="gr-stat-val">{{ gr.g4_pii_filter?.fields_scrubbed ?? 0 }}</span>
+                <span class="gr-stat-key">Fields Scrubbed</span>
+              </div>
+            </div>
+            <div class="gr-pii-types">
+              <span class="gr-pii-chip">Email</span>
+              <span class="gr-pii-chip">Phone</span>
+              <span class="gr-pii-chip">DOB</span>
+              <span class="gr-pii-chip">National ID</span>
+            </div>
+            <div class="gr-rule">Checks: exact field match + regex on email/phone/date patterns</div>
+          </div>
+
+        </div>
+
+        <!-- G5 Graceful Degradation -->
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-header">
+            <h3>G5 — Graceful Degradation · Agent Health</h3>
+            <span class="card-why">Each agent (cv_parser, role_mapper, planner, retrieval) tracked per-request</span>
+          </div>
+
+          <!-- KPI row -->
+          <div class="gd-kpi-row">
+            <div class="gd-kpi" [class.gd-kpi-good]="gdOverall('full') === gr.g5_graceful_degradation?.total_runs">
+              <span class="gd-kpi-val">{{ gdOverall('full') }}</span>
+              <span class="gd-kpi-key">Full</span>
+            </div>
+            <div class="gd-kpi">
+              <span class="gd-kpi-val">{{ gdOverall('partial') }}</span>
+              <span class="gd-kpi-key">Partial</span>
+            </div>
+            <div class="gd-kpi" [class.gd-kpi-warn]="gdOverall('fallback') > 0">
+              <span class="gd-kpi-val">{{ gdOverall('fallback') }}</span>
+              <span class="gd-kpi-key">Fallback</span>
+            </div>
+            <div class="gd-kpi" [class.gd-kpi-danger]="gdOverall('failed') > 0">
+              <span class="gd-kpi-val">{{ gdOverall('failed') }}</span>
+              <span class="gd-kpi-key">Failed</span>
+            </div>
+            <div class="gd-kpi">
+              <span class="gd-kpi-val">{{ gr.g5_graceful_degradation?.total_runs ?? 0 }}</span>
+              <span class="gd-kpi-key">Total Runs</span>
+            </div>
+          </div>
+
+          <!-- Agent availability bars -->
+          <div class="gd-agents">
+            <div *ngFor="let agent of gdAgents()" class="gd-agent-row">
+              <span class="gd-agent-name">{{ agent }}</span>
+              <div class="gd-avail-track">
+                <div class="gd-avail-fill"
+                     [style.width.%]="gdAvail(agent)"
+                     [class.gd-avail-good]="gdAvail(agent) >= 95"
+                     [class.gd-avail-warn]="gdAvail(agent) >= 70 && gdAvail(agent) < 95"
+                     [class.gd-avail-bad]="gdAvail(agent) < 70">
+                </div>
+              </div>
+              <span class="gd-avail-pct">{{ gdAvail(agent) }}%</span>
+              <div class="gd-health-chips">
+                <span class="gd-chip gd-chip-full">{{ gdHealth(agent, 'full') }} full</span>
+                <span class="gd-chip gd-chip-partial" *ngIf="gdHealth(agent, 'partial') > 0">{{ gdHealth(agent, 'partial') }} partial</span>
+                <span class="gd-chip gd-chip-fallback" *ngIf="gdHealth(agent, 'fallback') > 0">{{ gdHealth(agent, 'fallback') }} fallback</span>
+                <span class="gd-chip gd-chip-failed" *ngIf="gdHealth(agent, 'failed') > 0">{{ gdHealth(agent, 'failed') }} failed</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent runs -->
+          <div *ngIf="gr.g5_graceful_degradation?.recent_runs?.length" style="margin-top:16px;">
+            <div class="section-sublabel">Recent Pipeline Runs</div>
+            <div *ngFor="let run of gr.g5_graceful_degradation.recent_runs" class="gd-run-row">
+              <span class="gd-run-id">{{ run.request_id }}</span>
+              <span class="gd-run-badge" [ngClass]="'gd-badge-' + run.overall">{{ run.overall.toUpperCase() }}</span>
+              <div class="gd-run-agents">
+                <span *ngFor="let ag of gdRunAgents(run)" class="gd-run-pip"
+                      [ngClass]="'gd-pip-' + ag.status"
+                      [title]="ag.agent + ': ' + ag.note">
+                  {{ agentShort(ag.agent) }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pipeline Wire Map -->
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-header">
+            <h3>Pipeline Wire Map — Where Guardrails Fire</h3>
+            <span class="card-why">Non-invasive: original logic unchanged</span>
+          </div>
+          <div class="gr-wire-map">
+            <div class="gr-wire-step">
+              <div class="gr-wire-node">PDF Upload</div>
+              <div class="gr-wire-tag gr-tag-red">G4 injection check</div>
+            </div>
+            <div class="gr-wire-arrow">→</div>
+            <div class="gr-wire-step">
+              <div class="gr-wire-node">User Created</div>
+              <div class="gr-wire-tag gr-tag-blue">G1 rate limit</div>
+            </div>
+            <div class="gr-wire-arrow">→</div>
+            <div class="gr-wire-step">
+              <div class="gr-wire-node">LLM CV Parse</div>
+              <div class="gr-wire-tag gr-tag-purple">G2 circuit breaker</div>
+              <div class="gr-wire-tag gr-tag-purple">G3 JSON repair</div>
+            </div>
+            <div class="gr-wire-arrow">→</div>
+            <div class="gr-wire-step">
+              <div class="gr-wire-node">Role Map</div>
+              <div class="gr-wire-tag gr-tag-blue">G1 rate limit</div>
+              <div class="gr-wire-tag gr-tag-red">G4 PII scrub</div>
+            </div>
+            <div class="gr-wire-arrow">→</div>
+            <div class="gr-wire-step">
+              <div class="gr-wire-node">Plan Generate</div>
+              <div class="gr-wire-tag gr-tag-orange">G2 circuit breaker</div>
+              <div class="gr-wire-tag gr-tag-green">G5 degrade track</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Event Log -->
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-header">
+            <h3>Live Event Log</h3>
+            <span class="card-why">Auto-detected state changes between 15s polls</span>
+          </div>
+          <div class="gr-event-log">
+            <div *ngIf="!grEvents.length" style="color:#64748b;font-size:13px;">
+              No events yet — make requests to see guardrail triggers
+            </div>
+            <div *ngFor="let ev of grEvents" class="gr-event-row" [ngClass]="'ev-' + ev.type">
+              <span class="ev-ts">{{ ev.ts }}</span>
+              <span class="ev-badge" [ngClass]="'ev-badge-' + ev.g.toLowerCase()">{{ ev.g }}</span>
+              <span class="ev-msg">{{ ev.msg }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interview Explainer -->
+        <div class="gr-explainer card">
+          <h3 style="margin-bottom:12px; font-size:16px;">Interview Explainer — Why These Guardrails for BRO?</h3>
+          <div class="gr-explainer-grid">
+            <div class="gr-explainer-item">
+              <span class="gr-badge gr-badge-blue">G1</span>
+              <div>
+                <strong>Per-user Rate Limiter</strong> — IP limiter (60 req/min) guards the gateway. G1 adds user-level control (20 LLM req/min) so one bench employee can't exhaust DeepSeek quota for 10,000 colleagues. Sliding window O(1), Redis-upgradeable.
+              </div>
+            </div>
+            <div class="gr-explainer-item">
+              <span class="gr-badge gr-badge-orange">G2</span>
+              <div>
+                <strong>Circuit Breaker</strong> — One breaker per LLM operation (cv_parser, role_mapper). 5 failures → OPEN state → fast-fail instead of queue pile-up. Prevents cascading timeout storms at peak bench season.
+              </div>
+            </div>
+            <div class="gr-explainer-item">
+              <span class="gr-badge gr-badge-purple">G3</span>
+              <div>
+                <strong>JSON Repair Cascade</strong> — LLMs occasionally output fences, prose, or truncated JSON. 4-level cascade (direct → fence strip → regex extract → fallback) ensures the RAG pipeline never crashes on bad LLM JSON.
+              </div>
+            </div>
+            <div class="gr-explainer-item">
+              <span class="gr-badge gr-badge-red">G4</span>
+              <div>
+                <strong>PII Output Filter</strong> — CV parsing ingests email/phone. G4 ensures those fields never leak into role-mapping recommendations sent to managers. GDPR/compliance requirement at enterprise scale.
+              </div>
+            </div>
+            <div class="gr-explainer-item">
+              <span class="gr-badge gr-badge-green">G5</span>
+              <div>
+                <strong>Graceful Degradation</strong> — Each agent (cv_parser, role_mapper, planner, retrieval) tracked per-request. One agent failure → partial result, not full outage. At 10,000 employees, 99.9% availability requires this pattern.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </ng-container>
+
     </ng-container>
 
     <div *ngIf="!m && !loading && !error" class="card" style="text-align:center;padding:48px;">
@@ -727,6 +1035,197 @@ import { ApiService } from '../../services/api.service';
     .ragas-pass-chip { font-size:10px; font-weight:700; padding:2px 7px; border-radius:999px; text-align:center; }
     .ragas-chip-pass { background:#dcfce7; color:#15803d; }
     .ragas-chip-fail { background:#fee2e2; color:#b91c1c; }
+
+    /* ── Production Guardrails ───────────────────────────────────────────── */
+    .section-title-row {
+      display:flex; flex-direction:column; gap:4px; margin-bottom:16px;
+    }
+    .gr-live-pill {
+      display:inline-block; font-size:11px; font-weight:700;
+      background:#dcfce7; color:#15803d; padding:2px 10px;
+      border-radius:999px; margin-left:10px; vertical-align:middle;
+    }
+
+    /* G1-G4 card row */
+    .gr-cards {
+      display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px;
+    }
+    .gr-card {
+      background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:16px;
+      display:flex; flex-direction:column; gap:10px;
+    }
+    .gr-card-head { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .gr-card-title { font-size:14px; font-weight:700; color:#0f172a; }
+    .gr-card-sub { font-size:11px; color:#94a3b8; margin-left:auto; }
+
+    .gr-badge {
+      font-size:11px; font-weight:800; padding:2px 8px;
+      border-radius:6px; letter-spacing:0.5px; flex-shrink:0;
+    }
+    .gr-badge-blue   { background:#dbeafe; color:#1d4ed8; }
+    .gr-badge-orange { background:#ffedd5; color:#c2410c; }
+    .gr-badge-purple { background:#ede9fe; color:#6d28d9; }
+    .gr-badge-red    { background:#fee2e2; color:#b91c1c; }
+    .gr-badge-green  { background:#dcfce7; color:#15803d; }
+
+    .gr-stats { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .gr-stat {
+      background:#f8fafc; border-radius:8px; padding:8px 10px;
+      display:flex; flex-direction:column; gap:2px;
+    }
+    .gr-stat-val { font-size:22px; font-weight:800; color:#0f172a; }
+    .gr-stat-key { font-size:10px; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:0.4px; }
+    .gr-stat-green .gr-stat-val { color:#15803d; }
+    .gr-stat-danger .gr-stat-val { color:#dc2626; }
+    .gr-stat-danger { background:#fff5f5; }
+
+    /* G1 user bars */
+    .gr-user-list { display:flex; flex-direction:column; gap:5px; }
+    .gr-user-row { display:flex; align-items:center; gap:8px; font-size:12px; }
+    .gr-user-id { font-family:monospace; color:#475569; min-width:80px; font-size:11px; }
+    .gr-user-bar-track { flex:1; height:6px; background:#f1f5f9; border-radius:999px; overflow:hidden; }
+    .gr-user-bar { height:100%; border-radius:999px; background:#3b82f6; transition:width 0.3s; }
+    .gr-bar-warn { background:#f59e0b !important; }
+    .gr-bar-danger { background:#ef4444 !important; }
+    .gr-user-count { font-size:11px; color:#64748b; min-width:40px; text-align:right; }
+    .gr-rule { font-size:10px; color:#94a3b8; margin-top:auto; }
+    .gr-no-data { font-size:12px; color:#94a3b8; text-align:center; padding:8px 0; }
+
+    /* G2 circuit breakers */
+    .gr-cb-row {
+      display:flex; align-items:center; gap:8px;
+      padding:5px 8px; background:#f8fafc; border-radius:6px;
+      font-size:12px;
+    }
+    .gr-cb-name { flex:1; font-weight:500; color:#1e293b; }
+    .gr-cb-badge { font-size:10px; font-weight:700; padding:2px 7px; border-radius:999px; }
+    .cb-closed { background:#dcfce7; color:#15803d; }
+    .cb-open   { background:#fee2e2; color:#b91c1c; }
+    .cb-half-open { background:#fef3c7; color:#92400e; }
+    .gr-cb-fail { font-size:11px; color:#64748b; margin-left:auto; }
+    .gr-cb-totals { display:flex; justify-content:space-between; font-size:10px; color:#94a3b8; margin-top:4px; }
+    .gr-reset-btn {
+      margin-top:auto; font-size:11px; font-weight:700; padding:6px 12px;
+      border-radius:6px; border:1px solid #e2e8f0; background:#f8fafc;
+      color:#475569; cursor:pointer; transition:all 0.15s;
+    }
+    .gr-reset-btn:hover { background:#fee2e2; color:#b91c1c; border-color:#fca5a5; }
+
+    /* G3 cascade steps */
+    .gr-cascade-steps { display:flex; flex-direction:column; gap:2px; margin-top:4px; }
+    .gr-step {
+      font-size:11px; padding:4px 8px; border-radius:5px;
+      background:#f8fafc; color:#64748b; border:1px solid #e2e8f0;
+    }
+    .gr-step.gr-step-active { background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; font-weight:600; }
+    .gr-step-fallback.gr-step-active { background:#fef3c7; color:#92400e; border-color:#fde68a; }
+    .gr-step-arrow { font-size:10px; color:#cbd5e1; text-align:center; line-height:1; }
+
+    /* G4 PII chips */
+    .gr-pii-types { display:flex; flex-wrap:wrap; gap:5px; margin-top:4px; }
+    .gr-pii-chip {
+      font-size:10px; font-weight:600; padding:2px 8px; border-radius:999px;
+      background:#fee2e2; color:#991b1b; border:1px solid #fca5a5;
+    }
+
+    /* G5 graceful degradation */
+    .gd-kpi-row {
+      display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap;
+    }
+    .gd-kpi {
+      flex:1; min-width:80px; background:#f8fafc; border:1px solid #e2e8f0;
+      border-radius:8px; padding:12px 14px; text-align:center;
+      display:flex; flex-direction:column; gap:4px;
+    }
+    .gd-kpi.gd-kpi-good { background:#f0fdf4; border-color:#bbf7d0; }
+    .gd-kpi.gd-kpi-warn { background:#fffbeb; border-color:#fde68a; }
+    .gd-kpi.gd-kpi-danger { background:#fff5f5; border-color:#fca5a5; }
+    .gd-kpi-val { font-size:24px; font-weight:800; color:#0f172a; }
+    .gd-kpi-key { font-size:10px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.4px; }
+
+    .gd-agents { display:flex; flex-direction:column; gap:8px; }
+    .gd-agent-row { display:flex; align-items:center; gap:10px; }
+    .gd-agent-name { font-size:12px; font-weight:600; color:#475569; min-width:90px; }
+    .gd-avail-track { flex:1; height:8px; background:#f1f5f9; border-radius:999px; overflow:hidden; }
+    .gd-avail-fill { height:100%; border-radius:999px; transition:width 0.4s; }
+    .gd-avail-good { background:#22c55e; }
+    .gd-avail-warn { background:#f59e0b; }
+    .gd-avail-bad  { background:#ef4444; }
+    .gd-avail-pct { font-size:12px; font-weight:700; color:#1e293b; min-width:42px; text-align:right; }
+    .gd-health-chips { display:flex; gap:4px; flex-wrap:wrap; min-width:160px; }
+    .gd-chip { font-size:10px; font-weight:600; padding:1px 6px; border-radius:999px; }
+    .gd-chip-full     { background:#dcfce7; color:#15803d; }
+    .gd-chip-partial  { background:#fef3c7; color:#92400e; }
+    .gd-chip-fallback { background:#ffedd5; color:#c2410c; }
+    .gd-chip-failed   { background:#fee2e2; color:#b91c1c; }
+
+    .gd-run-row {
+      display:flex; align-items:center; gap:10px;
+      padding:6px 10px; border-radius:6px; margin-bottom:3px;
+      background:#f8fafc; font-size:12px;
+    }
+    .gd-run-id { font-family:monospace; font-size:11px; color:#64748b; min-width:80px; }
+    .gd-run-badge { font-size:10px; font-weight:700; padding:2px 7px; border-radius:999px; }
+    .gd-badge-full     { background:#dcfce7; color:#15803d; }
+    .gd-badge-partial  { background:#fef3c7; color:#92400e; }
+    .gd-badge-fallback { background:#ffedd5; color:#c2410c; }
+    .gd-badge-failed   { background:#fee2e2; color:#b91c1c; }
+    .gd-run-agents { display:flex; gap:4px; flex-wrap:wrap; }
+    .gd-run-pip {
+      font-size:9px; font-weight:800; padding:2px 5px; border-radius:4px; cursor:help;
+    }
+    .gd-pip-full     { background:#dcfce7; color:#15803d; }
+    .gd-pip-partial  { background:#fef3c7; color:#92400e; }
+    .gd-pip-fallback { background:#ffedd5; color:#c2410c; }
+    .gd-pip-failed   { background:#fee2e2; color:#b91c1c; }
+    .gd-pip-skipped  { background:#f1f5f9; color:#94a3b8; }
+
+    /* Pipeline wire map */
+    .gr-wire-map {
+      display:flex; align-items:flex-start; gap:6px; flex-wrap:wrap;
+      background:#f8fafc; border-radius:8px; padding:14px;
+    }
+    .gr-wire-step { display:flex; flex-direction:column; align-items:center; gap:5px; min-width:100px; }
+    .gr-wire-node {
+      font-size:12px; font-weight:700; color:#1e293b;
+      background:#fff; border:1px solid #e2e8f0;
+      border-radius:6px; padding:6px 12px; text-align:center;
+    }
+    .gr-wire-arrow { font-size:18px; color:#94a3b8; align-self:flex-start; margin-top:8px; }
+    .gr-wire-tag {
+      font-size:10px; font-weight:600; padding:1px 7px; border-radius:999px;
+    }
+    .gr-tag-blue   { background:#dbeafe; color:#1d4ed8; }
+    .gr-tag-orange { background:#ffedd5; color:#c2410c; }
+    .gr-tag-purple { background:#ede9fe; color:#6d28d9; }
+    .gr-tag-red    { background:#fee2e2; color:#b91c1c; }
+    .gr-tag-green  { background:#dcfce7; color:#15803d; }
+
+    /* Event log */
+    .gr-event-log {
+      background:#0f172a; border-radius:8px; padding:14px;
+      font-family:monospace; max-height:220px; overflow-y:auto;
+      display:flex; flex-direction:column; gap:4px;
+    }
+    .gr-event-row { display:flex; gap:10px; align-items:flex-start; font-size:12px; }
+    .ev-ts { color:#475569; min-width:70px; font-size:11px; }
+    .ev-badge {
+      font-size:10px; font-weight:800; padding:1px 6px; border-radius:4px; flex-shrink:0;
+    }
+    .ev-badge-g1 { background:#1d4ed8; color:#fff; }
+    .ev-badge-g2 { background:#c2410c; color:#fff; }
+    .ev-badge-g3 { background:#6d28d9; color:#fff; }
+    .ev-badge-g4 { background:#b91c1c; color:#fff; }
+    .ev-badge-g5 { background:#15803d; color:#fff; }
+    .ev-msg { color:#e2e8f0; flex:1; }
+    .ev-ok   .ev-msg { color:#86efac; }
+    .ev-warn .ev-msg { color:#fde68a; }
+    .ev-block .ev-msg { color:#f87171; }
+
+    /* Explainer */
+    .gr-explainer { background:#eff6ff; border:1px solid #bfdbfe; }
+    .gr-explainer-grid { display:flex; flex-direction:column; gap:10px; }
+    .gr-explainer-item { display:flex; gap:10px; align-items:flex-start; font-size:13px; line-height:1.5; }
   `],
 })
 export class MetricsComponent implements OnInit, OnDestroy {
@@ -734,13 +1233,18 @@ export class MetricsComponent implements OnInit, OnDestroy {
   health: any = null;
   loading = false;
   error = '';
+  gr: any = null;
+  grLoading = false;
+  grEvents: Array<{ts: string; g: string; type: string; msg: string}> = [];
   private timer: any;
+  private _prevGr: any = null;
 
   constructor(private api: ApiService) {}
 
   ngOnInit() {
     this.load();
-    this.timer = setInterval(() => this.load(), 15_000);
+    this.loadGuardrails();
+    this.timer = setInterval(() => { this.load(); this.loadGuardrails(); }, 15_000);
   }
 
   ngOnDestroy() { clearInterval(this.timer); }
@@ -755,6 +1259,100 @@ export class MetricsComponent implements OnInit, OnDestroy {
     this.api.getHealthReady().subscribe({
       next: h => { this.health = h; },
       error: () => {},
+    });
+  }
+
+  loadGuardrails() {
+    this.grLoading = true;
+    this.api.getGuardrailStats().subscribe({
+      next: d => {
+        this._diffGuardrailEvents(this._prevGr, d);
+        this._prevGr = d;
+        this.gr = d;
+        this.grLoading = false;
+      },
+      error: () => { this.grLoading = false; },
+    });
+  }
+
+  private _diffGuardrailEvents(prev: any, curr: any) {
+    if (!prev || !curr) return;
+    const now = new Date().toLocaleTimeString();
+    const events = [...this.grEvents];
+
+    // G1 — rate limit events
+    const prevBlocked = prev.g1_rate_limiter?.total_blocked ?? 0;
+    const currBlocked = curr.g1_rate_limiter?.total_blocked ?? 0;
+    if (currBlocked > prevBlocked) {
+      events.unshift({ ts: now, g: 'G1', type: 'block', msg: `Rate limit blocked — ${currBlocked} total blocks` });
+    }
+    const prevUsers = prev.g1_rate_limiter?.tracked_users ?? 0;
+    const currUsers = curr.g1_rate_limiter?.tracked_users ?? 0;
+    if (currUsers > prevUsers) {
+      events.unshift({ ts: now, g: 'G1', type: 'ok', msg: `New user tracked — ${currUsers} active user(s) in window` });
+    }
+
+    // G2 — circuit breaker state changes
+    const prevCBs = prev.g2_circuit_breakers ?? {};
+    const currCBs = curr.g2_circuit_breakers ?? {};
+    for (const name of Object.keys(currCBs)) {
+      const ps = prevCBs[name]?.state;
+      const cs = currCBs[name]?.state;
+      if (ps && cs && ps !== cs) {
+        const type = cs === 'open' ? 'block' : cs === 'half_open' ? 'warn' : 'ok';
+        events.unshift({ ts: now, g: 'G2', type, msg: `${name} circuit breaker → ${cs.toUpperCase().replace('_','-')} (was ${ps})` });
+      }
+      const pf = prevCBs[name]?.total_failures ?? 0;
+      const cf = currCBs[name]?.total_failures ?? 0;
+      if (cf > pf) {
+        events.unshift({ ts: now, g: 'G2', type: 'warn', msg: `${name} LLM failure — ${cf}/${currCBs[name]?.failure_threshold} failures` });
+      }
+    }
+
+    // G3 — first repair event
+    const prevFail = prev.g3_json_repair?.total_failures ?? 0;
+    const currFail = curr.g3_json_repair?.total_failures ?? 0;
+    if (currFail > prevFail) {
+      events.unshift({ ts: now, g: 'G3', type: 'warn', msg: `JSON repair failed — ${currFail} total failures` });
+    }
+
+    // G4 — PII scrub event
+    const prevPii = prev.g4_pii_filter?.outputs_with_pii ?? 0;
+    const currPii = curr.g4_pii_filter?.outputs_with_pii ?? 0;
+    if (currPii > prevPii) {
+      events.unshift({ ts: now, g: 'G4', type: 'warn', msg: `PII detected and scrubbed in role mapping output` });
+    }
+
+    // G5 — degradation events
+    const prevFailed = (prev.g5_graceful_degradation?.overall_counts?.failed ?? 0);
+    const currFailed = (curr.g5_graceful_degradation?.overall_counts?.failed ?? 0);
+    if (currFailed > prevFailed) {
+      events.unshift({ ts: now, g: 'G5', type: 'block', msg: `Agent failure recorded — ${currFailed} failed runs` });
+    }
+    const prevFallback = (prev.g5_graceful_degradation?.overall_counts?.fallback ?? 0);
+    const currFallback = (curr.g5_graceful_degradation?.overall_counts?.fallback ?? 0);
+    if (currFallback > prevFallback) {
+      events.unshift({ ts: now, g: 'G5', type: 'warn', msg: `Degraded run — fallback used for one or more agents` });
+    }
+    const prevFull = (prev.g5_graceful_degradation?.overall_counts?.full ?? 0);
+    const currFull = (curr.g5_graceful_degradation?.overall_counts?.full ?? 0);
+    if (currFull > prevFull) {
+      events.unshift({ ts: now, g: 'G5', type: 'ok', msg: `Full pipeline run completed — all agents healthy` });
+    }
+
+    this.grEvents = events.slice(0, 30);
+  }
+
+  resetAllCB() {
+    this.api.resetAllCircuitBreakers().subscribe({
+      next: () => {
+        const now = new Date().toLocaleTimeString();
+        this.grEvents = [
+          { ts: now, g: 'G2', type: 'ok', msg: 'All circuit breakers manually RESET → CLOSED by admin' },
+          ...this.grEvents,
+        ].slice(0, 30);
+        this.loadGuardrails();
+      },
     });
   }
 
@@ -817,5 +1415,68 @@ export class MetricsComponent implements OnInit, OnDestroy {
     if (score >= threshold)                   return '#15803d';
     if (score >= threshold - 0.1)             return '#d97706';
     return '#dc2626';
+  }
+
+  // ── Guardrail helpers ───────────────────────────────────────────────────────
+
+  topRateLimitUsers(): {uid: string; count: number}[] {
+    const counts = this.gr?.g1_rate_limiter?.current_counts ?? {};
+    return Object.entries(counts)
+      .map(([uid, count]) => ({ uid, count: count as number }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+  }
+
+  breakerList(): any[] {
+    const cbs = this.gr?.g2_circuit_breakers ?? {};
+    return Object.entries(cbs).map(([name, v]: any) => ({ name, ...v }));
+  }
+
+  grCbClass(state: string): string {
+    if (state === 'closed')    return 'gr-cb-badge cb-closed';
+    if (state === 'open')      return 'gr-cb-badge cb-open';
+    return 'gr-cb-badge cb-half-open';
+  }
+
+  totalCbFailures(): number {
+    return this.breakerList().reduce((s, b) => s + (b.total_failures ?? 0), 0);
+  }
+
+  totalCbSuccesses(): number {
+    return this.breakerList().reduce((s, b) => s + (b.total_successes ?? 0), 0);
+  }
+
+  gdAgents(): string[] {
+    return ['cv_parser', 'role_mapper', 'planner', 'retrieval', 'llm_judge'];
+  }
+
+  gdAvail(agent: string): number {
+    return this.gr?.g5_graceful_degradation?.agent_availability?.[agent] ?? 100;
+  }
+
+  gdHealth(agent: string, status: string): number {
+    return this.gr?.g5_graceful_degradation?.agent_health?.[agent]?.[status] ?? 0;
+  }
+
+  gdOverall(status: string): number {
+    return this.gr?.g5_graceful_degradation?.overall_counts?.[status] ?? 0;
+  }
+
+  gdRunAgents(run: any): {agent: string; status: string; note: string}[] {
+    if (!run?.agents) return [];
+    return Object.entries(run.agents)
+      .filter(([_, v]: any) => v.status !== 'skipped')
+      .map(([agent, v]: any) => ({ agent, status: v.status, note: v.note }));
+  }
+
+  agentShort(agent: string): string {
+    const map: Record<string, string> = {
+      cv_parser:  'CV',
+      role_mapper: 'MAP',
+      planner:    'PLN',
+      retrieval:  'RAG',
+      llm_judge:  'JDG',
+    };
+    return map[agent] ?? agent.slice(0, 3).toUpperCase();
   }
 }
