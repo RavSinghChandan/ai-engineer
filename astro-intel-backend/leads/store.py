@@ -24,12 +24,13 @@ class Lead:
     created_at:     float
     updated_at:     float
     tenant_id:      str = ""   # F4: owner — the tenant_id of the user who submitted
-    notes:          str = ""
-    report_json:    str = ""   # JSON-serialized final report, set when admin completes reading
-    place_of_birth: str = ""
-    time_of_birth:  str = ""
-    alias_name:     str = ""
-    question:       str = ""
+    notes:              str = ""
+    report_json:        str = ""   # JSON-serialized final report, set when admin completes reading
+    place_of_birth:     str = ""
+    time_of_birth:      str = ""
+    alias_name:         str = ""
+    question:           str = ""
+    preferred_language: str = "en" # user's chosen language code for their PDF
 
 _leads: Dict[str, Lead] = {}
 
@@ -48,8 +49,8 @@ def load() -> None:
         try:
             data = json.loads(_STORE_PATH.read_text())
             for d in data.get("leads", []):
-                # F4: backfill tenant_id for old records missing the field
                 d.setdefault("tenant_id", "")
+                d.setdefault("preferred_language", "en")
                 _leads[d["lead_id"]] = Lead(**d)
         except Exception:
             pass
@@ -58,7 +59,7 @@ def load() -> None:
 def create_lead(name: str, email: str, phone: str, dob: str, consent: bool,
                 place_of_birth: str = "", time_of_birth: str = "",
                 alias_name: str = "", question: str = "",
-                tenant_id: str = "") -> Lead:
+                tenant_id: str = "", preferred_language: str = "en") -> Lead:
     lid = f"lead_{secrets.token_hex(6)}"
     now = time.time()
     lead = Lead(
@@ -68,6 +69,7 @@ def create_lead(name: str, email: str, phone: str, dob: str, consent: bool,
         tenant_id=tenant_id,
         place_of_birth=place_of_birth, time_of_birth=time_of_birth,
         alias_name=alias_name, question=question,
+        preferred_language=preferred_language,
     )
     _leads[lid] = lead
     _flush()

@@ -29,37 +29,39 @@ _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
 class LeadRequest(BaseModel):
-    name:           str
-    email:          str
-    phone:          str
-    dob:            str
-    consent:        bool
-    place_of_birth: str = ""
-    time_of_birth:  str = ""
-    alias_name:     str = ""
-    question:       str = ""
+    name:               str
+    email:              str
+    phone:              str
+    dob:                str
+    consent:            bool
+    place_of_birth:     str = ""
+    time_of_birth:      str = ""
+    alias_name:         str = ""
+    question:           str = ""
+    preferred_language: str = "en"
 
 class LeadStatusUpdate(BaseModel):
     status: str
     notes:  Optional[str] = ""
 
 class LeadOut(BaseModel):
-    lead_id:        str
-    name:           str
-    email:          str
-    phone:          str
-    dob:            str
-    consent:        bool
-    status:         str
-    created_at:     float
-    updated_at:     float
-    notes:          str
-    report_json:    str = ""
-    place_of_birth: str = ""
-    time_of_birth:  str = ""
-    alias_name:     str = ""
-    question:       str = ""
-    tenant_id:      str = ""
+    lead_id:            str
+    name:               str
+    email:              str
+    phone:              str
+    dob:                str
+    consent:            bool
+    status:             str
+    created_at:         float
+    updated_at:         float
+    notes:              str
+    report_json:        str = ""
+    place_of_birth:     str = ""
+    time_of_birth:      str = ""
+    alias_name:         str = ""
+    question:           str = ""
+    tenant_id:          str = ""
+    preferred_language: str = "en"
 
 class AttachReportRequest(BaseModel):
     report_json: str
@@ -101,7 +103,8 @@ async def submit_lead(
         time_of_birth=req.time_of_birth.strip(),
         alias_name=req.alias_name.strip(),
         question=req.question.strip(),
-        tenant_id=ctx.tenant_id,  # F4: tie lead to submitting tenant
+        tenant_id=ctx.tenant_id,
+        preferred_language=req.preferred_language.strip() or "en",
     )
     return {
         "lead_id": lead.lead_id,

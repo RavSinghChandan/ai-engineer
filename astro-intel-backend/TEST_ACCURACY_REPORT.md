@@ -4,55 +4,55 @@
 
 ========================================================================
   ASTROINTEL ACCURACY REPORT — 20 DIVERSE PROFILES
-  Generated: 2026-05-15 18:55:42
+  Generated: 2026-05-16 00:53:53
 ========================================================================
 
 ── Per-Profile Results ──────────────────────────────────────────────
 Profile                 LP  Domains   HIGH%    KW%    Halluc  Status
 ------------------------------------------------------------------------
-elon_musk                7     100%    100%    71%       low  OK
-narendra_modi            5     100%    100%    67%       low  OK
-oprah_winfrey            4     100%    100%    40%       low  OK
-albert_einstein         33     100%    100%    80%       low  OK
-mahatma_gandhi           9     100%    100%   100%       low  OK
-bill_gates               4     100%    100%    60%       low  OK
-ratan_tata              33     100%    100%    60%       low  OK
-angela_merkel            7     100%    100%    60%       low  OK
-sachin_tendulkar         3     100%    100%    40%       low  OK
-amitabh_bachchan         1     100%    100%    60%       low  OK
-steve_jobs               1     100%    100%    40%       low  OK
-malala_yousafzai         9     100%    100%    40%       low  OK
-warren_buffett           6     100%    100%    60%       low  OK
-apj_abdul_kalam          3     100%    100%    20%       low  OK
-marie_curie              4     100%    100%    80%       low  OK
-virat_kohli             33     100%    100%    80%       low  OK
-sundar_pichai           11     100%    100%    60%       low  OK
-taylor_swift             7     100%    100%    40%       low  OK
-dalai_lama               4     100%    100%    40%       low  OK
-mukesh_ambani            9     100%    100%    60%       low  OK
+elon_musk                7       0%      0%     0%       N/A  HTTP_401
+narendra_modi            5       0%      0%     0%       N/A  HTTP_401
+oprah_winfrey            4       0%      0%     0%       N/A  HTTP_401
+albert_einstein         33       0%      0%     0%       N/A  HTTP_401
+mahatma_gandhi           9       0%      0%     0%       N/A  HTTP_401
+bill_gates               4       0%      0%     0%       N/A  HTTP_401
+ratan_tata              33       0%      0%     0%       N/A  HTTP_401
+angela_merkel            7       0%      0%     0%       N/A  HTTP_401
+sachin_tendulkar         3       0%      0%     0%       N/A  HTTP_401
+amitabh_bachchan         1       0%      0%     0%       N/A  HTTP_401
+steve_jobs               1       0%      0%     0%       N/A  HTTP_401
+malala_yousafzai         9       0%      0%     0%       N/A  HTTP_401
+warren_buffett           6       0%      0%     0%       N/A  HTTP_401
+apj_abdul_kalam          3       0%      0%     0%       N/A  HTTP_401
+marie_curie              4       0%      0%     0%       N/A  HTTP_401
+virat_kohli             33       0%      0%     0%       N/A  HTTP_401
+sundar_pichai           11       0%      0%     0%       N/A  HTTP_401
+taylor_swift             7       0%      0%     0%       N/A  HTTP_401
+dalai_lama               4       0%      0%     0%       N/A  HTTP_401
+mukesh_ambani            9       0%      0%     0%       N/A  HTTP_401
 ------------------------------------------------------------------------
 
 ── Aggregate Accuracy Scores ────────────────────────────────────────
   Profiles tested          : 20
-  Successful responses     : 20/20 (100%)
-  Avg domain coverage      : 100.0% (target ≥ 100%)
-  Avg HIGH confidence rate : 100.0% (target ≥ 30%)
-  Avg keyword relevance    : 57.9% (target ≥ 20%)
+  Successful responses     : 0/20 (0%)
+  Avg domain coverage      : 0.0% (target ≥ 100%)
+  Avg HIGH confidence rate : 0.0% (target ≥ 30%)
+  Avg keyword relevance    : 0.0% (target ≥ 20%)
   Life Path diversity      : 9 unique values [1, 3, 4, 5, 6, 7, 9, 11, 33]
 
 ── Hallucination Risk Distribution ─────────────────────────────────
-  LOW risk   : 20/20
+  LOW risk   : 0/20
   MEDIUM risk: 0/20
   HIGH risk  : 0/20
 
 ── Accuracy Verdict ─────────────────────────────────────────────────
-  [PASS] Pipeline success rate >= 90%
-  [PASS] Domain coverage >= 80%
-  [PASS] HIGH confidence rate >= 30%
-  [PASS] Keyword relevance >= 20%
+  [FAIL] Pipeline success rate 0% < 90%
+  [FAIL] Domain coverage 0% < 80%
+  [FAIL] HIGH confidence rate 0% < 30%
+  [FAIL] Keyword relevance 0% < 20%
   [PASS] HIGH hallucination risk <= 10% of profiles
 
-  OVERALL ACCURACY SCORE: 5/5 dimensions = 100%
+  OVERALL ACCURACY SCORE: 1/5 dimensions = 20%
 ========================================================================
 ```
 

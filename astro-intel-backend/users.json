@@ -99,6 +99,26 @@
       "is_active": true,
       "created_at": 1778870332.693869,
       "tenant_id": "tenant_6dd764a17f2d"
+    },
+    {
+      "user_id": "user_a2bc7ce86a04e6c0",
+      "email": "rav1@gmail.com",
+      "name": "rav",
+      "role": "user",
+      "pw_hash": "ce2b45bcd41e229ee789e120a7a26295faeafabfa4878253eeaed804d3029afe",
+      "is_active": true,
+      "created_at": 1778872817.193783,
+      "tenant_id": "tenant_d0390053927d"
+    },
+    {
+      "user_id": "user_9ff9c6f1d3df0bdb",
+      "email": "otptest_unique@example.com",
+      "name": "OTP Tester",
+      "role": "user",
+      "pw_hash": "c9c29dbd2f26424bdd74050879d85d66e760846526f8299592c4cbb00c038d46",
+      "is_active": true,
+      "created_at": 1778873025.913468,
+      "tenant_id": "tenant_843bf8c4ae8b"
     }
   ]
 }

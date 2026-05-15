@@ -89,6 +89,33 @@ function suggestQuestion(raw: string): string {
 
 type FieldErrors = Record<string, string>;
 
+// ── 22 Indian Constitutional Languages + English ───────────────────────────
+const INDIAN_LANGUAGES = [
+  { code: 'en',  name: 'English',    native: 'English' },
+  { code: 'hi',  name: 'Hindi',      native: 'हिन्दी' },
+  { code: 'bn',  name: 'Bengali',    native: 'বাংলা' },
+  { code: 'te',  name: 'Telugu',     native: 'తెలుగు' },
+  { code: 'mr',  name: 'Marathi',    native: 'मराठी' },
+  { code: 'ta',  name: 'Tamil',      native: 'தமிழ்' },
+  { code: 'gu',  name: 'Gujarati',   native: 'ગુજરાતી' },
+  { code: 'kn',  name: 'Kannada',    native: 'ಕನ್ನಡ' },
+  { code: 'ml',  name: 'Malayalam',  native: 'മലയാളം' },
+  { code: 'pa',  name: 'Punjabi',    native: 'ਪੰਜਾਬੀ' },
+  { code: 'or',  name: 'Odia',       native: 'ଓଡ଼ିଆ' },
+  { code: 'as',  name: 'Assamese',   native: 'অসমীয়া' },
+  { code: 'ur',  name: 'Urdu',       native: 'اردو' },
+  { code: 'ks',  name: 'Kashmiri',   native: 'कॉशुर' },
+  { code: 'ne',  name: 'Nepali',     native: 'नेपाली' },
+  { code: 'sd',  name: 'Sindhi',     native: 'سنڌي' },
+  { code: 'sa',  name: 'Sanskrit',   native: 'संस्कृत' },
+  { code: 'kok', name: 'Konkani',    native: 'कोंकणी' },
+  { code: 'mni', name: 'Manipuri',   native: 'মৈতৈলোন্' },
+  { code: 'mai', name: 'Maithili',   native: 'मैथिली' },
+  { code: 'doi', name: 'Dogri',      native: 'डोगरी' },
+  { code: 'sat', name: 'Santali',    native: 'ᱥᱟᱱᱛᱟᱲᱤ' },
+  { code: 'bo',  name: 'Bodo',       native: 'बड़ो' },
+];
+
 function validateProfile(p: {
   full_name: string; date_of_birth: string; time_of_birth: string;
   place_of_birth: string; pincode: string;
@@ -833,6 +860,23 @@ function validateProfile(p: {
               rows="2"></textarea>
           </div>
         </div>
+        <!-- Language Picker -->
+        <div class="lead-field-row">
+          <div class="lead-field lead-field-grow">
+            <label class="lead-label">
+              <svg width="13" height="13" viewBox="0 0 20 20" fill="none" style="vertical-align:-2px;margin-right:4px"><path d="M10 2a8 8 0 1 0 0 16A8 8 0 0 0 10 2zM2 10h4M14 10h4M10 2v4M10 14v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M4.9 4.9C6.4 7.1 8 8.9 10 10c2-.9 3.5-2.7 5.1-5.1M15.1 15.1C13.6 12.9 12 11.1 10 10c-2 .9-3.5 2.7-5.1 5.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              PDF Report Language
+            </label>
+            <select class="lead-input lead-select"
+              [(ngModel)]="leadForm.preferred_language">
+              @for (lang of availableLanguages; track lang.code) {
+                <option [value]="lang.code">{{ lang.native }} — {{ lang.name }}</option>
+              }
+            </select>
+            <span class="lead-lang-hint">Your personalised report will be delivered in this language</span>
+          </div>
+        </div>
+
         <label class="lead-consent">
           <input type="checkbox" [checked]="leadForm.consent"
             (change)="leadForm.consent = $any($event.target).checked"/>
@@ -990,6 +1034,10 @@ function validateProfile(p: {
             <div class="report-ready-glow">🎉</div>
             <p class="report-ready-msg">Your personalised astrology report is ready!</p>
             <p class="report-ready-sub">Check your email too — we sent it there automatically.</p>
+            <div class="report-lang-badge">
+              <svg width="13" height="13" viewBox="0 0 20 20" fill="none" style="vertical-align:-2px"><path d="M10 2a8 8 0 1 0 0 16A8 8 0 0 0 10 2zM2 10h4M14 10h4M10 2v4M10 14v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M4.9 4.9C6.4 7.1 8 8.9 10 10c2-.9 3.5-2.7 5.1-5.1M15.1 15.1C13.6 12.9 12 11.1 10 10c-2 .9-3.5 2.7-5.1 5.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              Report language: <strong>{{ leadLanguageDisplay() }}</strong>
+            </div>
             <button class="lead-submit-btn report-dl-btn" (click)="downloadLeadReport()">
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M3.5 6.5l3.5 4 3.5-4M1.5 12h11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
               Open My Full Report
@@ -1498,6 +1546,15 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
   transition: border-color .15s; background: #fafafa;
 }
 .lead-input:focus { border-color: #6366f1; background: #fff; }
+.lead-select {
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center;
+  padding-right: 32px !important; cursor: pointer;
+}
+.lead-lang-hint {
+  font-size: 11px; color: #9ca3af; margin-top: 4px; display: block;
+}
 .lead-consent {
   display: flex; align-items: flex-start; gap: 10px;
   font-size: 12.5px; color: #4b5563; line-height: 1.5; cursor: pointer;
@@ -1598,6 +1655,12 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
 .report-ready-glow { font-size: 2.5rem; line-height: 1; }
 .report-ready-msg  { font-size: 15px; font-weight: 700; color: #065f46; margin: 0; }
 .report-ready-sub  { font-size: 12px; color: #047857; margin: 0; }
+.report-lang-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 12px; border-radius: 99px;
+  background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2);
+  font-size: 12px; color: #4338ca;
+}
 .report-dl-btn {
   background: linear-gradient(135deg, #059669, #10b981) !important;
   box-shadow: 0 4px 14px rgba(16,185,129,0.4) !important;
@@ -1917,16 +1980,25 @@ export class IntakePage {
   readonly view            = signal<'home'|'pipeline'>('home');
   readonly showGraph       = signal(false);
   readonly promptVersion   = signal<'v1'|'v2'>('v2');
-  readonly showLeadForm    = signal(false);
-  readonly leadSubmitted   = signal(false);
-  readonly leadId          = signal('');
-  readonly leadStatus      = signal('submitted');
-  readonly leadSubmitting  = signal(false);
-  readonly leadError       = signal('');
-  readonly newLeadCount    = signal(0);
+  readonly showLeadForm          = signal(false);
+  readonly leadSubmitted         = signal(false);
+  readonly leadId                = signal('');
+  readonly leadStatus            = signal('submitted');
+  readonly leadSubmitting        = signal(false);
+  readonly leadError             = signal('');
+  readonly newLeadCount          = signal(0);
+  readonly leadPreferredLanguage = signal('en');
+
+  readonly leadLanguageDisplay = computed(() => {
+    const lang = INDIAN_LANGUAGES.find(l => l.code === this.leadPreferredLanguage());
+    return lang ? `${lang.native} (${lang.name})` : 'English';
+  });
+
+  readonly availableLanguages = INDIAN_LANGUAGES;
 
   leadForm = { name: '', email: '', phone: '', dob: '', consent: false,
-               place_of_birth: '', time_of_birth: '', alias_name: '', question: '' };
+               place_of_birth: '', time_of_birth: '', alias_name: '', question: '',
+               preferred_language: 'en' };
 
   private http = inject(HttpClient);
 
@@ -2206,9 +2278,10 @@ export class IntakePage {
       this.leadForm.time_of_birth  = profile.time_of_birth || '';
       this.leadForm.place_of_birth = profile.place_of_birth || '';
       this.leadForm.question       = this.userQuestion || '';
-      this.leadForm.email          = '';
-      this.leadForm.phone          = '';
-      this.leadForm.consent        = false;
+      this.leadForm.email              = '';
+      this.leadForm.phone              = '';
+      this.leadForm.consent            = false;
+      this.leadForm.preferred_language = 'en';
       this.leadError.set('');
       this.showLeadForm.set(true);
       return;
@@ -2257,9 +2330,10 @@ export class IntakePage {
     this.view.set('home');
     this.showLeadForm.set(false);
     this.leadSubmitted.set(false);
-    this.leadId.set('');          // F5: clear old lead reference
+    this.leadId.set('');
     this.leadStatus.set('submitted');
-    this.stopAutoPoll();          // F5: stop any running poll timer
+    this.leadPreferredLanguage.set('en');
+    this.stopAutoPoll();
   }
 
   async submitLead() {
@@ -2271,15 +2345,16 @@ export class IntakePage {
     // Always pull from the birth profile — leadForm fields shadow it
     const profile = this.profileSig();
     const payload = {
-      name:           this.leadForm.name           || profile.full_name,
-      alias_name:     this.leadForm.alias_name     || profile.alias_name,
-      email:          this.leadForm.email,
-      phone:          this.leadForm.phone,
-      dob:            this.leadForm.dob            || profile.date_of_birth,
-      place_of_birth: this.leadForm.place_of_birth || profile.place_of_birth,
-      time_of_birth:  this.leadForm.time_of_birth  || profile.time_of_birth,
-      question:       this.leadForm.question       || this.userQuestion,
-      consent:        this.leadForm.consent,
+      name:               this.leadForm.name           || profile.full_name,
+      alias_name:         this.leadForm.alias_name     || profile.alias_name,
+      email:              this.leadForm.email,
+      phone:              this.leadForm.phone,
+      dob:                this.leadForm.dob            || profile.date_of_birth,
+      place_of_birth:     this.leadForm.place_of_birth || profile.place_of_birth,
+      time_of_birth:      this.leadForm.time_of_birth  || profile.time_of_birth,
+      question:           this.leadForm.question       || this.userQuestion,
+      consent:            this.leadForm.consent,
+      preferred_language: this.leadForm.preferred_language || 'en',
     };
 
     this.leadSubmitting.set(true);
@@ -2287,6 +2362,7 @@ export class IntakePage {
       const res: any = await firstValueFrom(this.http.post(`${BACKEND}/leads`, payload));
       this.leadId.set(res.lead_id);
       this.leadStatus.set('submitted');
+      this.leadPreferredLanguage.set(this.leadForm.preferred_language || 'en');
       this.showLeadForm.set(false);
       this.leadSubmitted.set(true);
       this.startAutoPoll();

@@ -109,6 +109,10 @@ def send_otp_email(to_email: str, to_name: str, code: str) -> bool:
         logger.warning(
             "[EMAIL] SMTP not configured — OTP for %s: %s (log only)", to_email, code
         )
+        # Print to stdout so developers can see the code without SMTP
+        print(f"\n{'='*50}")
+        print(f"  OTP CODE for {to_email}: {code}")
+        print(f"{'='*50}\n", flush=True)
         return False
 
     html = f"""
