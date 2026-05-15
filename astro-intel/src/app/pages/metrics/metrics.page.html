@@ -394,7 +394,7 @@
         <span class="section-badge">Reliability · Coverage · Throughput</span>
       </div>
       <div class="kpi-row">
-        <div class="kpi-card" [class.kpi-warn]="metrics().error_rate.rate_pct > 10">
+        <div class="kpi-card" [class.kpi-warn]="metrics().error_rate.rate_pct > (metrics().thresholds?.error_rate_warn_pct ?? 10)">
           <div class="kpi-label">Error Rate</div>
           <div class="kpi-value">{{ metrics().error_rate.rate_pct }}%</div>
           <div class="kpi-note">{{ metrics().error_rate.total_error_runs }} error run(s) of {{ metrics().total_runs }}</div>
@@ -716,38 +716,56 @@
             <div class="gr-status-dot dot-active" title="Active"></div>
           </div>
           <div class="gr-card-desc">4-level cascade repair for malformed LLM output</div>
+          @if (grData()?.json_repair) {
+            <div class="gr-g3-stats">
+              <div class="gr-g3-stat">
+                <div class="gr-metric-val gr-metric-good">{{ grData().json_repair.total_calls }}</div>
+                <div class="gr-metric-lbl">Total Calls</div>
+              </div>
+              <div class="gr-g3-stat">
+                <div class="gr-metric-val gr-metric-good">{{ grData().json_repair.direct_pct }}%</div>
+                <div class="gr-metric-lbl">Direct Parse</div>
+              </div>
+              <div class="gr-g3-stat">
+                <div class="gr-metric-val" [class.gr-metric-blocked]="(grData().json_repair.failure_pct ?? 0) > 0">
+                  {{ grData().json_repair.failure_pct }}%
+                </div>
+                <div class="gr-metric-lbl">Failed</div>
+              </div>
+            </div>
+          }
           <div class="gr-repair-levels">
-            <div class="gr-level">
+            <div class="gr-level" [class.gr-level-active]="(grData()?.json_repair?.direct_pct ?? 0) > 0">
               <div class="gr-level-num">1</div>
               <div class="gr-level-info">
                 <div class="gr-level-name">Direct Parse</div>
                 <div class="gr-level-desc">json.loads() — clean output, no repair</div>
               </div>
-              <div class="gr-level-pill pill-fast">Always first</div>
+              <div class="gr-level-pill pill-fast">{{ grData()?.json_repair?.direct ?? '—' }} calls</div>
             </div>
-            <div class="gr-level">
+            <div class="gr-level" [class.gr-level-active]="(grData()?.json_repair?.fence_strip ?? 0) > 0">
               <div class="gr-level-num">2</div>
               <div class="gr-level-info">
                 <div class="gr-level-name">Fence Strip</div>
                 <div class="gr-level-desc">Remove ```json ... ``` markdown wrapping</div>
               </div>
-              <div class="gr-level-pill pill-ok">Auto-repair</div>
+              <div class="gr-level-pill pill-ok">{{ grData()?.json_repair?.fence_strip ?? '—' }} repairs</div>
             </div>
-            <div class="gr-level">
+            <div class="gr-level" [class.gr-level-active]="(grData()?.json_repair?.regex_extract ?? 0) > 0">
               <div class="gr-level-num">3</div>
               <div class="gr-level-info">
                 <div class="gr-level-name">Regex Extract</div>
                 <div class="gr-level-desc">Find &#123;...&#125; block buried in prose</div>
               </div>
-              <div class="gr-level-pill pill-ok">Auto-repair</div>
+              <div class="gr-level-pill pill-ok">{{ grData()?.json_repair?.regex_extract ?? '—' }} repairs</div>
             </div>
-            <div class="gr-level">
+            <div class="gr-level" [class.gr-level-active]="(grData()?.json_repair?.llm_repair ?? 0) > 0">
               <div class="gr-level-num">4</div>
               <div class="gr-level-info">
                 <div class="gr-level-name">LLM Repair Call</div>
                 <div class="gr-level-desc">Send back to LLM with fix-JSON prompt</div>
               </div>
-              <div class="gr-level-pill pill-llm">LLM fallback</div>
+              <div class="gr-level-pill pill-llm">{{ grData()?.json_repair?.llm_repair ?? '—' }} repairs</div>
             </div>
           </div>
           <div class="gr-repair-stat">
@@ -765,6 +783,24 @@
             <div class="gr-status-dot dot-active" title="Active"></div>
           </div>
           <div class="gr-card-desc">Block raw birth data echoed in AI insights</div>
+          @if (grData()?.pii_filter) {
+            <div class="gr-g3-stats">
+              <div class="gr-g3-stat">
+                <div class="gr-metric-val">{{ grData().pii_filter.total_insights_checked }}</div>
+                <div class="gr-metric-lbl">Insights Checked</div>
+              </div>
+              <div class="gr-g3-stat">
+                <div class="gr-metric-val" [class.gr-metric-blocked]="(grData().pii_filter.total_scrubbed ?? 0) > 0">
+                  {{ grData().pii_filter.total_scrubbed }}
+                </div>
+                <div class="gr-metric-lbl">PII Scrubbed</div>
+              </div>
+              <div class="gr-g3-stat">
+                <div class="gr-metric-val gr-metric-good">{{ grData().pii_filter.scrub_pct }}%</div>
+                <div class="gr-metric-lbl">Scrub Rate</div>
+              </div>
+            </div>
+          }
           <div class="gr-pii-fields">
             <div class="gr-pii-row">
               <span class="gr-pii-icon">📅</span>

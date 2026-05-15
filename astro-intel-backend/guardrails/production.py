@@ -236,6 +236,35 @@ llm_circuit_breaker = CircuitBreaker(
 # Resolves ~90% of format errors without human intervention.
 # ══════════════════════════════════════════════════════════════════════════════
 
+class _G3Stats:
+    """Thread-safe counters for G3 JSON repair cascade."""
+    def __init__(self) -> None:
+        self.total_calls   = 0
+        self.direct        = 0   # parsed cleanly on first try
+        self.fence_strip   = 0   # needed fence removal
+        self.regex_extract = 0   # needed regex extraction
+        self.llm_repair    = 0   # needed LLM repair call
+        self.failure       = 0   # all levels failed
+
+    def stats(self) -> Dict[str, Any]:
+        t = self.total_calls or 1  # avoid division by zero
+        return {
+            "total_calls":       self.total_calls,
+            "direct":            self.direct,
+            "fence_strip":       self.fence_strip,
+            "regex_extract":     self.regex_extract,
+            "llm_repair":        self.llm_repair,
+            "failure":           self.failure,
+            "direct_pct":        round(self.direct / t * 100, 1),
+            "fence_pct":         round(self.fence_strip / t * 100, 1),
+            "regex_pct":         round(self.regex_extract / t * 100, 1),
+            "llm_repair_pct":    round(self.llm_repair / t * 100, 1),
+            "failure_pct":       round(self.failure / t * 100, 1),
+        }
+
+_g3_stats = _G3Stats()
+
+
 def repair_json(
     raw_response: str,
     schema_hint: str = "",
@@ -253,10 +282,14 @@ def repair_json(
       (parsed_dict, True)   — repaired successfully
       (None, True)          — repair attempted but failed
     """
+    _g3_stats.total_calls += 1
+
     # Attempt 1: direct parse
     raw = raw_response.strip()
     try:
-        return json.loads(raw), False
+        result = json.loads(raw)
+        _g3_stats.direct += 1
+        return result, False
     except json.JSONDecodeError:
         pass
 
@@ -264,7 +297,9 @@ def repair_json(
     fenced = re.sub(r"^```(?:json)?\s*", "", raw, flags=re.MULTILINE)
     fenced = re.sub(r"\s*```$", "", fenced, flags=re.MULTILINE).strip()
     try:
-        return json.loads(fenced), True
+        result = json.loads(fenced)
+        _g3_stats.fence_strip += 1
+        return result, True
     except json.JSONDecodeError:
         pass
 
@@ -272,7 +307,9 @@ def repair_json(
     m = re.search(r"(\{.*\}|\[.*\])", raw, re.DOTALL)
     if m:
         try:
-            return json.loads(m.group(1)), True
+            result = json.loads(m.group(1))
+            _g3_stats.regex_extract += 1
+            return result, True
         except json.JSONDecodeError:
             pass
 
@@ -294,11 +331,13 @@ def repair_json(
             repaired_raw = re.sub(r"^```(?:json)?\s*", "", repaired_raw, flags=re.MULTILINE)
             repaired_raw = re.sub(r"\s*```$", "", repaired_raw, flags=re.MULTILINE).strip()
             result = json.loads(repaired_raw)
+            _g3_stats.llm_repair += 1
             logger.info("[JSONRepair] Successfully repaired malformed LLM output via LLM call.")
             return result, True
         except Exception as exc:
             logger.error("[JSONRepair] LLM repair also failed: %s", exc)
 
+    _g3_stats.failure += 1
     logger.error("[JSONRepair] All repair attempts failed for output: %s...", raw[:200])
     return None, True
 
@@ -309,6 +348,10 @@ def repair_json(
 # Patterns: exact DOB, exact time of birth, exact coordinates.
 # If PII detected → scrub or block the insight before returning to user.
 # ══════════════════════════════════════════════════════════════════════════════
+
+# G4 output PII tracking counters
+_g4_total_checked  = 0
+_g4_total_scrubbed = 0   # insights that had PII removed
 
 # Patterns that indicate raw PII being echoed back
 _PII_PATTERNS = [
@@ -366,6 +409,7 @@ def filter_pii_from_admin_review(
     Walk the full admin_review structure and scrub PII from all insight content fields.
     Returns (scrubbed_admin_review, count_of_scrubbed_insights).
     """
+    global _g4_total_checked, _g4_total_scrubbed
     import copy
     result       = copy.deepcopy(admin_review)
     scrub_count  = 0
@@ -373,15 +417,27 @@ def filter_pii_from_admin_review(
     for q in result.get("questions", []):
         for insight in q.get("insights", []):
             original = insight.get("content", "")
+            _g4_total_checked += 1
             cleaned, found = filter_pii_from_insight(original, user_profile)
             if found:
                 insight["content"] = cleaned
                 scrub_count += 1
+                _g4_total_scrubbed += 1
 
     if scrub_count:
         logger.info("[PIIFilter] Scrubbed PII from %d insight(s).", scrub_count)
 
     return result, scrub_count
+
+
+def g4_stats() -> Dict[str, Any]:
+    return {
+        "total_insights_checked": _g4_total_checked,
+        "total_scrubbed":         _g4_total_scrubbed,
+        "scrub_pct": round(_g4_total_scrubbed / (_g4_total_checked or 1) * 100, 1),
+        "protected_fields":       ["date_of_birth", "time_of_birth", "place_of_birth", "pincode"],
+        "pattern_types":          ["YYYY-MM-DD", "HH:MM AM/PM", "DD/MM/YYYY", "lat=", "lon="],
+    }
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -567,5 +623,7 @@ def all_guardrail_stats() -> Dict[str, Any]:
     return {
         "rate_limiter":        rate_limiter.stats(),
         "circuit_breaker":     llm_circuit_breaker.stats(),
+        "json_repair":         _g3_stats.stats(),
+        "pii_filter":          g4_stats(),
         "graceful_degradation": degradation_tracker.stats(),
     }

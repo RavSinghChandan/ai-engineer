@@ -615,3 +615,8 @@
 .ex-chip-green  { background: rgba(16,185,129,.1); color: #065f46; border: 1px solid rgba(16,185,129,.2); }
 .ex-chip-amber  { background: rgba(245,158,11,.1); color: #92400e; border: 1px solid rgba(245,158,11,.2); }
 .ex-chip-red    { background: rgba(239,68,68,.1);  color: #991b1b; border: 1px solid rgba(239,68,68,.2); }
+
+/* G3 / G4 live stats row */
+.gr-g3-stats { display: flex; gap: 12px; margin-bottom: 10px; }
+.gr-g3-stat  { flex: 1; text-align: center; background: #f9fafb; border-radius: 8px; padding: 6px 4px; }
+.gr-level-active { background: rgba(16,185,129,.06); border-radius: 6px; }

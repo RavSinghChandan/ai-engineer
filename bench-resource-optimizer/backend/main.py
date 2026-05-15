@@ -306,6 +306,11 @@ def get_metrics():
     dashboard["prompts"]      = list_prompts()
     dashboard["ragas"]        = get_ragas_store().dashboard()
     dashboard["guardrails"]   = all_guardrail_stats()
+    dashboard["thresholds"]   = {
+        "error_rate_warn_pct":   5,     # KPI card turns red above this
+        "cache_hit_rate_good_pct": 30,  # KPI card turns green at or above this
+        "latency_slow_ms":       5000,  # p95 bar flagged slow above this
+    }
     return dashboard
 
 

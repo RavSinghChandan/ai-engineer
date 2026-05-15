@@ -1,6 +1,7 @@
 import { Component, signal, computed, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { StateService } from '../../services/state.service';
 
 // ─── Graph topology (matches the AstroIntel-style architecture diagram) ───────
 
@@ -125,13 +126,16 @@ const EXEC_SEQUENCE = [
   ['output'],
 ];
 
-// Which real API to call per sequence step
-const API_CALLS: { step: number; method: string; path: string; body: any }[] = [
-  { step: 2, method: 'GET',  path: '/health', body: null },
-  { step: 3, method: 'GET',  path: '/roles',  body: null },
-  { step: 4, method: 'POST', path: '/map-role', body: { user_id: 'demo-user-001', target_role: 'Java Backend Developer' } },
-  { step: 5, method: 'POST', path: '/generate-plan', body: { user_id: 'demo-user-001', target_role: 'Java Backend Developer', missing_skills: ['Docker', 'Kubernetes'], num_days: 3 } },
-  { step: 7, method: 'GET',  path: '/progress/demo-user-001', body: null },
+// Base API call templates — user_id and role resolved dynamically at run time
+const API_CALL_TEMPLATES: { step: number; method: string; path: string; bodyFn: (uid: string, role: string, skills: string[]) => any }[] = [
+  { step: 2, method: 'GET',  path: '/health',  bodyFn: () => null },
+  { step: 3, method: 'GET',  path: '/roles',   bodyFn: () => null },
+  { step: 4, method: 'POST', path: '/map-role',
+    bodyFn: (uid, role) => ({ user_id: uid, target_role: role }) },
+  { step: 5, method: 'POST', path: '/generate-plan',
+    bodyFn: (uid, role, skills) => ({ user_id: uid, target_role: role, missing_skills: skills, num_days: 3 }) },
+  { step: 7, method: 'GET',  path: '',
+    bodyFn: (uid) => null,  /* path set dynamically: /progress/{uid} */ },
 ];
 
 @Component({
@@ -711,6 +715,31 @@ export class AgentGraphComponent implements OnDestroy {
 
   private timers: any[] = [];
 
+  constructor(private http: HttpClient, private state: StateService) {}
+
+  /** Resolve demo user_id / role / skills from live session state, falling back to sensible defaults */
+  private get _demoUserId(): string {
+    return this.state.userId ?? 'demo-user-001';
+  }
+  private get _demoRole(): string {
+    return this.state.mapping?.role ?? 'Java Backend Developer';
+  }
+  private get _demoSkills(): string[] {
+    return this.state.mapping?.missing_skills?.slice(0, 3) ?? ['Docker', 'Kubernetes', 'Spring Boot'];
+  }
+
+  private _resolvedApiCalls(): { step: number; method: string; path: string; body: any }[] {
+    const uid    = this._demoUserId;
+    const role   = this._demoRole;
+    const skills = this._demoSkills;
+    return API_CALL_TEMPLATES.map(t => ({
+      step:   t.step,
+      method: t.method,
+      path:   t.step === 7 ? `/progress/${uid}` : t.path,
+      body:   t.bodyFn(uid, role, skills),
+    }));
+  }
+
   statusLabel = computed(() => {
     if (!this.running() && this.doneIds().size === 0) return 'Ready';
     if (this.running()) return `Step ${this.stepIdx() + 1} / ${EXEC_SEQUENCE.length}`;
@@ -746,8 +775,8 @@ export class AgentGraphComponent implements OnDestroy {
     // Activate this group
     this.activeIds.update(s => { const n = new Set(s); group.forEach(id => n.add(id)); return n; });
 
-    // Trigger any API call for this step
-    const apiCall = API_CALLS.find(a => a.step === idx);
+    // Trigger any API call for this step (resolved dynamically from live session state)
+    const apiCall = this._resolvedApiCalls().find(a => a.step === idx);
     if (apiCall) this.fetchApi(apiCall, group);
 
     const t = setTimeout(() => {
@@ -760,7 +789,7 @@ export class AgentGraphComponent implements OnDestroy {
   }
 
   private fetchApi(call: { method: string; path: string; body: any }, group: string[]) {
-    const base = 'http://localhost:8080';
+    const base = '/api';
     const obs = call.method === 'GET'
       ? this.http.get(`${base}${call.path}`)
       : this.http.post(`${base}${call.path}`, call.body);
@@ -809,8 +838,6 @@ export class AgentGraphComponent implements OnDestroy {
     };
     return map[id] ?? '';
   }
-
-  constructor(private http: HttpClient) {}
 
   ngOnDestroy() { this.reset(); }
 }

@@ -43,12 +43,12 @@ import { ApiService } from '../../services/api.service';
           <div class="kpi-sub">{{ m.throughput?.requests_last_60s ?? 0 }} in last 60s</div>
         </div>
 
-        <div class="kpi-card" [class.kpi-warn]="(m.error_rate?.rate_pct ?? 0) > 5">
+        <div class="kpi-card" [class.kpi-warn]="(m.error_rate?.rate_pct ?? 0) > (m.thresholds?.error_rate_warn_pct ?? 5)">
           <div class="kpi-top">
             <span class="kpi-icon">⚠️</span>
             <span class="kpi-why" title="Error rate above 5% means the LLM or RAG pipeline is failing. Senior AI engineers set alerts at 2% for prod. 0% = healthy.">?</span>
           </div>
-          <div class="kpi-value" [style.color]="(m.error_rate?.rate_pct ?? 0) > 5 ? 'var(--danger)' : 'var(--success)'">
+          <div class="kpi-value" [style.color]="(m.error_rate?.rate_pct ?? 0) > (m.thresholds?.error_rate_warn_pct ?? 5) ? 'var(--danger)' : 'var(--success)'">
             {{ (m.error_rate?.rate_pct ?? 0).toFixed(1) }}%
           </div>
           <div class="kpi-label">Error Rate</div>
@@ -65,12 +65,12 @@ import { ApiService } from '../../services/api.service';
           <div class="kpi-sub">P95: {{ (m.latency?.p95_ms ?? 0).toFixed(0) }}ms · P99: {{ (m.latency?.p99_ms ?? 0).toFixed(0) }}ms</div>
         </div>
 
-        <div class="kpi-card" [class.kpi-good]="(m.cache?.hit_rate_pct ?? 0) >= 30">
+        <div class="kpi-card" [class.kpi-good]="(m.cache?.hit_rate_pct ?? 0) >= (m.thresholds?.cache_hit_rate_good_pct ?? 30)">
           <div class="kpi-top">
             <span class="kpi-icon">🎯</span>
             <span class="kpi-why" title="Cache hit = no LLM call needed = instant response + zero cost. Target >30% for repeat role mappings. Every cache hit saves ~6s and ~$0.0001.">?</span>
           </div>
-          <div class="kpi-value" [style.color]="(m.cache?.hit_rate_pct ?? 0) >= 30 ? 'var(--success)' : 'var(--text)'">
+          <div class="kpi-value" [style.color]="(m.cache?.hit_rate_pct ?? 0) >= (m.thresholds?.cache_hit_rate_good_pct ?? 30) ? 'var(--success)' : 'var(--text)'">
             {{ (m.cache?.hit_rate_pct ?? 0).toFixed(1) }}%
           </div>
           <div class="kpi-label">Cache Hit Rate</div>
@@ -128,7 +128,7 @@ import { ApiService } from '../../services/api.service';
                 <div class="bar-track">
                   <div class="bar-fill bar-p95" [style.width.%]="barPct(ep.p95_ms)"></div>
                 </div>
-                <span class="bar-val" [class.val-slow]="ep.p95_ms > 5000">{{ ep.p95_ms.toFixed(0) }}ms</span>
+                <span class="bar-val" [class.val-slow]="ep.p95_ms > (m.thresholds?.latency_slow_ms ?? 5000)">{{ ep.p95_ms.toFixed(0) }}ms</span>
               </div>
             </div>
             <div class="ep-err" *ngIf="ep.error_rate > 0">
@@ -457,7 +457,7 @@ import { ApiService } from '../../services/api.service';
             <span class="req-status" [class.status-ok]="r.status === 200" [class.status-err]="r.status !== 200">
               {{ r.status }}
             </span>
-            <span class="req-lat" [class.lat-slow]="r.latency_ms > 5000">
+            <span class="req-lat" [class.lat-slow]="r.latency_ms > (m.thresholds?.latency_slow_ms ?? 5000)">
               {{ r.latency_ms?.toFixed(0) }}ms
             </span>
             <span class="req-tok">{{ r.tokens || '—' }}</span>
@@ -572,7 +572,7 @@ import { ApiService } from '../../services/api.service';
               </div>
             </div>
             <div class="gr-cascade-steps">
-              <div class="gr-step" [class.gr-step-active]="(gr.g3_json_repair?.direct_pct ?? 100) === 100">① Direct Parse</div>
+              <div class="gr-step" [class.gr-step-active]="(gr.g3_json_repair?.direct_pct ?? 0) > 0">① Direct Parse</div>
               <div class="gr-step-arrow">↓</div>
               <div class="gr-step" [class.gr-step-active]="(gr.g3_json_repair?.fence_pct ?? 0) > 0">② Fence Strip</div>
               <div class="gr-step-arrow">↓</div>
