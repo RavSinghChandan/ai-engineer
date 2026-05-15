@@ -15,3 +15,10 @@ export const adminGuard: CanActivateFn = () => {
   if (auth.isLoggedIn() && auth.isAdmin()) return true;
   return router.createUrlTree([auth.isLoggedIn() ? '/' : '/login']);
 };
+
+export const superadminGuard: CanActivateFn = () => {
+  const auth   = inject(AuthService);
+  const router = inject(Router);
+  if (auth.isLoggedIn() && auth.isSuperAdmin()) return true;
+  return router.createUrlTree([auth.isLoggedIn() ? '/' : '/login']);
+};

@@ -6,6 +6,7 @@ import { OrchestratorService } from '../../services/orchestrator.service';
 import { ApiService, LanguageOption } from '../../services/api.service';
 import { AdminInsight, AdminQuestion } from '../../models/astro.models';
 import { firstValueFrom } from 'rxjs';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-review',
@@ -40,13 +41,15 @@ import { firstValueFrom } from 'rxjs';
         </div>
         <span class="progress-label">{{ approvedCount() }}/{{ totalInsightCount() }}</span>
       </div>
-      <button class="btn-outline-green" (click)="approveAll()">Approve All</button>
+      @if (auth.isAdmin()) {
+        <button class="btn-outline-green" (click)="approveAll()">Approve All</button>
+      }
       @if (!reportGenerated()) {
         @if (generateError()) {
           <span class="generate-err">⚠ {{ generateError() }}</span>
         }
-        <button class="btn-primary" [disabled]="approvedCount() === 0 || generating()" (click)="generate()"
-                [title]="approvedCount() === 0 ? 'Approve at least one insight first' : ''">
+        <button class="btn-primary" [disabled]="(!auth.isAdmin() && approvedCount() === 0) || generating()" (click)="generate()"
+                [title]="approvedCount() === 0 && auth.isAdmin() ? 'Approve at least one insight first' : ''">
           @if (generating()) {
             <span class="btn-spinner"></span> Generating…
           } @else {
@@ -184,20 +187,24 @@ import { firstValueFrom } from 'rxjs';
                   </div>
 
                   <div class="insight-actions">
-                    <button class="act-btn act-edit" (click)="toggleEdit(ins.id)">
-                      {{ editingId() === ins.id ? '✓ Save' : 'Edit' }}
-                    </button>
-                    <button class="act-btn act-reject"
-                            [class.act-reject-on]="rejectedIds().has(ins.id)"
-                            (click)="toggleReject(ins.id)">Reject</button>
-                    <button class="act-btn act-approve"
-                            [class.act-approve-on]="approvedIds().has(ins.id)"
-                            (click)="toggleApprove(ins.id)">
-                      @if (approvedIds().has(ins.id)) {
-                        <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 5.5l2.5 2.5L9 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                      }
-                      Approve
-                    </button>
+                    @if (auth.isAdmin()) {
+                      <button class="act-btn act-edit" (click)="toggleEdit(ins.id)">
+                        {{ editingId() === ins.id ? '✓ Save' : 'Edit' }}
+                      </button>
+                      <button class="act-btn act-reject"
+                              [class.act-reject-on]="rejectedIds().has(ins.id)"
+                              (click)="toggleReject(ins.id)">Reject</button>
+                      <button class="act-btn act-approve"
+                              [class.act-approve-on]="approvedIds().has(ins.id)"
+                              (click)="toggleApprove(ins.id)">
+                        @if (approvedIds().has(ins.id)) {
+                          <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 5.5l2.5 2.5L9 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        }
+                        Approve
+                      </button>
+                    } @else {
+                      <span class="read-only-tag">Read Only</span>
+                    }
                   </div>
                 </div>
 
@@ -813,6 +820,7 @@ import { firstValueFrom } from 'rxjs';
 }
 .act-approve:hover { background: rgba(34,197,94,0.06); }
 .act-approve-on { background: #22c55e !important; color: #fff !important; border-color: #22c55e !important; }
+.read-only-tag { font-size: 10px; color: #9ca3af; border: 1px solid #e5e7eb; border-radius: 4px; padding: 2px 8px; background: #f9fafb; }
 
 .ins-text {
   font-size: 14px; color: #374151; line-height: 1.85; margin: 0;
@@ -1084,6 +1092,7 @@ export class ReviewPage {
   private router = inject(Router);
   private api    = inject(ApiService);
   readonly orch  = inject(OrchestratorService);
+  readonly auth  = inject(AuthService);
 
   readonly activeTab   = signal<'review'|'translate'|'raw'|'log'|'astrology'>('review');
   readonly editingId   = signal<string|null>(null);

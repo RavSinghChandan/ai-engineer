@@ -33,6 +33,8 @@ export class OrchestratorService {
   readonly backendMode         = signal<'backend' | 'local'>('backend');
   readonly backendError        = signal<string>('');
   readonly cacheHit            = signal(false);
+  // tracks how many analyses this session has completed (used for USER free tier logic)
+  readonly runCount            = signal<number>(0);
 
   readonly progress = computed(() => {
     const s = this.steps();
@@ -136,6 +138,7 @@ export class OrchestratorService {
 
     this.isRunning.set(false);
     this.isDone.set(true);
+    this.runCount.update(n => n + 1);
   }
 
   // ── Approve ────────────────────────────────────────────────────────────────

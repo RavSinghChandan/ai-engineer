@@ -8,14 +8,17 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from routers import analysis_router, geocode_router, metrics_router
 from auth.router import router as auth_router
+from leads.router import router as leads_router
 from auth.dependencies import require_role, get_tenant_ctx
 from auth.models import Role, TenantContext
 import auth.store as auth_store
+import leads.store as leads_store
 import cache as response_cache
 from guardrails.production import all_guardrail_stats
 
-# ── Bootstrap auth store from disk ───────────────────────────────────────────
+# ── Bootstrap stores from disk ───────────────────────────────────────────────
 auth_store.load()
+leads_store.load()
 
 # ── App factory ──────────────────────────────────────────────────────────────
 app = FastAPI(
@@ -47,6 +50,7 @@ app.add_middleware(
 
 # ── Routers ──────────────────────────────────────────────────────────────────
 app.include_router(auth_router)          # /auth/token, /admin/*
+app.include_router(leads_router)         # /leads, /admin/leads
 app.include_router(analysis_router)      # /api/v1/analysis/* — auth wired per-endpoint
 app.include_router(geocode_router)
 app.include_router(metrics_router)       # /api/v1/metrics — ADMIN+

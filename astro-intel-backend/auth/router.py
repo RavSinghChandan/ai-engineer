@@ -223,6 +223,61 @@ async def my_keys(ctx: TenantContext = Depends(require_role(Role.ADMIN))):
     ]
 
 
+# ── SUPERADMIN tenant management ─────────────────────────────────────────────
+
+@router.patch("/admin/tenants/{tenant_id}/lock")
+async def lock_tenant(
+    tenant_id: str,
+    ctx: TenantContext = Depends(require_role(Role.SUPERADMIN)),
+):
+    """Disable a tenant — all their keys stop working immediately."""
+    ok = store.set_tenant_active(tenant_id, False)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Tenant not found.")
+    return {"tenant_id": tenant_id, "status": "locked"}
+
+
+@router.patch("/admin/tenants/{tenant_id}/unlock")
+async def unlock_tenant(
+    tenant_id: str,
+    ctx: TenantContext = Depends(require_role(Role.SUPERADMIN)),
+):
+    """Re-enable a previously locked tenant."""
+    ok = store.set_tenant_active(tenant_id, True)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Tenant not found.")
+    return {"tenant_id": tenant_id, "status": "unlocked"}
+
+
+@router.delete("/admin/tenants/{tenant_id}")
+async def delete_tenant(
+    tenant_id: str,
+    ctx: TenantContext = Depends(require_role(Role.SUPERADMIN)),
+):
+    """Permanently delete a tenant and all their API keys."""
+    ok = store.delete_tenant(tenant_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Tenant not found.")
+    return {"tenant_id": tenant_id, "status": "deleted"}
+
+
+@router.get("/admin/all-keys", response_model=List[KeyOut])
+async def all_keys(
+    ctx: TenantContext = Depends(require_role(Role.SUPERADMIN)),
+):
+    """SUPERADMIN: list every API key across all tenants."""
+    return [
+        KeyOut(
+            key         = k.key,
+            tenant_id   = k.tenant_id,
+            role        = k.role.value,
+            description = k.description,
+            is_active   = k.is_active,
+        )
+        for k in store.list_all_keys()
+    ]
+
+
 # ── GET /auth/me — who am I? (any authenticated user) ────────────────────────
 
 @router.get("/auth/me")

@@ -2,11 +2,15 @@ import { Component, inject, signal, computed, ViewChild, ElementRef, HostListene
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { OrchestratorService } from '../../services/orchestrator.service';
 import { GeocodeService } from '../../services/geocode.service';
 import { Module, SystemInput } from '../../models/astro.models';
 import { AgentFlowComponent } from '../../components/agent-flow/agent-flow.component';
 import { AuthService } from '../../services/auth.service';
+import { firstValueFrom } from 'rxjs';
+
+const BACKEND = 'http://localhost:8080';
 
 const ALL_MODULES: { id: Module; label: string; icon: string; desc: string; glyph: string }[] = [
   { id: 'astrology',  label: 'Vedic Astrology', icon: '🪐', glyph: '♈', desc: 'Lagna · Planets · Dasha · Doshas' },
@@ -177,12 +181,23 @@ function validateProfile(p: {
           Metrics
         </button>
       }
+      @if (auth.isAdmin()) {
+        <button class="metrics-btn leads-btn" (click)="router.navigate(['/admin/users'])" title="View Leads & Users">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="5" cy="4.5" r="2.5" stroke="currentColor" stroke-width="1.3"/><path d="M1 12c0-2.2 1.8-4 4-4s4 1.8 4 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M10 7l1.5 1.5L13.5 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Leads
+          @if (newLeadCount() > 0) {
+            <span class="lead-count-badge">{{ newLeadCount() }}</span>
+          }
+        </button>
+      }
       <img src="rav-photo.png" alt="Rav Singh" class="hdr-avatar"/>
       <div class="hdr-user-text">
         <span class="hdr-uname">{{ auth.tenantName() || 'Rav Singh' }}</span>
-        <span class="hdr-urole">
-          <span class="hdr-role-badge" [class]="auth.role()">{{ auth.role() | uppercase }}</span>
-        </span>
+        @if (auth.isAdmin()) {
+          <span class="hdr-urole">
+            <span class="hdr-role-badge" [class]="auth.role()">{{ auth.role() | uppercase }}</span>
+          </span>
+        }
       </div>
       <button class="signout-btn" (click)="auth.logout()" title="Sign Out">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -441,7 +456,7 @@ function validateProfile(p: {
             </div>
           }
 
-          @if (orch.focusContext()['intent']) {
+          @if (auth.isAdmin() && orch.focusContext()['intent']) {
             <div class="focus-chip">
               <span class="focus-chip-dot"></span>
               Focus: <strong>{{ orch.focusContext()['intent'] | titlecase }}</strong>
@@ -619,7 +634,7 @@ function validateProfile(p: {
               </div>
               <button class="cta cta-review" (click)="goReview()">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="12" height="12" rx="2.5" stroke="currentColor" stroke-width="1.4"/><path d="M4 5h6M4 8h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-                View Analysis
+                {{ auth.isAdmin() ? 'Review &amp; Edit' : 'Download PDF Report' }}
               </button>
               <button class="cta-rerun" (click)="rerun()">
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10 6A4 4 0 1 1 8.5 2.5M10 1v3H7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -704,7 +719,7 @@ function validateProfile(p: {
           <div class="prog-fill" [style.width.%]="orch.progress()"></div>
         </div>
         <span class="prog-pct">{{ orch.progress() }}%</span>
-        @if (orch.sessionId()) {
+        @if (auth.isAdmin() && orch.sessionId()) {
           <div class="alert-ok">🔑 Session {{ orch.sessionId() }} · Focus: <strong>{{ orch.focusContext()['intent'] | titlecase }}</strong></div>
         }
         @if (orch.isDone()) {
@@ -713,7 +728,9 @@ function validateProfile(p: {
               <span class="cache-hit-badge">⚡ Response served from cache</span>
             }
             <span class="done-msg">✦ Reading complete</span>
-            <button class="done-btn" (click)="goReview()">Open Review →</button>
+            <button class="done-btn" (click)="goReview()">
+              {{ auth.isAdmin() ? 'Open Review →' : 'Get My PDF Report →' }}
+            </button>
           </div>
         }
       </div>
@@ -730,6 +747,172 @@ function validateProfile(p: {
   }
 
   <!-- ══ FOOTER ══ -->
+<!-- ══ LEAD FORM MODAL (USER 2nd run+) ══════════════════════════════════════ -->
+@if (showLeadForm() && !leadSubmitted()) {
+  <div class="lead-overlay">
+    <div class="lead-card">
+      <div class="lead-card-header">
+        <div class="lead-star-badge">✦</div>
+        <h2 class="lead-title">Continue Your Spiritual Journey</h2>
+        <p class="lead-subtitle">
+          Your chart details are ready. Our expert astrologer will personally review your reading
+          and prepare a deep, customised report just for you.
+        </p>
+      </div>
+
+      @if (leadError()) {
+        <div class="lead-error">⚠ {{ leadError() }}</div>
+      }
+
+      <div class="lead-form">
+        <div class="lead-field-row">
+          <div class="lead-field">
+            <label class="lead-label">Full Name *</label>
+            <input class="lead-input" type="text" [value]="leadForm.name"
+              (input)="leadForm.name = $any($event.target).value"
+              placeholder="Your full name"/>
+          </div>
+          <div class="lead-field">
+            <label class="lead-label">Date of Birth</label>
+            <input class="lead-input" type="date" [value]="leadForm.dob"
+              (input)="leadForm.dob = $any($event.target).value"/>
+          </div>
+        </div>
+        <div class="lead-field-row">
+          <div class="lead-field">
+            <label class="lead-label">Email Address *</label>
+            <input class="lead-input" type="email" [value]="leadForm.email"
+              (input)="leadForm.email = $any($event.target).value"
+              placeholder="you@example.com"/>
+          </div>
+          <div class="lead-field">
+            <label class="lead-label">Mobile Number</label>
+            <input class="lead-input" type="tel" [value]="leadForm.phone"
+              (input)="leadForm.phone = $any($event.target).value"
+              placeholder="+91 98765 43210"/>
+          </div>
+        </div>
+        <label class="lead-consent">
+          <input type="checkbox" [checked]="leadForm.consent"
+            (change)="leadForm.consent = $any($event.target).checked"/>
+          <span>I agree to share my birth details with the expert astrologer for a personalised reading</span>
+        </label>
+      </div>
+
+      <div class="lead-actions">
+        <button class="lead-submit-btn" [disabled]="leadSubmitting()" (click)="submitLead()">
+          @if (leadSubmitting()) {
+            <span class="lead-spinner"></span> Sending to Expert…
+          } @else {
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M13 7.5L2 2l2.5 5.5L2 13z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+            Send to Expert Astrologer
+          }
+        </button>
+        <button class="lead-cancel-btn" (click)="showLeadForm.set(false)">
+          Cancel
+        </button>
+      </div>
+
+      <p class="lead-privacy">
+        🔒 Your details are kept strictly confidential and used only for your personalised reading.
+      </p>
+    </div>
+  </div>
+}
+
+<!-- ══ LEAD SUBMITTED — 4-step status tracker ═══════════════════════════════ -->
+@if (leadSubmitted()) {
+  <div class="lead-overlay">
+    <div class="lead-card lead-tracker-card">
+      <div class="lead-card-header">
+        <div class="lead-check-badge">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <circle cx="14" cy="14" r="13" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
+            <path d="M8 14l4 4 8-8" stroke="#059669" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h2 class="lead-title">Request Sent to Expert Astrologer</h2>
+        <p class="lead-subtitle">
+          Our astrologer has received your reading request. You'll be contacted shortly on the details you've shared.
+        </p>
+      </div>
+
+      <!-- 4-step tracker -->
+      <div class="tracker-wrap">
+        <div class="tracker-step" [class.tracker-active]="isStepActive('submitted')" [class.tracker-done]="isStepDone('submitted')">
+          <div class="tracker-dot">
+            @if (isStepDone('submitted')) {
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            }
+          </div>
+          <div class="tracker-content">
+            <span class="tracker-label">Request Submitted</span>
+            <span class="tracker-desc">Your birth details & question received</span>
+          </div>
+        </div>
+        <div class="tracker-line" [class.tracker-line-done]="isStepDone('admin_notified')"></div>
+        <div class="tracker-step" [class.tracker-active]="isStepActive('admin_notified')" [class.tracker-done]="isStepDone('admin_notified')">
+          <div class="tracker-dot">
+            @if (isStepDone('admin_notified')) {
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            }
+          </div>
+          <div class="tracker-content">
+            <span class="tracker-label">Astrologer Notified</span>
+            <span class="tracker-desc">Expert has been assigned your request</span>
+          </div>
+        </div>
+        <div class="tracker-line" [class.tracker-line-done]="isStepDone('expert_analysis')"></div>
+        <div class="tracker-step" [class.tracker-active]="isStepActive('expert_analysis')" [class.tracker-done]="isStepDone('expert_analysis')">
+          <div class="tracker-dot">
+            @if (isStepDone('expert_analysis')) {
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            }
+          </div>
+          <div class="tracker-content">
+            <span class="tracker-label">Expert Analysis</span>
+            <span class="tracker-desc">Personalised reading being prepared</span>
+          </div>
+        </div>
+        <div class="tracker-line" [class.tracker-line-done]="isStepDone('report_ready')"></div>
+        <div class="tracker-step" [class.tracker-active]="isStepActive('report_ready')" [class.tracker-done]="isStepDone('report_ready')">
+          <div class="tracker-dot">
+            @if (isStepDone('report_ready')) {
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            }
+          </div>
+          <div class="tracker-content">
+            <span class="tracker-label">Report Ready</span>
+            <span class="tracker-desc">Your personalised report delivered</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tracker-status-msg">
+        @if (leadStatus() === 'submitted') {
+          <span class="status-pill status-pending">⏳ Awaiting expert assignment</span>
+        } @else if (leadStatus() === 'admin_notified') {
+          <span class="status-pill status-active">🔔 Expert notified — reviewing your chart</span>
+        } @else if (leadStatus() === 'expert_analysis') {
+          <span class="status-pill status-active">✦ Expert is preparing your personalised reading</span>
+        } @else if (leadStatus() === 'report_ready') {
+          <span class="status-pill status-done">🎉 Your report is ready! Check your email.</span>
+        }
+      </div>
+
+      <div class="lead-actions">
+        <button class="lead-submit-btn" (click)="pollLeadStatus()">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M11 6.5A4.5 4.5 0 1 1 9 2.8M11 1.5v3H8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Refresh Status
+        </button>
+        <button class="lead-cancel-btn" (click)="leadSubmitted.set(false); rerun()">
+          Start a New Reading
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
   <footer class="ftr">
     <div class="ftr-brand">
       <img src="rav-logo.png" class="ftr-logo" alt=""/>
@@ -788,6 +971,13 @@ function validateProfile(p: {
 .hdr-user { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
 .metrics-btn { display: flex; align-items: center; gap: 5px; background: rgba(99,102,241,.08); border: 1px solid rgba(99,102,241,.22); color: #4338ca; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; white-space: nowrap; }
 .metrics-btn:hover { background: rgba(99,102,241,.15); border-color: rgba(99,102,241,.4); }
+.lead-count-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 16px; height: 16px; padding: 0 4px;
+  background: #ef4444; color: #fff;
+  border-radius: 99px; font-size: 10px; font-weight: 700;
+  line-height: 1;
+}
 .hdr-avatar { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; object-position: top; border: 2.5px solid rgba(99,102,241,0.35); }
 .hdr-user-text { display: flex; flex-direction: column; gap: 2px; text-align: right; }
 .hdr-uname { font-size: 16px; font-weight: 600; color: #1e1b4b; line-height: 1.2; }
@@ -1145,6 +1335,108 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
 }
 .cta-rerun:hover { border-color: #6366f1; color: #4338ca; background: rgba(99,102,241,0.05); }
 
+/* ══ LEAD MODAL OVERLAY ══ */
+.lead-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.lead-card {
+  background: #fff; border-radius: 20px;
+  padding: 36px 40px; width: 100%; max-width: 540px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.22);
+  display: flex; flex-direction: column; gap: 20px;
+  max-height: 90vh; overflow-y: auto;
+}
+.lead-card-header { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.lead-star-badge {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: #fff; font-size: 20px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 16px rgba(99,102,241,0.4);
+}
+.lead-check-badge { display: flex; justify-content: center; }
+.lead-title { font-size: 20px; font-weight: 800; color: #111827; line-height: 1.3; }
+.lead-subtitle { font-size: 13.5px; color: #6b7280; line-height: 1.6; max-width: 400px; }
+.lead-error {
+  background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c;
+  padding: 10px 14px; border-radius: 8px; font-size: 13px;
+}
+.lead-form { display: flex; flex-direction: column; gap: 14px; }
+.lead-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.lead-field { display: flex; flex-direction: column; gap: 5px; }
+.lead-label { font-size: 12px; font-weight: 600; color: #374151; }
+.lead-input {
+  padding: 10px 13px; border: 1.5px solid #e5e7eb; border-radius: 10px;
+  font-size: 13.5px; font-family: inherit; color: #111827; outline: none;
+  transition: border-color .15s; background: #fafafa;
+}
+.lead-input:focus { border-color: #6366f1; background: #fff; }
+.lead-consent {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 12.5px; color: #4b5563; line-height: 1.5; cursor: pointer;
+}
+.lead-consent input[type="checkbox"] { margin-top: 2px; flex-shrink: 0; accent-color: #6366f1; width: 15px; height: 15px; }
+.lead-actions { display: flex; flex-direction: column; gap: 10px; }
+.lead-submit-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 14px 24px; border-radius: 12px; border: none;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: #fff; font-size: 14px; font-weight: 700;
+  cursor: pointer; font-family: inherit;
+  box-shadow: 0 4px 16px rgba(99,102,241,0.4);
+  transition: all .18s;
+}
+.lead-submit-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(99,102,241,0.5); }
+.lead-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.lead-cancel-btn {
+  padding: 10px; border-radius: 10px; border: 1.5px solid #e5e7eb;
+  background: transparent; color: #6b7280; font-size: 13px; font-weight: 500;
+  cursor: pointer; font-family: inherit; transition: all .15s;
+}
+.lead-cancel-btn:hover { border-color: #9ca3af; color: #374151; }
+.lead-privacy { font-size: 11.5px; color: #9ca3af; text-align: center; }
+.lead-spinner {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff;
+  animation: spin 0.8s linear infinite; flex-shrink: 0;
+}
+
+/* ══ 4-STEP TRACKER ══ */
+.lead-tracker-card { max-width: 500px; }
+.tracker-wrap { display: flex; flex-direction: column; gap: 0; }
+.tracker-step { display: flex; align-items: flex-start; gap: 14px; padding: 6px 0; }
+.tracker-dot {
+  width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+  border: 2.5px solid #e5e7eb; background: #f9fafb;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .3s;
+}
+.tracker-step.tracker-done .tracker-dot { background: #059669; border-color: #059669; }
+.tracker-step.tracker-active .tracker-dot { background: #6366f1; border-color: #6366f1; animation: tracker-pulse 1.8s ease-in-out infinite; }
+@keyframes tracker-pulse { 0%,100%{ box-shadow:0 0 0 0 rgba(99,102,241,0.4); } 50%{ box-shadow:0 0 0 6px rgba(99,102,241,0); } }
+.tracker-content { display: flex; flex-direction: column; gap: 2px; padding-top: 4px; }
+.tracker-label { font-size: 13px; font-weight: 700; color: #111827; }
+.tracker-step.tracker-done .tracker-label { color: #059669; }
+.tracker-step.tracker-active .tracker-label { color: #4f46e5; }
+.tracker-desc { font-size: 11.5px; color: #9ca3af; }
+.tracker-line {
+  width: 2px; height: 24px; background: #e5e7eb; margin-left: 13px;
+  transition: background .4s;
+}
+.tracker-line-done { background: #059669; }
+.tracker-status-msg { text-align: center; }
+.status-pill {
+  display: inline-block; padding: 7px 18px; border-radius: 99px;
+  font-size: 12.5px; font-weight: 600;
+}
+.status-pending { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+.status-active  { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.status-done    { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+
 .spinner {
   width: 14px; height: 14px; border-radius: 50%;
   border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff;
@@ -1434,8 +1726,33 @@ export class IntakePage {
   readonly view            = signal<'home'|'pipeline'>('home');
   readonly showGraph       = signal(false);
   readonly promptVersion   = signal<'v1'|'v2'>('v2');
+  readonly showLeadForm    = signal(false);
+  readonly leadSubmitted   = signal(false);
+  readonly leadId          = signal('');
+  readonly leadStatus      = signal('submitted');
+  readonly leadSubmitting  = signal(false);
+  readonly leadError       = signal('');
+  readonly newLeadCount    = signal(0);
 
-  constructor() {}
+  leadForm = { name: '', email: '', phone: '', dob: '', consent: false };
+
+  private http = inject(HttpClient);
+
+  constructor() {
+    // Poll new lead count for admins every 30s
+    if (typeof window !== 'undefined') {
+      this._pollLeadCount();
+      setInterval(() => this._pollLeadCount(), 30000);
+    }
+  }
+
+  private async _pollLeadCount() {
+    if (!this.auth.isAdmin()) return;
+    try {
+      const res: any = await firstValueFrom(this.http.get(`${BACKEND}/admin/leads/count-new`));
+      this.newLeadCount.set(res.count ?? 0);
+    } catch { /* silent — admin may not have loaded yet */ }
+  }
 
   readonly profileSig = signal({
     full_name: '', alias_name: '', date_of_birth: '',
@@ -1642,11 +1959,25 @@ export class IntakePage {
       this.launchError.set('Please select at least one analysis module.'); return;
     }
     this.launchError.set('');
+
+    // USER on 2nd run+ → show lead capture form instead of running AI
+    if (!this.auth.isAdmin() && this.orch.runCount() >= 1) {
+      const profile = this.profileSig();
+      this.leadForm.name  = profile.full_name || '';
+      this.leadForm.dob   = profile.date_of_birth || '';
+      this.leadForm.email = '';
+      this.leadForm.phone = '';
+      this.leadForm.consent = false;
+      this.leadError.set('');
+      this.showLeadForm.set(true);
+      return;
+    }
+
     const rawQ = this.userQuestion.trim();
     const input: SystemInput = {
       user_profile:     { ...this.profileSig() },
-      user_question:    rawQ,   // single source of truth
-      questions:        [],     // not used for single-question mode
+      user_question:    rawQ,
+      questions:        [],
       selected_modules: [...this.selectedModules()],
       module_inputs: {
         palmistry: this.isSelected('palmistry') ? { ...this.palmInput } : undefined,
@@ -1659,10 +1990,78 @@ export class IntakePage {
     this.orch.run(input);
   }
 
-  goReview() { this.router.navigate(['/review']); }
+  async goReview() {
+    if (this.auth.isAdmin()) {
+      this.router.navigate(['/review']);
+      return;
+    }
+    // USER — auto-approve all insights, generate PDF directly
+    const review = this.orch.adminReview();
+    if (!review) return;
+    const allIds = review.questions.flatMap(q => q.insights.map(i => i.id));
+    this.view.set('pipeline');
+    try {
+      await this.orch.approveAndGenerate(allIds, []);
+      this.router.navigate(['/report']);
+    } catch {
+      this.router.navigate(['/report']);
+    }
+  }
 
   rerun() {
     this.orch.reset();
     this.view.set('home');
+    this.showLeadForm.set(false);
+    this.leadSubmitted.set(false);
+  }
+
+  async submitLead() {
+    this.leadError.set('');
+    if (!this.leadForm.name.trim()) { this.leadError.set('Please enter your full name.'); return; }
+    if (!this.leadForm.email.trim()) { this.leadError.set('Please enter your email address.'); return; }
+    if (!this.leadForm.consent) { this.leadError.set('Please confirm your consent to share details.'); return; }
+
+    // Pre-fill from profile if user left fields blank
+    const profile = this.profileSig();
+    const payload = {
+      name:    this.leadForm.name || profile.full_name,
+      email:   this.leadForm.email,
+      phone:   this.leadForm.phone,
+      dob:     this.leadForm.dob || profile.date_of_birth,
+      consent: this.leadForm.consent,
+    };
+
+    this.leadSubmitting.set(true);
+    try {
+      const res: any = await firstValueFrom(this.http.post(`${BACKEND}/leads`, payload));
+      this.leadId.set(res.lead_id);
+      this.leadStatus.set('submitted');
+      this.showLeadForm.set(false);
+      this.leadSubmitted.set(true);
+    } catch (e: any) {
+      this.leadError.set(e?.error?.detail ?? 'Something went wrong. Please try again.');
+    } finally {
+      this.leadSubmitting.set(false);
+    }
+  }
+
+  async pollLeadStatus() {
+    if (!this.leadId()) return;
+    try {
+      const res: any = await firstValueFrom(this.http.get(`${BACKEND}/leads/${this.leadId()}`));
+      this.leadStatus.set(res.status);
+    } catch { /* silent */ }
+  }
+
+  private readonly STEP_ORDER = ['submitted', 'admin_notified', 'expert_analysis', 'report_ready'];
+
+  isStepDone(step: string): boolean {
+    const current = this.STEP_ORDER.indexOf(this.leadStatus());
+    const target  = this.STEP_ORDER.indexOf(step);
+    return target <= current;
+  }
+
+  isStepActive(step: string): boolean {
+    return this.leadStatus() === step;
   }
 }

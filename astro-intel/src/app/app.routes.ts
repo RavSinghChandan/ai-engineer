@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, adminGuard } from './guards/auth.guard';
+import { authGuard, adminGuard, superadminGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -25,6 +25,11 @@ export const routes: Routes = [
     path: 'metrics',
     canActivate: [adminGuard],
     loadComponent: () => import('./pages/metrics/metrics.page').then(m => m.MetricsPage),
+  },
+  {
+    path: 'admin/users',
+    canActivate: [superadminGuard],
+    loadComponent: () => import('./pages/admin-users/admin-users.page').then(m => m.AdminUsersPage),
   },
   { path: '**', redirectTo: '' }
 ];

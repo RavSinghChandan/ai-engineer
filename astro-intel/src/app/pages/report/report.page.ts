@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { OrchestratorService } from '../../services/orchestrator.service';
 import { ApiService, LanguageOption } from '../../services/api.service';
+import { AuthService } from '../../services/auth.service';
 import { firstValueFrom } from 'rxjs';
 
 @Component({
@@ -15,7 +16,7 @@ import { firstValueFrom } from 'rxjs';
 <div class="toolbar no-print">
 
   <div class="tb-left">
-    <button class="tb-icon-btn" (click)="goBack()" title="Back">
+    <button class="tb-icon-btn" (click)="goBack()" [title]="auth.isAdmin() ? 'Back to Review' : 'Back to Home'">
       <svg width="20" height="20" viewBox="0 0 16 16" fill="none">
         <path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
@@ -52,19 +53,27 @@ import { firstValueFrom } from 'rxjs';
   </div>
 
   <div class="tb-right">
-    <button class="tb-btn" [class.tb-btn-active]="editMode()" (click)="editMode.set(!editMode())">
-      @if (editMode()) {
-        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 7l3.5 3.5L11 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Done
-      } @else {
-        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M9 2l2 2-6.5 6.5L2 11l.5-2.5L9 2z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Edit
-      }
-    </button>
+    @if (auth.isAdmin()) {
+      <button class="tb-btn" [class.tb-btn-active]="editMode()" (click)="editMode.set(!editMode())">
+        @if (editMode()) {
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 7l3.5 3.5L11 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Done
+        } @else {
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M9 2l2 2-6.5 6.5L2 11l.5-2.5L9 2z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Edit
+        }
+      </button>
+    }
     <button class="tb-btn-primary" (click)="printPdf()">
       <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v8M3 6l3.5 3.5L10 6M1.5 11h10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Download PDF
     </button>
+    @if (!auth.isAdmin()) {
+      <button class="tb-btn" (click)="goBack()">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v10M2 6.5l4.5-4.5 4.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Go Home
+      </button>
+    }
   </div>
 
 </div>
@@ -995,7 +1004,7 @@ import { firstValueFrom } from 'rxjs';
   <div class="empty-state">
     <div class="empty-icon">✦</div>
     <p class="empty-text">No report yet</p>
-    <button class="tb-btn" (click)="goBack()">← Back to Review</button>
+    <button class="tb-btn" (click)="goBack()">{{ auth.isAdmin() ? '← Back to Review' : '← Back to Home' }}</button>
   </div>
 }
   `,
@@ -1716,6 +1725,7 @@ export class ReportPage implements OnInit {
   private router = inject(Router);
   private api    = inject(ApiService);
   readonly orch  = inject(OrchestratorService);
+  readonly auth  = inject(AuthService);
 
   readonly editMode    = signal(false);
   readonly report      = computed(() => this.orch.finalReport());
@@ -3095,7 +3105,13 @@ export class ReportPage implements OnInit {
     Array.from(imgs).forEach((img, i) => { img.src = origSrcs[i]; });
   }
 
-  goBack() { this.router.navigate(['/review']); }
+  goBack() {
+    if (this.auth.isAdmin()) {
+      this.router.navigate(['/review']);
+    } else {
+      this.router.navigate(['/']);
+    }
+  }
 }
 
 // Fallback language list used when backend is offline

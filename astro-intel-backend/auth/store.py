@@ -163,6 +163,33 @@ def list_keys_for_tenant(tenant_id: str) -> List[APIKey]:
     return [k for k in _api_keys.values() if k.tenant_id == tenant_id]
 
 
+def set_tenant_active(tenant_id: str, active: bool) -> bool:
+    """Lock or unlock a tenant. Returns True if found."""
+    tenant = _tenants.get(tenant_id)
+    if not tenant:
+        return False
+    tenant.is_active = active
+    _flush()
+    return True
+
+
+def delete_tenant(tenant_id: str) -> bool:
+    """Delete a tenant and all their keys. Returns True if found."""
+    if tenant_id not in _tenants:
+        return False
+    _tenants.pop(tenant_id)
+    keys_to_remove = [k for k, v in _api_keys.items() if v.tenant_id == tenant_id]
+    for k in keys_to_remove:
+        _api_keys.pop(k)
+    _flush()
+    return True
+
+
+def list_all_keys() -> List[APIKey]:
+    """Return every API key across all tenants (SUPERADMIN use only)."""
+    return list(_api_keys.values())
+
+
 def clear_for_tests() -> None:
     """Reset all state — only call from tests."""
     _tenants.clear()
