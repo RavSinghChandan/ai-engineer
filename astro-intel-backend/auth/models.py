@@ -48,6 +48,9 @@ class TenantContext:
     role:       Role
     api_key:    str             # the key that was presented
     tenant_name: str = ""
+    user_id:    str = ""
+    email:      str = ""
+    name:       str = ""
 
     def is_superadmin(self) -> bool:
         return self.role == Role.SUPERADMIN

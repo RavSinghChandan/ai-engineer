@@ -3,10 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { tap, catchError } from 'rxjs/operators';
 import { throwError } from 'rxjs';
+import { environment } from '../../environments/environment';
 
-const BACKEND = 'http://localhost:8080';
-const TOKEN_KEY = 'astro_token';
-const META_KEY  = 'astro_meta';
+const BACKEND = environment.apiUrl;
+const TOKEN_KEY  = 'astro_token';
+const META_KEY   = 'astro_meta';
+// localStorage persists across tabs/restarts; expiry is enforced via expires_at
+const _storage = localStorage;
 
 export interface AuthMeta {
   tenant_id:   string;
@@ -55,11 +58,30 @@ export class AuthService {
     );
   }
 
+  sendOtp(email: string) {
+    return this.http.post<any>(`${BACKEND}/auth/otp/send`, { email }).pipe(
+      catchError(err => {
+        const msg = err?.error?.detail ?? 'Could not send code. Please try again.';
+        return throwError(() => new Error(msg));
+      })
+    );
+  }
+
+  verifyOtp(email: string, code: string) {
+    return this.http.post<any>(`${BACKEND}/auth/otp/verify`, { email, code }).pipe(
+      tap(res => this._persist(res)),
+      catchError(err => {
+        const msg = err?.error?.detail ?? 'Invalid or expired code. Please try again.';
+        return throwError(() => new Error(msg));
+      })
+    );
+  }
+
   logout() {
     this._token.set(null);
     this._meta.set(null);
-    sessionStorage.removeItem(TOKEN_KEY);
-    sessionStorage.removeItem(META_KEY);
+    _storage.removeItem(TOKEN_KEY);
+    _storage.removeItem(META_KEY);
     this.router.navigate(['/login']);
   }
 
@@ -83,13 +105,13 @@ export class AuthService {
     };
     this._token.set(res.access_token);
     this._meta.set(meta);
-    sessionStorage.setItem(TOKEN_KEY, res.access_token);
-    sessionStorage.setItem(META_KEY, JSON.stringify(meta));
+    _storage.setItem(TOKEN_KEY, res.access_token);
+    _storage.setItem(META_KEY, JSON.stringify(meta));
   }
 
   private _restore() {
-    const token = sessionStorage.getItem(TOKEN_KEY);
-    const raw   = sessionStorage.getItem(META_KEY);
+    const token = _storage.getItem(TOKEN_KEY);
+    const raw   = _storage.getItem(META_KEY);
     if (!token || !raw) return;
     try {
       const meta: AuthMeta = JSON.parse(raw);
@@ -97,10 +119,12 @@ export class AuthService {
         this._token.set(token);
         this._meta.set(meta);
       } else {
-        sessionStorage.clear();
+        _storage.removeItem(TOKEN_KEY);
+        _storage.removeItem(META_KEY);
       }
     } catch {
-      sessionStorage.clear();
+      _storage.removeItem(TOKEN_KEY);
+      _storage.removeItem(META_KEY);
     }
   }
 

@@ -1,16 +1,19 @@
 """
 Lead capture endpoints.
 
-Public:
-  POST /leads            — submit a new lead (any authenticated user)
-  GET  /leads/{lead_id}  — poll status (authenticated user who submitted it)
+Public (authenticated):
+  POST /leads            — submit a new lead
+  GET  /leads/{lead_id}  — poll own lead status (ownership enforced)
+  GET  /leads/{lead_id}/report — download own completed report
 
 ADMIN+:
-  GET  /admin/leads            — list all leads
-  PATCH /admin/leads/{id}/status — update lead status
-  GET  /admin/leads/count-new  — count leads with status=submitted
+  GET  /admin/leads               — list all leads
+  GET  /admin/leads/count-new     — badge count
+  PATCH /admin/leads/{id}/status  — update status
+  POST /admin/leads/{id}/attach-report — attach completed report
 """
 from __future__ import annotations
+import re
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from typing import List, Optional
@@ -20,6 +23,8 @@ from auth.dependencies import get_tenant_ctx, require_role
 import leads.store as store
 
 router = APIRouter(tags=["Leads"])
+
+_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
 class LeadRequest(BaseModel):
@@ -53,9 +58,10 @@ class LeadOut(BaseModel):
     time_of_birth:  str = ""
     alias_name:     str = ""
     question:       str = ""
+    tenant_id:      str = ""
 
 class AttachReportRequest(BaseModel):
-    report_json: str   # full report object serialized as JSON string
+    report_json: str
 
 
 @router.post("/leads", status_code=status.HTTP_201_CREATED)
@@ -63,8 +69,27 @@ async def submit_lead(
     req: LeadRequest,
     ctx: TenantContext = Depends(get_tenant_ctx),
 ):
-    if not req.name.strip() or not req.email.strip():
-        raise HTTPException(status_code=400, detail="Name and email are required.")
+    # F2: enforce consent on backend
+    if not req.consent:
+        raise HTTPException(status_code=400, detail="Consent is required to submit a reading request.")
+
+    # F7: mandatory field validation
+    if not req.name.strip():
+        raise HTTPException(status_code=400, detail="Full name is required.")
+    if not req.email.strip() or not _EMAIL_RE.match(req.email.strip()):
+        raise HTTPException(status_code=400, detail="A valid email address is required.")
+    if not req.place_of_birth.strip():
+        raise HTTPException(status_code=400, detail="Place of birth is required.")
+    if not req.question.strip():
+        raise HTTPException(status_code=400, detail="Please include your question for the astrologer.")
+
+    # F8: duplicate lead guard — one active lead per tenant
+    if store.has_pending_lead(ctx.tenant_id):
+        raise HTTPException(
+            status_code=409,
+            detail="You already have a reading request in progress. Please wait for it to complete before submitting a new one.",
+        )
+
     lead = store.create_lead(
         name=req.name.strip(),
         email=req.email.strip(),
@@ -75,6 +100,7 @@ async def submit_lead(
         time_of_birth=req.time_of_birth.strip(),
         alias_name=req.alias_name.strip(),
         question=req.question.strip(),
+        tenant_id=ctx.tenant_id,  # F4: tie lead to submitting tenant
     )
     return {
         "lead_id": lead.lead_id,
@@ -91,6 +117,11 @@ async def get_lead_status(
     lead = store.get_lead(lead_id)
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found.")
+
+    # F1: ownership check — users can only see their own leads; admins see all
+    if not ctx.role.can(Role.ADMIN) and lead.tenant_id and lead.tenant_id != ctx.tenant_id:
+        raise HTTPException(status_code=403, detail="Access denied.")
+
     from dataclasses import asdict
     return LeadOut(**asdict(lead))
 
@@ -137,14 +168,14 @@ async def attach_report_to_lead(
             if isinstance(summary, dict):
                 summary = summary.get("text", str(summary))
             send_report_ready(
-                to_email     = lead.email,
-                to_name      = lead.alias_name or lead.name.split()[0],
+                to_email       = lead.email,
+                to_name        = lead.alias_name or lead.name.split()[0],
                 report_summary = str(summary)[:400],
             )
         except Exception:
-            pass  # never block the response
+            pass
 
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     loop.run_in_executor(concurrent.futures.ThreadPoolExecutor(max_workers=1), _send_email)
 
     return {"lead_id": lead.lead_id, "status": lead.status, "message": "Report attached. Email notification sent to user."}
@@ -155,10 +186,14 @@ async def get_lead_report(
     lead_id: str,
     ctx: TenantContext = Depends(get_tenant_ctx),
 ):
-    """Any authenticated user: get the report JSON for a lead (when status=report_ready)."""
     lead = store.get_lead(lead_id)
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found.")
+
+    # F1: ownership check
+    if not ctx.role.can(Role.ADMIN) and lead.tenant_id and lead.tenant_id != ctx.tenant_id:
+        raise HTTPException(status_code=403, detail="Access denied.")
+
     if lead.status != "report_ready" or not lead.report_json:
         raise HTTPException(status_code=404, detail="Report not ready yet.")
     import json as _json

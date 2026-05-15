@@ -8,8 +8,9 @@ import { ApiService, LanguageOption } from '../../services/api.service';
 import { AdminInsight, AdminQuestion } from '../../models/astro.models';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
+import { environment } from '../../../environments/environment';
 
-const BACKEND = 'http://localhost:8080';
+const BACKEND = environment.apiUrl;
 
 @Component({
   selector: 'app-review',
@@ -1335,7 +1336,14 @@ export class ReviewPage {
     this.router.navigate(['/report']);
   }
 
-  goBack() { this.router.navigate(['/']); }
+  goBack() {
+    // F6: admin doing a lead reading should return to leads, not home
+    if (this.auth.isAdmin() && this.leadId()) {
+      this.router.navigate(['/admin/users']);
+    } else {
+      this.router.navigate(['/']);
+    }
+  }
 
   // ── Module methodology ───────────────────────────────────────────────────
   moduleMethodology(): Record<string, any> {

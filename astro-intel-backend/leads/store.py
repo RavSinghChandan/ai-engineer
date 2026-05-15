@@ -23,6 +23,7 @@ class Lead:
     status:         str        # submitted | admin_notified | expert_analysis | report_ready
     created_at:     float
     updated_at:     float
+    tenant_id:      str = ""   # F4: owner — the tenant_id of the user who submitted
     notes:          str = ""
     report_json:    str = ""   # JSON-serialized final report, set when admin completes reading
     place_of_birth: str = ""
@@ -47,6 +48,8 @@ def load() -> None:
         try:
             data = json.loads(_STORE_PATH.read_text())
             for d in data.get("leads", []):
+                # F4: backfill tenant_id for old records missing the field
+                d.setdefault("tenant_id", "")
                 _leads[d["lead_id"]] = Lead(**d)
         except Exception:
             pass
@@ -54,13 +57,15 @@ def load() -> None:
 
 def create_lead(name: str, email: str, phone: str, dob: str, consent: bool,
                 place_of_birth: str = "", time_of_birth: str = "",
-                alias_name: str = "", question: str = "") -> Lead:
+                alias_name: str = "", question: str = "",
+                tenant_id: str = "") -> Lead:
     lid = f"lead_{secrets.token_hex(6)}"
     now = time.time()
     lead = Lead(
         lead_id=lid, name=name, email=email, phone=phone,
         dob=dob, consent=consent,
         status="submitted", created_at=now, updated_at=now,
+        tenant_id=tenant_id,
         place_of_birth=place_of_birth, time_of_birth=time_of_birth,
         alias_name=alias_name, question=question,
     )
@@ -75,6 +80,11 @@ def get_lead(lead_id: str) -> Optional[Lead]:
 
 def list_leads() -> List[Lead]:
     return sorted(_leads.values(), key=lambda l: l.created_at, reverse=True)
+
+
+def list_leads_for_tenant(tenant_id: str) -> List[Lead]:
+    """Return only leads submitted by this tenant (for user-facing status checks)."""
+    return [l for l in _leads.values() if l.tenant_id == tenant_id]
 
 
 def update_status(lead_id: str, status: str, notes: str = "") -> Optional[Lead]:
@@ -99,6 +109,14 @@ def attach_report(lead_id: str, report_json: str) -> Optional[Lead]:
     lead.updated_at  = time.time()
     _flush()
     return lead
+
+
+def has_pending_lead(tenant_id: str) -> bool:
+    """F8: True if this tenant already has a non-completed lead."""
+    return any(
+        l.tenant_id == tenant_id and l.status != "report_ready"
+        for l in _leads.values()
+    )
 
 
 def count_new() -> int:

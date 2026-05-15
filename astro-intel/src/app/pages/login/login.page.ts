@@ -15,7 +15,7 @@ export class LoginPage {
   private auth   = inject(AuthService);
   private router = inject(Router);
 
-  tab      = signal<'signin' | 'signup'>('signin');
+  tab      = signal<'signin' | 'signup' | 'otp'>('signin');
   loading  = signal(false);
   error    = signal('');
   showPass = signal(false);
@@ -30,9 +30,21 @@ export class LoginPage {
   suPassword = signal('');
   suConfirm  = signal('');
 
-  switchTab(t: 'signin' | 'signup') {
+  // OTP fields
+  otpEmail     = signal('');
+  otpCode      = signal('');
+  otpSent      = signal(false);
+  otpCountdown = signal(0);
+  private _countdownTimer: ReturnType<typeof setInterval> | null = null;
+
+  switchTab(t: 'signin' | 'signup' | 'otp') {
     this.tab.set(t);
     this.error.set('');
+    if (t !== 'otp') {
+      this.otpSent.set(false);
+      this.otpCode.set('');
+      this._stopCountdown();
+    }
   }
 
   signIn() {
@@ -67,9 +79,67 @@ export class LoginPage {
     });
   }
 
+  sendOtp() {
+    const email = this.otpEmail().trim();
+    if (!email) { this.error.set('Please enter your email address.'); return; }
+    this.loading.set(true);
+    this.error.set('');
+
+    this.auth.sendOtp(email).subscribe({
+      next: () => {
+        this.loading.set(false);
+        this.otpSent.set(true);
+        this._startCountdown(60);
+      },
+      error: (e: Error) => { this.error.set(e.message); this.loading.set(false); },
+    });
+  }
+
+  verifyOtp() {
+    const email = this.otpEmail().trim();
+    const code  = this.otpCode().trim();
+    if (!code || code.length !== 6) { this.error.set('Please enter the 6-digit code.'); return; }
+    this.loading.set(true);
+    this.error.set('');
+
+    this.auth.verifyOtp(email, code).subscribe({
+      next:  () => this.router.navigate(['/']),
+      error: (e: Error) => { this.error.set(e.message); this.loading.set(false); },
+    });
+  }
+
+  resendOtp() {
+    this.otpCode.set('');
+    this.sendOtp();
+  }
+
+  private _startCountdown(seconds: number) {
+    this._stopCountdown();
+    this.otpCountdown.set(seconds);
+    this._countdownTimer = setInterval(() => {
+      const remaining = this.otpCountdown() - 1;
+      this.otpCountdown.set(remaining);
+      if (remaining <= 0) this._stopCountdown();
+    }, 1000);
+  }
+
+  private _stopCountdown() {
+    if (this._countdownTimer) {
+      clearInterval(this._countdownTimer);
+      this._countdownTimer = null;
+    }
+    this.otpCountdown.set(0);
+  }
+
   onKey(e: KeyboardEvent) {
     if (e.key === 'Enter') {
-      this.tab() === 'signin' ? this.signIn() : this.signUp();
+      const t = this.tab();
+      if (t === 'signin') this.signIn();
+      else if (t === 'signup') this.signUp();
+      else if (t === 'otp') {
+        if (this.otpSent()) this.verifyOtp();
+        else this.sendOtp();
+      }
     }
   }
 }

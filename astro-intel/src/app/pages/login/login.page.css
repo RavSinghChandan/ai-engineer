@@ -252,3 +252,118 @@ input:disabled {
   font-size: 0.75rem;
   color: #9ca3af;
 }
+
+/* OTP tab button */
+.otp-tab {
+  flex: 0.75;
+}
+
+.otp-icon {
+  color: #a78bfa;
+  margin-right: 2px;
+}
+
+/* OTP hero block */
+.otp-hero {
+  text-align: center;
+  padding: 0.75rem 0.5rem 0.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.otp-hero-icon {
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(99,102,241,0.3);
+  margin-bottom: 0.15rem;
+}
+
+.otp-hero-icon.sent-icon {
+  background: linear-gradient(135deg, #059669, #10b981);
+  box-shadow: 0 4px 14px rgba(16,185,129,0.3);
+  font-size: 1.25rem;
+}
+
+.otp-hero-text {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+.otp-hero-sub {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #9ca3af;
+}
+
+.otp-hero.sent .otp-hero-text {
+  color: #1e1b4b;
+}
+
+/* OTP code input — wide, centred digits */
+.otp-input {
+  text-align: center;
+  letter-spacing: 0.35em;
+  font-size: 1.6rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  padding: 0.65rem 0.9rem;
+  color: #4338ca;
+  border-color: #c7d2fe;
+  background: #f5f3ff;
+}
+
+.otp-input:focus {
+  border-color: #6366f1;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+}
+
+/* Resend row */
+.otp-resend-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: -0.5rem;
+}
+
+.otp-countdown {
+  font-size: 0.78rem;
+  color: #9ca3af;
+}
+
+.otp-resend-btn {
+  background: none;
+  border: none;
+  color: #6366f1;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.otp-resend-btn:hover:not(:disabled) { color: #4338ca; }
+.otp-resend-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.otp-back-btn {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 0.78rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.otp-back-btn:hover { color: #6b7280; }

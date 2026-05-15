@@ -9,8 +9,9 @@ import { Module, SystemInput } from '../../models/astro.models';
 import { AgentFlowComponent } from '../../components/agent-flow/agent-flow.component';
 import { AuthService } from '../../services/auth.service';
 import { firstValueFrom } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
-const BACKEND = 'http://localhost:8080';
+const BACKEND = environment.apiUrl;
 
 const ALL_MODULES: { id: Module; label: string; icon: string; desc: string; glyph: string }[] = [
   { id: 'astrology',  label: 'Vedic Astrology', icon: '🪐', glyph: '♈', desc: 'Lagna · Planets · Dasha · Doshas' },
@@ -777,49 +778,49 @@ function validateProfile(p: {
         <div class="lead-field-row">
           <div class="lead-field">
             <label class="lead-label">Full Name *</label>
-            <input class="lead-input" type="text" [value]="leadForm.name || profile().full_name"
-              (input)="leadForm.name = $any($event.target).value"
+            <input class="lead-input" type="text"
+              [(ngModel)]="leadForm.name"
               placeholder="Your full name"/>
           </div>
           <div class="lead-field">
             <label class="lead-label">Known As (optional)</label>
-            <input class="lead-input" type="text" [value]="leadForm.alias_name || profile().alias_name"
-              (input)="leadForm.alias_name = $any($event.target).value"
+            <input class="lead-input" type="text"
+              [(ngModel)]="leadForm.alias_name"
               placeholder="Nickname"/>
           </div>
         </div>
         <div class="lead-field-row">
           <div class="lead-field">
             <label class="lead-label">Date of Birth *</label>
-            <input class="lead-input" type="date" [value]="leadForm.dob || profile().date_of_birth"
-              (input)="leadForm.dob = $any($event.target).value"/>
+            <input class="lead-input" type="date"
+              [(ngModel)]="leadForm.dob"/>
           </div>
           <div class="lead-field">
             <label class="lead-label">Time of Birth *</label>
-            <input class="lead-input" type="text" [value]="leadForm.time_of_birth || profile().time_of_birth"
-              (input)="leadForm.time_of_birth = $any($event.target).value"
+            <input class="lead-input" type="text"
+              [(ngModel)]="leadForm.time_of_birth"
               placeholder="e.g. 10:30 (HH:MM)"/>
           </div>
         </div>
         <div class="lead-field-row">
           <div class="lead-field lead-field-grow">
             <label class="lead-label">Place of Birth *</label>
-            <input class="lead-input" type="text" [value]="leadForm.place_of_birth || profile().place_of_birth"
-              (input)="leadForm.place_of_birth = $any($event.target).value"
+            <input class="lead-input" type="text"
+              [(ngModel)]="leadForm.place_of_birth"
               placeholder="City, State, Country"/>
           </div>
         </div>
         <div class="lead-field-row">
           <div class="lead-field">
             <label class="lead-label">Email Address *</label>
-            <input class="lead-input" type="email" [value]="leadForm.email"
-              (input)="leadForm.email = $any($event.target).value"
+            <input class="lead-input" type="email"
+              [(ngModel)]="leadForm.email"
               placeholder="you@example.com"/>
           </div>
           <div class="lead-field">
             <label class="lead-label">Mobile Number</label>
-            <input class="lead-input" type="tel" [value]="leadForm.phone"
-              (input)="leadForm.phone = $any($event.target).value"
+            <input class="lead-input" type="tel"
+              [(ngModel)]="leadForm.phone"
               placeholder="+91 98765 43210"/>
           </div>
         </div>
@@ -827,8 +828,7 @@ function validateProfile(p: {
           <div class="lead-field lead-field-grow">
             <label class="lead-label">Your Question for the Astrologer *</label>
             <textarea class="lead-input lead-textarea"
-              [value]="leadForm.question || userQuestion"
-              (input)="leadForm.question = $any($event.target).value"
+              [(ngModel)]="leadForm.question"
               placeholder="e.g. Will my career grow this year? What should I focus on?"
               rows="2"></textarea>
           </div>
@@ -998,16 +998,23 @@ function validateProfile(p: {
         }
       </div>
 
-      <!-- Auto-poll indicator + manual refresh -->
+      <!-- Auto-poll indicator + actions -->
       <div class="lead-actions">
-        <span class="auto-poll-note">
-          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" class="pulse-dot-svg"><circle cx="5" cy="5" r="4" fill="#6366f1" opacity="0.3"/><circle cx="5" cy="5" r="2" fill="#6366f1"/></svg>
-          Updating automatically every 15 seconds
-        </span>
-        <button class="lead-submit-btn lead-submit-btn-sm" (click)="pollLeadStatus()">
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10.5 6A4.5 4.5 0 1 1 8.5 2.3M10.5 1v3H7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Refresh Now
-        </button>
+        @if (leadStatus() !== 'report_ready') {
+          <span class="auto-poll-note">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" fill="#6366f1" opacity="0.3"/><circle cx="5" cy="5" r="2" fill="#6366f1"/></svg>
+            Updating every 15 seconds
+          </span>
+          <button class="lead-submit-btn lead-submit-btn-sm" (click)="pollLeadStatus()">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10.5 6A4.5 4.5 0 1 1 8.5 2.3M10.5 1v3H7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Refresh Now
+          </button>
+        } @else {
+          <!-- F11: when report is ready, show clear action — not "start over" -->
+          <button class="lead-submit-btn report-dl-btn" (click)="downloadLeadReport()">
+            Open My Full Report →
+          </button>
+        }
       </div>
 
     </div>
@@ -2250,6 +2257,9 @@ export class IntakePage {
     this.view.set('home');
     this.showLeadForm.set(false);
     this.leadSubmitted.set(false);
+    this.leadId.set('');          // F5: clear old lead reference
+    this.leadStatus.set('submitted');
+    this.stopAutoPoll();          // F5: stop any running poll timer
   }
 
   async submitLead() {

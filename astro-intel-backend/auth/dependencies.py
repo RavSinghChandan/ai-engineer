@@ -61,6 +61,9 @@ def verify_token(token: str) -> Optional[TenantContext]:
             role        = Role(payload["role"]),
             api_key     = payload.get("api_key", ""),
             tenant_name = payload.get("tenant_name", ""),
+            user_id     = payload.get("user_id", ""),
+            email       = payload.get("email", ""),
+            name        = payload.get("name", ""),
         )
     except (JWTError, KeyError, ValueError):
         return None

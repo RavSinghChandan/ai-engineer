@@ -16,7 +16,9 @@ ADMIN or above:
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, status
+import secrets, time
+from collections import defaultdict
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from pydantic import BaseModel
 from typing import List, Optional
 
@@ -24,6 +26,48 @@ from auth.models import Role, TenantContext
 from auth.dependencies import create_access_token, get_tenant_ctx, require_role
 import auth.store as store
 import auth.users as users
+
+# OTP store: email → {code, expires_at}
+_otp_store: dict = {}
+_OTP_TTL = 600  # 10 minutes
+
+# OTP send rate limit: 3 sends per 15 min per IP (prevents email spam DoS)
+_otp_send_attempts: dict = defaultdict(list)
+_OTP_SEND_MAX = 3
+
+def _check_otp_send_limit(ip: str) -> None:
+    now = time.time()
+    attempts = [t for t in _otp_send_attempts[ip] if now - t < _RATE_WINDOW]
+    _otp_send_attempts[ip] = attempts
+    if len(attempts) >= _OTP_SEND_MAX:
+        raise HTTPException(
+            status_code = status.HTTP_429_TOO_MANY_REQUESTS,
+            detail      = "Too many code requests. Please wait 15 minutes.",
+        )
+
+def _record_otp_send(ip: str) -> None:
+    _otp_send_attempts[ip].append(time.time())
+
+# F3: simple in-process rate limiter — 5 failed attempts → 15 min lockout per IP
+_login_attempts: dict = defaultdict(list)
+_RATE_WINDOW = 900   # 15 minutes
+_RATE_MAX    = 5
+
+def _check_rate_limit(ip: str) -> None:
+    now = time.time()
+    attempts = [t for t in _login_attempts[ip] if now - t < _RATE_WINDOW]
+    _login_attempts[ip] = attempts
+    if len(attempts) >= _RATE_MAX:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many failed login attempts. Please try again in 15 minutes.",
+        )
+
+def _record_failure(ip: str) -> None:
+    _login_attempts[ip].append(time.time())
+
+def _clear_failures(ip: str) -> None:
+    _login_attempts.pop(ip, None)
 
 router = APIRouter(tags=["Auth & Tenants"])
 
@@ -51,6 +95,13 @@ class UserOut(BaseModel):
     role:       str
     is_active:  bool
     created_at: float
+
+class OtpSendRequest(BaseModel):
+    email: str
+
+class OtpVerifyRequest(BaseModel):
+    email: str
+    code:  str
 
 class TokenRequest(BaseModel):
     api_key: str
@@ -129,22 +180,115 @@ async def register(req: RegisterRequest):
 # ── POST /auth/login — email + password login ────────────────────────────────
 
 @router.post("/auth/login", response_model=TokenResponse)
-async def login(req: LoginRequest):
+async def login(req: LoginRequest, request: Request):
     """
     Login with email + password. Works for USER, ADMIN, and SUPERADMIN.
     Returns a JWT. No API key is ever exposed.
     """
+    ip = request.client.host if request.client else "unknown"
+    _check_rate_limit(ip)
+
     user = users.get_by_email(req.email)
     if not user or not users.verify_password(user, req.password):
+        _record_failure(ip)
         raise HTTPException(
             status_code = status.HTTP_401_UNAUTHORIZED,
             detail      = "Invalid email or password.",
         )
+    _clear_failures(ip)
     if not user.is_active:
         raise HTTPException(
             status_code = status.HTTP_403_FORBIDDEN,
             detail      = "Account is disabled. Contact your administrator.",
         )
+    tenant = store.get_tenant(user.tenant_id)
+    import os
+    ttl = int(os.environ.get("JWT_TTL_SECONDS", "86400"))
+    from auth.dependencies import create_access_token as _create_token
+    token = _create_token(
+        tenant_id   = user.tenant_id,
+        role        = Role(user.role),
+        api_key     = "",
+        tenant_name = tenant.name if tenant else user.name,
+        user_id     = user.user_id,
+        email       = user.email,
+        name        = user.name,
+    )
+    return TokenResponse(
+        access_token = token,
+        tenant_id    = user.tenant_id,
+        role         = user.role,
+        tenant_name  = tenant.name if tenant else user.name,
+        expires_in   = ttl,
+        user_id      = user.user_id,
+        email        = user.email,
+        name         = user.name,
+    )
+
+
+# ── POST /auth/otp/send — send 6-digit OTP to email ─────────────────────────
+
+@router.post("/auth/otp/send")
+async def otp_send(req: OtpSendRequest, request: Request):
+    """
+    Send a 6-digit OTP to the given email. The account must already exist.
+    Rate-limited to the same 5-attempt window as /auth/login.
+    """
+    ip = request.client.host if request.client else "unknown"
+    _check_otp_send_limit(ip)
+
+    email = req.email.lower().strip()
+    user  = users.get_by_email(email)
+    if not user:
+        # Don't reveal whether email exists — same response either way
+        _record_otp_send(ip)
+        return {"message": "If that email is registered, a code has been sent."}
+    if not user.is_active:
+        raise HTTPException(
+            status_code = status.HTTP_403_FORBIDDEN,
+            detail      = "Account is disabled. Contact your administrator.",
+        )
+
+    code = f"{secrets.randbelow(1_000_000):06d}"
+    _otp_store[email] = {"code": code, "expires_at": time.time() + _OTP_TTL}
+    _record_otp_send(ip)
+
+    from email_service import send_otp_email
+    send_otp_email(to_email=user.email, to_name=user.name.split()[0], code=code)
+
+    return {"message": "If that email is registered, a code has been sent."}
+
+
+# ── POST /auth/otp/verify — verify OTP and issue JWT ─────────────────────────
+
+@router.post("/auth/otp/verify", response_model=TokenResponse)
+async def otp_verify(req: OtpVerifyRequest, request: Request):
+    """
+    Verify the 6-digit OTP. Issues JWT on success, same as /auth/login.
+    Code is single-use and expires in 10 minutes.
+    """
+    ip    = request.client.host if request.client else "unknown"
+    email = req.email.lower().strip()
+
+    entry = _otp_store.get(email)
+    if not entry or time.time() > entry["expires_at"] or entry["code"] != req.code.strip():
+        _record_failure(ip)
+        raise HTTPException(
+            status_code = status.HTTP_401_UNAUTHORIZED,
+            detail      = "Invalid or expired code. Please request a new one.",
+        )
+
+    # Single-use: remove immediately
+    del _otp_store[email]
+    _clear_failures(ip)
+
+    user = users.get_by_email(email)
+    if not user or not user.is_active:
+        raise HTTPException(
+            status_code = status.HTTP_403_FORBIDDEN,
+            detail      = "Account is disabled.",
+        )
+
     tenant = store.get_tenant(user.tenant_id)
     import os
     ttl = int(os.environ.get("JWT_TTL_SECONDS", "86400"))

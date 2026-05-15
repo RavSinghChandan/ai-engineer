@@ -4,8 +4,9 @@ import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
 import { firstValueFrom } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
-const BACKEND = 'http://localhost:8080';
+const BACKEND = environment.apiUrl;
 
 interface TenantRow {
   tenant_id: string;

@@ -3,6 +3,25 @@ AstroIntel 360° — FastAPI + LangGraph Backend
 Entry point: uvicorn main:app --reload --port 8080
 """
 from __future__ import annotations
+import os, sys
+
+# ── Production secret guard ───────────────────────────────────────────────────
+_UNSAFE_DEFAULTS = {
+    "JWT_SECRET":           "astrointel-jwt-secret-change-in-production",
+    "MASTER_API_KEY":       "sk-master-astrointel-change-me",
+    "PW_SALT":              "astrointel-pw-salt-change-me",
+    "SUPERADMIN_PASSWORD":  "AuraAdmin2024!",
+}
+_ENV = os.environ.get("APP_ENV", "development").lower()
+if _ENV == "production":
+    for _var, _default in _UNSAFE_DEFAULTS.items():
+        if os.environ.get(_var, _default) == _default:
+            sys.exit(
+                f"\n[FATAL] {_var} is still set to the default placeholder value.\n"
+                f"Set a strong random value before running in production.\n"
+                f"Generate: python3 -c \"import secrets; print(secrets.token_hex(32))\"\n"
+            )
+
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -36,15 +55,23 @@ app = FastAPI(
 )
 
 # ── CORS ─────────────────────────────────────────────────────────────────────
+# ALLOWED_ORIGINS env var overrides in production — comma-separated list of origins
+_default_origins = [
+    "http://localhost:4200",
+    "http://localhost:4300",
+    "http://localhost:4301",
+    "http://127.0.0.1:4200",
+    "http://127.0.0.1:4300",
+]
+_env_origins = os.environ.get("ALLOWED_ORIGINS", "")
+_allowed_origins = (
+    [o.strip() for o in _env_origins.split(",") if o.strip()]
+    if _env_origins
+    else _default_origins
+)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:4200",
-        "http://localhost:4300",
-        "http://localhost:4301",
-        "http://127.0.0.1:4200",
-        "http://127.0.0.1:4300",
-    ],
+    allow_origins=_allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

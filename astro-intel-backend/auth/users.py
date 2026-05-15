@@ -11,7 +11,7 @@ On first boot, a SUPERADMIN user is created from env vars:
 """
 from __future__ import annotations
 
-import hashlib, hmac, json, os, secrets, time
+import hashlib, hmac, json, os, re, secrets, time
 from dataclasses import dataclass, asdict, field
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -95,10 +95,17 @@ def verify_password(user: User, password: str) -> bool:
     return hmac.compare_digest(user.pw_hash, _hash(password))
 
 
+_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
 def create_user(email: str, name: str, password: str,
                 role: str = "user", tenant_id: str = "") -> User:
     """Create a new user. Raises ValueError if email already exists."""
     key = email.lower().strip()
+    if not _EMAIL_RE.match(key):
+        raise ValueError("Please enter a valid email address.")
+    if not name.strip():
+        raise ValueError("Name is required.")
     if key in _users:
         raise ValueError("An account with this email already exists.")
     if len(password) < 8:

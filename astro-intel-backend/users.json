@@ -79,6 +79,26 @@
       "is_active": true,
       "created_at": 1778869911.742945,
       "tenant_id": "tenant_238caa3aabfd"
+    },
+    {
+      "user_id": "user_99ecb0533f18c342",
+      "email": "xss_test_del@x.com",
+      "name": "<script>alert(1)</script>",
+      "role": "user",
+      "pw_hash": "6bca177e640a3a80319a3969a1ce015737ae9b5e2afd6431c13987c658ad6ad6",
+      "is_active": true,
+      "created_at": 1778870045.7689521,
+      "tenant_id": "tenant_13a8b0c4e746"
+    },
+    {
+      "user_id": "user_a398fb278d162a54",
+      "email": "audituser_fix@test.com",
+      "name": "Audit User",
+      "role": "user",
+      "pw_hash": "6bca177e640a3a80319a3969a1ce015737ae9b5e2afd6431c13987c658ad6ad6",
+      "is_active": true,
+      "created_at": 1778870332.693869,
+      "tenant_id": "tenant_6dd764a17f2d"
     }
   ]
 }
