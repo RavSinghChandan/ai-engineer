@@ -107,6 +107,7 @@ def _consolidate_section(
     domains: List[str],
     remedies: Dict[str, Any] = {},
     memory: Dict[str, Any] = {},
+    question_index: int = 0,
 ) -> Dict[str, Any]:
     """
     Builds a consolidated narrative for one question section.
@@ -164,7 +165,9 @@ def _consolidate_section(
 
     from .simplify_agent import build_structured_summary
     structured_summary = build_structured_summary(
-        question, intent, approved_insights, remedies, memory
+        question, intent, approved_insights, remedies, memory,
+        question_index=question_index,
+        include_remedy_bullets=False,   # remedies appear once in consolidated block
     )
 
     return {
@@ -216,7 +219,7 @@ def final_report_agent(
     from agents.admin_review_agent import build_module_methodology, MODULE_METHODOLOGY
     module_methodology = admin_review.get("module_methodology") or build_module_methodology(memory)
 
-    for q_block in all_questions:
+    for q_idx, q_block in enumerate(all_questions):
         question = q_block.get("question", "")
         intent   = q_block.get("intent", "general")
         insights = q_block.get("insights", [])
@@ -242,11 +245,10 @@ def final_report_agent(
             conf_dist[c] = conf_dist.get(c, 0) + 1
 
         if approved_insights:
-            # Match per-question remedy
-            qr_list = remedies.get("question_remedies", []) if remedies else []
-            qr = next((r for r in qr_list if r.get("question") == question), {})
+            # Pass empty remedies per section — remedies appear once at report level
             section = _consolidate_section(
-                question, intent, approved_insights, subject, modules_used, qr, memory
+                question, intent, approved_insights, subject, modules_used, {}, memory,
+                question_index=q_idx,
             )
             report_sections.append(section)
 
@@ -325,6 +327,10 @@ def final_report_agent(
 
         # Each section: question + intent + narrative + prompts + editable insights
         "sections": report_sections,
+
+        # Single consolidated remedies block — applies to the whole report,
+        # not duplicated per question.
+        "remedies": remedies if remedies else {},
 
         "rejected_insight_ids": rejected_ids,
 

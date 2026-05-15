@@ -1923,11 +1923,18 @@ def build_structured_summary(
     insights: List[Dict[str, Any]],
     remedies: Dict[str, Any],
     memory: Dict[str, Any],
+    question_index: int = 0,
+    include_remedy_bullets: bool = False,
 ) -> Dict[str, Any]:
     """
     Build a structured summary for one question.
     WHO/WHAT/WHERE are LLM-generated (DeepSeek) for full uniqueness per question.
     WHEN is deterministic (dasha timing). Falls back to static lookup on LLM failure.
+
+    question_index  — used to rotate static fallback bullets so same-intent
+                      questions never return identical answers.
+    include_remedy_bullets — remedies appear only once in the final consolidated
+                      section; set False (default) for per-question sections.
     """
     _REMEDY_PREFIXES = ("recommended practice", "mantra recommendation", "remedy:", "remedies:")
     clean_insights = [
@@ -1971,10 +1978,17 @@ def build_structured_summary(
         what_label  = llm_result.get("what_label")  or override.get("what_label")  or templates["what"]
         where_label = llm_result.get("where_label") or override.get("where_label") or templates["where"]
     else:
-        # Fallback to static lookup
-        who_list    = hw_raw["who"]
-        what_list   = hw_raw["what"]
-        where_list  = hw_raw["where"]
+        # Static fallback — rotate bullets by question_index so same-intent
+        # questions never return identical copy-pasted answers.
+        def _rotate(lst: list, offset: int) -> list:
+            if not lst:
+                return lst
+            start = (offset * 2) % len(lst)   # shift 2 items per question
+            return lst[start:] + lst[:start]
+
+        who_list    = _rotate(hw_raw["who"],   question_index)
+        what_list   = _rotate(hw_raw["what"],  question_index)
+        where_list  = _rotate(hw_raw["where"], question_index)
         who_label   = override.get("who_label")   or templates["who"]
         what_label  = override.get("what_label")  or templates["what"]
         where_label = override.get("where_label") or templates["where"]
@@ -2009,7 +2023,8 @@ def build_structured_summary(
         },
     ]
 
-    remedy_bullets = _build_remedy_bullets(intent, remedies)
+    # Remedies appear only once in the consolidated section — not per question.
+    remedy_bullets = _build_remedy_bullets(intent, remedies) if include_remedy_bullets else {}
 
     return {
         "question":       question,

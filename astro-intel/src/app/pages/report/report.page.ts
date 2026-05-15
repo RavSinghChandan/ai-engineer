@@ -796,41 +796,7 @@ import { firstValueFrom } from 'rxjs';
               }
             </ul>
 
-            @if (section.structured_summary.remedy_bullets) {
-              <div class="remedy-card">
-                <div class="remedy-card-head">{{ displayReport()!.label_remedies_heading || 'Remedies to support your journey' }}</div>
-                @if (section.structured_summary.remedy_bullets.daily_habits?.length) {
-                  <div class="remedy-group">
-                    <div class="remedy-group-label">{{ displayReport()!.label_daily_habits || 'Daily Habits' }}</div>
-                    <ul class="remedy-list">
-                      @for (h of section.structured_summary.remedy_bullets.daily_habits; track h) {
-                        <li [innerHTML]="colorize(h)"></li>
-                      }
-                    </ul>
-                  </div>
-                }
-                @if (section.structured_summary.remedy_bullets.mantras?.length) {
-                  <div class="remedy-group">
-                    <div class="remedy-group-label">{{ displayReport()!.label_mantra || 'Mantra' }}</div>
-                    <ul class="remedy-list">
-                      @for (m of section.structured_summary.remedy_bullets.mantras; track m) {
-                        <li [innerHTML]="colorize(m)"></li>
-                      }
-                    </ul>
-                  </div>
-                }
-                @if (section.structured_summary.remedy_bullets.lucky_colors?.length) {
-                  <div class="remedy-group">
-                    <div class="remedy-group-label">{{ displayReport()!.label_lucky_colors || 'Lucky Colors' }}</div>
-                    <ul class="remedy-list">
-                      @for (c of section.structured_summary.remedy_bullets.lucky_colors; track c) {
-                        <li [innerHTML]="colorize(c)"></li>
-                      }
-                    </ul>
-                  </div>
-                }
-              </div>
-            }
+            <!-- Remedies appear once in the consolidated remedies page below -->
 
           } @else if (editMode()) {
             <textarea class="edit-area"
@@ -842,6 +808,164 @@ import { firstValueFrom } from 'rxjs';
           }
         </div>
 
+      </div>
+    }
+
+    <!-- ══ CONSOLIDATED REMEDIES PAGE — exactly once, one A4 page ══ -->
+    @if (displayReport()!.remedies) {
+      <div class="pdf-page remedy-page">
+        <div class="page-hdr">
+          <img src="rav-logo.png" alt="Aura with Rav" class="page-hdr-logo"/>
+          <span class="page-hdr-title">{{ displayReport()!.label_remedies_heading || 'Remedies to Support Your Journey' }}</span>
+        </div>
+
+        <div class="remedy-grid">
+
+          <!-- DAILY HABITS -->
+          @if (displayReport()!.remedies.daily_habits?.length) {
+            <div class="r-card">
+              <div class="r-card-hdr">
+                <span class="r-icon">☀</span>
+                <span class="r-label">{{ displayReport()!.label_daily_habits || 'Daily Habits' }}</span>
+              </div>
+              <ul class="r-list">
+                @for (h of displayReport()!.remedies.daily_habits.slice(0,4); track h) {
+                  <li [innerHTML]="colorize(h)"></li>
+                }
+              </ul>
+            </div>
+          }
+
+          <!-- MANTRAS -->
+          @if (displayReport()!.remedies.mantras?.length) {
+            <div class="r-card">
+              <div class="r-card-hdr">
+                <span class="r-icon">ॐ</span>
+                <span class="r-label">{{ displayReport()!.label_mantra || 'Mantras' }}</span>
+              </div>
+              <ul class="r-list">
+                @for (m of displayReport()!.remedies.mantras.slice(0,3); track m.mantra) {
+                  <li><strong>{{ m.mantra }}</strong> — {{ m.purpose }} ({{ m.count }}×)</li>
+                }
+              </ul>
+            </div>
+          }
+
+          <!-- LUCKY COLORS — dynamic swatches -->
+          @if (displayReport()!.remedies.colors?.length) {
+            <div class="r-card">
+              <div class="r-card-hdr">
+                <span class="r-icon">◈</span>
+                <span class="r-label">{{ displayReport()!.label_lucky_colors || 'Lucky Colors' }}</span>
+              </div>
+              <div class="r-color-row">
+                @for (c of displayReport()!.remedies.colors.slice(0,6); track c) {
+                  <div class="r-color-chip">
+                    <span class="r-swatch" [style.background]="colorHex(c)"></span>
+                    <span class="r-color-name">{{ c }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- GEMSTONES -->
+          @if (displayReport()!.remedies.gemstones?.length) {
+            <div class="r-card">
+              <div class="r-card-hdr">
+                <span class="r-icon">◇</span>
+                <span class="r-label">Gemstones</span>
+              </div>
+              <ul class="r-list">
+                @for (g of displayReport()!.remedies.gemstones.slice(0,3); track g.stone) {
+                  <li><strong>{{ g.stone }}</strong> — {{ g.purpose }}<br/><em class="r-sub">{{ g.finger }}</em></li>
+                }
+              </ul>
+            </div>
+          }
+
+          <!-- FASTING -->
+          @if (displayReport()!.remedies.fasting?.length) {
+            <div class="r-card">
+              <div class="r-card-hdr">
+                <span class="r-icon">☽</span>
+                <span class="r-label">Fasting</span>
+              </div>
+              <ul class="r-list">
+                @for (f of displayReport()!.remedies.fasting.slice(0,2); track f) {
+                  <li [innerHTML]="colorize(f)"></li>
+                }
+              </ul>
+            </div>
+          }
+
+          <!-- CHARITY -->
+          @if (displayReport()!.remedies.charity?.length) {
+            <div class="r-card">
+              <div class="r-card-hdr">
+                <span class="r-icon">♡</span>
+                <span class="r-label">Charity</span>
+              </div>
+              <ul class="r-list">
+                @for (ch of displayReport()!.remedies.charity.slice(0,3); track ch) {
+                  <li [innerHTML]="colorize(ch)"></li>
+                }
+              </ul>
+            </div>
+          }
+
+          <!-- BEHAVIORAL ADJUSTMENTS -->
+          @if (displayReport()!.remedies.behavioral_adjustments?.length) {
+            <div class="r-card">
+              <div class="r-card-hdr">
+                <span class="r-icon">⚖</span>
+                <span class="r-label">Behavioral Adjustments</span>
+              </div>
+              <ul class="r-list">
+                @for (b of displayReport()!.remedies.behavioral_adjustments.slice(0,3); track b) {
+                  <li [innerHTML]="colorize(b)"></li>
+                }
+              </ul>
+            </div>
+          }
+
+          <!-- YOGA & MEDITATION -->
+          @if (displayReport()!.remedies.yoga_meditation?.length) {
+            <div class="r-card">
+              <div class="r-card-hdr">
+                <span class="r-icon">🪷</span>
+                <span class="r-label">Yoga & Meditation</span>
+              </div>
+              <ul class="r-list">
+                @for (y of displayReport()!.remedies.yoga_meditation.slice(0,3); track y) {
+                  <li [innerHTML]="colorize(y)"></li>
+                }
+              </ul>
+            </div>
+          }
+
+          <!-- VASTU REMEDIES (only if present) -->
+          @if (displayReport()!.remedies.vastu_remedies?.length) {
+            <div class="r-card">
+              <div class="r-card-hdr">
+                <span class="r-icon">⊕</span>
+                <span class="r-label">Vastu Remedies</span>
+              </div>
+              <ul class="r-list">
+                @for (v of displayReport()!.remedies.vastu_remedies.slice(0,3); track v) {
+                  <li [innerHTML]="colorize(v)"></li>
+                }
+              </ul>
+            </div>
+          }
+
+        </div><!-- /remedy-grid -->
+
+        <div class="page-footer">
+          <span>{{ displayReport()!.user_name }}</span>
+          <span>Remedies</span>
+          <span>{{ formatDate(displayReport()!.generated_at) }}</span>
+        </div>
       </div>
     }
 
@@ -1483,18 +1607,52 @@ import { firstValueFrom } from 'rxjs';
 /* HOW — redirect */
 .hw-redirect { font-size: 13.5px; font-weight: 600; color: #6d28d9; }
 
-.remedy-card {
-  margin-top: 20px; padding: 18px 22px;
-  background: linear-gradient(135deg, #fdf8ee, #fffbf2);
-  border: 1px solid rgba(212,175,55,0.25); border-radius: 12px;
+/* ── Consolidated Remedies Page — 2-col grid, fits one A4 page ─ */
+.remedy-page {
+  min-height: 0;
+  display: flex; flex-direction: column;
 }
-.remedy-card-head { font-size: 12px; font-weight: 700; letter-spacing: 0.03em; text-transform: none; color: #b45309; margin-bottom: 14px; }
-.remedy-group { margin-bottom: 12px; }
-.remedy-group:last-child { margin-bottom: 0; }
-.remedy-group-label { font-size: 11px; font-weight: 700; letter-spacing: 0.03em; text-transform: none; color: #6d28d9; margin-bottom: 5px; }
-.remedy-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
-.remedy-list li { font-size: 13px; font-weight: 500; color: #374151; line-height: 1.75; padding-left: 15px; position: relative; }
-.remedy-list li::before { content: '✦'; position: absolute; left: 0; color: #d4af37; font-size: 8px; top: 5px; }
+.remedy-grid {
+  flex: 1;
+  padding: 16px 32px 8px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  align-content: start;
+  overflow: hidden;
+}
+.r-card {
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #fdf8ee, #fffbf2);
+  border: 1px solid rgba(212,175,55,0.22); border-radius: 10px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.r-card-hdr {
+  display: flex; align-items: center; gap: 6px;
+  border-bottom: 1px solid rgba(212,175,55,0.18); padding-bottom: 5px; margin-bottom: 2px;
+}
+.r-icon {
+  font-size: 15px; line-height: 1; color: #b45309;
+  width: 22px; text-align: center; flex-shrink: 0;
+}
+.r-label {
+  font-size: 10px; font-weight: 800; letter-spacing: 0.07em;
+  text-transform: uppercase; color: #92400e;
+}
+.r-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; }
+.r-list li { font-size: 10.5px; color: #374151; line-height: 1.55; padding-left: 12px; position: relative; }
+.r-list li::before { content: '✦'; position: absolute; left: 0; color: #d4af37; font-size: 7px; top: 4px; }
+.r-sub { font-size: 9.5px; color: #6b7280; font-style: italic; }
+
+/* Dynamic color swatches */
+.r-color-row { display: flex; flex-wrap: wrap; gap: 6px; padding-top: 2px; }
+.r-color-chip { display: flex; align-items: center; gap: 4px; }
+.r-swatch {
+  width: 16px; height: 16px; border-radius: 50%;
+  border: 1.5px solid rgba(0,0,0,0.12);
+  flex-shrink: 0; display: inline-block;
+}
+.r-color-name { font-size: 10.5px; font-weight: 600; color: #374151; }
 
 .edit-area {
   width: 100%; box-sizing: border-box; padding: 12px 16px;
@@ -1684,6 +1842,30 @@ export class ReportPage implements OnInit {
     auspicious: '#b45309', love: '#be185d', planetary: '#0e7490',
     strength: '#1d4ed8', spiritual: '#6d28d9', timing: '#047857', caution: '#7c3aed',
   };
+
+  // Maps color names (from remedy data) to actual CSS hex values for swatches
+  private readonly COLOR_HEX: Record<string, string> = {
+    'red': '#e53e3e', 'red coral': '#e53e3e', 'coral': '#ff6b6b',
+    'orange': '#dd6b20', 'saffron': '#dd6b20',
+    'yellow': '#d69e2e', 'soft yellow': '#ecc94b', 'gold': '#d4af37', 'golden': '#d4af37',
+    'green': '#38a169', 'emerald green': '#2f855a', 'light green': '#68d391',
+    'blue': '#3182ce', 'sky blue': '#63b3ed', 'royal blue': '#2b6cb0',
+    'dark blue': '#2c5282', 'navy': '#2c5282', 'indigo': '#4c51bf',
+    'violet': '#6b46c1', 'purple': '#805ad5', 'lavender': '#b794f4',
+    'pink': '#d53f8c', 'rose pink': '#ed64a6', 'ivory': '#f5f0e8',
+    'white': '#e8e8e8', 'cream': '#f5f0e8', 'off-white': '#f5f0e8',
+    'black': '#2d3748', 'dark': '#2d3748',
+    'brown': '#92400e', 'maroon': '#742a2a',
+    'silver': '#a0aec0', 'grey': '#718096', 'gray': '#718096',
+    'moonstone': '#b0c4de', 'pearl': '#f0f0e8',
+    'diamond': '#b0c4de', 'sapphire': '#2b6cb0',
+    'ruby': '#c53030', 'yellow sapphire': '#d69e2e',
+  };
+
+  colorHex(colorName: string): string {
+    const key = (colorName || '').toLowerCase().trim();
+    return this.COLOR_HEX[key] ?? '#d4af37'; // fallback to gold
+  }
 
   // Strip the spaced-uppercase pattern the AI sometimes emits:
   // "W H O I S T H E R I G H T P A R T N E R" → "Who Is The Right Partner"
@@ -2783,44 +2965,53 @@ export class ReportPage implements OnInit {
         .hw-answer { display: block !important; font-size: 9.5px !important; line-height: 1.55 !important; }
 
         /* ── Remedy card — split allowed between groups ── */
-        .remedy-card {
-          display: block !important;
-          page-break-inside: auto !important; break-inside: auto !important;
-          margin-top: 10px !important; padding: 10px 14px !important;
-          border-radius: 8px !important;
-          border: 1px solid rgba(212,175,55,0.25) !important;
-          background: rgba(212,175,55,0.02) !important;
+        /* Consolidated remedies page — one A4 page, 2-col grid */
+        .remedy-page {
+          width: 210mm !important;
+          height: 297mm !important;
+          min-height: 297mm !important;
+          max-height: 297mm !important;
+          overflow: hidden !important;
+          display: flex !important; flex-direction: column !important;
+          page-break-before: always !important; break-before: page !important;
+          page-break-after: avoid !important;
         }
-        .remedy-card-head {
-          display: block !important;
-          font-size: 11px !important; font-weight: 700 !important;
-          margin-bottom: 8px !important;
-          break-after: avoid !important; page-break-after: avoid !important;
-          color: #8a6a00 !important;
+        .remedy-grid {
+          display: grid !important;
+          grid-template-columns: 1fr 1fr !important;
+          gap: 8px !important;
+          padding: 12px 24px 6px !important;
+          align-content: start !important;
+          overflow: hidden !important;
+          flex: 1 !important;
         }
-        /* Each remedy group (Daily Habits / Mantra / Lucky Colors) stays together */
-        .remedy-group {
+        .r-card {
           display: block !important;
           break-inside: avoid !important; page-break-inside: avoid !important;
-          margin-bottom: 7px !important;
+          padding: 8px 11px !important;
+          border-radius: 7px !important;
+          border: 1px solid rgba(212,175,55,0.22) !important;
+          background: rgba(253,248,238,0.6) !important;
         }
-        .remedy-group-label {
+        .r-card-hdr {
+          display: flex !important;
+          padding-bottom: 4px !important; margin-bottom: 3px !important;
+          border-bottom: 1px solid rgba(212,175,55,0.18) !important;
+        }
+        .r-icon { font-size: 12px !important; width: 18px !important; }
+        .r-label { font-size: 8.5px !important; font-weight: 800 !important; }
+        .r-list { display: block !important; margin: 0 !important; padding: 0 !important; }
+        .r-list li {
           display: block !important;
-          font-size: 8px !important; font-weight: 700 !important;
-          letter-spacing: 0.8px !important; text-transform: uppercase !important;
-          color: #8a6a00 !important; margin-bottom: 3px !important;
-          break-after: avoid !important;
+          font-size: 8.5px !important; line-height: 1.45 !important;
+          padding-left: 10px !important; margin-bottom: 1.5px !important;
         }
-        .remedy-list {
-          display: block !important;
-          margin: 0 !important; padding-left: 16px !important;
-          list-style: disc !important;
-        }
-        .remedy-list li {
-          display: list-item !important;
-          font-size: 9.5px !important; line-height: 1.6 !important;
-          margin-bottom: 2px !important;
-        }
+        .r-list li::before { font-size: 6px !important; top: 3px !important; }
+        .r-sub { font-size: 8px !important; }
+        .r-color-row { display: flex !important; flex-wrap: wrap !important; gap: 4px !important; }
+        .r-color-chip { display: flex !important; align-items: center !important; gap: 3px !important; }
+        .r-swatch { width: 12px !important; height: 12px !important; border-radius: 50% !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        .r-color-name { font-size: 8.5px !important; }
 
         .narrative-para { font-size: 10.5px !important; line-height: 1.65 !important; }
 

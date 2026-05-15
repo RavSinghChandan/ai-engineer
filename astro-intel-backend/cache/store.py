@@ -64,6 +64,8 @@ def make_key(user_id: str, questions: list, user_question: str,
              profile: dict = None) -> str:
     """
     Session-level key: profile identity + question set.
+    user_id is intentionally excluded — same person with different session IDs
+    must get the same cache key (identity = birth data, not session token).
     Same person asking same questions = cache hit.
     Different questions = different key (fresh run).
     """
@@ -75,12 +77,11 @@ def make_key(user_id: str, questions: list, user_question: str,
         if nq and nq not in all_q:
             all_q.append(nq)
 
-    query_blob   = "|".join(sorted(all_q))
-    profile_key  = make_profile_key(profile) if profile else "noprofile"
-    raw_key      = f"{profile_key}__{query_blob}"
-    hashed       = hashlib.sha256(raw_key.encode()).hexdigest()[:16]
-    uid          = (user_id or "anonymous").strip().lower()
-    return f"session__{uid}__{hashed}"
+    query_blob  = "|".join(sorted(all_q))
+    profile_key = make_profile_key(profile) if profile else "noprofile"
+    raw_key     = f"{profile_key}__{query_blob}"
+    hashed      = hashlib.sha256(raw_key.encode()).hexdigest()[:16]
+    return f"session__{hashed}"
 
 
 # ── TTL eviction ──────────────────────────────────────────────────────────────
@@ -137,8 +138,17 @@ def set(  # noqa: A001
     """
     Store payload under key.
     meta can carry: user_name, date_of_birth, place_of_birth, key_type
+    If a non-expired entry already exists for this key, skip the write to
+    prevent duplicate entries when the same user hits the API twice.
     """
     _sweep()
+    existing = _cache.get(key)
+    if existing is not None:
+        stored_at, _, existing_meta = existing
+        if not _is_expired(stored_at, existing_meta.get("ttl", ttl)):
+            # Entry exists and is still valid — no duplicate write needed
+            return
+
     if len(_cache) >= MAX_ENTRIES:
         _evict_oldest()
     entry_meta = {

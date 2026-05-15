@@ -149,9 +149,6 @@ function validateProfile(p: {
   template: `
 <div class="shell">
 
-  <!-- ══ BACKGROUND WATERMARK ══ -->
-  <div class="brand-watermark"></div>
-
   <!-- ══ HEADER ══ -->
   <header class="hdr">
     <div class="hdr-brand">
@@ -756,20 +753,6 @@ function validateProfile(p: {
 
 /* ══ SHELL ══ */
 .shell { display: flex; flex-direction: column; height: 100vh; overflow: hidden; position: relative; }
-
-/* ── Rav logo watermark: full-page, light golden tint ── */
-.brand-watermark {
-  position: fixed;
-  left: 50%; top: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 0; pointer-events: none;
-  width: 70vw; height: 70vw;
-  max-width: 700px; max-height: 700px;
-  border-radius: 50%;
-  background: url('/rav-logo.png') center/contain no-repeat;
-  opacity: 0.07;
-  filter: sepia(1) saturate(4) hue-rotate(5deg) brightness(1.05);
-}
 
 /* ══ HEADER ══ */
 .hdr {

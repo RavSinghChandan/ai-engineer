@@ -1,7 +1,7 @@
 /* ── Base — match intake exactly ── */
 :host { display: block; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-.shell { display: flex; flex-direction: column; height: 100vh; overflow: hidden; background: #f1f5f9; font-family: 'Inter', system-ui, sans-serif; color: #111827; -webkit-font-smoothing: antialiased; }
+.shell { display: flex; flex-direction: column; height: 100vh; overflow: hidden; background: transparent; font-family: 'Inter', system-ui, sans-serif; color: #111827; -webkit-font-smoothing: antialiased; }
 
 /* ── Header — copy of intake .hdr ── */
 .hdr {

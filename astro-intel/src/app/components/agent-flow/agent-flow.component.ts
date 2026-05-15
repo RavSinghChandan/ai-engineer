@@ -427,7 +427,7 @@ const PIPELINE_STEPS: { id: string; label: string }[] = [
 .af-host {
   display: flex; flex-direction: column;
   height: 100%; width: 100%;
-  background: #ffffff;
+  background: transparent;
   overflow: hidden;
   transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
 }

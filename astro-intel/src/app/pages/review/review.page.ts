@@ -556,7 +556,7 @@ import { firstValueFrom } from 'rxjs';
   `,
   styles: [`
 /* ── Shell ────────────────────────────────────────────────────────────────── */
-:host { display: flex; flex-direction: column; min-height: 100vh; background: #f5f3ef; }
+:host { display: flex; flex-direction: column; min-height: 100vh; background: transparent; }
 .shell { display: flex; flex-direction: column; min-height: 100vh; }
 
 /* ── Header ───────────────────────────────────────────────────────────────── */
