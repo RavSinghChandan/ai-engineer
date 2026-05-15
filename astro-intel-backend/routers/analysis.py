@@ -23,7 +23,8 @@ from metrics.collector import get_collector, RunRecord
 from utils.deepseek_client import get_session_usage, reset_session_usage
 from guardrails.production import rate_limiter
 from auth.dependencies import get_tenant_ctx
-from auth.models import TenantContext
+from auth.models import TenantContext, Role
+from auth.rbac import Permission, can, check_resource_access, audit
 
 router = APIRouter(prefix="/api/v1/analysis", tags=["Analysis"])
 
@@ -35,7 +36,7 @@ _sessions: Dict[str, Dict[str, Any]] = {}
 @router.post("/run")
 async def run_analysis(
     req: AnalysisRequest,
-    ctx: TenantContext = Depends(get_tenant_ctx),
+    ctx: TenantContext = Depends(can(Permission.ANALYSIS__RUN)),
 ) -> JSONResponse:
     """
     Execute the full LangGraph pipeline.
@@ -160,7 +161,7 @@ async def run_analysis(
 @router.post("/approve")
 async def approve_and_generate(
     req: ApprovalRequest,
-    ctx: TenantContext = Depends(get_tenant_ctx),
+    ctx: TenantContext = Depends(can(Permission.ANALYSIS__APPROVE)),
 ) -> JSONResponse:
     """
     Accept admin approvals by insight ID, generate final report.
@@ -207,12 +208,21 @@ async def approve_and_generate(
 
 # ── GET /session/{session_id} — retrieve stored session ──────────────────────
 @router.get("/session/{session_id}")
-async def get_session(session_id: str) -> JSONResponse:
+async def get_session(
+    session_id: str,
+    ctx: TenantContext = Depends(get_tenant_ctx),
+) -> JSONResponse:
     state = _sessions.get(session_id)
     if not state:
         state = await store.read_meta(session_id, "state")
     if not state:
         raise HTTPException(status_code=404, detail="Session not found.")
+
+    # RBAC: USERs can view own sessions; ADMINs can view all
+    session_tenant = state.get("tenant_id", "")
+    check_resource_access(Permission.ANALYSIS__VIEW_OWN, session_tenant, ctx)
+    audit(ctx, Permission.ANALYSIS__VIEW_OWN, resource_id=session_id)
+
     return JSONResponse(content={
         "session_id":          session_id,
         "focus_context":       state.get("focus_context", {}),
@@ -223,9 +233,13 @@ async def get_session(session_id: str) -> JSONResponse:
     })
 
 
-# ── GET /memory/{session_id} — dump raw memory ───────────────────────────────
+# ── GET /memory/{session_id} — dump raw memory (ADMIN debug only) ─────────────
 @router.get("/memory/{session_id}")
-async def get_memory(session_id: str) -> JSONResponse:
+async def get_memory(
+    session_id: str,
+    ctx: TenantContext = Depends(can(Permission.ANALYSIS__VIEW_MEMORY)),
+) -> JSONResponse:
+    audit(ctx, Permission.ANALYSIS__VIEW_MEMORY, resource_id=session_id)
     all_mem = await store.read_all(session_id)
     return JSONResponse(content={"session_id": session_id, "memory": all_mem})
 
@@ -372,7 +386,7 @@ class TranslateRequest(BaseModel):
 @router.post("/translate")
 async def translate_report(
     req: TranslateRequest,
-    ctx: TenantContext = Depends(get_tenant_ctx),
+    ctx: TenantContext = Depends(can(Permission.ANALYSIS__TRANSLATE)),
 ) -> JSONResponse:
     """
     Translate a FinalReport into one of the 22 Indian Constitutional languages.

@@ -20,6 +20,7 @@ from typing import List, Optional
 
 from auth.models import Role, TenantContext
 from auth.dependencies import get_tenant_ctx, require_role
+from auth.rbac import Permission, can, check_resource_access, audit
 import leads.store as store
 
 router = APIRouter(tags=["Leads"])
@@ -67,7 +68,7 @@ class AttachReportRequest(BaseModel):
 @router.post("/leads", status_code=status.HTTP_201_CREATED)
 async def submit_lead(
     req: LeadRequest,
-    ctx: TenantContext = Depends(get_tenant_ctx),
+    ctx: TenantContext = Depends(can(Permission.LEAD__SUBMIT)),
 ):
     # F2: enforce consent on backend
     if not req.consent:
@@ -118,9 +119,9 @@ async def get_lead_status(
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found.")
 
-    # F1: ownership check — users can only see their own leads; admins see all
-    if not ctx.role.can(Role.ADMIN) and lead.tenant_id and lead.tenant_id != ctx.tenant_id:
-        raise HTTPException(status_code=403, detail="Access denied.")
+    # RBAC: ownership check via permission system
+    check_resource_access(Permission.LEAD__VIEW_OWN, lead.tenant_id, ctx)
+    audit(ctx, Permission.LEAD__VIEW_OWN, resource_id=lead_id)
 
     from dataclasses import asdict
     return LeadOut(**asdict(lead))
@@ -128,14 +129,14 @@ async def get_lead_status(
 
 @router.get("/admin/leads/count-new")
 async def count_new_leads(
-    ctx: TenantContext = Depends(require_role(Role.ADMIN)),
+    ctx: TenantContext = Depends(can(Permission.LEAD__COUNT_NEW)),
 ):
     return {"count": store.count_new()}
 
 
 @router.get("/admin/leads", response_model=List[LeadOut])
 async def list_leads(
-    ctx: TenantContext = Depends(require_role(Role.ADMIN)),
+    ctx: TenantContext = Depends(can(Permission.LEAD__VIEW_ALL)),
 ):
     from dataclasses import asdict
     return [LeadOut(**asdict(l)) for l in store.list_leads()]
@@ -145,7 +146,7 @@ async def list_leads(
 async def attach_report_to_lead(
     lead_id: str,
     req: AttachReportRequest,
-    ctx: TenantContext = Depends(require_role(Role.ADMIN)),
+    ctx: TenantContext = Depends(can(Permission.LEAD__ATTACH_REPORT)),
 ):
     """ADMIN/SUPERADMIN: attach a completed report JSON to a lead and mark it report_ready."""
     lead = store.attach_report(lead_id, req.report_json)
@@ -190,9 +191,9 @@ async def get_lead_report(
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found.")
 
-    # F1: ownership check
-    if not ctx.role.can(Role.ADMIN) and lead.tenant_id and lead.tenant_id != ctx.tenant_id:
-        raise HTTPException(status_code=403, detail="Access denied.")
+    # RBAC: ownership check via permission system
+    check_resource_access(Permission.LEAD__VIEW_OWN, lead.tenant_id, ctx)
+    audit(ctx, Permission.LEAD__VIEW_OWN, resource_id=f"{lead_id}/report")
 
     if lead.status != "report_ready" or not lead.report_json:
         raise HTTPException(status_code=404, detail="Report not ready yet.")
@@ -207,7 +208,7 @@ async def get_lead_report(
 async def update_lead_status(
     lead_id: str,
     req: LeadStatusUpdate,
-    ctx: TenantContext = Depends(require_role(Role.ADMIN)),
+    ctx: TenantContext = Depends(can(Permission.LEAD__UPDATE_STATUS)),
 ):
     if req.status not in store.VALID_STATUSES:
         raise HTTPException(

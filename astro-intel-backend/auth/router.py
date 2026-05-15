@@ -24,6 +24,7 @@ from typing import List, Optional
 
 from auth.models import Role, TenantContext
 from auth.dependencies import create_access_token, get_tenant_ctx, require_role
+from auth.rbac import Permission, can, has_permission, permissions_for_role, audit
 import auth.store as store
 import auth.users as users
 
@@ -351,7 +352,7 @@ async def get_token(req: TokenRequest):
 @router.post("/admin/tenants", status_code=status.HTTP_201_CREATED)
 async def create_tenant(
     req: CreateTenantRequest,
-    ctx: TenantContext = Depends(require_role(Role.SUPERADMIN)),
+    ctx: TenantContext = Depends(can(Permission.TENANT__MANAGE)),
 ):
     """
     Create a new tenant and generate their first ADMIN API key.
@@ -379,7 +380,7 @@ async def create_tenant(
 
 @router.get("/admin/tenants", response_model=List[TenantOut])
 async def list_tenants(
-    ctx: TenantContext = Depends(require_role(Role.SUPERADMIN)),
+    ctx: TenantContext = Depends(can(Permission.TENANT__MANAGE)),
 ):
     tenants = store.list_tenants()
     return [
@@ -399,7 +400,7 @@ async def list_tenants(
 async def add_key_to_tenant(
     tenant_id: str,
     req:       CreateKeyRequest,
-    ctx:       TenantContext = Depends(require_role(Role.SUPERADMIN)),
+    ctx:       TenantContext = Depends(can(Permission.TENANT__MANAGE_KEYS)),
 ):
     """Add a USER or ADMIN key to an existing tenant."""
     try:
@@ -433,7 +434,7 @@ async def add_key_to_tenant(
 @router.delete("/admin/keys/{key}")
 async def revoke_key(
     key: str,
-    ctx: TenantContext = Depends(require_role(Role.SUPERADMIN)),
+    ctx: TenantContext = Depends(can(Permission.TENANT__MANAGE_KEYS)),
 ):
     revoked = store.revoke_key(key)
     if not revoked:
@@ -444,7 +445,7 @@ async def revoke_key(
 # ── GET /admin/my-tenant — own tenant info (ADMIN or above) ──────────────────
 
 @router.get("/admin/my-tenant")
-async def my_tenant(ctx: TenantContext = Depends(require_role(Role.ADMIN))):
+async def my_tenant(ctx: TenantContext = Depends(can(Permission.TENANT__VIEW_OWN))):
     tenant = store.get_tenant(ctx.tenant_id)
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found.")
@@ -460,7 +461,7 @@ async def my_tenant(ctx: TenantContext = Depends(require_role(Role.ADMIN))):
 # ── GET /admin/my-keys — own tenant's keys (ADMIN or above) ──────────────────
 
 @router.get("/admin/my-keys", response_model=List[KeyOut])
-async def my_keys(ctx: TenantContext = Depends(require_role(Role.ADMIN))):
+async def my_keys(ctx: TenantContext = Depends(can(Permission.TENANT__VIEW_OWN))):
     """List all API keys for the caller's tenant. Key values are shown in full."""
     keys = store.list_keys_for_tenant(ctx.tenant_id)
     return [
@@ -480,7 +481,7 @@ async def my_keys(ctx: TenantContext = Depends(require_role(Role.ADMIN))):
 @router.patch("/admin/tenants/{tenant_id}/lock")
 async def lock_tenant(
     tenant_id: str,
-    ctx: TenantContext = Depends(require_role(Role.SUPERADMIN)),
+    ctx: TenantContext = Depends(can(Permission.TENANT__MANAGE)),
 ):
     """Disable a tenant — all their keys stop working immediately."""
     ok = store.set_tenant_active(tenant_id, False)
@@ -492,7 +493,7 @@ async def lock_tenant(
 @router.patch("/admin/tenants/{tenant_id}/unlock")
 async def unlock_tenant(
     tenant_id: str,
-    ctx: TenantContext = Depends(require_role(Role.SUPERADMIN)),
+    ctx: TenantContext = Depends(can(Permission.TENANT__MANAGE)),
 ):
     """Re-enable a previously locked tenant."""
     ok = store.set_tenant_active(tenant_id, True)
@@ -504,7 +505,7 @@ async def unlock_tenant(
 @router.delete("/admin/tenants/{tenant_id}")
 async def delete_tenant(
     tenant_id: str,
-    ctx: TenantContext = Depends(require_role(Role.SUPERADMIN)),
+    ctx: TenantContext = Depends(can(Permission.TENANT__MANAGE)),
 ):
     """Permanently delete a tenant and all their API keys."""
     ok = store.delete_tenant(tenant_id)
@@ -515,7 +516,7 @@ async def delete_tenant(
 
 @router.get("/admin/all-keys", response_model=List[KeyOut])
 async def all_keys(
-    ctx: TenantContext = Depends(require_role(Role.SUPERADMIN)),
+    ctx: TenantContext = Depends(can(Permission.TENANT__MANAGE_KEYS)),
 ):
     """SUPERADMIN: list every API key across all tenants."""
     return [
@@ -533,7 +534,7 @@ async def all_keys(
 # ── User management (SUPERADMIN only) ────────────────────────────────────────
 
 @router.get("/admin/users", response_model=List[UserOut])
-async def list_users(ctx: TenantContext = Depends(require_role(Role.SUPERADMIN))):
+async def list_users(ctx: TenantContext = Depends(can(Permission.USER__MANAGE))):
     """SUPERADMIN: list all registered users."""
     return [
         UserOut(
@@ -551,7 +552,7 @@ async def list_users(ctx: TenantContext = Depends(require_role(Role.SUPERADMIN))
 @router.post("/admin/users", response_model=UserOut, status_code=status.HTTP_201_CREATED)
 async def create_admin_user(
     req: CreateAdminRequest,
-    ctx: TenantContext = Depends(require_role(Role.SUPERADMIN)),
+    ctx: TenantContext = Depends(can(Permission.USER__MANAGE)),
 ):
     """SUPERADMIN: create an ADMIN account with email+password."""
     try:
@@ -571,7 +572,7 @@ async def create_admin_user(
 @router.patch("/admin/users/{email}/lock")
 async def lock_user(
     email: str,
-    ctx: TenantContext = Depends(require_role(Role.SUPERADMIN)),
+    ctx: TenantContext = Depends(can(Permission.USER__MANAGE)),
 ):
     """SUPERADMIN: disable a user account."""
     ok = users.set_active(email, False)
@@ -583,7 +584,7 @@ async def lock_user(
 @router.patch("/admin/users/{email}/unlock")
 async def unlock_user(
     email: str,
-    ctx: TenantContext = Depends(require_role(Role.SUPERADMIN)),
+    ctx: TenantContext = Depends(can(Permission.USER__MANAGE)),
 ):
     """SUPERADMIN: re-enable a user account."""
     ok = users.set_active(email, True)
@@ -595,7 +596,7 @@ async def unlock_user(
 @router.delete("/admin/users/{email}")
 async def delete_user(
     email: str,
-    ctx: TenantContext = Depends(require_role(Role.SUPERADMIN)),
+    ctx: TenantContext = Depends(can(Permission.USER__MANAGE)),
 ):
     """SUPERADMIN: permanently delete a user account."""
     try:
@@ -610,18 +611,15 @@ async def delete_user(
 # ── GET /auth/me — who am I? (any authenticated user) ────────────────────────
 
 @router.get("/auth/me")
-async def whoami(ctx: TenantContext = Depends(get_tenant_ctx)):
+async def whoami(ctx: TenantContext = Depends(can(Permission.USER__VIEW_PROFILE))):
+    audit(ctx, Permission.USER__VIEW_PROFILE)
     return {
         "tenant_id":   ctx.tenant_id,
         "tenant_name": ctx.tenant_name,
         "role":        ctx.role.value,
-        "permissions": {
-            "run_analysis":       True,
-            "approve_own":        True,
-            "translate_own":      True,
-            "view_metrics":       ctx.is_admin_or_above(),
-            "view_guardrails":    ctx.is_admin_or_above(),
-            "manage_tenants":     ctx.is_superadmin(),
-            "reset_circuit_breaker": ctx.is_superadmin(),
-        },
+        "user_id":     ctx.user_id,
+        "email":       ctx.email,
+        "name":        ctx.name,
+        # Full RBAC permission set — every permission this role holds
+        "permissions": sorted(permissions_for_role(ctx.role)),
     }

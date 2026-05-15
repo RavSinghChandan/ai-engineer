@@ -30,6 +30,7 @@ from auth.router import router as auth_router
 from leads.router import router as leads_router
 from auth.dependencies import require_role, get_tenant_ctx
 from auth.models import Role, TenantContext
+from auth.rbac import Permission, can
 import auth.store as auth_store
 import auth.users as users_store
 import leads.store as leads_store
@@ -93,31 +94,31 @@ async def health():
 
 # ── Cache management (ADMIN+) ─────────────────────────────────────────────────
 @app.get("/cache/stats", tags=["Cache"])
-async def cache_stats(ctx: TenantContext = Depends(require_role(Role.ADMIN))):
+async def cache_stats(ctx: TenantContext = Depends(can(Permission.CACHE__VIEW))):
     return response_cache.stats()
 
 @app.get("/cache/entries", tags=["Cache"])
-async def cache_entries(ctx: TenantContext = Depends(require_role(Role.ADMIN))):
+async def cache_entries(ctx: TenantContext = Depends(can(Permission.CACHE__VIEW))):
     return {"entries": response_cache.entries(), "stats": response_cache.stats()}
 
 @app.delete("/cache/clear", tags=["Cache"])
-async def cache_clear(ctx: TenantContext = Depends(require_role(Role.ADMIN))):
+async def cache_clear(ctx: TenantContext = Depends(can(Permission.CACHE__INVALIDATE))):
     removed = response_cache.clear()
     return {"cleared": removed}
 
 @app.delete("/cache/invalidate/{key}", tags=["Cache"])
-async def cache_invalidate(key: str, ctx: TenantContext = Depends(require_role(Role.ADMIN))):
+async def cache_invalidate(key: str, ctx: TenantContext = Depends(can(Permission.CACHE__INVALIDATE))):
     removed = response_cache.invalidate(key)
     return {"key": key, "removed": removed}
 
 
 # ── Production Guardrail Stats (ADMIN+) ──────────────────────────────────────
 @app.get("/guardrails/stats", tags=["Guardrails"])
-async def guardrail_stats(ctx: TenantContext = Depends(require_role(Role.ADMIN))):
+async def guardrail_stats(ctx: TenantContext = Depends(can(Permission.GUARDRAILS__VIEW))):
     return all_guardrail_stats()
 
 @app.post("/guardrails/circuit-breaker/reset", tags=["Guardrails"])
-async def reset_circuit_breaker(ctx: TenantContext = Depends(require_role(Role.SUPERADMIN))):
+async def reset_circuit_breaker(ctx: TenantContext = Depends(can(Permission.GUARDRAILS__RESET_CB))):
     """SUPERADMIN only — reset LLM circuit breaker to CLOSED."""
     from guardrails.production import llm_circuit_breaker
     llm_circuit_breaker.reset()

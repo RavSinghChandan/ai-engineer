@@ -270,28 +270,34 @@ class TestWhoAmI:
         resp = client.get("/auth/me", headers={"X-API-Key": SUPERADMIN_KEY})
         assert resp.status_code == 200
         data = resp.json()
-        assert data["role"]                         == "superadmin"
-        assert data["permissions"]["manage_tenants"] is True
-        assert data["permissions"]["view_metrics"]   is True
+        assert data["role"] == "superadmin"
+        # New RBAC: permissions is a sorted list of permission strings
+        assert isinstance(data["permissions"], list)
+        assert "tenant:manage" in data["permissions"]
+        assert "metrics:view"  in data["permissions"]
+        assert "guardrails:reset_cb" in data["permissions"]
 
     def test_admin_whoami(self, client):
         _seed_tenant_with_keys()
         resp = client.get("/auth/me", headers={"X-API-Key": ADMIN_KEY})
         assert resp.status_code == 200
         data = resp.json()
-        assert data["role"]                          == "admin"
-        assert data["permissions"]["view_metrics"]    is True
-        assert data["permissions"]["manage_tenants"]  is False
+        assert data["role"] == "admin"
+        assert isinstance(data["permissions"], list)
+        assert "metrics:view"   in data["permissions"]
+        assert "tenant:manage"  not in data["permissions"]   # SUPERADMIN only
+        assert "user:manage"    not in data["permissions"]   # SUPERADMIN only
 
     def test_user_whoami(self, client):
         _seed_tenant_with_keys()
         resp = client.get("/auth/me", headers={"X-API-Key": USER_KEY})
         assert resp.status_code == 200
         data = resp.json()
-        assert data["role"]                         == "user"
-        assert data["permissions"]["view_metrics"]   is False
-        assert data["permissions"]["manage_tenants"] is False
-        assert data["permissions"]["run_analysis"]   is True
+        assert data["role"] == "user"
+        assert isinstance(data["permissions"], list)
+        assert "metrics:view"   not in data["permissions"]
+        assert "tenant:manage"  not in data["permissions"]
+        assert "analysis:run"   in data["permissions"]
 
     def test_no_auth_returns_401(self, client):
         resp = client.get("/auth/me")
@@ -472,10 +478,12 @@ class TestMyTenant:
         assert resp.status_code == 200
         assert resp.json()["tenant_id"] == TENANT_ID
 
-    def test_user_cannot_see_tenant(self, client):
+    def test_user_can_see_own_tenant(self, client):
+        # RBAC: USER now has TENANT__VIEW_OWN permission — can see own tenant info
         _seed_tenant_with_keys()
         resp = client.get("/admin/my-tenant", headers={"X-API-Key": USER_KEY})
-        assert resp.status_code == 403
+        assert resp.status_code == 200
+        assert resp.json()["tenant_id"] == TENANT_ID
 
     def test_admin_can_list_own_keys(self, client):
         _seed_tenant_with_keys()

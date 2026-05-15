@@ -7,13 +7,14 @@ from fastapi.responses import JSONResponse
 from metrics import get_collector
 from auth.dependencies import require_role
 from auth.models import Role, TenantContext
+from auth.rbac import Permission, can
 
 router = APIRouter(prefix="/api/v1/metrics", tags=["Metrics"])
 
 
 @router.get("")
 async def get_metrics(
-    ctx: TenantContext = Depends(require_role(Role.ADMIN)),
+    ctx: TenantContext = Depends(can(Permission.METRICS__VIEW)),
 ) -> JSONResponse:
     """Return live production metrics dashboard. Requires ADMIN or SUPERADMIN."""
     dashboard = get_collector().dashboard()
