@@ -180,9 +180,26 @@ Response to User
 Key numbers to annotate:
 - Parallel phase: 3-4s
 - Synthesis: 5-6s
-- Total: 15-20s
+- Total: 15-20s (P50 confirmed via live `/api/v1/metrics` after real runs)
 - LLM calls: 6 (5 agents + 1 synthesis, plus classifier)
 - Cost: ~$0.07 (gpt-4o-mini × 5 + gpt-4o × 1)
+
+**Enterprise test coverage (415/415 passing, 2026-05-15):**
+
+| What was tested | How | Result |
+|---|---|---|
+| Cache dedup: same person, different session → 1 entry | Unit + live HTTP | Fixed (user_id removed from key) |
+| Rate limiter: 429 fires at request 11 | Unit + live HTTP | Verified |
+| Circuit breaker: CLOSED → OPEN → HALF_OPEN → CLOSED | Unit | All transitions verified |
+| JSON repair cascade: 4 levels (parse→fence→regex→None) | Unit | All paths covered |
+| PII scrub: DOB, time, location removed from insights | Unit | Verified |
+| 4-layer security gate: 15 injection patterns blocked | Unit | All 15 blocked |
+| 3-layer hallucination detection + recovery | Unit | All detection + suppression paths covered |
+| Full pipeline run→approve→translate | Live DeepSeek | 23 tests, all pass |
+| Metrics P50/P95/P99 tracked after real run | Live | Confirmed live, not stub |
+| Hindi translation → correct language_code in response | Live DeepSeek | Verified |
+
+In interview (when asked "how do you know it works?"): "AstroIntel has 415 tests — 392 unit tests covering every subsystem in isolation, and 23 live tests that run the real full pipeline against DeepSeek with an actual user profile. The live tests verify what unit tests cannot: that the agents call the real LLM correctly, the hallucination audit is populated from real output, the cache dedup works end-to-end across HTTP requests, and P50 latency is tracked from real wall-clock time. I can quote specific behavior: request 11 returns HTTP 429 with retry-in seconds. Same birth profile with a different session ID returns `cache_hit: true`. The Hindi translation response carries `language_code: 'hi'`. These are not mocked assertions — they are verified against the running system."
 
 ---
 
