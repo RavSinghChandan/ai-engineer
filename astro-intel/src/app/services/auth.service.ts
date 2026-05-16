@@ -58,6 +58,16 @@ export class AuthService {
     );
   }
 
+  // Register without auto-login — user must sign in manually after
+  registerOnly(name: string, email: string, password: string) {
+    return this.http.post<any>(`${BACKEND}/auth/register`, { name, email, password }).pipe(
+      catchError(err => {
+        const msg = err?.error?.detail ?? 'Registration failed. Please try again.';
+        return throwError(() => new Error(msg));
+      })
+    );
+  }
+
   sendOtp(email: string) {
     return this.http.post<{ message: string; dev_code?: string; dev_note?: string }>(
       `${BACKEND}/auth/otp/send`, { email }

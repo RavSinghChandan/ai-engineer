@@ -253,6 +253,77 @@ input:disabled {
   color: #9ca3af;
 }
 
+/* Required asterisk */
+.req {
+  color: #ef4444;
+  font-weight: 700;
+  margin-left: 2px;
+}
+
+/* Inline field validation */
+.input-error {
+  border-color: #f87171 !important;
+  background: #fff5f5 !important;
+}
+.input-error:focus {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239,68,68,0.12) !important;
+}
+
+.input-ok {
+  border-color: #34d399 !important;
+}
+.input-ok:focus {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 3px rgba(16,185,129,0.12) !important;
+}
+
+.field-err {
+  display: block;
+  font-size: 0.75rem;
+  color: #ef4444;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+/* Registration success state */
+.success-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem 0.5rem;
+  text-align: center;
+}
+
+.success-icon {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #059669, #10b981);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(16,185,129,0.35);
+}
+
+.success-title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #065f46;
+}
+
+.success-msg {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #374151;
+  line-height: 1.6;
+}
+
 /* OTP tab button */
 .otp-tab {
   flex: 0.75;

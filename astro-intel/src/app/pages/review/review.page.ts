@@ -42,6 +42,10 @@ const BACKEND = environment.apiUrl;
     </div>
 
     <div class="hdr-right">
+      <button class="hdr-nav-btn hdr-home-btn" (click)="router.navigate(['/'])" title="Home">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1.5 6.5L6.5 2l5 4.5M2.5 6v5h2.5V8h3v3h2.5V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Home
+      </button>
       @if (auth.isAdmin()) {
         <button class="hdr-nav-btn" (click)="router.navigate(['/admin/users'])" title="Leads & Users">
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M9 6a2.5 2.5 0 1 0-5 0 2.5 2.5 0 0 0 5 0zM2 11.5c0-2 2-3.5 4.5-3.5s4.5 1.5 4.5 3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>

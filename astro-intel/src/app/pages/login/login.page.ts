@@ -1,8 +1,38 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+
+const EMAIL_RE   = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_RE   = /^[+]?[\d\s\-().]{7,15}$/;
+
+function validateEmail(v: string): string {
+  if (!v.trim()) return 'Email is required.';
+  if (!EMAIL_RE.test(v.trim())) return 'Enter a valid email address.';
+  return '';
+}
+function validatePhone(v: string): string {
+  if (!v.trim()) return 'Mobile number is required.';
+  if (!PHONE_RE.test(v.trim())) return 'Enter a valid mobile number.';
+  return '';
+}
+function validateName(v: string): string {
+  if (!v.trim()) return 'Full name is required.';
+  if (v.trim().length < 2) return 'Name must be at least 2 characters.';
+  if (!/[a-zA-Z]/.test(v)) return 'Name must contain letters.';
+  return '';
+}
+function validatePassword(v: string): string {
+  if (!v) return 'Password is required.';
+  if (v.length < 8) return 'Password must be at least 8 characters.';
+  return '';
+}
+function validateConfirm(pass: string, confirm: string): string {
+  if (!confirm) return 'Please confirm your password.';
+  if (pass !== confirm) return 'Passwords do not match.';
+  return '';
+}
 
 @Component({
   selector: 'app-login',
@@ -20,29 +50,66 @@ export class LoginPage {
   error    = signal('');
   showPass = signal(false);
 
-  // Sign In fields
+  // ── Sign In ──────────────────────────────────────────────────────────────
   siEmail    = signal('');
   siPassword = signal('');
+  siTouched  = signal<Record<string, boolean>>({});
 
-  // Sign Up fields
+  siEmailErr    = computed(() => this.siTouched()['email']    ? validateEmail(this.siEmail())    : '');
+  siPasswordErr = computed(() => this.siTouched()['password'] ? validatePassword(this.siPassword()) : '');
+
+  touchSi(field: string) {
+    this.siTouched.update(t => ({ ...t, [field]: true }));
+  }
+
+  // ── Sign Up ──────────────────────────────────────────────────────────────
   suName     = signal('');
   suEmail    = signal('');
   suPassword = signal('');
   suConfirm  = signal('');
+  suTouched  = signal<Record<string, boolean>>({});
+  registered = signal(false); // true → show success screen, prompt to sign in
 
-  // OTP fields
+  suNameErr    = computed(() => this.suTouched()['name']    ? validateName(this.suName())       : '');
+  suEmailErr   = computed(() => this.suTouched()['email']   ? validateEmail(this.suEmail())     : '');
+  suPassErr    = computed(() => this.suTouched()['pass']    ? validatePassword(this.suPassword()) : '');
+  suConfirmErr = computed(() => this.suTouched()['confirm'] ? validateConfirm(this.suPassword(), this.suConfirm()) : '');
+
+  touchSu(field: string) {
+    this.suTouched.update(t => ({ ...t, [field]: true }));
+  }
+
+  // ── OTP ──────────────────────────────────────────────────────────────────
   otpMode      = signal<'email' | 'phone'>('email');
   otpEmail     = signal('');
   otpPhone     = signal('');
   otpCode      = signal('');
   otpSent      = signal(false);
   otpCountdown = signal(0);
-  devCode      = signal('');  // shown when SMTP/SMS not configured (dev mode)
+  devCode      = signal('');
+  otpTouched   = signal<Record<string, boolean>>({});
+
+  otpEmailErr = computed(() => this.otpTouched()['email'] ? validateEmail(this.otpEmail()) : '');
+  otpPhoneErr = computed(() => this.otpTouched()['phone'] ? validatePhone(this.otpPhone()) : '');
+  otpCodeErr  = computed(() => {
+    if (!this.otpTouched()['code']) return '';
+    const c = this.otpCode().trim();
+    if (!c) return 'Please enter the 6-digit code.';
+    if (!/^\d{6}$/.test(c)) return 'Code must be exactly 6 digits.';
+    return '';
+  });
+
+  touchOtp(field: string) {
+    this.otpTouched.update(t => ({ ...t, [field]: true }));
+  }
+
   private _countdownTimer: ReturnType<typeof setInterval> | null = null;
 
+  // ── Tab switching ─────────────────────────────────────────────────────────
   switchTab(t: 'signin' | 'signup' | 'otp') {
     this.tab.set(t);
     this.error.set('');
+    this.registered.set(false);
     if (t !== 'otp') {
       this.otpSent.set(false);
       this.otpCode.set('');
@@ -57,78 +124,89 @@ export class LoginPage {
     this.otpCode.set('');
     this.devCode.set('');
     this.error.set('');
+    this.otpTouched.set({});
     this._stopCountdown();
   }
 
+  // ── Sign In ───────────────────────────────────────────────────────────────
   signIn() {
-    const email = this.siEmail().trim();
-    const pass  = this.siPassword();
-    if (!email || !pass) { this.error.set('Please enter your email and password.'); return; }
+    this.siTouched.set({ email: true, password: true });
+    if (this.siEmailErr() || this.siPasswordErr()) return;
     this.loading.set(true);
     this.error.set('');
-
-    this.auth.login(email, pass).subscribe({
+    this.auth.login(this.siEmail().trim(), this.siPassword()).subscribe({
       next:  () => this.router.navigate(['/']),
       error: (e: Error) => { this.error.set(e.message); this.loading.set(false); },
     });
   }
 
+  // ── Sign Up ───────────────────────────────────────────────────────────────
   signUp() {
-    const name    = this.suName().trim();
-    const email   = this.suEmail().trim();
-    const pass    = this.suPassword();
-    const confirm = this.suConfirm();
-
-    if (!name || !email || !pass) { this.error.set('All fields are required.'); return; }
-    if (pass.length < 8) { this.error.set('Password must be at least 8 characters.'); return; }
-    if (pass !== confirm) { this.error.set('Passwords do not match.'); return; }
-
+    this.suTouched.set({ name: true, email: true, pass: true, confirm: true });
+    if (this.suNameErr() || this.suEmailErr() || this.suPassErr() || this.suConfirmErr()) return;
     this.loading.set(true);
     this.error.set('');
 
-    this.auth.register(name, email, pass).subscribe({
-      next:  () => this.router.navigate(['/']),
+    // Register but do NOT auto-login — instead show success and prompt to sign in
+    this.auth.registerOnly(this.suName().trim(), this.suEmail().trim(), this.suPassword()).subscribe({
+      next: () => {
+        this.loading.set(false);
+        this.registered.set(true);
+        // Clear signup form
+        this.suName.set('');
+        this.suEmail.set('');
+        this.suPassword.set('');
+        this.suConfirm.set('');
+        this.suTouched.set({});
+      },
       error: (e: Error) => { this.error.set(e.message); this.loading.set(false); },
     });
   }
 
+  goToSignIn() {
+    this.registered.set(false);
+    this.switchTab('signin');
+  }
+
+  // ── OTP ───────────────────────────────────────────────────────────────────
   sendOtp() {
-    const mode  = this.otpMode();
-    const email = this.otpEmail().trim();
-    const phone = this.otpPhone().trim();
-
-    if (mode === 'email' && !email) { this.error.set('Please enter your email address.'); return; }
-    if (mode === 'phone' && !phone) { this.error.set('Please enter your mobile number.'); return; }
-
+    const mode = this.otpMode();
+    if (mode === 'email') {
+      this.touchOtp('email');
+      if (this.otpEmailErr()) return;
+    } else {
+      this.touchOtp('phone');
+      if (this.otpPhoneErr()) return;
+    }
     this.loading.set(true);
     this.error.set('');
     this.devCode.set('');
 
     const obs = mode === 'phone'
-      ? this.auth.sendPhoneOtp(phone)
-      : this.auth.sendOtp(email);
+      ? this.auth.sendPhoneOtp(this.otpPhone().trim())
+      : this.auth.sendOtp(this.otpEmail().trim());
 
     obs.subscribe({
       next: (res) => {
         this.loading.set(false);
         this.otpSent.set(true);
         this._startCountdown(60);
-        if (res?.dev_code) {
-          this.devCode.set(res.dev_code);
-        }
+        if (res?.dev_code) this.devCode.set(res.dev_code);
       },
       error: (e: Error) => { this.error.set(e.message); this.loading.set(false); },
     });
   }
 
   verifyOtp() {
+    this.touchOtp('code');
+    if (this.otpCodeErr()) return;
+    this.loading.set(true);
+    this.error.set('');
+
     const mode  = this.otpMode();
     const email = this.otpEmail().trim();
     const phone = this.otpPhone().trim();
     const code  = this.otpCode().trim();
-    if (!code || code.length !== 6) { this.error.set('Please enter the 6-digit code.'); return; }
-    this.loading.set(true);
-    this.error.set('');
 
     const obs = mode === 'phone'
       ? this.auth.verifyPhoneOtp(phone, code)
@@ -143,11 +221,24 @@ export class LoginPage {
   resendOtp() {
     this.otpCode.set('');
     this.devCode.set('');
+    this.otpTouched.update(t => ({ ...t, code: false }));
     this.sendOtp();
   }
 
   useDevCode() {
     this.otpCode.set(this.devCode());
+  }
+
+  // ── Keyboard ──────────────────────────────────────────────────────────────
+  onKey(e: KeyboardEvent) {
+    if (e.key !== 'Enter') return;
+    const t = this.tab();
+    if (t === 'signin')      this.signIn();
+    else if (t === 'signup') this.signUp();
+    else if (t === 'otp') {
+      if (this.otpSent()) this.verifyOtp();
+      else this.sendOtp();
+    }
   }
 
   private _startCountdown(seconds: number) {
@@ -166,17 +257,5 @@ export class LoginPage {
       this._countdownTimer = null;
     }
     this.otpCountdown.set(0);
-  }
-
-  onKey(e: KeyboardEvent) {
-    if (e.key === 'Enter') {
-      const t = this.tab();
-      if (t === 'signin') this.signIn();
-      else if (t === 'signup') this.signUp();
-      else if (t === 'otp') {
-        if (this.otpSent()) this.verifyOtp();
-        else this.sendOtp();
-      }
-    }
   }
 }

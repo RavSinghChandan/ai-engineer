@@ -65,9 +65,10 @@ interface LeadRow {
   <div class="au-header">
     <div class="au-header-left">
       <button class="au-back-btn" (click)="goHome()" title="Back to Home">
-        <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
-          <path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <svg width="15" height="15" viewBox="0 0 13 13" fill="none">
+          <path d="M1.5 6.5L6.5 2l5 4.5M2.5 6v5h2.5V8h3v3h2.5V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
+        Home
       </button>
       <div class="au-brand">
         <span class="au-brand-mark">✦</span>
@@ -488,11 +489,12 @@ interface LeadRow {
 }
 .au-header-left { display: flex; align-items: center; gap: 14px; }
 .au-back-btn {
-  display: flex; align-items: center; justify-content: center;
-  width: 34px; height: 34px; border-radius: 8px; border: 1px solid #e5e7eb;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  height: 34px; padding: 0 12px; border-radius: 8px; border: 1px solid #e5e7eb;
   background: #fff; cursor: pointer; color: #6b7280; transition: all .15s;
+  font-size: 13px; font-weight: 600; font-family: inherit; white-space: nowrap;
 }
-.au-back-btn:hover { border-color: #6366f1; color: #6366f1; }
+.au-back-btn:hover { border-color: #6366f1; color: #6366f1; background: rgba(99,102,241,0.06); }
 .au-brand { display: flex; align-items: center; gap: 8px; font-size: 14px; }
 .au-brand-mark { color: #6366f1; font-size: 16px; }
 .au-brand-name { font-weight: 700; color: #1e1b4b; }

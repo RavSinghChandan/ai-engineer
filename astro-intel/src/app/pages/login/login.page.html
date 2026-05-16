@@ -23,7 +23,8 @@
 
     <!-- ── SIGN IN ── -->
     @if (tab() === 'signin') {
-      <div class="form-group">
+
+      <div class="form-group" [class.has-error]="siEmailErr()">
         <label for="siEmail">Email</label>
         <input
           id="siEmail"
@@ -31,13 +32,18 @@
           placeholder="you@example.com"
           [ngModel]="siEmail()"
           (ngModelChange)="siEmail.set($event)"
+          (blur)="touchSi('email')"
           (keydown)="onKey($event)"
           autocomplete="email"
           [disabled]="loading()"
+          [class.input-error]="siEmailErr()"
         />
+        @if (siEmailErr()) {
+          <span class="field-err">{{ siEmailErr() }}</span>
+        }
       </div>
 
-      <div class="form-group">
+      <div class="form-group" [class.has-error]="siPasswordErr()">
         <label for="siPass">Password</label>
         <div class="input-row">
           <input
@@ -46,14 +52,19 @@
             placeholder="••••••••"
             [ngModel]="siPassword()"
             (ngModelChange)="siPassword.set($event)"
+            (blur)="touchSi('password')"
             (keydown)="onKey($event)"
             autocomplete="current-password"
             [disabled]="loading()"
+            [class.input-error]="siPasswordErr()"
           />
           <button class="toggle-btn" type="button" (click)="showPass.set(!showPass())" tabindex="-1">
             {{ showPass() ? '🙈' : '👁️' }}
           </button>
         </div>
+        @if (siPasswordErr()) {
+          <span class="field-err">{{ siPasswordErr() }}</span>
+        }
       </div>
 
       @if (error()) {
@@ -66,86 +77,128 @@
       </button>
 
       <div class="footer-note">
-        New to AURA? Click <strong>Create Account</strong> above to get started free.
-        <br/>Forgot password? Use the <strong>OTP</strong> tab to reset it.
+        New to AURA? Click <strong>Create Account</strong> above.
+        <br/>No password? Use the <strong>OTP</strong> tab to log in or reset.
       </div>
     }
 
     <!-- ── SIGN UP ── -->
     @if (tab() === 'signup') {
-      <div class="form-group">
-        <label for="suName">Full Name</label>
-        <input
-          id="suName"
-          type="text"
-          placeholder="Your name"
-          [ngModel]="suName()"
-          (ngModelChange)="suName.set($event)"
-          (keydown)="onKey($event)"
-          autocomplete="name"
-          [disabled]="loading()"
-        />
-      </div>
 
-      <div class="form-group">
-        <label for="suEmail">Email</label>
-        <input
-          id="suEmail"
-          type="email"
-          placeholder="you@example.com"
-          [ngModel]="suEmail()"
-          (ngModelChange)="suEmail.set($event)"
-          (keydown)="onKey($event)"
-          autocomplete="email"
-          [disabled]="loading()"
-        />
-      </div>
+      <!-- Success state after registration -->
+      @if (registered()) {
+        <div class="success-box">
+          <div class="success-icon">✓</div>
+          <h3 class="success-title">Account Created!</h3>
+          <p class="success-msg">
+            Your account has been registered successfully.<br/>
+            Please <strong>sign in</strong> with your email and password to enter the system.
+          </p>
+          <button class="login-btn" (click)="goToSignIn()">
+            Go to Sign In →
+          </button>
+        </div>
+      } @else {
 
-      <div class="form-group">
-        <label for="suPass">Password</label>
-        <div class="input-row">
+        <div class="form-group" [class.has-error]="suNameErr()">
+          <label for="suName">Full Name <span class="req">*</span></label>
           <input
-            id="suPass"
+            id="suName"
+            type="text"
+            placeholder="Your full name (e.g. Rav Singh)"
+            [ngModel]="suName()"
+            (ngModelChange)="suName.set($event)"
+            (blur)="touchSu('name')"
+            (keydown)="onKey($event)"
+            autocomplete="name"
+            [disabled]="loading()"
+            [class.input-error]="suNameErr()"
+            [class.input-ok]="suTouched()['name'] && !suNameErr() && suName()"
+          />
+          @if (suNameErr()) {
+            <span class="field-err">{{ suNameErr() }}</span>
+          }
+        </div>
+
+        <div class="form-group" [class.has-error]="suEmailErr()">
+          <label for="suEmail">Email Address <span class="req">*</span></label>
+          <input
+            id="suEmail"
+            type="email"
+            placeholder="you@example.com"
+            [ngModel]="suEmail()"
+            (ngModelChange)="suEmail.set($event)"
+            (blur)="touchSu('email')"
+            (keydown)="onKey($event)"
+            autocomplete="email"
+            [disabled]="loading()"
+            [class.input-error]="suEmailErr()"
+            [class.input-ok]="suTouched()['email'] && !suEmailErr() && suEmail()"
+          />
+          @if (suEmailErr()) {
+            <span class="field-err">{{ suEmailErr() }}</span>
+          }
+        </div>
+
+        <div class="form-group" [class.has-error]="suPassErr()">
+          <label for="suPass">Password <span class="req">*</span></label>
+          <div class="input-row">
+            <input
+              id="suPass"
+              [type]="showPass() ? 'text' : 'password'"
+              placeholder="At least 8 characters"
+              [ngModel]="suPassword()"
+              (ngModelChange)="suPassword.set($event)"
+              (blur)="touchSu('pass')"
+              (keydown)="onKey($event)"
+              autocomplete="new-password"
+              [disabled]="loading()"
+              [class.input-error]="suPassErr()"
+              [class.input-ok]="suTouched()['pass'] && !suPassErr() && suPassword()"
+            />
+            <button class="toggle-btn" type="button" (click)="showPass.set(!showPass())" tabindex="-1">
+              {{ showPass() ? '🙈' : '👁️' }}
+            </button>
+          </div>
+          @if (suPassErr()) {
+            <span class="field-err">{{ suPassErr() }}</span>
+          }
+        </div>
+
+        <div class="form-group" [class.has-error]="suConfirmErr()">
+          <label for="suConfirm">Confirm Password <span class="req">*</span></label>
+          <input
+            id="suConfirm"
             [type]="showPass() ? 'text' : 'password'"
-            placeholder="At least 8 characters"
-            [ngModel]="suPassword()"
-            (ngModelChange)="suPassword.set($event)"
+            placeholder="Repeat your password"
+            [ngModel]="suConfirm()"
+            (ngModelChange)="suConfirm.set($event)"
+            (blur)="touchSu('confirm')"
             (keydown)="onKey($event)"
             autocomplete="new-password"
             [disabled]="loading()"
+            [class.input-error]="suConfirmErr()"
+            [class.input-ok]="suTouched()['confirm'] && !suConfirmErr() && suConfirm()"
           />
-          <button class="toggle-btn" type="button" (click)="showPass.set(!showPass())" tabindex="-1">
-            {{ showPass() ? '🙈' : '👁️' }}
-          </button>
+          @if (suConfirmErr()) {
+            <span class="field-err">{{ suConfirmErr() }}</span>
+          }
         </div>
-      </div>
 
-      <div class="form-group">
-        <label for="suConfirm">Confirm Password</label>
-        <input
-          id="suConfirm"
-          [type]="showPass() ? 'text' : 'password'"
-          placeholder="Repeat password"
-          [ngModel]="suConfirm()"
-          (ngModelChange)="suConfirm.set($event)"
-          (keydown)="onKey($event)"
-          autocomplete="new-password"
-          [disabled]="loading()"
-        />
-      </div>
+        @if (error()) {
+          <div class="error-box">⚠ {{ error() }}</div>
+        }
 
-      @if (error()) {
-        <div class="error-box">⚠ {{ error() }}</div>
+        <button class="login-btn" (click)="signUp()" [disabled]="loading()">
+          @if (loading()) { <span class="spinner"></span> Creating account… }
+          @else { Create Account }
+        </button>
+
+        <div class="footer-note">
+          After creating your account you will be asked to <strong>sign in</strong>.
+          Your first consultation is on us.
+        </div>
       }
-
-      <button class="login-btn" (click)="signUp()" [disabled]="loading()">
-        @if (loading()) { <span class="spinner"></span> Creating account… }
-        @else { Create Free Account }
-      </button>
-
-      <div class="footer-note">
-        By creating an account you get one free reading. Your first consultation is on us.
-      </div>
     }
 
     <!-- ── OTP LOGIN ── -->
@@ -162,43 +215,55 @@
       </div>
 
       @if (!otpSent()) {
-        <!-- Step 1: Enter email or phone -->
+        <!-- Step 1 -->
         <div class="otp-hero">
           <div class="otp-hero-icon">✦</div>
           @if (otpMode() === 'email') {
-            <p class="otp-hero-text">Passwordless login — we'll email you a 6-digit code.</p>
+            <p class="otp-hero-text">We'll email you a 6-digit code — no password needed.</p>
           } @else {
-            <p class="otp-hero-text">Passwordless login — we'll send a 6-digit code to your mobile.</p>
+            <p class="otp-hero-text">We'll send a 6-digit code to your registered mobile.</p>
           }
         </div>
 
         @if (otpMode() === 'email') {
-          <div class="form-group">
-            <label for="otpEmail">Your Email</label>
+          <div class="form-group" [class.has-error]="otpEmailErr()">
+            <label for="otpEmail">Your Email <span class="req">*</span></label>
             <input
               id="otpEmail"
               type="email"
               placeholder="you@example.com"
               [ngModel]="otpEmail()"
               (ngModelChange)="otpEmail.set($event)"
+              (blur)="touchOtp('email')"
               (keydown)="onKey($event)"
               autocomplete="email"
               [disabled]="loading()"
+              [class.input-error]="otpEmailErr()"
+              [class.input-ok]="otpTouched()['email'] && !otpEmailErr() && otpEmail()"
             />
+            @if (otpEmailErr()) {
+              <span class="field-err">{{ otpEmailErr() }}</span>
+            }
           </div>
         } @else {
-          <div class="form-group">
-            <label for="otpPhone">Mobile Number</label>
+          <div class="form-group" [class.has-error]="otpPhoneErr()">
+            <label for="otpPhone">Mobile Number <span class="req">*</span></label>
             <input
               id="otpPhone"
               type="tel"
               placeholder="+91 98765 43210"
               [ngModel]="otpPhone()"
               (ngModelChange)="otpPhone.set($event)"
+              (blur)="touchOtp('phone')"
               (keydown)="onKey($event)"
               autocomplete="tel"
               [disabled]="loading()"
+              [class.input-error]="otpPhoneErr()"
+              [class.input-ok]="otpTouched()['phone'] && !otpPhoneErr() && otpPhone()"
             />
+            @if (otpPhoneErr()) {
+              <span class="field-err">{{ otpPhoneErr() }}</span>
+            }
           </div>
         }
 
@@ -213,9 +278,10 @@
 
         <div class="footer-note">
           @if (otpMode() === 'email') {
-            A 6-digit code will be sent to your inbox. Works for all accounts — user, admin, and superadmin.
+            Works for all accounts. Check your inbox and spam folder.
           } @else {
-            Enter the mobile number registered with your account. 10-digit Indian numbers work automatically.
+            Enter the mobile number registered with your account.
+            10-digit Indian numbers work automatically.
           }
         </div>
 
@@ -225,7 +291,7 @@
           <div class="otp-hero-icon sent-icon">{{ otpMode() === 'phone' ? '📱' : '✉' }}</div>
           @if (otpMode() === 'email') {
             <p class="otp-hero-text">Code sent to <strong>{{ otpEmail() }}</strong></p>
-            <p class="otp-hero-sub">Check your inbox (and spam folder). Valid for 10 minutes.</p>
+            <p class="otp-hero-sub">Check inbox &amp; spam. Valid for 10 minutes.</p>
           } @else {
             <p class="otp-hero-text">Code sent to <strong>{{ otpPhone() }}</strong></p>
             <p class="otp-hero-sub">Valid for 10 minutes.</p>
@@ -234,14 +300,14 @@
 
         @if (devCode()) {
           <div class="dev-code-box">
-            <div class="dev-code-label">DEV MODE — {{ otpMode() === 'phone' ? 'SMS not configured' : 'SMTP not configured' }}</div>
+            <div class="dev-code-label">DEV MODE — {{ otpMode() === 'phone' ? 'No SMS provider' : 'No SMTP configured' }}</div>
             <div class="dev-code-value">{{ devCode() }}</div>
             <button class="dev-code-btn" type="button" (click)="useDevCode()">Use this code →</button>
           </div>
         }
 
-        <div class="form-group">
-          <label for="otpCode">6-Digit Code</label>
+        <div class="form-group" [class.has-error]="otpCodeErr()">
+          <label for="otpCode">6-Digit Code <span class="req">*</span></label>
           <input
             id="otpCode"
             type="text"
@@ -252,10 +318,15 @@
             class="otp-input"
             [ngModel]="otpCode()"
             (ngModelChange)="otpCode.set($event)"
+            (blur)="touchOtp('code')"
             (keydown)="onKey($event)"
             autocomplete="one-time-code"
             [disabled]="loading()"
+            [class.input-error]="otpCodeErr()"
           />
+          @if (otpCodeErr()) {
+            <span class="field-err" style="text-align:center">{{ otpCodeErr() }}</span>
+          }
         </div>
 
         @if (error()) {
@@ -264,7 +335,7 @@
 
         <button class="login-btn" (click)="verifyOtp()" [disabled]="loading()">
           @if (loading()) { <span class="spinner"></span> Verifying… }
-          @else { Verify & Sign In }
+          @else { Verify &amp; Sign In }
         </button>
 
         <div class="otp-resend-row">
@@ -275,7 +346,7 @@
               Resend code
             </button>
           }
-          <button class="otp-back-btn" (click)="otpSent.set(false); error.set('')">
+          <button class="otp-back-btn" (click)="otpSent.set(false); error.set(''); otpCode.set(''); devCode.set('')">
             ← Change {{ otpMode() === 'phone' ? 'number' : 'email' }}
           </button>
         </div>

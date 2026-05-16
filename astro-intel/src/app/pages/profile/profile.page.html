@@ -2,7 +2,10 @@
 
   <!-- Header -->
   <div class="prof-header">
-    <button class="back-btn" (click)="router.navigate(['/'])">← Home</button>
+    <button class="back-btn" (click)="router.navigate(['/'])" title="Back to Home">
+      <svg width="14" height="14" viewBox="0 0 13 13" fill="none" style="display:inline-block;vertical-align:middle;margin-right:4px"><path d="M1.5 6.5L6.5 2l5 4.5M2.5 6v5h2.5V8h3v3h2.5V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Home
+    </button>
     <div class="prof-avatar">{{ (name() || email())[0]?.toUpperCase() }}</div>
     <div class="prof-title">
       <h1>{{ name() || 'My Account' }}</h1>
