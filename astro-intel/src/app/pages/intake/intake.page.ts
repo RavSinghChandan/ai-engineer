@@ -1183,8 +1183,8 @@ function validateProfile(p: {
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" fill="#6366f1" opacity="0.3"/><circle cx="5" cy="5" r="2" fill="#6366f1"/></svg>
             {{ uiStrings().hint_auto_poll }}
           </span>
-          <button class="lead-submit-btn lead-submit-btn-sm" (click)="pollLeadStatus()">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10.5 6A4.5 4.5 0 1 1 8.5 2.3M10.5 1v3H7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <button class="refresh-btn" (click)="pollLeadStatus()">
+            <span class="refresh-icon">↻</span>
             {{ uiStrings().btn_refresh }}
           </button>
         } @else {
@@ -2277,7 +2277,34 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
   .field-row { grid-template-columns: 1fr; }
   .hdr-divider { display: none; }
 }
-  `]
+  
+.refresh-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.12); background: #f9fafb;
+  color: #374151; font-size: 13px; font-weight: 600;
+  font-family: inherit; cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.refresh-btn:hover:not(:disabled) { background: #f3f4f6; border-color: #6366f1; color: #6366f1; }
+.refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.refresh-btn .refresh-icon { font-size: 15px; display: inline-block; }
+.refresh-btn.spinning .refresh-icon { animation: refresh-spin 0.75s linear infinite; }
+@keyframes refresh-spin { to { transform: rotate(360deg); } }
+.auto-refresh-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 20px;
+  background: #f3f4f6; border: 1px solid rgba(0,0,0,0.08);
+  font-size: 11px; color: #6b7280; font-weight: 500; white-space: nowrap;
+}
+.auto-refresh-badge::before {
+  content: ''; display: inline-block; width: 6px; height: 6px;
+  border-radius: 50%; background: #22c55e;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
+`]
 })
 export class IntakePage {
   readonly router  = inject(Router);
@@ -2385,8 +2412,18 @@ export class IntakePage {
       setInterval(() => this._pollLeadCount(), 30000);
     }
 
-    // Pre-fill from lead query params when admin comes via "Do Reading"
+    // ?lead=lead_xxx — user clicked "Open My Full Report" from email
+    // Jump straight to their tracker screen so they see the download button
     const p = this.route.snapshot.queryParams;
+    if (p['lead']) {
+      this.leadId.set(p['lead']);
+      this.leadSubmitted.set(true);
+      this.router.navigate([], { replaceUrl: true });
+      // Poll immediately so tracker shows current status
+      setTimeout(() => this.pollLeadStatus(), 300);
+    }
+
+    // Pre-fill from lead query params when admin comes via "Do Reading"
     if (p['leadId']) {
       this.leadReadingMode.set(true);
       this.leadReadingId.set(p['leadId']);

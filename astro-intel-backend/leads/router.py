@@ -175,6 +175,7 @@ async def attach_report_to_lead(
                 to_email       = lead.email,
                 to_name        = lead.alias_name or lead.name.split()[0],
                 report_summary = str(summary)[:400],
+                lead_id        = lead.lead_id,
             )
         except Exception:
             pass

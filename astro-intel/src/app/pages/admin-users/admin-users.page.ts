@@ -215,9 +215,7 @@ interface LeadRow {
   <div class="au-section">
     <div class="au-section-header">
       <h2 class="au-section-title">All Tenants</h2>
-      <button class="au-refresh-btn" [disabled]="loading()" (click)="loadData()" [class.spinning]="loading()">
-        <span class="au-refresh-icon">↻</span> {{ loading() ? 'Loading…' : 'Refresh' }}
-      </button>
+      <button class="refresh-btn" [class.spinning]="loading()" [disabled]="loading()" (click)="loadData()"><span class="refresh-icon">↻</span> {{ loading() ? 'Loading…' : 'Refresh' }}</button>
     </div>
 
     @if (tenants().length === 0 && !loading()) {
@@ -328,7 +326,7 @@ interface LeadRow {
           <span class="au-lead-new-badge">{{ newLeadCount() }} new</span>
         }
       </h2>
-      <button class="au-refresh-btn" [disabled]="loading()" (click)="loadData()">↻ Refresh</button>
+      <span class="auto-refresh-badge">Auto-refresh 30s</span><button class="refresh-btn" [class.spinning]="loading()" [disabled]="loading()" (click)="loadData()"><span class="refresh-icon">↻</span> {{ loading() ? 'Loading…' : 'Refresh' }}</button>
     </div>
 
     <!-- Search + Filter bar -->

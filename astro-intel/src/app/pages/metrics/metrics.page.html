@@ -16,12 +16,10 @@
   </nav>
 
   <div class="hdr-right">
-    <span class="refresh-pill">Auto-refresh 10s</span>
-    <button class="hdr-btn" (click)="loadMetrics()" title="Refresh now">
-      <svg width="13" height="13" viewBox="0 0 14 14" fill="none" [class.spin]="loading()">
-        <path d="M12 7A5 5 0 1 1 7 2M12 2v4H8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      Refresh
+    <span class="auto-refresh-badge">Auto-refresh 10s</span>
+    <button class="refresh-btn" [class.spinning]="loading()" [disabled]="loading()" (click)="loadMetrics(); loadCache(); loadGuardrails()" title="Refresh all">
+      <span class="refresh-icon">↻</span>
+      {{ loading() ? 'Loading…' : 'Refresh' }}
     </button>
     <button class="hdr-btn hdr-btn-home" (click)="router.navigate(['/'])" title="Back to Home">
       <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
@@ -83,6 +81,9 @@
         <span class="section-icon">⚡</span>
         <span class="section-title">Pipeline Latency</span>
         <span class="section-badge">Senior KPI — P95 target &lt; 30s</span>
+        <button class="refresh-btn" [class.spinning]="secLoading['latency']" [disabled]="secLoading['latency']" (click)="refreshSection('latency')">
+          <span class="refresh-icon">↻</span> Refresh
+        </button>
       </div>
       <div class="kpi-row">
         <div class="kpi-card kpi-accent">
@@ -132,6 +133,9 @@
         <span class="section-icon">🎯</span>
         <span class="section-title">Quality Signals</span>
         <span class="section-badge">Replaces RAGAS for rule-based architecture</span>
+        <button class="refresh-btn" [class.spinning]="secLoading['quality']" [disabled]="secLoading['quality']" (click)="refreshSection('quality')">
+          <span class="refresh-icon">↻</span> Refresh
+        </button>
       </div>
       <div class="quality-row">
 
@@ -205,6 +209,7 @@
         <span class="section-icon">🔍</span>
         <span class="section-title">Hallucination Detection & Mitigation</span>
         <span class="section-badge">3-Layer Architecture · Senior Interview Feature</span>
+        <button class="refresh-btn" [class.spinning]="secLoading['hallucination']" [disabled]="secLoading['hallucination']" (click)="refreshSection('hallucination')"><span class="refresh-icon">↻</span> Refresh</button>
       </div>
 
       <!-- Layer cards -->
@@ -323,6 +328,7 @@
         <span class="section-badge">
           {{ metrics().token_economics.has_real_data ? 'Live — DeepSeek API usage' : 'No LLM calls in /run pipeline' }}
         </span>
+        <button class="refresh-btn" [class.spinning]="secLoading['tokens']" [disabled]="secLoading['tokens']" (click)="refreshSection('tokens')"><span class="refresh-icon">↻</span> Refresh</button>
       </div>
 
       @if (!metrics().token_economics.has_real_data) {
@@ -392,6 +398,7 @@
         <span class="section-icon">📈</span>
         <span class="section-title">Operational KPIs</span>
         <span class="section-badge">Reliability · Coverage · Throughput</span>
+        <button class="refresh-btn" [class.spinning]="secLoading['ops']" [disabled]="secLoading['ops']" (click)="refreshSection('ops')"><span class="refresh-icon">↻</span> Refresh</button>
       </div>
       <div class="kpi-row">
         <div class="kpi-card" [class.kpi-warn]="metrics().error_rate.rate_pct > (metrics().thresholds?.error_rate_warn_pct ?? 10)">
@@ -419,6 +426,7 @@
         <span class="section-icon">🤖</span>
         <span class="section-title">Agent Latency Breakdown</span>
         <span class="section-badge">Per-agent avg execution time</span>
+        <button class="refresh-btn" [class.spinning]="secLoading['agents']" [disabled]="secLoading['agents']" (click)="refreshSection('agents')"><span class="refresh-icon">↻</span> Refresh</button>
       </div>
       <div class="panel table-panel">
         <div class="tbl-row tbl-head">
@@ -442,6 +450,7 @@
         <span class="section-icon">🕐</span>
         <span class="section-title">Recent Runs</span>
         <span class="section-badge">Last {{ metrics().recent_runs.length }}</span>
+        <button class="refresh-btn" [class.spinning]="secLoading['runs']" [disabled]="secLoading['runs']" (click)="refreshSection('runs')"><span class="refresh-icon">↻</span> Refresh</button>
       </div>
       <div class="panel table-panel">
         <div class="tbl-row tbl-head runs-head">

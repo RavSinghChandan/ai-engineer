@@ -4,6 +4,8 @@ Entry point: uvicorn main:app --reload --port 8080
 """
 from __future__ import annotations
 import os, sys
+from dotenv import load_dotenv
+load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
 
 # ── Production secret guard ───────────────────────────────────────────────────
 _UNSAFE_DEFAULTS = {
@@ -66,6 +68,8 @@ _default_origins = [
     "http://localhost:4301",
     "http://127.0.0.1:4200",
     "http://127.0.0.1:4300",
+    "http://192.168.1.5:4200",
+    "http://192.168.1.5:4300",
 ]
 _env_origins = os.environ.get("ALLOWED_ORIGINS", "")
 _allowed_origins = (

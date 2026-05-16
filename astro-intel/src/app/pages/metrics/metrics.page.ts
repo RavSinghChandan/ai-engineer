@@ -23,6 +23,33 @@ export class MetricsPage implements OnInit, OnDestroy {
   grData       = signal<any>(null);
   grLoading    = signal(false);
   grEvents     = signal<any[]>([]);
+
+  // Per-section refresh loading states
+  secLoading: Record<string, boolean> = {
+    latency: false, quality: false, hallucination: false,
+    tokens: false, ops: false, agents: false, runs: false, cache: false, guardrails: false
+  };
+
+  refreshSection(section: string) {
+    this.secLoading[section] = true;
+    if (['latency','quality','hallucination','tokens','ops','agents','runs'].includes(section)) {
+      this.api.getMetrics().subscribe({
+        next: (d) => { this.metrics.set(d); this.secLoading[section] = false; },
+        error: ()  => { this.secLoading[section] = false; },
+      });
+    } else if (section === 'cache') {
+      this.api.getCacheEntries().subscribe({
+        next: (d) => { this.cacheData.set(d); this.secLoading[section] = false; },
+        error: ()  => { this.secLoading[section] = false; },
+      });
+    } else if (section === 'guardrails') {
+      this.api.getGuardrailStats().subscribe({
+        next: (d) => { this.grData.set(d); this.secLoading[section] = false; },
+        error: ()  => { this.secLoading[section] = false; },
+      });
+    }
+  }
+
   private _timer: any;
 
   ngOnInit() {

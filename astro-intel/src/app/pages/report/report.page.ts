@@ -978,7 +978,9 @@ import { firstValueFrom } from 'rxjs';
 
         <div class="page-footer">
           <span>{{ displayReport()!.user_name }}</span>
+          <span class="page-footer-sep">·</span>
           <span>Remedies</span>
+          <span class="page-footer-sep">·</span>
           <span>{{ formatDate(displayReport()!.generated_at) }}</span>
         </div>
       </div>
@@ -1703,6 +1705,12 @@ import { firstValueFrom } from 'rxjs';
 .closing-name { font-size: 26px; font-weight: 800; color: #fff; margin: 0 0 14px; }
 .closing-text { font-size: 14px; font-weight: 400; color: rgba(255,255,255,0.6); line-height: 1.9; margin: 0 0 14px; max-width: 460px; }
 .closing-seal { font-size: 30px; color: #d4af37; margin-top: 18px; }
+.page-footer {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 8px 40px; border-top: 1px solid #e5e7eb;
+  font-size: 9px; color: #9ca3af; letter-spacing: 0.06em;
+}
+.page-footer-sep { color: #d1d5db; }
 .closing-footer {
   display: flex; align-items: center; justify-content: center; gap: 14px; flex-shrink: 0;
   padding: 16px 40px; border-top: 1px solid rgba(255,255,255,0.07);
