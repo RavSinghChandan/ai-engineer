@@ -215,8 +215,8 @@ interface LeadRow {
   <div class="au-section">
     <div class="au-section-header">
       <h2 class="au-section-title">All Tenants</h2>
-      <button class="au-refresh-btn" [disabled]="loading()" (click)="loadData()">
-        {{ loading() ? 'Loading…' : '↻ Refresh' }}
+      <button class="au-refresh-btn" [disabled]="loading()" (click)="loadData()" [class.spinning]="loading()">
+        <span class="au-refresh-icon">↻</span> {{ loading() ? 'Loading…' : 'Refresh' }}
       </button>
     </div>
 
@@ -522,7 +522,11 @@ interface LeadRow {
   border: 1.5px solid #e5e7eb; background: #fff; cursor: pointer; color: #374151;
   font-family: inherit; transition: all .15s;
 }
-.au-toggle-btn:hover, .au-refresh-btn:hover { border-color: #6366f1; color: #6366f1; }
+.au-toggle-btn:hover, .au-refresh-btn:hover:not(:disabled) { border-color: #6366f1; color: #6366f1; }
+.au-refresh-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.au-refresh-icon { display: inline-block; }
+.au-refresh-btn.spinning .au-refresh-icon { animation: au-spin 0.8s linear infinite; display: inline-block; }
+@keyframes au-spin { to { transform: rotate(360deg); } }
 .au-btn-primary {
   padding: 9px 20px; border-radius: 8px; font-size: 13px; font-weight: 600;
   background: #6366f1; color: #fff; border: none; cursor: pointer;

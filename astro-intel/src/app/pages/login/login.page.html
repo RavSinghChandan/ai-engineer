@@ -68,7 +68,12 @@
       </div>
 
       @if (error()) {
-        <div class="error-box">⚠ {{ error() }}</div>
+        <div class="error-box">
+          <span>⚠ {{ error() }}</span>
+          <button class="forgot-btn" type="button" (click)="goToOtpReset()">
+            Forgot password? Reset via OTP →
+          </button>
+        </div>
       }
 
       <button class="login-btn" (click)="signIn()" [disabled]="loading()">
@@ -78,7 +83,7 @@
 
       <div class="footer-note">
         New to AURA? Click <strong>Create Account</strong> above.
-        <br/>No password? Use the <strong>OTP</strong> tab to log in or reset.
+        <br/>Forgot password? Use the <strong>OTP</strong> tab to reset it.
       </div>
     }
 

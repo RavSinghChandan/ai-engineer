@@ -52,7 +52,7 @@ def _record_otp_send(ip: str) -> None:
 # F3: simple in-process rate limiter — 5 failed attempts → 15 min lockout per IP
 _login_attempts: dict = defaultdict(list)
 _RATE_WINDOW = 900   # 15 minutes
-_RATE_MAX    = 5
+_RATE_MAX    = 10    # 10 failed attempts before lockout
 
 def _check_rate_limit(ip: str) -> None:
     now = time.time()
@@ -815,6 +815,15 @@ async def delete_user(
 
 
 # ── GET /auth/me — who am I? (any authenticated user) ────────────────────────
+
+@router.post("/auth/clear-lockout")
+async def clear_lockout(request: Request, ctx: TenantContext = Depends(require_role(Role.SUPERADMIN))):
+    """SUPERADMIN: clear all in-memory login lockouts instantly (no restart needed)."""
+    count = len(_login_attempts)
+    _login_attempts.clear()
+    _otp_send_attempts.clear()
+    return {"message": f"Cleared {count} locked IP(s). All users can log in again."}
+
 
 @router.get("/auth/me")
 async def whoami(ctx: TenantContext = Depends(can(Permission.USER__VIEW_PROFILE))):

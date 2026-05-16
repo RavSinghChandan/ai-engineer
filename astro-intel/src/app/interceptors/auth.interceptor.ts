@@ -18,8 +18,8 @@ export const authInterceptor: HttpInterceptorFn = (
 
   return next(req).pipe(
     catchError(err => {
-      // Auto-logout on 401 (expired/invalid token) or 403 (forbidden)
-      if (err?.status === 401 || err?.status === 403) {
+      // Only logout on 401 (token expired/invalid) — not on 403 (permission denied)
+      if (err?.status === 401) {
         auth.logout();
       }
       return throwError(() => err);

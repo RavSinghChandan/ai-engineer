@@ -1030,6 +1030,14 @@ function validateProfile(p: {
   <div class="lead-overlay">
     <div class="lead-card lead-tracker-card">
 
+      <!-- Top-left Home button -->
+      <div class="tracker-top-bar">
+        <button class="tracker-home-btn" (click)="rerun()" title="Back to Home">
+          <svg width="14" height="14" viewBox="0 0 13 13" fill="none"><path d="M1.5 6.5L6.5 2l5 4.5M2.5 6v5h2.5V8h3v3h2.5V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Home
+        </button>
+      </div>
+
       <!-- Header -->
       <div class="lead-card-header">
         <div class="lead-check-badge">
@@ -1182,16 +1190,23 @@ function validateProfile(p: {
         } @else {
           <button class="lead-submit-btn report-dl-btn" [disabled]="reportTranslating()" (click)="downloadLeadReport()">
             @if (reportTranslating()) {
-              <span class="lead-spinner"></span> Translating…
+              <span class="lead-spinner"></span> Opening report…
             } @else {
-              {{ uiStrings().btn_open_report }} →
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M3.5 6.5l3.5 4 3.5-4M1.5 12h11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              {{ uiStrings().btn_open_report }}
             }
           </button>
+          @if (reportDownloadError()) {
+            <div class="report-dl-error">
+              ⚠ {{ reportDownloadError() }}
+              <button class="report-dl-retry" (click)="reportDownloadError.set(''); downloadLeadReport()">Try again</button>
+            </div>
+          }
         }
-        <!-- Always visible: return to home -->
+        <!-- Always visible: return to home form -->
         <button class="home-btn" (click)="rerun()">
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1.5 6.5L6.5 2l5 4.5M2.5 6v5h2.5V8h3v3h2.5V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          New Reading
+          Home / New Reading
         </button>
       </div>
 
@@ -1952,13 +1967,37 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
   padding: 8px 16px !important; font-size: 12px !important;
 }
 
+/* Tracker card top bar — Home button in top-left */
+.tracker-top-bar {
+  display: flex; align-items: center; margin-bottom: 4px;
+}
+.tracker-home-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600;
+  background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;
+  cursor: pointer; transition: all 0.15s; font-family: inherit;
+}
+.tracker-home-btn:hover { background: #e0e7ff; color: #4338ca; border-color: #c7d2fe; }
+
 .home-btn {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 8px 18px; border-radius: 8px; font-size: 12.5px; font-weight: 600;
   background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;
-  cursor: pointer; transition: background 0.15s, color 0.15s;
+  cursor: pointer; transition: background 0.15s, color 0.15s; font-family: inherit;
 }
 .home-btn:hover { background: #e0e7ff; color: #4338ca; border-color: #c7d2fe; }
+
+.report-dl-error {
+  background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px;
+  padding: 10px 14px; font-size: 12.5px; color: #dc2626;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+}
+.report-dl-retry {
+  background: #fff; border: 1px solid #fca5a5; border-radius: 6px;
+  padding: 4px 10px; font-size: 12px; font-weight: 600; color: #dc2626;
+  cursor: pointer; transition: background 0.15s; white-space: nowrap; font-family: inherit;
+}
+.report-dl-retry:hover { background: #fef2f2; }
 
 .tracker-status-msg { text-align: center; margin: 4px 0; }
 .status-pill {
@@ -2320,6 +2359,7 @@ export class IntakePage {
   readonly reportTranslating   = signal(false);
   readonly preparingReport     = signal(false);  // true while translating before navigating to /report
   readonly preparingLangName   = signal('');     // e.g. "Hindi" shown in overlay
+  readonly reportDownloadError = signal('');     // shown when report fetch fails
 
   private _autoPollTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -2681,6 +2721,8 @@ export class IntakePage {
     this.leadId.set('');
     this.leadStatus.set('submitted');
     this.leadPreferredLanguage.set('en');
+    this.reportDownloadError.set('');
+    this.reportTranslating.set(false);
     this.stopAutoPoll();
   }
 
@@ -2732,14 +2774,19 @@ export class IntakePage {
   async downloadLeadReport() {
     if (!this.leadId()) return;
     this.reportTranslating.set(true);
+    this.reportDownloadError.set('');
     try {
       const report: any = await firstValueFrom(
         this.http.get(`${BACKEND}/leads/${this.leadId()}/report`)
       );
 
+      if (!report) {
+        this.reportDownloadError.set('Report is not ready yet. Please try again in a moment.');
+        return;
+      }
+
       const lang = this.leadPreferredLanguage();
       if (lang && lang !== 'en') {
-        // Translate the report into the user's chosen language before opening it
         try {
           const res = await firstValueFrom(this.api.translateReport({
             session_id:    '',
@@ -2748,7 +2795,7 @@ export class IntakePage {
           }));
           this.orch.setFinalReport(res.final_report ?? report);
         } catch {
-          // Translation failed — fall back to English report
+          // Translation failed — use English report rather than blocking the user
           this.orch.setFinalReport(report);
         }
       } else {
@@ -2756,8 +2803,17 @@ export class IntakePage {
       }
 
       this.router.navigate(['/report']);
-    } catch {
+    } catch (e: any) {
+      // Re-poll status so the UI reflects the real state
       await this.pollLeadStatus();
+      const status = this.leadStatus();
+      if (status !== 'report_ready') {
+        this.reportDownloadError.set('Your report is still being prepared. Please wait and try again.');
+      } else {
+        this.reportDownloadError.set(
+          e?.error?.detail ?? 'Could not load the report. Please click the button again.'
+        );
+      }
     } finally {
       this.reportTranslating.set(false);
     }

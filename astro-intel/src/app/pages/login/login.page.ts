@@ -168,6 +168,15 @@ export class LoginPage {
     this.switchTab('signin');
   }
 
+  goToOtpReset() {
+    // Pre-fill OTP email from whatever the user typed in sign-in
+    if (this.siEmail().trim()) {
+      this.otpEmail.set(this.siEmail().trim());
+    }
+    this.switchTab('otp');
+    this.otpMode.set('email');
+  }
+
   // ── OTP ───────────────────────────────────────────────────────────────────
   sendOtp() {
     const mode = this.otpMode();

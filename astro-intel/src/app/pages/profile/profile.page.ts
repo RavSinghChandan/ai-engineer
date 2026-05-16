@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, signal, inject, OnInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -7,6 +7,31 @@ import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../environments/environment';
 
 const BACKEND = environment.apiUrl;
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_RE = /^[+]?[\d\s\-().]{7,15}$/;
+
+function validateName(v: string): string {
+  if (!v.trim()) return 'Full name is required.';
+  if (v.trim().length < 2) return 'Name must be at least 2 characters.';
+  if (!/[a-zA-Z]/.test(v)) return 'Name must contain letters.';
+  return '';
+}
+function validatePhone(v: string): string {
+  if (!v.trim()) return 'Mobile number is required.';
+  if (!PHONE_RE.test(v.trim())) return 'Enter a valid mobile number.';
+  return '';
+}
+function validatePassword(v: string): string {
+  if (!v) return 'Password is required.';
+  if (v.length < 8) return 'Password must be at least 8 characters.';
+  return '';
+}
+function validateConfirm(pass: string, confirm: string): string {
+  if (!confirm) return 'Please confirm your password.';
+  if (pass !== confirm) return 'Passwords do not match.';
+  return '';
+}
 
 @Component({
   selector: 'app-profile',
@@ -28,12 +53,16 @@ export class ProfilePage implements OnInit {
   email   = signal('');
   phone   = signal('');
   role    = signal('');
-  nameErr = signal('');
   nameSuc = signal('');
-  phoneErr = signal('');
   phoneSuc = signal('');
   savingName  = signal(false);
   savingPhone = signal(false);
+
+  // Name / phone touched state + computed errors
+  nameTouched  = signal(false);
+  phoneTouched = signal(false);
+  nameErr  = computed(() => this.nameTouched()  ? validateName(this.name())   : '');
+  phoneErr = computed(() => this.phoneTouched() ? validatePhone(this.phone()) : '');
 
   // Password fields
   currentPw  = signal('');
@@ -44,6 +73,16 @@ export class ProfilePage implements OnInit {
   savingPw   = signal(false);
   showCurr   = signal(false);
   showNew    = signal(false);
+
+  // Per-field touched state for password section
+  pwTouched = signal<Record<string, boolean>>({});
+  currPwErr  = computed(() => this.pwTouched()['curr']    ? (this.currentPw() ? '' : 'Current password is required.') : '');
+  newPwErr   = computed(() => this.pwTouched()['newpw']   ? validatePassword(this.newPw())                             : '');
+  confPwErr  = computed(() => this.pwTouched()['confirm'] ? validateConfirm(this.newPw(), this.confirmPw())            : '');
+
+  touchPw(field: string) {
+    this.pwTouched.update(t => ({ ...t, [field]: true }));
+  }
 
   // Forgot password (reset via OTP)
   resetMode     = signal(false);
@@ -66,10 +105,10 @@ export class ProfilePage implements OnInit {
   }
 
   saveName() {
+    this.nameTouched.set(true);
+    if (this.nameErr()) return;
     const n = this.name().trim();
-    if (!n) { this.nameErr.set('Name cannot be empty.'); return; }
     this.savingName.set(true);
-    this.nameErr.set('');
     this.nameSuc.set('');
     this.http.patch<any>(`${BACKEND}/auth/profile`, { name: n }).subscribe({
       next: () => {
@@ -78,16 +117,15 @@ export class ProfilePage implements OnInit {
       },
       error: (e: any) => {
         this.savingName.set(false);
-        this.nameErr.set(e?.error?.detail ?? 'Could not update name.');
       },
     });
   }
 
   savePhone() {
+    this.phoneTouched.set(true);
+    if (this.phoneErr()) return;
     const p = this.phone().trim();
-    if (!p) { this.phoneErr.set('Please enter a phone number.'); return; }
     this.savingPhone.set(true);
-    this.phoneErr.set('');
     this.phoneSuc.set('');
     this.auth.updatePhone(p).subscribe({
       next: (res: any) => {
@@ -97,24 +135,19 @@ export class ProfilePage implements OnInit {
       },
       error: (e: Error) => {
         this.savingPhone.set(false);
-        this.phoneErr.set(e.message);
       },
     });
   }
 
   changePassword() {
-    const curr = this.currentPw();
-    const nw   = this.newPw();
-    const conf = this.confirmPw();
-    if (!curr || !nw || !conf) { this.pwErr.set('All fields are required.'); return; }
-    if (nw.length < 8)          { this.pwErr.set('New password must be at least 8 characters.'); return; }
-    if (nw !== conf)             { this.pwErr.set('Passwords do not match.'); return; }
+    this.pwTouched.set({ curr: true, newpw: true, confirm: true });
+    if (this.currPwErr() || this.newPwErr() || this.confPwErr()) return;
     this.savingPw.set(true);
     this.pwErr.set('');
     this.pwSuc.set('');
     this.http.post<any>(`${BACKEND}/auth/password/change`, {
-      current_password: curr,
-      new_password: nw,
+      current_password: this.currentPw(),
+      new_password: this.newPw(),
     }).subscribe({
       next: () => {
         this.savingPw.set(false);
@@ -122,6 +155,7 @@ export class ProfilePage implements OnInit {
         this.currentPw.set('');
         this.newPw.set('');
         this.confirmPw.set('');
+        this.pwTouched.set({});
       },
       error: (e: any) => {
         this.savingPw.set(false);

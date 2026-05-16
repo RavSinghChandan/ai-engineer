@@ -298,3 +298,27 @@
   transition: all 0.15s;
 }
 .signout-btn:hover { background: #fef2f2; }
+
+/* Inline field validation (matches login page) */
+.input-error {
+  border-color: #f87171 !important;
+  background: #fff5f5 !important;
+}
+.input-error:focus {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239,68,68,0.12) !important;
+}
+.input-ok {
+  border-color: #34d399 !important;
+}
+.input-ok:focus {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 3px rgba(16,185,129,0.12) !important;
+}
+.field-err {
+  display: block;
+  font-size: 0.75rem;
+  color: #ef4444;
+  font-weight: 500;
+  margin-top: 2px;
+}

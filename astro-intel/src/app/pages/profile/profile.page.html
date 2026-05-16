@@ -40,26 +40,38 @@
         <div class="field-row">
           <label>Display Name</label>
           <div class="input-row">
-            <input type="text" [ngModel]="name()" (ngModelChange)="name.set($event); nameSuc.set('')"
-              placeholder="Your full name" />
+            <input type="text"
+              [ngModel]="name()"
+              (ngModelChange)="name.set($event); nameSuc.set('')"
+              (blur)="nameTouched.set(true)"
+              placeholder="Your full name"
+              [class.input-error]="nameErr()"
+              [class.input-ok]="nameTouched() && !nameErr() && name()"
+            />
             <button class="save-btn" (click)="saveName()" [disabled]="savingName()">
               @if (savingName()) { Saving… } @else { Save }
             </button>
           </div>
-          @if (nameErr()) { <span class="err">⚠ {{ nameErr() }}</span> }
+          @if (nameErr()) { <span class="field-err">{{ nameErr() }}</span> }
           @if (nameSuc()) { <span class="suc">✓ {{ nameSuc() }}</span> }
         </div>
 
         <div class="field-row">
           <label>Mobile Number</label>
           <div class="input-row">
-            <input type="tel" [ngModel]="phone()" (ngModelChange)="phone.set($event); phoneSuc.set('')"
-              placeholder="+91 98765 43210" />
+            <input type="tel"
+              [ngModel]="phone()"
+              (ngModelChange)="phone.set($event); phoneSuc.set('')"
+              (blur)="phoneTouched.set(true)"
+              placeholder="+91 98765 43210"
+              [class.input-error]="phoneErr()"
+              [class.input-ok]="phoneTouched() && !phoneErr() && phone()"
+            />
             <button class="save-btn" (click)="savePhone()" [disabled]="savingPhone()">
               @if (savingPhone()) { Saving… } @else { Save }
             </button>
           </div>
-          @if (phoneErr()) { <span class="err">⚠ {{ phoneErr() }}</span> }
+          @if (phoneErr()) { <span class="field-err">{{ phoneErr() }}</span> }
           @if (phoneSuc()) { <span class="suc">✓ {{ phoneSuc() }}</span> }
           <span class="field-note">Used for phone OTP login. 10-digit Indian numbers accepted.</span>
         </div>
@@ -79,31 +91,52 @@
             <label>Current Password</label>
             <div class="input-row">
               <input [type]="showCurr() ? 'text' : 'password'"
-                [ngModel]="currentPw()" (ngModelChange)="currentPw.set($event)"
-                placeholder="••••••••" autocomplete="current-password" />
+                [ngModel]="currentPw()"
+                (ngModelChange)="currentPw.set($event)"
+                (blur)="touchPw('curr')"
+                placeholder="••••••••"
+                autocomplete="current-password"
+                [class.input-error]="currPwErr()"
+                [class.input-ok]="pwTouched()['curr'] && !currPwErr() && currentPw()"
+              />
               <button class="toggle-btn" type="button" (click)="showCurr.set(!showCurr())">
                 {{ showCurr() ? '🙈' : '👁️' }}
               </button>
             </div>
+            @if (currPwErr()) { <span class="field-err">{{ currPwErr() }}</span> }
           </div>
 
           <div class="field-row">
             <label>New Password</label>
             <div class="input-row">
               <input [type]="showNew() ? 'text' : 'password'"
-                [ngModel]="newPw()" (ngModelChange)="newPw.set($event)"
-                placeholder="Min 8 characters" autocomplete="new-password" />
+                [ngModel]="newPw()"
+                (ngModelChange)="newPw.set($event)"
+                (blur)="touchPw('newpw')"
+                placeholder="Min 8 characters"
+                autocomplete="new-password"
+                [class.input-error]="newPwErr()"
+                [class.input-ok]="pwTouched()['newpw'] && !newPwErr() && newPw()"
+              />
               <button class="toggle-btn" type="button" (click)="showNew.set(!showNew())">
                 {{ showNew() ? '🙈' : '👁️' }}
               </button>
             </div>
+            @if (newPwErr()) { <span class="field-err">{{ newPwErr() }}</span> }
           </div>
 
           <div class="field-row">
             <label>Confirm New Password</label>
             <input [type]="showNew() ? 'text' : 'password'"
-              [ngModel]="confirmPw()" (ngModelChange)="confirmPw.set($event)"
-              placeholder="Repeat password" autocomplete="new-password" />
+              [ngModel]="confirmPw()"
+              (ngModelChange)="confirmPw.set($event)"
+              (blur)="touchPw('confirm')"
+              placeholder="Repeat password"
+              autocomplete="new-password"
+              [class.input-error]="confPwErr()"
+              [class.input-ok]="pwTouched()['confirm'] && !confPwErr() && confirmPw()"
+            />
+            @if (confPwErr()) { <span class="field-err">{{ confPwErr() }}</span> }
           </div>
 
           @if (pwErr()) { <div class="err-box">⚠ {{ pwErr() }}</div> }
