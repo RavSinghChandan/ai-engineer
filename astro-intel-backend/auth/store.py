@@ -1,196 +1,200 @@
 """
-Tenant and API-key store.
+Tenant and API-key store — SQLite backend.
 
-Storage: in-memory dict + JSON file backup (auth_keys.json next to main.py).
-On startup the file is loaded; every write is flushed to disk immediately.
-No database needed for now — swap to Postgres later without touching the interface.
-
-SUPERADMIN bootstrap:
-  On first run, if the store is empty, one SUPERADMIN key is created automatically
-  using the MASTER_API_KEY env var (default: sk-master-astrointel-change-me).
-  Print it to stdout so you can copy it on first deploy.
+Public API is identical to the previous in-memory/JSON version.
+All callers (auth/router.py, auth/dependencies.py, auth/users.py, main.py) work unchanged.
 """
 from __future__ import annotations
 
-import json
 import os
 import secrets
 import time
-from pathlib import Path
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 from auth.models import APIKey, Role, Tenant
-
-# ── File path ────────────────────────────────────────────────────────────────
-_STORE_PATH = Path(os.environ.get("AUTH_STORE_PATH", "auth_keys.json"))
-
-# ── In-memory state ───────────────────────────────────────────────────────────
-_tenants:  Dict[str, Tenant] = {}   # tenant_id → Tenant
-_api_keys: Dict[str, APIKey] = {}   # key string → APIKey
+import database as _db
 
 
-# ── Persistence helpers ───────────────────────────────────────────────────────
+# ── Helpers ───────────────────────────────────────────────────────────────────
 
-def _to_dict() -> dict:
-    return {
-        "tenants": [
-            {"tenant_id": t.tenant_id, "name": t.name,
-             "is_active": t.is_active, "created_at": t.created_at}
-            for t in _tenants.values()
-        ],
-        "api_keys": [
-            {"key": k.key, "tenant_id": k.tenant_id, "role": k.role.value,
-             "description": k.description, "is_active": k.is_active,
-             "created_at": k.created_at}
-            for k in _api_keys.values()
-        ],
-    }
+def _row_to_tenant(row) -> Tenant:
+    return Tenant(
+        tenant_id  = row["tenant_id"],
+        name       = row["name"],
+        is_active  = bool(row["is_active"]),
+        created_at = row["created_at"],
+    )
 
 
-def _from_dict(data: dict) -> None:
-    for t in data.get("tenants", []):
-        _tenants[t["tenant_id"]] = Tenant(**t)
-    for k in data.get("api_keys", []):
-        k["role"] = Role(k["role"])
-        _api_keys[k["key"]] = APIKey(**k)
+def _row_to_apikey(row) -> APIKey:
+    return APIKey(
+        key         = row["key"],
+        tenant_id   = row["tenant_id"],
+        role        = Role(row["role"]),
+        description = row["description"],
+        is_active   = bool(row["is_active"]),
+        created_at  = row["created_at"],
+    )
 
 
-def _flush() -> None:
-    try:
-        _STORE_PATH.write_text(json.dumps(_to_dict(), indent=2))
-    except Exception:
-        pass   # never crash on persistence failure
-
+# ── Bootstrap ─────────────────────────────────────────────────────────────────
 
 def load() -> None:
-    """Load store from disk. Call once at startup."""
-    if _STORE_PATH.exists():
-        try:
-            _from_dict(json.loads(_STORE_PATH.read_text()))
-        except Exception:
-            pass
+    """Called once at startup — bootstraps superadmin key if needed."""
     _bootstrap_superadmin()
 
 
 def _bootstrap_superadmin() -> None:
-    """Create the SUPERADMIN tenant + key on first run if store is empty."""
-    if _api_keys:
-        return  # already have keys
-
     master_key = os.environ.get("MASTER_API_KEY", "sk-master-astrointel-change-me")
-    tenant_id  = "tenant_master"
-    now        = time.time()
+    conn = _db.get_conn()
+    try:
+        row = conn.execute("SELECT key FROM api_keys WHERE key=?", (master_key,)).fetchone()
+        if row:
+            return  # already exists
 
-    _tenants[tenant_id] = Tenant(
-        tenant_id  = tenant_id,
-        name       = "AstroIntel Master",
-        is_active  = True,
-        created_at = now,
-    )
-    _api_keys[master_key] = APIKey(
-        key         = master_key,
-        tenant_id   = tenant_id,
-        role        = Role.SUPERADMIN,
-        description = "Bootstrap superadmin key — rotate in production",
-        is_active   = True,
-        created_at  = now,
-    )
-    _flush()
-    print(f"\n[AUTH] ✓ Bootstrapped SUPERADMIN key: {master_key}\n"
-          f"       Set MASTER_API_KEY env var to change this.\n")
+        now       = time.time()
+        tenant_id = "tenant_master"
+
+        # Ensure master tenant exists
+        conn.execute(
+            "INSERT OR IGNORE INTO tenants (tenant_id, name, is_active, created_at) VALUES (?,?,?,?)",
+            (tenant_id, "AstroIntel Master", 1, now),
+        )
+        conn.execute(
+            "INSERT OR IGNORE INTO api_keys (key, tenant_id, role, description, is_active, created_at) VALUES (?,?,?,?,?,?)",
+            (master_key, tenant_id, Role.SUPERADMIN.value,
+             "Bootstrap superadmin key — rotate in production", 1, now),
+        )
+        conn.commit()
+        print(f"\n[AUTH] ✓ Bootstrapped SUPERADMIN key: {master_key}\n"
+              f"       Set MASTER_API_KEY env var to change this.\n")
+    finally:
+        conn.close()
 
 
 # ── Public API ────────────────────────────────────────────────────────────────
 
 def lookup_key(key: str) -> Optional[APIKey]:
-    """Return APIKey if it exists and is active, else None."""
-    entry = _api_keys.get(key)
-    if entry and entry.is_active:
-        tenant = _tenants.get(entry.tenant_id)
-        if tenant and tenant.is_active:
-            return entry
-    return None
+    conn = _db.get_conn()
+    try:
+        row = conn.execute(
+            """SELECT k.*, t.is_active AS t_active
+               FROM api_keys k JOIN tenants t USING(tenant_id)
+               WHERE k.key=? AND k.is_active=1 AND t.is_active=1""",
+            (key,)
+        ).fetchone()
+        return _row_to_apikey(row) if row else None
+    finally:
+        conn.close()
 
 
 def get_tenant(tenant_id: str) -> Optional[Tenant]:
-    return _tenants.get(tenant_id)
+    conn = _db.get_conn()
+    try:
+        row = conn.execute("SELECT * FROM tenants WHERE tenant_id=?", (tenant_id,)).fetchone()
+        return _row_to_tenant(row) if row else None
+    finally:
+        conn.close()
 
 
 def create_tenant(name: str) -> Tenant:
-    """Create a new tenant. Returns the Tenant object."""
     tenant_id = f"tenant_{secrets.token_hex(6)}"
     now       = time.time()
-    tenant    = Tenant(tenant_id=tenant_id, name=name, is_active=True, created_at=now)
-    _tenants[tenant_id] = tenant
-    _flush()
-    return tenant
+    conn = _db.get_conn()
+    try:
+        conn.execute(
+            "INSERT INTO tenants (tenant_id, name, is_active, created_at) VALUES (?,?,?,?)",
+            (tenant_id, name, 1, now),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    return Tenant(tenant_id=tenant_id, name=name, is_active=True, created_at=now)
 
 
 def create_api_key(tenant_id: str, role: Role, description: str = "") -> APIKey:
-    """Generate a new API key for a tenant+role. Returns the APIKey."""
-    if tenant_id not in _tenants:
+    if not get_tenant(tenant_id):
         raise ValueError(f"Tenant '{tenant_id}' does not exist.")
     raw_key = f"sk-{tenant_id[:12]}-{secrets.token_urlsafe(16)}"
     now     = time.time()
-    api_key = APIKey(
-        key         = raw_key,
-        tenant_id   = tenant_id,
-        role        = role,
-        description = description,
-        is_active   = True,
-        created_at  = now,
-    )
-    _api_keys[raw_key] = api_key
-    _flush()
-    return api_key
+    conn = _db.get_conn()
+    try:
+        conn.execute(
+            "INSERT INTO api_keys (key, tenant_id, role, description, is_active, created_at) VALUES (?,?,?,?,?,?)",
+            (raw_key, tenant_id, role.value, description, 1, now),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    return APIKey(key=raw_key, tenant_id=tenant_id, role=role,
+                  description=description, is_active=True, created_at=now)
 
 
 def revoke_key(key: str) -> bool:
-    """Mark a key inactive. Returns True if it existed."""
-    entry = _api_keys.get(key)
-    if entry:
-        entry.is_active = False
-        _flush()
-        return True
-    return False
+    conn = _db.get_conn()
+    try:
+        cur = conn.execute("UPDATE api_keys SET is_active=0 WHERE key=?", (key,))
+        conn.commit()
+        return cur.rowcount > 0
+    finally:
+        conn.close()
 
 
 def list_tenants() -> List[Tenant]:
-    return list(_tenants.values())
+    conn = _db.get_conn()
+    try:
+        rows = conn.execute("SELECT * FROM tenants ORDER BY created_at").fetchall()
+        return [_row_to_tenant(r) for r in rows]
+    finally:
+        conn.close()
 
 
 def list_keys_for_tenant(tenant_id: str) -> List[APIKey]:
-    return [k for k in _api_keys.values() if k.tenant_id == tenant_id]
+    conn = _db.get_conn()
+    try:
+        rows = conn.execute("SELECT * FROM api_keys WHERE tenant_id=?", (tenant_id,)).fetchall()
+        return [_row_to_apikey(r) for r in rows]
+    finally:
+        conn.close()
 
 
 def set_tenant_active(tenant_id: str, active: bool) -> bool:
-    """Lock or unlock a tenant. Returns True if found."""
-    tenant = _tenants.get(tenant_id)
-    if not tenant:
-        return False
-    tenant.is_active = active
-    _flush()
-    return True
+    conn = _db.get_conn()
+    try:
+        cur = conn.execute(
+            "UPDATE tenants SET is_active=? WHERE tenant_id=?", (int(active), tenant_id)
+        )
+        conn.commit()
+        return cur.rowcount > 0
+    finally:
+        conn.close()
 
 
 def delete_tenant(tenant_id: str) -> bool:
-    """Delete a tenant and all their keys. Returns True if found."""
-    if tenant_id not in _tenants:
-        return False
-    _tenants.pop(tenant_id)
-    keys_to_remove = [k for k, v in _api_keys.items() if v.tenant_id == tenant_id]
-    for k in keys_to_remove:
-        _api_keys.pop(k)
-    _flush()
-    return True
+    conn = _db.get_conn()
+    try:
+        conn.execute("DELETE FROM api_keys WHERE tenant_id=?", (tenant_id,))
+        cur = conn.execute("DELETE FROM tenants WHERE tenant_id=?", (tenant_id,))
+        conn.commit()
+        return cur.rowcount > 0
+    finally:
+        conn.close()
 
 
 def list_all_keys() -> List[APIKey]:
-    """Return every API key across all tenants (SUPERADMIN use only)."""
-    return list(_api_keys.values())
+    conn = _db.get_conn()
+    try:
+        rows = conn.execute("SELECT * FROM api_keys ORDER BY created_at").fetchall()
+        return [_row_to_apikey(r) for r in rows]
+    finally:
+        conn.close()
 
 
 def clear_for_tests() -> None:
-    """Reset all state — only call from tests."""
-    _tenants.clear()
-    _api_keys.clear()
+    conn = _db.get_conn()
+    try:
+        conn.execute("DELETE FROM api_keys")
+        conn.execute("DELETE FROM tenants")
+        conn.commit()
+    finally:
+        conn.close()
