@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -330,42 +330,129 @@ interface LeadRow {
       <button class="au-refresh-btn" [disabled]="loading()" (click)="loadData()">↻ Refresh</button>
     </div>
 
-    @if (leads().length === 0 && !loading()) {
-      <p class="au-empty">No reading requests yet.</p>
+    <!-- Search + Filter bar -->
+    <div class="au-leads-toolbar">
+      <div class="au-search-wrap">
+        <svg class="au-search-icon" width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <circle cx="6" cy="6" r="4.5" stroke="#9ca3af" stroke-width="1.4"/>
+          <path d="M9.5 9.5L12 12" stroke="#9ca3af" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        <input class="au-search-input" type="text" placeholder="Search name, email, phone…"
+          [value]="leadSearch()" (input)="leadSearch.set($any($event.target).value)" />
+        @if (leadSearch()) {
+          <button class="au-search-clear" (click)="leadSearch.set('')">✕</button>
+        }
+      </div>
+      <div class="au-filter-tabs">
+        @for (f of leadFilters; track f.value) {
+          <button class="au-filter-tab" [class.active]="leadFilter() === f.value"
+            (click)="leadFilter.set(f.value)">
+            {{ f.label }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Result count -->
+    @if (filteredLeads().length !== leads().length) {
+      <div class="au-lead-count">Showing {{ filteredLeads().length }} of {{ leads().length }} requests</div>
     }
 
+    @if (filteredLeads().length === 0 && !loading()) {
+      <p class="au-empty">
+        {{ leads().length === 0 ? 'No reading requests yet.' : 'No results match your search.' }}
+      </p>
+    }
+
+    <!-- Compact lead rows -->
     <div class="au-leads-list">
-      @for (lead of leads(); track lead.lead_id) {
-        <div class="au-lead-card" [class.au-lead-new]="lead.status === 'submitted'">
-          <div class="au-lead-top">
-            <div class="au-lead-info">
-              <span class="au-lead-name">{{ lead.name }}</span>
-              <span class="au-lead-contact">{{ lead.email }}{{ lead.phone ? ' · ' + lead.phone : '' }}</span>
-              @if (lead.dob) {
-                <span class="au-lead-dob">DOB: {{ lead.dob }}</span>
-              }
+      @for (lead of filteredLeads(); track lead.lead_id) {
+        <!-- Collapsed row — always visible -->
+        <div class="au-lead-row" [class.au-lead-row-new]="lead.status === 'submitted'"
+          (click)="toggleLead(lead.lead_id)">
+          <div class="au-lead-row-left">
+            <div class="au-lead-avatar" [class]="'av-' + lead.status">
+              {{ lead.name[0]?.toUpperCase() }}
             </div>
-            <div class="au-lead-meta">
-              <span class="au-lead-status-badge" [class]="'lstat-' + lead.status">
-                {{ leadStatusLabel(lead.status) }}
-              </span>
-              <span class="au-lead-date">{{ lead.created_at * 1000 | date:'d MMM, h:mm a' }}</span>
+            <div class="au-lead-row-info">
+              <span class="au-lead-name">{{ lead.name }}</span>
+              <span class="au-lead-sub">{{ lead.email }}</span>
             </div>
           </div>
-          <div class="au-lead-actions">
-            <select class="au-input au-select au-lead-select" [value]="lead.status"
-              (change)="updateLeadStatus(lead.lead_id, $any($event.target).value)">
-              <option value="submitted">Submitted</option>
-              <option value="admin_notified">Astrologer Notified</option>
-              <option value="expert_analysis">Expert Analysis</option>
-              <option value="report_ready">Report Ready</option>
-            </select>
-            <button class="au-btn-do-reading" (click)="doReadingForLead(lead)" title="Open intake pre-filled with this person's data">
-              <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v10M2 6l4.5 4.5 4.5-4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Do Reading
-            </button>
+          <div class="au-lead-row-right">
+            <span class="au-lead-status-badge" [class]="'lstat-' + lead.status">
+              {{ leadStatusShort(lead.status) }}
+            </span>
+            <span class="au-lead-date">{{ lead.created_at * 1000 | date:'d MMM' }}</span>
+            <svg class="au-chevron" [class.open]="expandedLead() === lead.lead_id"
+              width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
           </div>
         </div>
+
+        <!-- Expanded drawer — shown when this lead is selected -->
+        @if (expandedLead() === lead.lead_id) {
+          <div class="au-lead-drawer">
+            <div class="au-drawer-grid">
+              <div class="au-drawer-field">
+                <span class="au-drawer-label">Email</span>
+                <span class="au-drawer-val">{{ lead.email }}</span>
+              </div>
+              @if (lead.phone) {
+                <div class="au-drawer-field">
+                  <span class="au-drawer-label">Phone</span>
+                  <span class="au-drawer-val">{{ lead.phone }}</span>
+                </div>
+              }
+              @if (lead.dob) {
+                <div class="au-drawer-field">
+                  <span class="au-drawer-label">Date of Birth</span>
+                  <span class="au-drawer-val">{{ lead.dob }}</span>
+                </div>
+              }
+              @if (lead.time_of_birth) {
+                <div class="au-drawer-field">
+                  <span class="au-drawer-label">Time of Birth</span>
+                  <span class="au-drawer-val">{{ lead.time_of_birth }}</span>
+                </div>
+              }
+              @if (lead.place_of_birth) {
+                <div class="au-drawer-field">
+                  <span class="au-drawer-label">Place of Birth</span>
+                  <span class="au-drawer-val">{{ lead.place_of_birth }}</span>
+                </div>
+              }
+              @if (lead.question) {
+                <div class="au-drawer-field au-drawer-field-full">
+                  <span class="au-drawer-label">Question</span>
+                  <span class="au-drawer-val">{{ lead.question }}</span>
+                </div>
+              }
+              <div class="au-drawer-field">
+                <span class="au-drawer-label">Submitted</span>
+                <span class="au-drawer-val">{{ lead.created_at * 1000 | date:'d MMM yyyy, h:mm a' }}</span>
+              </div>
+            </div>
+            <!-- Actions -->
+            <div class="au-drawer-actions">
+              <div class="au-drawer-status-wrap">
+                <span class="au-drawer-label">Status</span>
+                <select class="au-input au-select au-lead-select" [value]="lead.status"
+                  (change)="updateLeadStatus(lead.lead_id, $any($event.target).value)">
+                  <option value="submitted">⏳ Submitted</option>
+                  <option value="admin_notified">🔔 Expert Notified</option>
+                  <option value="expert_analysis">✦ Under Analysis</option>
+                  <option value="report_ready">✅ Report Ready</option>
+                </select>
+              </div>
+              <button class="au-btn-do-reading" (click)="doReadingForLead(lead); $event.stopPropagation()">
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M5 6.5l1.5 1.5 2.5-2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Do Reading
+              </button>
+            </div>
+          </div>
+        }
       }
     </div>
   </div>
@@ -547,35 +634,110 @@ interface LeadRow {
   background: #ef4444; color: #fff; border-radius: 99px;
   font-size: 11px; font-weight: 700;
 }
-.au-leads-list { display: flex; flex-direction: column; gap: 10px; }
-.au-lead-card {
-  border: 1.5px solid #e5e7eb; border-radius: 12px;
-  padding: 14px 18px; background: #fff;
-  display: flex; flex-direction: column; gap: 10px;
+
+/* Toolbar: search + filter */
+.au-leads-toolbar {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;
 }
-.au-lead-new { border-color: #fde68a; background: #fffbeb; }
-.au-lead-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-.au-lead-info { display: flex; flex-direction: column; gap: 2px; }
-.au-lead-name { font-size: 14px; font-weight: 700; color: #111827; }
-.au-lead-contact { font-size: 12px; color: #6b7280; }
-.au-lead-dob { font-size: 11px; color: #9ca3af; }
-.au-lead-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.au-search-wrap {
+  position: relative; flex: 1; min-width: 180px;
+}
+.au-search-icon {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%); pointer-events: none;
+}
+.au-search-input {
+  width: 100%; padding: 7px 32px 7px 30px; border: 1.5px solid #e5e7eb;
+  border-radius: 8px; font-size: 13px; font-family: inherit; color: #111827;
+  outline: none; box-sizing: border-box; transition: border-color .15s;
+}
+.au-search-input:focus { border-color: #6366f1; }
+.au-search-clear {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 12px; padding: 2px;
+}
+.au-search-clear:hover { color: #374151; }
+.au-filter-tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+.au-filter-tab {
+  padding: 5px 11px; border-radius: 20px; font-size: 11px; font-weight: 600;
+  border: 1.5px solid #e5e7eb; background: #fff; color: #6b7280;
+  cursor: pointer; font-family: inherit; white-space: nowrap; transition: all .15s;
+}
+.au-filter-tab.active { border-color: #6366f1; background: #eef2ff; color: #4338ca; }
+.au-filter-tab:hover:not(.active) { border-color: #9ca3af; color: #374151; }
+
+.au-lead-count { font-size: 11px; color: #9ca3af; margin-bottom: 6px; }
+
+/* Compact lead rows */
+.au-leads-list { display: flex; flex-direction: column; gap: 2px; }
+
+.au-lead-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; border-radius: 10px; cursor: pointer;
+  border: 1.5px solid transparent; background: #f9fafb;
+  transition: background .12s, border-color .12s; gap: 12px;
+}
+.au-lead-row:hover { background: #f0f4ff; border-color: #c7d2fe; }
+.au-lead-row-new { background: #fffbeb; border-color: #fde68a; }
+.au-lead-row-new:hover { background: #fef9c3; border-color: #fbbf24; }
+
+.au-lead-row-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.au-lead-avatar {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 800; color: #fff;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+}
+.av-submitted       { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.av-admin_notified  { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+.av-expert_analysis { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+.av-report_ready    { background: linear-gradient(135deg, #10b981, #059669); }
+
+.au-lead-row-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.au-lead-name { font-size: 13px; font-weight: 700; color: #111827; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.au-lead-sub  { font-size: 11px; color: #9ca3af; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.au-lead-row-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .au-lead-date { font-size: 11px; color: #9ca3af; }
-.au-lead-status-badge {
-  font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 99px;
-}
+.au-lead-status-badge { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 99px; white-space: nowrap; }
 .lstat-submitted       { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
 .lstat-admin_notified  { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
 .lstat-expert_analysis { background: #f5f3ff; color: #5b21b6; border: 1px solid #ddd6fe; }
 .lstat-report_ready    { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
-.au-lead-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.au-lead-select { max-width: 220px; }
+
+.au-chevron { color: #9ca3af; transition: transform .2s; flex-shrink: 0; }
+.au-chevron.open { transform: rotate(180deg); }
+
+/* Expanded drawer */
+.au-lead-drawer {
+  margin: 0 0 4px 0; padding: 16px 18px; background: #fff;
+  border: 1.5px solid #e0e7ff; border-radius: 10px;
+  display: flex; flex-direction: column; gap: 14px;
+  animation: drawer-in .15s ease;
+}
+@keyframes drawer-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+.au-drawer-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px;
+}
+.au-drawer-field { display: flex; flex-direction: column; gap: 2px; }
+.au-drawer-field-full { grid-column: 1 / -1; }
+.au-drawer-label { font-size: 10px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; }
+.au-drawer-val   { font-size: 12px; color: #111827; line-height: 1.4; }
+
+.au-drawer-actions {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding-top: 12px; border-top: 1px solid #f3f4f6;
+}
+.au-drawer-status-wrap { display: flex; flex-direction: column; gap: 4px; }
+.au-lead-select { max-width: 210px; }
+
 .au-btn-do-reading {
   display: inline-flex; align-items: center; gap: 6px;
-  padding: 7px 16px; border-radius: 8px; font-size: 12px; font-weight: 700;
+  padding: 8px 18px; border-radius: 8px; font-size: 12px; font-weight: 700;
   background: linear-gradient(135deg, #4f46e5, #7c3aed); color: #fff;
   border: none; cursor: pointer; font-family: inherit;
   box-shadow: 0 2px 8px rgba(99,102,241,0.35); transition: all .15s; white-space: nowrap;
+  margin-left: auto;
 }
 .au-btn-do-reading:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(99,102,241,0.5); }
   `]
@@ -603,6 +765,32 @@ export class AdminUsersPage implements OnInit {
   readonly showCreateAdmin = signal(false);
   readonly creatingAdmin   = signal(false);
   readonly adminCreated    = signal('');
+
+  // Lead list — search, filter, expand
+  readonly leadSearch  = signal('');
+  readonly leadFilter  = signal('all');
+  readonly expandedLead = signal<string | null>(null);
+
+  readonly leadFilters = [
+    { value: 'all',            label: 'All' },
+    { value: 'submitted',      label: '⏳ New' },
+    { value: 'admin_notified', label: '🔔 Notified' },
+    { value: 'expert_analysis',label: '✦ Analysis' },
+    { value: 'report_ready',   label: '✅ Ready' },
+  ];
+
+  readonly filteredLeads = computed(() => {
+    const q   = this.leadSearch().toLowerCase().trim();
+    const f   = this.leadFilter();
+    return this.leads().filter(l => {
+      const matchFilter = f === 'all' || l.status === f;
+      const matchSearch = !q ||
+        l.name.toLowerCase().includes(q) ||
+        l.email.toLowerCase().includes(q) ||
+        (l.phone ?? '').toLowerCase().includes(q);
+      return matchFilter && matchSearch;
+    });
+  });
 
   newTenant: NewTenantForm = { name: '', admin_description: 'Primary admin key' };
   newAdmin = { name: '', email: '', password: '' };
@@ -643,12 +831,26 @@ export class AdminUsersPage implements OnInit {
     this.loading.set(false);
   }
 
+  toggleLead(id: string) {
+    this.expandedLead.set(this.expandedLead() === id ? null : id);
+  }
+
   leadStatusLabel(status: string): string {
     const map: Record<string, string> = {
       submitted:       '⏳ New Request',
       admin_notified:  '🔔 Expert Notified',
       expert_analysis: '✦ Under Analysis',
       report_ready:    '✅ Report Ready',
+    };
+    return map[status] ?? status;
+  }
+
+  leadStatusShort(status: string): string {
+    const map: Record<string, string> = {
+      submitted:       '⏳ New',
+      admin_notified:  '🔔 Notified',
+      expert_analysis: '✦ Analysis',
+      report_ready:    '✅ Ready',
     };
     return map[status] ?? status;
   }

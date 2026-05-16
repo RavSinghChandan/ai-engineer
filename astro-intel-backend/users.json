@@ -16,7 +16,7 @@
       "email": "testuser@example.com",
       "name": "Test User",
       "role": "user",
-      "pw_hash": "7fd4745008f1f6507f1fb1ffb5d8ed318234fcd51e0493478063806ef5ec2b6c",
+      "pw_hash": "4c3308240a5ff3f4a7fe37355d406338db03d36d3267dfea461d2becf5ca865a",
       "is_active": true,
       "created_at": 1778867069.0625558,
       "tenant_id": "tenant_39912110e60b",

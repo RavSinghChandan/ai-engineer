@@ -51,12 +51,16 @@ def _flush() -> None:
         pass
 
 
+_USER_FIELDS = {f.name for f in User.__dataclass_fields__.values()}
+
 def load() -> None:
     if _STORE_PATH.exists():
         try:
             data = json.loads(_STORE_PATH.read_text())
             for d in data.get("users", []):
-                _users[d["email"]] = User(**d)
+                # Drop unknown keys and fill missing optional fields so old records load safely
+                filtered = {k: v for k, v in d.items() if k in _USER_FIELDS}
+                _users[d["email"]] = User(**filtered)
         except Exception:
             pass
     _bootstrap_superadmin()
