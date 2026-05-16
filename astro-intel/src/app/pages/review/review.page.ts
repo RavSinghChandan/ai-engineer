@@ -42,6 +42,16 @@ const BACKEND = environment.apiUrl;
     </div>
 
     <div class="hdr-right">
+      @if (auth.isAdmin()) {
+        <button class="hdr-nav-btn" (click)="router.navigate(['/admin/users'])" title="Leads & Users">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M9 6a2.5 2.5 0 1 0-5 0 2.5 2.5 0 0 0 5 0zM2 11.5c0-2 2-3.5 4.5-3.5s4.5 1.5 4.5 3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          Leads
+        </button>
+        <button class="hdr-nav-btn" (click)="router.navigate(['/metrics'])" title="Metrics">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1.5 10.5l3-4 3 2.5 3.5-6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Metrics
+        </button>
+      }
       <div class="progress-pill">
         <div class="progress-track">
           <div class="progress-fill" [style.width.%]="approvalPct()"></div>
@@ -630,6 +640,14 @@ const BACKEND = environment.apiUrl;
 .progress-label { font-size: 11px; font-weight: 700; color: #374151; white-space: nowrap; }
 
 /* Buttons */
+.hdr-nav-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;
+  background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.22);
+  color: #4338ca; cursor: pointer; transition: all .15s; white-space: nowrap;
+}
+.hdr-nav-btn:hover { background: rgba(99,102,241,0.15); border-color: rgba(99,102,241,0.4); }
+
 .btn-outline-green {
   padding: 6px 14px; border-radius: 8px;
   border: 1.5px solid #22c55e; background: transparent;
@@ -1102,7 +1120,7 @@ const BACKEND = environment.apiUrl;
   `]
 })
 export class ReviewPage {
-  private router = inject(Router);
+  readonly router = inject(Router);
   private route  = inject(ActivatedRoute);
   private http   = inject(HttpClient);
   private api    = inject(ApiService);

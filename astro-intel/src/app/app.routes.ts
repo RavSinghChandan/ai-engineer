@@ -22,13 +22,18 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/report/report.page').then(m => m.ReportPage),
   },
   {
+    path: 'profile',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/profile/profile.page').then(m => m.ProfilePage),
+  },
+  {
     path: 'metrics',
     canActivate: [adminGuard],
     loadComponent: () => import('./pages/metrics/metrics.page').then(m => m.MetricsPage),
   },
   {
     path: 'admin/users',
-    canActivate: [adminGuard],
+    canActivate: [superadminGuard],
     loadComponent: () => import('./pages/admin-users/admin-users.page').then(m => m.AdminUsersPage),
   },
   { path: '**', redirectTo: '' }

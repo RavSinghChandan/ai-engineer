@@ -8,7 +8,8 @@
       "pw_hash": "4acd60d24b2a7d8259f8ec789d26ee1ead34b24bbe9d593e4f6ff1af7c897146",
       "is_active": true,
       "created_at": 1778866899.49255,
-      "tenant_id": "tenant_master"
+      "tenant_id": "tenant_master",
+      "phone": ""
     },
     {
       "user_id": "user_b61d4a2a15f681c2",
@@ -18,7 +19,8 @@
       "pw_hash": "7fd4745008f1f6507f1fb1ffb5d8ed318234fcd51e0493478063806ef5ec2b6c",
       "is_active": true,
       "created_at": 1778867069.0625558,
-      "tenant_id": "tenant_39912110e60b"
+      "tenant_id": "tenant_39912110e60b",
+      "phone": ""
     },
     {
       "user_id": "user_a5d910714fc90e3d",
@@ -28,7 +30,8 @@
       "pw_hash": "cf9f628e7a6899edcd33223695951b09245cc19acf58b930f3c6b5c048d405b8",
       "is_active": true,
       "created_at": 1778867101.20465,
-      "tenant_id": "tenant_2944bfd07c2a"
+      "tenant_id": "tenant_2944bfd07c2a",
+      "phone": ""
     },
     {
       "user_id": "user_2ad185963a9b2aca",
@@ -38,7 +41,8 @@
       "pw_hash": "d3185b1f8f5b864316637acf2c4de21a8bc35962d7366ef3bf175e5abb688e15",
       "is_active": true,
       "created_at": 1778867919.728107,
-      "tenant_id": "tenant_6720a263af89"
+      "tenant_id": "tenant_6720a263af89",
+      "phone": ""
     },
     {
       "user_id": "user_739fdbf007b8b97c",
@@ -48,87 +52,8 @@
       "pw_hash": "77dd83c02c457c25fb69c38da062bb135b03edf1c5b541be7eeb78f2bd30a85e",
       "is_active": true,
       "created_at": 1778868308.227966,
-      "tenant_id": "tenant_c1a26af702c2"
-    },
-    {
-      "user_id": "user_0092e329358dde15",
-      "email": "rav@gmail.com",
-      "name": "rav",
-      "role": "user",
-      "pw_hash": "77dd83c02c457c25fb69c38da062bb135b03edf1c5b541be7eeb78f2bd30a85e",
-      "is_active": true,
-      "created_at": 1778868426.294889,
-      "tenant_id": "tenant_9178f3325db0"
-    },
-    {
-      "user_id": "user_cba25ca2b19bb877",
-      "email": "chandan@gmail.com",
-      "name": "chandan",
-      "role": "user",
-      "pw_hash": "26b142a54837454347fd1206d60da39d6bb1028b10a85e61d98cd1010d11740e",
-      "is_active": true,
-      "created_at": 1778868880.331588,
-      "tenant_id": "tenant_1a618242e5ff"
-    },
-    {
-      "user_id": "user_a459253b057cff2c",
-      "email": "ananya_test2@example.com",
-      "name": "Ananya Kapoor",
-      "role": "user",
-      "pw_hash": "6bca177e640a3a80319a3969a1ce015737ae9b5e2afd6431c13987c658ad6ad6",
-      "is_active": true,
-      "created_at": 1778869911.742945,
-      "tenant_id": "tenant_238caa3aabfd"
-    },
-    {
-      "user_id": "user_99ecb0533f18c342",
-      "email": "xss_test_del@x.com",
-      "name": "<script>alert(1)</script>",
-      "role": "user",
-      "pw_hash": "6bca177e640a3a80319a3969a1ce015737ae9b5e2afd6431c13987c658ad6ad6",
-      "is_active": true,
-      "created_at": 1778870045.7689521,
-      "tenant_id": "tenant_13a8b0c4e746"
-    },
-    {
-      "user_id": "user_a398fb278d162a54",
-      "email": "audituser_fix@test.com",
-      "name": "Audit User",
-      "role": "user",
-      "pw_hash": "6bca177e640a3a80319a3969a1ce015737ae9b5e2afd6431c13987c658ad6ad6",
-      "is_active": true,
-      "created_at": 1778870332.693869,
-      "tenant_id": "tenant_6dd764a17f2d"
-    },
-    {
-      "user_id": "user_a2bc7ce86a04e6c0",
-      "email": "rav1@gmail.com",
-      "name": "rav",
-      "role": "user",
-      "pw_hash": "ce2b45bcd41e229ee789e120a7a26295faeafabfa4878253eeaed804d3029afe",
-      "is_active": true,
-      "created_at": 1778872817.193783,
-      "tenant_id": "tenant_d0390053927d"
-    },
-    {
-      "user_id": "user_673f5f37eca86531",
-      "email": "rav2@gmail.com",
-      "name": "tav",
-      "role": "user",
-      "pw_hash": "a4fba6854ff39e3ecead789297e345100101c674fceb160ab2aca7d5eaa94a45",
-      "is_active": true,
-      "created_at": 1778873739.22036,
-      "tenant_id": "tenant_95ef3230743a"
-    },
-    {
-      "user_id": "user_1ec7e5353f8bb7dc",
-      "email": "otptest_unique@example.com",
-      "name": "OTP Tester",
-      "role": "user",
-      "pw_hash": "c9c29dbd2f26424bdd74050879d85d66e760846526f8299592c4cbb00c038d46",
-      "is_active": true,
-      "created_at": 1778874831.387365,
-      "tenant_id": "tenant_cd9cca0f3a7b"
+      "tenant_id": "tenant_c1a26af702c2",
+      "phone": ""
     }
   ]
 }

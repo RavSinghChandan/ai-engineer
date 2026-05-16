@@ -31,6 +31,7 @@ class User:
     is_active:  bool = True
     created_at: float = 0.0
     tenant_id:  str = ""     # links to the tenant in auth/store.py
+    phone:      str = ""     # optional mobile number (E.164 format preferred)
 
 
 _users: Dict[str, User] = {}   # email → User
@@ -91,6 +92,24 @@ def get_by_email(email: str) -> Optional[User]:
     return _users.get(email.lower().strip())
 
 
+def get_by_phone(phone: str) -> Optional[User]:
+    normalized = _normalize_phone(phone)
+    for u in _users.values():
+        if u.phone and _normalize_phone(u.phone) == normalized:
+            return u
+    return None
+
+
+def _normalize_phone(phone: str) -> str:
+    """Strip spaces, dashes, parentheses — keep digits and leading +."""
+    import re as _re
+    digits = _re.sub(r"[^\d+]", "", phone.strip())
+    # If 10 digits with no country code, assume India (+91)
+    if len(digits) == 10 and digits.isdigit():
+        digits = "+91" + digits
+    return digits
+
+
 def verify_password(user: User, password: str) -> bool:
     return hmac.compare_digest(user.pw_hash, _hash(password))
 
@@ -98,8 +117,35 @@ def verify_password(user: User, password: str) -> bool:
 _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
+def set_password(email: str, password: str) -> bool:
+    user = _users.get(email.lower())
+    if not user:
+        return False
+    user.pw_hash = _hash(password)
+    _flush()
+    return True
+
+
+def set_name(email: str, name: str) -> bool:
+    user = _users.get(email.lower())
+    if not user:
+        return False
+    user.name = name.strip()
+    _flush()
+    return True
+
+
+def update_phone(email: str, phone: str) -> bool:
+    user = _users.get(email.lower())
+    if not user:
+        return False
+    user.phone = _normalize_phone(phone) if phone else ""
+    _flush()
+    return True
+
+
 def create_user(email: str, name: str, password: str,
-                role: str = "user", tenant_id: str = "") -> User:
+                role: str = "user", tenant_id: str = "", phone: str = "") -> User:
     """Create a new user. Raises ValueError if email already exists."""
     key = email.lower().strip()
     if not _EMAIL_RE.match(key):
@@ -126,6 +172,7 @@ def create_user(email: str, name: str, password: str,
         is_active  = True,
         created_at = time.time(),
         tenant_id  = tenant_id,
+        phone      = _normalize_phone(phone) if phone else "",
     )
     _users[key] = user
     _flush()

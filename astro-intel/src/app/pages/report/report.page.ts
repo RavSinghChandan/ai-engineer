@@ -54,6 +54,14 @@ import { firstValueFrom } from 'rxjs';
 
   <div class="tb-right">
     @if (auth.isAdmin()) {
+      <button class="tb-btn" (click)="router.navigate(['/admin/users'])" title="Leads & Users">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M9 6a2.5 2.5 0 1 0-5 0 2.5 2.5 0 0 0 5 0zM2 11.5c0-2 2-3.5 4.5-3.5s4.5 1.5 4.5 3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        Leads
+      </button>
+      <button class="tb-btn" (click)="router.navigate(['/metrics'])" title="Metrics">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1.5 10.5l3-4 3 2.5 3.5-6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Metrics
+      </button>
       <button class="tb-btn" [class.tb-btn-active]="editMode()" (click)="editMode.set(!editMode())">
         @if (editMode()) {
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 7l3.5 3.5L11 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -68,12 +76,10 @@ import { firstValueFrom } from 'rxjs';
       <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v8M3 6l3.5 3.5L10 6M1.5 11h10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Download PDF
     </button>
-    @if (!auth.isAdmin()) {
-      <button class="tb-btn" (click)="goBack()">
-        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v10M2 6.5l4.5-4.5 4.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Go Home
-      </button>
-    }
+    <button class="tb-btn" (click)="goHome()">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1.5 6.5L6.5 2l5 4.5M2.5 6v5h2.5V8h3v3h2.5V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Home
+    </button>
   </div>
 
 </div>
@@ -1003,8 +1009,18 @@ import { firstValueFrom } from 'rxjs';
 } @else {
   <div class="empty-state">
     <div class="empty-icon">✦</div>
-    <p class="empty-text">No report yet</p>
-    <button class="tb-btn" (click)="goBack()">{{ auth.isAdmin() ? '← Back to Review' : '← Back to Home' }}</button>
+    <h3 class="empty-title">No Report Generated Yet</h3>
+    <p class="empty-text">Complete a 360° reading first, then your personalised report will appear here.</p>
+    <div class="empty-actions">
+      <button class="tb-btn-primary" (click)="goHome()">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1.5 6.5L6.5 2l5 4.5M2.5 6v5h2.5V8h3v3h2.5V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Start a Reading
+      </button>
+      @if (auth.isAdmin()) {
+        <button class="tb-btn" (click)="goBack()">← Back to Review</button>
+        <button class="tb-btn" (click)="router.navigate(['/admin/users'])">View Leads</button>
+      }
+    </div>
   </div>
 }
   `,
@@ -1707,8 +1723,10 @@ import { firstValueFrom } from 'rxjs';
   align-items: center; justify-content: center; gap: 16px;
   color: #9ca3af; font-family: Georgia, serif;
 }
-.empty-icon { font-size: 32px; color: #d4af37; opacity: 0.4; }
-.empty-text { font-size: 15px; color: #9ca3af; }
+.empty-icon  { font-size: 48px; color: #d4af37; opacity: 0.5; margin-bottom: 8px; }
+.empty-title { font-size: 18px; font-weight: 700; color: #1e1b4b; margin-bottom: 8px; }
+.empty-text  { font-size: 14px; color: #6b7280; margin-bottom: 24px; max-width: 340px; line-height: 1.6; }
+.empty-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    PRINT — strict A4, no blank pages
@@ -1722,7 +1740,7 @@ import { firstValueFrom } from 'rxjs';
   `]
 })
 export class ReportPage implements OnInit {
-  private router = inject(Router);
+  readonly router = inject(Router);
   private api    = inject(ApiService);
   readonly orch  = inject(OrchestratorService);
   readonly auth  = inject(AuthService);
@@ -1765,7 +1783,7 @@ export class ReportPage implements OnInit {
       this.languages.set(FALLBACK_LANGUAGES);
     }
 
-    // If report already has a language set (translated in review tab), reflect it
+    // If report already has a language set (translated before navigation), reflect it in selector
     const r = this.report() as any;
     if (r?.language_code && r.language_code !== 'en') {
       this.selectedLang.set(r.language_code);
@@ -3111,6 +3129,10 @@ export class ReportPage implements OnInit {
     } else {
       this.router.navigate(['/']);
     }
+  }
+
+  goHome() {
+    this.router.navigate(['/']);
   }
 }
 

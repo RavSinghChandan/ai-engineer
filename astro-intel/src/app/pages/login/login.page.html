@@ -150,26 +150,56 @@
     <!-- ── OTP LOGIN ── -->
     @if (tab() === 'otp') {
 
+      <!-- Email / Phone toggle -->
+      <div class="otp-mode-toggle">
+        <button class="otp-mode-btn" [class.active]="otpMode() === 'email'" (click)="switchOtpMode('email')">
+          ✉ Email
+        </button>
+        <button class="otp-mode-btn" [class.active]="otpMode() === 'phone'" (click)="switchOtpMode('phone')">
+          📱 Mobile
+        </button>
+      </div>
+
       @if (!otpSent()) {
-        <!-- Step 1: Enter email -->
+        <!-- Step 1: Enter email or phone -->
         <div class="otp-hero">
           <div class="otp-hero-icon">✦</div>
-          <p class="otp-hero-text">Passwordless login — we'll email you a 6-digit code.</p>
+          @if (otpMode() === 'email') {
+            <p class="otp-hero-text">Passwordless login — we'll email you a 6-digit code.</p>
+          } @else {
+            <p class="otp-hero-text">Passwordless login — we'll send a 6-digit code to your mobile.</p>
+          }
         </div>
 
-        <div class="form-group">
-          <label for="otpEmail">Your Email</label>
-          <input
-            id="otpEmail"
-            type="email"
-            placeholder="you@example.com"
-            [ngModel]="otpEmail()"
-            (ngModelChange)="otpEmail.set($event)"
-            (keydown)="onKey($event)"
-            autocomplete="email"
-            [disabled]="loading()"
-          />
-        </div>
+        @if (otpMode() === 'email') {
+          <div class="form-group">
+            <label for="otpEmail">Your Email</label>
+            <input
+              id="otpEmail"
+              type="email"
+              placeholder="you@example.com"
+              [ngModel]="otpEmail()"
+              (ngModelChange)="otpEmail.set($event)"
+              (keydown)="onKey($event)"
+              autocomplete="email"
+              [disabled]="loading()"
+            />
+          </div>
+        } @else {
+          <div class="form-group">
+            <label for="otpPhone">Mobile Number</label>
+            <input
+              id="otpPhone"
+              type="tel"
+              placeholder="+91 98765 43210"
+              [ngModel]="otpPhone()"
+              (ngModelChange)="otpPhone.set($event)"
+              (keydown)="onKey($event)"
+              autocomplete="tel"
+              [disabled]="loading()"
+            />
+          </div>
+        }
 
         @if (error()) {
           <div class="error-box">⚠ {{ error() }}</div>
@@ -181,16 +211,33 @@
         </button>
 
         <div class="footer-note">
-          A 6-digit code will be sent to your inbox. Works for all accounts — user, admin, and superadmin.
+          @if (otpMode() === 'email') {
+            A 6-digit code will be sent to your inbox. Works for all accounts — user, admin, and superadmin.
+          } @else {
+            Enter the mobile number registered with your account. 10-digit Indian numbers work automatically.
+          }
         </div>
 
       } @else {
         <!-- Step 2: Enter code -->
         <div class="otp-hero sent">
-          <div class="otp-hero-icon sent-icon">✉</div>
-          <p class="otp-hero-text">Code sent to <strong>{{ otpEmail() }}</strong></p>
-          <p class="otp-hero-sub">Check your inbox (and spam folder). Valid for 10 minutes.</p>
+          <div class="otp-hero-icon sent-icon">{{ otpMode() === 'phone' ? '📱' : '✉' }}</div>
+          @if (otpMode() === 'email') {
+            <p class="otp-hero-text">Code sent to <strong>{{ otpEmail() }}</strong></p>
+            <p class="otp-hero-sub">Check your inbox (and spam folder). Valid for 10 minutes.</p>
+          } @else {
+            <p class="otp-hero-text">Code sent to <strong>{{ otpPhone() }}</strong></p>
+            <p class="otp-hero-sub">Valid for 10 minutes.</p>
+          }
         </div>
+
+        @if (devCode()) {
+          <div class="dev-code-box">
+            <div class="dev-code-label">DEV MODE — {{ otpMode() === 'phone' ? 'SMS not configured' : 'SMTP not configured' }}</div>
+            <div class="dev-code-value">{{ devCode() }}</div>
+            <button class="dev-code-btn" type="button" (click)="useDevCode()">Use this code →</button>
+          </div>
+        }
 
         <div class="form-group">
           <label for="otpCode">6-Digit Code</label>
@@ -228,7 +275,7 @@
             </button>
           }
           <button class="otp-back-btn" (click)="otpSent.set(false); error.set('')">
-            ← Change email
+            ← Change {{ otpMode() === 'phone' ? 'number' : 'email' }}
           </button>
         </div>
       }

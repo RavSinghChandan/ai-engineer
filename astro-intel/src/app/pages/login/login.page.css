@@ -367,3 +367,76 @@ input:disabled {
 }
 
 .otp-back-btn:hover { color: #6b7280; }
+
+/* Dev-mode OTP box — shown when SMTP is not configured */
+.dev-code-box {
+  background: linear-gradient(135deg, #fffbeb, #fef3c7);
+  border: 1.5px dashed #f59e0b;
+  border-radius: 0.75rem;
+  padding: 0.9rem 1rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.dev-code-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #b45309;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.dev-code-value {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: 0.3em;
+  color: #92400e;
+  font-variant-numeric: tabular-nums;
+}
+
+.dev-code-btn {
+  background: #f59e0b;
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.4rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  align-self: center;
+  transition: background 0.15s;
+}
+
+.dev-code-btn:hover { background: #d97706; }
+
+/* Email / Phone OTP mode toggle */
+.otp-mode-toggle {
+  display: flex;
+  gap: 0.5rem;
+  background: #f1f5f9;
+  border-radius: 0.75rem;
+  padding: 0.25rem;
+}
+
+.otp-mode-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-radius: 0.6rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.otp-mode-btn.active {
+  background: #fff;
+  color: #4338ca;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+.otp-mode-btn:hover:not(.active) { color: #374151; }

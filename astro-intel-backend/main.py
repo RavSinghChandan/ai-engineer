@@ -129,22 +129,8 @@ async def reset_circuit_breaker(ctx: TenantContext = Depends(can(Permission.GUAR
 @app.get("/", tags=["Root"])
 async def root():
     return {
-        "service": "AstroIntel 360° Multi-Agent API",
+        "service": "AstroIntel 360° API",
         "version": "1.0.0",
         "docs":    "/docs",
-        "auth": {
-            "get_token":        "POST /auth/token  {api_key: 'sk-...'}",
-            "whoami":           "GET  /auth/me  (X-API-Key or Bearer)",
-            "create_tenant":    "POST /admin/tenants  (SUPERADMIN)",
-            "list_tenants":     "GET  /admin/tenants  (SUPERADMIN)",
-        },
-        "endpoints": {
-            "run_analysis":     "POST /api/v1/analysis/run",
-            "approve_report":   "POST /api/v1/analysis/approve",
-            "get_session":      "GET  /api/v1/analysis/session/{session_id}",
-            "geocode":          "GET  /api/v1/geocode?city=Chandigarh",
-            "health":           "GET  /health",
-            "metrics":          "GET  /api/v1/metrics  (ADMIN+)",
-            "guardrail_stats":  "GET  /guardrails/stats  (ADMIN+)",
-        },
+        "health":  "/health",
     }

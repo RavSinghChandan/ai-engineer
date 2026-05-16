@@ -11,7 +11,7 @@ import { AuthService } from '../../services/auth.service';
 import { ApiService } from '../../services/api.service';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { UI_STRINGS_EN, UiStrings, loadUiStrings } from './ui-strings';
+import { UI_STRINGS_EN, UiStrings, getUiStrings } from './ui-strings';
 
 const BACKEND = environment.apiUrl;
 
@@ -223,6 +223,42 @@ function validateProfile(p: {
   imports: [CommonModule, FormsModule, AgentFlowComponent],
   template: `
 <div class="shell">
+
+<!-- ══ ASTROLOGICAL TRANSLATION OVERLAY ══════════════════════════════════════ -->
+@if (preparingReport()) {
+  <div class="astro-overlay">
+    <div class="astro-overlay-card">
+
+      <!-- Animated mandala / orbit rings -->
+      <div class="astro-orbit">
+        <div class="astro-ring astro-ring-1"></div>
+        <div class="astro-ring astro-ring-2"></div>
+        <div class="astro-ring astro-ring-3"></div>
+        <div class="astro-center-glyph">✦</div>
+      </div>
+
+      <h2 class="astro-title">Weaving Your Report in {{ preparingLangName() }}</h2>
+      <p class="astro-sub">The stars are aligning your personalised 360° reading…</p>
+
+      <!-- Rotating mystical phrases -->
+      <div class="astro-phrases">
+        <span class="astro-phrase">Vedic planets calculating planetary periods…</span>
+        <span class="astro-phrase">Numerology vibrations resonating…</span>
+        <span class="astro-phrase">Palm lines revealing life path…</span>
+        <span class="astro-phrase">Tarot cards drawing your destiny…</span>
+        <span class="astro-phrase">Vastu energies aligning your space…</span>
+      </div>
+
+      <!-- Progress dots -->
+      <div class="astro-dots">
+        <span class="astro-dot"></span>
+        <span class="astro-dot"></span>
+        <span class="astro-dot"></span>
+      </div>
+
+    </div>
+  </div>
+}
 
   <!-- ══ HEADER ══ -->
   <header class="hdr">
@@ -1144,6 +1180,11 @@ function validateProfile(p: {
             }
           </button>
         }
+        <!-- Always visible: return to home -->
+        <button class="home-btn" (click)="rerun()">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1.5 6.5L6.5 2l5 4.5M2.5 6v5h2.5V8h3v3h2.5V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          New Reading
+        </button>
       </div>
 
     </div>
@@ -1174,6 +1215,88 @@ function validateProfile(p: {
    AURA WITH RAV — Apple-quality UI · White + Indigo/Green
 ════════════════════════════════════════════════════════════════ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Astrological translation overlay ─────────────────────────── */
+.astro-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(15, 10, 40, 0.88);
+  backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+}
+.astro-overlay-card {
+  background: linear-gradient(145deg, #1e1b4b, #312e81);
+  border: 1px solid rgba(165, 180, 252, 0.2);
+  border-radius: 24px;
+  padding: 48px 52px;
+  text-align: center;
+  max-width: 460px; width: 90%;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 60px rgba(99,102,241,0.15);
+}
+
+/* Orbit rings */
+.astro-orbit {
+  position: relative; width: 100px; height: 100px;
+  margin: 0 auto 28px;
+}
+.astro-ring {
+  position: absolute; inset: 0; border-radius: 50%;
+  border: 1.5px solid rgba(165,180,252,0.3);
+  animation: astro-spin linear infinite;
+}
+.astro-ring-1 { animation-duration: 4s; }
+.astro-ring-2 { inset: 12px; border-color: rgba(196,181,253,0.4); animation-duration: 7s; animation-direction: reverse; }
+.astro-ring-3 { inset: 24px; border-color: rgba(251,207,232,0.35); animation-duration: 11s; }
+@keyframes astro-spin { to { transform: rotate(360deg); } }
+
+.astro-center-glyph {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; color: #a5b4fc;
+  animation: astro-pulse 2s ease-in-out infinite;
+}
+@keyframes astro-pulse { 0%,100%{opacity:0.7;transform:scale(1)} 50%{opacity:1;transform:scale(1.15)} }
+
+.astro-title {
+  font-size: 20px; font-weight: 700; color: #e0e7ff;
+  margin-bottom: 10px; line-height: 1.3;
+}
+.astro-sub {
+  font-size: 13.5px; color: #a5b4fc; margin-bottom: 28px; line-height: 1.5;
+}
+
+/* Rotating phrases */
+.astro-phrases {
+  height: 22px; overflow: hidden; margin-bottom: 28px; position: relative;
+}
+.astro-phrase {
+  display: block; font-size: 12.5px; color: #c7d2fe;
+  animation: astro-cycle 10s linear infinite;
+  position: absolute; width: 100%; left: 0;
+  opacity: 0;
+}
+.astro-phrase:nth-child(1) { animation-delay: 0s; }
+.astro-phrase:nth-child(2) { animation-delay: 2s; }
+.astro-phrase:nth-child(3) { animation-delay: 4s; }
+.astro-phrase:nth-child(4) { animation-delay: 6s; }
+.astro-phrase:nth-child(5) { animation-delay: 8s; }
+@keyframes astro-cycle {
+  0%   { opacity: 0; transform: translateY(8px); }
+  8%   { opacity: 1; transform: translateY(0); }
+  18%  { opacity: 1; transform: translateY(0); }
+  26%  { opacity: 0; transform: translateY(-8px); }
+  100% { opacity: 0; }
+}
+
+/* Animated dots */
+.astro-dots { display: flex; gap: 8px; justify-content: center; }
+.astro-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #6366f1; opacity: 0.3;
+  animation: astro-dot-pulse 1.4s ease-in-out infinite;
+}
+.astro-dot:nth-child(2) { animation-delay: 0.2s; }
+.astro-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes astro-dot-pulse { 0%,100%{opacity:0.3;transform:scale(1)} 50%{opacity:1;transform:scale(1.4)} }
 
 :host {
   display: block; height: 100vh; overflow: hidden;
@@ -1784,6 +1907,14 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
   padding: 8px 16px !important; font-size: 12px !important;
 }
 
+.home-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 18px; border-radius: 8px; font-size: 12.5px; font-weight: 600;
+  background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;
+  cursor: pointer; transition: background 0.15s, color 0.15s;
+}
+.home-btn:hover { background: #e0e7ff; color: #4338ca; border-color: #c7d2fe; }
+
 .tracker-status-msg { text-align: center; margin: 4px 0; }
 .status-pill {
   display: inline-block; padding: 7px 18px; border-radius: 99px;
@@ -2109,24 +2240,11 @@ export class IntakePage {
   readonly uiStrings   = signal<UiStrings>(UI_STRINGS_EN as UiStrings);
   readonly uiLoading   = signal(false);
 
-  async switchLanguage(langCode: string) {
+  switchLanguage(langCode: string) {
     this.uiLanguage.set(langCode);
     this.leadForm.preferred_language = langCode;
-    if (langCode === 'en') {
-      this.uiStrings.set(UI_STRINGS_EN as UiStrings);
-      return;
-    }
-    this.uiLoading.set(true);
-    try {
-      const translated = await loadUiStrings(langCode, (req: any) =>
-        firstValueFrom(this.api.translateReport(req))
-      );
-      this.uiStrings.set(translated);
-    } catch {
-      // keep current strings on failure
-    } finally {
-      this.uiLoading.set(false);
-    }
+    // Fully static — instant, no API call, no network
+    this.uiStrings.set(getUiStrings(langCode));
   }
 
   private async _backTranslateToEnglish(text: string): Promise<string> {
@@ -2149,7 +2267,9 @@ export class IntakePage {
 
   private http    = inject(HttpClient);
   private api     = inject(ApiService);
-  readonly reportTranslating = signal(false);
+  readonly reportTranslating   = signal(false);
+  readonly preparingReport     = signal(false);  // true while translating before navigating to /report
+  readonly preparingLangName   = signal('');     // e.g. "Hindi" shown in overlay
 
   private _autoPollTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -2407,7 +2527,7 @@ export class IntakePage {
   @HostListener('document:keydown.escape')
   onEsc() { this.maxPanel.set(null); }
 
-  launch() {
+  async launch() {
     this.touchAll();
     if (Object.keys(this.errors()).length) {
       this.launchError.set('Please fix the highlighted errors in Birth Profile.'); return;
@@ -2437,9 +2557,12 @@ export class IntakePage {
     }
 
     const rawQ = this.userQuestion.trim();
+    // If user typed question in a non-English language, translate it to English
+    // before sending to the backend pipeline (uses existing /translate endpoint).
+    const englishQ = await this._backTranslateToEnglish(rawQ);
     const input: SystemInput = {
       user_profile:     { ...this.profileSig() },
-      user_question:    rawQ,
+      user_question:    englishQ,
       questions:        [],
       selected_modules: [...this.selectedModules()],
       module_inputs: {
@@ -2455,7 +2578,6 @@ export class IntakePage {
 
   async goReview() {
     if (this.auth.isAdmin()) {
-      // Navigate to review, passing leadId so review page can attach report after approval
       this.router.navigate(['/review'], {
         queryParams: this.leadReadingMode() ? { leadId: this.leadReadingId() } : {}
       });
@@ -2466,12 +2588,39 @@ export class IntakePage {
     if (!review) return;
     const allIds = review.questions.flatMap(q => q.insights.map(i => i.id));
     this.view.set('pipeline');
+    const lang = this.uiLanguage();
+
     try {
-      await this.orch.approveAndGenerate(allIds, []);
-      this.router.navigate(['/report']);
+      // Step 1: generate English report
+      const englishReport = await this.orch.approveAndGenerate(allIds, []);
+
+      // Step 2: if user chose a non-English language, translate NOW before navigating
+      if (lang && lang !== 'en' && englishReport) {
+        const langMeta = INDIAN_LANGUAGES.find(l => l.code === lang);
+        this.preparingLangName.set(langMeta?.name ?? lang);
+        this.preparingReport.set(true);
+        try {
+          const res = await firstValueFrom(this.api.translateReport({
+            session_id:    this.orch.sessionId() ?? '',
+            language_code: lang,
+            report:        englishReport as any,
+          }));
+          if (res?.final_report) {
+            // Stamp language_code so report page selector reflects the correct language
+            const translated = { ...res.final_report, language_code: lang };
+            this.orch.setFinalReport(translated);
+          }
+        } catch {
+          // Translation failed — report page opens in English, user can switch manually
+        } finally {
+          this.preparingReport.set(false);
+        }
+      }
     } catch {
-      this.router.navigate(['/report']);
+      // approveAndGenerate failed — navigate anyway
     }
+
+    this.router.navigate(['/report']);
   }
 
   rerun() {

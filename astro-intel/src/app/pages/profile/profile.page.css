@@ -1,0 +1,300 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+  background: #f1f5f9;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.profile-shell {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Header */
+.prof-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0 0.25rem;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: #6366f1;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  margin-right: auto;
+}
+.back-btn:hover { color: #4338ca; }
+
+.prof-avatar {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: #fff;
+  font-size: 1.3rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.prof-title h1 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e1b4b;
+}
+
+.role-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: #e0e7ff;
+  color: #4338ca;
+}
+.role-badge.admin      { background: #fef3c7; color: #b45309; }
+.role-badge.superadmin { background: #fce7f3; color: #9d174d; }
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  background: #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 0.25rem;
+}
+
+.tab-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-radius: 0.55rem;
+  padding: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.tab-btn.active {
+  background: #fff;
+  color: #4338ca;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+/* Card */
+.prof-card {
+  background: #fff;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 2px 12px rgba(99,102,241,0.07);
+  border: 1px solid rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.section { display: flex; flex-direction: column; gap: 1rem; }
+
+.section-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1e1b4b;
+  margin: 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.section-desc {
+  font-size: 0.83rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Fields */
+.field-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.field-row label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.field-row input {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.6rem;
+  font-size: 0.9rem;
+  color: #111827;
+  background: #f9fafb;
+  box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.field-row input:focus {
+  outline: none;
+  border-color: #6366f1;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+}
+.field-row input:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.field-static {
+  font-size: 0.9rem;
+  color: #374151;
+  padding: 0.5rem 0;
+}
+.field-static-input {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.6rem;
+  font-size: 0.9rem;
+  color: #9ca3af;
+  background: #f3f4f6;
+  box-sizing: border-box;
+}
+
+.field-note {
+  font-size: 0.73rem;
+  color: #9ca3af;
+}
+
+.input-row {
+  display: flex;
+  gap: 0.5rem;
+}
+.input-row input { flex: 1; }
+
+.save-btn {
+  background: #4f46e5;
+  color: #fff;
+  border: none;
+  border-radius: 0.6rem;
+  padding: 0 1rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.save-btn:hover:not(:disabled) { background: #4338ca; }
+.save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.toggle-btn {
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  padding: 0 0.6rem;
+  font-size: 1rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.err { font-size: 0.78rem; color: #dc2626; }
+.suc { font-size: 0.78rem; color: #059669; font-weight: 600; }
+.err-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 0.5rem; padding: 0.6rem 0.8rem; font-size: 0.83rem; color: #dc2626; }
+.suc-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 0.5rem; padding: 0.6rem 0.8rem; font-size: 0.83rem; color: #059669; }
+
+.primary-btn {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: #fff;
+  border: none;
+  border-radius: 0.7rem;
+  padding: 0.7rem 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: opacity 0.15s;
+}
+.primary-btn:hover:not(:disabled) { opacity: 0.9; }
+.primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.link-btn {
+  background: none;
+  border: none;
+  color: #6366f1;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.4rem 0;
+  text-align: left;
+}
+.link-btn:hover { color: #4338ca; text-decoration: underline; }
+
+.btn-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* OTP input */
+.otp-input {
+  text-align: center;
+  letter-spacing: 0.35em;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #4338ca;
+  border-color: #c7d2fe !important;
+  background: #f5f3ff !important;
+}
+
+/* Dev code box */
+.dev-code-box {
+  background: linear-gradient(135deg, #fffbeb, #fef3c7);
+  border: 1.5px dashed #f59e0b;
+  border-radius: 0.75rem;
+  padding: 0.9rem 1rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.dev-code-label { font-size: 0.68rem; font-weight: 700; color: #b45309; text-transform: uppercase; letter-spacing: 0.08em; }
+.dev-code-value { font-size: 1.8rem; font-weight: 800; letter-spacing: 0.3em; color: #92400e; }
+.dev-code-btn { background: #f59e0b; color: #fff; border: none; border-radius: 0.5rem; padding: 0.35rem 0.9rem; font-size: 0.8rem; font-weight: 700; cursor: pointer; align-self: center; }
+.dev-code-btn:hover { background: #d97706; }
+
+/* Sign out */
+.signout-row {
+  display: flex;
+  justify-content: center;
+}
+.signout-btn {
+  background: none;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+  border-radius: 0.6rem;
+  padding: 0.5rem 1.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.signout-btn:hover { background: #fef2f2; }

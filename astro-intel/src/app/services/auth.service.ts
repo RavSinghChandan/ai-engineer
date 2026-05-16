@@ -59,7 +59,9 @@ export class AuthService {
   }
 
   sendOtp(email: string) {
-    return this.http.post<any>(`${BACKEND}/auth/otp/send`, { email }).pipe(
+    return this.http.post<{ message: string; dev_code?: string; dev_note?: string }>(
+      `${BACKEND}/auth/otp/send`, { email }
+    ).pipe(
       catchError(err => {
         const msg = err?.error?.detail ?? 'Could not send code. Please try again.';
         return throwError(() => new Error(msg));
@@ -72,6 +74,36 @@ export class AuthService {
       tap(res => this._persist(res)),
       catchError(err => {
         const msg = err?.error?.detail ?? 'Invalid or expired code. Please try again.';
+        return throwError(() => new Error(msg));
+      })
+    );
+  }
+
+  sendPhoneOtp(phone: string) {
+    return this.http.post<{ message: string; dev_code?: string; dev_note?: string }>(
+      `${BACKEND}/auth/otp/phone/send`, { phone }
+    ).pipe(
+      catchError(err => {
+        const msg = err?.error?.detail ?? 'Could not send code. Please try again.';
+        return throwError(() => new Error(msg));
+      })
+    );
+  }
+
+  verifyPhoneOtp(phone: string, code: string) {
+    return this.http.post<any>(`${BACKEND}/auth/otp/phone/verify`, { phone, code }).pipe(
+      tap(res => this._persist(res)),
+      catchError(err => {
+        const msg = err?.error?.detail ?? 'Invalid or expired code. Please try again.';
+        return throwError(() => new Error(msg));
+      })
+    );
+  }
+
+  updatePhone(phone: string) {
+    return this.http.post<any>(`${BACKEND}/auth/phone`, { phone }).pipe(
+      catchError(err => {
+        const msg = err?.error?.detail ?? 'Could not update phone number.';
         return throwError(() => new Error(msg));
       })
     );

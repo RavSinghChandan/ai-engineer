@@ -31,10 +31,13 @@ export class LoginPage {
   suConfirm  = signal('');
 
   // OTP fields
+  otpMode      = signal<'email' | 'phone'>('email');
   otpEmail     = signal('');
+  otpPhone     = signal('');
   otpCode      = signal('');
   otpSent      = signal(false);
   otpCountdown = signal(0);
+  devCode      = signal('');  // shown when SMTP/SMS not configured (dev mode)
   private _countdownTimer: ReturnType<typeof setInterval> | null = null;
 
   switchTab(t: 'signin' | 'signup' | 'otp') {
@@ -43,8 +46,18 @@ export class LoginPage {
     if (t !== 'otp') {
       this.otpSent.set(false);
       this.otpCode.set('');
+      this.devCode.set('');
       this._stopCountdown();
     }
+  }
+
+  switchOtpMode(mode: 'email' | 'phone') {
+    this.otpMode.set(mode);
+    this.otpSent.set(false);
+    this.otpCode.set('');
+    this.devCode.set('');
+    this.error.set('');
+    this._stopCountdown();
   }
 
   signIn() {
@@ -80,29 +93,48 @@ export class LoginPage {
   }
 
   sendOtp() {
+    const mode  = this.otpMode();
     const email = this.otpEmail().trim();
-    if (!email) { this.error.set('Please enter your email address.'); return; }
+    const phone = this.otpPhone().trim();
+
+    if (mode === 'email' && !email) { this.error.set('Please enter your email address.'); return; }
+    if (mode === 'phone' && !phone) { this.error.set('Please enter your mobile number.'); return; }
+
     this.loading.set(true);
     this.error.set('');
+    this.devCode.set('');
 
-    this.auth.sendOtp(email).subscribe({
-      next: () => {
+    const obs = mode === 'phone'
+      ? this.auth.sendPhoneOtp(phone)
+      : this.auth.sendOtp(email);
+
+    obs.subscribe({
+      next: (res) => {
         this.loading.set(false);
         this.otpSent.set(true);
         this._startCountdown(60);
+        if (res?.dev_code) {
+          this.devCode.set(res.dev_code);
+        }
       },
       error: (e: Error) => { this.error.set(e.message); this.loading.set(false); },
     });
   }
 
   verifyOtp() {
+    const mode  = this.otpMode();
     const email = this.otpEmail().trim();
+    const phone = this.otpPhone().trim();
     const code  = this.otpCode().trim();
     if (!code || code.length !== 6) { this.error.set('Please enter the 6-digit code.'); return; }
     this.loading.set(true);
     this.error.set('');
 
-    this.auth.verifyOtp(email, code).subscribe({
+    const obs = mode === 'phone'
+      ? this.auth.verifyPhoneOtp(phone, code)
+      : this.auth.verifyOtp(email, code);
+
+    obs.subscribe({
       next:  () => this.router.navigate(['/']),
       error: (e: Error) => { this.error.set(e.message); this.loading.set(false); },
     });
@@ -110,7 +142,12 @@ export class LoginPage {
 
   resendOtp() {
     this.otpCode.set('');
+    this.devCode.set('');
     this.sendOtp();
+  }
+
+  useDevCode() {
+    this.otpCode.set(this.devCode());
   }
 
   private _startCountdown(seconds: number) {

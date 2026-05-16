@@ -1,0 +1,184 @@
+<div class="profile-shell">
+
+  <!-- Header -->
+  <div class="prof-header">
+    <button class="back-btn" (click)="router.navigate(['/'])">← Home</button>
+    <div class="prof-avatar">{{ (name() || email())[0]?.toUpperCase() }}</div>
+    <div class="prof-title">
+      <h1>{{ name() || 'My Account' }}</h1>
+      <span class="role-badge" [class]="role()">{{ role() | uppercase }}</span>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn" [class.active]="activeTab() === 'profile'" (click)="activeTab.set('profile')">
+      Profile
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'password'" (click)="activeTab.set('password')">
+      Security
+    </button>
+  </div>
+
+  <div class="prof-card">
+
+    <!-- ── PROFILE TAB ── -->
+    @if (activeTab() === 'profile') {
+
+      <div class="section">
+        <h2 class="section-title">Your Information</h2>
+
+        <div class="field-row">
+          <label>Email</label>
+          <div class="field-static">{{ email() }}</div>
+          <span class="field-note">Email cannot be changed.</span>
+        </div>
+
+        <div class="field-row">
+          <label>Display Name</label>
+          <div class="input-row">
+            <input type="text" [ngModel]="name()" (ngModelChange)="name.set($event); nameSuc.set('')"
+              placeholder="Your full name" />
+            <button class="save-btn" (click)="saveName()" [disabled]="savingName()">
+              @if (savingName()) { Saving… } @else { Save }
+            </button>
+          </div>
+          @if (nameErr()) { <span class="err">⚠ {{ nameErr() }}</span> }
+          @if (nameSuc()) { <span class="suc">✓ {{ nameSuc() }}</span> }
+        </div>
+
+        <div class="field-row">
+          <label>Mobile Number</label>
+          <div class="input-row">
+            <input type="tel" [ngModel]="phone()" (ngModelChange)="phone.set($event); phoneSuc.set('')"
+              placeholder="+91 98765 43210" />
+            <button class="save-btn" (click)="savePhone()" [disabled]="savingPhone()">
+              @if (savingPhone()) { Saving… } @else { Save }
+            </button>
+          </div>
+          @if (phoneErr()) { <span class="err">⚠ {{ phoneErr() }}</span> }
+          @if (phoneSuc()) { <span class="suc">✓ {{ phoneSuc() }}</span> }
+          <span class="field-note">Used for phone OTP login. 10-digit Indian numbers accepted.</span>
+        </div>
+      </div>
+
+    }
+
+    <!-- ── SECURITY TAB ── -->
+    @if (activeTab() === 'password') {
+
+      <!-- Change password (requires current password) -->
+      @if (!resetMode()) {
+        <div class="section">
+          <h2 class="section-title">Change Password</h2>
+
+          <div class="field-row">
+            <label>Current Password</label>
+            <div class="input-row">
+              <input [type]="showCurr() ? 'text' : 'password'"
+                [ngModel]="currentPw()" (ngModelChange)="currentPw.set($event)"
+                placeholder="••••••••" autocomplete="current-password" />
+              <button class="toggle-btn" type="button" (click)="showCurr.set(!showCurr())">
+                {{ showCurr() ? '🙈' : '👁️' }}
+              </button>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <label>New Password</label>
+            <div class="input-row">
+              <input [type]="showNew() ? 'text' : 'password'"
+                [ngModel]="newPw()" (ngModelChange)="newPw.set($event)"
+                placeholder="Min 8 characters" autocomplete="new-password" />
+              <button class="toggle-btn" type="button" (click)="showNew.set(!showNew())">
+                {{ showNew() ? '🙈' : '👁️' }}
+              </button>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <label>Confirm New Password</label>
+            <input [type]="showNew() ? 'text' : 'password'"
+              [ngModel]="confirmPw()" (ngModelChange)="confirmPw.set($event)"
+              placeholder="Repeat password" autocomplete="new-password" />
+          </div>
+
+          @if (pwErr()) { <div class="err-box">⚠ {{ pwErr() }}</div> }
+          @if (pwSuc()) { <div class="suc-box">✓ {{ pwSuc() }}</div> }
+
+          <button class="primary-btn" (click)="changePassword()" [disabled]="savingPw()">
+            @if (savingPw()) { Updating… } @else { Update Password }
+          </button>
+
+          <button class="link-btn" (click)="resetMode.set(true); resetErr.set(''); resetSuc.set('')">
+            Forgot your current password? Reset via OTP →
+          </button>
+        </div>
+      }
+
+      <!-- Reset password via OTP (forgot password) -->
+      @if (resetMode()) {
+        <div class="section">
+          <h2 class="section-title">Reset Password via OTP</h2>
+
+          @if (!resetCodeSent()) {
+            <p class="section-desc">We'll send a one-time code to your registered email address.</p>
+            <div class="field-row">
+              <label>Your Email</label>
+              <input type="email" [value]="email()" disabled class="field-static-input" />
+            </div>
+            @if (resetErr()) { <div class="err-box">⚠ {{ resetErr() }}</div> }
+            <div class="btn-row">
+              <button class="primary-btn" (click)="sendResetCode()" [disabled]="sendingReset()">
+                @if (sendingReset()) { Sending… } @else { Send Reset Code }
+              </button>
+              <button class="link-btn" (click)="resetMode.set(false)">← Cancel</button>
+            </div>
+          }
+
+          @if (resetCodeSent()) {
+            @if (resetDevCode()) {
+              <div class="dev-code-box">
+                <div class="dev-code-label">DEV MODE — SMTP not configured</div>
+                <div class="dev-code-value">{{ resetDevCode() }}</div>
+                <button class="dev-code-btn" (click)="resetCode.set(resetDevCode())">Use this code →</button>
+              </div>
+            }
+
+            <div class="field-row">
+              <label>6-Digit Code</label>
+              <input type="text" inputmode="numeric" maxlength="6" placeholder="000000"
+                class="otp-input" [ngModel]="resetCode()" (ngModelChange)="resetCode.set($event)" />
+            </div>
+            <div class="field-row">
+              <label>New Password</label>
+              <input type="password" [ngModel]="resetPw()" (ngModelChange)="resetPw.set($event)"
+                placeholder="Min 8 characters" autocomplete="new-password" />
+            </div>
+            <div class="field-row">
+              <label>Confirm Password</label>
+              <input type="password" [ngModel]="resetConfirm()" (ngModelChange)="resetConfirm.set($event)"
+                placeholder="Repeat password" autocomplete="new-password" />
+            </div>
+            @if (resetErr()) { <div class="err-box">⚠ {{ resetErr() }}</div> }
+            @if (resetSuc()) { <div class="suc-box">✓ {{ resetSuc() }}</div> }
+            <div class="btn-row">
+              <button class="primary-btn" (click)="submitReset()" [disabled]="sendingReset()">
+                @if (sendingReset()) { Resetting… } @else { Reset Password }
+              </button>
+              <button class="link-btn" (click)="resetMode.set(false)">← Cancel</button>
+            </div>
+          }
+        </div>
+      }
+
+    }
+
+  </div>
+
+  <!-- Sign out -->
+  <div class="signout-row">
+    <button class="signout-btn" (click)="auth.logout()">Sign Out</button>
+  </div>
+
+</div>

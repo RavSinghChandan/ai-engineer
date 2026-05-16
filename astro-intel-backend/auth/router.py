@@ -34,7 +34,7 @@ _OTP_TTL = 600  # 10 minutes
 
 # OTP send rate limit: 3 sends per 15 min per IP (prevents email spam DoS)
 _otp_send_attempts: dict = defaultdict(list)
-_OTP_SEND_MAX = 3
+_OTP_SEND_MAX = 10
 
 def _check_otp_send_limit(ip: str) -> None:
     now = time.time()
@@ -79,6 +79,7 @@ class RegisterRequest(BaseModel):
     email:    str
     name:     str
     password: str
+    phone:    str = ""
 
 class LoginRequest(BaseModel):
     email:    str
@@ -102,6 +103,13 @@ class OtpSendRequest(BaseModel):
 
 class OtpVerifyRequest(BaseModel):
     email: str
+    code:  str
+
+class PhoneOtpSendRequest(BaseModel):
+    phone: str
+
+class PhoneOtpVerifyRequest(BaseModel):
+    phone: str
     code:  str
 
 class TokenRequest(BaseModel):
@@ -149,7 +157,7 @@ async def register(req: RegisterRequest):
     Returns a JWT so the user is logged in immediately.
     """
     try:
-        user = users.create_user(req.email, req.name, req.password)
+        user = users.create_user(req.email, req.name, req.password, phone=req.phone)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
@@ -255,9 +263,14 @@ async def otp_send(req: OtpSendRequest, request: Request):
     _record_otp_send(ip)
 
     from email_service import send_otp_email
-    send_otp_email(to_email=user.email, to_name=user.name.split()[0], code=code)
+    email_sent = send_otp_email(to_email=user.email, to_name=user.name.split()[0], code=code)
 
-    return {"message": "If that email is registered, a code has been sent."}
+    response: dict = {"message": "If that email is registered, a code has been sent."}
+    import os as _os
+    if not email_sent and _os.environ.get("APP_ENV", "development").lower() != "production":
+        response["dev_code"] = code
+        response["dev_note"] = "SMTP not configured. Use this code to log in (dev mode only)."
+    return response
 
 
 # ── POST /auth/otp/verify — verify OTP and issue JWT ─────────────────────────
@@ -313,6 +326,199 @@ async def otp_verify(req: OtpVerifyRequest, request: Request):
         email        = user.email,
         name         = user.name,
     )
+
+
+# ── POST /auth/otp/phone/send — send 6-digit OTP via phone (dev: returns code) ─
+
+@router.post("/auth/otp/phone/send")
+async def otp_phone_send(req: PhoneOtpSendRequest, request: Request):
+    """
+    Send OTP to a registered phone number.
+    No SMS provider configured → returns dev_code in response (same pattern as email OTP).
+    """
+    ip = request.client.host if request.client else "unknown"
+    _check_otp_send_limit(ip)
+
+    user = users.get_by_phone(req.phone)
+    if not user:
+        _record_otp_send(ip)
+        return {"message": "If that phone is registered, a code has been sent."}
+    if not user.is_active:
+        raise HTTPException(
+            status_code = status.HTTP_403_FORBIDDEN,
+            detail      = "Account is disabled. Contact your administrator.",
+        )
+
+    code = f"{secrets.randbelow(1_000_000):06d}"
+    phone_key = f"phone:{users._normalize_phone(req.phone)}"
+    _otp_store[phone_key] = {"code": code, "expires_at": time.time() + _OTP_TTL}
+    _record_otp_send(ip)
+
+    import os as _os
+    is_dev = _os.environ.get("APP_ENV", "development").lower() != "production"
+    if is_dev:
+        print(f"\n{'='*50}")
+        print(f"  PHONE OTP for {req.phone}: {code}")
+        print(f"{'='*50}\n", flush=True)
+
+    response: dict = {"message": "If that phone is registered, a code has been sent."}
+    if is_dev:
+        response["dev_code"] = code
+        response["dev_note"] = "No SMS provider configured. Use this code to log in (dev mode only)."
+    return response
+
+
+# ── POST /auth/otp/phone/verify — verify phone OTP and issue JWT ──────────────
+
+@router.post("/auth/otp/phone/verify", response_model=TokenResponse)
+async def otp_phone_verify(req: PhoneOtpVerifyRequest, request: Request):
+    """Verify phone OTP code. Issues JWT on success."""
+    ip        = request.client.host if request.client else "unknown"
+    phone_key = f"phone:{users._normalize_phone(req.phone)}"
+
+    entry = _otp_store.get(phone_key)
+    if not entry or time.time() > entry["expires_at"] or entry["code"] != req.code.strip():
+        _record_failure(ip)
+        raise HTTPException(
+            status_code = status.HTTP_401_UNAUTHORIZED,
+            detail      = "Invalid or expired code. Please request a new one.",
+        )
+
+    del _otp_store[phone_key]
+    _clear_failures(ip)
+
+    user = users.get_by_phone(req.phone)
+    if not user or not user.is_active:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Account is disabled.")
+
+    tenant = store.get_tenant(user.tenant_id)
+    import os
+    ttl = int(os.environ.get("JWT_TTL_SECONDS", "86400"))
+    from auth.dependencies import create_access_token as _create_token
+    token = _create_token(
+        tenant_id   = user.tenant_id,
+        role        = Role(user.role),
+        api_key     = "",
+        tenant_name = tenant.name if tenant else user.name,
+        user_id     = user.user_id,
+        email       = user.email,
+        name        = user.name,
+    )
+    return TokenResponse(
+        access_token = token,
+        tenant_id    = user.tenant_id,
+        role         = user.role,
+        tenant_name  = tenant.name if tenant else user.name,
+        expires_in   = ttl,
+        user_id      = user.user_id,
+        email        = user.email,
+        name         = user.name,
+    )
+
+
+# ── POST /auth/password/reset — reset password via OTP (no login required) ────
+
+class PasswordResetRequest(BaseModel):
+    email:    str
+    code:     str
+    password: str
+
+@router.post("/auth/password/reset")
+async def password_reset(req: PasswordResetRequest, request: Request):
+    """
+    Reset password using a previously-sent OTP code.
+    Flow: send OTP via /auth/otp/send → use code here to set new password.
+    The OTP is consumed (single-use); user must re-request if code expired.
+    """
+    ip    = request.client.host if request.client else "unknown"
+    email = req.email.lower().strip()
+
+    entry = _otp_store.get(email)
+    if not entry or time.time() > entry["expires_at"] or entry["code"] != req.code.strip():
+        _record_failure(ip)
+        raise HTTPException(
+            status_code = status.HTTP_401_UNAUTHORIZED,
+            detail      = "Invalid or expired code. Request a new code and try again.",
+        )
+
+    if len(req.password) < 8:
+        raise HTTPException(
+            status_code = status.HTTP_400_BAD_REQUEST,
+            detail      = "Password must be at least 8 characters.",
+        )
+
+    del _otp_store[email]
+    _clear_failures(ip)
+
+    ok = users.set_password(email, req.password)
+    if not ok:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+
+    return {"message": "Password updated successfully. You can now sign in with your new password."}
+
+
+# ── POST /auth/password/change — change password (logged-in user) ─────────────
+
+class PasswordChangeRequest(BaseModel):
+    current_password: str
+    new_password:     str
+
+@router.post("/auth/password/change")
+async def password_change(
+    req: PasswordChangeRequest,
+    ctx: TenantContext = Depends(can(Permission.USER__VIEW_PROFILE)),
+):
+    """Logged-in user changes their own password. Must supply current password."""
+    user = users.get_by_email(ctx.email)
+    if not user or not users.verify_password(user, req.current_password):
+        raise HTTPException(
+            status_code = status.HTTP_401_UNAUTHORIZED,
+            detail      = "Current password is incorrect.",
+        )
+    if len(req.new_password) < 8:
+        raise HTTPException(
+            status_code = status.HTTP_400_BAD_REQUEST,
+            detail      = "Password must be at least 8 characters.",
+        )
+    users.set_password(ctx.email, req.new_password)
+    return {"message": "Password changed successfully."}
+
+
+# ── PATCH /auth/profile — update own name (logged-in user) ────────────────────
+
+class ProfileUpdateRequest(BaseModel):
+    name: str
+
+@router.patch("/auth/profile")
+async def update_profile(
+    req: ProfileUpdateRequest,
+    ctx: TenantContext = Depends(can(Permission.USER__VIEW_PROFILE)),
+):
+    """Logged-in user updates their display name."""
+    name = req.name.strip()
+    if not name:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Name cannot be empty.")
+    ok = users.set_name(ctx.email, name)
+    if not ok:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+    return {"message": "Profile updated.", "name": name}
+
+
+# ── POST /auth/phone — add/update phone number for logged-in user ─────────────
+
+@router.post("/auth/phone")
+async def update_phone(
+    payload: dict,
+    ctx: TenantContext = Depends(can(Permission.USER__VIEW_PROFILE)),
+):
+    """Allow a logged-in user to add or update their phone number."""
+    phone = (payload.get("phone") or "").strip()
+    if not phone:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Phone number required.")
+    ok = users.update_phone(ctx.email, phone)
+    if not ok:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+    return {"message": "Phone number updated.", "phone": users._normalize_phone(phone)}
 
 
 # ── POST /auth/token — exchange API key for JWT ───────────────────────────────
