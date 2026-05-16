@@ -1,60 +1,71 @@
 """
-Lead capture store.
-Persists to leads.json alongside auth_keys.json.
+Lead capture store — SQLite backend.
+
+Public API is identical to the previous in-memory/JSON version.
 """
 from __future__ import annotations
-import json, os, secrets, time
-from pathlib import Path
-from typing import Dict, List, Optional
-from dataclasses import dataclass, asdict
 
-_STORE_PATH = Path(os.environ.get("LEADS_STORE_PATH", "leads.json"))
+import secrets
+import time
+from dataclasses import dataclass
+from typing import List, Optional
+
+import database as _db
 
 VALID_STATUSES = {"submitted", "admin_notified", "expert_analysis", "report_ready"}
 
+
 @dataclass
 class Lead:
-    lead_id:        str
-    name:           str
-    email:          str
-    phone:          str
-    dob:            str
-    consent:        bool
-    status:         str        # submitted | admin_notified | expert_analysis | report_ready
-    created_at:     float
-    updated_at:     float
-    tenant_id:      str = ""   # F4: owner — the tenant_id of the user who submitted
-    notes:              str = ""
-    report_json:        str = ""   # JSON-serialized final report, set when admin completes reading
-    place_of_birth:     str = ""
-    time_of_birth:      str = ""
-    alias_name:         str = ""
-    question:           str = ""
-    preferred_language: str = "en" # user's chosen language code for their PDF
-
-_leads: Dict[str, Lead] = {}
+    lead_id:          str
+    name:             str
+    email:            str
+    phone:            str
+    dob:              str
+    consent:          bool
+    status:           str
+    created_at:       float
+    updated_at:       float
+    tenant_id:        str = ""
+    notes:            str = ""
+    report_json:      str = ""
+    place_of_birth:   str = ""
+    time_of_birth:    str = ""
+    alias_name:       str = ""
+    question:         str = ""
+    preferred_language: str = "en"
 
 
-def _flush() -> None:
-    try:
-        _STORE_PATH.write_text(json.dumps(
-            {"leads": [asdict(l) for l in _leads.values()]}, indent=2
-        ))
-    except Exception:
-        pass
+def _row_to_lead(row) -> Lead:
+    return Lead(
+        lead_id          = row["lead_id"],
+        name             = row["name"],
+        email            = row["email"],
+        phone            = row["phone"],
+        dob              = row["dob"],
+        consent          = bool(row["consent"]),
+        status           = row["status"],
+        created_at       = row["created_at"],
+        updated_at       = row["updated_at"],
+        tenant_id        = row["tenant_id"],
+        notes            = row["notes"],
+        report_json      = row["report_json"],
+        place_of_birth   = row["place_of_birth"],
+        time_of_birth    = row["time_of_birth"],
+        alias_name       = row["alias_name"],
+        question         = row["question"],
+        preferred_language = row["preferred_language"],
+    )
 
+
+# ── Bootstrap ─────────────────────────────────────────────────────────────────
 
 def load() -> None:
-    if _STORE_PATH.exists():
-        try:
-            data = json.loads(_STORE_PATH.read_text())
-            for d in data.get("leads", []):
-                d.setdefault("tenant_id", "")
-                d.setdefault("preferred_language", "en")
-                _leads[d["lead_id"]] = Lead(**d)
-        except Exception:
-            pass
+    """Called once at startup — no-op for SQLite (schema already created in main.py)."""
+    pass
 
+
+# ── Public API ────────────────────────────────────────────────────────────────
 
 def create_lead(name: str, email: str, phone: str, dob: str, consent: bool,
                 place_of_birth: str = "", time_of_birth: str = "",
@@ -62,68 +73,116 @@ def create_lead(name: str, email: str, phone: str, dob: str, consent: bool,
                 tenant_id: str = "", preferred_language: str = "en") -> Lead:
     lid = f"lead_{secrets.token_hex(6)}"
     now = time.time()
-    lead = Lead(
-        lead_id=lid, name=name, email=email, phone=phone,
-        dob=dob, consent=consent,
-        status="submitted", created_at=now, updated_at=now,
-        tenant_id=tenant_id,
-        place_of_birth=place_of_birth, time_of_birth=time_of_birth,
-        alias_name=alias_name, question=question,
-        preferred_language=preferred_language,
-    )
-    _leads[lid] = lead
-    _flush()
-    return lead
+    conn = _db.get_conn()
+    try:
+        conn.execute(
+            """INSERT INTO leads
+               (lead_id, name, email, phone, dob, consent, status,
+                created_at, updated_at, tenant_id, notes, report_json,
+                place_of_birth, time_of_birth, alias_name, question, preferred_language)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            (lid, name, email, phone, dob, int(consent), "submitted",
+             now, now, tenant_id, "", "",
+             place_of_birth, time_of_birth, alias_name, question, preferred_language),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+    return Lead(lead_id=lid, name=name, email=email, phone=phone, dob=dob,
+                consent=consent, status="submitted", created_at=now, updated_at=now,
+                tenant_id=tenant_id, place_of_birth=place_of_birth,
+                time_of_birth=time_of_birth, alias_name=alias_name, question=question,
+                preferred_language=preferred_language)
 
 
 def get_lead(lead_id: str) -> Optional[Lead]:
-    return _leads.get(lead_id)
+    conn = _db.get_conn()
+    try:
+        row = conn.execute("SELECT * FROM leads WHERE lead_id=?", (lead_id,)).fetchone()
+        return _row_to_lead(row) if row else None
+    finally:
+        conn.close()
 
 
 def list_leads() -> List[Lead]:
-    return sorted(_leads.values(), key=lambda l: l.created_at, reverse=True)
+    conn = _db.get_conn()
+    try:
+        rows = conn.execute("SELECT * FROM leads ORDER BY created_at DESC").fetchall()
+        return [_row_to_lead(r) for r in rows]
+    finally:
+        conn.close()
 
 
 def list_leads_for_tenant(tenant_id: str) -> List[Lead]:
-    """Return only leads submitted by this tenant (for user-facing status checks)."""
-    return [l for l in _leads.values() if l.tenant_id == tenant_id]
+    conn = _db.get_conn()
+    try:
+        rows = conn.execute(
+            "SELECT * FROM leads WHERE tenant_id=? ORDER BY created_at DESC", (tenant_id,)
+        ).fetchall()
+        return [_row_to_lead(r) for r in rows]
+    finally:
+        conn.close()
 
 
 def update_status(lead_id: str, status: str, notes: str = "") -> Optional[Lead]:
-    lead = _leads.get(lead_id)
-    if not lead:
-        return None
-    lead.status = status
-    lead.updated_at = time.time()
-    if notes:
-        lead.notes = notes
-    _flush()
-    return lead
+    conn = _db.get_conn()
+    try:
+        now = time.time()
+        if notes:
+            conn.execute(
+                "UPDATE leads SET status=?, updated_at=?, notes=? WHERE lead_id=?",
+                (status, now, notes, lead_id),
+            )
+        else:
+            conn.execute(
+                "UPDATE leads SET status=?, updated_at=? WHERE lead_id=?",
+                (status, now, lead_id),
+            )
+        conn.commit()
+    finally:
+        conn.close()
+    return get_lead(lead_id)
 
 
 def attach_report(lead_id: str, report_json: str) -> Optional[Lead]:
-    """Store the completed report JSON against the lead and mark it report_ready."""
-    lead = _leads.get(lead_id)
-    if not lead:
-        return None
-    lead.report_json = report_json
-    lead.status      = "report_ready"
-    lead.updated_at  = time.time()
-    _flush()
-    return lead
+    conn = _db.get_conn()
+    try:
+        conn.execute(
+            "UPDATE leads SET report_json=?, status='report_ready', updated_at=? WHERE lead_id=?",
+            (report_json, time.time(), lead_id),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    return get_lead(lead_id)
 
 
 def has_pending_lead(tenant_id: str) -> bool:
-    """F8: True if this tenant already has a non-completed lead."""
-    return any(
-        l.tenant_id == tenant_id and l.status != "report_ready"
-        for l in _leads.values()
-    )
+    conn = _db.get_conn()
+    try:
+        row = conn.execute(
+            "SELECT 1 FROM leads WHERE tenant_id=? AND status != 'report_ready' LIMIT 1",
+            (tenant_id,)
+        ).fetchone()
+        return row is not None
+    finally:
+        conn.close()
 
 
 def count_new() -> int:
-    return sum(1 for l in _leads.values() if l.status == "submitted")
+    conn = _db.get_conn()
+    try:
+        row = conn.execute("SELECT COUNT(*) FROM leads WHERE status='submitted'").fetchone()
+        return row[0] if row else 0
+    finally:
+        conn.close()
 
 
 def clear_for_tests() -> None:
-    _leads.clear()
+    conn = _db.get_conn()
+    try:
+        conn.execute("DELETE FROM leads")
+        conn.commit()
+    finally:
+        conn.close()

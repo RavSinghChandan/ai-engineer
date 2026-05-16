@@ -36,8 +36,11 @@ import auth.users as users_store
 import leads.store as leads_store
 import cache as response_cache
 from guardrails.production import all_guardrail_stats
+import database as _database
 
-# ── Bootstrap stores from disk ───────────────────────────────────────────────
+# ── Bootstrap database ───────────────────────────────────────────────────────
+_database.init_db()           # CREATE TABLE IF NOT EXISTS (idempotent)
+_database.migrate_from_json() # one-shot INSERT OR IGNORE from legacy JSON files
 auth_store.load()
 users_store.load()
 leads_store.load()
