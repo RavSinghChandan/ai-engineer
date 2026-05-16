@@ -281,41 +281,43 @@ function validateProfile(p: {
       <span class="hdr-nav-item">🏠 Vastu</span>
     </nav>
     <div class="hdr-user">
+      <!-- Admin quick-nav buttons -->
       @if (auth.isAdmin()) {
-        <button class="metrics-btn" (click)="router.navigate(['/metrics'])" title="View Production Metrics">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="7" width="3" height="6" rx="1" fill="currentColor"/><rect x="5.5" y="4" width="3" height="9" rx="1" fill="currentColor"/><rect x="10" y="1" width="3" height="12" rx="1" fill="currentColor"/></svg>
-          Metrics
+        <button class="hdr-icon-btn" (click)="router.navigate(['/metrics'])" title="Metrics">
+          <svg width="15" height="15" viewBox="0 0 14 14" fill="none"><rect x="1" y="7" width="3" height="6" rx="1" fill="currentColor"/><rect x="5.5" y="4" width="3" height="9" rx="1" fill="currentColor"/><rect x="10" y="1" width="3" height="12" rx="1" fill="currentColor"/></svg>
+          <span class="hdr-btn-label">Metrics</span>
         </button>
-      }
-      @if (auth.isAdmin()) {
-        <button class="metrics-btn leads-btn" (click)="router.navigate(['/admin/users'])" title="View Leads & Users">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="5" cy="4.5" r="2.5" stroke="currentColor" stroke-width="1.3"/><path d="M1 12c0-2.2 1.8-4 4-4s4 1.8 4 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M10 7l1.5 1.5L13.5 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Leads
+        <button class="hdr-icon-btn hdr-leads-btn" (click)="router.navigate(['/admin/users'])" title="Leads">
+          <svg width="15" height="15" viewBox="0 0 14 14" fill="none"><circle cx="5" cy="4.5" r="2.5" stroke="currentColor" stroke-width="1.3"/><path d="M1 12c0-2.2 1.8-4 4-4s4 1.8 4 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M10 7l1.5 1.5L13.5 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="hdr-btn-label">Leads</span>
           @if (newLeadCount() > 0) {
             <span class="lead-count-badge">{{ newLeadCount() }}</span>
           }
         </button>
       }
-      <img src="rav-photo.png" alt="Rav Singh" class="hdr-avatar"/>
-      <div class="hdr-user-text">
-        <span class="hdr-uname">{{ auth.tenantName() || 'Rav Singh' }}</span>
-        @if (auth.isAdmin()) {
-          <span class="hdr-urole">
+
+      <!-- Divider -->
+      <div class="hdr-divider"></div>
+
+      <!-- Identity chip: avatar + name + role badge -->
+      <div class="hdr-identity">
+        <img src="rav-photo.png" alt="" class="hdr-avatar"/>
+        <div class="hdr-id-text">
+          <span class="hdr-uname">{{ auth.userName() || auth.tenantName() || 'User' }}</span>
+          @if (auth.isAdmin()) {
             <span class="hdr-role-badge" [class]="auth.role()">{{ auth.role() | uppercase }}</span>
-          </span>
-        }
+          }
+        </div>
       </div>
-      <button class="metrics-btn profile-btn" (click)="router.navigate(['/profile'])" title="My Profile & Settings">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-        </svg>
-        Profile
+
+      <!-- Profile + Sign Out -->
+      <button class="hdr-icon-btn" (click)="router.navigate(['/profile'])" title="Profile">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span class="hdr-btn-label">Profile</span>
       </button>
-      <button class="signout-btn" (click)="auth.logout()" title="Sign Out">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
-        </svg>
-        Sign Out
+      <button class="hdr-signout-btn" (click)="auth.logout()" title="Sign Out">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span class="hdr-btn-label">Sign Out</span>
       </button>
     </div>
   </header>
@@ -1317,24 +1319,59 @@ function validateProfile(p: {
 /* ══ HEADER ══ */
 .hdr {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 0 40px; height: 104px; flex-shrink: 0;
-  background: rgba(255,255,255,0.95);
-  backdrop-filter: blur(24px) saturate(200%);
+  padding: 0 32px; height: 72px; flex-shrink: 0;
+  background: rgba(255,255,255,0.97);
+  backdrop-filter: blur(20px) saturate(180%);
   border-bottom: 1px solid rgba(0,0,0,0.07);
-  box-shadow: 0 1px 0 rgba(0,0,0,0.05);
-  position: relative; z-index: 100;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+  position: relative; z-index: 100; gap: 16px;
 }
-.hdr-brand { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
-.hdr-logo  { width: 60px; height: 60px; object-fit: cover; object-position: center top; border-radius: 50%; border: 2.5px solid rgba(99,102,241,0.35); }
-.hdr-brand-text { display: flex; flex-direction: column; gap: 2px; }
-.hdr-name  { font-size: 22px; font-weight: 700; color: #1e1b4b; letter-spacing: 0.06em; line-height: 1.2; }
+.hdr-brand { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.hdr-logo  { width: 44px; height: 44px; object-fit: cover; object-position: center top; border-radius: 50%; border: 2px solid rgba(99,102,241,0.3); }
+.hdr-brand-text { display: flex; flex-direction: column; gap: 1px; }
+.hdr-name  { font-size: 17px; font-weight: 700; color: #1e1b4b; letter-spacing: 0.04em; line-height: 1.2; }
 .hdr-name em { font-style: normal; font-weight: 400; color: #6366f1; }
-.hdr-tag   { font-size: 13px; color: #94a3b8; letter-spacing: 0.04em; }
-.hdr-nav   { display: flex; align-items: center; gap: 6px; }
-.hdr-nav-item { font-size: 16px; color: #4b5563; padding: 7px 14px; border-radius: 10px; cursor: default; transition: background 0.15s; white-space: nowrap; font-weight: 500; }
+.hdr-tag   { font-size: 11px; color: #94a3b8; letter-spacing: 0.03em; }
+.hdr-nav   { display: flex; align-items: center; gap: 2px; flex: 1; justify-content: center; }
+.hdr-nav-item { font-size: 13px; color: #6b7280; padding: 5px 10px; border-radius: 8px; cursor: default; transition: background 0.15s; white-space: nowrap; font-weight: 500; }
 .hdr-nav-item:hover { background: rgba(99,102,241,0.07); color: #4338ca; }
-.hdr-sep { color: rgba(0,0,0,0.15); font-size: 18px; }
-.hdr-user { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+.hdr-sep { color: rgba(0,0,0,0.12); font-size: 14px; }
+
+/* ── User zone: right-aligned, single flex row, never overflows ── */
+.hdr-user {
+  display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+}
+/* Generic icon+label button used for Metrics, Leads, Profile */
+.hdr-icon-btn {
+  display: flex; align-items: center; gap: 4px;
+  padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(99,102,241,0.2);
+  background: rgba(99,102,241,0.06); color: #4338ca;
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  white-space: nowrap; font-family: inherit; transition: all .15s;
+}
+.hdr-icon-btn:hover { background: rgba(99,102,241,0.13); border-color: rgba(99,102,241,0.35); }
+.hdr-leads-btn { position: relative; }
+.hdr-btn-label { display: inline; }
+/* Vertical rule between nav buttons and identity chip */
+.hdr-divider { width: 1px; height: 28px; background: rgba(0,0,0,0.1); margin: 0 4px; flex-shrink: 0; }
+/* Identity: small avatar + name + role in one tight block */
+.hdr-identity { display: flex; align-items: center; gap: 8px; }
+.hdr-avatar { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; object-position: top; border: 2px solid rgba(99,102,241,0.28); flex-shrink: 0; }
+.hdr-id-text { display: flex; flex-direction: column; gap: 2px; }
+.hdr-uname { font-size: 13px; font-weight: 700; color: #1e1b4b; line-height: 1; white-space: nowrap; }
+.hdr-role-badge { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 99px; letter-spacing: 0.07em; background: rgba(99,102,241,0.1); color: #6366f1; border: 1px solid rgba(99,102,241,0.22); align-self: flex-start; }
+.hdr-role-badge.admin      { color: #059669; background: rgba(5,150,105,0.08); border-color: rgba(5,150,105,0.22); }
+.hdr-role-badge.superadmin { color: #d97706; background: rgba(217,119,6,0.08); border-color: rgba(217,119,6,0.22); }
+/* Sign out — distinct red-tinted ghost */
+.hdr-signout-btn {
+  display: flex; align-items: center; gap: 4px;
+  padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.1);
+  background: transparent; color: #6b7280;
+  font-size: 12px; font-weight: 500; cursor: pointer;
+  white-space: nowrap; font-family: inherit; transition: all .15s;
+}
+.hdr-signout-btn:hover { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
+/* Keep old class names alive so nothing else breaks */
 .metrics-btn { display: flex; align-items: center; gap: 5px; background: rgba(99,102,241,.08); border: 1px solid rgba(99,102,241,.22); color: #4338ca; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; white-space: nowrap; }
 .metrics-btn:hover { background: rgba(99,102,241,.15); border-color: rgba(99,102,241,.4); }
 .lead-count-badge {
@@ -1366,6 +1403,8 @@ function validateProfile(p: {
 .hdr-role-badge.superadmin { color: #d97706; background: rgba(217,119,6,0.08); border-color: rgba(217,119,6,0.22); }
 .signout-btn { display: flex; align-items: center; gap: 5px; background: transparent; border: 1px solid rgba(0,0,0,0.12); color: #6b7280; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all .15s; white-space: nowrap; }
 .signout-btn:hover { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
+.hdr-nav-btn { display: flex; align-items: center; gap: 5px; background: rgba(99,102,241,.08); border: 1px solid rgba(99,102,241,.22); color: #4338ca; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; white-space: nowrap; font-family: inherit; }
+.hdr-nav-btn:hover { background: rgba(99,102,241,.15); }
 
 /* ══ WORKSPACE ══ */
 .workspace {
@@ -2189,10 +2228,15 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
   .panel-right  { width: 100% !important; }
   .panel-right .mod-grid { grid-template-columns: repeat(3, 1fr); }
   .hdr-nav, .ftr-links { display: none; }
+  .hdr { padding: 0 16px; height: 64px; }
+  .hdr-btn-label { display: none; }
+  .hdr-icon-btn, .hdr-signout-btn { padding: 7px 9px; }
+  .hdr-uname { max-width: 80px; overflow: hidden; text-overflow: ellipsis; }
 }
 @media (max-width: 600px) {
   .panel-right .mod-grid { grid-template-columns: repeat(2, 1fr); }
   .field-row { grid-template-columns: 1fr; }
+  .hdr-divider { display: none; }
 }
   `]
 })
