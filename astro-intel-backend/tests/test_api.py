@@ -7,6 +7,7 @@ All LLM-calling code is bypassed via bypass_cache + pipeline mocking so tests
 run without API keys and without network access.
 """
 import json
+import time
 import pytest
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -18,6 +19,12 @@ import cache.store as cache_store
 from main import app
 
 client = TestClient(app)
+
+# ── Auth constants ────────────────────────────────────────────────────────────
+_TEST_ADMIN_KEY    = "sk-test-admin-key-api"
+_TEST_TENANT_ID    = "tenant_test_api"
+
+ADMIN_HEADERS = {"X-API-Key": _TEST_ADMIN_KEY}
 
 VALID_PROFILE = {
     "full_name": "Varun Sharma",
@@ -40,11 +47,25 @@ VALID_RUN_PAYLOAD = {
 
 @pytest.fixture(autouse=True)
 def reset_cache():
+    # ── Seed auth store so protected endpoints accept our test key ────────────
+    import auth.store as auth_store
+    from auth.models import APIKey, Role, Tenant
+    auth_store._tenants[_TEST_TENANT_ID] = Tenant(
+        tenant_id=_TEST_TENANT_ID, name="Test API Tenant",
+        is_active=True, created_at=time.time(),
+    )
+    auth_store._api_keys[_TEST_ADMIN_KEY] = APIKey(
+        key=_TEST_ADMIN_KEY, tenant_id=_TEST_TENANT_ID,
+        role=Role.ADMIN, description="test admin key",
+        is_active=True, created_at=time.time(),
+    )
+    # ── Clear cache ───────────────────────────────────────────────────────────
     cache_store.clear()
     cache_store._hits = 0
     cache_store._misses = 0
     yield
     cache_store.clear()
+    # leave auth keys in place (harmless in-memory)
 
 
 # ── Health & Root ─────────────────────────────────────────────────────────────
@@ -81,17 +102,17 @@ class TestHealthAndRoot:
 
 class TestCacheEndpoints:
     def test_cache_stats_returns_200(self):
-        resp = client.get("/cache/stats")
+        resp = client.get("/cache/stats", headers=ADMIN_HEADERS)
         assert resp.status_code == 200
 
     def test_cache_stats_structure(self):
-        resp = client.get("/cache/stats")
+        resp = client.get("/cache/stats", headers=ADMIN_HEADERS)
         data = resp.json()
         for key in ("total_entries", "hits", "misses", "hit_rate_pct"):
             assert key in data
 
     def test_cache_entries_empty(self):
-        resp = client.get("/cache/entries")
+        resp = client.get("/cache/entries", headers=ADMIN_HEADERS)
         assert resp.status_code == 200
         data = resp.json()
         assert data["entries"] == []
@@ -99,25 +120,25 @@ class TestCacheEndpoints:
     def test_cache_clear_removes_entries(self):
         # Seed a cache entry directly
         cache_store.set("testkey", {"data": "x"})
-        resp = client.delete("/cache/clear")
+        resp = client.delete("/cache/clear", headers=ADMIN_HEADERS)
         assert resp.status_code == 200
         assert resp.json()["cleared"] >= 1
         assert len(cache_store.entries()) == 0
 
     def test_cache_invalidate_existing_key(self):
         cache_store.set("inv_key", {"x": 1})
-        resp = client.delete("/cache/invalidate/inv_key")
+        resp = client.delete("/cache/invalidate/inv_key", headers=ADMIN_HEADERS)
         assert resp.status_code == 200
         assert resp.json()["removed"] is True
 
     def test_cache_invalidate_nonexistent_key(self):
-        resp = client.delete("/cache/invalidate/nonexistent_xyz")
+        resp = client.delete("/cache/invalidate/nonexistent_xyz", headers=ADMIN_HEADERS)
         assert resp.status_code == 200
         assert resp.json()["removed"] is False
 
     def test_cache_entries_after_manual_set(self):
         cache_store.set("k1", {}, meta={"user_name": "Varun", "key_type": "profile"})
-        resp = client.get("/cache/entries")
+        resp = client.get("/cache/entries", headers=ADMIN_HEADERS)
         assert resp.status_code == 200
         entries = resp.json()["entries"]
         assert len(entries) == 1
@@ -128,21 +149,21 @@ class TestCacheEndpoints:
 
 class TestGuardrailEndpoints:
     def test_guardrail_stats_returns_200(self):
-        resp = client.get("/guardrails/stats")
+        resp = client.get("/guardrails/stats", headers=ADMIN_HEADERS)
         assert resp.status_code == 200
 
     def test_guardrail_stats_has_all_guardrails(self):
-        resp = client.get("/guardrails/stats")
+        resp = client.get("/guardrails/stats", headers=ADMIN_HEADERS)
         data = resp.json()
         for g in ("rate_limiter", "circuit_breaker", "json_repair", "pii_filter"):
             assert g in data, f"Missing guardrail key: {g}"
 
     def test_circuit_breaker_reset_returns_200(self):
-        resp = client.post("/guardrails/circuit-breaker/reset")
+        resp = client.post("/guardrails/circuit-breaker/reset", headers=ADMIN_HEADERS)
         assert resp.status_code == 200
 
     def test_circuit_breaker_reset_state_is_closed(self):
-        resp = client.post("/guardrails/circuit-breaker/reset")
+        resp = client.post("/guardrails/circuit-breaker/reset", headers=ADMIN_HEADERS)
         data = resp.json()
         assert data["state"] == "closed"
 
@@ -182,18 +203,18 @@ class TestAnalysisRunCacheHit:
 
     def test_cache_hit_returns_200(self):
         self._seed_cache()
-        resp = client.post("/api/v1/analysis/run", json=VALID_RUN_PAYLOAD)
+        resp = client.post("/api/v1/analysis/run", json=VALID_RUN_PAYLOAD, headers=ADMIN_HEADERS)
         assert resp.status_code == 200
 
     def test_cache_hit_flag_true(self):
         self._seed_cache()
-        resp = client.post("/api/v1/analysis/run", json=VALID_RUN_PAYLOAD)
+        resp = client.post("/api/v1/analysis/run", json=VALID_RUN_PAYLOAD, headers=ADMIN_HEADERS)
         data = resp.json()
         assert data["cache_hit"] is True
 
     def test_cache_hit_returns_correct_session_id(self):
         self._seed_cache()
-        resp = client.post("/api/v1/analysis/run", json=VALID_RUN_PAYLOAD)
+        resp = client.post("/api/v1/analysis/run", json=VALID_RUN_PAYLOAD, headers=ADMIN_HEADERS)
         data = resp.json()
         assert data["session_id"] == "cached-session-001"
 
@@ -201,7 +222,7 @@ class TestAnalysisRunCacheHit:
         self._seed_cache()
         # Call with different user_id — should still get cache hit
         payload = {**VALID_RUN_PAYLOAD, "user_id": "totally_different_user_id_999"}
-        resp = client.post("/api/v1/analysis/run", json=payload)
+        resp = client.post("/api/v1/analysis/run", json=payload, headers=ADMIN_HEADERS)
         data = resp.json()
         assert data["cache_hit"] is True
 
@@ -210,7 +231,7 @@ class TestAnalysisRunCacheHit:
         payload = {**VALID_RUN_PAYLOAD, "bypass_cache": True}
         # With bypass, it will call the actual pipeline which needs an LLM key.
         # We expect either success or a graceful error, not a cache hit.
-        resp = client.post("/api/v1/analysis/run", json=payload)
+        resp = client.post("/api/v1/analysis/run", json=payload, headers=ADMIN_HEADERS)
         # Just check it doesn't return cache_hit=True
         if resp.status_code == 200:
             data = resp.json()
@@ -221,19 +242,19 @@ class TestAnalysisRunCacheHit:
 
 class TestAnalysisRequestValidation:
     def test_missing_user_profile_returns_422(self):
-        resp = client.post("/api/v1/analysis/run", json={"user_question": "career?"})
+        resp = client.post("/api/v1/analysis/run", json={"user_question": "career?"}, headers=ADMIN_HEADERS)
         assert resp.status_code == 422
 
     def test_missing_full_name_returns_422(self):
         bad_profile = {**VALID_PROFILE}
         del bad_profile["full_name"]
-        resp = client.post("/api/v1/analysis/run", json={"user_profile": bad_profile})
+        resp = client.post("/api/v1/analysis/run", json={"user_profile": bad_profile}, headers=ADMIN_HEADERS)
         assert resp.status_code == 422
 
     def test_missing_dob_returns_422(self):
         bad_profile = {**VALID_PROFILE}
         del bad_profile["date_of_birth"]
-        resp = client.post("/api/v1/analysis/run", json={"user_profile": bad_profile})
+        resp = client.post("/api/v1/analysis/run", json={"user_profile": bad_profile}, headers=ADMIN_HEADERS)
         assert resp.status_code == 422
 
     def test_rate_limit_blocks_after_10_requests(self):
@@ -250,7 +271,7 @@ class TestAnalysisRequestValidation:
         from guardrails.production import rate_limiter
         for _ in range(10):
             rate_limiter.is_allowed("rate_test_user_zzz")
-        resp = client.post("/api/v1/analysis/run", json=limited_payload)
+        resp = client.post("/api/v1/analysis/run", json=limited_payload, headers=ADMIN_HEADERS)
         assert resp.status_code == 429
 
 
@@ -258,11 +279,11 @@ class TestAnalysisRequestValidation:
 
 class TestSessionRetrieval:
     def test_unknown_session_returns_404(self):
-        resp = client.get("/api/v1/analysis/session/nonexistent-session-99999")
+        resp = client.get("/api/v1/analysis/session/nonexistent-session-99999", headers=ADMIN_HEADERS)
         assert resp.status_code == 404
 
     def test_unknown_memory_returns_200_with_empty(self):
-        resp = client.get("/api/v1/analysis/memory/nonexistent-session-99999")
+        resp = client.get("/api/v1/analysis/memory/nonexistent-session-99999", headers=ADMIN_HEADERS)
         assert resp.status_code == 200
 
 

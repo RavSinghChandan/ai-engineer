@@ -8,8 +8,10 @@ import { GeocodeService } from '../../services/geocode.service';
 import { Module, SystemInput } from '../../models/astro.models';
 import { AgentFlowComponent } from '../../components/agent-flow/agent-flow.component';
 import { AuthService } from '../../services/auth.service';
+import { ApiService } from '../../services/api.service';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { UI_STRINGS_EN, UiStrings, loadUiStrings } from './ui-strings';
 
 const BACKEND = environment.apiUrl;
 
@@ -88,6 +90,46 @@ function suggestQuestion(raw: string): string {
 }
 
 type FieldErrors = Record<string, string>;
+
+// ── Form UI label translations for all 23 languages ──────────────────────────
+// Keys: English field label → translated label/placeholder in each language
+type FormLabels = {
+  fullName: string; knownAs: string; dateOfBirth: string; timeOfBirth: string;
+  placeOfBirth: string; email: string; mobile: string; yourQuestion: string;
+  pdfLang: string; consent: string; sendToExpert: string;
+  fullNamePh: string; knownAsPh: string; placeOfBirthPh: string;
+  emailPh: string; mobilePh: string; questionPh: string; timePh: string;
+};
+
+const FORM_LABELS: Record<string, FormLabels> = {
+  en:  { fullName:'Full Name', knownAs:'Known As', dateOfBirth:'Date of Birth', timeOfBirth:'Time of Birth', placeOfBirth:'Place of Birth', email:'Email Address', mobile:'Mobile Number', yourQuestion:'Your Question for the Astrologer', pdfLang:'PDF Report Language', consent:'I agree to share my birth details with the expert astrologer for a personalised reading', sendToExpert:'Send to Expert Astrologer', fullNamePh:'Your full name', knownAsPh:'Nickname', placeOfBirthPh:'City, State, Country', emailPh:'you@example.com', mobilePh:'+91 98765 43210', questionPh:'e.g. Will my career grow this year?', timePh:'e.g. 10:30 (HH:MM)' },
+  hi:  { fullName:'पूरा नाम', knownAs:'उपनाम', dateOfBirth:'जन्म तिथि', timeOfBirth:'जन्म समय', placeOfBirth:'जन्म स्थान', email:'ईमेल पता', mobile:'मोबाइल नंबर', yourQuestion:'ज्योतिषी के लिए आपका प्रश्न', pdfLang:'PDF रिपोर्ट भाषा', consent:'मैं व्यक्तिगत पठन के लिए विशेषज्ञ ज्योतिषी के साथ अपना जन्म विवरण साझा करने की सहमति देता/देती हूँ', sendToExpert:'विशेषज्ञ ज्योतिषी को भेजें', fullNamePh:'आपका पूरा नाम', knownAsPh:'उपनाम', placeOfBirthPh:'शहर, राज्य, देश', emailPh:'आप@उदाहरण.com', mobilePh:'+91 98765 43210', questionPh:'जैसे: क्या इस वर्ष मेरा करियर आगे बढ़ेगा?', timePh:'जैसे: 10:30' },
+  bn:  { fullName:'পুরো নাম', knownAs:'ডাকনাম', dateOfBirth:'জন্ম তারিখ', timeOfBirth:'জন্মের সময়', placeOfBirth:'জন্মস্থান', email:'ইমেইল ঠিকানা', mobile:'মোবাইল নম্বর', yourQuestion:'জ্যোতিষীর জন্য আপনার প্রশ্ন', pdfLang:'PDF রিপোর্ট ভাষা', consent:'আমি ব্যক্তিগত পাঠের জন্য বিশেষজ্ঞ জ্যোতিষীর সাথে আমার জন্ম বিবরণ শেয়ার করতে সম্মত', sendToExpert:'বিশেষজ্ঞ জ্যোতিষীকে পাঠান', fullNamePh:'আপনার পুরো নাম', knownAsPh:'ডাকনাম', placeOfBirthPh:'শহর, রাজ্য, দেশ', emailPh:'you@example.com', mobilePh:'+91 98765 43210', questionPh:'উদা: এই বছর কি আমার ক্যারিয়ার বাড়বে?', timePh:'উদা: 10:30' },
+  te:  { fullName:'పూర్తి పేరు', knownAs:'మారుపేరు', dateOfBirth:'పుట్టిన తేదీ', timeOfBirth:'పుట్టిన సమయం', placeOfBirth:'జన్మస్థలం', email:'ఇమెయిల్ చిరునామా', mobile:'మొబైల్ నంబర్', yourQuestion:'జ్యోతిష్కుడికి మీ ప్రశ్న', pdfLang:'PDF నివేదిక భాష', consent:'నేను వ్యక్తిగత పఠనానికి నా జన్మ వివరాలు నిపుణ జ్యోతిష్కుడితో పంచుకోవడానికి అంగీకరిస్తున్నాను', sendToExpert:'నిపుణ జ్యోతిష్కుడికి పంపండి', fullNamePh:'మీ పూర్తి పేరు', knownAsPh:'మారుపేరు', placeOfBirthPh:'నగరం, రాష్ట్రం, దేశం', emailPh:'you@example.com', mobilePh:'+91 98765 43210', questionPh:'ఉదా: ఈ సంవత్సరం నా కెరీర్ అభివృద్ధి చెందుతుందా?', timePh:'ఉదా: 10:30' },
+  mr:  { fullName:'पूर्ण नाव', knownAs:'टोपणनाव', dateOfBirth:'जन्मतारीख', timeOfBirth:'जन्मवेळ', placeOfBirth:'जन्मस्थान', email:'ईमेल पत्ता', mobile:'मोबाइल क्रमांक', yourQuestion:'ज्योतिषाचार्यांसाठी तुमचा प्रश्न', pdfLang:'PDF अहवाल भाषा', consent:'वैयक्तिक वाचनासाठी तज्ञ ज्योतिषाचार्यांसोबत माझे जन्म तपशील शेअर करण्यास मी सहमत आहे', sendToExpert:'तज्ञ ज्योतिषाचार्यांना पाठवा', fullNamePh:'तुमचे पूर्ण नाव', knownAsPh:'टोपणनाव', placeOfBirthPh:'शहर, राज्य, देश', emailPh:'you@example.com', mobilePh:'+91 98765 43210', questionPh:'उदा: या वर्षी माझी कारकीर्द वाढेल का?', timePh:'उदा: 10:30' },
+  ta:  { fullName:'முழு பெயர்', knownAs:'அன்பு பெயர்', dateOfBirth:'பிறந்த தேதி', timeOfBirth:'பிறந்த நேரம்', placeOfBirth:'பிறந்த இடம்', email:'மின்னஞ்சல் முகவரி', mobile:'மொபைல் எண்', yourQuestion:'ஜோதிடருக்கான உங்கள் கேள்வி', pdfLang:'PDF அறிக்கை மொழி', consent:'தனிப்பட்ட வாசிப்புக்காக என் பிறப்பு விவரங்களை நிபுணர் ஜோதிடருடன் பகிர ஒப்புக்கொள்கிறேன்', sendToExpert:'நிபுணர் ஜோதிடருக்கு அனுப்பவும்', fullNamePh:'உங்கள் முழு பெயர்', knownAsPh:'அன்பு பெயர்', placeOfBirthPh:'நகரம், மாநிலம், நாடு', emailPh:'you@example.com', mobilePh:'+91 98765 43210', questionPh:'எ.கா: இந்த ஆண்டு என் வாழ்க்கை வளருமா?', timePh:'எ.கா: 10:30' },
+  gu:  { fullName:'પૂર્ણ નામ', knownAs:'હુલામણું નામ', dateOfBirth:'જન્મ તારીખ', timeOfBirth:'જન્મ સમય', placeOfBirth:'જન્મ સ્થળ', email:'ઇમેઇલ સરનામું', mobile:'મોબાઇલ નંબર', yourQuestion:'જ્યોતિષી માટે તમારો પ્રશ્ન', pdfLang:'PDF રિપોર્ટ ભાષા', consent:'વ્યક્તિગત વાંચન માટે મારી જન્મ વિગતો નિષ્ણાત જ્યોતિષી સાથે શેર કરવા હું સંમત છું', sendToExpert:'નિષ્ણાત જ્યોતિષીને મોકલો', fullNamePh:'તમારું પૂર્ણ નામ', knownAsPh:'હુલામણું નામ', placeOfBirthPh:'શહેર, રાજ્ય, દેશ', emailPh:'you@example.com', mobilePh:'+91 98765 43210', questionPh:'ઉ.દા: શું આ વર્ષે મારી કારકિર્દી આગળ વધશે?', timePh:'ઉ.દા: 10:30' },
+  kn:  { fullName:'ಪೂರ್ಣ ಹೆಸರು', knownAs:'ಅಡ್ಡಹೆಸರು', dateOfBirth:'ಹುಟ್ಟಿದ ದಿನಾಂಕ', timeOfBirth:'ಹುಟ್ಟಿದ ಸಮಯ', placeOfBirth:'ಹುಟ್ಟಿದ ಸ್ಥಳ', email:'ಇಮೇಲ್ ವಿಳಾಸ', mobile:'ಮೊಬೈಲ್ ಸಂಖ್ಯೆ', yourQuestion:'ಜ್ಯೋತಿಷಿಗೆ ನಿಮ್ಮ ಪ್ರಶ್ನೆ', pdfLang:'PDF ವರದಿ ಭಾಷೆ', consent:'ವೈಯಕ್ತಿಕ ಓದುವಿಕೆಗಾಗಿ ತಜ್ಞ ಜ್ಯೋತಿಷಿಯೊಂದಿಗೆ ನನ್ನ ಜನ್ಮ ವಿವರಗಳನ್ನು ಹಂಚಿಕೊಳ್ಳಲು ಒಪ್ಪಿಗೆ ನೀಡುತ್ತೇನೆ', sendToExpert:'ತಜ್ಞ ಜ್ಯೋತಿಷಿಗೆ ಕಳುಹಿಸಿ', fullNamePh:'ನಿಮ್ಮ ಪೂರ್ಣ ಹೆಸರು', knownAsPh:'ಅಡ್ಡಹೆಸರು', placeOfBirthPh:'ನಗರ, ರಾಜ್ಯ, ದೇಶ', emailPh:'you@example.com', mobilePh:'+91 98765 43210', questionPh:'ಉದಾ: ಈ ವರ್ಷ ನನ್ನ ವೃತ್ತಿ ಬೆಳೆಯುತ್ತದೆಯೇ?', timePh:'ಉದಾ: 10:30' },
+  ml:  { fullName:'പൂർണ്ണ നാമം', knownAs:'വിളിപ്പേര്', dateOfBirth:'ജനന തീയതി', timeOfBirth:'ജനന സമയം', placeOfBirth:'ജന്മസ്ഥലം', email:'ഇമെയിൽ വിലാസം', mobile:'മൊബൈൽ നമ്പർ', yourQuestion:'ജ്യോതിഷിക്കുള്ള നിങ്ങളുടെ ചോദ്യം', pdfLang:'PDF റിപ്പോർട്ട് ഭാഷ', consent:'വ്യക്തിഗത വായനയ്ക്കായി വിദഗ്ധ ജ്യോതിഷിയുമായി എന്റെ ജനന വിശദാംശങ്ങൾ പങ്കിടാൻ ഞാൻ സമ്മതിക്കുന്നു', sendToExpert:'വിദഗ്ധ ജ്യോതിഷിക്ക് അയക്കുക', fullNamePh:'നിങ്ങളുടെ പൂർണ്ണ നാമം', knownAsPh:'വിളിപ്പേര്', placeOfBirthPh:'നഗരം, സംസ്ഥാനം, രാജ്യം', emailPh:'you@example.com', mobilePh:'+91 98765 43210', questionPh:'ഉദാ: ഈ വർഷം എന്റെ കരിയർ വളരുമോ?', timePh:'ഉദാ: 10:30' },
+  pa:  { fullName:'ਪੂਰਾ ਨਾਮ', knownAs:'ਉਪਨਾਮ', dateOfBirth:'ਜਨਮ ਤਾਰੀਖ', timeOfBirth:'ਜਨਮ ਸਮਾਂ', placeOfBirth:'ਜਨਮ ਸਥਾਨ', email:'ਈਮੇਲ ਪਤਾ', mobile:'ਮੋਬਾਈਲ ਨੰਬਰ', yourQuestion:'ਜੋਤਿਸ਼ੀ ਲਈ ਤੁਹਾਡਾ ਸਵਾਲ', pdfLang:'PDF ਰਿਪੋਰਟ ਭਾਸ਼ਾ', consent:'ਮੈਂ ਵਿਅਕਤੀਗਤ ਪੜ੍ਹਾਈ ਲਈ ਮਾਹਰ ਜੋਤਿਸ਼ੀ ਨਾਲ ਆਪਣੇ ਜਨਮ ਵੇਰਵੇ ਸਾਂਝੇ ਕਰਨ ਲਈ ਸਹਿਮਤ ਹਾਂ', sendToExpert:'ਮਾਹਰ ਜੋਤਿਸ਼ੀ ਨੂੰ ਭੇਜੋ', fullNamePh:'ਤੁਹਾਡਾ ਪੂਰਾ ਨਾਮ', knownAsPh:'ਉਪਨਾਮ', placeOfBirthPh:'ਸ਼ਹਿਰ, ਰਾਜ, ਦੇਸ਼', emailPh:'you@example.com', mobilePh:'+91 98765 43210', questionPh:'ਉਦਾ: ਕੀ ਇਸ ਸਾਲ ਮੇਰਾ ਕਰੀਅਰ ਵਧੇਗਾ?', timePh:'ਉਦਾ: 10:30' },
+  ur:  { fullName:'پورا نام', knownAs:'عرفی نام', dateOfBirth:'تاریخ پیدائش', timeOfBirth:'وقت پیدائش', placeOfBirth:'جائے پیدائش', email:'ای میل پتہ', mobile:'موبائل نمبر', yourQuestion:'نجومی کے لیے آپ کا سوال', pdfLang:'PDF رپورٹ زبان', consent:'میں ذاتی پڑھنے کے لیے ماہر نجومی کے ساتھ اپنی پیدائش کی تفصیلات شیئر کرنے پر رضامند ہوں', sendToExpert:'ماہر نجومی کو بھیجیں', fullNamePh:'آپ کا پورا نام', knownAsPh:'عرفی نام', placeOfBirthPh:'شہر، صوبہ، ملک', emailPh:'you@example.com', mobilePh:'+91 98765 43210', questionPh:'مثال: کیا اس سال میرا کیریئر ترقی کرے گا؟', timePh:'مثال: 10:30' },
+  or:  { fullName:'ସମ୍ପୂର୍ଣ ନାମ', knownAs:'ଡାକ ନାମ', dateOfBirth:'ଜନ୍ମ ତାରିଖ', timeOfBirth:'ଜନ୍ମ ସମୟ', placeOfBirth:'ଜନ୍ମ ସ୍ଥାନ', email:'ଇମେଲ ଠିକଣା', mobile:'ମୋବାଇଲ ନମ୍ବର', yourQuestion:'ଜ୍ୟୋତିଷୀ ପାଇଁ ଆପଣଙ୍କ ପ୍ରଶ୍ନ', pdfLang:'PDF ରିପୋର୍ଟ ଭାଷା', consent:'ବ୍ୟକ୍ତିଗତ ପଠନ ପାଇଁ ବିଶେଷଜ୍ଞ ଜ୍ୟୋତିଷୀ ସହ ମୋ ଜନ୍ମ ବିବରଣୀ ଅଂଶୀଦାର କରିବାକୁ ମୁଁ ରାଜି', sendToExpert:'ବିଶେଷଜ୍ଞ ଜ୍ୟୋତିଷୀଙ୍କୁ ପଠାନ୍ତୁ', fullNamePh:'ଆପଣଙ୍କ ସମ୍ପୂର୍ଣ ନାମ', knownAsPh:'ଡାକ ନାମ', placeOfBirthPh:'ସହର, ରାଜ୍ୟ, ଦେଶ', emailPh:'you@example.com', mobilePh:'+91 98765 43210', questionPh:'ଉ.ଦା: ଏ ବର୍ଷ ମୋ କ୍ୟାରିୟର ବଢ଼ିବ କି?', timePh:'ଉ.ଦା: 10:30' },
+  as:  { fullName:'সম্পূৰ্ণ নাম', knownAs:'মতা নাম', dateOfBirth:'জন্ম তাৰিখ', timeOfBirth:'জন্মৰ সময়', placeOfBirth:'জন্মস্থান', email:'ইমেইল ঠিকনা', mobile:'মোবাইল নম্বৰ', yourQuestion:'জ্যোতিষীৰ বাবে আপোনাৰ প্ৰশ্ন', pdfLang:'PDF প্ৰতিবেদন ভাষা', consent:'ব্যক্তিগত পঠনৰ বাবে বিশেষজ্ঞ জ্যোতিষীৰ সৈতে মোৰ জন্মৰ বিৱৰণ ভাগ বতৰা কৰিবলৈ মই সন্মত', sendToExpert:'বিশেষজ্ঞ জ্যোতিষীলৈ পঠাওক', fullNamePh:'আপোনাৰ সম্পূৰ্ণ নাম', knownAsPh:'মতা নাম', placeOfBirthPh:'চহৰ, ৰাজ্য, দেশ', emailPh:'you@example.com', mobilePh:'+91 98765 43210', questionPh:'উদা: এই বছৰ মোৰ জীৱন আগবাঢ়িব নে?', timePh:'উদা: 10:30' },
+  ne:  { fullName:'पूरा नाम', knownAs:'उपनाम', dateOfBirth:'जन्म मिति', timeOfBirth:'जन्म समय', placeOfBirth:'जन्मस्थान', email:'इमेल ठेगाना', mobile:'मोबाइल नम्बर', yourQuestion:'ज्योतिषीका लागि तपाईंको प्रश्न', pdfLang:'PDF रिपोर्ट भाषा', consent:'व्यक्तिगत पठनका लागि विशेषज्ञ ज्योतिषीसँग मेरो जन्म विवरण साझा गर्न म सहमत छु', sendToExpert:'विशेषज्ञ ज्योतिषीलाई पठाउनुस्', fullNamePh:'तपाईंको पूरा नाम', knownAsPh:'उपनाम', placeOfBirthPh:'सहर, प्रदेश, देश', emailPh:'you@example.com', mobilePh:'+91 98765 43210', questionPh:'उदाहरण: के यो वर्ष मेरो करियर बढ्छ?', timePh:'उदाहरण: 10:30' },
+  sa:  { fullName:'पूर्णं नाम', knownAs:'उपनाम', dateOfBirth:'जन्मदिनाङ्कः', timeOfBirth:'जन्मसमयः', placeOfBirth:'जन्मस्थानम्', email:'विद्युत्पत्रम्', mobile:'दूरभाषसंख्या', yourQuestion:'ज्योतिर्विदे भवतः प्रश्नः', pdfLang:'PDF विवरणस्य भाषा', consent:'वैयक्तिकपठनार्थं विशेषज्ञज्योतिर्विदा सह मम जन्मविवरणं प्रदातुम् अहम् अनुमतिं ददामि', sendToExpert:'विशेषज्ञज्योतिर्विदे प्रेषयतु', fullNamePh:'भवतः पूर्णं नाम', knownAsPh:'उपनाम', placeOfBirthPh:'नगरम्, राज्यम्, देशः', emailPh:'you@example.com', mobilePh:'+91 98765 43210', questionPh:'उदाहरणम्: अस्मिन् वर्षे मम जीविका वर्धिष्यते किम्?', timePh:'उदाहरणम्: 10:30' },
+  kok: { fullName:'पुराय नांव', knownAs:'देंवचें नांव', dateOfBirth:'जल्माची तारीख', timeOfBirth:'जल्माची वेळ', placeOfBirth:'जल्माची जागा', email:'इमेल पत्तो', mobile:'मोबायल नंबर', yourQuestion:'ज्योतिषाक तुमचो प्रस्न', pdfLang:'PDF रिपोर्ट भास', consent:'वैयक्तिक वाचपाखातीर विशेशज्ञ ज्योतिषाकडें म्हजें जल्म माहिती वांटूंक हांव तयार आसां', sendToExpert:'विशेशज्ञ ज्योतिषाक धाड', fullNamePh:'तुमचें पुराय नांव', knownAsPh:'देंवचें नांव', placeOfBirthPh:'शार, राज्य, देश', emailPh:'you@example.com', mobilePh:'+91 98765 43210', questionPh:'उदा: ह्या वर्सा म्हजें काम फुडें वताय?', timePh:'उदा: 10:30' },
+  mni: { fullName:'ꯃꯤꯡ ꯃꯐꯝ', knownAs:'ꯃꯤꯡ ꯇꯧꯕ', dateOfBirth:'ꯆꯥꯡꯖꯔꯕ ꯅꯤꯡꯊꯧꯔꯝ', timeOfBirth:'ꯆꯥꯡꯖꯔꯕ ꯇꯥꯛ', placeOfBirth:'ꯆꯥꯡꯖꯔꯕ ꯂꯩꯐꯝ', email:'ꯏꯃꯦꯏꯜ', mobile:'ꯃꯣꯕꯥꯏꯜ ꯅꯝꯕꯔ', yourQuestion:'ꯖꯩꯎꯇꯤꯁꯀꯤ ꯅꯠꯇ꯭ꯔꯒ ꯅꯨꯡꯍꯥꯛꯀꯤ ꯍꯥꯏꯖꯔꯕ ꯈꯛꯇꯥꯕ', pdfLang:'PDF ꯔꯤꯄꯣꯔꯠ ꯂꯣꯜ', consent:'ꯈꯨꯗꯤꯡꯒꯤ ꯐꯣꯡꯗꯣꯛꯄꯒꯤꯗꯃꯛ ꯎꯂꯨ ꯖꯩꯎꯇꯤꯁꯀꯒ ꯆꯥꯡꯖꯔꯕ ꯃꯑꯣꯡ ꯃꯄꯨꯡꯐꯥꯕ ꯁꯤꯁꯤꯅꯕꯒꯤ ꯁꯝꯃꯤꯠꯅꯤ', sendToExpert:'ꯎꯂꯨ ꯖꯩꯎꯇꯤꯁꯀꯅ ꯄꯩꯑꯣꯒꯅꯨ', fullNamePh:'ꯅꯨꯡꯒꯤ ꯃꯤꯡ ꯃꯐꯝ', knownAsPh:'ꯃꯤꯡ ꯇꯧꯕ', placeOfBirthPh:'ꯃꯐꯝ, ꯔꯥꯖꯁ꯭ꯊꯥꯟ, ꯂꯩꯄꯥꯛ', emailPh:'you@example.com', mobilePh:'+91 98765 43210', questionPh:'ꯅꯪꯒꯤ ꯊꯧꯗꯥꯡ ꯐꯕꯒꯅꯤ', timePh:'ꯃꯔꯝ: 10:30' },
+  mai: { fullName:'पूरा नाम', knownAs:'उपनाम', dateOfBirth:'जन्म तिथि', timeOfBirth:'जन्म समय', placeOfBirth:'जन्मस्थान', email:'ईमेल पता', mobile:'मोबाइल नंबर', yourQuestion:'ज्योतिषी लेल अहाँक प्रश्न', pdfLang:'PDF रिपोर्ट भाषा', consent:'व्यक्तिगत पठन लेल विशेषज्ञ ज्योतिषीसँ अपन जन्म विवरण साझा करबाक लेल हम सहमत छी', sendToExpert:'विशेषज्ञ ज्योतिषीकेँ पठाउ', fullNamePh:'अहाँक पूरा नाम', knownAsPh:'उपनाम', placeOfBirthPh:'शहर, राज्य, देश', emailPh:'you@example.com', mobilePh:'+91 98765 43210', questionPh:'जेना: की एहि साल हमर करियर बढ़त?', timePh:'जेना: 10:30' },
+  doi: { fullName:'पूरा नां', knownAs:'लाडू नां', dateOfBirth:'जनम तरीक', timeOfBirth:'जनम वेल', placeOfBirth:'जनम थाह', email:'ईमेल पता', mobile:'मोबाइल नंबर', yourQuestion:'ज्योतिशी लेई तुआडा सुआल', pdfLang:'PDF रिपोर्ट भाशा', consent:'निजी पठन लेई माहर ज्योतिशी दे नाल अपनी जनम जानकारी साँझी करन लेई मैं राजी हां', sendToExpert:'माहर ज्योतिशी गी भेजो', fullNamePh:'तुआडा पूरा नां', knownAsPh:'लाडू नां', placeOfBirthPh:'शहर, राज्य, देश', emailPh:'you@example.com', mobilePh:'+91 98765 43210', questionPh:'जिवें: की एस साल मेरा काम अग्गे जाऊगा?', timePh:'जिवें: 10:30' },
+  sd:  { fullName:'پورو نالو', knownAs:'عرفي نالو', dateOfBirth:'ڄمڻ جي تاريخ', timeOfBirth:'ڄمڻ جو وقت', placeOfBirth:'ڄمڻ جي جاءِ', email:'اي ميل پتو', mobile:'موبائيل نمبر', yourQuestion:'نجومي لاءِ توهانجو سوال', pdfLang:'PDF رپورٽ ٻولي', consent:'ذاتي پڙهڻ لاءِ ماهر نجومي سان پنهنجي ڄمڻ جي تفصيل شيئر ڪرڻ تي مان راضي آهيان', sendToExpert:'ماهر نجومي کي موڪليو', fullNamePh:'توهانجو پورو نالو', knownAsPh:'عرفي نالو', placeOfBirthPh:'شهر، صوبو، ملڪ', emailPh:'you@example.com', mobilePh:'+91 98765 43210', questionPh:'مثال: ڇا هن سال منهنجي ڪيريئر ۾ واڌارو ايندو؟', timePh:'مثال: 10:30' },
+  ks:  { fullName:'پوٗرٕ ناو', knownAs:'عرفی ناو', dateOfBirth:'جنمۍ تٲریٖخ', timeOfBirth:'جنمۍ وَقت', placeOfBirth:'جنمۍ جاے', email:'ای میل پتہ', mobile:'موبائل نمبر', yourQuestion:'نجُومیۍ تام سوٗال', pdfLang:'PDF رپوٗرٹ زبٲن', consent:'ذاتی پَرنۍ کھوتٕ ماہر نجُومی سیٛتھ جنمۍ تفصیٖل ونٛڈِتھ مہ راضی چھُس', sendToExpert:'ماہر نجُومیۍ کنہ پاٹھاو', fullNamePh:'سُنٛدرٕ ناو', knownAsPh:'عرفی ناو', placeOfBirthPh:'شہر، صوبہ، مُلک', emailPh:'you@example.com', mobilePh:'+91 98765 43210', questionPh:'مثال: کیا یۄس سالہ مہ کام بَڑِتھ ؟', timePh:'مثال: 10:30' },
+  sat: { fullName:'ᱯᱩᱨᱟ ᱨᱮᱱ', knownAs:'ᱫᱟᱠ ᱨᱮᱱ', dateOfBirth:'ᱡᱚᱱᱚᱢ ᱛᱟᱨᱤᱠ', timeOfBirth:'ᱡᱚᱱᱚᱢ ᱸᱦᱤᱡ', placeOfBirth:'ᱡᱚᱱᱚᱢ ᱫᱷᱟᱱ', email:'ᱤᱢᱮᱞ ᱯᱚᱛᱚ', mobile:'ᱢᱚᱵᱟᱭᱞ ᱱᱚᱢᱵᱚᱨ', yourQuestion:'ᱡᱳᱛᱤᱥᱤᱟᱜ ᱟᱯᱱᱟᱜ ᱯᱩᱪᱷᱤᱡ', pdfLang:'PDF ᱨᱤᱯᱚᱨᱴ ᱪᱷᱟᱸᱫ', consent:'ᱵᱮᱜᱚᱨ ᱯᱚᱱᱚᱜ ᱠᱷᱟᱛᱤᱨ ᱵᱤᱥᱮᱥᱚᱡᱽᱱ ᱡᱳᱛᱤᱥᱤᱟᱠᱤᱱ ᱡᱚᱱᱚᱢ ᱴᱷᱤᱠᱟᱱᱟ ᱵᱟᱸᱫᱷᱟᱣ ᱠᱮᱫᱮ ᱫᱚ ᱦᱚᱸ ᱨᱟᱡᱤ', sendToExpert:'ᱵᱤᱥᱮᱥᱚᱡᱽᱱ ᱡᱳᱛᱤᱥᱤᱟᱠᱤᱱ ᱦᱩᱰᱤᱧ ᱠᱟᱛᱮ', fullNamePh:'ᱟᱯᱱᱟᱜ ᱯᱩᱨᱟ ᱨᱮᱱ', knownAsPh:'ᱫᱟᱠ ᱨᱮᱱ', placeOfBirthPh:'ᱱᱚᱜᱚᱨ, ᱨᱟᱡᱽᱭᱚ, ᱫᱮᱥ', emailPh:'you@example.com', mobilePh:'+91 98765 43210', questionPh:'ᱩᱫᱟ: ᱱᱚᱣᱟ ᱥᱟᱞᱚᱜ ᱟᱢ ᱠᱟᱢ ᱵᱟᱲᱟᱭᱟᱜᱟ?', timePh:'ᱩᱫᱟ: 10:30' },
+  bo:  { fullName:'पूरो नांउ', knownAs:'डाकनांउ', dateOfBirth:'जोनोम तारिख', timeOfBirth:'जोनोम थांखि', placeOfBirth:'जोनोम बिथाय', email:'इमेल फरा', mobile:'मोबाइल नोम्बर', yourQuestion:'ज्योतिशीनि थाखाय नङाव सुंसारि', pdfLang:'PDF रिपोर्ट हादरसे', consent:'थिसनाय पोरसानाय थाखाय बिसेस ज्योतिशीनि गेजेर जोनोम सोमोन्दो थाबायनाय थाखाय मो राजि', sendToExpert:'बिसेस ज्योतिशीनो पाठाव', fullNamePh:'नङाव पूरो नांउ', knownAsPh:'डाकनांउ', placeOfBirthPh:'बिदाय, राज, हादर', emailPh:'you@example.com', mobilePh:'+91 98765 43210', questionPh:'जादों: मानो आं ब्युरो बोसोरावनो काम बाड़ाब?', timePh:'जादों: 10:30' },
+};
+
+function getFormLabels(langCode: string): FormLabels {
+  return FORM_LABELS[langCode] ?? FORM_LABELS['en'];
+}
 
 // ── 22 Indian Constitutional Languages + English ───────────────────────────
 const INDIAN_LANGUAGES = [
@@ -254,7 +296,30 @@ function validateProfile(p: {
     <section class="panel panel-center">
       <div class="ptb">
         <span class="ptb-title">Birth Profile</span>
+        <!-- Language switcher — visible on main page, switches all form labels instantly -->
+        <div class="ptb-lang-wrap">
+          <svg width="13" height="13" viewBox="0 0 20 20" fill="none" style="flex-shrink:0;opacity:0.7">
+            <path d="M10 2a8 8 0 1 0 0 16A8 8 0 0 0 10 2zM2 10h4M14 10h4M10 2v4M10 14v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M4.9 4.9C6.4 7.1 8 8.9 10 10c2-.9 3.5-2.7 5.1-5.1M15.1 15.1C13.6 12.9 12 11.1 10 10c-2 .9-3.5 2.7-5.1 5.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <select class="ptb-lang-select"
+            [ngModel]="uiLanguage()"
+            (ngModelChange)="switchLanguage($event)">
+            @for (lang of availableLanguages; track lang.code) {
+              <option [value]="lang.code">{{ lang.native }}</option>
+            }
+          </select>
+          @if (uiLoading()) {
+            <span class="ptb-lang-spinner"></span>
+          }
+        </div>
       </div>
+      @if (uiLoading()) {
+        <div class="ui-translating-overlay">
+          <span class="ui-translating-spinner"></span>
+          Translating UI…
+        </div>
+      }
 
       <div class="panel-scroll">
 
@@ -267,8 +332,8 @@ function validateProfile(p: {
               </svg>
             </div>
             <div>
-              <div class="card-title">Personal Details</div>
-              <div class="card-sub">Your birth data powers all calculations</div>
+              <div class="card-title">{{ uiStrings().section_personal_details }}</div>
+              <div class="card-sub">{{ uiStrings().section_personal_sub }}</div>
             </div>
           </div>
 
@@ -278,14 +343,14 @@ function validateProfile(p: {
             <div class="field-row">
               <div class="field field-grow">
                 <label class="flabel">
-                  Full Name <span class="req">*</span>
-                  <span class="flabel-hint">as per official records</span>
+                  {{ uiStrings().label_full_name }} <span class="req">*</span>
+                  <span class="flabel-hint">{{ uiStrings().label_full_name_hint }}</span>
                 </label>
                 <div class="inp-wrap"
                      [class.inp-err]="touched()['full_name'] && errors()['full_name']"
                      [class.inp-ok]="touched()['full_name'] && !errors()['full_name'] && profile().full_name">
                   <input class="inp" type="text"
-                         placeholder="e.g. Chandan Kumar"
+                         [placeholder]="uiStrings().ph_full_name"
                          [value]="profile().full_name"
                          (input)="onNameInput($any($event.target).value)"
                          (blur)="touch('full_name')"
@@ -302,9 +367,9 @@ function validateProfile(p: {
                 }
               </div>
               <div class="field">
-                <label class="flabel">Known As <span class="opt">optional</span></label>
+                <label class="flabel">{{ uiStrings().label_known_as }} <span class="opt">optional</span></label>
                 <div class="inp-wrap">
-                  <input class="inp" type="text" placeholder="e.g. Rav"
+                  <input class="inp" type="text" [placeholder]="uiStrings().ph_known_as"
                          [value]="profile().alias_name"
                          (input)="patch('alias_name', $any($event.target).value)"/>
                 </div>
@@ -314,7 +379,7 @@ function validateProfile(p: {
             <!-- Date of Birth + Time of Birth -->
             <div class="field-row">
               <div class="field">
-                <label class="flabel">Date of Birth <span class="req">*</span></label>
+                <label class="flabel">{{ uiStrings().label_dob }} <span class="req">*</span></label>
                 <div class="inp-wrap"
                      [class.inp-err]="touched()['date_of_birth'] && errors()['date_of_birth']"
                      [class.inp-ok]="touched()['date_of_birth'] && !errors()['date_of_birth'] && profile().date_of_birth">
@@ -338,7 +403,7 @@ function validateProfile(p: {
               </div>
               <div class="field">
                 <label class="flabel">
-                  Time of Birth <span class="opt">optional</span>
+                  {{ uiStrings().label_tob }} <span class="opt">optional</span>
                 </label>
                 <!-- Time-of-day quick selector -->
                 <div class="tod-pills">
@@ -384,7 +449,7 @@ function validateProfile(p: {
 
             <!-- Place of Birth -->
             <div class="field">
-              <label class="flabel">Place of Birth <span class="req">*</span></label>
+              <label class="flabel">{{ uiStrings().label_place_of_birth }} <span class="req">*</span></label>
               <div class="inp-wrap"
                    [class.inp-err]="touched()['place_of_birth'] && errors()['place_of_birth']"
                    [class.inp-ok]="touched()['place_of_birth'] && !errors()['place_of_birth'] && profile().place_of_birth">
@@ -393,7 +458,7 @@ function validateProfile(p: {
                   <circle cx="8" cy="6" r="1.5" stroke="currentColor" stroke-width="1.2"/>
                 </svg>
                 <input class="inp inp-icon" type="text"
-                       placeholder="City, State, Country — e.g. Patna, Bihar, India"
+                       [placeholder]="uiStrings().ph_place_of_birth"
                        [value]="profile().place_of_birth"
                        (input)="patch('place_of_birth', $any($event.target).value)"
                        (blur)="touch('place_of_birth')"/>
@@ -445,8 +510,8 @@ function validateProfile(p: {
               </svg>
             </div>
             <div>
-              <div class="card-title">Your Question</div>
-              <div class="card-sub">Ask about career, marriage, finance, health…</div>
+              <div class="card-title">{{ uiStrings().section_question }}</div>
+              <div class="card-sub">{{ uiStrings().section_question_sub }}</div>
             </div>
           </div>
 
@@ -464,7 +529,7 @@ function validateProfile(p: {
                       (ngModelChange)="onQuestionChange()"
                       (blur)="questionTouched.set(true)"
                       rows="4"
-                      placeholder="e.g. Will my career grow significantly this year? What should I focus on?"></textarea>
+                      [placeholder]="uiStrings().ph_question"></textarea>
             <!-- Character / quality indicator -->
             <div class="q-footer">
               <span class="q-word-count" [class.q-wc-ok]="qScore().ok">
@@ -508,7 +573,7 @@ function validateProfile(p: {
     <!-- ── RIGHT: Analysis Modules ── -->
     <aside class="panel panel-right">
       <div class="ptb">
-        <span class="ptb-title">Analysis Modules</span>
+        <span class="ptb-title">{{ uiStrings().panel_modules }}</span>
       </div>
 
       <div class="panel-scroll">
@@ -620,7 +685,7 @@ function validateProfile(p: {
 
         <!-- ── Prompt Version Selector ── -->
         <div class="pv-card">
-          <div class="pv-label">Report Style</div>
+          <div class="pv-label">{{ uiStrings().label_report_style }}</div>
           <div class="pv-options">
 
             <button class="pv-opt pv-opt-v1" [class.pv-opt-on]="promptVersion() === 'v1'" (click)="promptVersion.set('v1')">
@@ -631,8 +696,8 @@ function validateProfile(p: {
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
               </div>
               <div class="pv-body">
-                <span class="pv-name">Warm &amp; Exploratory</span>
-                <span class="pv-desc">Gentle · Encouraging · Holistic</span>
+                <span class="pv-name">{{ uiStrings().style_warm }}</span>
+                <span class="pv-desc">{{ uiStrings().style_warm_sub }}</span>
               </div>
             </button>
 
@@ -645,10 +710,10 @@ function validateProfile(p: {
               </div>
               <div class="pv-body">
                 <div class="pv-name-row">
-                  <span class="pv-name">Laser Sharp</span>
-                  <span class="pv-badge">Recommended</span>
+                  <span class="pv-name">{{ uiStrings().style_sharp }}</span>
+                  <span class="pv-badge">{{ uiStrings().badge_recommended }}</span>
                 </div>
-                <span class="pv-desc">Direct answers · Exact timing · Actions</span>
+                <span class="pv-desc">{{ uiStrings().style_sharp_sub }}</span>
               </div>
             </button>
 
@@ -667,15 +732,15 @@ function validateProfile(p: {
                   <circle cx="7" cy="7" r="6" fill="#10b981" opacity="0.15"/>
                   <path d="M3.5 7l2.5 2.5L10.5 4" stroke="#10b981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                Analysis complete
+                {{ uiStrings().badge_analysis_complete }}
               </div>
               <button class="cta cta-review" (click)="goReview()">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="12" height="12" rx="2.5" stroke="currentColor" stroke-width="1.4"/><path d="M4 5h6M4 8h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-                {{ auth.isAdmin() ? 'Review &amp; Edit' : 'Download PDF Report' }}
+                {{ auth.isAdmin() ? uiStrings().btn_review_admin : uiStrings().btn_review }}
               </button>
               <button class="cta-rerun" (click)="rerun()">
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10 6A4 4 0 1 1 8.5 2.5M10 1v3H7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                New Reading
+                {{ uiStrings().btn_rerun }}
               </button>
             </div>
           } @else {
@@ -684,10 +749,10 @@ function validateProfile(p: {
                 <span class="spinner"></span> Agents Running…
               } @else {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke-linejoin="round"/></svg>
-                Begin 360° Reading
+                {{ uiStrings().btn_begin }}
               }
             </button>
-            <p class="cta-hint">All selected agents run · 20–60 s</p>
+            <p class="cta-hint">{{ uiStrings().hint_begin }}</p>
           }
         </div>
 
@@ -790,97 +855,108 @@ function validateProfile(p: {
     <div class="lead-card">
       <div class="lead-card-header">
         <div class="lead-star-badge">✦</div>
-        <h2 class="lead-title">Continue Your Spiritual Journey</h2>
-        <p class="lead-subtitle">
-          Your chart details are ready. Our expert astrologer will personally review your reading
-          and prepare a deep, customised report just for you.
-        </p>
+        <h2 class="lead-title">{{ uiStrings().lead_title }}</h2>
+        <p class="lead-subtitle">{{ uiStrings().lead_subtitle }}</p>
       </div>
 
       @if (leadError()) {
         <div class="lead-error">⚠ {{ leadError() }}</div>
       }
 
+      <!-- UI Language Switcher — switches form labels + placeholders -->
+      <div class="ui-lang-bar">
+        <svg width="13" height="13" viewBox="0 0 20 20" fill="none" style="flex-shrink:0"><path d="M10 2a8 8 0 1 0 0 16A8 8 0 0 0 10 2zM2 10h4M14 10h4M10 2v4M10 14v4" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round"/><path d="M4.9 4.9C6.4 7.1 8 8.9 10 10c2-.9 3.5-2.7 5.1-5.1M15.1 15.1C13.6 12.9 12 11.1 10 10c-2 .9-3.5 2.7-5.1 5.1" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span class="ui-lang-label">Fill form in:</span>
+        <select class="ui-lang-select"
+          [ngModel]="uiLanguage()"
+          (ngModelChange)="switchLanguage($event)">
+          @for (lang of availableLanguages; track lang.code) {
+            <option [value]="lang.code">{{ lang.native }} — {{ lang.name }}</option>
+          }
+        </select>
+      </div>
+
       <div class="lead-form">
         <div class="lead-field-row">
           <div class="lead-field">
-            <label class="lead-label">Full Name *</label>
+            <label class="lead-label">{{ uiStrings().label_full_name }} *</label>
             <input class="lead-input" type="text"
               [(ngModel)]="leadForm.name"
-              placeholder="Your full name"/>
+              [placeholder]="uiStrings().ph_full_name"/>
           </div>
           <div class="lead-field">
-            <label class="lead-label">Known As (optional)</label>
+            <label class="lead-label">{{ uiStrings().label_known_as }}</label>
             <input class="lead-input" type="text"
               [(ngModel)]="leadForm.alias_name"
-              placeholder="Nickname"/>
+              [placeholder]="uiStrings().ph_known_as"/>
           </div>
         </div>
         <div class="lead-field-row">
           <div class="lead-field">
-            <label class="lead-label">Date of Birth *</label>
+            <label class="lead-label">{{ uiStrings().label_dob }} *</label>
             <input class="lead-input" type="date"
               [(ngModel)]="leadForm.dob"/>
           </div>
           <div class="lead-field">
-            <label class="lead-label">Time of Birth *</label>
+            <label class="lead-label">{{ uiStrings().label_tob }}</label>
             <input class="lead-input" type="text"
               [(ngModel)]="leadForm.time_of_birth"
-              placeholder="e.g. 10:30 (HH:MM)"/>
+              [placeholder]="uiStrings().ph_tob_hh + ':' + uiStrings().ph_tob_mm"/>
           </div>
         </div>
         <div class="lead-field-row">
           <div class="lead-field lead-field-grow">
-            <label class="lead-label">Place of Birth *</label>
+            <label class="lead-label">{{ uiStrings().label_place_of_birth }} *</label>
             <input class="lead-input" type="text"
               [(ngModel)]="leadForm.place_of_birth"
-              placeholder="City, State, Country"/>
+              [placeholder]="uiStrings().ph_place_of_birth"/>
           </div>
         </div>
         <div class="lead-field-row">
           <div class="lead-field">
-            <label class="lead-label">Email Address *</label>
+            <label class="lead-label">{{ uiStrings().label_email }} *</label>
             <input class="lead-input" type="email"
               [(ngModel)]="leadForm.email"
-              placeholder="you@example.com"/>
+              [placeholder]="uiStrings().ph_email"/>
           </div>
           <div class="lead-field">
-            <label class="lead-label">Mobile Number</label>
+            <label class="lead-label">{{ uiStrings().label_mobile }}</label>
             <input class="lead-input" type="tel"
               [(ngModel)]="leadForm.phone"
-              placeholder="+91 98765 43210"/>
+              [placeholder]="uiStrings().ph_mobile"/>
           </div>
         </div>
         <div class="lead-field-row">
           <div class="lead-field lead-field-grow">
-            <label class="lead-label">Your Question for the Astrologer *</label>
+            <label class="lead-label">{{ uiStrings().label_question_astro }} *</label>
             <textarea class="lead-input lead-textarea"
               [(ngModel)]="leadForm.question"
-              placeholder="e.g. Will my career grow this year? What should I focus on?"
+              [placeholder]="uiStrings().ph_question"
               rows="2"></textarea>
           </div>
         </div>
-        <!-- Language Picker -->
+        <!-- Language Picker — PDF output language (synced with UI language above) -->
         <div class="lead-field-row">
           <div class="lead-field lead-field-grow">
             <label class="lead-label">
               <svg width="13" height="13" viewBox="0 0 20 20" fill="none" style="vertical-align:-2px;margin-right:4px"><path d="M10 2a8 8 0 1 0 0 16A8 8 0 0 0 10 2zM2 10h4M14 10h4M10 2v4M10 14v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M4.9 4.9C6.4 7.1 8 8.9 10 10c2-.9 3.5-2.7 5.1-5.1M15.1 15.1C13.6 12.9 12 11.1 10 10c-2 .9-3.5 2.7-5.1 5.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-              PDF Report Language
+              {{ uiStrings().label_pdf_lang }}
             </label>
             <select class="lead-input lead-select"
-              [(ngModel)]="leadForm.preferred_language">
+              [(ngModel)]="leadForm.preferred_language"
+              (ngModelChange)="switchLanguage($event)">
               @for (lang of availableLanguages; track lang.code) {
                 <option [value]="lang.code">{{ lang.native }} — {{ lang.name }}</option>
               }
             </select>
-            <span class="lead-lang-hint">Your personalised report will be delivered in this language</span>
+            <span class="lead-lang-hint">{{ uiStrings().hint_pdf_lang }}</span>
           </div>
         </div>
 
         <label class="lead-consent">
           <input type="checkbox" [checked]="leadForm.consent"
             (change)="leadForm.consent = $any($event.target).checked"/>
-          <span>I agree to share my birth details with the expert astrologer for a personalised reading</span>
+          <span>{{ uiStrings().label_consent }}</span>
         </label>
       </div>
 
@@ -890,16 +966,16 @@ function validateProfile(p: {
             <span class="lead-spinner"></span> Sending to Expert…
           } @else {
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M13 7.5L2 2l2.5 5.5L2 13z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
-            Send to Expert Astrologer
+            {{ uiStrings().btn_send_expert }}
           }
         </button>
         <button class="lead-cancel-btn" (click)="showLeadForm.set(false)">
-          Cancel
+          {{ uiStrings().btn_cancel }}
         </button>
       </div>
 
       <p class="lead-privacy">
-        🔒 Your details are kept strictly confidential and used only for your personalised reading.
+        🔒 {{ uiStrings().hint_privacy }}
       </p>
     </div>
   </div>
@@ -918,10 +994,8 @@ function validateProfile(p: {
             <path d="M8 14l4 4 8-8" stroke="#059669" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
-        <h2 class="lead-title">Reading Request Sent!</h2>
-        <p class="lead-subtitle">
-          Your expert astrologer has been notified. Track your reading progress below — this updates automatically.
-        </p>
+        <h2 class="lead-title">{{ uiStrings().tracker_sent_title }}</h2>
+        <p class="lead-subtitle">{{ uiStrings().tracker_sent_sub }}</p>
       </div>
 
       <!-- ── Colorful 4-step journey tracker ── -->
@@ -938,14 +1012,14 @@ function validateProfile(p: {
           </div>
           <div class="js-body">
             <div class="js-row">
-              <span class="js-label">Request Submitted</span>
+              <span class="js-label">{{ uiStrings().step_submitted }}</span>
               @if (isStepDone('submitted') && !isStepActive('submitted')) {
                 <span class="js-badge js-badge-done">Done</span>
               } @else if (isStepActive('submitted')) {
                 <span class="js-badge js-badge-active">In Progress</span>
               }
             </div>
-            <span class="js-desc">Your birth details & question have been received by our team</span>
+            <span class="js-desc">{{ uiStrings().step_submitted_desc }}</span>
           </div>
         </div>
 
@@ -962,14 +1036,14 @@ function validateProfile(p: {
           </div>
           <div class="js-body">
             <div class="js-row">
-              <span class="js-label">Astrologer Notified</span>
+              <span class="js-label">{{ uiStrings().step_notified }}</span>
               @if (isStepDone('admin_notified') && !isStepActive('admin_notified')) {
                 <span class="js-badge js-badge-done">Done</span>
               } @else if (isStepActive('admin_notified')) {
                 <span class="js-badge js-badge-active">Active</span>
               }
             </div>
-            <span class="js-desc">Your dedicated expert astrologer has been assigned and notified</span>
+            <span class="js-desc">{{ uiStrings().step_notified_desc }}</span>
           </div>
         </div>
 
@@ -986,14 +1060,14 @@ function validateProfile(p: {
           </div>
           <div class="js-body">
             <div class="js-row">
-              <span class="js-label">Expert Analysis</span>
+              <span class="js-label">{{ uiStrings().step_analysis }}</span>
               @if (isStepDone('expert_analysis') && !isStepActive('expert_analysis')) {
                 <span class="js-badge js-badge-done">Done</span>
               } @else if (isStepActive('expert_analysis')) {
                 <span class="js-badge js-badge-amber">Preparing</span>
               }
             </div>
-            <span class="js-desc">Your personalised 360° Vedic reading is being crafted for you</span>
+            <span class="js-desc">{{ uiStrings().step_analysis_desc }}</span>
           </div>
         </div>
 
@@ -1010,12 +1084,12 @@ function validateProfile(p: {
           </div>
           <div class="js-body">
             <div class="js-row">
-              <span class="js-label">Report Ready</span>
+              <span class="js-label">{{ uiStrings().step_ready }}</span>
               @if (isStepDone('report_ready')) {
                 <span class="js-badge js-badge-green">Ready!</span>
               }
             </div>
-            <span class="js-desc">Your personalised report is delivered — also sent to your email</span>
+            <span class="js-desc">{{ uiStrings().step_ready_desc }}</span>
           </div>
         </div>
 
@@ -1024,23 +1098,27 @@ function validateProfile(p: {
       <!-- Status message + download -->
       <div class="tracker-status-msg">
         @if (leadStatus() === 'submitted') {
-          <span class="status-pill status-pending">⏳ Awaiting expert assignment</span>
+          <span class="status-pill status-pending">⏳ {{ uiStrings().status_awaiting }}</span>
         } @else if (leadStatus() === 'admin_notified') {
-          <span class="status-pill status-active">🔔 Expert notified — reviewing your chart</span>
+          <span class="status-pill status-active">🔔 {{ uiStrings().status_notified }}</span>
         } @else if (leadStatus() === 'expert_analysis') {
-          <span class="status-pill status-amber">✦ Your personalised reading is being prepared</span>
+          <span class="status-pill status-amber">✦ {{ uiStrings().status_preparing }}</span>
         } @else if (leadStatus() === 'report_ready') {
           <div class="report-ready-block">
             <div class="report-ready-glow">🎉</div>
-            <p class="report-ready-msg">Your personalised astrology report is ready!</p>
-            <p class="report-ready-sub">Check your email too — we sent it there automatically.</p>
+            <p class="report-ready-msg">{{ uiStrings().report_ready_msg }}</p>
+            <p class="report-ready-sub">{{ uiStrings().report_ready_sub }}</p>
             <div class="report-lang-badge">
               <svg width="13" height="13" viewBox="0 0 20 20" fill="none" style="vertical-align:-2px"><path d="M10 2a8 8 0 1 0 0 16A8 8 0 0 0 10 2zM2 10h4M14 10h4M10 2v4M10 14v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M4.9 4.9C6.4 7.1 8 8.9 10 10c2-.9 3.5-2.7 5.1-5.1M15.1 15.1C13.6 12.9 12 11.1 10 10c-2 .9-3.5 2.7-5.1 5.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-              Report language: <strong>{{ leadLanguageDisplay() }}</strong>
+              {{ uiStrings().label_report_lang }} <strong>{{ leadLanguageDisplay() }}</strong>
             </div>
-            <button class="lead-submit-btn report-dl-btn" (click)="downloadLeadReport()">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M3.5 6.5l3.5 4 3.5-4M1.5 12h11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Open My Full Report
+            <button class="lead-submit-btn report-dl-btn" [disabled]="reportTranslating()" (click)="downloadLeadReport()">
+              @if (reportTranslating()) {
+                <span class="lead-spinner"></span> Translating to {{ leadLanguageDisplay() }}…
+              } @else {
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M3.5 6.5l3.5 4 3.5-4M1.5 12h11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                {{ uiStrings().btn_open_report }}
+              }
             </button>
           </div>
         }
@@ -1051,16 +1129,19 @@ function validateProfile(p: {
         @if (leadStatus() !== 'report_ready') {
           <span class="auto-poll-note">
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" fill="#6366f1" opacity="0.3"/><circle cx="5" cy="5" r="2" fill="#6366f1"/></svg>
-            Updating every 15 seconds
+            {{ uiStrings().hint_auto_poll }}
           </span>
           <button class="lead-submit-btn lead-submit-btn-sm" (click)="pollLeadStatus()">
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10.5 6A4.5 4.5 0 1 1 8.5 2.3M10.5 1v3H7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Refresh Now
+            {{ uiStrings().btn_refresh }}
           </button>
         } @else {
-          <!-- F11: when report is ready, show clear action — not "start over" -->
-          <button class="lead-submit-btn report-dl-btn" (click)="downloadLeadReport()">
-            Open My Full Report →
+          <button class="lead-submit-btn report-dl-btn" [disabled]="reportTranslating()" (click)="downloadLeadReport()">
+            @if (reportTranslating()) {
+              <span class="lead-spinner"></span> Translating…
+            } @else {
+              {{ uiStrings().btn_open_report }} →
+            }
           </button>
         }
       </div>
@@ -1259,6 +1340,18 @@ function validateProfile(p: {
   font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
   text-transform: uppercase; color: #6b7280;
 }
+.ptb-lang-wrap {
+  display: flex; align-items: center; gap: 5px;
+  padding: 3px 8px 3px 6px; border-radius: 8px;
+  background: rgba(99,102,241,0.07); border: 1px solid rgba(99,102,241,0.18);
+  color: #6366f1;
+}
+.ptb-lang-select {
+  border: none; background: transparent; font-size: 12px; font-weight: 600;
+  color: #4338ca; cursor: pointer; outline: none; font-family: inherit;
+  max-width: 130px;
+}
+.ptb-lang-select:focus { outline: none; }
 .ptb-actions { display: flex; gap: 6px; }
 .ptb-btn {
   width: 26px; height: 26px; border-radius: 7px; border: 1px solid rgba(0,0,0,0.1);
@@ -1546,6 +1639,21 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
   transition: border-color .15s; background: #fafafa;
 }
 .lead-input:focus { border-color: #6366f1; background: #fff; }
+/* ── UI Language Switcher Bar ── */
+.ui-lang-bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; margin-bottom: 12px;
+  background: linear-gradient(135deg, #eef2ff, #f5f3ff);
+  border: 1px solid #c7d2fe; border-radius: 10px;
+}
+.ui-lang-label { font-size: 12px; font-weight: 600; color: #4338ca; white-space: nowrap; }
+.ui-lang-select {
+  flex: 1; padding: 5px 10px; border: 1px solid #c7d2fe; border-radius: 7px;
+  font-size: 12.5px; color: #1e1b4b; background: #fff; cursor: pointer;
+  font-family: inherit; outline: none;
+}
+.ui-lang-select:focus { border-color: #6366f1; }
+
 .lead-select {
   appearance: none; -webkit-appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
@@ -1996,11 +2104,52 @@ export class IntakePage {
 
   readonly availableLanguages = INDIAN_LANGUAGES;
 
+  // UI language for the lead form (switches labels/placeholders)
+  readonly uiLanguage  = signal('en');
+  readonly uiStrings   = signal<UiStrings>(UI_STRINGS_EN as UiStrings);
+  readonly uiLoading   = signal(false);
+
+  async switchLanguage(langCode: string) {
+    this.uiLanguage.set(langCode);
+    this.leadForm.preferred_language = langCode;
+    if (langCode === 'en') {
+      this.uiStrings.set(UI_STRINGS_EN as UiStrings);
+      return;
+    }
+    this.uiLoading.set(true);
+    try {
+      const translated = await loadUiStrings(langCode, (req: any) =>
+        firstValueFrom(this.api.translateReport(req))
+      );
+      this.uiStrings.set(translated);
+    } catch {
+      // keep current strings on failure
+    } finally {
+      this.uiLoading.set(false);
+    }
+  }
+
+  private async _backTranslateToEnglish(text: string): Promise<string> {
+    if (this.uiLanguage() === 'en' || !text.trim()) return text;
+    try {
+      const res = await firstValueFrom(this.api.translateReport({
+        session_id:    '',
+        language_code: 'en',
+        report:        { text },
+      }));
+      return (res?.final_report as any)?.text ?? text;
+    } catch {
+      return text; // fallback: send as-is
+    }
+  }
+
   leadForm = { name: '', email: '', phone: '', dob: '', consent: false,
                place_of_birth: '', time_of_birth: '', alias_name: '', question: '',
                preferred_language: 'en' };
 
-  private http = inject(HttpClient);
+  private http    = inject(HttpClient);
+  private api     = inject(ApiService);
+  readonly reportTranslating = signal(false);
 
   private _autoPollTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -2383,15 +2532,35 @@ export class IntakePage {
 
   async downloadLeadReport() {
     if (!this.leadId()) return;
+    this.reportTranslating.set(true);
     try {
-      const report = await firstValueFrom(
+      const report: any = await firstValueFrom(
         this.http.get(`${BACKEND}/leads/${this.leadId()}/report`)
       );
-      this.orch.setFinalReport(report);
+
+      const lang = this.leadPreferredLanguage();
+      if (lang && lang !== 'en') {
+        // Translate the report into the user's chosen language before opening it
+        try {
+          const res = await firstValueFrom(this.api.translateReport({
+            session_id:    '',
+            language_code: lang,
+            report,
+          }));
+          this.orch.setFinalReport(res.final_report ?? report);
+        } catch {
+          // Translation failed — fall back to English report
+          this.orch.setFinalReport(report);
+        }
+      } else {
+        this.orch.setFinalReport(report);
+      }
+
       this.router.navigate(['/report']);
     } catch {
-      // report not ready yet — just refresh status
       await this.pollLeadStatus();
+    } finally {
+      this.reportTranslating.set(false);
     }
   }
 

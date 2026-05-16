@@ -177,17 +177,34 @@ class TestMetricsCollector:
 class TestMetricsApiEndpoint:
     """Test the /api/v1/metrics HTTP endpoint."""
 
+    @pytest.fixture(autouse=True)
+    def _seed_auth(self):
+        import time
+        import auth.store as auth_store
+        from auth.models import APIKey, Role, Tenant
+        _key  = "sk-metrics-test-admin"
+        _tid  = "tenant_metrics_test"
+        auth_store._tenants[_tid] = Tenant(
+            tenant_id=_tid, name="Metrics Test Tenant",
+            is_active=True, created_at=time.time(),
+        )
+        auth_store._api_keys[_key] = APIKey(
+            key=_key, tenant_id=_tid, role=Role.ADMIN,
+            description="metrics test key", is_active=True, created_at=time.time(),
+        )
+        self._admin_headers = {"X-API-Key": _key}
+
     def test_metrics_endpoint_returns_200(self):
         from fastapi.testclient import TestClient
         from main import app
         tc = TestClient(app)
-        resp = tc.get("/api/v1/metrics")
+        resp = tc.get("/api/v1/metrics", headers=self._admin_headers)
         assert resp.status_code == 200
 
     def test_metrics_endpoint_has_total_runs(self):
         from fastapi.testclient import TestClient
         from main import app
         tc = TestClient(app)
-        resp = tc.get("/api/v1/metrics")
+        resp = tc.get("/api/v1/metrics", headers=self._admin_headers)
         data = resp.json()
         assert "total_runs" in data

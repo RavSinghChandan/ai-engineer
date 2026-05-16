@@ -22,9 +22,28 @@ from utils.numerics import reduce_number, life_path, name_number, letter_map_pyt
 
 client = TestClient(app)
 
+# ── Auth constants ────────────────────────────────────────────────────────────
+_TEST_ADMIN_KEY  = "sk-neg-test-admin-key"
+_TEST_TENANT_ID  = "tenant_neg_test"
+
+ADMIN_HEADERS = {"X-API-Key": _TEST_ADMIN_KEY}
+
 
 @pytest.fixture(autouse=True)
 def reset_cache():
+    # ── Seed auth store ───────────────────────────────────────────────────────
+    import auth.store as auth_store
+    from auth.models import APIKey, Role, Tenant
+    auth_store._tenants[_TEST_TENANT_ID] = Tenant(
+        tenant_id=_TEST_TENANT_ID, name="Neg Test Tenant",
+        is_active=True, created_at=time.time(),
+    )
+    auth_store._api_keys[_TEST_ADMIN_KEY] = APIKey(
+        key=_TEST_ADMIN_KEY, tenant_id=_TEST_TENANT_ID,
+        role=Role.ADMIN, description="neg test admin key",
+        is_active=True, created_at=time.time(),
+    )
+    # ── Reset cache ───────────────────────────────────────────────────────────
     cache_store.clear()
     cache_store._hits = 0
     cache_store._misses = 0
@@ -36,17 +55,17 @@ def reset_cache():
 
 class TestMalformedRequests:
     def test_empty_body_returns_422(self):
-        resp = client.post("/api/v1/analysis/run", json={})
+        resp = client.post("/api/v1/analysis/run", json={}, headers=ADMIN_HEADERS)
         assert resp.status_code == 422
 
     def test_null_user_profile_returns_422(self):
-        resp = client.post("/api/v1/analysis/run", json={"user_profile": None})
+        resp = client.post("/api/v1/analysis/run", json={"user_profile": None}, headers=ADMIN_HEADERS)
         assert resp.status_code == 422
 
     def test_wrong_content_type_handled(self):
         resp = client.post("/api/v1/analysis/run",
                           data="not json",
-                          headers={"Content-Type": "text/plain"})
+                          headers={**ADMIN_HEADERS, "Content-Type": "text/plain"})
         assert resp.status_code in (400, 415, 422)
 
     def test_extra_unknown_fields_ignored(self):
@@ -59,7 +78,7 @@ class TestMalformedRequests:
             },
             "user_question": "career?",
         }
-        resp = client.post("/api/v1/analysis/run", json=payload)
+        resp = client.post("/api/v1/analysis/run", json=payload, headers=ADMIN_HEADERS)
         # Should not return 500 — either 200 (cache hit) or goes to LLM path
         assert resp.status_code != 500
 
@@ -79,7 +98,7 @@ class TestMalformedRequests:
         resp = client.post("/api/v1/analysis/approve", json={
             "approved_insight_ids": [],
             "rejected_insight_ids": [],
-        })
+        }, headers=ADMIN_HEADERS)
         assert resp.status_code == 422
 
     def test_approve_unknown_session_returns_404(self):
@@ -87,7 +106,7 @@ class TestMalformedRequests:
             "session_id": "session-that-does-not-exist-zzzz",
             "approved_insight_ids": [],
             "rejected_insight_ids": [],
-        })
+        }, headers=ADMIN_HEADERS)
         assert resp.status_code == 404
 
 
