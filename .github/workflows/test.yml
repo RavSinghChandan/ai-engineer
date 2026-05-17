@@ -46,13 +46,13 @@ jobs:
         working-directory: astro-intel-backend
         env:
           DATABASE_URL: postgresql://astrointel:test_pw@localhost:5432/astrointel_test
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           JWT_SECRET: ci-test-jwt-secret-not-production
           MASTER_API_KEY: sk-master-ci-test-key
           PW_SALT: ci-test-salt
           SUPERADMIN_PASSWORD: CiTest2024!
           APP_ENV: development
           RESEND_API_KEY: re_test_placeholder
+          # DEEPSEEK_API_KEY not set — live pipeline + accuracy tests auto-skip
         run: |
           pytest tests/ -v --tb=short --no-header
 

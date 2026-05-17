@@ -201,6 +201,10 @@ import { firstValueFrom } from 'rxjs';
           }
         </div>
       </div>
+      <!-- ── Letter watermark zone: fills remaining space below content ── -->
+      <div class="letter-watermark-zone">
+        <img src="rav-logo.png" alt="" class="letter-watermark" aria-hidden="true"/>
+      </div>
     </div>
 
     <!-- ══ PAGE 3: SPIRITUAL PROFILE — astrology + numerology ══ -->
@@ -758,72 +762,99 @@ import { firstValueFrom } from 'rxjs';
     </div><!-- /pdf-page page-profile page4 -->
     }<!-- /@if palmistry||tarot||vastu -->
 
-    <!-- ══ QUESTION SECTIONS (one pdf-page each) ═════════════════════════════════ -->
+    <!-- ══ QUESTION SECTIONS — full A4 master template per domain ══════════════ -->
     @for (section of displayReport()!.sections; track section.question; let si = $index) {
-      <div class="pdf-page page-question">
 
-        <div class="page-hdr">
-          <img src="rav-logo.png" alt="Aura with Rav" class="page-hdr-logo"/>
-          <span class="page-hdr-right">{{ displayReport()!.user_name }} · {{ formatDate(displayReport()!.generated_at) }}</span>
-        </div>
+      @if (section.domain_summary?.length && !editMode()) {
 
-        <div class="q-banner">
-          <div class="q-circle">Q{{ si + 1 }}</div>
-          <div class="q-text">{{ despacify(section.question) }}</div>
-        </div>
+        @for (grp of section.domain_summary; track grp.domain; let gi = $index) {
 
-        <div class="content-block">
-          <h3 class="block-heading">{{ displayReport()!.label_summary || 'Summary' }}</h3>
-          <div class="gold-line"></div>
+          <!-- ══ MASTER TEMPLATE: full A4 page per domain ══ -->
+          <div class="pdf-page page-domain-master">
 
-          @if (section.structured_summary && !editMode()) {
-            <ul class="hw-list">
-              @for (b of section.structured_summary.hw_bullets; track b.label) {
-                <li class="hw-item">
-                  <span class="hw-label" [innerHTML]="colorize(despacify(b.label))"></span>
+            <!-- ── TOP BAND: uniform dark theme (matches cover/closing) ── -->
+            <div class="dm-top-band">
+              <div class="dm-top-left">
+                <div class="dm-domain-icon">{{ grp.icon }}</div>
+                <div class="dm-domain-info">
+                  <div class="dm-domain-label">{{ grp.label }}</div>
+                  <div class="dm-domain-traditions">{{ dsDomainSub(grp.domain) }}</div>
+                </div>
+              </div>
+              <div class="dm-top-right">
+                <img src="rav-logo.png" alt="Aura with Rav" class="dm-logo"/>
+                <div class="dm-user-date">{{ displayReport()!.user_name }} · {{ formatDate(displayReport()!.generated_at) }}</div>
+              </div>
+            </div>
 
-                  @if (b.type === 'list') {
-                    <!-- WHO / WHAT / WHERE — numbered list of 3 -->
-                    <ol class="hw-sub-list">
-                      @for (pt of b.answer; track pt; let idx = $index) {
-                        <li class="hw-sub-item">
-                          <span class="hw-sub-num">{{ idx + 1 }}</span>
-                          <span class="hw-sub-text" [innerHTML]="colorize(pt)"></span>
-                        </li>
-                      }
-                    </ol>
-                  } @else if (b.type === 'timing') {
-                    <!-- WHEN — window + peak + duration -->
-                    <div class="hw-timing">
-                      <div class="hw-timing-window">{{ b.answer.window }}</div>
-                      <div class="hw-timing-peak">{{ b.answer.peak }}</div>
-                      <div class="hw-timing-dur">{{ b.answer.duration }}</div>
-                    </div>
-                  } @else if (b.type === 'redirect') {
-                    <!-- HOW — redirect to remedies -->
-                    <span class="hw-redirect" [innerHTML]="colorize(b.answer)"></span>
-                  } @else {
-                    <!-- legacy string fallback -->
-                    <span class="hw-answer" [innerHTML]="colorize(b.answer)"></span>
-                  }
-
-                </li>
+            <!-- ── QUESTION STRIP ────────────────────────────────── -->
+            <div class="dm-q-strip" [style.borderLeftColor]="dsAccent(grp.domain)">
+              <div class="dm-q-num" [style.background]="dsAccent(grp.domain)">Q{{ si + 1 }}</div>
+              <div class="dm-q-text">{{ despacify(section.question) }}</div>
+              @if (gi > 0) {
+                <div class="dm-cont-badge">continued</div>
               }
-            </ul>
+            </div>
 
-            <!-- Remedies appear once in the consolidated remedies page below -->
+            <!-- ── BODY: findings only ─────────────────────────────── -->
+            <div class="dm-body">
+              <div class="dm-findings">
+                <div class="dm-findings-title" [style.color]="dsAccent(grp.domain)">
+                  Findings &amp; Insights
+                  <span class="dm-insight-pill" [style.background]="dsIconBg(grp.domain)" [style.color]="dsAccent(grp.domain)">
+                    {{ grp.bullets.length }} insight{{ grp.bullets.length !== 1 ? 's' : '' }}
+                  </span>
+                </div>
+                <div class="dm-divider" [style.background]="dsAccent(grp.domain)"></div>
 
-          } @else if (editMode()) {
-            <textarea class="edit-area"
-              [value]="getNarrative(si)"
-              (input)="setNarrative(si, $any($event.target).value)"
-              rows="6"></textarea>
-          } @else {
-            <p class="narrative-para" [innerHTML]="colorize(getNarrative(si))"></p>
-          }
+                <ul class="dm-bullets">
+                  @for (bullet of grp.bullets; track bullet; let bi = $index) {
+                    <li class="dm-bullet">
+                      <span class="dm-bullet-num" [style.background]="dsAccent(grp.domain)">{{ bi + 1 }}</span>
+                      <span class="dm-bullet-text" [innerHTML]="highlightBullet(bullet, section.intent, grp.domain)"></span>
+                    </li>
+                  }
+                </ul>
+
+                <!-- ── WATERMARK: only in the remaining empty space after bullets ── -->
+                <div class="dm-watermark-zone">
+                  <img src="rav-logo.png" alt="" class="dm-watermark" aria-hidden="true"/>
+                </div>
+
+              </div>
+            </div>
+
+
+          </div>
+
+        }
+
+      } @else {
+        <!-- Edit mode or no domain_summary: single page with textarea or narrative -->
+        <div class="pdf-page page-question">
+          <div class="page-hdr">
+            <img src="rav-logo.png" alt="Aura with Rav" class="page-hdr-logo"/>
+            <span class="page-hdr-right">{{ displayReport()!.user_name }} · {{ formatDate(displayReport()!.generated_at) }}</span>
+          </div>
+          <div class="q-banner">
+            <div class="q-circle">Q{{ si + 1 }}</div>
+            <div class="q-text">{{ despacify(section.question) }}</div>
+          </div>
+          <div class="content-block">
+            <h3 class="block-heading">{{ displayReport()!.label_summary || 'Summary' }}</h3>
+            <div class="gold-line"></div>
+            @if (editMode()) {
+              <textarea class="edit-area"
+                [value]="getNarrative(si)"
+                (input)="setNarrative(si, $any($event.target).value)"
+                rows="8"></textarea>
+            } @else {
+              <p class="narrative-para" [innerHTML]="colorize(getNarrative(si))"></p>
+            }
+          </div>
         </div>
+      }
 
-      </div>
     }
 
     <!-- ══ CONSOLIDATED REMEDIES PAGE — exactly once, one A4 page ══ -->
@@ -975,6 +1006,11 @@ import { firstValueFrom } from 'rxjs';
           }
 
         </div><!-- /remedy-grid -->
+
+        <!-- ── Remedy watermark zone: fills remaining space below grid ── -->
+        <div class="remedy-watermark-zone">
+          <img src="rav-logo.png" alt="" class="remedy-watermark" aria-hidden="true"/>
+        </div>
 
         <div class="page-footer">
           <span>{{ displayReport()!.user_name }}</span>
@@ -1301,8 +1337,25 @@ import { firstValueFrom } from 'rxjs';
    PAGE 2: LETTER / MESSAGE — vertically centered, fills the page
 ═══════════════════════════════════════════════════════════════════════════ */
 .page-letter { background: #fff; }
+.letter-watermark-zone {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+  width: 100%;
+  pointer-events: none;
+}
+.letter-watermark {
+  width: 95%;
+  max-width: 620px;
+  opacity: 0.20;
+  object-fit: contain;
+  display: block;
+}
 .letter-page-body {
-  flex: 1; display: flex; align-items: flex-start; justify-content: center;
+  flex: 0 0 auto;
+  display: flex; align-items: flex-start; justify-content: center;
   padding: 32px 56px; overflow: visible;
 }
 .letter-inner { width: 100%; max-width: 600px; }
@@ -1599,6 +1652,211 @@ import { firstValueFrom } from 'rxjs';
 }
 .narrative-para { font-size: 15px; font-weight: 400; color: #1f2937; line-height: 2; margin: 0; }
 
+/* ── Domain-grouped summary ──────────────────────────────────────────────── */
+.domain-summary-list {
+  display: flex; flex-direction: column; gap: 16px; margin-bottom: 4px;
+}
+.ds-group {
+  display: flex; flex-direction: column;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-left-width: 4px; /* color set inline */
+  border-radius: 10px; overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+/* Full-page single-domain card — expands to content, no fixed height */
+.ds-group-full {
+  display: flex; flex-direction: column;
+  border: 1px solid rgba(0,0,0,0.09);
+  border-left-width: 5px;
+  border-radius: 12px; overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  flex: 1;
+}
+.ds-group-hdr {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+}
+.ds-icon-wrap {
+  width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.ds-icon { font-size: 14px; line-height: 1; }
+.ds-hdr-text { display: flex; flex-direction: column; gap: 1px; flex: 1; }
+.ds-label {
+  font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+}
+.ds-sub { font-size: 9px; color: #9ca3af; font-weight: 500; letter-spacing: 0.03em; }
+/* Insight count badge in domain header */
+.ds-bullet-count {
+  margin-left: auto; flex-shrink: 0;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.04em;
+  padding: 2px 9px; border-radius: 99px;
+  background: rgba(0,0,0,0.06); color: #6b7280;
+}
+.ds-bullets {
+  list-style: none; margin: 0; padding: 10px 14px 14px 14px;
+  display: flex; flex-direction: column; gap: 8px;
+  background: #fff;
+}
+/* Full-page bullet list — generous padding, gap between paragraph-length bullets */
+.ds-bullets-full {
+  list-style: none; margin: 0; padding: 16px 24px 24px 24px;
+  display: flex; flex-direction: column; gap: 16px;
+  background: #fff; flex: 1;
+}
+.ds-bullet {
+  font-size: 13.5px; font-weight: 400; color: #1f2937; line-height: 1.8;
+  padding-left: 18px; position: relative; font-family: Georgia, serif;
+  word-wrap: break-word; overflow-wrap: break-word;
+}
+/* Full-page bullet — each insight content shown word-for-word, no truncation */
+.ds-bullet-full {
+  font-size: 13.5px; font-weight: 400; color: #1f2937; line-height: 1.9;
+  padding-left: 22px; position: relative; font-family: Georgia, serif;
+  word-wrap: break-word; overflow-wrap: break-word;
+  /* Never hide overflow — content must always be fully visible */
+  overflow: visible;
+}
+.ds-bullet::before,
+.ds-bullet-full::before {
+  content: '✦'; position: absolute; left: 0; top: 5px;
+  color: #d4af37; font-size: 7px;
+}
+.hl-intent { border-radius: 3px; padding: 0 2px; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DOMAIN MASTER TEMPLATE — full A4 page per domain, fills 100% of page
+═══════════════════════════════════════════════════════════════════════════ */
+.page-domain-master {
+  /* Full A4 height on screen so it looks like a real page */
+  min-height: 297mm;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  padding: 0;        /* top band handles its own padding */
+  overflow: visible;
+  position: relative;
+}
+
+/* ── Watermark zone: grows to fill all empty space below bullets ── */
+.dm-watermark-zone {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+  width: 100%;
+  pointer-events: none;
+  border: none;
+  outline: none;
+}
+.dm-watermark {
+  width: 95%;
+  max-width: 620px;
+  opacity: 0.20;
+  object-fit: contain;
+  display: block;
+}
+
+/* ── Top band: white with gold accent border ── */
+.dm-top-band {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 32px;
+  flex-shrink: 0;
+  background: #fff;
+  border-bottom: 3px solid #d4af37;
+  z-index: 1;
+  position: relative;
+}
+.dm-top-left { display: flex; align-items: center; gap: 14px; }
+.dm-domain-icon { font-size: 26px; line-height: 1; }
+.dm-domain-info { display: flex; flex-direction: column; gap: 2px; }
+.dm-domain-label { font-size: 16px; font-weight: 800; letter-spacing: 0.04em; color: #d4af37; }
+.dm-domain-traditions { font-size: 10px; color: #6b7280; letter-spacing: 0.06em; font-weight: 500; }
+.dm-top-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.dm-logo { width: 80px; height: auto; object-fit: contain; opacity: 0.9; }
+.dm-user-date { font-size: 9px; color: #9ca3af; letter-spacing: 0.08em; text-transform: uppercase; }
+
+/* ── Question strip ── */
+.dm-q-strip {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 32px;
+  border-left: 6px solid;  /* colour set inline */
+  background: #fafaf8;
+  flex-shrink: 0;
+  position: relative; z-index: 1;
+}
+.dm-q-num {
+  flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%;
+  color: #fff; font-size: 12px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+}
+.dm-q-text { font-size: 17px; font-weight: 800; color: #14100c; line-height: 1.35; flex: 1; }
+.dm-cont-badge {
+  flex-shrink: 0; font-size: 9px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: #9ca3af;
+  border: 1px solid #e5e7eb; border-radius: 4px; padding: 2px 8px;
+}
+
+/* ── Body: findings area ── */
+.dm-body {
+  flex: 1;
+  display: flex;
+  gap: 0;
+  padding: 0;
+  min-height: 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* Findings area — full width (no rail) */
+.dm-findings {
+  flex: 1;
+  padding: 20px 32px 20px 32px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.dm-findings-title {
+  font-size: 11px; font-weight: 800; letter-spacing: 0.08em;
+  text-transform: uppercase; margin-bottom: 6px;
+  display: flex; align-items: center; gap: 10px;
+}
+.dm-insight-pill {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.04em;
+  padding: 2px 10px; border-radius: 99px;
+}
+.dm-divider {
+  height: 3px; border-radius: 2px; margin-bottom: 18px;
+  opacity: 0.25; width: 48px;
+}
+
+/* Bullet list — numbered, verbatim content. Does NOT flex-grow — watermark zone takes remaining space */
+.dm-bullets {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-direction: column; gap: 18px;
+  flex: 0 0 auto;
+}
+.dm-bullet {
+  display: flex; align-items: flex-start; gap: 14px;
+}
+.dm-bullet-num {
+  flex-shrink: 0;
+  width: 24px; height: 24px; border-radius: 50%;
+  color: #fff; font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 1px;
+  opacity: 0.9;
+}
+.dm-bullet-text {
+  flex: 1;
+  font-size: 13.5px; font-weight: 400; color: #1f2937;
+  line-height: 1.85; font-family: Georgia, serif;
+  word-wrap: break-word; overflow-wrap: break-word;
+}
+
+
+/* ── Legacy hw-list (kept for backend-generated reports) ─────────────────── */
 .hw-list { list-style: none; margin: 0 0 20px; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .hw-item {
   display: flex; flex-direction: column; gap: 8px;
@@ -1607,8 +1865,6 @@ import { firstValueFrom } from 'rxjs';
 }
 .hw-label { font-size: 11px; font-weight: 700; letter-spacing: 0.03em; text-transform: none; color: #92600a; }
 .hw-answer { font-size: 13.5px; font-weight: 500; color: #1f2937; line-height: 1.75; }
-
-/* WHO / WHAT / WHERE — numbered sub-list */
 .hw-sub-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .hw-sub-item { display: flex; align-items: flex-start; gap: 9px; }
 .hw-sub-num {
@@ -1618,20 +1874,10 @@ import { firstValueFrom } from 'rxjs';
   font-size: 10px; font-weight: 700; margin-top: 1px;
 }
 .hw-sub-text { font-size: 13px; font-weight: 500; color: #1f2937; line-height: 1.65; }
-
-/* WHEN — timing block */
 .hw-timing { display: flex; flex-direction: column; gap: 4px; }
-.hw-timing-window {
-  font-size: 15px; font-weight: 700; color: #1f2937; letter-spacing: 0.01em;
-}
-.hw-timing-peak {
-  font-size: 12.5px; font-weight: 600; color: #b45309;
-}
-.hw-timing-dur {
-  font-size: 11.5px; font-weight: 400; color: #6b7280;
-}
-
-/* HOW — redirect */
+.hw-timing-window { font-size: 15px; font-weight: 700; color: #1f2937; letter-spacing: 0.01em; }
+.hw-timing-peak { font-size: 12.5px; font-weight: 600; color: #b45309; }
+.hw-timing-dur { font-size: 11.5px; font-weight: 400; color: #6b7280; }
 .hw-redirect { font-size: 13.5px; font-weight: 600; color: #6d28d9; }
 
 /* ── Consolidated Remedies Page — 2-col grid, fits one A4 page ─ */
@@ -1839,44 +2085,55 @@ export class ReportPage implements OnInit {
   }
 
   // ── Sentiment colourizer ────────────────────────────────────────────────────
+  // ── Color Theory Emotion Lexicon ────────────────────────────────────────────
+  // Each semantic category maps to a color chosen for its cognitive/emotional effect:
+  //   prosperity  → Emerald green   (#059669) — growth, money, nature, go-signal
+  //   love        → Rose pink       (#db2777) — warmth, romance, heart connection
+  //   warning     → Amber           (#d97706) — caution, patience, slow-down signal
+  //   planetary   → Teal/Cyan       (#0891b2) — cosmic, vast, scientific precision
+  //   strength    → Cobalt blue     (#2563eb) — authority, confidence, stability
+  //   spiritual   → Deep violet     (#7c3aed) — mystery, transcendence, higher mind
+  //   timing      → Forest green    (#15803d) — momentum, forward motion, progress
+  //   wisdom      → Warm gold       (#b45309) — ancient knowledge, earned insight
+  //   health      → Teal            (#0e7490) — vitality, clarity, clean energy
+  //   action      → Burnt orange    (#c2410c) — urgency, initiative, drive
+  //   karmic      → Indigo          (#4338ca) — depth, past-life, soul-contract weight
   private readonly LEXICON: Record<string, string> = {
-    favored:'auspicious', favorable:'auspicious', auspicious:'auspicious',
-    prosperity:'auspicious', abundant:'auspicious', abundance:'auspicious',
-    growth:'auspicious', flourish:'auspicious', success:'auspicious',
-    blessed:'auspicious', fortune:'auspicious', fortunate:'auspicious',
-    rewarded:'auspicious', gains:'auspicious', positive:'auspicious',
-    indicated:'auspicious', supported:'auspicious', benefits:'auspicious',
-    opportunities:'auspicious', opportunity:'auspicious', expand:'auspicious',
-    wisdom:'auspicious', clarity:'auspicious', fulfillment:'auspicious',
-    achievement:'auspicious', accomplish:'auspicious', joy:'auspicious',
-    healing:'auspicious', renewal:'auspicious', optimism:'auspicious',
-    harmonious:'auspicious', harmony:'auspicious', blessings:'auspicious',
-    marriage:'love', partner:'love', partnership:'love', relationship:'love',
-    love:'love', romantic:'love', bond:'love', commitment:'love',
-    spouse:'love', companion:'love', soulmate:'love', union:'love',
-    nurturing:'love', affection:'love', devoted:'love', emotional:'love',
-    heart:'love', warmth:'love', caring:'love', loyal:'love', connection:'love',
+    // ── PROSPERITY — only truly auspicious astrology terms ──
+    auspicious:'prosperity', abundance:'prosperity', gains:'prosperity',
+    // ── LOVE — only relationship/marriage specific terms ──
+    marriage:'love', spouse:'love', soulmate:'love',
+    // ── CAUTION — only genuine warnings ──
+    retrograde:'warning', debilitated:'warning', afflicted:'warning',
+    // ── PLANETARY — proper nouns only (planets, systems, technical terms) ──
     lagna:'planetary', ascendant:'planetary', nakshatra:'planetary',
     dasha:'planetary', mahadasha:'planetary', antardasha:'planetary',
     venus:'planetary', jupiter:'planetary', saturn:'planetary',
-    mars:'planetary', mercury:'planetary', moon:'planetary',
-    rahu:'planetary', ketu:'planetary', sun:'planetary',
-    vedic:'planetary', transit:'planetary', yoga:'planetary',
-    strength:'strength', strong:'strength', courage:'strength',
-    confident:'strength', resilience:'strength', determined:'strength',
-    powerful:'strength', leadership:'strength', ambitious:'strength',
-    spiritual:'spiritual', spiritually:'spiritual', inner:'spiritual',
-    soul:'spiritual', karma:'spiritual', divine:'spiritual', sacred:'spiritual',
-    intuition:'spiritual', meditation:'spiritual', mantra:'spiritual',
-    dharma:'spiritual', consciousness:'spiritual', awakening:'spiritual',
-    timing:'timing', period:'timing', cycle:'timing', phase:'timing',
-    window:'timing', year:'timing', years:'timing', shortly:'timing',
-    delay:'caution', patience:'caution', caution:'caution', challenge:'caution',
-    obstacle:'caution', reflection:'caution', karmic:'caution', careful:'caution',
+    mars:'planetary', mercury:'planetary', rahu:'planetary', ketu:'planetary',
+    vedic:'planetary', exalted:'planetary', combustion:'planetary',
+    // ── SPIRITUAL — only rare spiritual/Sanskrit terms ──
+    mantra:'spiritual', dharma:'spiritual', moksha:'spiritual',
+    // ── KARMIC — rare terms only ──
+    karma:'karmic', karmic:'karmic',
+    // ── ACTION / INITIATIVE (burnt orange → urgency, drive) ──
+    action:'action', initiative:'action', seize:'action', pursue:'action',
+    act:'action', decisive:'action', move:'action', launch:'action',
   };
   private readonly COLORS: Record<string, string> = {
-    auspicious: '#b45309', love: '#be185d', planetary: '#0e7490',
-    strength: '#1d4ed8', spiritual: '#6d28d9', timing: '#047857', caution: '#7c3aed',
+    prosperity: '#d4af37',  // light gold — growth, abundance
+    love:       '#d4af37',  // light gold — heart, warmth
+    warning:    '#92600a',  // dark gold  — caution
+    planetary:  '#d4af37',  // light gold — cosmic
+    strength:   '#b8962e',  // mid gold   — authority
+    spiritual:  '#d4af37',  // light gold — transcendence
+    timing:     '#b8962e',  // mid gold   — momentum
+    wisdom:     '#92600a',  // dark gold  — ancient knowledge
+    health:     '#b8962e',  // mid gold   — vitality
+    karmic:     '#92600a',  // dark gold  — depth
+    action:     '#d4af37',  // light gold — drive
+    // legacy alias kept for colorize()
+    auspicious: '#d4af37',
+    caution:    '#92600a',
   };
 
   // Maps color names (from remedy data) to actual CSS hex values for swatches
@@ -1937,11 +2194,132 @@ export class ReportPage implements OnInit {
       if (!trimmed) return token;
       const stripped = trimmed.replace(/^[^a-zA-Z]+|[^a-zA-Z]+$/g, '').toLowerCase();
       const cat = this.LEXICON[stripped];
-      if (cat) {
-        return token.replace(trimmed, `<span style="color:${this.COLORS[cat]};font-weight:600;">${trimmed}</span>`);
+      if (cat && this.COLORS[cat]) {
+        return token.replace(trimmed,
+          `<span style="color:${this.COLORS[cat]};font-weight:600;">${trimmed}</span>`);
       }
       return token;
     }).join('');
+  }
+
+  // ── Domain-summary visual helpers ────────────────────────────────────────
+
+  private readonly DS_DOMAIN_COLORS: Record<string, { accent: string; bg: string; sub: string }> = {
+    astrology:  { accent: '#d4af37', bg: 'rgba(212,175,55,0.06)', sub: 'Vedic · KP · Western' },
+    numerology: { accent: '#d4af37', bg: 'rgba(212,175,55,0.06)', sub: 'Indian · Chaldean · Pythagorean' },
+    palmistry:  { accent: '#d4af37', bg: 'rgba(212,175,55,0.06)', sub: 'Hand Lines · Shape · Mounts' },
+    tarot:      { accent: '#d4af37', bg: 'rgba(212,175,55,0.06)', sub: 'Card Spread · Guidance' },
+    vastu:      { accent: '#d4af37', bg: 'rgba(212,175,55,0.06)', sub: 'Zones · Energy · Corrections' },
+  };
+
+  private readonly INTENT_HIGHLIGHT: Record<string, string> = {
+    marriage:     '#d4af37',
+    love:         '#d4af37',
+    career:       '#b8962e',
+    finance:      '#d4af37',
+    health:       '#b8962e',
+    spirituality: '#d4af37',
+    education:    '#b8962e',
+    travel:       '#d4af37',
+    children:     '#d4af37',
+    general:      '#92600a',
+  };
+
+  // Key phrases per intent — these get highlighted in the intent accent color
+  private readonly INTENT_KEYWORDS: Record<string, string[]> = {
+    marriage:     ['marriage','partner','spouse','relationship','union','commitment','bond','wedding','love','karmic','soul connection','7th house','venus','shukra'],
+    career:       ['career','promotion','profession','success','leadership','authority','10th house','saturn','sun','recognition','advancement'],
+    finance:      ['wealth','finance','income','money','prosperity','jupiter','gains','investment','abundance','2nd house','11th house'],
+    health:       ['health','vitality','healing','6th house','mars','saturn','body','energy','recovery','wellness'],
+    spirituality: ['spiritual','soul','karma','dharma','divine','meditation','mantra','inner','consciousness','ketu','12th house'],
+    education:    ['education','knowledge','learning','mercury','5th house','wisdom','study','intelligence','academic'],
+    travel:       ['travel','foreign','relocation','rahu','12th house','abroad','journey','move','destination'],
+    children:     ['children','child','family','5th house','jupiter','motherhood','fatherhood','pregnancy','birth'],
+    general:      [],
+  };
+
+  dsAccent(domain: string): string {
+    return this.DS_DOMAIN_COLORS[domain]?.accent ?? '#d4af37';
+  }
+  dsHeaderBg(domain: string): string {
+    return this.DS_DOMAIN_COLORS[domain]?.bg ?? 'rgba(212,175,55,0.06)';
+  }
+  dsIconBg(domain: string): string {
+    const a = this.DS_DOMAIN_COLORS[domain]?.accent ?? '#d4af37';
+    return a + '22'; // 13% opacity tint of the accent colour
+  }
+  dsDomainSub(domain: string): string {
+    return this.DS_DOMAIN_COLORS[domain]?.sub ?? '';
+  }
+
+  // ── Per-category highlight style (color theory) ─────────────────────────────
+  // Each category gets a background tint derived from its color's emotional role:
+  //   prosperity → green tint  (growth, go-signal)
+  //   love       → pink tint   (warmth, softness)
+  //   warning    → amber tint  (caution, visibility)
+  //   planetary  → cyan tint   (cosmic, precise)
+  //   strength   → blue tint   (solid, trust)
+  //   spiritual  → violet tint (mystery, depth)
+  //   timing     → green tint  (forward, momentum)
+  //   wisdom     → gold tint   (warmth, earned)
+  //   health     → teal tint   (fresh, vital)
+  //   karmic     → indigo tint (weight, depth)
+  //   action     → orange tint (urgency, energy)
+  // Use <span> not <mark> — <mark> has browser-default yellow background that overrides in print.
+  // All highlights use explicit inline color so print renders correctly without relying on alpha.
+  private _catStyle(cat: string): string {
+    const c = this.COLORS[cat];
+    if (!c) return '';
+    return `color:${c};font-weight:600;`;
+  }
+
+  private _intentStyle(color: string): string {
+    return `color:${color};font-weight:700;`;
+  }
+
+  highlightBullet(text: string, intent: string, domain: string): string {
+    if (!text) return '';
+    const intentColor = this.INTENT_HIGHLIGHT[intent] ?? this.INTENT_HIGHLIGHT['general'];
+    const keywords = [...(this.INTENT_KEYWORDS[intent] ?? [])];
+    // Build a fast lookup set of single-word intent keywords (lowercase)
+    const singleKwSet = new Set(keywords.filter(k => !k.includes(' ')).map(k => k.toLowerCase()));
+
+    // Work on plain text only — split into tokens, tag each token exactly once.
+    // NEVER run regex on already-tagged HTML — this caused "0 2px;">wealth" corruption.
+    const tokens = text.split(/(\s+)/);
+    const result = tokens.map(token => {
+      if (/^\s+$/.test(token)) return token;
+
+      const plain = token.replace(/^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$/g, '');
+      const low   = plain.toLowerCase();
+      if (!plain) return token;
+
+      // 1. Single-word intent keywords → intent accent color, underline style (bold signal)
+      if (singleKwSet.has(low)) {
+        return token.replace(plain,
+          `<span style="${this._intentStyle(intentColor)}">${plain}</span>`);
+      }
+
+      // 2. Color-theory lexicon match → per-category semantic color
+      const cat = this.LEXICON[low];
+      if (cat && this.COLORS[cat]) {
+        return token.replace(plain,
+          `<span style="${this._catStyle(cat)}">${plain}</span>`);
+      }
+
+      return token;
+    });
+
+    let out = result.join('');
+
+    // 3. Phrase-level intent keywords (multi-word) — one final pass on the assembled string.
+    for (const kw of keywords.filter(k => k.includes(' '))) {
+      const rx = new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+      out = out.replace(rx,
+        `<span style="${this._intentStyle(intentColor)}">$&</span>`);
+    }
+
+    return out;
   }
 
   getNarrative(si: number): string {
@@ -2563,6 +2941,16 @@ export class ReportPage implements OnInit {
           print-color-adjust: exact !important;
           box-sizing: border-box !important;
         }
+        /* Ensure inline-colored spans (color-theory highlights) render in print */
+        span[style] {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        /* Kill browser default yellow mark background — we use span[style] for highlights now */
+        mark {
+          background: transparent !important;
+          color: inherit !important;
+        }
 
         /* Hide all browser chrome + app UI */
         .no-print, .toolbar, .translate-banner, .translate-error-banner,
@@ -2681,6 +3069,18 @@ export class ReportPage implements OnInit {
            LETTER PAGE (page 2)
         ════════════════════════════════════════════════════ */
         .page-letter { background: #fff !important; }
+        .letter-watermark-zone {
+          flex: 1 !important; display: flex !important;
+          align-items: center !important; justify-content: center !important;
+          width: 100% !important; min-height: 60px !important;
+          pointer-events: none !important;
+        }
+        .letter-watermark {
+          width: 90% !important; max-width: 520px !important; opacity: 0.20 !important;
+          object-fit: contain !important; display: block !important;
+          -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+        }
+        .letter-page-body { flex: 0 0 auto !important; }
         .letter-page-body { display: block !important; overflow: visible !important; padding: 0 !important; }
         .letter-inner { width: 100% !important; max-width: 100% !important; margin: 0 !important; }
         .letter-brand-row {
@@ -2922,6 +3322,139 @@ export class ReportPage implements OnInit {
           margin: 0 0 2px !important;
           break-after: avoid !important; page-break-after: avoid !important;
         }
+
+        /* ── Domain summary groups (print) ── */
+        .domain-summary-list {
+          display: block !important; margin: 4px 0 0 !important; padding: 0 !important;
+        }
+        .ds-group {
+          display: block !important;
+          break-inside: avoid !important; page-break-inside: avoid !important;
+          margin-bottom: 10px !important;
+          border: 1px solid rgba(0,0,0,0.1) !important;
+          border-left-width: 4px !important;
+          border-radius: 7px !important;
+          overflow: hidden !important;
+        }
+        /* ── DOMAIN MASTER TEMPLATE — print rules ── */
+        .page-domain-master {
+          page-break-before: always !important;
+          break-before: page !important;
+          display: flex !important;
+          flex-direction: column !important;
+          background: #fff !important;
+          padding: 0 !important;
+          width: 210mm !important;
+          height: auto !important;
+          min-height: 0 !important;
+          max-height: none !important;
+          overflow: visible !important;
+        }
+        .dm-watermark-zone {
+          flex: 1 !important; display: flex !important;
+          align-items: center !important; justify-content: center !important;
+          width: 100% !important; min-height: 50px !important;
+          pointer-events: none !important; border: none !important;
+        }
+        .dm-watermark {
+          width: 90% !important; max-width: 520px !important; opacity: 0.20 !important;
+          object-fit: contain !important; display: block !important;
+          -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+        }
+        .dm-top-band {
+          display: flex !important; align-items: center !important;
+          justify-content: space-between !important;
+          padding: 10px 18px !important;
+          flex-shrink: 0 !important;
+          background: #fff !important;
+          border-bottom: 2px solid #d4af37 !important;
+          break-after: avoid !important; page-break-after: avoid !important;
+          -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+          position: relative !important; z-index: 1 !important;
+        }
+        .dm-top-left { display: flex !important; align-items: center !important; gap: 8px !important; }
+        .dm-domain-icon { font-size: 18px !important; line-height: 1 !important; }
+        .dm-domain-info { display: flex !important; flex-direction: column !important; gap: 1px !important; }
+        .dm-domain-label { font-size: 13px !important; font-weight: 800 !important; color: #d4af37 !important; }
+        .dm-domain-traditions { font-size: 8px !important; color: #6b7280 !important; }
+        .dm-top-right { display: flex !important; flex-direction: column !important; align-items: flex-end !important; gap: 2px !important; }
+        .dm-logo { width: 56px !important; height: auto !important; display: block !important; opacity: 0.9 !important; }
+        .dm-user-date { font-size: 7px !important; color: #9ca3af !important; letter-spacing: 0.06em !important; }
+        .dm-q-strip {
+          display: flex !important; align-items: center !important; gap: 8px !important;
+          padding: 9px 18px !important;
+          border-left-width: 5px !important; border-left-style: solid !important;
+          background: #fafaf8 !important;
+          flex-shrink: 0 !important;
+          break-after: avoid !important; page-break-after: avoid !important;
+          position: relative !important; z-index: 1 !important;
+        }
+        .dm-q-num {
+          flex-shrink: 0 !important; width: 22px !important; height: 22px !important;
+          border-radius: 50% !important; color: #fff !important;
+          font-size: 9px !important; font-weight: 800 !important;
+          display: flex !important; align-items: center !important; justify-content: center !important;
+          -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+        }
+        .dm-q-text { font-size: 12px !important; font-weight: 800 !important; color: #14100c !important; flex: 1 !important; line-height: 1.3 !important; }
+        .dm-cont-badge { font-size: 7px !important; padding: 1px 5px !important; border: 1px solid #e5e7eb !important; border-radius: 3px !important; color: #9ca3af !important; }
+        .dm-body {
+          display: flex !important; flex: 1 !important;
+          height: auto !important; overflow: visible !important;
+          position: relative !important; z-index: 1 !important;
+        }
+        .dm-findings {
+          flex: 1 !important; padding: 12px 18px !important;
+          display: flex !important; flex-direction: column !important;
+          height: auto !important; overflow: visible !important;
+        }
+        .dm-findings-title {
+          font-size: 8px !important; font-weight: 800 !important; letter-spacing: 0.07em !important;
+          text-transform: uppercase !important; margin-bottom: 4px !important;
+          display: flex !important; align-items: center !important; gap: 6px !important;
+          break-after: avoid !important; page-break-after: avoid !important;
+        }
+        .dm-insight-pill {
+          font-size: 7px !important; padding: 1px 6px !important;
+          border-radius: 99px !important; font-weight: 700 !important;
+          -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+        }
+        .dm-divider {
+          height: 2px !important; border-radius: 1px !important;
+          margin-bottom: 10px !important; width: 36px !important; display: block !important;
+          -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+        }
+        .dm-bullets {
+          display: flex !important; flex-direction: column !important;
+          list-style: none !important; flex: 0 0 auto !important;
+          margin: 0 !important; padding: 0 !important; gap: 10px !important;
+        }
+        .dm-bullet {
+          display: flex !important; align-items: flex-start !important; gap: 8px !important;
+          margin-bottom: 10px !important;
+          break-inside: auto !important; page-break-inside: auto !important;
+        }
+        .dm-bullet-num {
+          flex-shrink: 0 !important; width: 16px !important; height: 16px !important;
+          border-radius: 50% !important; color: #fff !important;
+          font-size: 8px !important; font-weight: 700 !important;
+          display: flex !important; align-items: center !important; justify-content: center !important;
+          margin-top: 2px !important;
+          -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+        }
+        .dm-bullet-text {
+          flex: 1 !important; font-size: 9.5px !important; font-weight: 400 !important;
+          color: #1f2937 !important; line-height: 1.7 !important;
+          font-family: Georgia, serif !important;
+          word-wrap: break-word !important; overflow-wrap: break-word !important;
+        }
+
+        /* Legacy ds-* classes (kept for any remaining references) */
+        .ds-bullet::before {
+          content: '✦' !important; position: absolute !important; left: 0 !important; top: 3px !important;
+          color: #d4af37 !important; font-size: 6px !important;
+        }
+        .hl-intent { border-radius: 2px !important; padding: 0 2px !important; }
 
         /* ── hw bullet list — flows across pages, cards stay intact ── */
         .hw-list {

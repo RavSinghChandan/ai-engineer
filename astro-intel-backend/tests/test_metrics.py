@@ -179,19 +179,16 @@ class TestMetricsApiEndpoint:
 
     @pytest.fixture(autouse=True)
     def _seed_auth(self):
-        import time
         import auth.store as auth_store
-        from auth.models import APIKey, Role, Tenant
-        _key  = "sk-metrics-test-admin"
-        _tid  = "tenant_metrics_test"
-        auth_store._tenants[_tid] = Tenant(
-            tenant_id=_tid, name="Metrics Test Tenant",
-            is_active=True, created_at=time.time(),
-        )
-        auth_store._api_keys[_key] = APIKey(
-            key=_key, tenant_id=_tid, role=Role.ADMIN,
-            description="metrics test key", is_active=True, created_at=time.time(),
-        )
+        from auth.models import Role
+        _key = "sk-metrics-test-admin"
+        auth_store.clear_for_tests()
+        t = auth_store.create_tenant("Metrics Test Tenant")
+        auth_store.create_api_key(t.tenant_id, Role.ADMIN, "metrics test key")
+        from database import get_conn
+        conn = get_conn()
+        conn.execute("UPDATE api_keys SET key=? WHERE tenant_id=?", (_key, t.tenant_id))
+        conn.commit(); conn.close()
         self._admin_headers = {"X-API-Key": _key}
 
     def test_metrics_endpoint_returns_200(self):

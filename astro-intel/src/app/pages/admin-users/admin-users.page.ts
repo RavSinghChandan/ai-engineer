@@ -816,7 +816,14 @@ export class AdminUsersPage implements OnInit {
       this.leads.set(leads ?? []);
       this.newLeadCount.set((leads ?? []).filter((l: LeadRow) => l.status === 'submitted').length);
     } catch (e: any) {
-      this.error.set(e?.error?.detail ?? 'Failed to load leads.');
+      const status = e?.status;
+      if (status === 0) {
+        this.error.set('Cannot reach backend — make sure the server is running on port 8080.');
+      } else if (status === 401) {
+        this.error.set('Session expired. Please log in again.');
+      } else {
+        this.error.set(e?.error?.detail ?? 'Failed to load leads.');
+      }
     }
 
     // Only SUPERADMIN can see all tenants + all keys + all users
@@ -831,7 +838,14 @@ export class AdminUsersPage implements OnInit {
         this.allKeys.set(keys ?? []);
         this.userList.set(users ?? []);
       } catch (e: any) {
-        this.error.set(e?.error?.detail ?? 'Failed to load tenant data.');
+        const status = e?.status;
+        if (status === 0) {
+          this.error.set('Cannot reach backend — make sure the server is running on port 8080.');
+        } else if (status === 401) {
+          this.error.set('Session expired. Please log in again.');
+        } else {
+          this.error.set(e?.error?.detail ?? 'Failed to load tenant data.');
+        }
       }
     }
 

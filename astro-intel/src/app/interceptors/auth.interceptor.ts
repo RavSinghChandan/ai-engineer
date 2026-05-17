@@ -7,9 +7,15 @@ export const authInterceptor: HttpInterceptorFn = (
   req: HttpRequest<unknown>,
   next: HttpHandlerFn
 ) => {
-  const auth  = inject(AuthService);
-  const token = auth.getToken();
+  const auth = inject(AuthService);
 
+  // Proactively logout if token is expired before sending the request
+  if (auth.getToken() && !auth.isLoggedIn()) {
+    auth.logout();
+    return throwError(() => new Error('Session expired. Please log in again.'));
+  }
+
+  const token = auth.getToken();
   if (token) {
     req = req.clone({
       setHeaders: { Authorization: `Bearer ${token}` },

@@ -21,10 +21,12 @@ from main import app
 client = TestClient(app)
 
 # ── Auth constants ────────────────────────────────────────────────────────────
-_TEST_ADMIN_KEY    = "sk-test-admin-key-api"
-_TEST_TENANT_ID    = "tenant_test_api"
+_TEST_ADMIN_KEY      = "sk-test-admin-key-api"
+_TEST_SUPERADMIN_KEY = "sk-test-superadmin-key-api"
+_TEST_TENANT_ID      = "tenant_test_api"
 
-ADMIN_HEADERS = {"X-API-Key": _TEST_ADMIN_KEY}
+ADMIN_HEADERS      = {"X-API-Key": _TEST_ADMIN_KEY}
+SUPERADMIN_HEADERS = {"X-API-Key": _TEST_SUPERADMIN_KEY}
 
 VALID_PROFILE = {
     "full_name": "Varun Sharma",
@@ -49,23 +51,31 @@ VALID_RUN_PAYLOAD = {
 def reset_cache():
     # ── Seed auth store so protected endpoints accept our test key ────────────
     import auth.store as auth_store
-    from auth.models import APIKey, Role, Tenant
-    auth_store._tenants[_TEST_TENANT_ID] = Tenant(
-        tenant_id=_TEST_TENANT_ID, name="Test API Tenant",
-        is_active=True, created_at=time.time(),
-    )
-    auth_store._api_keys[_TEST_ADMIN_KEY] = APIKey(
-        key=_TEST_ADMIN_KEY, tenant_id=_TEST_TENANT_ID,
-        role=Role.ADMIN, description="test admin key",
-        is_active=True, created_at=time.time(),
-    )
+    from auth.models import Role
+    from database import get_conn
+    auth_store.clear_for_tests()
+    # Master tenant for superadmin
+    conn = get_conn()
+    conn.execute("INSERT OR IGNORE INTO tenants (tenant_id,name,is_active,created_at) VALUES (?,?,1,?)",
+                 ("tenant_master_api","Master",__import__("time").time()))
+    conn.execute("INSERT OR IGNORE INTO api_keys (key,tenant_id,role,description,is_active,created_at) VALUES (?,?,?,?,1,?)",
+                 (_TEST_SUPERADMIN_KEY,"tenant_master_api","superadmin","test superadmin",__import__("time").time()))
+    conn.commit(); conn.close()
+    # Test tenant for admin
+    t = auth_store.create_tenant("Test API Tenant")
+    auth_store.create_api_key(t.tenant_id, Role.ADMIN, "test admin key")
+    conn = get_conn()
+    conn.execute("UPDATE api_keys SET key=? WHERE tenant_id=? AND role='admin'", (_TEST_ADMIN_KEY, t.tenant_id))
+    conn.commit(); conn.close()
     # ── Clear cache ───────────────────────────────────────────────────────────
     cache_store.clear()
     cache_store._hits = 0
     cache_store._misses = 0
+    from guardrails.production import rate_limiter
+    rate_limiter._windows.clear()
     yield
     cache_store.clear()
-    # leave auth keys in place (harmless in-memory)
+    rate_limiter._windows.clear()
 
 
 # ── Health & Root ─────────────────────────────────────────────────────────────
@@ -159,11 +169,11 @@ class TestGuardrailEndpoints:
             assert g in data, f"Missing guardrail key: {g}"
 
     def test_circuit_breaker_reset_returns_200(self):
-        resp = client.post("/guardrails/circuit-breaker/reset", headers=ADMIN_HEADERS)
+        resp = client.post("/guardrails/circuit-breaker/reset", headers=SUPERADMIN_HEADERS)
         assert resp.status_code == 200
 
     def test_circuit_breaker_reset_state_is_closed(self):
-        resp = client.post("/guardrails/circuit-breaker/reset", headers=ADMIN_HEADERS)
+        resp = client.post("/guardrails/circuit-breaker/reset", headers=SUPERADMIN_HEADERS)
         data = resp.json()
         assert data["state"] == "closed"
 

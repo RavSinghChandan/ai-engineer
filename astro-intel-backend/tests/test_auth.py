@@ -25,13 +25,47 @@ from auth.dependencies import create_access_token, verify_token
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
+def _insert_tenant_key(tenant_id, tenant_name, key, role):
+    """Insert a tenant + api_key directly into the DB with specific IDs."""
+    from database import get_conn
+    conn = get_conn()
+    try:
+        conn.execute(
+            "INSERT OR IGNORE INTO tenants (tenant_id, name, is_active, created_at) VALUES (?,?,1,?)",
+            (tenant_id, tenant_name, time.time())
+        )
+        conn.execute(
+            "INSERT OR IGNORE INTO api_keys (key, tenant_id, role, description, is_active, created_at) VALUES (?,?,?,?,1,?)",
+            (key, tenant_id, role.value, "test", time.time())
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+def _set_key_active(key, active: bool):
+    from database import get_conn
+    conn = get_conn()
+    try:
+        conn.execute("UPDATE api_keys SET is_active=? WHERE key=?", (1 if active else 0, key))
+        conn.commit()
+    finally:
+        conn.close()
+
+def _set_tenant_active(tenant_id, active: bool):
+    from database import get_conn
+    conn = get_conn()
+    try:
+        conn.execute("UPDATE tenants SET is_active=? WHERE tenant_id=?", (1 if active else 0, tenant_id))
+        conn.commit()
+    finally:
+        conn.close()
+
 @pytest.fixture(autouse=True)
 def reset_auth_store():
     """Reset all auth state before every test — no cross-test contamination."""
     store.clear_for_tests()
     # Bootstrap a clean superadmin
-    store._tenants["tenant_master"] = _make_tenant("tenant_master", "Master")
-    store._api_keys[SUPERADMIN_KEY] = _make_key(SUPERADMIN_KEY, "tenant_master", Role.SUPERADMIN)
+    _insert_tenant_key("tenant_master", "Master", SUPERADMIN_KEY, Role.SUPERADMIN)
     yield
     store.clear_for_tests()
 
@@ -66,9 +100,8 @@ def _make_key(key, tid, role):
 
 def _seed_tenant_with_keys():
     """Seed a test tenant with both ADMIN and USER keys."""
-    store._tenants[TENANT_ID] = _make_tenant(TENANT_ID, "Test Corp")
-    store._api_keys[ADMIN_KEY] = _make_key(ADMIN_KEY, TENANT_ID, Role.ADMIN)
-    store._api_keys[USER_KEY]  = _make_key(USER_KEY,  TENANT_ID, Role.USER)
+    _insert_tenant_key(TENANT_ID, "Test Corp", ADMIN_KEY, Role.ADMIN)
+    _insert_tenant_key(TENANT_ID, "Test Corp", USER_KEY,  Role.USER)
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -120,12 +153,12 @@ class TestAuthStore:
 
     def test_lookup_inactive_key_returns_none(self):
         _seed_tenant_with_keys()
-        store._api_keys[ADMIN_KEY].is_active = False
+        _set_key_active(ADMIN_KEY, False)
         assert store.lookup_key(ADMIN_KEY) is None
 
     def test_lookup_key_for_inactive_tenant_returns_none(self):
         _seed_tenant_with_keys()
-        store._tenants[TENANT_ID].is_active = False
+        _set_tenant_active(TENANT_ID, False)
         assert store.lookup_key(ADMIN_KEY) is None
 
     def test_create_tenant(self):

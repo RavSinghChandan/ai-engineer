@@ -197,9 +197,19 @@ def migrate_from_json() -> None:
     Uses INSERT OR IGNORE (SQLite) / ON CONFLICT DO NOTHING (PostgreSQL).
     Safe to run on every startup — duplicate rows are skipped.
     """
+    _seed_master_tenant()
     _migrate_auth_keys()
     _migrate_users()
     _migrate_leads()
+
+
+def _seed_master_tenant() -> None:
+    """Ensure tenant_master always exists — required for superadmin user."""
+    with _tx() as conn:
+        _insert_or_ignore(conn, "tenants",
+            ["tenant_id", "name", "is_active", "created_at"],
+            ("tenant_master", "AstroIntel Master", 1 if not _USE_PG else True, time.time()),
+        )
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

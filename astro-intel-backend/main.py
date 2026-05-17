@@ -138,4 +138,11 @@ async def root():
         "version": "1.0.0",
         "docs":    "/docs",
         "health":  "/health",
+        "endpoints": {
+            "run_analysis":    "/analysis/run",
+            "cache_stats":     "/cache/stats",
+            "guardrail_stats": "/guardrails/stats",
+            "metrics":         "/metrics",
+            "health":          "/health",
+        },
     }

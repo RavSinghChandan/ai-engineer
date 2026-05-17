@@ -36,14 +36,57 @@ export interface NormalizedQuestion {
 }
 
 // ── Enterprise Admin Review ────────────────────────────────────────────────
+export interface InsightDetail {
+  // Numerology
+  core_numbers?: Record<string, number | null>;
+  lucky_numbers?: number[];
+  lucky_colors?: string[];
+  strengths?: string[];
+  weaknesses?: string[];
+  traits?: string[];
+  // Palmistry
+  focus_insight?: string;
+  hand_shape?: string;
+  lines?: Record<string, string>;
+  career_notes?: string[];
+  health_notes?: string[];
+  relationship_notes?: string[];
+  // Tarot
+  cards?: Array<{ position: string; name: string; orientation: string; keywords: string[]; meaning: string }>;
+  spread?: string;
+  overall_theme?: string;
+  guidance?: string[];
+  // Vastu
+  overall_energy?: string;
+  priority_zones?: string[];
+  zone_analysis?: Record<string, string>;
+  corrections?: string[];
+  colors_recommended?: string[];
+  // Astrology
+  predictions?: string[];
+  challenges?: string[];
+  doshas?: string[];
+  current_dasha?: string;
+  dasha_planet?: string;
+  dasha_periods?: Array<{ planet: string; duration: string; from: string; to: string }>;
+  yogas?: string[];
+  yogas_rich?: Array<{ name: string; description: string }>;
+  house_analysis?: Record<string, string>;
+  planetary_positions?: Record<string, string>;
+  cusp_analysis?: Record<string, string>;
+  [key: string]: any;
+}
+
 export interface AdminInsight {
   id: string;
   content: string;
   confidence: Confidence;
   domains: string[];
+  sub_agent?: string;
   is_common: boolean;
   editable: boolean;
   edited?: boolean;
+  detail?: InsightDetail;
 }
 
 export interface AdminQuestion {
@@ -93,12 +136,21 @@ export interface StructuredSummary {
   remedy_bullets: RemedyBullets;
 }
 
+export interface DomainSummaryGroup {
+  domain: string;
+  label: string;
+  icon: string;
+  bullets: string[];
+  intent?: string;
+}
+
 export interface ReportSection {
   question: string;
   intent: string;
   narrative: string;
   simple_narrative?: string;
   structured_summary?: StructuredSummary;
+  domain_summary?: DomainSummaryGroup[];
   insights: ReportInsight[];
   domain_breakdown?: Record<string, string[]>;
   prompts?: Record<string, any>;
@@ -120,6 +172,8 @@ export interface FinalReport {
   total_insights_approved?: number;
   total_insights_rejected?: number;
   total_insights_reviewed?: number;
+  remedies?: any;
+  [key: string]: any;
 }
 
 // ── Raw Agent Outputs (for display) ───────────────────────────────────────

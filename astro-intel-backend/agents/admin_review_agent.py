@@ -75,7 +75,7 @@ def admin_review_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
             q_idx = question_consensus.index(qc) + 1
             raw_insights = qc.get("insights", [])
 
-            # Ensure stable IDs in format q{n}_i{n}
+            # Ensure stable IDs in format q{n}_i{n} — preserve sub_agent and detail from meta_agent
             formatted_insights = []
             for i, ins in enumerate(raw_insights):
                 formatted_insights.append({
@@ -83,6 +83,8 @@ def admin_review_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
                     "content":     ins["content"],
                     "confidence":  ins.get("confidence", "medium"),
                     "domains":     ins.get("domains", []),
+                    "sub_agent":   ins.get("sub_agent", ""),
+                    "detail":      ins.get("detail", {}),
                     "is_common":   ins.get("is_common", False),
                     "editable":    True,
                 })

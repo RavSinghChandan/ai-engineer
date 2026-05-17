@@ -2,7 +2,7 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import {
   SystemInput, AgentOutputs, AdminReview, AdminInsight, AdminQuestion,
-  FinalReport, Module, AgentStep, NormalizedQuestion, HwBullet
+  FinalReport, Module, AgentStep, NormalizedQuestion, HwBullet, DomainSummaryGroup
 } from '../models/astro.models';
 import { ApiService, RunResponse } from './api.service';
 
@@ -149,29 +149,19 @@ export class OrchestratorService {
     const review = this.adminReview();
     const hasEdits = review?.questions.some(q => q.insights.some(i => (i as any).edited));
 
+    // Always build locally so domain_summary (rich bullet groups) is present in the report.
+    // Fire the backend approve call in the background for logging only — do not use its report format.
     if (this.backendMode() === 'backend' && this.sessionId() && !hasEdits) {
-      try {
-        this._setStepStatus('report',   'running');
-        this._setStepStatus('simplify', 'running');
-        const res = await firstValueFrom(this.api.approveReport({
-          session_id:           this.sessionId(),
-          approved_insight_ids: approvedIds,
-          rejected_insight_ids: rejectedIds,
-          brand_name:           'Aura with Rav',
-        }));
-        this._setStepStatus('report',   'done');
-        this._setStepStatus('simplify', 'done');
-        const report = res.final_report as unknown as FinalReport;
-        if (report && (report.sections?.length || report.report_title)) {
-          this.finalReport.set(report);
-          this.englishReport.set(report);
-          return report;
-        }
-      } catch (e) {
-        this._setStepStatus('report',   'done');
-        this._setStepStatus('simplify', 'done');
-        console.warn('[orchestrator] Backend /approve failed, falling back to local:', e);
-      }
+      this._setStepStatus('report',   'running');
+      this._setStepStatus('simplify', 'running');
+      this.api.approveReport({
+        session_id:           this.sessionId(),
+        approved_insight_ids: approvedIds,
+        rejected_insight_ids: rejectedIds,
+        brand_name:           'Aura with Rav',
+      }).subscribe({ error: () => {} });
+      this._setStepStatus('report',   'done');
+      this._setStepStatus('simplify', 'done');
     }
 
     // Local fallback: build report from current adminReview (includes any edited content)
@@ -189,190 +179,54 @@ export class OrchestratorService {
           domain_breakdown[d].push(ins.content);
         }
       }
-      // Simple narrative: join approved contents ordered by confidence
-      const ordered = [
-        ...approved.filter(i => i.confidence === 'high'),
-        ...approved.filter(i => i.confidence === 'medium'),
-        ...approved.filter(i => !['high','medium'].includes(i.confidence)),
-      ];
-      const narrative = ordered.map(i => i.content.replace(/\.$/, '')).join('. ') + (ordered.length ? '.' : '');
-      // Build simple_narrative: deduplicate sentences, strip tradition prefixes
-      const PREFIXES = [
-        'From the Vedic perspective,', 'From the Indian Numerology perspective,',
-        'From the Chaldean Numerology perspective,', 'From the Pythagorean Numerology perspective,',
-        'From the KP system perspective,', 'From the Western astrology perspective,',
-        'In Western astrology,', 'The KP system analyses', 'The combined wisdom of',
-      ];
-      const stripPrefix = (s: string) => {
-        for (const p of PREFIXES) { if (s.startsWith(p)) { const r = s.slice(p.length).trim(); return r[0]?.toUpperCase() + r.slice(1); } }
-        return s;
-      };
-      const key = (s: string) => s.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim();
-      const dedup = (arr: string[]) => {
-        const seen: string[] = [];
-        return arr.filter(s => {
-          const k = key(s); const w = new Set(k.split(' '));
-          const dup = seen.some(sk => { const sw = new Set(sk.split(' ')); const inter = [...w].filter(x => sw.has(x)).length; return inter / Math.max(w.size, sw.size) > 0.75; });
-          if (!dup) seen.push(k); return !dup;
-        });
-      };
-      const allSents = ordered.flatMap(i => i.content.split(/(?<=[.!?])\s+/)).filter(Boolean);
-      const simplified = dedup(allSents.map(stripPrefix).filter(s => !s.startsWith('The combined wisdom')));
-      const simple_narrative = simplified.slice(0, 6).join('  ');
-
-      const INTENT_HABITS: Record<string, string[]> = {
-        marriage:    ['Practice active, judgment-free listening in all important conversations.','Express one genuine appreciation to your partner or loved ones daily.','Work on your own inner growth — a fulfilled individual brings more to a relationship.'],
-        career:      ['Begin each workday with 5 minutes of intention-setting.','Invest in one meaningful professional connection per week.','Dedicate focused, uninterrupted time to your most important task daily.'],
-        finance:     ['Track every expense for 30 days — awareness is the foundation of financial growth.','Set up automatic savings on the 1st of each month.','Pause 48 hours before making major financial decisions.'],
-        health:      ['Begin with 20 minutes of morning sunlight daily.','Aim for 7–8 hours of sleep — recovery is when transformation happens.','Walk 30 minutes daily.'],
-        spirituality:['Practice 10 minutes of silent sitting each morning before any screen.','Keep a spiritual journal — write reflections and gratitude nightly.','Spend time in nature weekly.'],
-        education:   ['Study in 50-minute focused blocks then take a 10-minute break.','Review notes within 24 hours of learning.','Maintain a regular sleep schedule during exam periods.'],
-        travel:      ['Begin travel planning 3–6 months in advance.','Keep travel documents organised and accessible.','Journal your travels — writing anchors experiences.'],
-        children:    ['Create consistent daily rituals with your child — predictability builds security.','Practice active, curious listening with children.','Read together daily — even 15 minutes deepens connection.'],
-        general:     ['Begin each morning with 10 minutes of mindful breathing.','Keep a gratitude journal — write 3 things you appreciate each evening.','Spend 20 minutes in natural sunlight daily.'],
+      // Build domain_summary: group approved insights by domain, split into clean sentence bullets
+      const DOMAIN_META: Record<string, { label: string; icon: string; order: number }> = {
+        astrology:  { label: 'Astrology',    icon: '★',  order: 1 },
+        numerology: { label: 'Numerology',   icon: '🔢', order: 2 },
+        palmistry:  { label: 'Palmistry',    icon: '✋', order: 3 },
+        tarot:      { label: 'Tarot',        icon: '🃏', order: 4 },
+        vastu:      { label: 'Vastu Shastra',icon: '🏠', order: 5 },
       };
 
-      // ── Build WHO/WHAT/WHERE as 3-point lists, WHEN as timing object, HOW as redirect ──
-      // This mirrors exactly what the backend simplify_agent produces.
-      // Intent × template maps — each must be completely different per intent.
-      const WHO_LABELS: Record<string, string> = {
-        marriage: 'Who is the right partner for you?', career: 'Who can help you grow professionally?',
-        finance: 'Who should you work with for financial decisions?', health: 'Who should you consult for your health?',
-        spirituality: 'Who or what can guide your spiritual growth?', education: 'Who can support your educational journey?',
-        travel: 'Who should you travel with or consult?', children: 'Who plays a key role in your family journey?',
-        general: 'Who are the key people in your journey right now?',
-      };
-      const WHAT_LABELS: Record<string, string> = {
-        marriage: 'What should you do to attract the right person?', career: 'What actions will advance your career?',
-        finance: 'What financial actions should you take?', health: 'What health actions are most important right now?',
-        spirituality: 'What spiritual practices should you adopt?', education: 'What steps should you take for education?',
-        travel: 'What travel or relocation steps should you take?', children: 'What steps should you take for family planning?',
-        general: 'What actions will create the most impact?',
-      };
-      const WHEN_LABELS: Record<string, string> = {
-        marriage: 'When is the best time to get married?', career: 'When is the best time to make a career move?',
-        finance: 'When is the best time to invest or build wealth?', health: 'When should you take action on your health?',
-        spirituality: 'When is the best time for spiritual practice?', education: 'When is the best time for exams or new courses?',
-        travel: 'When is the best time to travel or move?', children: 'When is the best time for family planning?',
-        general: 'When will the key changes take place?',
-      };
-      const WHERE_LABELS: Record<string, string> = {
-        marriage: 'Where will you most likely meet the right person?', career: 'Where should you focus your professional efforts?',
-        finance: 'Where should your financial energy be directed?', health: 'Where in the body does your chart show sensitivity?',
-        spirituality: 'Where should you create your spiritual space?', education: 'Where should you focus your learning efforts?',
-        travel: 'Where are you most likely to succeed or thrive?', children: 'Where should you focus to strengthen family bonds?',
-        general: 'Where should you direct your energy?',
-      };
-      const HOW_LABELS: Record<string, string> = {
-        marriage: 'How can you prepare yourself for a meaningful relationship?', career: 'How can you make the most of this career phase?',
-        finance: 'How can you build lasting financial stability?', health: 'How can you strengthen your health and vitality?',
-        spirituality: 'How can you deepen your spiritual connection?', education: 'How can you improve your study and retention?',
-        travel: 'How should you prepare for the journey ahead?', children: 'How can you create a nurturing environment?',
-        general: 'How can you make the most of this phase?',
-      };
+      // Each approved insight's full content goes in as-is — one bullet per insight.
+      // Zero summarization, zero sentence-splitting, zero deduplication.
+      // The user approved these in review; they go to PDF exactly as written.
+      const domainMap: Record<string, string[]> = {};
+      const insightsToGroup = approved.length > 0 ? approved : q.insights.map(i => ({ ...i, approved: true }));
 
-      // WHO — 3 specific person types per intent
-      const WHO_POINTS: Record<string, string[]> = {
-        marriage:     ['A person with stable values, long-term vision, and genuine emotional maturity', 'Someone introduced through family elders, a trusted community, or a spiritual network', 'A partner whose life direction complements yours — not identical, but deeply compatible'],
-        career:       ['A senior decision-maker who can sponsor your visibility at the next level', 'A mentor or advisor 10+ years ahead who openly shares what worked for them', 'A peer or collaborator who challenges you — this friction accelerates your growth fastest'],
-        finance:      ['A licensed financial advisor who specialises in wealth structuring, not just compliance', 'A mentor who has built lasting wealth through discipline and can share the actual framework', 'An accountant or CA who imposes financial rigour — their discipline is your highest-value asset'],
-        health:       ['A specialist aligned with your primary health concern — not a generalist', 'An integrative practitioner who addresses root cause, not just symptoms', 'A therapist or counsellor if emotional patterns are driving physical outcomes'],
-        spirituality: ['A realised teacher with a clear, structured lineage — not just an influencer', 'A community or sangha that holds consistent practice and genuine accountability', 'A mentor whose spiritual depth came through lived experience, not only study'],
-        education:    ['A mentor already established at the level you are targeting — model their exact path', 'A professor or institution head who can open the advanced track through recommendation', 'A study peer or accountability partner who maintains consistent high standards'],
-        travel:       ['A contact already settled at your target destination who can share the unfiltered reality', 'A visa or immigration specialist who prevents procedural errors that delay your move', 'A cultural or professional anchor at the destination — someone who opens the local network'],
-        children:     ['Your partner — alignment on timeline, values, and readiness is the first prerequisite', 'A specialist in reproductive or family health who provides evidence-based guidance', 'A trusted family elder whose experience with parenthood gives practical, grounded wisdom'],
-        general:      ['A mentor who has already solved the specific problem you are currently facing', 'A direct, honest peer who gives feedback without softening it', 'A structured professional — coach, advisor, or consultant — who prevents costly blind spots'],
-      };
+      for (const ins of insightsToGroup) {
+        // Skip the consensus roll-up (it aggregates all other insights — redundant)
+        // and the generated remedy bullet (remedies have their own dedicated page)
+        if (ins.id.endsWith('_consensus') || ins.id.endsWith('_remedy')) continue;
+        const content = ins.content?.trim();
+        if (!content) continue;
+        for (const d of ins.domains) {
+          if (!DOMAIN_META[d]) continue;
+          if (!domainMap[d]) domainMap[d] = [];
+          domainMap[d].push(content);
+        }
+      }
+      const domain_summary: DomainSummaryGroup[] = Object.entries(domainMap)
+        .filter(([d]) => DOMAIN_META[d] && domainMap[d].length > 0)
+        .sort(([a], [b]) => (DOMAIN_META[a]?.order ?? 99) - (DOMAIN_META[b]?.order ?? 99))
+        .map(([d, bullets]) => ({
+          domain: d,
+          label:  DOMAIN_META[d].label,
+          icon:   DOMAIN_META[d].icon,
+          intent: q.intent,
+          bullets,
+        }));
 
-      // WHAT — 3 concrete actions per intent
-      const WHAT_POINTS: Record<string, string[]> = {
-        marriage:     ['Tell your trusted family and social network clearly that you are ready for serious introductions', 'Attend two curated social events per month in environments where values-aligned people gather', 'Define your non-negotiables before any meeting — emotional maturity, shared vision, and decision-making style'],
-        career:       ['Identify the single most visible action you can take this month and execute it completely', 'Request a direct conversation with a decision-maker who can materially change your trajectory', 'Complete the one overdue deliverable that has been blocking your credibility — finish it this week'],
-        finance:      ['Track every expense for 30 days — total clarity on outflows is the foundation of wealth building', 'Eliminate your single most expensive non-essential cost and redirect it to one income-building investment', 'Engage a licensed advisor for a portfolio review and structured 12-month financial roadmap'],
-        health:       ['Book a comprehensive health assessment within the next 30 days — proactive, not reactive', 'Eliminate the one dietary or lifestyle habit your body has been signalling for months', 'Establish three daily non-negotiables: 7–8 hours sleep, 20 minutes movement, one less stimulant'],
-        spirituality: ['Choose one practice — meditation, mantra, breathwork — and commit without substitution for 90 days', 'Attend a structured teaching or satsang once per week consistently for 3 months', 'Create a dedicated practice space at home and use it at the same time every day'],
-        education:    ['Apply or enrol for your target qualification within the next 30 days — not next month', 'Block 90-minute focused study sessions with no phone, no multitasking — track completed topics daily', 'Approach one authority in your field this week for mentorship or supervised learning'],
-        travel:       ['Book a reconnaissance trip to your target destination before committing to full relocation', 'Complete all documentation — visas, permits, insurance — within the next 45 days', 'Connect with someone already at the destination before you arrive — emotional anchor first'],
-        children:     ['Have one clear, unambiguous conversation with your partner about timeline and mutual readiness', 'Schedule a full reproductive health baseline assessment within the next 30 days', 'Prepare the material foundation — housing stability, savings, income security — before conception'],
-        general:      ['Identify your single most important goal for the next 12 months and commit to it publicly', 'Complete the one most important overdue action within 48 hours — do not defer again', 'Create one consistent daily anchor — a morning ritual, an evening review — and protect it without exception'],
-      };
+      // Simple narrative kept for edit-mode fallback
+      const narrative = insightsToGroup.map(i => i.content.replace(/\.$/, '')).join('. ') + (insightsToGroup.length ? '.' : '');
+      const simple_narrative = narrative;
 
-      // WHEN — timing windows per intent (6–18 month forward-looking windows)
-      const now = new Date();
-      const addMonths = (d: Date, m: number) => { const r = new Date(d); r.setMonth(r.getMonth() + m); return r; };
-      const fmt = (d: Date) => d.toLocaleString('en-US', { month: 'long', year: 'numeric' });
-      const WHEN_WINDOWS: Record<string, { window: string; peak: string; duration: string }> = {
-        marriage:     { window: `${fmt(addMonths(now,6))} – ${fmt(addMonths(now,24))}`, peak: `Peak probability: ${fmt(addMonths(now,14))}`, duration: 'Act within this phase — timing contracts, not expands' },
-        career:       { window: `${fmt(addMonths(now,2))} – ${fmt(addMonths(now,18))}`, peak: `Peak probability: ${fmt(addMonths(now,9))}`,  duration: 'The next 12–18 months carry the highest return on initiative' },
-        finance:      { window: `${fmt(addMonths(now,1))} – ${fmt(addMonths(now,12))}`, peak: `Peak probability: ${fmt(addMonths(now,6))}`,  duration: 'Plan a 12-month financial roadmap starting this month' },
-        health:       { window: `${fmt(addMonths(now,0))} – ${fmt(addMonths(now,6))}`,  peak: `Act within: ${fmt(addMonths(now,2))}`,        duration: 'Schedule a health assessment within the next 60 days' },
-        spirituality: { window: `${fmt(addMonths(now,1))} – ${fmt(addMonths(now,15))}`, peak: `Peak depth: ${fmt(addMonths(now,8))}`,        duration: 'Start now — even 10 minutes daily compounds significantly' },
-        education:    { window: `${fmt(addMonths(now,1))} – ${fmt(addMonths(now,9))}`,  peak: `Enrol by: ${fmt(addMonths(now,3))}`,          duration: 'Apply within the next 3 months for best academic results' },
-        travel:       { window: `${fmt(addMonths(now,2))} – ${fmt(addMonths(now,12))}`, peak: `Book by: ${fmt(addMonths(now,4))}`,            duration: 'Plan and book within the next 6 months' },
-        children:     { window: `${fmt(addMonths(now,3))} – ${fmt(addMonths(now,18))}`, peak: `Peak window: ${fmt(addMonths(now,10))}`,       duration: 'Make the key decisions within this phase, not after it' },
-        general:      { window: `${fmt(addMonths(now,1))} – ${fmt(addMonths(now,12))}`, peak: `Key inflection: ${fmt(addMonths(now,6))}`,     duration: 'Decisions made in the next 12 months shape the following 3–5 years' },
-      };
+      // If no insights were explicitly approved, use all insights for this question
+      const finalInsights = approved.length > 0 ? approved : q.insights.map(i => ({ ...i, approved: true }));
+      return { question: q.question, intent: q.intent, narrative, simple_narrative, domain_summary, insights: finalInsights, domain_breakdown };
+    });
 
-      // WHERE — 3 specific environments per intent
-      const WHERE_POINTS: Record<string, string[]> = {
-        marriage:     ['Curated, values-aligned social environments — not random events or purely professional networking', 'Family-led or community-organised introductions — the traditional network still delivers the highest-quality matches', 'Spiritual gatherings, cultural events, or shared-interest communities where authentic connection is natural'],
-        career:       ['Environments where your highest-value skill is most visible and most needed — not where you are comfortable', 'Industry events, leadership forums, and professional communities at the level above your current position', 'Internal or external settings where decision-makers observe performance directly — visibility matters most now'],
-        finance:      ['Your primary income source first — maximise the existing authority before diversifying into new streams', 'Regulated, professional investment settings: licensed advisors, established funds, structured wealth products', 'Your own desk — a clear budget tracker, a 12-month financial plan, and one income-building target'],
-        health:       ['Medical diagnostic settings — proactive specialist consultations, not reactive emergency visits', 'Outdoor environments with direct morning sunlight — 20–30 minutes daily at a consistent time', 'Calm, low-stimulation domestic environments — quality sleep environment is your highest-priority health investment'],
-        spirituality: ['A dedicated home practice space — same location, same time, same practice every day', 'A structured teaching centre, ashram, or meditation hall with a regular programme', 'Nature environments weekly — forests, parks, or water-adjacent locations reset the nervous system faster than any technique'],
-        education:    ['A quiet, distraction-free study environment used at the same time each day — habit beats willpower', 'The institution or faculty department where your target qualification is taught — be present, be visible', 'Online or in-person communities of people already doing what you are learning — peer learning accelerates retention'],
-        travel:       ['Your target destination itself — a reconnaissance trip before full commitment reduces costly surprises', 'Professional or cultural hubs at the destination where your specific skills have the highest demand', 'Communities of people who have already made the same move — their experience is your most accurate roadmap'],
-        children:     ['Your home environment — prepare the physical and emotional space as if the arrival is already certain', 'Medical and specialist settings for proactive fertility and health baseline assessment', 'Your immediate family and support network — proximity to those who will help is a practical, not sentimental, priority'],
-        general:      ['The environment where your most important challenge is waiting — move toward it, not away', 'Your own daily workspace — organised, distraction-minimised, and reserved for your highest-priority work only', 'The relationship environments that replenish your energy — your inner circle is your most productive context'],
-      };
-
-      const intent = q.intent as string;
-      // Use pre-built hw_bullets from admin review if the backend already populated them
-      const existingHw: HwBullet[] | undefined = (q as any).structured_summary?.hw_bullets;
-      const hw_bullets: HwBullet[] = existingHw?.length ? existingHw : [
-        { label: WHO_LABELS[intent]  || WHO_LABELS['general'],  answer: WHO_POINTS[intent]  || WHO_POINTS['general'],   type: 'list' },
-        { label: WHAT_LABELS[intent] || WHAT_LABELS['general'], answer: WHAT_POINTS[intent] || WHAT_POINTS['general'],  type: 'list' },
-        { label: WHEN_LABELS[intent] || WHEN_LABELS['general'], answer: WHEN_WINDOWS[intent] || WHEN_WINDOWS['general'],type: 'timing' },
-        { label: WHERE_LABELS[intent]|| WHERE_LABELS['general'],answer: WHERE_POINTS[intent] || WHERE_POINTS['general'], type: 'list' },
-        { label: HOW_LABELS[intent]  || HOW_LABELS['general'],  answer: '👉 Refer to remedies section',                 type: 'redirect' },
-      ];
-
-      const INTENT_COLORS: Record<string, string[]> = {
-        marriage:     ['Rose Pink', 'Ivory', 'Lavender'],
-        career:       ['Royal Blue', 'Gold', 'White'],
-        finance:      ['Green', 'Gold', 'Yellow'],
-        health:       ['Green', 'White', 'Sky Blue'],
-        spirituality: ['Violet', 'White', 'Indigo'],
-        education:    ['Yellow', 'Green', 'White'],
-        travel:       ['Orange', 'Blue', 'White'],
-        children:     ['Soft Yellow', 'Green', 'White'],
-        general:      ['Gold', 'White', 'Green'],
-      };
-      const INTENT_MANTRAS: Record<string, string[]> = {
-        marriage:     ['Om Shukraya Namah — Venus blessings for love and harmony (108 times)', 'Om Namah Shivaya — Well-being, protection, and inner peace (108 times)'],
-        career:       ['Om Suryaya Namah — Confidence, clarity, and professional success (108 times)', 'Gayatri Mantra — Wisdom and divine clarity of mind (21 times)'],
-        finance:      ['Om Lakshmyai Namah — Abundance, prosperity, and financial flow (108 times)', 'Om Ganeshaya Namah — Removing obstacles on your path (108 times)'],
-        health:       ['Om Dhanvantre Namah — Healing, vitality, and well-being (108 times)', 'Mahamrityunjaya Mantra — Protection and strength of body and mind (11 times)'],
-        spirituality: ['Om Namah Shivaya — Inner peace, higher awareness, and liberation (108 times)', 'So Hum — I am that, connecting to universal consciousness (21 times)'],
-        education:    ['Om Saraswatyai Namah — Knowledge, wisdom, and academic clarity (108 times)', 'Gayatri Mantra — Divine light and intellect (21 times)'],
-        travel:       ['Om Gam Ganapataye Namah — Safe journeys and removal of obstacles (108 times)', 'Om Namah Shivaya — Overall protection and well-being (108 times)'],
-        children:     ['Om Santana Gopala Namah — Blessings for family and children (108 times)', 'Om Namah Shivaya — Protection and inner peace for the family (108 times)'],
-        general:      ['Om Namah Shivaya — Overall well-being, protection, and inner peace (108 times)', 'Gayatri Mantra — Wisdom, divine light, and clarity of mind (21 times)'],
-      };
-
-      const habits = (INTENT_HABITS[intent] || INTENT_HABITS['general']).slice(0, 3);
-      const intentColors = (INTENT_COLORS[intent] || INTENT_COLORS['general']);
-      const intentMantras = (INTENT_MANTRAS[intent] || INTENT_MANTRAS['general']);
-      const remedy_bullets = {
-        daily_habits: habits,
-        mantras: intentMantras,
-        lucky_colors: intentColors.map(c => `Wear or surround yourself with ${c}`),
-      };
-      const structured_summary = { question: q.question, intent: q.intent, hw_bullets, remedy_bullets };
-
-      return { question: q.question, intent: q.intent, narrative, simple_narrative, structured_summary, insights: approved, domain_breakdown };
-    }).filter(s => s.insights.length > 0);
-
+    const rawRemedies = this.rawOutputs()?.remedies;
     const report: FinalReport = {
       brand_name:   'Aura with Rav',
       logo_url:     '{{LOGO_URL}}',
@@ -383,6 +237,7 @@ export class OrchestratorService {
       generated_at: new Date().toISOString(),
       modules_used: input.selected_modules,
       sections,
+      remedies:     rawRemedies ?? this.remedySvc.compute(this.rawOutputs()),
       disclaimer:   'This report is for spiritual guidance and personal reflection only.',
       closing_note: 'Use this as a compass, not a map. Your choices remain the most powerful force in your journey.',
       confidence_distribution: { high: 0, medium: 0, low: 0 },

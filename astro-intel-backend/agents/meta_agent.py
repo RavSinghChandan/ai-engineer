@@ -40,75 +40,181 @@ def _top_patterns(items: List[str], min_freq: int = 2) -> List[Tuple[str, int]]:
 
 
 def _get_predictions_for_question(memory: Dict[str, Any], question: str, intent: str) -> List[Dict[str, Any]]:
+    """
+    Collect ALL sub-agent findings per domain for a question.
+    Carries the full 'extra' structured data (lucky numbers, cards, corrections, etc.)
+    so the review UI can render rich domain-specific cards.
+    """
     pool: List[Dict[str, Any]] = []
+    q_norm = question.strip().lower()
     for domain_key in ["astrology", "numerology", "palmistry", "tarot", "vastu"]:
         domain_data = memory.get(domain_key, {})
         qwa = domain_data.get("question_wise_analysis", [])
         for qa in qwa:
-            if qa.get("question") == question:
+            stored_q = (qa.get("question") or "").strip().lower()
+            if stored_q == q_norm or q_norm in stored_q or stored_q in q_norm or stored_q[:60] == q_norm[:60]:
                 for sub in qa.get("sub_agent_results", []):
                     pool.append({
-                        "text":      sub["prediction"],
-                        "source":    domain_key,
-                        "sub_agent": sub["sub_agent"],
+                        "text":       sub["prediction"],
+                        "source":     domain_key,
+                        "sub_agent":  sub.get("sub_agent", domain_key),
                         "confidence": sub.get("confidence_hint", "medium"),
+                        "extra":      sub.get("extra", {}),
+                        "traits":     sub.get("traits", []),
                     })
-    # Fallback: pull from legacy flat predictions
+    # Fallback: pull flat domain data when question_wise_analysis is missing
     if not pool:
-        for domain_key in ["astrology", "numerology"]:
+        for domain_key in ["astrology", "numerology", "palmistry", "tarot", "vastu"]:
             domain_data = memory.get(domain_key, {})
-            preds = domain_data.get("vedic", {}).get("predictions", []) or domain_data.get("indian", {}).get("predictions", [])
-            for p in preds[:2]:
-                pool.append({"text": p, "source": domain_key, "sub_agent": domain_key, "confidence": "medium"})
+            for sub_key in ["vedic", "indian", "universal", "chinese", "western", "kp", "pythagorean", "chaldean"]:
+                sub_data = domain_data.get(sub_key, {})
+                preds = sub_data.get("predictions", []) or sub_data.get("guidance", [])
+                for p in preds[:2]:
+                    pool.append({
+                        "text": p, "source": domain_key, "sub_agent": sub_key,
+                        "confidence": "medium", "extra": sub_data, "traits": sub_data.get("traits", []),
+                    })
     return pool
+
+
+def _build_structured_detail(domain: str, sub_agent: str, extra: Dict[str, Any], traits: List[str]) -> Dict[str, Any]:
+    """
+    Build a domain-specific structured detail block from the 'extra' data.
+    Each domain exposes its most useful fields so the review UI can render rich cards.
+    """
+    detail: Dict[str, Any] = {}
+    if not extra:
+        return detail
+
+    if domain == "numerology":
+        cn = extra.get("core_numbers", {})
+        detail["core_numbers"] = {
+            "Life Path":    cn.get("life_path"),
+            "Destiny":      cn.get("destiny"),
+            "Name Number":  cn.get("name_number"),
+            "Soul Urge":    cn.get("soul_urge"),
+            "Personality":  cn.get("personality"),
+            "Maturity":     cn.get("maturity"),
+        }
+        detail["lucky_numbers"] = extra.get("lucky_numbers", [])
+        detail["lucky_colors"]  = extra.get("lucky_colors", [])
+        detail["strengths"]     = extra.get("strengths", [])
+        detail["weaknesses"]    = extra.get("weaknesses", [])
+        detail["traits"]        = traits
+
+    elif domain == "palmistry":
+        detail["focus_insight"]       = extra.get("focus_insight", "")
+        detail["hand_shape"]          = extra.get("hand_shape", "")
+        detail["lines"]               = extra.get("lines", {})
+        detail["career_notes"]        = extra.get("career_notes", [])
+        detail["health_notes"]        = extra.get("health_notes", [])
+        detail["relationship_notes"]  = extra.get("relationship_notes", [])
+        detail["traits"]              = traits
+
+    elif domain == "tarot":
+        detail["cards"]         = extra.get("cards", [])
+        detail["spread"]        = extra.get("spread", "3-card")
+        detail["overall_theme"] = extra.get("overall_theme", "")
+        detail["guidance"]      = extra.get("guidance", [])
+
+    elif domain == "vastu":
+        detail["overall_energy"]    = extra.get("overall_energy", "")
+        detail["priority_zones"]    = extra.get("priority_zones", [])
+        detail["zone_analysis"]     = extra.get("zone_analysis", {})
+        detail["corrections"]       = extra.get("corrections", [])
+        detail["colors_recommended"]= extra.get("colors_recommended", [])
+
+    elif domain == "astrology":
+        detail["current_dasha"]       = extra.get("current_dasha", "")
+        detail["dasha_planet"]        = extra.get("dasha_planet", "")
+        detail["strengths"]           = extra.get("strengths", traits)
+        detail["predictions"]         = extra.get("predictions", [])
+        detail["challenges"]          = extra.get("challenges", [])
+        detail["doshas"]              = extra.get("doshas", [])
+        yogas_raw = extra.get("active_yogas", extra.get("yogas", []))
+        # yogas may be list of dicts {name, description} or plain strings
+        if yogas_raw and isinstance(yogas_raw[0], dict):
+            detail["yogas_rich"]      = yogas_raw   # [{name, description}]
+        else:
+            detail["yogas"]           = yogas_raw
+        detail["dasha_periods"]       = extra.get("dasha_periods", [])
+        detail["house_analysis"]      = extra.get("house_analysis", {})
+        detail["planetary_positions"] = extra.get("planetary_positions", {})
+        detail["cusp_analysis"]       = extra.get("cusp_analysis", {})
+
+    return {k: v for k, v in detail.items() if v not in (None, [], {}, "")}
 
 
 def _build_question_consensus(memory: Dict[str, Any], question: str, intent: str) -> Dict[str, Any]:
     pool = _get_predictions_for_question(memory, question, intent)
 
-    # Group by source domain
-    by_domain: Dict[str, List[str]] = {}
-    for p in pool:
-        by_domain.setdefault(p["source"], []).append(p["text"])
-
-    domains_present = list(by_domain.keys())
+    domains_present = list(dict.fromkeys(p["source"] for p in pool))
     domain_count    = len(domains_present)
+    q_idx = _q_index(memory, question)
 
-    # Build insights — one per domain, mark is_common if 3+
+    # One rich insight card per tradition — carries full structured data
     insights = []
-    for i, (domain, preds) in enumerate(by_domain.items()):
-        insight_id = f"q{_q_index(memory, question)}_i{i+1}"
+    seen_texts: set = set()
+    for i, p in enumerate(pool):
+        text = p["text"].strip()
+        key = text[:80].lower()
+        if key in seen_texts:
+            continue
+        seen_texts.add(key)
+
+        insight_id = f"q{q_idx}_i{i+1}"
+        domain     = p["source"]
+        sub_agent  = p.get("sub_agent", domain)
+        extra      = p.get("extra", {})
+        traits     = p.get("traits", [])
+
         insights.append({
-            "id":          insight_id,
-            "content":     " ".join(preds[:3]) if preds else f"{domain.capitalize()} analysis confirms {intent}-related energy.",
-            "confidence":  _assign_confidence(domain_count),
-            "domains":     [domain],
-            "is_common":   domain_count >= 3,
-            "editable":    True,
-            "source_predictions": preds[:3],
+            "id":         insight_id,
+            "content":    text,
+            "confidence": p.get("confidence", _assign_confidence(domain_count)),
+            "domains":    [domain],
+            "sub_agent":  sub_agent,
+            "is_common":  domain_count >= 3,
+            "editable":   True,
+            "detail":     _build_structured_detail(domain, sub_agent, extra, traits),
+            "source_predictions": [text],
         })
 
-    # Cross-domain consensus insight if 3+ domains agree
+    # Cross-domain summary card (AI-suggested, admin can reject)
     if domain_count >= 3:
-        all_texts = [p["text"] for p in pool[:5]]
-        combined  = " ".join(all_texts)
+        all_texts = [p["text"].rstrip(".").strip() for p in pool[:6]]
         insights.append({
-            "id":          f"q{_q_index(memory, question)}_consensus",
-            "content":     f"Multi-domain consensus on '{question}': {combined}",
-            "confidence":  "high",
-            "domains":     domains_present,
-            "is_common":   True,
-            "editable":    True,
-            "source_predictions": [p["text"] for p in pool[:5]],
+            "id":         f"q{q_idx}_consensus",
+            "content":    (
+                f"Across {', '.join(domains_present)} for your question on {intent}: "
+                + ". ".join(all_texts[:4]) + "."
+            ),
+            "confidence": "high",
+            "domains":    domains_present,
+            "sub_agent":  "consensus",
+            "is_common":  True,
+            "editable":   True,
+            "detail":     {},
+            "source_predictions": [p["text"] for p in pool[:6]],
         })
 
-    key_insight = insights[-1]["content"] if insights else f"Consistent growth energy is indicated for: {question}"
+    if not insights:
+        insights.append({
+            "id":         f"q{q_idx}_i1",
+            "content":    f"The combined analysis indicates a growth-oriented trajectory for your question regarding {intent}.",
+            "confidence": "medium",
+            "domains":    ["astrology", "numerology"],
+            "sub_agent":  "general",
+            "is_common":  True,
+            "editable":   True,
+            "detail":     {},
+        })
 
     return {
-        "question":   question,
-        "intent":     intent,
-        "insights":   insights,
-        "key_insight": key_insight,
+        "question":          question,
+        "intent":            intent,
+        "insights":          insights,
+        "key_insight":       insights[-1]["content"],
         "domains_confirmed": domains_present,
         "agreement_level":   _assign_confidence(domain_count),
     }

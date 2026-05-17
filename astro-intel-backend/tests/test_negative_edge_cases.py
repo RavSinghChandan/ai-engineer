@@ -33,16 +33,14 @@ ADMIN_HEADERS = {"X-API-Key": _TEST_ADMIN_KEY}
 def reset_cache():
     # ── Seed auth store ───────────────────────────────────────────────────────
     import auth.store as auth_store
-    from auth.models import APIKey, Role, Tenant
-    auth_store._tenants[_TEST_TENANT_ID] = Tenant(
-        tenant_id=_TEST_TENANT_ID, name="Neg Test Tenant",
-        is_active=True, created_at=time.time(),
-    )
-    auth_store._api_keys[_TEST_ADMIN_KEY] = APIKey(
-        key=_TEST_ADMIN_KEY, tenant_id=_TEST_TENANT_ID,
-        role=Role.ADMIN, description="neg test admin key",
-        is_active=True, created_at=time.time(),
-    )
+    from auth.models import Role
+    auth_store.clear_for_tests()
+    t = auth_store.create_tenant("Neg Test Tenant")
+    auth_store.create_api_key(t.tenant_id, Role.ADMIN, "neg test admin key")
+    from database import get_conn
+    conn = get_conn()
+    conn.execute("UPDATE api_keys SET key=? WHERE tenant_id=?", (_TEST_ADMIN_KEY, t.tenant_id))
+    conn.commit(); conn.close()
     # ── Reset cache ───────────────────────────────────────────────────────────
     cache_store.clear()
     cache_store._hits = 0

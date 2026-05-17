@@ -5,7 +5,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { OrchestratorService } from '../../services/orchestrator.service';
 import { ApiService, LanguageOption } from '../../services/api.service';
-import { AdminInsight, AdminQuestion } from '../../models/astro.models';
+import { AdminInsight, AdminQuestion, InsightDetail } from '../../models/astro.models';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../environments/environment';
@@ -158,10 +158,10 @@ const BACKEND = environment.apiUrl;
         </div>
       }
 
-      @if (questionBlocks().length && approvedCount() === 0 && !reportGenerated()) {
+      @if (domainGroups().length && approvedCount() === 0 && !reportGenerated()) {
         <div class="approve-hint">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="#d4af37" stroke-width="1.4"/><path d="M7 4.5v3M7 9.5v.5" stroke="#d4af37" stroke-width="1.6" stroke-linecap="round"/></svg>
-          Approve at least one insight below — or click <strong>Approve All</strong> — then click <strong>Generate Report</strong>.
+          Select findings from each tradition below, then edit or approve your selections before generating the report.
         </div>
       }
 
@@ -175,72 +175,557 @@ const BACKEND = environment.apiUrl;
               <div class="q-text">{{ qBlock.question }}</div>
               <div class="q-meta">
                 <span class="intent-tag">{{ qBlock.intent | titlecase }}</span>
-                <span class="q-stat">{{ approvedInBlock(qBlock) }}/{{ qBlock.insights.length }} approved</span>
+                <span class="q-stat">{{ approvedInBlock(qBlock) }} approved</span>
               </div>
             </div>
           </div>
 
-          <!-- Insights -->
-          <div class="insights">
-            @for (ins of qBlock.insights; track ins.id) {
-              <div class="insight"
-                   [class.insight-on]="approvedIds().has(ins.id)"
-                   [class.insight-off]="rejectedIds().has(ins.id)">
-
-                <div class="insight-top">
-                  <div class="insight-tags">
-                    <span class="conf"
-                          [class.conf-h]="ins.confidence==='high'"
-                          [class.conf-m]="ins.confidence==='medium'"
-                          [class.conf-l]="ins.confidence==='low'">
-                      {{ ins.confidence | uppercase }}
-                    </span>
-                    @if (ins.is_common) {
-                      <span class="multi-tag">MULTI-DOMAIN</span>
-                    }
-                    @for (d of ins.domains; track d) {
-                      <span class="domain-tag">{{ d }}</span>
-                    }
-                    @if (ins.edited) {
-                      <span class="edited-tag">Edited</span>
-                    }
-                    <span class="ins-id">{{ ins.id }}</span>
-                  </div>
-
-                  <div class="insight-actions">
-                    @if (auth.isAdmin()) {
-                      <button class="act-btn act-edit" (click)="toggleEdit(ins.id)">
-                        {{ editingId() === ins.id ? '✓ Save' : 'Edit' }}
-                      </button>
-                      <button class="act-btn act-reject"
-                              [class.act-reject-on]="rejectedIds().has(ins.id)"
-                              (click)="toggleReject(ins.id)">Reject</button>
-                      <button class="act-btn act-approve"
-                              [class.act-approve-on]="approvedIds().has(ins.id)"
-                              (click)="toggleApprove(ins.id)">
-                        @if (approvedIds().has(ins.id)) {
-                          <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 5.5l2.5 2.5L9 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                        }
-                        Approve
-                      </button>
-                    } @else {
-                      <span class="read-only-tag">Read Only</span>
-                    }
-                  </div>
-                </div>
-
-                @if (editingId() === ins.id) {
-                  <textarea class="ins-editor"
-                    [value]="ins.content"
-                    (input)="onEdit(ins.id, $event)"
-                    rows="4"></textarea>
-                } @else {
-                  <p class="ins-text">{{ ins.content }}</p>
-                }
-
+          <!-- Domain-grouped branch findings -->
+          @for (domainGroup of domainGroupsForQuestion(qBlock.question, qi); track domainGroup.domain) {
+            <div class="domain-section">
+              <div class="domain-section-hdr">
+                <span class="domain-icon">{{ domainGroup.icon }}</span>
+                <span class="domain-label">{{ domainGroup.domainLabel }}</span>
+                <span class="branch-count">{{ domainGroup.branches.length }} tradition{{ domainGroup.branches.length !== 1 ? 's' : '' }}</span>
               </div>
-            }
+
+              <div class="branch-grid">
+                @for (branch of domainGroup.branches; track branch.branchKey) {
+                  <div class="branch-card"
+                       [class.branch-selected]="selectedBranchIds().has(branch.insightId)"
+                       [class.branch-approved]="approvedIds().has(branch.insightId)"
+                       [class.branch-rejected]="rejectedIds().has(branch.insightId)">
+
+                    <!-- Branch header: name + priority + select toggle -->
+                    <div class="branch-hdr">
+                      <div class="branch-hdr-left">
+                        <span class="branch-name">{{ branch.branchLabel }}</span>
+                        <span class="branch-priority"
+                              [class.priority-h]="branch.confidence==='high'"
+                              [class.priority-m]="branch.confidence==='medium'"
+                              [class.priority-l]="branch.confidence==='low'">
+                          {{ branch.confidence | uppercase }} priority
+                        </span>
+                      </div>
+                      @if (auth.isAdmin()) {
+                        <button class="branch-select-btn"
+                                [class.branch-select-on]="selectedBranchIds().has(branch.insightId)"
+                                (click)="toggleBranchSelect(branch.insightId, qBlock, branch)">
+                          @if (selectedBranchIds().has(branch.insightId)) {
+                            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 5.5l2.5 2.5L9 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            Selected
+                          } @else {
+                            + Select
+                          }
+                        </button>
+                      }
+                    </div>
+
+                    <!-- Finding text -->
+                    @if (editingId() === branch.insightId) {
+                      <textarea class="ins-editor"
+                        [value]="branch.content"
+                        (input)="onEdit(branch.insightId, $event)"
+                        rows="4"></textarea>
+                    } @else {
+                      <p class="branch-text">{{ branch.content }}</p>
+                    }
+
+                    <!-- Domain-specific structured detail panel -->
+                    @if (branch.detail && hasDetail(branch.detail)) {
+
+                      <!-- NUMEROLOGY: core numbers + lucky -->
+                      @if (domainGroup.domain === 'numerology') {
+                        <div class="detail-panel">
+                          @if (branch.detail.core_numbers) {
+                            <div class="detail-section">
+                              <div class="detail-section-title">Core Numbers</div>
+                              <div class="detail-chips-row">
+                                @for (entry of objectEntries(branch.detail.core_numbers); track entry[0]) {
+                                  @if (entry[1] !== null) {
+                                    <div class="detail-num-chip">
+                                      <span class="chip-label">{{ entry[0] }}</span>
+                                      <span class="chip-val">{{ entry[1] }}</span>
+                                    </div>
+                                  }
+                                }
+                              </div>
+                            </div>
+                          }
+                          @if (branch.detail.lucky_numbers?.length) {
+                            <div class="detail-section">
+                              <div class="detail-section-title">Lucky Numbers</div>
+                              <div class="detail-chips-row">
+                                @for (n of branch.detail.lucky_numbers!; track n) {
+                                  <span class="lucky-num">{{ n }}</span>
+                                }
+                              </div>
+                            </div>
+                          }
+                          @if (branch.detail.lucky_colors?.length) {
+                            <div class="detail-section">
+                              <div class="detail-section-title">Lucky Colors</div>
+                              <div class="detail-chips-row">
+                                @for (c of branch.detail.lucky_colors!; track c) {
+                                  <span class="lucky-color-chip">{{ c }}</span>
+                                }
+                              </div>
+                            </div>
+                          }
+                          @if (branch.detail.traits?.length) {
+                            <div class="detail-section">
+                              <div class="detail-section-title">Traits</div>
+                              <div class="detail-chips-row">
+                                @for (t of branch.detail.traits!; track t) {
+                                  <span class="trait-chip">{{ t }}</span>
+                                }
+                              </div>
+                            </div>
+                          }
+                          @if (branch.detail.strengths?.length) {
+                            <div class="detail-section">
+                              <div class="detail-section-title">Strengths</div>
+                              <div class="detail-bullets">
+                                @for (s of branch.detail.strengths!; track s) {
+                                  <span class="detail-bullet detail-bullet-green">{{ s }}</span>
+                                }
+                              </div>
+                            </div>
+                          }
+                          @if (branch.detail.weaknesses?.length) {
+                            <div class="detail-section">
+                              <div class="detail-section-title">Watch Out</div>
+                              <div class="detail-bullets">
+                                @for (w of branch.detail.weaknesses!; track w) {
+                                  <span class="detail-bullet detail-bullet-amber">{{ w }}</span>
+                                }
+                              </div>
+                            </div>
+                          }
+                        </div>
+                      }
+
+                      <!-- PALMISTRY: lines, notes -->
+                      @if (domainGroup.domain === 'palmistry') {
+                        <div class="detail-panel">
+                          @if (branch.detail.focus_insight) {
+                            <div class="detail-section">
+                              <div class="detail-focus-insight">✦ {{ branch.detail.focus_insight }}</div>
+                            </div>
+                          }
+                          @if (branch.detail.lines && objectKeys(branch.detail.lines).length) {
+                            <div class="detail-section">
+                              <div class="detail-section-title">Hand Lines</div>
+                              <div class="detail-line-list">
+                                @for (entry of objectEntries(branch.detail.lines); track entry[0]) {
+                                  <div class="detail-line-row">
+                                    <span class="detail-line-key">{{ entry[0] | titlecase }}</span>
+                                    <span class="detail-line-val">{{ entry[1] }}</span>
+                                  </div>
+                                }
+                              </div>
+                            </div>
+                          }
+                          @if (branch.detail.career_notes?.length) {
+                            <div class="detail-section">
+                              <div class="detail-section-title">Career Indicators</div>
+                              <div class="detail-bullets">
+                                @for (n of branch.detail.career_notes!; track n) {
+                                  <span class="detail-bullet detail-bullet-blue">{{ n }}</span>
+                                }
+                              </div>
+                            </div>
+                          }
+                          @if (branch.detail.health_notes?.length) {
+                            <div class="detail-section">
+                              <div class="detail-section-title">Health Notes</div>
+                              <div class="detail-bullets">
+                                @for (n of branch.detail.health_notes!; track n) {
+                                  <span class="detail-bullet detail-bullet-green">{{ n }}</span>
+                                }
+                              </div>
+                            </div>
+                          }
+                          @if (branch.detail.relationship_notes?.length) {
+                            <div class="detail-section">
+                              <div class="detail-section-title">Relationship Notes</div>
+                              <div class="detail-bullets">
+                                @for (n of branch.detail.relationship_notes!; track n) {
+                                  <span class="detail-bullet detail-bullet-purple">{{ n }}</span>
+                                }
+                              </div>
+                            </div>
+                          }
+                        </div>
+                      }
+
+                      <!-- TAROT: cards + guidance -->
+                      @if (domainGroup.domain === 'tarot') {
+                        <div class="detail-panel">
+                          @if (branch.detail.overall_theme) {
+                            <div class="detail-section">
+                              <div class="detail-focus-insight">✦ {{ branch.detail.overall_theme }}</div>
+                            </div>
+                          }
+                          @if (branch.detail.cards?.length) {
+                            <div class="detail-section">
+                              <div class="detail-section-title">Cards Drawn ({{ branch.detail.spread }})</div>
+                              <div class="tarot-cards-row">
+                                @for (card of branch.detail.cards!; track card.name) {
+                                  <div class="tarot-card-chip" [class.reversed]="card.orientation==='reversed'">
+                                    <div class="tc-position">{{ card.position }}</div>
+                                    <div class="tc-name">{{ card.name }}</div>
+                                    <div class="tc-orient" [class.tc-reversed]="card.orientation==='reversed'">{{ card.orientation }}</div>
+                                    <div class="tc-meaning">{{ card.meaning }}</div>
+                                    <div class="tc-keywords">
+                                      @for (kw of card.keywords; track kw) {
+                                        <span class="tc-kw">{{ kw }}</span>
+                                      }
+                                    </div>
+                                  </div>
+                                }
+                              </div>
+                            </div>
+                          }
+                        </div>
+                      }
+
+                      <!-- VASTU: zones, corrections, colors -->
+                      @if (domainGroup.domain === 'vastu') {
+                        <div class="detail-panel">
+                          @if (branch.detail.overall_energy) {
+                            <div class="detail-section">
+                              <div class="detail-focus-insight">✦ {{ branch.detail.overall_energy }}</div>
+                            </div>
+                          }
+                          @if (branch.detail.priority_zones?.length) {
+                            <div class="detail-section">
+                              <div class="detail-section-title">Priority Zones</div>
+                              <div class="detail-bullets">
+                                @for (z of branch.detail.priority_zones!; track z) {
+                                  <span class="detail-bullet detail-bullet-amber">{{ z }}</span>
+                                }
+                              </div>
+                            </div>
+                          }
+                          @if (branch.detail.corrections?.length) {
+                            <div class="detail-section">
+                              <div class="detail-section-title">Corrections / Remedies</div>
+                              <div class="detail-bullets">
+                                @for (c of branch.detail.corrections!; track c) {
+                                  <span class="detail-bullet detail-bullet-green">{{ c }}</span>
+                                }
+                              </div>
+                            </div>
+                          }
+                          @if (branch.detail.colors_recommended?.length) {
+                            <div class="detail-section">
+                              <div class="detail-section-title">Recommended Colors</div>
+                              <div class="detail-chips-row">
+                                @for (c of branch.detail.colors_recommended!; track c) {
+                                  <span class="lucky-color-chip">{{ c }}</span>
+                                }
+                              </div>
+                            </div>
+                          }
+                        </div>
+                      }
+
+                      <!-- ASTROLOGY: full structured data -->
+                      @if (domainGroup.domain === 'astrology') {
+                        <div class="detail-panel">
+
+                          @if (branch.detail.current_dasha) {
+                            <div class="detail-section">
+                              <div class="detail-focus-insight">✦ Current Dasha: {{ branch.detail.current_dasha }}{{ branch.detail.dasha_planet ? ' (Lord: ' + branch.detail.dasha_planet + ')' : '' }}</div>
+                            </div>
+                          }
+
+                          @if (branch.detail.predictions?.length) {
+                            <div class="detail-section">
+                              <div class="detail-section-title">Predictions</div>
+                              <div class="detail-bullets">
+                                @for (p of branch.detail.predictions!; track p) {
+                                  <span class="detail-bullet detail-bullet-blue">{{ p }}</span>
+                                }
+                              </div>
+                            </div>
+                          }
+
+                          @if (branch.detail.strengths?.length) {
+                            <div class="detail-section">
+                              <div class="detail-section-title">Indicated Strengths</div>
+                              <div class="detail-bullets">
+                                @for (s of branch.detail.strengths!; track s) {
+                                  <span class="detail-bullet detail-bullet-green">{{ s }}</span>
+                                }
+                              </div>
+                            </div>
+                          }
+
+                          @if (branch.detail.challenges?.length) {
+                            <div class="detail-section">
+                              <div class="detail-section-title">Challenges</div>
+                              <div class="detail-bullets">
+                                @for (c of branch.detail.challenges!; track c) {
+                                  <span class="detail-bullet detail-bullet-amber">{{ c }}</span>
+                                }
+                              </div>
+                            </div>
+                          }
+
+                          @if (branch.detail.doshas?.length) {
+                            <div class="detail-section">
+                              <div class="detail-section-title">Doshas / Cautions</div>
+                              <div class="detail-bullets">
+                                @for (d of branch.detail.doshas!; track d) {
+                                  <span class="detail-bullet detail-bullet-amber">{{ d }}</span>
+                                }
+                              </div>
+                            </div>
+                          }
+
+                          @if (branch.detail.yogas_rich?.length) {
+                            <div class="detail-section">
+                              <div class="detail-section-title">Active Yogas</div>
+                              <div class="detail-line-list">
+                                @for (y of branch.detail.yogas_rich!; track y.name) {
+                                  <div class="detail-line-row">
+                                    <span class="detail-line-key">{{ y.name }}</span>
+                                    <span class="detail-line-val">{{ y.description }}</span>
+                                  </div>
+                                }
+                              </div>
+                            </div>
+                          }
+                          @else if (branch.detail.yogas?.length) {
+                            <div class="detail-section">
+                              <div class="detail-section-title">Active Yogas</div>
+                              <div class="detail-chips-row">
+                                @for (y of branch.detail.yogas!; track y) {
+                                  <span class="trait-chip">{{ y }}</span>
+                                }
+                              </div>
+                            </div>
+                          }
+
+                          @if (branch.detail.dasha_periods?.length) {
+                            <div class="detail-section">
+                              <div class="detail-section-title">Dasha Timeline</div>
+                              <div class="detail-line-list">
+                                @for (dp of branch.detail.dasha_periods!; track dp.planet) {
+                                  <div class="detail-line-row">
+                                    <span class="detail-line-key">{{ dp.planet }} ({{ dp.duration }})</span>
+                                    <span class="detail-line-val">{{ dp.from }} → {{ dp.to }}</span>
+                                  </div>
+                                }
+                              </div>
+                            </div>
+                          }
+
+                          @if (branch.detail.house_analysis && objectKeys(branch.detail.house_analysis).length) {
+                            <div class="detail-section">
+                              <div class="detail-section-title">House Analysis</div>
+                              <div class="detail-line-list">
+                                @for (entry of objectEntries(branch.detail.house_analysis); track entry[0]) {
+                                  <div class="detail-line-row">
+                                    <span class="detail-line-key house-key">{{ entry[0] }}</span>
+                                    <span class="detail-line-val">{{ entry[1] }}</span>
+                                  </div>
+                                }
+                              </div>
+                            </div>
+                          }
+
+                          @if (branch.detail.planetary_positions && objectKeys(branch.detail.planetary_positions).length) {
+                            <div class="detail-section">
+                              <div class="detail-section-title">Planetary Positions</div>
+                              <div class="detail-chips-row">
+                                @for (entry of objectEntries(branch.detail.planetary_positions); track entry[0]) {
+                                  <div class="detail-num-chip">
+                                    <span class="chip-label">{{ entry[0] }}</span>
+                                    <span class="chip-val">{{ entry[1] }}</span>
+                                  </div>
+                                }
+                              </div>
+                            </div>
+                          }
+
+                          @if (branch.detail.cusp_analysis && objectKeys(branch.detail.cusp_analysis).length) {
+                            <div class="detail-section">
+                              <div class="detail-section-title">Cusp Analysis (KP)</div>
+                              <div class="detail-line-list">
+                                @for (entry of objectEntries(branch.detail.cusp_analysis); track entry[0]) {
+                                  <div class="detail-line-row">
+                                    <span class="detail-line-key">{{ entry[0] }}</span>
+                                    <span class="detail-line-val">{{ entry[1] }}</span>
+                                  </div>
+                                }
+                              </div>
+                            </div>
+                          }
+
+                        </div>
+                      }
+
+                    }
+
+                    <!-- Actions — only shown when selected -->
+                    @if (selectedBranchIds().has(branch.insightId)) {
+                      <div class="branch-actions">
+                        @if (auth.isAdmin()) {
+                          <button class="act-btn act-edit" (click)="toggleEdit(branch.insightId)">
+                            {{ editingId() === branch.insightId ? '✓ Save' : 'Edit' }}
+                          </button>
+                          <button class="act-btn act-reject"
+                                  [class.act-reject-on]="rejectedIds().has(branch.insightId)"
+                                  (click)="toggleReject(branch.insightId)">Reject</button>
+                          <button class="act-btn act-approve"
+                                  [class.act-approve-on]="approvedIds().has(branch.insightId)"
+                                  (click)="toggleApprove(branch.insightId)">
+                            @if (approvedIds().has(branch.insightId)) {
+                              <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 5.5l2.5 2.5L9 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            }
+                            Approve
+                          </button>
+                        }
+                        @if (branch.edited) {
+                          <span class="edited-tag">Edited</span>
+                        }
+                      </div>
+                    }
+
+                  </div>
+                }
+              </div>
+
+            </div>
+          }
+
+        </div>
+      }
+
+      <!-- ── Remedies section ─────────────────────────────────────────────── -->
+      @if (remedyData()) {
+        <div class="q-card">
+
+          <!-- Header matches question cards exactly -->
+          <div class="q-hdr">
+            <div class="q-num-circle" style="background: linear-gradient(135deg,#7c3aed,#a78bfa)">✦</div>
+            <div class="q-info">
+              <div class="q-text">Remedies & Spiritual Prescriptions</div>
+              <div class="q-meta">
+                <span class="intent-tag" style="background:rgba(139,92,246,0.1);color:#6d28d9;border-color:rgba(139,92,246,0.25)">Synthesis</span>
+                <span class="q-stat">{{ remedyApprovedCount() }} approved</span>
+              </div>
+            </div>
           </div>
+
+          <!-- Each remedy group is a domain-section with branch-grid cards -->
+          @for (group of remedyGroups(); track group.key) {
+            <div class="domain-section">
+              <div class="domain-section-hdr">
+                <span class="domain-icon">{{ group.icon }}</span>
+                <span class="domain-label">{{ group.label }}</span>
+                <span class="branch-count">{{ group.items.length }} item{{ group.items.length !== 1 ? 's' : '' }}</span>
+              </div>
+
+              <div class="branch-grid">
+                @for (item of group.items; track item.id) {
+                  <div class="branch-card"
+                       [class.branch-selected]="selectedBranchIds().has(item.id)"
+                       [class.branch-approved]="approvedIds().has(item.id)"
+                       [class.branch-rejected]="rejectedIds().has(item.id)">
+
+                    <div class="branch-hdr">
+                      <div class="branch-hdr-left">
+                        <span class="branch-name">{{ item.label }}</span>
+                        <span class="branch-priority priority-m">MEDIUM priority</span>
+                      </div>
+                      @if (auth.isAdmin()) {
+                        <button class="branch-select-btn"
+                                [class.branch-select-on]="selectedBranchIds().has(item.id)"
+                                (click)="toggleBranchSelect(item.id, null, null)">
+                          @if (selectedBranchIds().has(item.id)) {
+                            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 5.5l2.5 2.5L9 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            Selected
+                          } @else {
+                            + Select
+                          }
+                        </button>
+                      }
+                    </div>
+
+                    <!-- Content: editable or display -->
+                    @if (editingId() === item.id) {
+                      <textarea class="ins-editor"
+                        [value]="getRemedyContent(item.id, item.content)"
+                        (input)="onRemedyEdit(item.id, $event)"
+                        rows="3"></textarea>
+                    } @else {
+                      <p class="branch-text">{{ getRemedyContent(item.id, item.content) }}</p>
+                    }
+
+                    <!-- Extra detail for mantras / gemstones -->
+                    @if (item.extra) {
+                      <div class="detail-panel">
+                        @if (item.extra.mantra) {
+                          <div class="detail-section">
+                            <div class="detail-chips-row">
+                              <span class="trait-chip">{{ item.extra.mantra }}</span>
+                              <span class="lucky-num">×{{ item.extra.count }}</span>
+                            </div>
+                          </div>
+                        }
+                        @if (item.extra.finger) {
+                          <div class="detail-section">
+                            <div class="detail-line-list">
+                              <div class="detail-line-row">
+                                <span class="detail-line-key">Wear on</span>
+                                <span class="detail-line-val">{{ item.extra.finger }}</span>
+                              </div>
+                            </div>
+                          </div>
+                        }
+                        @if (item.extra.colors?.length) {
+                          <div class="detail-section">
+                            <div class="detail-chips-row">
+                              @for (c of item.extra.colors; track c) {
+                                <span class="lucky-color-chip">{{ c }}</span>
+                              }
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    }
+
+                    <!-- Actions shown only when selected -->
+                    @if (selectedBranchIds().has(item.id)) {
+                      <div class="branch-actions">
+                        @if (auth.isAdmin()) {
+                          <button class="act-btn act-edit" (click)="toggleEdit(item.id)">
+                            {{ editingId() === item.id ? '✓ Save' : 'Edit' }}
+                          </button>
+                          <button class="act-btn act-reject"
+                                  [class.act-reject-on]="rejectedIds().has(item.id)"
+                                  (click)="toggleReject(item.id)">Reject</button>
+                          <button class="act-btn act-approve"
+                                  [class.act-approve-on]="approvedIds().has(item.id)"
+                                  (click)="toggleApprove(item.id)">
+                            @if (approvedIds().has(item.id)) {
+                              <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 5.5l2.5 2.5L9 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            }
+                            Approve
+                          </button>
+                        }
+                      </div>
+                    }
+
+                  </div>
+                }
+              </div>
+            </div>
+          }
 
         </div>
       }
@@ -1148,6 +1633,181 @@ const BACKEND = environment.apiUrl;
   animation: pulse-dot 2s ease-in-out infinite;
 }
 @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
+
+/* ── Structured detail panels ────────────────────────────────────────────── */
+.detail-panel {
+  border-top: 1px dashed rgba(0,0,0,0.08);
+  padding: 10px 14px 4px;
+  display: flex; flex-direction: column; gap: 10px;
+  background: rgba(250,250,248,0.6);
+}
+.detail-section { display: flex; flex-direction: column; gap: 6px; }
+.detail-section-title {
+  font-size: 10px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.07em; color: #9ca3af;
+}
+.detail-focus-insight {
+  font-size: 12.5px; color: #8a6a00; font-style: italic;
+  font-family: Georgia, serif; line-height: 1.6;
+  background: rgba(212,175,55,0.06); border-left: 3px solid #d4af37;
+  padding: 6px 10px; border-radius: 0 6px 6px 0;
+}
+.detail-chips-row { display: flex; flex-wrap: wrap; gap: 5px; }
+.detail-num-chip {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 5px 10px; border-radius: 8px;
+  background: #fff; border: 1px solid #e5e7eb;
+  min-width: 58px; text-align: center;
+}
+.chip-label { font-size: 9px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; }
+.chip-val   { font-size: 17px; font-weight: 800; color: #d4af37; font-family: Georgia, serif; line-height: 1.3; }
+.lucky-num  {
+  width: 34px; height: 34px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(212,175,55,0.12); border: 1.5px solid rgba(212,175,55,0.35);
+  font-size: 14px; font-weight: 800; color: #8a6a00; font-family: Georgia, serif;
+}
+.lucky-color-chip {
+  padding: 3px 12px; border-radius: 99px; font-size: 11.5px; font-weight: 600;
+  background: rgba(99,102,241,0.07); color: #4338ca;
+  border: 1px solid rgba(99,102,241,0.18);
+}
+.trait-chip {
+  padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 600;
+  background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb;
+}
+.detail-bullets { display: flex; flex-direction: column; gap: 4px; }
+.detail-bullet {
+  font-size: 12px; padding: 4px 10px; border-radius: 6px;
+  font-family: Georgia, serif; line-height: 1.55;
+}
+.detail-bullet-green  { background: #f0fdf4; color: #15803d; border-left: 3px solid #22c55e; }
+.detail-bullet-amber  { background: #fffbeb; color: #92400e; border-left: 3px solid #f59e0b; }
+.detail-bullet-blue   { background: #eff6ff; color: #1d4ed8; border-left: 3px solid #3b82f6; }
+.detail-bullet-purple { background: #faf5ff; color: #6d28d9; border-left: 3px solid #8b5cf6; }
+
+/* Palmistry lines table */
+.detail-line-list { display: flex; flex-direction: column; gap: 3px; }
+.detail-line-row  { display: flex; gap: 10px; font-size: 12px; font-family: Georgia, serif; line-height: 1.5; align-items: flex-start; }
+.detail-line-key  { min-width: 100px; font-weight: 700; color: #6b7280; flex-shrink: 0; font-size: 11px; text-transform: capitalize; }
+.detail-line-key.house-key { min-width: 200px; }
+.detail-line-val  { color: #374151; flex: 1; }
+
+/* Tarot cards */
+.tarot-cards-row  { display: flex; flex-wrap: wrap; gap: 8px; }
+.tarot-card-chip  {
+  flex: 1; min-width: 130px; max-width: 200px;
+  border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 10px;
+  background: #fff; display: flex; flex-direction: column; gap: 4px;
+}
+.tarot-card-chip.reversed { border-color: rgba(239,68,68,0.3); background: #fef2f2; }
+.tc-position { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #9ca3af; }
+.tc-name     { font-size: 13px; font-weight: 700; color: #1a1a1a; font-family: Georgia, serif; }
+.tc-orient   { font-size: 10px; font-weight: 600; color: #22c55e; }
+.tc-reversed { color: #ef4444; }
+.tc-meaning  { font-size: 11.5px; color: #6b7280; font-family: Georgia, serif; line-height: 1.5; font-style: italic; }
+.tc-keywords { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 2px; }
+.tc-kw       {
+  font-size: 9.5px; padding: 1px 7px; border-radius: 99px;
+  background: rgba(99,102,241,0.07); color: #4338ca; border: 1px solid rgba(99,102,241,0.15);
+}
+
+/* ── Domain section grouping ─────────────────────────────────────────────── */
+.domain-section {
+  border-top: 1px solid #f0ece4;
+  padding: 0;
+}
+.domain-section-hdr {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 18px;
+  background: linear-gradient(135deg, #fafaf8, #fff);
+  font-size: 12.5px; font-weight: 700; color: #374151; font-family: Georgia, serif;
+}
+.domain-icon { font-size: 15px; }
+.domain-label { color: #1a1a1a; font-size: 13px; }
+.branch-count {
+  margin-left: auto; font-size: 10.5px; font-weight: 600; color: #9ca3af;
+  background: #f3f4f6; padding: 2px 9px; border-radius: 99px;
+}
+
+/* ── Branch cards grid ───────────────────────────────────────────────────── */
+.branch-grid {
+  display: flex; flex-direction: column; gap: 0;
+  padding: 0 18px 14px;
+}
+.branch-card {
+  border: 1.5px solid #e5e7eb; border-radius: 12px;
+  margin-top: 10px; overflow: hidden;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  background: #fafaf8;
+}
+.branch-card:hover { border-color: #d4af37; }
+.branch-selected {
+  border-color: #d4af37 !important;
+  background: #fffbf0;
+  box-shadow: 0 0 0 3px rgba(212,175,55,0.10);
+}
+.branch-approved {
+  border-color: #22c55e !important;
+  background: #f0fdf4;
+  box-shadow: 0 0 0 3px rgba(34,197,94,0.08);
+}
+.branch-rejected {
+  border-color: #ef4444 !important;
+  background: #fef2f2; opacity: 0.6;
+}
+
+.branch-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; border-bottom: 1px solid rgba(0,0,0,0.05);
+  gap: 10px;
+}
+.branch-hdr-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.branch-name {
+  font-size: 12.5px; font-weight: 700; color: #1a1a1a; font-family: Georgia, serif;
+}
+.branch-priority {
+  font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 99px;
+  letter-spacing: 0.05em;
+}
+.priority-h { background: #dcfce7; color: #15803d; border: 1px solid rgba(21,128,61,0.2); }
+.priority-m { background: #fef9c3; color: #a16207; border: 1px solid rgba(161,98,7,0.2); }
+.priority-l { background: #fee2e2; color: #b91c1c; border: 1px solid rgba(185,28,28,0.2); }
+
+.branch-select-btn {
+  display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;
+  padding: 5px 13px; border-radius: 8px;
+  border: 1.5px solid #d4af37; background: transparent;
+  font-size: 11.5px; font-weight: 700; color: #8a6a00;
+  cursor: pointer; transition: all 0.15s; font-family: Georgia, serif;
+}
+.branch-select-btn:hover { background: rgba(212,175,55,0.08); }
+.branch-select-on {
+  background: #d4af37 !important; color: #fff !important;
+  border-color: #b8962e !important;
+}
+
+.branch-text {
+  margin: 0; padding: 12px 14px;
+  font-size: 13px; color: #374151; line-height: 1.75;
+  font-family: Georgia, serif;
+}
+
+.branch-actions {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border-top: 1px solid rgba(0,0,0,0.05);
+  background: rgba(0,0,0,0.01);
+  flex-wrap: wrap;
+}
+
+/* ── Remedies section ────────────────────────────────────────────────────── */
+.remedy-card { border-color: rgba(139,92,246,0.2); }
+.remedy-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; }
+.remedy-section { display: flex; flex-direction: column; gap: 8px; }
+.remedy-section-title {
+  font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em;
+  color: #7c3aed; padding-bottom: 4px; border-bottom: 1px solid rgba(139,92,246,0.15);
+}
 `]
 })
 export class ReviewPage {
@@ -1161,11 +1821,15 @@ export class ReviewPage {
   // Set when admin arrives from "Do Reading" for a lead
   readonly leadId = signal(this.route.snapshot.queryParams['leadId'] ?? '');
 
-  readonly activeTab   = signal<'review'|'translate'|'raw'|'log'|'astrology'>('review');
-  readonly editingId   = signal<string|null>(null);
-  readonly approvedIds = signal<Set<string>>(new Set());
-  readonly rejectedIds = signal<Set<string>>(new Set());
-  readonly rawKey      = signal<string>('astrology');
+  readonly activeTab        = signal<'review'|'translate'|'raw'|'log'|'astrology'>('review');
+  readonly editingId        = signal<string|null>(null);
+  readonly approvedIds      = signal<Set<string>>(new Set());
+  readonly rejectedIds      = signal<Set<string>>(new Set());
+  readonly selectedBranchIds = signal<Set<string>>(new Set());
+  readonly rawKey           = signal<string>('astrology');
+
+  // Branch content edits (keyed by insightId)
+  private _branchEdits: Record<string, string> = {};
 
   // Report generation state
   readonly generating     = signal(false);
@@ -1190,11 +1854,73 @@ export class ReviewPage {
 
   readonly questionBlocks = computed(() => this.orch.adminReview()?.questions ?? []);
   readonly userName       = computed(() => this.orch.currentInput()?.user_profile.full_name ?? '');
+  readonly remedyData     = computed(() => (this.orch.rawOutputs() as any)?.remedies ?? null);
+
+  // Remedy item edits (keyed by item id)
+  _remedyEdits: Record<string, string> = {};
+  onRemedyEdit(id: string, event: Event) {
+    this._remedyEdits[id] = (event.target as HTMLTextAreaElement).value;
+  }
+  getRemedyContent(id: string, fallback: string): string {
+    return this._remedyEdits[id] !== undefined ? this._remedyEdits[id] : fallback;
+  }
+
+  readonly remedyApprovedCount = computed(() => {
+    const groups = this.remedyGroups();
+    const ids = groups.flatMap(g => g.items.map(i => i.id));
+    const approved = this.approvedIds();
+    const selected = this.selectedBranchIds();
+    const rejected = this.rejectedIds();
+    return ids.filter(id => approved.has(id) || (selected.has(id) && !rejected.has(id))).length;
+  });
+
+  readonly remedyGroups = computed((): Array<{
+    key: string; label: string; icon: string;
+    items: Array<{ id: string; label: string; content: string; extra: any }>;
+  }> => {
+    const r = this.remedyData();
+    if (!r) return [];
+    const groups: Array<{ key: string; label: string; icon: string; items: Array<{ id: string; label: string; content: string; extra: any }> }> = [];
+
+    const makeItems = (arr: string[], prefix: string): Array<{ id: string; label: string; content: string; extra: any }> =>
+      (arr ?? []).map((text, i) => ({ id: `remedy_${prefix}_${i}`, label: `${prefix.replace(/_/g,' ')} ${i+1}`, content: text, extra: null }));
+
+    if (r.mantras?.length) groups.push({ key: 'mantras', label: 'Mantras', icon: '🕉', items: (r.mantras as any[]).map((m, i) => ({ id: `remedy_mantra_${i}`, label: m.purpose ?? `Mantra ${i+1}`, content: `${m.mantra} ×${m.count}`, extra: { mantra: m.mantra, count: m.count } })) });
+    if (r.daily_habits?.length) groups.push({ key: 'daily_habits', label: 'Daily Habits', icon: '☀', items: makeItems(r.daily_habits, 'habit') });
+    if (r.behavioral_adjustments?.length) groups.push({ key: 'behavioral', label: 'Behavioral Adjustments', icon: '🧠', items: makeItems(r.behavioral_adjustments, 'behavior') });
+    if (r.yoga_meditation?.length) groups.push({ key: 'yoga', label: 'Yoga & Meditation', icon: '🧘', items: makeItems(r.yoga_meditation, 'yoga') });
+    if (r.colors?.length) groups.push({ key: 'colors', label: 'Prescribed Colors', icon: '🎨', items: (r.colors as string[]).map((c, i) => ({ id: `remedy_color_${i}`, label: c, content: `Wear, use, or surround yourself with ${c}`, extra: null })) });
+    if (r.gemstones?.length) groups.push({ key: 'gemstones', label: 'Gemstones', icon: '💎', items: (r.gemstones as any[]).map((g, i) => ({ id: `remedy_gem_${i}`, label: g.stone, content: g.purpose, extra: { finger: g.finger } })) });
+    if (r.fasting?.length) groups.push({ key: 'fasting', label: 'Fasting', icon: '🌙', items: makeItems(r.fasting, 'fast') });
+    if (r.charity?.length) groups.push({ key: 'charity', label: 'Charity / Seva', icon: '🤲', items: makeItems(r.charity, 'charity') });
+    if (r.vastu_remedies?.length) groups.push({ key: 'vastu', label: 'Vastu Corrections', icon: '🏠', items: makeItems(r.vastu_remedies, 'vastu') });
+
+    // Per-question remedies
+    if (r.question_remedies?.length) {
+      (r.question_remedies as any[]).forEach((qr, qi) => {
+        const qItems: Array<{ id: string; label: string; content: string; extra: any }> = [];
+        (qr.habits ?? []).forEach((h: string, i: number) => qItems.push({ id: `remedy_q${qi}_habit_${i}`, label: `Habit ${i+1}`, content: h, extra: null }));
+        (qr.mantras ?? []).forEach((m: any, i: number) => qItems.push({ id: `remedy_q${qi}_mantra_${i}`, label: m.purpose ?? `Mantra ${i+1}`, content: `${m.mantra} ×${m.count}`, extra: { mantra: m.mantra, count: m.count } }));
+        if (qr.colors?.length) qItems.push({ id: `remedy_q${qi}_colors`, label: 'Lucky Colors', content: (qr.colors as string[]).join(', '), extra: { colors: qr.colors } });
+        if (qItems.length) groups.push({ key: `q${qi+1}_remedies`, label: `Q${qi+1} Specific — ${qr.question?.slice(0,60)}`, icon: '✦', items: qItems });
+      });
+    }
+
+    return groups;
+  });
 
   readonly totalInsightCount = computed(() =>
     this.questionBlocks().reduce((sum, q) => sum + q.insights.length, 0)
   );
-  readonly approvedCount = computed(() => this.approvedIds().size);
+  // Count selected (not rejected) as effectively approved for progress display
+  readonly approvedCount = computed(() => {
+    const approved  = this.approvedIds();
+    const selected  = this.selectedBranchIds();
+    const rejected  = this.rejectedIds();
+    const effective = new Set([...approved]);
+    for (const id of selected) { if (!rejected.has(id)) effective.add(id); }
+    return effective.size;
+  });
   readonly approvalPct   = computed(() => {
     const t = this.totalInsightCount();
     return t ? Math.round(this.approvedCount() / t * 100) : 0;
@@ -1224,6 +1950,136 @@ export class ReviewPage {
     return q.insights.filter(i => this.approvedIds().has(i.id)).length;
   }
 
+  // ── Domain/branch grouping ───────────────────────────────────────────────
+
+  private static readonly _DOMAIN_META: Record<string, { label: string; icon: string; order: number }> = {
+    astrology:   { label: 'Astrology',              icon: '★',  order: 1 },
+    numerology:  { label: 'Numerology',             icon: '🔢', order: 2 },
+    palmistry:   { label: 'Palmistry',              icon: '✋', order: 3 },
+    tarot:       { label: 'Tarot',                  icon: '🃏', order: 4 },
+    vastu:       { label: 'Vastu',                  icon: '🏠', order: 5 },
+    _consensus:  { label: 'Cross-Domain Consensus', icon: '✦',  order: 6 },
+  };
+
+  private static readonly _BRANCH_LABELS: Record<string, string> = {
+    vedic:       'Vedic (Jyotish)',
+    kp:          'KP System',
+    western:     'Western',
+    indian:      'Indian',
+    chaldean:    'Chaldean',
+    pythagorean: 'Pythagorean',
+    chinese:     'Chinese',
+    universal:   'Universal',
+    lal_kitab:   'Lal Kitab',
+    vastu:       'Vastu Shastra',
+    tarot:       'Tarot Reading',
+    consensus:   'AI Synthesis',
+  };
+
+  readonly domainGroups = computed(() => {
+    const blocks = this.questionBlocks();
+    if (!blocks.length) return [];
+    // Collect all unique domains across all questions
+    const domains = new Set<string>();
+    blocks.forEach(q => q.insights.forEach(i => i.domains.forEach(d => domains.add(d))));
+    return [...domains].sort((a, b) => {
+      const oa = ReviewPage._DOMAIN_META[a]?.order ?? 99;
+      const ob = ReviewPage._DOMAIN_META[b]?.order ?? 99;
+      return oa - ob;
+    });
+  });
+
+  domainGroupsForQuestion(question: string, qi: number): Array<{
+    domain: string; domainLabel: string; icon: string;
+    branches: Array<{
+      insightId: string; branchKey: string; branchLabel: string;
+      content: string; confidence: string; edited: boolean;
+      detail: InsightDetail;
+    }>;
+  }> {
+    const qBlock = this.questionBlocks().find(q => q.question === question);
+    if (!qBlock) return [];
+
+    // Only show domains the user actually selected (+ consensus)
+    const selectedModules: string[] = this.orch.currentInput()?.selected_modules ?? [];
+
+    // Group insights by domain (consensus insights go into a special "_consensus" bucket)
+    const byDomain: Record<string, typeof qBlock.insights> = {};
+    for (const ins of qBlock.insights) {
+      const dom = ins.id.endsWith('_consensus') ? '_consensus' : (ins.domains[0] ?? 'general');
+      // Filter out domains not in selected_modules (always keep consensus)
+      if (dom !== '_consensus' && selectedModules.length > 0 && !selectedModules.includes(dom)) continue;
+      if (!byDomain[dom]) byDomain[dom] = [];
+      byDomain[dom].push(ins);
+    }
+
+    return Object.entries(byDomain)
+      .sort(([a], [b]) => {
+        const oa = ReviewPage._DOMAIN_META[a]?.order ?? 99;
+        const ob = ReviewPage._DOMAIN_META[b]?.order ?? 99;
+        return oa - ob;
+      })
+      .map(([domain, insights]) => ({
+        domain,
+        domainLabel: ReviewPage._DOMAIN_META[domain]?.label ?? domain,
+        icon: ReviewPage._DOMAIN_META[domain]?.icon ?? '✦',
+        branches: insights.map(ins => {
+          // Derive branch key from insight id (e.g. q1_i2) or sub_agent field
+          const subAgent = ins.sub_agent ?? '';
+          const branchKey = subAgent || ins.id;
+          const knownBranch = Object.keys(ReviewPage._BRANCH_LABELS)
+            .find(k => subAgent.toLowerCase() === k || subAgent.toLowerCase().startsWith(k));
+          const branchLabel = knownBranch
+            ? ReviewPage._BRANCH_LABELS[knownBranch]
+            : (subAgent ? this._toTitleCase(subAgent) : `Finding ${ins.id}`);
+          return {
+            insightId:   ins.id,
+            branchKey,
+            branchLabel,
+            content:     this._branchEdits[ins.id] ?? ins.content,
+            confidence:  ins.confidence,
+            edited:      !!ins.edited || !!this._branchEdits[ins.id],
+            detail:      (ins.detail ?? {}) as InsightDetail,
+          };
+        }),
+      }));
+  }
+
+  private _toTitleCase(s: string): string {
+    return s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  // Template helpers for Object iteration
+  objectEntries(obj: Record<string, any> | null | undefined): [string, any][] {
+    return obj ? Object.entries(obj) : [];
+  }
+  objectKeys(obj: Record<string, any> | null | undefined): string[] {
+    return obj ? Object.keys(obj) : [];
+  }
+  hasDetail(detail: InsightDetail | undefined): boolean {
+    if (!detail) return false;
+    return Object.values(detail).some(v =>
+      v !== null && v !== undefined && v !== '' &&
+      !(Array.isArray(v) && v.length === 0) &&
+      !(typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 0)
+    );
+  }
+
+  toggleBranchSelect(insightId: string, qBlock: AdminQuestion | null, branch: any) {
+    this.selectedBranchIds.update(s => {
+      const c = new Set(s);
+      if (c.has(insightId)) {
+        c.delete(insightId);
+        // Also remove from approved/rejected when deselected
+        this.approvedIds.update(a => { const ac = new Set(a); ac.delete(insightId); return ac; });
+        this.rejectedIds.update(r => { const rc = new Set(r); rc.delete(insightId); return rc; });
+      } else {
+        c.add(insightId);
+      }
+      return c;
+    });
+  }
+
   transSectionApprovedCount(si: number): number {
     const section = this.translatedSections()[si];
     if (!section) return 0;
@@ -1239,13 +2095,22 @@ export class ReviewPage {
     this.approvedIds.update(s => { const c = new Set(s); c.delete(id); return c; });
   }
   approveAll() {
-    const all = this.questionBlocks().flatMap(q => q.insights.map(i => i.id));
-    this.approvedIds.set(new Set(all));
+    // Approve all selected branches (if none selected, select+approve all)
+    const selected = this.selectedBranchIds();
+    if (selected.size === 0) {
+      const all = this.questionBlocks().flatMap(q => q.insights.map(i => i.id));
+      this.selectedBranchIds.set(new Set(all));
+      this.approvedIds.set(new Set(all));
+    } else {
+      this.approvedIds.set(new Set(selected));
+    }
     this.rejectedIds.set(new Set());
   }
   toggleEdit(id: string) { this.editingId.set(this.editingId() === id ? null : id); }
   onEdit(id: string, event: Event) {
-    this.orch.updateInsight(id, (event.target as HTMLTextAreaElement).value);
+    const val = (event.target as HTMLTextAreaElement).value;
+    this._branchEdits[id] = val;
+    this.orch.updateInsight(id, val);
   }
 
   toggleTransApprove(id: string) {
@@ -1276,7 +2141,19 @@ export class ReviewPage {
     this.generating.set(true);
     this.generateError.set('');
     try {
-      await this.orch.approveAndGenerate([...this.approvedIds()], [...this.rejectedIds()]);
+      // Treat selected-but-not-explicitly-approved as approved
+      const selected   = this.selectedBranchIds();
+      const approved   = this.approvedIds();
+      const rejected   = this.rejectedIds();
+      // Any selected item that isn't rejected counts as approved
+      const effectiveApproved = new Set([...approved]);
+      for (const id of selected) {
+        if (!rejected.has(id)) effectiveApproved.add(id);
+      }
+      // If nothing selected/approved at all, approve everything (admin wants full report)
+      const allIds = this.questionBlocks().flatMap(q => q.insights.map(i => i.id));
+      const finalApproved = effectiveApproved.size > 0 ? [...effectiveApproved] : allIds;
+      await this.orch.approveAndGenerate(finalApproved, [...rejected]);
       this.reportGenerated.set(true);
       try {
         const res = await firstValueFrom(this.api.getLanguages());
