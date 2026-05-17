@@ -1,0 +1,80 @@
+name: Build & Push — Docker Images to ECR
+
+# Runs only on merge to main (after CI tests pass)
+on:
+  push:
+    branches: [main]
+
+env:
+  AWS_REGION: ap-south-1          # Mumbai — change to your region
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-south-1.amazonaws.com
+  API_IMAGE: astrointel-api
+  WEB_IMAGE: astrointel-web
+
+jobs:
+  build-and-push:
+    name: Build & Push Docker Images
+    runs-on: ubuntu-latest
+    # Only runs after the test job passes (via test.yml)
+    needs: []
+
+    permissions:
+      contents: read
+      id-token: write   # needed for OIDC auth to AWS
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC — no long-lived keys)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Log in to Amazon ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set image tag (short SHA)
+        run: echo "IMAGE_TAG=${GITHUB_SHA::8}" >> $GITHUB_ENV
+
+      # ── Build + push backend ──────────────────────────────────────────────
+      - name: Build backend image
+        run: |
+          docker build \
+            -t $ECR_REGISTRY/$API_IMAGE:$IMAGE_TAG \
+            -t $ECR_REGISTRY/$API_IMAGE:latest \
+            ./astro-intel-backend
+
+      - name: Push backend image
+        run: |
+          docker push $ECR_REGISTRY/$API_IMAGE:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$API_IMAGE:latest
+
+      # ── Build + push frontend ─────────────────────────────────────────────
+      - name: Build frontend image
+        run: |
+          docker build \
+            -t $ECR_REGISTRY/$WEB_IMAGE:$IMAGE_TAG \
+            -t $ECR_REGISTRY/$WEB_IMAGE:latest \
+            ./astro-intel
+
+      - name: Push frontend image
+        run: |
+          docker push $ECR_REGISTRY/$WEB_IMAGE:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$WEB_IMAGE:latest
+
+      # ── Output image URIs for deploy workflow ─────────────────────────────
+      - name: Output image URIs
+        run: |
+          echo "API image: $ECR_REGISTRY/$API_IMAGE:$IMAGE_TAG"
+          echo "Web image: $ECR_REGISTRY/$WEB_IMAGE:$IMAGE_TAG"
+
+      - name: Save image tag for deploy
+        run: echo "$IMAGE_TAG" > image-tag.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: image-tag
+          path: image-tag.txt
+          retention-days: 1

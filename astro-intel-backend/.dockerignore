@@ -23,6 +23,13 @@ TEST_ACCURACY_REPORT.md
 .env
 .env.*
 auth_keys.json
+users.json
+leads.json
+
+# Local DB files — mounted as named volume at runtime
+*.db
+*.db-shm
+*.db-wal
 
 # Dev tools
 .pytest_cache/

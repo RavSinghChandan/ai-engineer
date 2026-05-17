@@ -177,17 +177,25 @@ Developer → GitHub Push
 
 ---
 
-### What Already Exists
+### What's Built (All Phases Complete)
 
 | Artifact | Status |
 |---------|--------|
-| `astro-intel-backend/Dockerfile` | Exists — needs frontend counterpart |
-| `astro-intel-backend/docker-compose.yml` | Exists — backend only, needs frontend + PG |
-| `astro-intel-backend/deploy-ec2.sh` | Exists — manual SSH deploy, will be replaced by GH Actions |
-| `astro-intel-backend/database.py` | Done — SQLite with WAL, JSON migration complete |
-| GitHub Actions workflows | Not yet created |
-| Frontend Dockerfile | Not yet created |
-| RDS / ECS / S3 infra | Not yet created |
+| `astro-intel/Dockerfile` | ✅ Multi-stage: ng build → Nginx |
+| `astro-intel/nginx.conf` | ✅ SPA routing, gzip, static asset caching |
+| `astro-intel-backend/Dockerfile` | ✅ Multi-stage Python, non-root user, volume mount |
+| `docker-compose.yml` (root) | ✅ Full stack: frontend + backend + optional PostgreSQL |
+| `astro-intel-backend/database.py` | ✅ SQLite + PostgreSQL dual-backend via DATABASE_URL |
+| `.github/workflows/test.yml` | ✅ pytest + ng build on every PR |
+| `.github/workflows/build-push.yml` | ✅ Docker build → ECR push on main merge |
+| `.github/workflows/deploy.yml` | ✅ ECS rolling deploy, circuit-breaker rollback |
+| `.github/workflows/promote.yml` | ✅ Manual dev → staging → prod promotion |
+| `infra/01-ecr.sh` | ✅ ECR repository creation |
+| `infra/02-s3-cloudfront.sh` | ✅ S3 bucket + CloudFront distribution |
+| `infra/03-rds-postgres.sh` | ✅ RDS PostgreSQL + pgvector |
+| `infra/04-secrets-manager.sh` | ✅ AWS Secrets Manager — all app secrets |
+| `infra/05-ecs-fargate.sh` | ✅ ECS cluster + Fargate task definitions + services |
+| `infra/06-autoscaling-alarms.sh` | ✅ CloudWatch alarms + auto-scaling (2–10 tasks) |
 
 ---
 
@@ -250,4 +258,54 @@ ng build --configuration production
 
 ---
 
-*This README is the single source of truth for architecture and deployment decisions. Update it as each phase completes.*
+---
+
+## Deployment Runbook
+
+### Local Docker (Full Stack)
+```bash
+# SQLite mode (default)
+docker-compose up --build
+
+# PostgreSQL mode
+docker-compose --profile postgres up --build
+# Then set DATABASE_URL in docker-compose.yml environment section
+```
+
+### First-Time Cloud Setup (run once)
+```bash
+export AWS_REGION=ap-south-1
+export AWS_ACCOUNT_ID=<your-account-id>
+
+bash infra/01-ecr.sh                    # Create ECR repos
+bash infra/02-s3-cloudfront.sh          # Frontend CDN
+bash infra/03-rds-postgres.sh           # Database
+bash infra/04-secrets-manager.sh        # Secrets
+bash infra/05-ecs-fargate.sh            # Compute
+bash infra/06-autoscaling-alarms.sh     # Monitoring
+```
+
+### GitHub Secrets Required
+| Secret | Value |
+|--------|-------|
+| `AWS_ACCOUNT_ID` | Your 12-digit AWS account ID |
+| `AWS_DEPLOY_ROLE_ARN` | IAM role ARN for GitHub OIDC |
+| `OPENAI_API_KEY` | From OpenAI dashboard |
+
+### Deploy Flow
+```
+git push → PR opened
+  → test.yml runs (pytest + ng build)
+  → PR approved + merged to main
+  → build-push.yml runs (Docker build + ECR push)
+  → deploy.yml runs (ECS rolling update)
+  → promote.yml (manual: staging → prod)
+```
+
+### Rollback
+In GitHub Actions → deploy.yml → Run workflow → enter previous image tag.
+ECS circuit breaker auto-rolls back if health checks fail during deploy.
+
+---
+
+*This README is the single source of truth for architecture and deployment decisions. Last updated: 2026-05-17*

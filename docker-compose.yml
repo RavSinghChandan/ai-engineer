@@ -1,0 +1,105 @@
+# ── AstroIntel 360° — Full Stack (Frontend + Backend + PostgreSQL) ────────────
+# Usage:
+#   docker-compose up --build          # start everything (SQLite mode by default)
+#   docker-compose --profile postgres up --build  # start with PostgreSQL
+#   docker-compose down -v             # stop + remove volumes
+#
+# Frontend → http://localhost:4200
+# Backend  → http://localhost:8080
+# API Docs → http://localhost:8080/docs
+# PgAdmin  → http://localhost:5050  (postgres profile only)
+
+services:
+
+  # ── PostgreSQL + pgvector (optional — activate with --profile postgres) ──────
+  astro-db:
+    image: pgvector/pgvector:pg16
+    container_name: astrointel-db
+    profiles: [postgres]
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: astrointel
+      POSTGRES_USER: astrointel
+      POSTGRES_PASSWORD: astrointel_dev_pw
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U astrointel -d astrointel"]
+      interval: 10s
+      timeout: 5s
+      start_period: 15s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - astrointel-net
+
+  # ── Backend: FastAPI + LangGraph ────────────────────────────────────────────
+  astro-api:
+    build:
+      context: ./astro-intel-backend
+      dockerfile: Dockerfile
+    image: astrointel-api:latest
+    container_name: astrointel-api
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./astro-intel-backend/.env
+    environment:
+      # SQLite mode (default — no DATABASE_URL set):
+      - SQLITE_DB_PATH=/data/astrointel.db
+      - AUTH_STORE_PATH=/data/auth_keys.json
+      - USERS_STORE_PATH=/data/users.json
+      - LEADS_STORE_PATH=/data/leads.json
+      - APP_ENV=development
+      # PostgreSQL mode (uncomment when running --profile postgres):
+      # - DATABASE_URL=postgresql://astrointel:astrointel_dev_pw@astro-db:5432/astrointel
+    volumes:
+      - db_data:/data
+    depends_on:
+      astro-db:
+        condition: service_healthy
+        required: false
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - astrointel-net
+
+  # ── Frontend: Angular → Nginx ───────────────────────────────────────────────
+  astro-web:
+    build:
+      context: ./astro-intel
+      dockerfile: Dockerfile
+    image: astrointel-web:latest
+    container_name: astrointel-web
+    ports:
+      - "4200:80"
+    depends_on:
+      astro-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/nginx-health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - astrointel-net
+
+# ── Volumes ──────────────────────────────────────────────────────────────────
+volumes:
+  db_data:
+    driver: local    # SQLite DB + JSON stores (used in SQLite mode)
+  pg_data:
+    driver: local    # PostgreSQL data (used in postgres profile)
+
+# ── Networks ─────────────────────────────────────────────────────────────────
+networks:
+  astrointel-net:
+    driver: bridge

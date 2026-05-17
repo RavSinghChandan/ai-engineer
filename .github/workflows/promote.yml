@@ -1,0 +1,92 @@
+name: Promote — dev → staging → prod
+
+# Manual workflow — promotes a specific image tag through environments
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag to promote (e.g. a1b2c3d4)"
+        required: true
+      target_env:
+        description: "Target environment"
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-south-1.amazonaws.com
+
+jobs:
+  promote:
+    name: Promote ${{ github.event.inputs.image_tag }} → ${{ github.event.inputs.target_env }}
+    runs-on: ubuntu-latest
+
+    environment:
+      name: ${{ github.event.inputs.target_env }}
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set cluster + service names for environment
+        run: |
+          ENV="${{ github.event.inputs.target_env }}"
+          if [ "$ENV" = "staging" ]; then
+            echo "ECS_CLUSTER=astrointel-staging-cluster" >> $GITHUB_ENV
+            echo "API_SERVICE=astrointel-api-staging" >> $GITHUB_ENV
+            echo "WEB_SERVICE=astrointel-web-staging" >> $GITHUB_ENV
+          elif [ "$ENV" = "production" ]; then
+            echo "ECS_CLUSTER=astrointel-cluster" >> $GITHUB_ENV
+            echo "API_SERVICE=astrointel-api-service" >> $GITHUB_ENV
+            echo "WEB_SERVICE=astrointel-web-service" >> $GITHUB_ENV
+          fi
+
+      - name: Deploy API image to ${{ github.event.inputs.target_env }}
+        run: |
+          TAG="${{ github.event.inputs.image_tag }}"
+          TASK=$(aws ecs describe-task-definition --task-definition astrointel-api --query taskDefinition > /tmp/api-task.json && cat /tmp/api-task.json)
+          NEW_TASK=$(echo $TASK | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          d['containerDefinitions'][0]['image']='$ECR_REGISTRY/astrointel-api:$TAG'
+          for k in ['taskDefinitionArn','revision','status','requiresAttributes','compatibilities','registeredAt','registeredBy']:
+            d.pop(k,None)
+          print(json.dumps(d))
+          ")
+          NEW_ARN=$(aws ecs register-task-definition --cli-input-json "$NEW_TASK" --query 'taskDefinition.taskDefinitionArn' --output text)
+          aws ecs update-service --cluster $ECS_CLUSTER --service $API_SERVICE --task-definition $NEW_ARN
+          aws ecs wait services-stable --cluster $ECS_CLUSTER --services $API_SERVICE
+          echo "✅ API deployed to ${{ github.event.inputs.target_env }}"
+
+      - name: Deploy Web image to ${{ github.event.inputs.target_env }}
+        run: |
+          TAG="${{ github.event.inputs.image_tag }}"
+          TASK=$(aws ecs describe-task-definition --task-definition astrointel-web --query taskDefinition > /tmp/web-task.json && cat /tmp/web-task.json)
+          NEW_TASK=$(echo $TASK | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          d['containerDefinitions'][0]['image']='$ECR_REGISTRY/astrointel-web:$TAG'
+          for k in ['taskDefinitionArn','revision','status','requiresAttributes','compatibilities','registeredAt','registeredBy']:
+            d.pop(k,None)
+          print(json.dumps(d))
+          ")
+          NEW_ARN=$(aws ecs register-task-definition --cli-input-json "$NEW_TASK" --query 'taskDefinition.taskDefinitionArn' --output text)
+          aws ecs update-service --cluster $ECS_CLUSTER --service $WEB_SERVICE --task-definition $NEW_ARN
+          aws ecs wait services-stable --cluster $ECS_CLUSTER --services $WEB_SERVICE
+          echo "✅ Web deployed to ${{ github.event.inputs.target_env }}"
+
+      - name: Promotion complete
+        run: |
+          echo "🚀 ${{ github.event.inputs.image_tag }} promoted to ${{ github.event.inputs.target_env }}"

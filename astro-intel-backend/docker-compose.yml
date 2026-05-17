@@ -1,28 +1,37 @@
-version: "3.9"
+# ── AstroIntel Backend Only ───────────────────────────────────────────────────
+# For full-stack (frontend + backend), use docker-compose.yml in the repo root.
+# Usage:
+#   docker-compose up --build
+#   Backend → http://localhost:8080
+#   Docs    → http://localhost:8080/docs
 
 services:
   astro-api:
     build:
       context: .
       dockerfile: Dockerfile
-    image: astrointel:latest
+    image: astrointel-api:latest
     container_name: astrointel-api
     ports:
       - "8080:8080"
     env_file:
       - .env
     environment:
+      - SQLITE_DB_PATH=/data/astrointel.db
       - AUTH_STORE_PATH=/data/auth_keys.json
+      - USERS_STORE_PATH=/data/users.json
+      - LEADS_STORE_PATH=/data/leads.json
+      - APP_ENV=development
     volumes:
-      - auth_data:/data
+      - db_data:/data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
       timeout: 10s
-      start_period: 15s
+      start_period: 20s
       retries: 3
     restart: unless-stopped
 
 volumes:
-  auth_data:
+  db_data:
     driver: local

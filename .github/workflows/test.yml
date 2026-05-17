@@ -1,0 +1,87 @@
+name: CI — Test
+
+# Runs on every PR and push to main
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+
+  # ── Backend: Python tests ────────────────────────────────────────────────────
+  backend-test:
+    name: Backend Tests (pytest)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_DB: astrointel_test
+          POSTGRES_USER: astrointel
+          POSTGRES_PASSWORD: test_pw
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U astrointel -d astrointel_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: astro-intel-backend/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r astro-intel-backend/requirements.txt
+
+      - name: Run pytest
+        working-directory: astro-intel-backend
+        env:
+          DATABASE_URL: postgresql://astrointel:test_pw@localhost:5432/astrointel_test
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          JWT_SECRET: ci-test-jwt-secret-not-production
+          MASTER_API_KEY: sk-master-ci-test-key
+          PW_SALT: ci-test-salt
+          SUPERADMIN_PASSWORD: CiTest2024!
+          APP_ENV: development
+          RESEND_API_KEY: re_test_placeholder
+        run: |
+          pytest tests/ -v --tb=short --no-header
+
+  # ── Frontend: Angular build check ───────────────────────────────────────────
+  frontend-build:
+    name: Frontend Build (ng build)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: astro-intel/package-lock.json
+
+      - name: Install dependencies
+        working-directory: astro-intel
+        run: npm ci --legacy-peer-deps
+
+      - name: Build production bundle
+        working-directory: astro-intel
+        run: npx ng build --configuration production
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: angular-dist
+          path: astro-intel/dist/astro-intel/browser/
+          retention-days: 1

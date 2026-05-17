@@ -1,0 +1,106 @@
+name: Deploy — ECS Rolling Update
+
+# Triggers after build-push workflow completes on main
+on:
+  workflow_run:
+    workflows: ["Build & Push — Docker Images to ECR"]
+    types: [completed]
+    branches: [main]
+
+  # Manual trigger for hotfixes / rollbacks
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag to deploy (e.g. a1b2c3d4). Defaults to latest."
+        required: false
+        default: latest
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-south-1.amazonaws.com
+  API_IMAGE: astrointel-api
+  WEB_IMAGE: astrointel-web
+  ECS_CLUSTER: astrointel-cluster
+  API_SERVICE: astrointel-api-service
+  WEB_SERVICE: astrointel-web-service
+  API_TASK_FAMILY: astrointel-api
+  WEB_TASK_FAMILY: astrointel-web
+
+jobs:
+  deploy:
+    name: Deploy to ECS
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Resolve image tag
+        run: |
+          TAG="${{ github.event.inputs.image_tag || 'latest' }}"
+          echo "IMAGE_TAG=$TAG" >> $GITHUB_ENV
+          echo "Deploying tag: $TAG"
+
+      # ── Deploy backend (API) ──────────────────────────────────────────────
+      - name: Get current API task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition $API_TASK_FAMILY \
+            --query taskDefinition \
+            > api-task-def.json
+
+      - name: Update API image in task definition
+        id: api-task
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: api-task-def.json
+          container-name: astrointel-api
+          image: ${{ env.ECR_REGISTRY }}/${{ env.API_IMAGE }}:${{ env.IMAGE_TAG }}
+
+      - name: Deploy API to ECS (rolling update)
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.api-task.outputs.task-definition }}
+          service: ${{ env.API_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+
+      # ── Deploy frontend (Web) ─────────────────────────────────────────────
+      - name: Get current Web task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition $WEB_TASK_FAMILY \
+            --query taskDefinition \
+            > web-task-def.json
+
+      - name: Update Web image in task definition
+        id: web-task
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: web-task-def.json
+          container-name: astrointel-web
+          image: ${{ env.ECR_REGISTRY }}/${{ env.WEB_IMAGE }}:${{ env.IMAGE_TAG }}
+
+      - name: Deploy Web to ECS (rolling update)
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.web-task.outputs.task-definition }}
+          service: ${{ env.WEB_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+
+      - name: Deployment complete
+        run: |
+          echo "✅ Deployed $IMAGE_TAG to ECS cluster $ECS_CLUSTER"
+          echo "   API: $ECR_REGISTRY/$API_IMAGE:$IMAGE_TAG"
+          echo "   Web: $ECR_REGISTRY/$WEB_IMAGE:$IMAGE_TAG"
