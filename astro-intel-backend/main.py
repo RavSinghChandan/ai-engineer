@@ -68,8 +68,6 @@ _default_origins = [
     "http://localhost:4301",
     "http://127.0.0.1:4200",
     "http://127.0.0.1:4300",
-    "http://192.168.1.5:4200",
-    "http://192.168.1.5:4300",
 ]
 _env_origins = os.environ.get("ALLOWED_ORIGINS", "")
 _allowed_origins = (

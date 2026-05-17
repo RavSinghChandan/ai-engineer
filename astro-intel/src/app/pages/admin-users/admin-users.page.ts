@@ -326,7 +326,10 @@ interface LeadRow {
           <span class="au-lead-new-badge">{{ newLeadCount() }} new</span>
         }
       </h2>
-      <span class="auto-refresh-badge">Auto-refresh 30s</span><button class="refresh-btn" [class.spinning]="loading()" [disabled]="loading()" (click)="loadData()"><span class="refresh-icon">↻</span> {{ loading() ? 'Loading…' : 'Refresh' }}</button>
+      <div style="display:inline-flex;align-items:center;gap:8px;">
+        <span class="auto-refresh-badge">Auto-refresh 30s</span>
+        <button class="refresh-btn" [class.spinning]="loading()" [disabled]="loading()" (click)="loadData()"><span class="refresh-icon">↻</span> {{ loading() ? 'Loading…' : 'Refresh' }}</button>
+      </div>
     </div>
 
     <!-- Search + Filter bar -->
