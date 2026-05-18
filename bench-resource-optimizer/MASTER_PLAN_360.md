@@ -241,7 +241,7 @@ Module 5 — API Gateway: "Health probes check all dependencies, not just the LL
 **Priority:** HIGH — required for interview  
 **Senior AI Module:** Module 9 (Projects + Storytelling)  
 **Estimated time:** 1.5 hours  
-**Status:** ⬜ TODO
+**Status:** ✅ DONE — 3-level script + 20 Q&A + architecture diagram + module coverage map, committed as milestone
 
 #### What to build:
 - `senior-ai-engineer/09-projects-and-storytelling/deep-dive-script-bench-resource-optimizer.md`
@@ -263,7 +263,7 @@ Module 9 — Storytelling: "The bench optimizer demonstrates all 12 Senior AI En
 | 1 | Test Suite (60+ tests, all paths) | 4h | M1, M6 | BLOCKER |
 | 2 | Memory + RAGAS Persistence | 2h | M4 | HIGH |
 | 3 | Role CRUD API ✅ | 2h | M6 | HIGH |
-| 7 | Project Story Script | 1.5h | M9 | HIGH |
+| 7 | Project Story Script ✅ | 1.5h | M9 | HIGH |
 | 4 | Readiness Score History ✅ | 1.5h | M1 | MEDIUM |
 | 5 | CI/CD Pipeline ✅ | 2h | M6 | MEDIUM |
 | 6 | Health + Observability Hardening ✅ | 1h | M5, M6 | MEDIUM |
