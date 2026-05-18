@@ -195,7 +195,7 @@ Module 1 — Evaluation: "Readiness score is tracked as a time-series, not just 
 **Priority:** MEDIUM — required for production-grade project claim  
 **Senior AI Module:** Module 6 (MLOps — CI/CD)  
 **Estimated time:** 2 hours  
-**Status:** ⬜ TODO
+**Status:** ✅ DONE — .github/workflows/bench-ci.yml with parallel backend+frontend jobs, committed as milestone
 
 #### What to build:
 - `.github/workflows/ci.yml`:
@@ -265,7 +265,7 @@ Module 9 — Storytelling: "The bench optimizer demonstrates all 12 Senior AI En
 | 3 | Role CRUD API ✅ | 2h | M6 | HIGH |
 | 7 | Project Story Script | 1.5h | M9 | HIGH |
 | 4 | Readiness Score History ✅ | 1.5h | M1 | MEDIUM |
-| 5 | CI/CD Pipeline | 2h | M6 | MEDIUM |
+| 5 | CI/CD Pipeline ✅ | 2h | M6 | MEDIUM |
 | 6 | Health + Observability Hardening | 1h | M5, M6 | MEDIUM |
 
 **Total: ~14 hours of focused engineering work.**

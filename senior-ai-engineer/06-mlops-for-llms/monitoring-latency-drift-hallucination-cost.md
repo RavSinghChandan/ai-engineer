@@ -337,3 +337,46 @@ Alert condition: if today's cost exceeds baseline_mean + 2 × baseline_std, fire
 Implementation: simple Z-score on the daily cost metric. Store in a time-series table, compute rolling stats nightly, compare to current day's spend.
 This catches: a developer removing max_tokens cap (cost spikes), a bug causing infinite retry loops, a traffic spike from a viral moment, or a prompt bloat from a new feature.
 Dashboard breakdown: cost by tenant, cost by feature, cost by model. When the alert fires, the breakdown tells you which dimension is responsible — which tenant, which feature, which model changed.
+
+---
+
+## Bench Resource Optimizer — Phase 5: CI/CD Pipeline (Live Implementation)
+
+**Module 6 — MLOps: Treating AI Code with the Same Discipline as Production Software**
+
+### What was built
+
+`.github/workflows/bench-ci.yml` — parallel CI pipeline that runs on every PR and push to main touching `bench-resource-optimizer/`.
+
+**Pipeline structure**:
+```yaml
+jobs:
+  backend-test:       # Python 3.9 + pytest — blocks merge on any test failure
+  frontend-build:     # Node 20 + ng build --configuration production — blocks on TypeScript errors
+```
+
+**Both jobs run in parallel** — fastest possible feedback. A PR that breaks a test AND has a TypeScript error gets both failure signals simultaneously, not sequentially.
+
+**Key design decisions**:
+
+1. **Path filter** (`paths: ["bench-resource-optimizer/**"]`) — CI only triggers when bench files change. A change to AstroIntel doesn't run bench tests. This is the production pattern: scoped pipelines per project in a monorepo.
+
+2. **No API key in CI** — `DEEPSEEK_API_KEY` is intentionally absent. All 144 tests mock LLM calls. This is the correct pattern: tests that require a live API key are integration tests, not unit tests, and should run in a separate nightly job, not on every PR.
+
+3. **SQLite needs no service container** — unlike PostgreSQL (which AstroIntel CI provisions as a Docker service), SQLite is file-based. Tests use `tmp_path` fixtures that create and discard in-memory DB files. No database setup step needed.
+
+4. **`npm ci --legacy-peer-deps`** — Angular 17's peer dependency graph has conflicts with newer packages. `--legacy-peer-deps` is the standard Angular 17 workaround, same as AstroIntel's pipeline.
+
+5. **`ng build --configuration production`** — production build enables AOT compilation, tree shaking, and strict template checking. A TypeScript error that passes dev build can still fail prod build. CI catches this before it reaches deployment.
+
+**`.env.ci` file** (`backend/.env.ci`):
+```
+DEEPSEEK_API_KEY=  # intentionally unset — all LLM calls mocked
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+DEEPSEEK_MODEL=deepseek-chat
+LOG_LEVEL=WARNING
+```
+
+### Senior interview talking point
+
+"In bench-resource-optimizer, every PR triggers parallel pytest and ng build jobs. A failing test blocks the merge — there is no bypass. The backend job runs in under 2 seconds because all 144 tests are pure unit tests with mocked LLM and SQLite tmp_path fixtures. No external services means no flakiness from network timeouts. The frontend job validates production AOT compilation — a TypeScript error that slips past dev mode gets caught here. This is the same CI pattern as AstroIntel: treat AI code like production software. No untested code ships."
