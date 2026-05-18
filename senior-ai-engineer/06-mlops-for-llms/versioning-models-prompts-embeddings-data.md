@@ -265,3 +265,49 @@ Second, prompts as files in the repository. Even a single `prompts/v1/` folder i
 Third, embedding model version in document metadata. One column: `embedding_model_version`. Required to detect stale embeddings when you upgrade.
 Everything else (fine-tuned model registry, deployment tracking, etc.) can come later as the system matures.
 What to NOT skip: if you skip model pinning, a provider update will break your production system at random. If you skip prompt versioning, you cannot roll back a bad prompt change. If you skip embedding version tracking, you cannot safely upgrade your embedding model. These three are non-negotiable even for a two-person team.
+
+---
+
+## Bench Resource Optimizer — Live Implementation Reference
+
+**Project:** Bench Resource Optimizer (bench-resource-optimizer/backend)  
+**Module:** 6 — MLOps (Test Suite + CI Readiness)  
+**Implemented:** 18 May 2026  
+**Status:** Phase 1 complete — 99 tests passing
+
+### What was built
+
+A full pytest test suite covering all 12 Senior AI Engineer modules with zero LLM API calls (all mocked):
+
+```
+tests/
+  conftest.py          — shared fixtures, mock LLM factory
+  test_guardrails.py   — G1–G5 production guardrails (36 tests)
+  test_agents.py       — CV parser, role mapper, planner, tracker (27 tests)
+  test_db.py           — async SQLite CRUD: users, progress (11 tests)
+  test_cache.py        — L1 exact cache, cache stats (7 tests)
+  test_memory.py       — episodic + long-term memory (12 tests)
+  test_api.py          — FastAPI endpoints: 200/400/404/429/503 paths (6 classes)
+```
+
+### How to run
+
+```bash
+cd bench-resource-optimizer/backend
+source venv/bin/activate
+python -m pytest           # all 99 tests, ~1.3s, no API calls
+```
+
+### Senior interview talking point
+
+"In bench-resource-optimizer, I built a 99-test suite that covers every production guardrail (G1–G5), all four agents, the async SQLite layer, the semantic cache, and session memory — all in under 1.3 seconds with zero LLM API calls. The key pattern is mocking at the LangChain chain level, not the LLM level, because agent code builds `ChatPromptTemplate | llm.bind()` chains — you must mock the full chain's invoke(), not just llm.invoke(), or you get type errors from MagicMock flowing into json.loads()."
+
+### Test design principles applied
+
+1. Each test has an explicit positive OR negative label in the name
+2. No test calls a real LLM, DB, or file system (except test_db.py which uses a temp SQLite file)
+3. G1 rate limiter tested by running 3 requests with max=2 — 3rd is blocked
+4. G3 JSON repair tested at all 4 levels: direct, fence-strip, regex, fallback
+5. G4 PII filter tested for email, phone, and profile field scrubbing
+6. Tracking agent tested with 0%, 20%, 80%, and 100% completion scenarios
+7. CV parser tested with clean JSON, fenced JSON, and partial responses
