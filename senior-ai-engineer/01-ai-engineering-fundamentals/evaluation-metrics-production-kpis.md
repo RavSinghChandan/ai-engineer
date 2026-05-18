@@ -375,3 +375,64 @@ Second, when the task involves nuance that LLM judges miss — e.g., cultural se
 Third, when you see a sudden metric anomaly — automated scores dropped 10%. Before acting, sample 20 real cases and have a human confirm the signal is real, not a data pipeline bug.
 Fourth, when the cost of a wrong answer is high — medical, legal, financial use cases need human sign-off on evaluation methodology.
 Human eval is expensive but it's your ground truth. Use it to calibrate your automated metrics, not replace them.
+
+---
+
+## Bench Resource Optimizer — Phase 4: Readiness Score History (Live Implementation)
+
+**Module 1 — Evaluation Metrics: KPI Tracking as Time-Series, Not Point-in-Time**
+
+### What was built
+
+Previously the system stored only the current readiness score — no history. You couldn't tell if a user was progressing, stalling, or regressing. Phase 4 adds time-series tracking.
+
+**New DB layer** (`db.py`):
+```python
+async def save_readiness_score(user_id: str, role: str, score: float) -> None
+    # Called on every /update-progress. Appends one row — never updates in place.
+
+async def get_readiness_history(user_id: str, limit: int = 30) -> list
+    # Returns last `limit` entries, oldest-first (ready for chart rendering).
+    # Returns [] (not 404) if no history exists.
+```
+
+**Schema** (`readiness_history` table):
+```sql
+CREATE TABLE readiness_history (
+    id      INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL,
+    role    TEXT NOT NULL,
+    score   REAL NOT NULL,
+    ts      REAL NOT NULL
+)
+CREATE INDEX idx_readiness_user ON readiness_history(user_id, ts DESC)
+```
+
+**New API endpoint**:
+```
+GET /progress/{user_id}/history?limit=30
+→ {"user_id": "...", "history": [{"role": ..., "score": ..., "ts": ...}, ...], "count": N}
+```
+
+**Integration** — `/update-progress` now persists the score after every calculation:
+```python
+result = calculate_readiness(...)
+await save_readiness_score(req.user_id, progress["role"], result["readiness_score"])
+```
+
+**Test coverage** (6 DB-layer + 3 API-layer = 9 new tests):
+- Save and load single score
+- Multiple scores returned oldest-first (for chart rendering)
+- Unknown user → empty list, not 404
+- Limit parameter caps results to N most-recent, oldest-first within window
+- History isolated by user (no cross-user data leak)
+- 100 updates → only last 30 returned
+- API: structure check, empty response, limit query param
+
+### Why oldest-first matters
+
+The DB query uses a subquery pattern: `SELECT ... FROM (SELECT ... ORDER BY ts DESC LIMIT ?) ORDER BY ts ASC`. This gives you the N most-recent rows but delivers them ascending — the exact order a chart library expects to plot left-to-right.
+
+### Senior interview talking point
+
+"In bench-resource-optimizer, readiness score is a time-series KPI, not a single value. Every call to /update-progress appends a score snapshot to SQLite. The history endpoint returns the last 30 entries oldest-first, so the frontend can render a trend sparkline directly. This pattern is the difference between a metric and a KPI — a KPI is a metric plus its trend. If a user's score drops from 80% to 60%, the trend exposes regression. If it rises 20% in a week, it validates the training plan. Point-in-time scores answer 'where are you'; trend scores answer 'are you moving in the right direction'."

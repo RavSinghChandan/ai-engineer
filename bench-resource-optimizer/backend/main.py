@@ -49,6 +49,7 @@ from db import (
     save_user, update_completed_tasks,
     get_all_roles_db, get_role_db, create_role_db, update_role_db, delete_role_db,
     seed_roles_from_json,
+    save_readiness_score, get_readiness_history,
 )
 from guardrails.hallucination import run_llm_judge
 from memory.session_store import (
@@ -775,6 +776,9 @@ async def update_progress(request: Request, req: UpdateProgressRequest):
                 "milestone":        "almost_ready",
             })
 
+        # Phase 4: persist readiness score as a time-series data point
+        await save_readiness_score(req.user_id, progress["role"], score)
+
         _record(request, "/update-progress", t_start, 200)
         return result
 
@@ -798,6 +802,20 @@ async def get_progress_endpoint(request: Request, user_id: str):
     progress["_user_facts"]     = get_user_facts(user_id)
     _record(request, "/progress", t_start, 200)
     return progress
+
+
+@app.get("/progress/{user_id}/history", tags=["Progress"])
+async def get_progress_history(request: Request, user_id: str, limit: int = 30):
+    """
+    Phase 4: Return the readiness score time-series for a user.
+    Sorted oldest-first so frontend can render a sparkline/trend chart directly.
+    Returns empty list (not 404) if no history exists yet.
+    Capped at last `limit` entries (default 30, max enforced by DB query).
+    """
+    t_start = time.time()
+    history = await get_readiness_history(user_id, limit=min(limit, 100))
+    _record(request, "/progress/history", t_start, 200)
+    return {"user_id": user_id, "history": history, "count": len(history)}
 
 
 # ── Memory inspection (Module 4) ─────────────────────────────────────────────

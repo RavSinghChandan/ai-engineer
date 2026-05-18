@@ -173,7 +173,7 @@ Module 6 — MLOps: "Roles are managed via admin CRUD API, not hardcoded JSON. A
 **Priority:** MEDIUM — enables trend charts in the dashboard  
 **Senior AI Module:** Module 1 (Evaluation Metrics — production KPIs)  
 **Estimated time:** 1.5 hours  
-**Status:** ⬜ TODO
+**Status:** ✅ DONE — 9 new tests (6 DB + 3 API), 144 total passing, committed as milestone
 
 #### What to build:
 - `readiness_history` table: `(user_id, role, score, ts)`
@@ -264,7 +264,7 @@ Module 9 — Storytelling: "The bench optimizer demonstrates all 12 Senior AI En
 | 2 | Memory + RAGAS Persistence | 2h | M4 | HIGH |
 | 3 | Role CRUD API ✅ | 2h | M6 | HIGH |
 | 7 | Project Story Script | 1.5h | M9 | HIGH |
-| 4 | Readiness Score History | 1.5h | M1 | MEDIUM |
+| 4 | Readiness Score History ✅ | 1.5h | M1 | MEDIUM |
 | 5 | CI/CD Pipeline | 2h | M6 | MEDIUM |
 | 6 | Health + Observability Hardening | 1h | M5, M6 | MEDIUM |
 

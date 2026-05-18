@@ -90,6 +90,19 @@ async def init_db() -> None:
                 num_chunks        INTEGER NOT NULL
             )
         """)
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS readiness_history (
+                id      INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT NOT NULL,
+                role    TEXT NOT NULL,
+                score   REAL NOT NULL,
+                ts      REAL NOT NULL
+            )
+        """)
+        await db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_readiness_user
+            ON readiness_history(user_id, ts DESC)
+        """)
         await db.commit()
 
 
@@ -429,3 +442,34 @@ async def seed_roles_from_json(roles_json_path: Path) -> int:
         except ValueError:
             pass  # already exists
     return inserted
+
+
+# ── Readiness History CRUD ────────────────────────────────────────────────────
+
+async def save_readiness_score(user_id: str, role: str, score: float) -> None:
+    """Append one readiness score snapshot. Called on every /update-progress."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("PRAGMA journal_mode=WAL")
+        await db.execute(
+            "INSERT INTO readiness_history (user_id, role, score, ts) VALUES (?, ?, ?, ?)",
+            (user_id, role, score, time.time()),
+        )
+        await db.commit()
+
+
+async def get_readiness_history(user_id: str, limit: int = 30) -> list:
+    """Return the last `limit` score entries for a user, oldest-first."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            """
+            SELECT role, score, ts FROM (
+                SELECT role, score, ts FROM readiness_history
+                WHERE user_id = ?
+                ORDER BY ts DESC LIMIT ?
+            ) ORDER BY ts ASC
+            """,
+            (user_id, limit),
+        ) as cur:
+            rows = await cur.fetchall()
+    return [{"role": r["role"], "score": r["score"], "ts": r["ts"]} for r in rows]

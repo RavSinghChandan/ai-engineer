@@ -328,6 +328,7 @@ class TestProgress:
         }
         with patch("main.get_progress", new=AsyncMock(return_value=progress_data)), \
              patch("main.update_completed_tasks", new=AsyncMock(return_value=True)), \
+             patch("main.save_readiness_score", new=AsyncMock()), \
              patch("main.update_user_facts"), \
              patch("main.write_session_summary"):
             resp = client.post("/update-progress", json={
@@ -338,6 +339,41 @@ class TestProgress:
         data = resp.json()
         assert "readiness_score" in data
         assert data["readiness_score"] == 40  # 2/5
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Progress History endpoint (Phase 4)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class TestProgressHistory:
+
+    def test_positive_history_returns_structure(self, client):
+        mock_history = [
+            {"role": "Python Dev", "score": 40.0, "ts": 1000.0},
+            {"role": "Python Dev", "score": 80.0, "ts": 2000.0},
+        ]
+        with patch("main.get_readiness_history", new_callable=AsyncMock, return_value=mock_history):
+            resp = client.get("/progress/usr1/history")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["user_id"] == "usr1"
+        assert body["count"] == 2
+        assert body["history"][0]["score"] == 40.0
+
+    def test_negative_no_history_returns_empty_not_404(self, client):
+        with patch("main.get_readiness_history", new_callable=AsyncMock, return_value=[]):
+            resp = client.get("/progress/new-user/history")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["history"] == []
+        assert body["count"] == 0
+
+    def test_positive_limit_query_param_accepted(self, client):
+        mock_history = [{"role": "R", "score": float(i), "ts": float(i)} for i in range(5)]
+        with patch("main.get_readiness_history", new_callable=AsyncMock, return_value=mock_history):
+            resp = client.get("/progress/usr1/history?limit=5")
+        assert resp.status_code == 200
+        assert resp.json()["count"] == 5
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
