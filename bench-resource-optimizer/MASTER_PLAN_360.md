@@ -121,7 +121,7 @@ Module 6 — MLOps: "In bench-resource-optimizer, we added a full pytest suite w
 **Priority:** HIGH — session memory is lost on every restart  
 **Senior AI Module:** Module 4 (Agent State Management)  
 **Estimated time:** 2 hours  
-**Status:** ⬜ TODO
+**Status:** ✅ DONE — 12 new tests, 111 total passing, committed as milestone
 
 #### What to build:
 - Add `memory` table to `db.py`: `(user_id, session_json, ts, expires_at)`

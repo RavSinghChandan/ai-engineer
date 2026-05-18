@@ -51,6 +51,7 @@ from guardrails.hallucination import run_llm_judge
 from memory.session_store import (
     build_memory_context, get_user_facts, get_recent_sessions,
     memory_stats, update_user_facts, write_session_summary,
+    sweep_expired_sessions,
 )
 from metrics.collector import RequestRecord, get_collector
 from middleware.logging_mw import RequestLoggingMiddleware, configure_logging
@@ -117,6 +118,14 @@ async def lifespan(app: FastAPI):
     # Guardrail persistence: create table + load saved counters into memory
     init_guardrail_persistence()
     print("✅ Guardrail counters loaded from SQLite.")
+
+    # Phase 2: sweep expired episodic memory sessions from SQLite
+    deleted = await sweep_expired_sessions()
+    print(f"✅ Memory sweep: {deleted} expired session(s) removed.")
+
+    # Phase 2: restore RAGAS results from SQLite into in-memory store
+    restored = await get_ragas_store().load_from_db()
+    print(f"✅ RAGAS store restored: {restored} record(s) from DB.")
 
     print("⏳ Loading embeddings + building vector stores...")
     embeddings    = get_embeddings()

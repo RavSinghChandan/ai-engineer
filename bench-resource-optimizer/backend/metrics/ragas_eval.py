@@ -455,13 +455,79 @@ def evaluate(
 # ── In-memory store + aggregation ────────────────────────────────────────────
 
 class RagasStore:
-    """Keeps last 200 RAGAS evaluations and returns aggregated dashboard stats."""
+    """
+    Keeps last 200 RAGAS evaluations in memory + persists to SQLite.
+
+    Phase 2 upgrade:
+      - add() writes to in-memory deque AND SQLite (fire-and-forget async)
+      - load_from_db() called at startup to restore records that survived restart
+      - In-memory deque is the hot path (< 1ms reads)
+      - SQLite is the cold recovery path (called once per restart)
+    """
 
     def __init__(self, window: int = 200) -> None:
         self._records: deque[RagasRecord] = deque(maxlen=window)
 
     def add(self, record: RagasRecord) -> None:
         self._records.append(record)
+        # Write-through to SQLite (fire-and-forget)
+        self._fire_persist(record)
+
+    def _fire_persist(self, record: RagasRecord) -> None:
+        try:
+            import asyncio
+            loop = asyncio.get_running_loop()
+            loop.create_task(self._persist_async(record))
+        except RuntimeError:
+            pass  # No event loop (tests) — skip DB write
+
+    async def _persist_async(self, record: RagasRecord) -> None:
+        try:
+            from db import save_ragas_result
+            await save_ragas_result({
+                "request_id":        record.request_id,
+                "query":             record.query,
+                "timestamp":         record.timestamp,
+                "faithfulness":      record.faithfulness,
+                "context_precision": record.context_precision,
+                "context_recall":    record.context_recall,
+                "answer_relevancy":  record.answer_relevancy,
+                "precision_at_k":    record.precision_at_k,
+                "mrr":               record.mrr,
+                "passed":            record.passed,
+                "num_chunks":        record.num_chunks,
+            })
+        except Exception as exc:
+            logger.warning('{"event":"ragas_persist_failed","error":"%s"}', str(exc)[:80])
+
+    async def load_from_db(self) -> int:
+        """
+        Restore RAGAS records from SQLite into in-memory deque.
+        Called once at startup. Returns count of records restored.
+        """
+        try:
+            from db import load_ragas_results
+            rows = await load_ragas_results(limit=200)
+            for r in rows:
+                record = RagasRecord(
+                    request_id        = r["request_id"],
+                    query             = r["query"],
+                    timestamp         = r["timestamp"],
+                    faithfulness      = r["faithfulness"],
+                    context_precision = r["context_precision"],
+                    context_recall    = r["context_recall"],
+                    answer_relevancy  = r["answer_relevancy"],
+                    precision_at_k    = r["precision_at_k"],
+                    mrr               = r["mrr"],
+                    passed            = bool(r["passed"]),
+                    num_chunks        = r["num_chunks"],
+                )
+                self._records.append(record)
+            logger.info('{"event":"ragas_restored","count":%d}', len(rows))
+            return len(rows)
+        except Exception as exc:
+            logger.warning('{"event":"ragas_restore_failed","error":"%s"}', str(exc)[:80])
+            return 0
 
     def dashboard(self) -> Dict[str, Any]:
         records = list(self._records)

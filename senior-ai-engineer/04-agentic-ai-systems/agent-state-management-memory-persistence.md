@@ -337,3 +337,54 @@ First, fact confidence scoring: when extracting facts to long-term memory, score
 Second, fact reconciliation: when adding a new fact that contradicts a stored fact, do not silently overwrite. Flag the contradiction and use the newer fact (more recent is more accurate) while logging the change.
 Third, periodic refresh: for long-term users, run a periodic review of stored facts. Ask the LLM to evaluate whether stored preferences still seem consistent with recent conversation style. Facts with no supporting signal from recent sessions get a lower confidence score over time.
 The anti-pattern: blindly accumulating facts without validation. A user who said "I prefer bullet points" 2 years ago and has since switched to preferring paragraphs will have an outdated preference causing frustrating responses. Recency-weighted confidence prevents this.
+
+---
+
+## Bench Resource Optimizer — Live Implementation Reference
+
+**Project:** Bench Resource Optimizer (bench-resource-optimizer/backend)  
+**Module:** 4 — Agent State Management (Memory Types + Persistence)  
+**Implemented:** 18 May 2026  
+**Status:** Phase 2 complete — 111 tests passing
+
+### The Problem (Before Phase 2)
+
+Episodic memory (`_episodic` dict in `memory/session_store.py`) and RAGAS evaluation results (`RagasStore._records` deque) were pure in-memory structures. On any server restart — deploy, ECS task replacement, scaling event — all user session history was lost. A user returning after a server restart would get no memory context, making the agent behave as if it had never seen them.
+
+### What was built (Write-Through Persistence Pattern)
+
+**New SQLite tables (db.py):**
+```sql
+memory_sessions(id, user_id, summary, ts, expires_at)   -- 7-day TTL
+ragas_results(id, request_id, query, timestamp, faithfulness, ...)
+```
+
+**session_store.py changes:**
+- `write_session_summary()` → writes to in-memory deque + fires async SQLite write
+- `get_recent_sessions()` → reads from deque (hot path, < 1ms); on miss + not preloaded → DB fallback
+- `preload_user_memory(user_id)` → async: loads DB sessions into deque at request time
+- `sweep_expired_sessions()` → called at startup, removes entries older than 7 days
+- `_preloaded` set prevents duplicate DB reads per user per process lifetime
+
+**ragas_eval.py changes:**
+- `RagasStore.add()` → appends to deque + fires async SQLite write
+- `RagasStore.load_from_db()` → called at startup, restores last 200 records
+
+**main.py lifespan:**
+```python
+deleted = await sweep_expired_sessions()         # purge stale sessions
+restored = await get_ragas_store().load_from_db()  # restore RAGAS from DB
+```
+
+### Senior interview talking point
+
+"In bench-resource-optimizer we implemented write-through episodic memory persistence — the same pattern used in Redis + DB dual-write systems. The in-memory deque is the hot path (microseconds). Every write also fires a non-blocking SQLite write via `asyncio.create_task()`. On restart, we sweep expired 7-day sessions and restore the in-memory state from DB — the agent picks up exactly where it left off. The same pattern applies to RAGAS evaluation results: 200 records survive across restarts, so our metrics dashboard stays warm after a deploy."
+
+### The key architectural decision
+
+The write is fire-and-forget (`loop.create_task()`), not awaited. This means:
+- Response latency is unaffected by the DB write
+- If the DB write fails, the in-memory data is still correct for this process lifetime
+- On restart: DB is the source of truth, in-memory is rebuilt from it
+
+The same trade-off exists in Redis + Postgres dual-write: you write to Redis (fast) and Postgres (durable). Bench uses SQLite as the durable store — same principle, SQLite-scale.

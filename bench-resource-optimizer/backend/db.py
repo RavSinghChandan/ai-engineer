@@ -48,6 +48,35 @@ async def init_db() -> None:
                 updated_at         REAL NOT NULL
             )
         """)
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS memory_sessions (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id    TEXT NOT NULL,
+                summary    TEXT NOT NULL,
+                ts         REAL NOT NULL,
+                expires_at REAL NOT NULL
+            )
+        """)
+        await db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_memory_user
+            ON memory_sessions(user_id, ts DESC)
+        """)
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS ragas_results (
+                id                INTEGER PRIMARY KEY AUTOINCREMENT,
+                request_id        TEXT NOT NULL,
+                query             TEXT NOT NULL,
+                timestamp         REAL NOT NULL,
+                faithfulness      REAL NOT NULL,
+                context_precision REAL NOT NULL,
+                context_recall    REAL NOT NULL,
+                answer_relevancy  REAL NOT NULL,
+                precision_at_k    REAL NOT NULL,
+                mrr               REAL NOT NULL,
+                passed            INTEGER NOT NULL,
+                num_chunks        INTEGER NOT NULL
+            )
+        """)
         await db.commit()
 
 
@@ -136,3 +165,101 @@ async def update_completed_tasks(user_id: str, completed_task_ids: list) -> bool
         )
         await db.commit()
         return cur.rowcount > 0
+
+
+# ── Memory session CRUD ───────────────────────────────────────────────────────
+
+_7_DAYS = 7 * 24 * 3600
+
+
+async def save_memory_session(user_id: str, summary: dict, ts: float) -> None:
+    """Persist one episodic session summary. Write-through from session_store."""
+    expires_at = ts + _7_DAYS
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("PRAGMA journal_mode=WAL")
+        await db.execute(
+            "INSERT INTO memory_sessions (user_id, summary, ts, expires_at) VALUES (?, ?, ?, ?)",
+            (user_id, json.dumps(summary), ts, expires_at),
+        )
+        await db.commit()
+
+
+async def load_memory_sessions(user_id: str, n: int = 10) -> list:
+    """Load the n most recent non-expired sessions for a user (startup recovery)."""
+    now = time.time()
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            """
+            SELECT summary, ts FROM memory_sessions
+            WHERE user_id = ? AND expires_at > ?
+            ORDER BY ts DESC LIMIT ?
+            """,
+            (user_id, now, n),
+        ) as cur:
+            rows = await cur.fetchall()
+    return [dict(**json.loads(r["summary"]), ts=r["ts"]) for r in rows]
+
+
+async def sweep_expired_sessions() -> int:
+    """Delete sessions older than 7 days. Returns count deleted. Call at startup."""
+    now = time.time()
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("PRAGMA journal_mode=WAL")
+        cur = await db.execute(
+            "DELETE FROM memory_sessions WHERE expires_at <= ?", (now,)
+        )
+        await db.commit()
+        return cur.rowcount
+
+
+async def load_all_memory_user_ids() -> list:
+    """Return all distinct user_ids that have non-expired sessions (for preload)."""
+    now = time.time()
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute(
+            "SELECT DISTINCT user_id FROM memory_sessions WHERE expires_at > ?", (now,)
+        ) as cur:
+            rows = await cur.fetchall()
+    return [r[0] for r in rows]
+
+
+# ── RAGAS results CRUD ────────────────────────────────────────────────────────
+
+async def save_ragas_result(record_dict: dict) -> None:
+    """Persist one RAGAS evaluation record."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("PRAGMA journal_mode=WAL")
+        await db.execute(
+            """
+            INSERT INTO ragas_results
+                (request_id, query, timestamp, faithfulness, context_precision,
+                 context_recall, answer_relevancy, precision_at_k, mrr, passed, num_chunks)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                record_dict["request_id"],
+                record_dict["query"],
+                record_dict["timestamp"],
+                record_dict["faithfulness"],
+                record_dict["context_precision"],
+                record_dict["context_recall"],
+                record_dict["answer_relevancy"],
+                record_dict["precision_at_k"],
+                record_dict["mrr"],
+                int(record_dict["passed"]),
+                record_dict["num_chunks"],
+            ),
+        )
+        await db.commit()
+
+
+async def load_ragas_results(limit: int = 200) -> list:
+    """Load the last `limit` RAGAS records (startup recovery)."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            "SELECT * FROM ragas_results ORDER BY timestamp DESC LIMIT ?", (limit,)
+        ) as cur:
+            rows = await cur.fetchall()
+    return [dict(r) for r in reversed(rows)]
