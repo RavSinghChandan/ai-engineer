@@ -31,6 +31,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import AsyncGenerator, List, Optional
 
+import aiosqlite
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -61,7 +62,7 @@ from metrics.collector import RequestRecord, get_collector
 from middleware.logging_mw import RequestLoggingMiddleware, configure_logging
 from middleware.rate_limit import RateLimitMiddleware
 from metrics.ragas_eval import evaluate as ragas_evaluate, get_ragas_store
-from rag.advanced_retrieval import init_bm25_from_roles
+from rag.advanced_retrieval import init_bm25_from_roles, get_bm25_index
 from rag.knowledge_base import build_vector_store, get_all_roles, get_all_roles_async, get_embeddings
 from utils.file_parser import extract_text_from_pdf
 from utils.guardrails import (
@@ -304,6 +305,43 @@ class UpdateRoleRequest(BaseModel):
     internal_notes:   Optional[str] = None
 
 
+# ── Response models (Phase 6 — OpenAPI docs completeness) ────────────────────
+
+class HealthReadyResponse(BaseModel):
+    status:           str
+    llm:              str
+    vector_store:     str
+    bm25_index:       str
+    sqlite:           str
+    hybrid_retrieval: str
+    circuit_breakers: dict
+    active_prompts:   dict
+
+class UploadCvResponse(BaseModel):
+    user_id: str
+    profile: dict
+
+class RoleSummary(BaseModel):
+    id:          str
+    title:       str
+    description: str
+
+class ReadinessResponse(BaseModel):
+    readiness_score:     float
+    status:              str
+    message:             str
+    completed_count:     int
+    total_count:         int
+    covered_skills:      List[str]
+    pending_skills:      List[str]
+    next_suggested_task: str
+
+class ProgressHistoryResponse(BaseModel):
+    user_id: str
+    history: List[dict]
+    count:   int
+
+
 # ── Health probes ─────────────────────────────────────────────────────────────
 
 @app.get("/health/live", tags=["Health"])
@@ -312,16 +350,44 @@ def health_live():
     return {"status": "alive"}
 
 
-@app.get("/health/ready", tags=["Health"])
-def health_ready():
-    """Kubernetes readiness probe — checks all dependencies."""
-    ready = _llm is not None and _vector_store is not None
-    if not ready:
-        raise HTTPException(503, "Service not ready.")
+@app.get("/health/ready", tags=["Health"], response_model=HealthReadyResponse)
+async def health_ready():
+    """
+    Kubernetes readiness probe — checks ALL dependencies.
+    Returns 503 if LLM, FAISS, BM25, or SQLite is not ready.
+    Kubernetes will not route traffic until all checks pass.
+    """
+    failures = []
+
+    if _llm is None:
+        failures.append("llm")
+    if _vector_store is None:
+        failures.append("vector_store")
+
+    # BM25 index must have at least one document loaded
+    bm25 = get_bm25_index()
+    if not bm25._docs:
+        failures.append("bm25_index")
+
+    # SQLite: lightweight SELECT to confirm DB file is accessible and schema exists
+    sqlite_ok = True
+    try:
+        from db import DB_PATH
+        async with aiosqlite.connect(DB_PATH) as db:
+            await db.execute("SELECT 1 FROM users LIMIT 1")
+    except Exception:
+        sqlite_ok = False
+        failures.append("sqlite")
+
+    if failures:
+        raise HTTPException(503, f"Not ready — failing checks: {', '.join(failures)}")
+
     return {
         "status":           "ready",
         "llm":              "deepseek-chat",
         "vector_store":     "FAISS",
+        "bm25_index":       f"{len(bm25._docs)} docs",
+        "sqlite":           "ok",
         "hybrid_retrieval": "FAISS+BM25+RRF",
         "circuit_breakers": breaker_status(),
         "active_prompts":   ACTIVE_VERSIONS,
@@ -388,12 +454,20 @@ def reset_named_circuit_breaker(name: str):
 
 # ── Roles ─────────────────────────────────────────────────────────────────────
 
-@app.get("/roles", tags=["Roles"])
-async def list_roles():
-    """Phase 3: reads from SQLite (seeded from roles_knowledge.json at startup)."""
+@app.get("/roles", tags=["Roles"], response_model=List[RoleSummary])
+async def list_roles(request: Request):
+    """
+    Phase 3: reads from SQLite (seeded from roles_knowledge.json at startup).
+    Phase 6: Cache-Control header — role list is static between admin edits.
+    """
+    from fastapi.responses import JSONResponse
     roles = await get_all_roles_db()
-    return [{"id": r["id"], "title": r["title"], "description": r["description"]}
-            for r in roles]
+    data  = [{"id": r["id"], "title": r["title"], "description": r["description"]}
+             for r in roles]
+    return JSONResponse(
+        content=data,
+        headers={"Cache-Control": "public, max-age=3600"},
+    )
 
 
 async def _rebuild_indexes() -> int:
@@ -460,7 +534,7 @@ async def admin_delete_role(role_id: str):
 
 # ── CV Upload ─────────────────────────────────────────────────────────────────
 
-@app.post("/upload-cv", tags=["CV"])
+@app.post("/upload-cv", tags=["CV"], response_model=UploadCvResponse)
 async def upload_cv(request: Request, file: UploadFile = File(...)):
     """
     Upload PDF → inject detection → extract text → LLM parse (prompt v2) →
@@ -745,7 +819,7 @@ async def generate_plan_stream(request: Request, req: GeneratePlanRequest):
 
 # ── Progress ──────────────────────────────────────────────────────────────────
 
-@app.post("/update-progress", tags=["Progress"])
+@app.post("/update-progress", tags=["Progress"], response_model=ReadinessResponse)
 async def update_progress(request: Request, req: UpdateProgressRequest):
     """Pure Python — no LLM call. Returns instantly."""
     t_start = time.time()
@@ -804,7 +878,7 @@ async def get_progress_endpoint(request: Request, user_id: str):
     return progress
 
 
-@app.get("/progress/{user_id}/history", tags=["Progress"])
+@app.get("/progress/{user_id}/history", tags=["Progress"], response_model=ProgressHistoryResponse)
 async def get_progress_history(request: Request, user_id: str, limit: int = 30):
     """
     Phase 4: Return the readiness score time-series for a user.

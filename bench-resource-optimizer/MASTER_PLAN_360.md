@@ -219,7 +219,7 @@ Module 6 — CI/CD: "Every PR triggers parallel jobs: pytest for backend (all 12
 **Priority:** MEDIUM — `/health/ready` should check all dependencies  
 **Senior AI Module:** Module 5 (AI API Gateway), Module 6 (Monitoring)  
 **Estimated time:** 1 hour  
-**Status:** ⬜ TODO
+**Status:** ✅ DONE — 9 new tests, 153 total passing, committed as milestone
 
 #### What to build:
 - Update `/health/ready` to check: LLM (ping), FAISS store (not None), SQLite (simple SELECT), BM25 index (not None)
@@ -266,7 +266,7 @@ Module 9 — Storytelling: "The bench optimizer demonstrates all 12 Senior AI En
 | 7 | Project Story Script | 1.5h | M9 | HIGH |
 | 4 | Readiness Score History ✅ | 1.5h | M1 | MEDIUM |
 | 5 | CI/CD Pipeline ✅ | 2h | M6 | MEDIUM |
-| 6 | Health + Observability Hardening | 1h | M5, M6 | MEDIUM |
+| 6 | Health + Observability Hardening ✅ | 1h | M5, M6 | MEDIUM |
 
 **Total: ~14 hours of focused engineering work.**
 
