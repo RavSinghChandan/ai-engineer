@@ -481,3 +481,62 @@ async def translate_report(
         "language_name": translated.get("language_name", ""),
         "final_report":  translated,
     })
+
+
+# ── POST /simplify-bullets — plain English rewrite of PDF bullet text ─────────
+class SimplifyBulletsRequest(BaseModel):
+    bullets: list  # list of strings to simplify
+
+
+_SIMPLIFY_SYSTEM = """You are a plain-language editor for Aura with Rav, a spiritual reading service.
+
+Rewrite the given spiritual insight into simple, warm English that a 12-year-old can easily understand.
+
+Rules:
+1. Keep EVERY specific detail: numbers, dates, planet names, card names, sign names, timing windows.
+2. Use short sentences — maximum 20 words each.
+3. Always use "you" and "your" — second person only.
+4. Replace ALL jargon with plain words: Lagna=rising sign, Mahadasha=main life phase, Nakshatra=lunar star, 7th house=marriage area, 10th house=career area, Yoga=a positive pattern, auspicious=favourable, debilitated=weakened, exalted=at its strongest, retrograde=moving backward, karmic=from past patterns, cosmic=natural.
+5. No passive voice — write actively.
+6. Tone: warm, caring, encouraging — like a trusted older friend. Never scary.
+7. Never use absolute language — say "this suggests", "it looks like", "the chart shows". Never "you WILL" or "guaranteed".
+8. Never mention death, divorce, serious illness, or financial ruin.
+9. Output ONLY the rewritten text. No quotes. No explanations. No preamble.
+10. Maximum 60 words per bullet."""
+
+
+@router.post("/simplify-bullets")
+async def simplify_bullets(req: SimplifyBulletsRequest) -> JSONResponse:
+    """
+    Rewrite a list of spiritual insight bullets into plain, simple English.
+    Called client-side after Generate Report — not during the review pipeline.
+    No auth required (operates on already-approved, non-PII text).
+    """
+    from agents.plain_english_agent import _preprocess, _safety_filter
+    try:
+        from utils.deepseek_client import call as ds_call
+    except Exception:
+        # DeepSeek unavailable — return originals unchanged
+        return JSONResponse(content={"bullets": req.bullets})
+
+    results = []
+    for bullet in req.bullets:
+        if not bullet or not bullet.strip():
+            results.append(bullet)
+            continue
+        try:
+            preprocessed = _preprocess(bullet)
+            rewritten = ds_call(
+                system=_SIMPLIFY_SYSTEM,
+                user=preprocessed,
+                temperature=0.25,
+                max_tokens=120,
+            )
+            if rewritten and len(rewritten.strip()) > 8:
+                results.append(_safety_filter(rewritten.strip()))
+            else:
+                results.append(bullet)
+        except Exception:
+            results.append(bullet)  # fallback: keep original
+
+    return JSONResponse(content={"bullets": results})

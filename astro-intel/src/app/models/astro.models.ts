@@ -136,11 +136,18 @@ export interface StructuredSummary {
   remedy_bullets: RemedyBullets;
 }
 
+export interface DomainSubGroup {
+  sub_agent: string;
+  label: string;
+  bullets: string[];
+}
+
 export interface DomainSummaryGroup {
   domain: string;
   label: string;
   icon: string;
   bullets: string[];
+  subGroups?: DomainSubGroup[];
   intent?: string;
 }
 

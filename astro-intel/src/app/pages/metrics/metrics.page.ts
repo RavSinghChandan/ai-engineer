@@ -110,13 +110,11 @@ export class MetricsPage implements OnInit, OnDestroy {
     const now = new Date().toLocaleTimeString();
     const events = [...this.grEvents()];
 
-    // G1 — new users tracked
     const prevUsers = prev.rate_limiter?.tracked_users ?? 0;
     const currUsers = curr.rate_limiter?.tracked_users ?? 0;
     if (currUsers > prevUsers) {
       events.unshift({ ts: now, g: 'G1', type: 'ok', msg: `New user tracked — ${currUsers} user(s) in sliding window` });
     }
-    // G1 — detect any user near/at limit
     const counts = curr.rate_limiter?.current_counts ?? {};
     const max = curr.rate_limiter?.max_requests ?? 10;
     for (const [uid, cnt] of Object.entries(counts) as [string, number][]) {
@@ -127,7 +125,6 @@ export class MetricsPage implements OnInit, OnDestroy {
       }
     }
 
-    // G2 — circuit state change
     const prevState = prev.circuit_breaker?.state;
     const currState = curr.circuit_breaker?.state;
     if (prevState && currState && prevState !== currState) {
@@ -135,14 +132,12 @@ export class MetricsPage implements OnInit, OnDestroy {
       events.unshift({ ts: now, g: 'G2', type, msg: `Circuit breaker → ${currState.toUpperCase()} (was ${prevState})` });
     }
 
-    // G2 — new failure
     const prevFail = prev.circuit_breaker?.failures ?? 0;
     const currFail = curr.circuit_breaker?.failures ?? 0;
     if (currFail > prevFail) {
       events.unshift({ ts: now, g: 'G2', type: 'warn', msg: `LLM call failure recorded — ${currFail}/${curr.circuit_breaker?.failure_threshold} failures` });
     }
 
-    // keep last 30 events
     this.grEvents.set(events.slice(0, 30));
   }
 

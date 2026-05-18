@@ -2,7 +2,7 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import {
   SystemInput, AgentOutputs, AdminReview, AdminInsight, AdminQuestion,
-  FinalReport, Module, AgentStep, NormalizedQuestion, HwBullet, DomainSummaryGroup
+  FinalReport, Module, AgentStep, NormalizedQuestion, HwBullet, DomainSummaryGroup, DomainSubGroup
 } from '../models/astro.models';
 import { ApiService, RunResponse } from './api.service';
 
@@ -13,6 +13,56 @@ import { TarotService }      from './tarot.service';
 import { VastuService }      from './vastu.service';
 import { RemedyService }     from './remedy.service';
 import { GeocodeService }    from './geocode.service';
+
+// Known tradition order per domain — matches the backend sub-agent execution order.
+// Used to assign tradition labels by position when sub_agent field is missing.
+const DOMAIN_TRADITIONS: Record<string, string[]> = {
+  astrology:  ['vedic_parashara', 'kp_system',    'western_tropical'],
+  numerology: ['indian_vedic',    'chaldean',      'pythagorean'],
+  palmistry:  ['indian',          'chinese',       'western'],
+  tarot:      ['rider_waite',     'intuitive'],
+  vastu:      ['traditional',     'modern'],
+};
+
+// Parse tradition from content text as secondary signal (used to disambiguate when text has clear keywords)
+function _extractTraditionFromContent(content: string): string {
+  const lower = content.toLowerCase();
+  if (lower.includes('indian numerology') || lower.includes('indian vedic numerology')) return 'indian_vedic';
+  if (lower.includes('chaldean numerology') || lower.includes('chaldean')) return 'chaldean';
+  if (lower.includes('pythagorean numerology') || lower.includes('pythagorean')) return 'pythagorean';
+  if (lower.includes('kp analysis') || lower.includes('kp system') || lower.includes('kp wealth') || lower.includes('krishnamurti')) return 'kp_system';
+  if (lower.includes('western tropical') || lower.includes('tropical astrology')) return 'western_tropical';
+  if (lower.includes('vedic') || lower.includes('parashara') || lower.includes('jyotish')) return 'vedic_parashara';
+  if (lower.includes('chinese palmistry') || lower.includes('chinese palm')) return 'chinese';
+  if (lower.includes('western palmistry') || lower.includes('western palm')) return 'western';
+  if (lower.includes('indian palmistry') || lower.includes('hasta samudrika')) return 'indian';
+  if (lower.includes('rider-waite') || lower.includes('rider waite')) return 'rider_waite';
+  if (lower.includes('intuitive tarot')) return 'intuitive';
+  if (lower.includes('traditional vastu') || lower.includes('vedic vastu')) return 'traditional';
+  if (lower.includes('modern vastu')) return 'modern';
+  return '';
+}
+
+function _formatSubAgentLabel(subAgent: string): string {
+  // Convert sub_agent keys like "vedic_parashara", "kp_system", "western_tropical",
+  // "indian_vedic", "chaldean", "pythagorean" into readable labels
+  const MAP: Record<string, string> = {
+    vedic_parashara: 'Vedic (Parashara)',
+    kp_system:       'KP System',
+    western_tropical:'Western Tropical',
+    indian_vedic:    'Indian Vedic',
+    chaldean:        'Chaldean',
+    pythagorean:     'Pythagorean',
+    indian:          'Indian',
+    chinese:         'Chinese',
+    western:         'Western',
+    rider_waite:     'Rider-Waite',
+    intuitive:       'Intuitive',
+    traditional:     'Traditional Vastu',
+    modern:          'Modern Vastu',
+  };
+  return MAP[subAgent.toLowerCase()] ?? subAgent.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
 
 @Injectable({ providedIn: 'root' })
 export class OrchestratorService {
@@ -191,31 +241,91 @@ export class OrchestratorService {
       // Each approved insight's full content goes in as-is — one bullet per insight.
       // Zero summarization, zero sentence-splitting, zero deduplication.
       // The user approved these in review; they go to PDF exactly as written.
+      // Group by domain, then by sub_agent within each domain for tradition subheadings.
       const domainMap: Record<string, string[]> = {};
+      const subAgentMap: Record<string, Record<string, string[]>> = {}; // domain → sub_agent → bullets
       const insightsToGroup = approved.length > 0 ? approved : q.insights.map(i => ({ ...i, approved: true }));
 
+      // First pass: collect insights per domain in order
+      const domainInsightList: Record<string, Array<{content: string; sub_agent: string}>> = {};
       for (const ins of insightsToGroup) {
-        // Skip the consensus roll-up (it aggregates all other insights — redundant)
-        // and the generated remedy bullet (remedies have their own dedicated page)
         if (ins.id.endsWith('_consensus') || ins.id.endsWith('_remedy')) continue;
         const content = ins.content?.trim();
         if (!content) continue;
-        for (const d of ins.domains) {
+        // Prefer sub_agent field, then content text, then assign by position later
+        let subAgent = ins.sub_agent?.trim() ?? '';
+        if (!subAgent || subAgent === 'general' || subAgent === 'consensus') {
+          subAgent = _extractTraditionFromContent(content);
+        }
+        // If domains is empty, infer from sub_agent or fall back to astrology
+        const domains = (ins.domains?.length ? ins.domains : (
+          subAgent.includes('indian_vedic') || subAgent.includes('chaldean') || subAgent.includes('pythagorean') ? ['numerology'] :
+          subAgent.includes('kp') || subAgent.includes('parashara') || subAgent.includes('western_tropical') ? ['astrology'] :
+          subAgent.includes('rider') || subAgent.includes('intuitive') ? ['tarot'] :
+          subAgent.includes('vastu') ? ['vastu'] :
+          subAgent.includes('palmistry') || subAgent.includes('chinese') || subAgent.includes('indian') ? ['palmistry'] :
+          ['astrology', 'numerology']
+        ));
+        for (const d of domains) {
           if (!DOMAIN_META[d]) continue;
-          if (!domainMap[d]) domainMap[d] = [];
-          domainMap[d].push(content);
+          if (!domainInsightList[d]) domainInsightList[d] = [];
+          domainInsightList[d].push({ content, sub_agent: subAgent });
         }
       }
+
+      // Second pass: for insights still without a tradition key, assign by position
+      for (const d of Object.keys(domainInsightList)) {
+        const traditions = DOMAIN_TRADITIONS[d] ?? [];
+        const list = domainInsightList[d];
+        // Count how many already have a known tradition
+        const unresolved = list.filter(x => !x.sub_agent).length;
+        // If most are unresolved and we know the traditions, assign by index
+        if (traditions.length > 0 && unresolved >= list.length / 2) {
+          list.forEach((x, i) => {
+            if (!x.sub_agent) x.sub_agent = traditions[i] ?? `tradition_${i + 1}`;
+          });
+        }
+      }
+
+      // Build domainMap and subAgentMap from resolved list
+      for (const d of Object.keys(domainInsightList)) {
+        for (const { content, sub_agent } of domainInsightList[d]) {
+          if (!domainMap[d]) domainMap[d] = [];
+          domainMap[d].push(content);
+          if (!subAgentMap[d]) subAgentMap[d] = {};
+          const key = sub_agent || 'general';
+          if (!subAgentMap[d][key]) subAgentMap[d][key] = [];
+          subAgentMap[d][key].push(content);
+        }
+      }
+
       const domain_summary: DomainSummaryGroup[] = Object.entries(domainMap)
         .filter(([d]) => DOMAIN_META[d] && domainMap[d].length > 0)
         .sort(([a], [b]) => (DOMAIN_META[a]?.order ?? 99) - (DOMAIN_META[b]?.order ?? 99))
-        .map(([d, bullets]) => ({
-          domain: d,
-          label:  DOMAIN_META[d].label,
-          icon:   DOMAIN_META[d].icon,
-          intent: q.intent,
-          bullets,
-        }));
+        .map(([d, bullets]) => {
+          const subs = subAgentMap[d] ?? {};
+          const traditions = DOMAIN_TRADITIONS[d] ?? [];
+          // Order subGroups by known tradition order, then any extras
+          const allKeys = Object.keys(subs).filter(k => k && k !== 'consensus');
+          const orderedKeys = [
+            ...traditions.filter(t => allKeys.includes(t)),
+            ...allKeys.filter(k => !traditions.includes(k) && k !== 'general'),
+            ...(allKeys.includes('general') ? ['general'] : []),
+          ];
+          const subGroups: DomainSubGroup[] = orderedKeys.map(k => ({
+            sub_agent: k,
+            label: _formatSubAgentLabel(k),
+            bullets: subs[k],
+          }));
+          return {
+            domain: d,
+            label:  DOMAIN_META[d].label,
+            icon:   DOMAIN_META[d].icon,
+            intent: q.intent,
+            bullets,
+            subGroups,
+          };
+        });
 
       // Simple narrative kept for edit-mode fallback
       const narrative = insightsToGroup.map(i => i.content.replace(/\.$/, '')).join('. ') + (insightsToGroup.length ? '.' : '');
@@ -225,6 +335,51 @@ export class OrchestratorService {
       const finalInsights = approved.length > 0 ? approved : q.insights.map(i => ({ ...i, approved: true }));
       return { question: q.question, intent: q.intent, narrative, simple_narrative, domain_summary, insights: finalInsights, domain_breakdown };
     });
+
+    // ── Plain English pass: simplify all bullets for the PDF reader ──────────
+    // Runs ONLY here (report generation), never on the review page.
+    // Collects all bullets across all sections → one batch API call → writes back.
+    if (this.backendMode() === 'backend') {
+      try {
+        // Gather every bullet from every domain group and subgroup
+        const allBullets: string[] = [];
+        const bulletRefs: Array<{ si: number; gi: number; type: 'flat' | 'sub'; sgi?: number; bi: number }> = [];
+        sections.forEach((sec, si) => {
+          (sec.domain_summary ?? []).forEach((grp: any, gi: number) => {
+            if (grp.subGroups?.length) {
+              grp.subGroups.forEach((sg: any, sgi: number) => {
+                sg.bullets.forEach((b: string, bi: number) => {
+                  bulletRefs.push({ si, gi, type: 'sub', sgi, bi });
+                  allBullets.push(b);
+                });
+              });
+            } else {
+              grp.bullets.forEach((b: string, bi: number) => {
+                bulletRefs.push({ si, gi, type: 'flat', bi });
+                allBullets.push(b);
+              });
+            }
+          });
+        });
+
+        if (allBullets.length > 0) {
+          const { firstValueFrom } = await import('rxjs');
+          const res = await firstValueFrom(this.api.simplifyBullets(allBullets));
+          const simplified = res.bullets;
+          // Write simplified bullets back into sections
+          bulletRefs.forEach((ref, idx) => {
+            const grp = sections[ref.si].domain_summary![ref.gi] as any;
+            if (ref.type === 'sub' && ref.sgi !== undefined) {
+              grp.subGroups[ref.sgi].bullets[ref.bi] = simplified[idx] ?? allBullets[idx];
+            } else {
+              grp.bullets[ref.bi] = simplified[idx] ?? allBullets[idx];
+            }
+          });
+        }
+      } catch {
+        // Non-blocking — if simplification fails, original bullets are kept
+      }
+    }
 
     const rawRemedies = this.rawOutputs()?.remedies;
     const report: FinalReport = {
@@ -295,7 +450,8 @@ export class OrchestratorService {
             id:         i.id,
             content:    i.content,
             confidence: i.confidence ?? 'medium',
-            domains:    i.domains ?? [],
+            domains:    (i.domains?.length ? i.domains : Object.keys(i.detail ?? {}).filter(k => ['astrology','numerology','palmistry','tarot','vastu'].includes(k))),
+            sub_agent:  i.sub_agent ?? '',
             is_common:  i.is_common ?? false,
             editable:   true,
             edited:     false,

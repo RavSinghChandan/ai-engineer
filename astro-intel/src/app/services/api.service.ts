@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { Observable, throwError, of } from 'rxjs';
 import { catchError, timeout } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
@@ -191,6 +191,12 @@ export class ApiService {
     return this.http
       .post<TranslateResponse>(`${BACKEND}/api/v1/analysis/translate`, req)
       .pipe(timeout(120_000), catchError(this._handleError));
+  }
+
+  simplifyBullets(bullets: string[]): Observable<{ bullets: string[] }> {
+    return this.http
+      .post<{ bullets: string[] }>(`${BACKEND}/api/v1/analysis/simplify-bullets`, { bullets })
+      .pipe(timeout(60_000), catchError(() => of({ bullets })));
   }
 
   getHealth(): Observable<any> {

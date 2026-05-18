@@ -807,14 +807,35 @@ import { firstValueFrom } from 'rxjs';
                 </div>
                 <div class="dm-divider" [style.background]="dsAccent(grp.domain)"></div>
 
-                <ul class="dm-bullets">
-                  @for (bullet of grp.bullets; track bullet; let bi = $index) {
-                    <li class="dm-bullet">
-                      <span class="dm-bullet-num" [style.background]="dsAccent(grp.domain)">{{ bi + 1 }}</span>
-                      <span class="dm-bullet-text" [innerHTML]="highlightBullet(bullet, section.intent, grp.domain)"></span>
-                    </li>
+                @if (grp.subGroups && grp.subGroups.length > 0) {
+                  <!-- ── Tradition subheadings layout ── -->
+                  @for (sg of grp.subGroups; track sg.sub_agent; let sgi = $index) {
+                    <div class="dm-subgroup">
+                      <div class="dm-subgroup-hdr" [style.borderLeftColor]="dsAccent(grp.domain)">
+                        <span class="dm-subgroup-num" [style.background]="dsAccent(grp.domain)">{{ sgi + 1 }}</span>
+                        <span class="dm-subgroup-label">{{ sg.label }}</span>
+                      </div>
+                      <ul class="dm-bullets dm-bullets-sub">
+                        @for (bullet of sg.bullets; track bullet) {
+                          <li class="dm-bullet dm-bullet-sub">
+                            <span class="dm-bullet-dot" [style.background]="dsAccent(grp.domain)"></span>
+                            <span class="dm-bullet-text" [innerHTML]="highlightBullet(bullet, section.intent, grp.domain)"></span>
+                          </li>
+                        }
+                      </ul>
+                    </div>
                   }
-                </ul>
+                } @else {
+                  <!-- ── Flat numbered bullets (fallback) ── -->
+                  <ul class="dm-bullets">
+                    @for (bullet of grp.bullets; track bullet; let bi = $index) {
+                      <li class="dm-bullet">
+                        <span class="dm-bullet-num" [style.background]="dsAccent(grp.domain)">{{ bi + 1 }}</span>
+                        <span class="dm-bullet-text" [innerHTML]="highlightBullet(bullet, section.intent, grp.domain)"></span>
+                      </li>
+                    }
+                  </ul>
+                }
 
                 <!-- ── WATERMARK: only in the remaining empty space after bullets ── -->
                 <div class="dm-watermark-zone">
@@ -1006,11 +1027,6 @@ import { firstValueFrom } from 'rxjs';
           }
 
         </div><!-- /remedy-grid -->
-
-        <!-- ── Remedy watermark zone: fills remaining space below grid ── -->
-        <div class="remedy-watermark-zone">
-          <img src="rav-logo.png" alt="" class="remedy-watermark" aria-hidden="true"/>
-        </div>
 
         <div class="page-footer">
           <span>{{ displayReport()!.user_name }}</span>
@@ -1347,9 +1363,9 @@ import { firstValueFrom } from 'rxjs';
   pointer-events: none;
 }
 .letter-watermark {
-  width: 95%;
-  max-width: 620px;
-  opacity: 0.20;
+  width: 100%;
+  max-width: 900px;
+  opacity: 0.15;
   object-fit: contain;
   display: block;
 }
@@ -1751,9 +1767,9 @@ import { firstValueFrom } from 'rxjs';
   outline: none;
 }
 .dm-watermark {
-  width: 95%;
-  max-width: 620px;
-  opacity: 0.20;
+  width: 100%;
+  max-width: 900px;
+  opacity: 0.35;
   object-fit: contain;
   display: block;
 }
@@ -1850,11 +1866,38 @@ import { firstValueFrom } from 'rxjs';
 }
 .dm-bullet-text {
   flex: 1;
-  font-size: 13.5px; font-weight: 400; color: #1f2937;
-  line-height: 1.85; font-family: Georgia, serif;
+  font-size: 16px; font-weight: 400; color: #1f2937;
+  line-height: 1.9; font-family: Georgia, serif;
   word-wrap: break-word; overflow-wrap: break-word;
 }
 
+
+/* ── Tradition subgroup layout ── */
+.dm-subgroup {
+  margin-bottom: 20px;
+}
+.dm-subgroup:last-child { margin-bottom: 0; }
+.dm-subgroup-hdr {
+  display: flex; align-items: center; gap: 10px;
+  border-left: 3px solid; padding-left: 10px;
+  margin-bottom: 10px;
+}
+.dm-subgroup-num {
+  flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%;
+  color: #fff; font-size: 10px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0.9;
+}
+.dm-subgroup-label {
+  font-size: 12px; font-weight: 800; color: #d4af37;
+  letter-spacing: 0.04em; text-transform: uppercase;
+}
+.dm-bullets-sub { gap: 10px; padding-left: 8px; }
+.dm-bullet-sub { gap: 10px; }
+.dm-bullet-dot {
+  flex-shrink: 0; width: 7px; height: 7px; border-radius: 50%;
+  margin-top: 8px; opacity: 0.75;
+}
 
 /* ── Legacy hw-list (kept for backend-generated reports) ─────────────────── */
 .hw-list { list-style: none; margin: 0 0 20px; padding: 0; display: flex; flex-direction: column; gap: 10px; }
@@ -1884,15 +1927,26 @@ import { firstValueFrom } from 'rxjs';
 .remedy-page {
   min-height: 0;
   display: flex; flex-direction: column;
+  position: relative;
+}
+.remedy-page::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('rav-logo.png') center center / 70% auto no-repeat;
+  opacity: 0.12;
+  pointer-events: none;
+  z-index: 0;
 }
 .remedy-grid {
-  flex: 1;
+  flex: 0 0 auto;
   padding: 16px 32px 8px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   align-content: start;
   overflow: hidden;
+  position: relative; z-index: 1;
 }
 .r-card {
   padding: 10px 14px;
@@ -1955,6 +2009,7 @@ import { firstValueFrom } from 'rxjs';
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
   padding: 8px 40px; border-top: 1px solid #e5e7eb;
   font-size: 9px; color: #9ca3af; letter-spacing: 0.06em;
+  position: relative; z-index: 1;
 }
 .page-footer-sep { color: #d1d5db; }
 .closing-footer {
@@ -3076,7 +3131,7 @@ export class ReportPage implements OnInit {
           pointer-events: none !important;
         }
         .letter-watermark {
-          width: 90% !important; max-width: 520px !important; opacity: 0.20 !important;
+          width: 100% !important; max-width: 760px !important; opacity: 0.15 !important;
           object-fit: contain !important; display: block !important;
           -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
         }
@@ -3089,25 +3144,25 @@ export class ReportPage implements OnInit {
           border-bottom: 1px solid #f0ece4 !important;
           break-after: avoid !important; page-break-after: avoid !important;
         }
-        .letter-brand-name { font-size: 13px !important; font-weight: 700 !important; }
-        .letter-brand-tagline { font-size: 9px !important; opacity: 0.65 !important; }
-        .letter-title { font-size: 17px !important; margin: 0 0 6px !important; break-after: avoid !important; }
-        .letter-paras p { font-size: 10.5px !important; line-height: 1.6 !important; margin: 0 0 6px !important; }
-        .letter-sign { font-size: 11.5px !important; margin-top: 8px !important; break-inside: avoid !important; }
-        .letter-divider { height: 1px !important; background: #f0ece4 !important; margin: 8px 0 !important; }
-        .letter-disclaimer { padding: 6px 10px !important; font-size: 8.5px !important; line-height: 1.45 !important; break-inside: avoid !important; }
-        .letter-modules { display: flex !important; flex-wrap: wrap !important; gap: 4px !important; margin-top: 6px !important; }
-        .module-chip { font-size: 9px !important; padding: 2px 8px !important; break-inside: avoid !important; }
-        .report-method-panel { margin-top: 10px !important; break-inside: avoid !important; }
-        .rmp-title { font-size: 7px !important; letter-spacing: 2px !important; padding: 3px 8px !important; }
+        .letter-brand-name { font-size: 18px !important; font-weight: 700 !important; }
+        .letter-brand-tagline { font-size: 13px !important; opacity: 0.65 !important; }
+        .letter-title { font-size: 26px !important; margin: 0 0 10px !important; break-after: avoid !important; }
+        .letter-paras p { font-size: 15px !important; line-height: 1.75 !important; margin: 0 0 10px !important; }
+        .letter-sign { font-size: 16px !important; margin-top: 12px !important; break-inside: avoid !important; }
+        .letter-divider { height: 1px !important; background: #f0ece4 !important; margin: 10px 0 !important; }
+        .letter-disclaimer { padding: 8px 12px !important; font-size: 12px !important; line-height: 1.55 !important; break-inside: avoid !important; }
+        .letter-modules { display: flex !important; flex-wrap: wrap !important; gap: 6px !important; margin-top: 8px !important; }
+        .module-chip { font-size: 12px !important; padding: 3px 10px !important; break-inside: avoid !important; }
+        .report-method-panel { margin-top: 12px !important; break-inside: avoid !important; }
+        .rmp-title { font-size: 11px !important; letter-spacing: 2px !important; padding: 4px 10px !important; }
         .rmp-grid { display: block !important; }
-        .rmp-item { padding: 3px 8px !important; break-inside: avoid !important; }
-        .rmp-item-hdr { display: flex !important; align-items: center !important; gap: 5px !important; }
-        .rmp-icon { font-size: 10px !important; }
-        .rmp-label { font-size: 9.5px !important; font-weight: 600 !important; }
-        .rmp-branches { display: flex !important; flex-wrap: wrap !important; gap: 2px !important; margin: 2px 0 !important; }
-        .rmp-branch { font-size: 7px !important; padding: 1px 5px !important; }
-        .rmp-meta { font-size: 7px !important; color: #999 !important; }
+        .rmp-item { padding: 5px 10px !important; break-inside: avoid !important; }
+        .rmp-item-hdr { display: flex !important; align-items: center !important; gap: 6px !important; }
+        .rmp-icon { font-size: 14px !important; }
+        .rmp-label { font-size: 13px !important; font-weight: 600 !important; }
+        .rmp-branches { display: flex !important; flex-wrap: wrap !important; gap: 3px !important; margin: 3px 0 !important; }
+        .rmp-branch { font-size: 11px !important; padding: 2px 7px !important; }
+        .rmp-meta { font-size: 11px !important; color: #999 !important; }
 
         /* ════════════════════════════════════════════════════
            PAGE HEADER (appears on letter, profile, Q pages)
@@ -3357,7 +3412,7 @@ export class ReportPage implements OnInit {
           pointer-events: none !important; border: none !important;
         }
         .dm-watermark {
-          width: 90% !important; max-width: 520px !important; opacity: 0.20 !important;
+          width: 100% !important; max-width: 760px !important; opacity: 0.35 !important;
           object-fit: contain !important; display: block !important;
           -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
         }
@@ -3373,16 +3428,16 @@ export class ReportPage implements OnInit {
           position: relative !important; z-index: 1 !important;
         }
         .dm-top-left { display: flex !important; align-items: center !important; gap: 8px !important; }
-        .dm-domain-icon { font-size: 18px !important; line-height: 1 !important; }
-        .dm-domain-info { display: flex !important; flex-direction: column !important; gap: 1px !important; }
-        .dm-domain-label { font-size: 13px !important; font-weight: 800 !important; color: #d4af37 !important; }
-        .dm-domain-traditions { font-size: 8px !important; color: #6b7280 !important; }
+        .dm-domain-icon { font-size: 26px !important; line-height: 1 !important; }
+        .dm-domain-info { display: flex !important; flex-direction: column !important; gap: 2px !important; }
+        .dm-domain-label { font-size: 18px !important; font-weight: 800 !important; color: #d4af37 !important; }
+        .dm-domain-traditions { font-size: 11px !important; color: #6b7280 !important; }
         .dm-top-right { display: flex !important; flex-direction: column !important; align-items: flex-end !important; gap: 2px !important; }
         .dm-logo { width: 56px !important; height: auto !important; display: block !important; opacity: 0.9 !important; }
-        .dm-user-date { font-size: 7px !important; color: #9ca3af !important; letter-spacing: 0.06em !important; }
+        .dm-user-date { font-size: 10px !important; color: #9ca3af !important; letter-spacing: 0.06em !important; }
         .dm-q-strip {
-          display: flex !important; align-items: center !important; gap: 8px !important;
-          padding: 9px 18px !important;
+          display: flex !important; align-items: center !important; gap: 10px !important;
+          padding: 11px 18px !important;
           border-left-width: 5px !important; border-left-style: solid !important;
           background: #fafaf8 !important;
           flex-shrink: 0 !important;
@@ -3390,63 +3445,91 @@ export class ReportPage implements OnInit {
           position: relative !important; z-index: 1 !important;
         }
         .dm-q-num {
-          flex-shrink: 0 !important; width: 22px !important; height: 22px !important;
+          flex-shrink: 0 !important; width: 26px !important; height: 26px !important;
           border-radius: 50% !important; color: #fff !important;
-          font-size: 9px !important; font-weight: 800 !important;
+          font-size: 12px !important; font-weight: 800 !important;
           display: flex !important; align-items: center !important; justify-content: center !important;
           -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
         }
-        .dm-q-text { font-size: 12px !important; font-weight: 800 !important; color: #14100c !important; flex: 1 !important; line-height: 1.3 !important; }
-        .dm-cont-badge { font-size: 7px !important; padding: 1px 5px !important; border: 1px solid #e5e7eb !important; border-radius: 3px !important; color: #9ca3af !important; }
+        .dm-q-text { font-size: 15px !important; font-weight: 800 !important; color: #14100c !important; flex: 1 !important; line-height: 1.35 !important; }
+        .dm-cont-badge { font-size: 9px !important; padding: 1px 6px !important; border: 1px solid #e5e7eb !important; border-radius: 3px !important; color: #9ca3af !important; }
         .dm-body {
           display: flex !important; flex: 1 !important;
           height: auto !important; overflow: visible !important;
           position: relative !important; z-index: 1 !important;
         }
         .dm-findings {
-          flex: 1 !important; padding: 12px 18px !important;
+          flex: 1 !important; padding: 14px 20px !important;
           display: flex !important; flex-direction: column !important;
           height: auto !important; overflow: visible !important;
         }
         .dm-findings-title {
-          font-size: 8px !important; font-weight: 800 !important; letter-spacing: 0.07em !important;
-          text-transform: uppercase !important; margin-bottom: 4px !important;
-          display: flex !important; align-items: center !important; gap: 6px !important;
+          font-size: 12px !important; font-weight: 800 !important; letter-spacing: 0.07em !important;
+          text-transform: uppercase !important; margin-bottom: 6px !important;
+          display: flex !important; align-items: center !important; gap: 8px !important;
           break-after: avoid !important; page-break-after: avoid !important;
         }
         .dm-insight-pill {
-          font-size: 7px !important; padding: 1px 6px !important;
+          font-size: 10px !important; padding: 2px 8px !important;
           border-radius: 99px !important; font-weight: 700 !important;
           -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
         }
         .dm-divider {
           height: 2px !important; border-radius: 1px !important;
-          margin-bottom: 10px !important; width: 36px !important; display: block !important;
+          margin-bottom: 12px !important; width: 40px !important; display: block !important;
           -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
         }
         .dm-bullets {
           display: flex !important; flex-direction: column !important;
           list-style: none !important; flex: 0 0 auto !important;
-          margin: 0 !important; padding: 0 !important; gap: 10px !important;
+          margin: 0 !important; padding: 0 !important; gap: 14px !important;
         }
         .dm-bullet {
-          display: flex !important; align-items: flex-start !important; gap: 8px !important;
-          margin-bottom: 10px !important;
+          display: flex !important; align-items: flex-start !important; gap: 10px !important;
+          margin-bottom: 12px !important;
           break-inside: auto !important; page-break-inside: auto !important;
         }
         .dm-bullet-num {
-          flex-shrink: 0 !important; width: 16px !important; height: 16px !important;
+          flex-shrink: 0 !important; width: 20px !important; height: 20px !important;
           border-radius: 50% !important; color: #fff !important;
-          font-size: 8px !important; font-weight: 700 !important;
+          font-size: 10px !important; font-weight: 700 !important;
           display: flex !important; align-items: center !important; justify-content: center !important;
           margin-top: 2px !important;
           -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
         }
         .dm-bullet-text {
-          flex: 1 !important; font-size: 9.5px !important; font-weight: 400 !important;
-          color: #1f2937 !important; line-height: 1.7 !important;
+          flex: 1 !important; font-size: 13px !important; font-weight: 400 !important;
+          color: #1f2937 !important; line-height: 1.8 !important;
           font-family: Georgia, serif !important;
           word-wrap: break-word !important; overflow-wrap: break-word !important;
+        }
+
+        /* ── Tradition subgroup print rules ── */
+        .dm-subgroup { display: block !important; margin-bottom: 16px !important; break-inside: avoid !important; }
+        .dm-subgroup-hdr {
+          display: flex !important; align-items: center !important; gap: 8px !important;
+          border-left-width: 3px !important; border-left-style: solid !important;
+          padding-left: 7px !important; margin-bottom: 6px !important;
+          -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+        }
+        .dm-subgroup-num {
+          flex-shrink: 0 !important; width: 20px !important; height: 20px !important;
+          border-radius: 50% !important; color: #fff !important;
+          font-size: 10px !important; font-weight: 800 !important;
+          display: flex !important; align-items: center !important; justify-content: center !important;
+          -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+        }
+        .dm-subgroup-label {
+          font-size: 11px !important; font-weight: 800 !important; color: #d4af37 !important;
+          letter-spacing: 0.05em !important; text-transform: uppercase !important;
+          -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+        }
+        .dm-bullets-sub { padding-left: 6px !important; gap: 10px !important; }
+        .dm-bullet-sub { gap: 9px !important; margin-bottom: 8px !important; }
+        .dm-bullet-dot {
+          flex-shrink: 0 !important; width: 5px !important; height: 5px !important;
+          border-radius: 50% !important; margin-top: 6px !important;
+          -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
         }
 
         /* Legacy ds-* classes (kept for any remaining references) */
@@ -3476,9 +3559,9 @@ export class ReportPage implements OnInit {
         /* Label row — glued to its content below */
         .hw-label {
           display: block !important;
-          font-size: 10px !important; font-weight: 700 !important;
+          font-size: 14px !important; font-weight: 700 !important;
           color: #8a6a00 !important;
-          margin-bottom: 4px !important;
+          margin-bottom: 6px !important;
           break-after: avoid !important; page-break-after: avoid !important;
         }
 
@@ -3486,18 +3569,18 @@ export class ReportPage implements OnInit {
         .hw-sub-list {
           display: block !important;
           list-style: none !important;
-          margin: 2px 0 0 !important; padding: 0 !important;
+          margin: 3px 0 0 !important; padding: 0 !important;
         }
         .hw-sub-item {
-          display: flex !important; gap: 7px !important; align-items: flex-start !important;
-          font-size: 9.5px !important; margin-bottom: 4px !important; line-height: 1.5 !important;
+          display: flex !important; gap: 9px !important; align-items: flex-start !important;
+          font-size: 13px !important; margin-bottom: 6px !important; line-height: 1.6 !important;
           break-inside: avoid !important;
         }
         .hw-sub-num {
           flex-shrink: 0 !important;
-          width: 16px !important; height: 16px !important;
+          width: 20px !important; height: 20px !important;
           border-radius: 50% !important;
-          font-size: 7.5px !important; font-weight: 700 !important;
+          font-size: 11px !important; font-weight: 700 !important;
           display: flex !important; align-items: center !important; justify-content: center !important;
           background: rgba(212,175,55,0.18) !important; color: #8a6a00 !important;
         }
@@ -3507,31 +3590,31 @@ export class ReportPage implements OnInit {
         .hw-timing {
           display: block !important;
           break-inside: avoid !important; page-break-inside: avoid !important;
-          padding: 2px 0 !important;
+          padding: 3px 0 !important;
         }
         .hw-timing-window {
           display: block !important;
-          font-size: 17px !important; font-weight: 900 !important;
+          font-size: 26px !important; font-weight: 900 !important;
           color: #1a1410 !important; line-height: 1.2 !important;
-          margin-bottom: 2px !important;
+          margin-bottom: 3px !important;
         }
         .hw-timing-peak {
           display: block !important;
-          font-size: 10px !important; font-weight: 600 !important;
-          color: #c4963b !important; margin-bottom: 2px !important;
+          font-size: 14px !important; font-weight: 600 !important;
+          color: #c4963b !important; margin-bottom: 3px !important;
         }
         .hw-timing-dur {
           display: block !important;
-          font-size: 8px !important; color: #999 !important; margin-top: 1px !important;
+          font-size: 12px !important; color: #999 !important; margin-top: 2px !important;
         }
 
         /* HOW redirect */
         .hw-redirect {
           display: block !important;
-          font-size: 9.5px !important; font-style: italic !important;
+          font-size: 13px !important; font-style: italic !important;
           color: #8a6a00 !important;
         }
-        .hw-answer { display: block !important; font-size: 9.5px !important; line-height: 1.55 !important; }
+        .hw-answer { display: block !important; font-size: 13px !important; line-height: 1.65 !important; }
 
         /* ── Remedy card — split allowed between groups ── */
         /* Consolidated remedies page — one A4 page, 2-col grid */
@@ -3544,6 +3627,18 @@ export class ReportPage implements OnInit {
           display: flex !important; flex-direction: column !important;
           page-break-before: always !important; break-before: page !important;
           page-break-after: avoid !important;
+          position: relative !important;
+        }
+        .remedy-page::after {
+          content: '' !important;
+          position: absolute !important;
+          inset: 0 !important;
+          background: url('rav-logo.png') center center / 70% auto no-repeat !important;
+          opacity: 0.12 !important;
+          pointer-events: none !important;
+          z-index: 0 !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
         .remedy-grid {
           display: grid !important;
@@ -3552,7 +3647,8 @@ export class ReportPage implements OnInit {
           padding: 12px 24px 6px !important;
           align-content: start !important;
           overflow: hidden !important;
-          flex: 1 !important;
+          flex: 0 0 auto !important;
+          position: relative !important; z-index: 1 !important;
         }
         .r-card {
           display: block !important;
@@ -3567,22 +3663,22 @@ export class ReportPage implements OnInit {
           padding-bottom: 4px !important; margin-bottom: 3px !important;
           border-bottom: 1px solid rgba(212,175,55,0.18) !important;
         }
-        .r-icon { font-size: 12px !important; width: 18px !important; }
-        .r-label { font-size: 8.5px !important; font-weight: 800 !important; }
+        .r-icon { font-size: 18px !important; width: 24px !important; }
+        .r-label { font-size: 13px !important; font-weight: 800 !important; }
         .r-list { display: block !important; margin: 0 !important; padding: 0 !important; }
         .r-list li {
           display: block !important;
-          font-size: 8.5px !important; line-height: 1.45 !important;
-          padding-left: 10px !important; margin-bottom: 1.5px !important;
+          font-size: 13px !important; line-height: 1.6 !important;
+          padding-left: 14px !important; margin-bottom: 3px !important;
         }
-        .r-list li::before { font-size: 6px !important; top: 3px !important; }
-        .r-sub { font-size: 8px !important; }
-        .r-color-row { display: flex !important; flex-wrap: wrap !important; gap: 4px !important; }
-        .r-color-chip { display: flex !important; align-items: center !important; gap: 3px !important; }
-        .r-swatch { width: 12px !important; height: 12px !important; border-radius: 50% !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-        .r-color-name { font-size: 8.5px !important; }
+        .r-list li::before { font-size: 9px !important; top: 4px !important; }
+        .r-sub { font-size: 12px !important; }
+        .r-color-row { display: flex !important; flex-wrap: wrap !important; gap: 6px !important; }
+        .r-color-chip { display: flex !important; align-items: center !important; gap: 5px !important; }
+        .r-swatch { width: 16px !important; height: 16px !important; border-radius: 50% !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        .r-color-name { font-size: 13px !important; }
 
-        .narrative-para { font-size: 10.5px !important; line-height: 1.65 !important; }
+        .narrative-para { font-size: 15px !important; line-height: 1.75 !important; }
 
         /* ════════════════════════════════════════════════════
            CLOSING PAGE — full A4, dark, premium ending
@@ -3620,20 +3716,20 @@ export class ReportPage implements OnInit {
           border: 2px solid rgba(212,175,55,0.4) !important;
           display: block !important; margin-bottom: 20px !important;
         }
-        .closing-name { font-size: 26px !important; font-weight: 800 !important; color: #fff !important; margin: 0 0 12px !important; line-height: 1.2 !important; }
-        .gold-line-center { width: 36px !important; height: 2px !important; background: #d4af37 !important; margin: 0 auto 16px !important; border-radius: 1px !important; }
+        .closing-name { font-size: 36px !important; font-weight: 800 !important; color: #fff !important; margin: 0 0 16px !important; line-height: 1.2 !important; }
+        .gold-line-center { width: 48px !important; height: 3px !important; background: #d4af37 !important; margin: 0 auto 20px !important; border-radius: 1px !important; }
         .closing-text {
-          font-size: 11.5px !important; color: rgba(255,255,255,0.55) !important;
-          max-width: 320px !important; line-height: 1.7 !important; margin: 0 0 10px !important;
+          font-size: 16px !important; color: rgba(255,255,255,0.55) !important;
+          max-width: 420px !important; line-height: 1.8 !important; margin: 0 0 14px !important;
         }
-        .closing-seal { font-size: 28px !important; color: #d4af37 !important; margin: 20px 0 0 !important; }
+        .closing-seal { font-size: 42px !important; color: #d4af37 !important; margin: 28px 0 0 !important; }
         .closing-footer {
           flex-shrink: 0 !important;
           display: flex !important; align-items: center !important;
-          justify-content: center !important; gap: 12px !important;
-          padding: 14px 0 18px !important;
+          justify-content: center !important; gap: 14px !important;
+          padding: 16px 0 22px !important;
           border-top: 1px solid rgba(255,255,255,0.07) !important;
-          font-size: 8.5px !important; color: rgba(255,255,255,0.25) !important;
+          font-size: 12px !important; color: rgba(255,255,255,0.25) !important;
           letter-spacing: 0.07em !important;
         }
         .closing-footer-logo {

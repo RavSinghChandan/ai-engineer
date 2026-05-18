@@ -1044,6 +1044,89 @@ const BACKEND = environment.apiUrl;
     </div>
   }
 
+  <!-- ══ 360° READABLE TAB — REMOVED ══════════════════════════════════════ -->
+  @if (false) {
+    <div class="cov-body">
+      <!-- Toolbar -->
+      <div class="cov-toolbar">
+        <div class="cov-chips">
+          <button class="cov-chip" [class.cov-chip-on]="covDomain() === 'all'" (click)="covSetDomain('all')">All</button>
+          @for (d of covDomains(); track d) {
+            <button class="cov-chip" [class.cov-chip-on]="covDomain() === d" (click)="covSetDomain(d)">
+              {{ covIcon(d) }} {{ covLabel(d) }}
+            </button>
+          }
+        </div>
+        <div class="cov-toolbar-r">
+          <input class="cov-search" type="text" placeholder="Search findings…"
+            [ngModel]="covSearch()" (ngModelChange)="covSetSearch($event)"/>
+          <select class="cov-psize" [ngModel]="covPageSize()" (ngModelChange)="covSetPageSize(+$event)">
+            <option [value]="10">10 / page</option>
+            <option [value]="25">25 / page</option>
+            <option [value]="50">50 / page</option>
+          </select>
+        </div>
+      </div>
+      <!-- Stats -->
+      <div class="cov-stats">
+        <span><b>{{ covFiltered().length }}</b> findings</span>
+        <span class="cov-dot">·</span>
+        <span><b>{{ covDomains().length }}</b> domains</span>
+        <span class="cov-dot">·</span>
+        <span>Page <b>{{ covPage() }}</b> / <b>{{ covTotalPages() }}</b></span>
+        @if (covAllRows().length === 0) {
+          <span class="cov-hint">Run an analysis first to see data here</span>
+        }
+      </div>
+      <!-- Empty -->
+      @if (covAllRows().length === 0) {
+        <div class="cov-empty">
+          <div style="font-size:40px">🔭</div>
+          <p style="font-weight:600;color:#5c4a1e;margin:8px 0 4px">No agent output yet</p>
+          <p style="color:#92835c;font-size:13px">Complete the pipeline run to see all findings here in readable format.</p>
+        </div>
+      } @else {
+        <!-- Grid -->
+        <div class="cov-table-wrap">
+          <table class="cov-table">
+            <thead>
+              <tr>
+                <th class="cov-th" (click)="covSortBy('domain')">Domain <span class="cov-si">{{ covSortField()==='domain' ? (covSortDir()==='asc'?'↑':'↓') : '⇅' }}</span></th>
+                <th class="cov-th" (click)="covSortBy('tradition')">Tradition <span class="cov-si">{{ covSortField()==='tradition' ? (covSortDir()==='asc'?'↑':'↓') : '⇅' }}</span></th>
+                <th class="cov-th" (click)="covSortBy('field')">Field <span class="cov-si">{{ covSortField()==='field' ? (covSortDir()==='asc'?'↑':'↓') : '⇅' }}</span></th>
+                <th class="cov-th cov-th-value">Finding</th>
+                <th class="cov-th" (click)="covSortBy('confidence')">Conf <span class="cov-si">{{ covSortField()==='confidence' ? (covSortDir()==='asc'?'↑':'↓') : '⇅' }}</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of covPaged(); track row.idx) {
+                <tr class="cov-row">
+                  <td class="cov-td">
+                    <span class="cov-badge" [attr.data-d]="row.domain">{{ covIcon(row.domain) }} {{ covLabel(row.domain) }}</span>
+                  </td>
+                  <td class="cov-td cov-td-trad">{{ row.tradition || '—' }}</td>
+                  <td class="cov-td"><code class="cov-code">{{ row.field }}</code></td>
+                  <td class="cov-td cov-td-val">{{ row.value }}</td>
+                  <td class="cov-td cov-td-conf">
+                    @if (row.confidence) {
+                      <span class="cov-conf" [attr.data-c]="row.confidence">{{ row.confidence }}</span>
+                    } @else { <span class="cov-conf">—</span> }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <!-- Pagination -->
+        <div class="cov-pager">
+          <button class="cov-pg-btn" [disabled]="covPage() <= 1" (click)="covPrev()">← Prev</button>
+          <span class="cov-pg-info">{{ covPage() }} / {{ covTotalPages() }} · {{ covFiltered().length }} rows</span>
+          <button class="cov-pg-btn" [disabled]="covPage() >= covTotalPages()" (click)="covNext()">Next →</button>
+        </div>
+      }
+    </div>
+  }
+
   <!-- ══ AGENT LOG TAB ══════════════════════════════════════════════════════ -->
   @if (activeTab() === 'log') {
     <div class="code-body">
@@ -1590,6 +1673,84 @@ const BACKEND = environment.apiUrl;
   padding: 18px; border-radius: 12px; margin: 0; line-height: 1.7;
 }
 
+/* ── 360° Readable tab ─────────────────────────────────────────────────── */
+.cov-body { flex:1; overflow:hidden; display:flex; flex-direction:column; padding:16px 20px; gap:10px; }
+.cov-toolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; flex-shrink:0; }
+.cov-chips { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.cov-chip {
+  padding:4px 14px; border-radius:99px; border:1.5px solid #e5d8a0;
+  background:transparent; font-size:12px; font-weight:500; color:#6b5a1e;
+  cursor:pointer; font-family:Georgia,serif; transition:all 0.15s;
+}
+.cov-chip:hover { border-color:#d4af37; color:#8a6a00; background:#fdf8ec; }
+.cov-chip-on { background:#8a6a00; color:#fff; border-color:#8a6a00; }
+.cov-toolbar-r { display:flex; align-items:center; gap:8px; }
+.cov-search {
+  padding:6px 12px; border-radius:8px; border:1.5px solid #e5d8a0;
+  font-size:12px; font-family:inherit; color:#374151; outline:none;
+  width:200px; transition:border-color 0.15s;
+}
+.cov-search:focus { border-color:#d4af37; }
+.cov-psize {
+  padding:5px 8px; border-radius:8px; border:1.5px solid #e5d8a0;
+  font-size:12px; font-family:inherit; color:#374151; cursor:pointer; outline:none;
+}
+.cov-stats { display:flex; align-items:center; gap:8px; font-size:12px; color:#92835c; flex-shrink:0; }
+.cov-dot { color:#d4af37; }
+.cov-hint { margin-left:auto; font-style:italic; color:#b45309; font-size:11px; background:#fffbeb; padding:2px 8px; border-radius:6px; }
+.cov-empty { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; text-align:center; }
+.cov-table-wrap { flex:1; overflow:auto; border-radius:10px; border:1px solid #e5d8a0; background:#fff; }
+.cov-table { width:100%; border-collapse:collapse; font-size:12px; min-width:800px; }
+.cov-th {
+  padding:8px 12px; text-align:left; font-weight:700; font-size:10.5px;
+  letter-spacing:0.06em; text-transform:uppercase; color:#8a6a00;
+  background:#fdf8ec; border-bottom:1.5px solid #e5d8a0;
+  white-space:nowrap; cursor:pointer; user-select:none;
+  position:sticky; top:0; z-index:2;
+}
+.cov-th:hover { background:#fdf0d0; }
+.cov-th-value { min-width:280px; cursor:default; }
+.cov-si { margin-left:3px; font-size:9px; opacity:0.7; }
+.cov-row { border-bottom:1px solid #f5eed8; transition:background 0.1s; }
+.cov-row:last-child { border-bottom:none; }
+.cov-row:hover { background:#fdfaf0; }
+.cov-td { padding:7px 12px; vertical-align:top; color:#374151; line-height:1.5; }
+.cov-td-trad { color:#92835c; font-size:11.5px; }
+.cov-td-val { color:#1f2937; }
+.cov-td-conf { text-align:center; }
+.cov-badge {
+  display:inline-flex; align-items:center; gap:4px;
+  padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600;
+  background:#fdf8ec; color:#8a6a00; white-space:nowrap;
+}
+.cov-badge[data-d="astrology"]  { background:#ede9fe; color:#5b21b6; }
+.cov-badge[data-d="numerology"] { background:#dbeafe; color:#1e40af; }
+.cov-badge[data-d="palmistry"]  { background:#dcfce7; color:#166534; }
+.cov-badge[data-d="tarot"]      { background:#fce7f3; color:#9d174d; }
+.cov-badge[data-d="vastu"]      { background:#fef3c7; color:#92400e; }
+.cov-badge[data-d="remedies"]   { background:#d1fae5; color:#065f46; }
+.cov-code {
+  font-family:'Fira Mono','Courier New',monospace; font-size:10.5px;
+  background:#f5f0e0; color:#8a6a00; padding:1px 5px; border-radius:4px;
+}
+.cov-conf {
+  display:inline-block; padding:1px 7px; border-radius:8px;
+  font-size:10.5px; font-weight:600; text-transform:capitalize;
+  background:#f5eed8; color:#8a6a00;
+}
+.cov-conf[data-c="high"]   { background:#dcfce7; color:#166534; }
+.cov-conf[data-c="medium"] { background:#fef3c7; color:#92400e; }
+.cov-conf[data-c="low"]    { background:#fee2e2; color:#991b1b; }
+.cov-pager { display:flex; align-items:center; justify-content:center; gap:14px; padding:10px 0; flex-shrink:0; }
+.cov-pg-btn {
+  padding:5px 14px; border-radius:8px; border:1.5px solid #e5d8a0;
+  background:#fff; font-size:12px; font-weight:600; color:#8a6a00;
+  cursor:pointer; font-family:inherit; transition:all 0.15s;
+}
+.cov-pg-btn:hover:not(:disabled) { border-color:#d4af37; background:#fdf8ec; }
+.cov-pg-btn:disabled { opacity:0.4; cursor:not-allowed; }
+.cov-pg-info { font-size:12px; color:#92835c; }
+
 /* Log */
 .log-hdr { display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
 .log-hdr-title { font-size: 13px; font-weight: 700; color: #374151; font-family: Georgia, serif; }
@@ -1945,6 +2106,124 @@ export class ReviewPage {
     const out = this.orch.rawOutputs();
     return JSON.stringify((out as any)[this.rawKey()] ?? {}, null, 2);
   });
+
+  // ── 360° Readable tab ────────────────────────────────────────────────────
+  private static readonly _TRAD_MAP: Record<string, Record<string, string>> = {
+    astrology:  { vedic_parashara: 'Vedic (Parashara)', kp_system: 'KP System', western_tropical: 'Western Tropical' },
+    numerology: { indian_vedic: 'Indian Vedic', chaldean: 'Chaldean', pythagorean: 'Pythagorean' },
+    palmistry:  { indian: 'Indian', chinese: 'Chinese', western: 'Western' },
+    tarot:      { rider_waite: 'Rider-Waite', intuitive: 'Intuitive' },
+    vastu:      { traditional: 'Traditional Vastu', modern: 'Modern Vastu' },
+  };
+  private static readonly _ICONS: Record<string, string> = {
+    astrology:'🪐', numerology:'🔢', palmistry:'✋', tarot:'🃏', vastu:'🏠', remedies:'🌿',
+  };
+  private static readonly _LEAF = new Set([
+    'predictions','traits','strengths','weaknesses','lucky_numbers','lucky_colors',
+    'corrections','colors_recommended','priority_zones','guidance','doshas','yogas',
+    'career_notes','health_notes','relationship_notes','daily_habits','challenges',
+  ]);
+  private static readonly _SKIP_F = new Set(['sub_agent','tradition','id','detail']);
+
+  readonly covDomainSig  = signal<string>('all');
+  readonly covSearch     = signal<string>('');
+  readonly covSortField  = signal<string>('domain');
+  readonly covSortDir    = signal<'asc'|'desc'>('asc');
+  readonly covPage       = signal<number>(1);
+  readonly covPageSize   = signal<number>(25);
+
+  covDomain() { return this.covDomainSig(); }
+
+  readonly covDomains = computed<string[]>(() => {
+    const raw = this.orch.rawOutputs() as any;
+    return Object.keys(raw).filter(k => k !== 'consolidated' && raw[k]);
+  });
+
+  readonly covAllRows = computed<any[]>(() => {
+    const raw = this.orch.rawOutputs() as any;
+    const rows: any[] = [];
+    for (const domain of Object.keys(raw)) {
+      if (domain === 'consolidated' || !raw[domain]) continue;
+      this._covFlatten(domain, raw[domain], rows);
+    }
+    return rows;
+  });
+
+  readonly covFiltered = computed<any[]>(() => {
+    let rows = this.covAllRows();
+    const d = this.covDomainSig();
+    if (d !== 'all') rows = rows.filter((r: any) => r.domain === d);
+    const q = this.covSearch().toLowerCase().trim();
+    if (q) rows = rows.filter((r: any) =>
+      r.value.toLowerCase().includes(q) ||
+      r.field.toLowerCase().includes(q) ||
+      r.tradition.toLowerCase().includes(q)
+    );
+    const sf = this.covSortField();
+    const sd = this.covSortDir();
+    return [...rows].sort((a: any, b: any) => {
+      const av = a[sf] ?? ''; const bv = b[sf] ?? '';
+      return sd === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+    });
+  });
+
+  readonly covPaged = computed<any[]>(() => {
+    const rows = this.covFiltered();
+    const ps = this.covPageSize(); const pg = this.covPage();
+    return rows.slice((pg - 1) * ps, pg * ps);
+  });
+
+  readonly covTotalPages = computed<number>(() =>
+    Math.max(1, Math.ceil(this.covFiltered().length / this.covPageSize()))
+  );
+
+  private _covFlatten(domain: string, data: any, rows: any[]) {
+    const tradMap = ReviewPage._TRAD_MAP[domain] ?? {};
+    const push = (trad: string, field: string, value: string, conf = '') => {
+      const label = tradMap[trad] ?? trad.replace(/_/g,' ').replace(/\b\w/g, c => c.toUpperCase());
+      rows.push({ domain, tradition: label, field, value: String(value).trim(), confidence: conf, idx: rows.length });
+    };
+    if (Array.isArray(data)) {
+      data.forEach((item: any, i: number) => {
+        const trad = item?.sub_agent ?? `agent_${i+1}`;
+        this._covFlatObj(trad, item, push);
+      });
+    } else if (typeof data === 'object') {
+      const trad = data?.sub_agent ?? '';
+      this._covFlatObj(trad, data, push);
+    }
+  }
+
+  private _covFlatObj(trad: string, obj: any, push: (t: string, f: string, v: string, c?: string) => void) {
+    if (!obj || typeof obj !== 'object') return;
+    for (const [k, v] of Object.entries(obj)) {
+      if (ReviewPage._SKIP_F.has(k) || v == null) continue;
+      if (ReviewPage._LEAF.has(k) && Array.isArray(v)) {
+        (v as any[]).forEach(item => item != null && push(trad, k, typeof item === 'object' ? JSON.stringify(item) : String(item)));
+      } else if (Array.isArray(v)) {
+        (v as any[]).forEach(item => item != null && push(trad, k, typeof item === 'object' ? JSON.stringify(item) : String(item)));
+      } else if (typeof v === 'object') {
+        for (const [sk, sv] of Object.entries(v as any)) {
+          if (sv != null) push(trad, `${k}.${sk}`, String(sv));
+        }
+      } else {
+        push(trad, k, String(v));
+      }
+    }
+  }
+
+  covSetDomain(d: string) { this.covDomainSig.set(d); this.covPage.set(1); }
+  covSetSearch(q: string) { this.covSearch.set(q); this.covPage.set(1); }
+  covSetPageSize(n: number) { this.covPageSize.set(n); this.covPage.set(1); }
+  covSortBy(f: string) {
+    if (this.covSortField() === f) this.covSortDir.update(d => d === 'asc' ? 'desc' : 'asc');
+    else { this.covSortField.set(f); this.covSortDir.set('asc'); }
+    this.covPage.set(1);
+  }
+  covPrev() { if (this.covPage() > 1) this.covPage.update(p => p - 1); }
+  covNext() { if (this.covPage() < this.covTotalPages()) this.covPage.update(p => p + 1); }
+  covIcon(d: string) { return ReviewPage._ICONS[d] ?? '📦'; }
+  covLabel(d: string) { return d.charAt(0).toUpperCase() + d.slice(1); }
 
   approvedInBlock(q: AdminQuestion): number {
     return q.insights.filter(i => this.approvedIds().has(i.id)).length;
