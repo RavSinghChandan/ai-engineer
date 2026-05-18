@@ -13,53 +13,51 @@ This module is a scripted reference. Read it until you can speak it fluently.
 
 ## 2. AstroIntel 360° — Deep Dive Script
 
+### ⚠️ CURRENT ARCHITECTURE (Updated May 2026 — use these answers, not older versions)
+
+The real system is a **12-node LangGraph StateGraph** with:
+- **5 domain agents**: Vedic Astrology, Numerology (3 traditions), Palmistry, Tarot, Vastu — not "career/health/finance"
+- **LangGraph** for orchestration — not ThreadPoolExecutor
+- **DeepSeek LLM** — not GPT-4o-mini
+- **Human-in-the-loop admin approval** before any report is generated
+- **Plain English Agent** (jargon simplification) running post-approval only
+- **20-page PDF** generated entirely in Angular with @media print CSS
+- **30+ language translation** via LLM translation agent
+- **Full RBAC auth** (user / admin / superadmin), **semantic 2-tier cache**, **G1–G5 guardrails**
+
+---
+
 ### Level 1: 30-Second Summary (for "tell me briefly about your projects")
 
-"AstroIntel is a multi-agent AI platform for personalized astrological analysis. The user provides birth data and a question. Five specialist agents run in parallel — career, relationships, health, finances, and spiritual — then a synthesis agent combines their insights into a final report with remedies. The key design decision was parallel execution, which gives us 5x lower latency compared to sequential chaining."
+"AstroIntel 360° is a production multi-agent AI platform that produces personalised spiritual intelligence reports. A user submits their birth profile — date, time, place. Five domain specialist agents run inside a LangGraph StateGraph: Vedic Astrology, Numerology across three traditions, Palmistry, Tarot, and Vastu. A meta-agent synthesises cross-domain consensus — insights confirmed by three or more traditions get HIGH confidence. An admin reviews and approves individual insights through a human-in-the-loop workflow, then a branded 20-page PDF report is generated in the user's preferred language from 30+ supported. The whole stack — FastAPI backend, Angular frontend, 4-layer security guardrails, RBAC auth, semantic caching, CI/CD to AWS ECS — was built from scratch."
 
 ---
 
 ### Level 2: 2-Minute Architecture Walk (for "walk me through the architecture")
 
-"AstroIntel's pipeline has six stages.
+"AstroIntel's pipeline has nine stages inside a LangGraph StateGraph.
 
-**Stage 1 — Ingestion:** The user submits a birth profile: date, time, and location. The system normalizes this to a structured object — Ascendant, Sun sign, Moon sign, and planetary positions — using a deterministic calculation layer, not an LLM.
+**Stage 1 — Security gate:** Before any LLM sees the input, a `security_check` node validates the user's question and every birth profile field against 12 injection patterns. Prompt injection, jailbreak attempts, and garbage inputs are rejected here. The pipeline never starts on bad input.
 
-**Stage 2 — Question routing:** The user's question is classified into one of five domains using a lightweight GPT-4o-mini call. This determines which domain agents are prioritized.
+**Stage 2 — Question normalisation:** The `question_agent` parses the user's question into structured intent — what domain it touches, what life area, what timeframe. This context flows to every downstream agent.
 
-**Stage 3 — Parallel agent execution:** Five domain agents run concurrently via ThreadPoolExecutor. Each agent receives the normalized birth profile, the user's question, and a domain-specific system prompt. Each makes one LLM call and returns a structured JSON output with insights, confidence score, and supporting evidence from the birth data.
+**Stage 3 — Parallel domain fan-out:** Five domain specialist agents run inside one LangGraph node. Each produces structured JSON: question-wise insights, confidence score, tradition-specific evidence. The domains are: Vedic Astrology (+ KP + Western), Numerology (Indian + Chaldean + Pythagorean), Palmistry (Indian + Chinese + Western), Tarot, and Vastu. If any domain agent fails, it produces a LOW-confidence placeholder — the other four continue.
 
-**Stage 4 — Consensus:** A consensus layer collects all five agent outputs. If agents disagree on a key fact, the disagreement is flagged. Insights below a confidence threshold are filtered.
+**Stage 4 — Cross-domain consensus:** The `meta_agent` reads all five outputs and scores consensus: HIGH (3+ domains agree), MEDIUM (2 agree), LOW (1 domain only). This is the architectural answer to hallucination — one agent hallucinating gets outvoted.
 
-**Stage 5 — Synthesis and remedy:** A synthesis agent takes the five validated outputs and produces the final report — summary insights per domain plus recommended remedies.
+**Stage 5 — Hallucination check:** A dedicated LangGraph node scans every output for system prompt leakage, off-topic content, and jailbreak compliance before the output moves forward.
 
-**Stage 6 — Admin review (optional):** For the premium tier, the result passes through an admin review node using LangGraph's interrupt/resume pattern. The admin approves, edits, or adds context before delivery.
+**Stage 6 — Remedy generation:** The `remedy_agent` generates 8 categories of personalised recommendations: daily habits, mantras, gemstones, fasting, charity, lucky colours, yoga, and behavioural adjustments.
 
-The whole pipeline runs in 15-20 seconds. The parallel phase is 3-4 seconds. The main latency drivers are the LLM calls, not the orchestration logic."
+**Stage 7 — Admin review packaging:** `admin_review_agent` structures every insight with an id, confidence badge, domains[] array, and editable flag — ready for the human-in-the-loop approval workflow.
+
+**Stage 8 — Human approval:** An admin logs in, reviews each insight, approves or rejects. Nothing reaches the user without this gate.
+
+**Stage 9 — Report generation:** After approval, a plain English agent simplifies jargon (Lagna→rising sign, Mahadasha→main life phase), a report agent builds the 20-page PDF payload, and an optional translation agent converts everything to the user's chosen language from 30+ options. The PDF is rendered entirely in Angular with @media print CSS — no server-side PDF library."
 
 ---
 
 ### Level 3: Decision Deep Dives (for follow-up questions)
-
-**Why parallel, not sequential?**
-"Sequential would mean Agent 2 waits for Agent 1 to finish, Agent 3 waits for Agent 2, and so on. With 5 agents at 3 seconds each, that's 15 seconds just for the agents before synthesis. Parallel runs all 5 simultaneously — the phase takes max(agent_latencies) ≈ 3-4 seconds instead of sum(agent_latencies) ≈ 15 seconds. 5x improvement.
-
-The trade-off: parallel agents don't see each other's outputs. They can produce conflicting insights. That's why the consensus layer exists — it's the architectural answer to the trade-off I made by going parallel."
-
-**Why not LangChain agent executor?**
-"LangChain's agent executor is sequential and black-box. It doesn't support parallel node execution. LangGraph supports parallel map-reduce patterns and gives me explicit state, explicit transitions, and interrupt/resume for the admin review step. For a production multi-agent system, LangGraph is the right choice."
-
-**Why LangGraph for admin review?**
-"Admin review requires the pipeline to pause mid-execution, persist its state, and resume hours later when the admin takes action. Without LangGraph, I'd need to build custom state serialization and re-invocation logic. LangGraph's interrupt mechanism combined with SqliteSaver (or Postgres-backed checkpointer in production) handles this out of the box. The graph pauses at the review node, serializes state to the checkpointer, and resumes when I call invoke with the thread_id and the admin's feedback."
-
-**What are the failure modes?**
-"Three main failure modes:
-
-1. Agent hallucination: an agent generates insights not grounded in the birth data. Mitigation: each agent prompt explicitly lists all birth data fields and instructs the agent to reference at least two data points per insight. The consensus layer checks for cross-agent agreement.
-
-2. LLM timeout: one agent's LLM call times out, blocking the parallel phase. Mitigation: each agent call has a 10-second timeout. If an agent times out, it returns an empty result — the synthesis agent works with the available 4/5 outputs and notes the missing domain.
-
-3. Inconsistent JSON output: agents are prompted for JSON but occasionally return malformed JSON. Mitigation: JSON repair library (`json_repair`) with a regex fallback to extract the insights section. If both fail, the agent result is marked as failed and excluded."
 
 **How would you scale this to 1000 users/day?**
 "Current synchronous architecture handles roughly 5-10 concurrent users before LLM rate limits become a constraint. For 1000 users/day (assuming 3 analyses each = 3000 analyses/day, ~2 per minute peak):
@@ -368,3 +366,53 @@ Key numbers to annotate:
 - LLM cost per full plan: ~$0.009
 - LLM-as-judge threshold: 3.5 / 5.0 average
 - Circuit breaker: OPEN after 5 failures / 60s window
+
+---
+
+### Level 3: Updated Decision Deep Dives (current system — use these in interviews)
+
+**Why LangGraph StateGraph instead of simple function chaining?**
+> "I needed three things that function chaining can't give me. First, explicit state — every agent reads from and writes to a typed state dict, so I can inspect exactly what any agent saw and produced. Second, `safe_node()` wrapping — I can add circuit breaker, timeout, and graceful degradation to every node without touching any agent's logic. Third, it gives me a natural place to add the human-in-the-loop interrupt if I extend the pipeline — LangGraph's interrupt/resume pattern is built for exactly this. Function chaining would have been simpler to write but impossible to debug and extend."
+
+**Why DeepSeek instead of GPT-4o?**
+> "Cost and instruction-following quality for structured output tasks. AstroIntel makes around 8-10 LLM calls per analysis. At GPT-4o pricing that's roughly $0.30 per analysis — at DeepSeek pricing it's under $0.01. For structured JSON output with a constrained schema, DeepSeek performs equivalently. GPT-4o's superior reasoning only matters for open-ended synthesis, not for following a detailed system prompt with explicit output format instructions. The one place I'd switch back to a larger model is if I need the report to be more creatively written — but right now the plain English agent handles that post-generation."
+
+**Why admin review before report generation — not after?**
+> "Two reasons. First, quality: the LLM produces 30-50 insights per analysis. Some will be generic, some will be weakly grounded, some will be near-duplicates. An admin filtering these before the report means the user receives 10-15 curated, high-quality insights rather than 50 raw outputs. Second, liability: spiritual guidance touches people's relationships, career decisions, and finances. Having a human approve every insight before it's presented as a personalised reading is the responsible design. The admin workflow is the human-in-the-loop gate that makes this system appropriate for its domain."
+
+**Why @media print CSS for the PDF instead of Puppeteer or a PDF library?**
+> "Three reasons: zero server cost (no headless Chrome process running), no extra dependency (the Angular component already renders the report), and perfect fidelity (the PDF looks exactly like the screen preview because it IS the same component). The trade-off is browser-specific print quirks — I had to solve `break-inside: avoid` for insight cards, absolute-positioned watermarks that don't affect page flow, and font sizes that need to be roughly doubled for print DPI. But those are solvable CSS problems, and the result is a 20-page branded PDF with no server-side process."
+
+**Why 2-tier semantic cache?**
+> "Birth chart data is mathematically deterministic — same person, same chart, forever. Profile TTL is 30 days because the data never changes. Full pipeline responses include the user's specific questions, so they're scoped to a session — 20 minutes is the right TTL. This means a repeat reading for the same person returns instantly with zero LLM calls, while a new question set runs the full pipeline. Cache hit rate on repeat users is ~35%, which directly translates to cost savings."
+
+**What are the current numbers you can quote cold?**
+```
+Pipeline:
+  LLM calls per analysis:   8-10
+  Domain agents:            5 (9 traditions across them)
+  Languages supported:      30+
+  PDF pages:                20
+  Guardrail layers:         4 (security) + 5 production (G1-G5)
+
+Auth:
+  Roles:                    3 (USER / ADMIN / SUPERADMIN)
+  Auth methods:             API key + JWT Bearer
+  Test coverage:            76/76 auth tests passing
+
+Caching:
+  Profile TTL:              30 days
+  Session TTL:              20 minutes
+  Cache hit rate:           ~35% on repeat users
+
+Accuracy (20 public figures tested):
+  Life Path accuracy:       20/20 = 100%
+  Hallucination risk:       20/20 LOW, 0 HIGH
+  Domain coverage:          5/5 domains on all profiles
+
+Plain English Agent:
+  Jargon patterns:          30+ deterministic regex replacements
+  Safety filter phrases:    11 forbidden absolute phrases
+  Runs:                     ONLY post-approval, never in pipeline
+```
+

@@ -619,3 +619,86 @@ For critical operations (AI-generated reports, analysis): queue the requests. Wh
 For real-time interactive use cases where caching is not possible: show a maintenance page or static fallback content. Better to acknowledge degradation than to spin forever or show errors.
 Pre-build static responses for your top-20 most common queries. These never require an LLM call and are always available.
 The key insight: "the AI is down" should not mean "the service is down." Design the system so the LLM is an enhancement, not a single point of failure.
+
+---
+
+## ★ Built in AstroIntel 360° — Live Proof You Can Reference in Interviews
+
+### The Full G1–G5 Production Guardrail Stack (All Built, All Tested)
+
+AstroIntel implements 5 independent production guardrails, each non-invasively wired — agent logic was never modified.
+
+```
+G1 — Rate Limiter (guardrails/production.py)
+  Sliding-window per-tenant: 10 requests / 60 seconds
+  Returns HTTP 429 with retry-in-N-seconds message
+  Keyed by tenant_id (not user-supplied input — prevents spoofing)
+  Wired: top of POST /api/v1/analysis/run, before any pipeline code
+
+G2 — Circuit Breaker (guardrails/core.py → safe_node() wrapper)
+  Wraps every LangGraph node: question_agent, domain_agents, meta_agent,
+  remedy_agent, admin_review_agent
+  Pattern: CLOSED → OPEN (after failure threshold) → HALF_OPEN → CLOSED
+  Failed node → fallback_state() returns minimal valid state, pipeline continues
+  Timeout per node via threading.Thread + join(timeout=N)
+
+G3 — JSON Output Repair (guardrails/production.py)
+  4-level cascade:
+    Level 1: direct json.loads()
+    Level 2: strip markdown fences (```json ... ```)
+    Level 3: regex extract first { ... } block
+    Level 4: LLM repair call — "Fix this to be valid JSON: {malformed}"
+  Monitored: JSON repair count tracked in guardrail stats
+  If all 4 levels fail → agent marked degraded, pipeline continues
+
+G4 — PII Output Filter (guardrails/production.py)
+  Runs in admin_review_agent before returning insights
+  Strips any insight containing: birth date, birth time, birth location
+  Reason: birth profiles are PII — LLM must not echo them back in analysis
+
+G5 — Graceful Degradation Tracker (guardrails/production.py)
+  Records per-domain outcome after domain_agents_parallel:
+    full / partial / fallback / skipped / failed
+  Exposes availability% per domain in /api/v1/metrics dashboard
+  Snapshot persisted so stats survive process restart
+```
+
+**safe_node() wrapper — how it works:**
+```python
+def safe_node(fn, name):
+    def wrapper(state):
+        try:
+            return _run_with_timeout(fn, state, seconds=60)
+        except _TimeoutError:
+            return _fallback_state(name, state, "timed out")
+        except Exception as exc:
+            return _fallback_state(name, state, str(exc))
+    return wrapper
+```
+Every agent is wrapped: `safe_node(question_agent_node, "question_agent")`. Zero changes to agent logic.
+
+**Security guardrail (Layer 1 — before any LLM call):**
+```python
+# 12 regex patterns in guardrails/security.py
+_INJECTION_PATTERNS = [
+    r"ignore\s+(all\s+)?(previous|prior|above)\s+instructions",
+    r"you\s+are\s+now\s+(a\s+)?(?!an?\s+astrologer)",
+    r"(reveal|show|print)\s+your\s+(instructions|system\s+prompt)",
+    r"pretend\s+(you\s+are|to\s+be)\s+(?!an?\s+astrologer)",
+    # ... 8 more patterns
+]
+```
+SecurityError raised before `run_pipeline()` is ever called.
+
+**Plain English safety filter (post-generation):**
+```python
+_FORBIDDEN_PHRASES = [
+    "divorce is certain", "will die", "financial ruin", "serious illness will",
+    "inevitable", "you will definitely", "guaranteed to", "100% certain",
+]
+# Entire sentences containing these phrases are removed, not just the phrase
+```
+
+**Interview answer when asked "how did you handle failures in your pipeline?":**
+> "AstroIntel has five layers of failure handling, each solving a different failure mode. G1 rate limiting prevents a single user from exhausting LLM API quota. G2 circuit breaker stops cascading failures — if one agent times out repeatedly, it trips open and returns a fallback state rather than queuing retries that amplify latency. G3 JSON repair handles the ~5% of cases where the LLM returns malformed JSON — I have a 4-level cascade before giving up. G4 PII filtering prevents birth data echoing in outputs, which is both a privacy issue and a hallucination signal. G5 graceful degradation means a failed domain agent never kills the report — four other domains still produce insights. The key design principle: every guardrail is non-invasive — agent code was never modified. Each guardrail wraps at the call site."
+
