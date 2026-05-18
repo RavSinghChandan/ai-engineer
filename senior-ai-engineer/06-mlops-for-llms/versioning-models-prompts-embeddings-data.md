@@ -311,3 +311,61 @@ python -m pytest           # all 99 tests, ~1.3s, no API calls
 5. G4 PII filter tested for email, phone, and profile field scrubbing
 6. Tracking agent tested with 0%, 20%, 80%, and 100% completion scenarios
 7. CV parser tested with clean JSON, fenced JSON, and partial responses
+
+---
+
+## Bench Resource Optimizer — Phase 3: Role CRUD API (Live Implementation)
+
+**Module 6 — MLOps: Knowledge Base as Versioned Data, Not Hardcoded Config**
+
+### What was built
+
+Roles were hardcoded in `roles_knowledge.json` — not scalable, not auditable, not admin-manageable. Phase 3 migrated roles to SQLite with a full CRUD API.
+
+**New DB layer** (`db.py`):
+```python
+async def create_role_db(role: dict) -> dict  # raises ValueError on duplicate
+async def get_role_db(role_id: str) -> Optional[dict]
+async def get_all_roles_db() -> list
+async def update_role_db(role_id: str, updates: dict) -> Optional[dict]  # partial update
+async def delete_role_db(role_id: str) -> bool
+async def seed_roles_from_json(path: Path) -> int  # idempotent migration
+```
+
+**New API endpoints** (`main.py`):
+```
+POST   /admin/roles             → create role, trigger FAISS+BM25 rebuild
+GET    /admin/roles/{role_id}   → get single role
+PUT    /admin/roles/{role_id}   → partial update, trigger rebuild
+DELETE /admin/roles/{role_id}   → delete, trigger rebuild
+GET    /roles                   → reads from SQLite (not JSON)
+```
+
+**Background index rebuild pattern**:
+```python
+async def _rebuild_indexes() -> int:
+    roles = await get_all_roles_async()
+    _vector_store = build_vector_store(embeddings, roles=roles)
+    init_bm25_from_roles(roles)
+    return len(roles)
+
+# After any role mutation:
+asyncio.get_event_loop().create_task(_rebuild_indexes())
+```
+This is fire-and-forget: the HTTP response returns immediately; the FAISS+BM25 rebuild happens in the background without blocking the caller.
+
+**Startup migration** (idempotent):
+```python
+# In lifespan:
+seeded = await seed_roles_from_json(roles_json)
+roles  = await get_all_roles_async()  # now reads from SQLite
+init_bm25_from_roles(roles)
+```
+
+**Test coverage** (15 DB-layer + 9 API-layer = 24 new tests):
+- `test_roles.py` — DB layer: create, duplicate→ValueError, ID normalization, get/get-all, partial update, delete, seed idempotency, missing file
+- `test_api.py TestAdminRoles` — API layer: 201 create, 400 empty skills, 409 duplicate, 200 get/update/delete, 404 not found paths
+
+### Senior interview talking point
+
+"In bench-resource-optimizer, roles were originally hardcoded JSON — a classic prototype pattern that breaks in production. Phase 3 migrated to SQLite-backed CRUD with a fire-and-forget FAISS+BM25 rebuild on every role change. Any role addition, update, or deletion immediately becomes searchable via hybrid RAG without restarting the server. The same pattern is used in production RAG systems where the knowledge base must evolve without downtime: write to DB, fire rebuild task, return to caller. The startup seed is idempotent — safe to run on every deploy."

@@ -62,6 +62,19 @@ async def init_db() -> None:
             ON memory_sessions(user_id, ts DESC)
         """)
         await db.execute("""
+            CREATE TABLE IF NOT EXISTS roles (
+                role_id          TEXT PRIMARY KEY,
+                title            TEXT NOT NULL,
+                description      TEXT NOT NULL DEFAULT '',
+                required_skills  TEXT NOT NULL DEFAULT '[]',
+                preferred_skills TEXT NOT NULL DEFAULT '[]',
+                experience_years INTEGER NOT NULL DEFAULT 0,
+                internal_notes   TEXT NOT NULL DEFAULT '',
+                created_at       REAL NOT NULL,
+                updated_at       REAL NOT NULL
+            )
+        """)
+        await db.execute("""
             CREATE TABLE IF NOT EXISTS ragas_results (
                 id                INTEGER PRIMARY KEY AUTOINCREMENT,
                 request_id        TEXT NOT NULL,
@@ -263,3 +276,156 @@ async def load_ragas_results(limit: int = 200) -> list:
         ) as cur:
             rows = await cur.fetchall()
     return [dict(r) for r in reversed(rows)]
+
+
+# ── Roles CRUD ────────────────────────────────────────────────────────────────
+
+def _row_to_role(row: dict) -> dict:
+    return {
+        "id":               row["role_id"],
+        "title":            row["title"],
+        "description":      row["description"],
+        "required_skills":  json.loads(row["required_skills"]),
+        "preferred_skills": json.loads(row["preferred_skills"]),
+        "experience_years": row["experience_years"],
+        "internal_notes":   row["internal_notes"],
+        "created_at":       row["created_at"],
+        "updated_at":       row["updated_at"],
+    }
+
+
+async def get_all_roles_db() -> list:
+    """Return all roles from SQLite."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute("SELECT * FROM roles ORDER BY title") as cur:
+            rows = await cur.fetchall()
+    return [_row_to_role(dict(r)) for r in rows]
+
+
+async def get_role_db(role_id: str) -> Optional[dict]:
+    """Return a single role by ID, or None if not found."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute("SELECT * FROM roles WHERE role_id = ?", (role_id,)) as cur:
+            row = await cur.fetchone()
+    return _row_to_role(dict(row)) if row else None
+
+
+async def create_role_db(role: dict) -> dict:
+    """
+    Insert a new role. Raises ValueError on duplicate role_id.
+    role dict must have: id, title. Optional: description, required_skills,
+    preferred_skills, experience_years, internal_notes.
+    """
+    now = time.time()
+    role_id = role["id"].strip().lower().replace(" ", "-")
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("PRAGMA journal_mode=WAL")
+        try:
+            await db.execute(
+                """
+                INSERT INTO roles
+                    (role_id, title, description, required_skills, preferred_skills,
+                     experience_years, internal_notes, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    role_id,
+                    role["title"],
+                    role.get("description", ""),
+                    json.dumps(role.get("required_skills", [])),
+                    json.dumps(role.get("preferred_skills", [])),
+                    role.get("experience_years", 0),
+                    role.get("internal_notes", ""),
+                    now, now,
+                ),
+            )
+            await db.commit()
+        except Exception as exc:
+            if "UNIQUE constraint" in str(exc):
+                raise ValueError(f"Role '{role_id}' already exists.")
+            raise
+    return await get_role_db(role_id)
+
+
+async def update_role_db(role_id: str, updates: dict) -> Optional[dict]:
+    """
+    Update an existing role. Returns updated role, or None if not found.
+    Only fields present in `updates` are changed.
+    """
+    existing = await get_role_db(role_id)
+    if not existing:
+        return None
+
+    now = time.time()
+    merged = {
+        "title":            updates.get("title",            existing["title"]),
+        "description":      updates.get("description",      existing["description"]),
+        "required_skills":  updates.get("required_skills",  existing["required_skills"]),
+        "preferred_skills": updates.get("preferred_skills", existing["preferred_skills"]),
+        "experience_years": updates.get("experience_years", existing["experience_years"]),
+        "internal_notes":   updates.get("internal_notes",   existing["internal_notes"]),
+    }
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("PRAGMA journal_mode=WAL")
+        await db.execute(
+            """
+            UPDATE roles SET
+                title            = ?,
+                description      = ?,
+                required_skills  = ?,
+                preferred_skills = ?,
+                experience_years = ?,
+                internal_notes   = ?,
+                updated_at       = ?
+            WHERE role_id = ?
+            """,
+            (
+                merged["title"],
+                merged["description"],
+                json.dumps(merged["required_skills"]),
+                json.dumps(merged["preferred_skills"]),
+                merged["experience_years"],
+                merged["internal_notes"],
+                now,
+                role_id,
+            ),
+        )
+        await db.commit()
+    return await get_role_db(role_id)
+
+
+async def delete_role_db(role_id: str) -> bool:
+    """Delete a role. Returns True if deleted, False if not found."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("PRAGMA journal_mode=WAL")
+        cur = await db.execute("DELETE FROM roles WHERE role_id = ?", (role_id,))
+        await db.commit()
+        return cur.rowcount > 0
+
+
+async def seed_roles_from_json(roles_json_path: Path) -> int:
+    """
+    Migrate roles_knowledge.json → SQLite on first startup.
+    Skips roles already in DB (idempotent).
+    Returns count of newly inserted roles.
+    """
+    if not roles_json_path.exists():
+        return 0
+
+    with open(roles_json_path) as f:
+        data = json.load(f)
+
+    roles = data.get("roles", [])
+    inserted = 0
+    for role in roles:
+        existing = await get_role_db(role["id"])
+        if existing:
+            continue
+        try:
+            await create_role_db(role)
+            inserted += 1
+        except ValueError:
+            pass  # already exists
+    return inserted

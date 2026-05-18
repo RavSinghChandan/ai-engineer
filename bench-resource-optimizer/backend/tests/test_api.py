@@ -119,13 +119,94 @@ class TestHealth:
 class TestRoles:
 
     def test_positive_list_roles_returns_list(self, client):
-        with patch("main.get_all_roles", return_value=[
-            {"id": "r1", "title": "Python Dev", "description": "Python expert"},
-        ]):
+        mock_roles = [{"id": "r1", "title": "Python Dev", "description": "Python expert"}]
+        with patch("main.get_all_roles_db", new_callable=AsyncMock, return_value=mock_roles):
             resp = client.get("/roles")
         assert resp.status_code == 200
         data = resp.json()
         assert isinstance(data, list)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Admin Role CRUD API (Phase 3)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_ROLE_PAYLOAD = {
+    "id": "api-test-role",
+    "title": "API Test Role",
+    "description": "For testing",
+    "required_skills": ["Python"],
+    "preferred_skills": [],
+    "experience_years": 2,
+    "internal_notes": "",
+}
+
+class TestAdminRoles:
+
+    def test_positive_create_role(self, client):
+        created = {"id": "api-test-role", "title": "API Test Role",
+                   "required_skills": ["Python"], "preferred_skills": [],
+                   "experience_years": 2, "description": "For testing",
+                   "internal_notes": "", "created_at": 0.0, "updated_at": 0.0}
+        with patch("main.create_role_db", new_callable=AsyncMock, return_value=created), \
+             patch("main._rebuild_indexes", new_callable=AsyncMock):
+            resp = client.post("/admin/roles", json=_ROLE_PAYLOAD)
+        assert resp.status_code == 201
+        assert resp.json()["id"] == "api-test-role"
+
+    def test_negative_create_role_empty_skills(self, client):
+        bad = {**_ROLE_PAYLOAD, "required_skills": []}
+        with patch("main.create_role_db", new_callable=AsyncMock), \
+             patch("main._rebuild_indexes", new_callable=AsyncMock):
+            resp = client.post("/admin/roles", json=bad)
+        assert resp.status_code == 400
+
+    def test_negative_create_role_duplicate(self, client):
+        with patch("main.create_role_db", new_callable=AsyncMock,
+                   side_effect=ValueError("Role 'api-test-role' already exists.")), \
+             patch("main._rebuild_indexes", new_callable=AsyncMock):
+            resp = client.post("/admin/roles", json=_ROLE_PAYLOAD)
+        assert resp.status_code == 409
+
+    def test_positive_get_role_by_id(self, client):
+        role = {**_ROLE_PAYLOAD, "created_at": 0.0, "updated_at": 0.0}
+        with patch("main.get_role_db", new_callable=AsyncMock, return_value=role):
+            resp = client.get("/admin/roles/api-test-role")
+        assert resp.status_code == 200
+        assert resp.json()["id"] == "api-test-role"
+
+    def test_negative_get_role_not_found(self, client):
+        with patch("main.get_role_db", new_callable=AsyncMock, return_value=None):
+            resp = client.get("/admin/roles/no-such-role")
+        assert resp.status_code == 404
+
+    def test_positive_update_role(self, client):
+        updated = {**_ROLE_PAYLOAD, "title": "Updated Title",
+                   "created_at": 0.0, "updated_at": 1.0}
+        with patch("main.update_role_db", new_callable=AsyncMock, return_value=updated), \
+             patch("main._rebuild_indexes", new_callable=AsyncMock):
+            resp = client.put("/admin/roles/api-test-role", json={"title": "Updated Title"})
+        assert resp.status_code == 200
+        assert resp.json()["title"] == "Updated Title"
+
+    def test_negative_update_role_not_found(self, client):
+        with patch("main.update_role_db", new_callable=AsyncMock, return_value=None), \
+             patch("main._rebuild_indexes", new_callable=AsyncMock):
+            resp = client.put("/admin/roles/ghost-role", json={"title": "Ghost"})
+        assert resp.status_code == 404
+
+    def test_positive_delete_role(self, client):
+        with patch("main.delete_role_db", new_callable=AsyncMock, return_value=True), \
+             patch("main._rebuild_indexes", new_callable=AsyncMock):
+            resp = client.delete("/admin/roles/api-test-role")
+        assert resp.status_code == 200
+        assert resp.json()["deleted"] == "api-test-role"
+
+    def test_negative_delete_role_not_found(self, client):
+        with patch("main.delete_role_db", new_callable=AsyncMock, return_value=False), \
+             patch("main._rebuild_indexes", new_callable=AsyncMock):
+            resp = client.delete("/admin/roles/never-existed")
+        assert resp.status_code == 404
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

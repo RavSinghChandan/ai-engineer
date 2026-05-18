@@ -146,7 +146,7 @@ Module 4 — Memory: "Bench optimizer implements write-through episodic memory p
 **Priority:** HIGH — roles_knowledge.json is hardcoded; not scalable  
 **Senior AI Module:** Module 6 (MLOps — versioning, data management)  
 **Estimated time:** 2 hours  
-**Status:** ⬜ TODO
+**Status:** ✅ DONE — 24 new tests (15 DB + 9 API), 135 total passing, committed as milestone
 
 #### What to build:
 - `roles` table in SQLite: `(role_id, title, description, required_skills_json, created_at, updated_at)`
@@ -262,7 +262,7 @@ Module 9 — Storytelling: "The bench optimizer demonstrates all 12 Senior AI En
 |-------|------|-------|--------|----------|
 | 1 | Test Suite (60+ tests, all paths) | 4h | M1, M6 | BLOCKER |
 | 2 | Memory + RAGAS Persistence | 2h | M4 | HIGH |
-| 3 | Role CRUD API | 2h | M6 | HIGH |
+| 3 | Role CRUD API ✅ | 2h | M6 | HIGH |
 | 7 | Project Story Script | 1.5h | M9 | HIGH |
 | 4 | Readiness Score History | 1.5h | M1 | MEDIUM |
 | 5 | CI/CD Pipeline | 2h | M6 | MEDIUM |

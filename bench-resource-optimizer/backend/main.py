@@ -28,6 +28,7 @@ import os
 import time
 import uuid
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import AsyncGenerator, List, Optional
 
 from dotenv import load_dotenv
@@ -46,6 +47,8 @@ from cache.semantic_cache import cache_stats
 from db import (
     get_progress, get_user, init_db, save_progress,
     save_user, update_completed_tasks,
+    get_all_roles_db, get_role_db, create_role_db, update_role_db, delete_role_db,
+    seed_roles_from_json,
 )
 from guardrails.hallucination import run_llm_judge
 from memory.session_store import (
@@ -58,7 +61,7 @@ from middleware.logging_mw import RequestLoggingMiddleware, configure_logging
 from middleware.rate_limit import RateLimitMiddleware
 from metrics.ragas_eval import evaluate as ragas_evaluate, get_ragas_store
 from rag.advanced_retrieval import init_bm25_from_roles
-from rag.knowledge_base import build_vector_store, get_all_roles, get_embeddings
+from rag.knowledge_base import build_vector_store, get_all_roles, get_all_roles_async, get_embeddings
 from utils.file_parser import extract_text_from_pdf
 from utils.guardrails import (
     GuardrailError, check_pdf_size, check_resume_content,
@@ -127,12 +130,20 @@ async def lifespan(app: FastAPI):
     restored = await get_ragas_store().load_from_db()
     print(f"✅ RAGAS store restored: {restored} record(s) from DB.")
 
+    # Phase 3: seed roles from JSON into SQLite (idempotent migration)
+    roles_json = Path(__file__).parent / "data" / "roles_knowledge.json"
+    seeded = await seed_roles_from_json(roles_json)
+    if seeded:
+        print(f"✅ Seeded {seeded} role(s) from roles_knowledge.json into SQLite.")
+    else:
+        print("✅ Roles already in SQLite — skipping seed.")
+
     print("⏳ Loading embeddings + building vector stores...")
     embeddings    = get_embeddings()
     _vector_store = build_vector_store(embeddings)
 
-    # Build BM25 index for hybrid search (Module 3)
-    roles = get_all_roles()
+    # Phase 3: BM25 index now uses SQLite as source of truth
+    roles = await get_all_roles_async()
     init_bm25_from_roles(roles)
     print(f"✅ FAISS + BM25 hybrid index ready ({len(roles)} roles).")
     print("✅ Enterprise backend v3.0 ready.")
@@ -164,7 +175,7 @@ app.add_middleware(
         "CORS_ORIGINS",
         "http://localhost:4200,http://localhost:4202,http://127.0.0.1:4202"
     ).split(","),
-    allow_methods=["GET", "POST", "PUT", "OPTIONS"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
     expose_headers=["X-Request-Id"],
 )
@@ -274,6 +285,23 @@ class EvaluateRequest(BaseModel):
     context:    str
     output:     str
 
+class CreateRoleRequest(BaseModel):
+    id:               str
+    title:            str
+    description:      str = ""
+    required_skills:  List[str] = []
+    preferred_skills: List[str] = []
+    experience_years: int = 0
+    internal_notes:   str = ""
+
+class UpdateRoleRequest(BaseModel):
+    title:            Optional[str] = None
+    description:      Optional[str] = None
+    required_skills:  Optional[List[str]] = None
+    preferred_skills: Optional[List[str]] = None
+    experience_years: Optional[int] = None
+    internal_notes:   Optional[str] = None
+
 
 # ── Health probes ─────────────────────────────────────────────────────────────
 
@@ -360,10 +388,73 @@ def reset_named_circuit_breaker(name: str):
 # ── Roles ─────────────────────────────────────────────────────────────────────
 
 @app.get("/roles", tags=["Roles"])
-def list_roles():
-    roles = get_all_roles()
+async def list_roles():
+    """Phase 3: reads from SQLite (seeded from roles_knowledge.json at startup)."""
+    roles = await get_all_roles_db()
     return [{"id": r["id"], "title": r["title"], "description": r["description"]}
             for r in roles]
+
+
+async def _rebuild_indexes() -> int:
+    """Rebuild FAISS + BM25 after a role change. Returns new role count."""
+    global _vector_store
+    roles = await get_all_roles_async()
+    embeddings = get_embeddings()
+    _vector_store = build_vector_store(embeddings, roles=roles)
+    init_bm25_from_roles(roles)
+    return len(roles)
+
+
+@app.post("/admin/roles", tags=["Admin"], status_code=201)
+async def admin_create_role(req: CreateRoleRequest):
+    """
+    Create a new role in SQLite. Triggers async FAISS + BM25 rebuild.
+    Returns 409 if role_id already exists.
+    """
+    if not req.required_skills:
+        raise HTTPException(400, "required_skills must not be empty.")
+    try:
+        created = await create_role_db(req.model_dump())
+    except ValueError as exc:
+        raise HTTPException(409, str(exc))
+    asyncio.get_event_loop().create_task(_rebuild_indexes())
+    return created
+
+
+@app.get("/admin/roles/{role_id}", tags=["Admin"])
+async def admin_get_role(role_id: str):
+    """Return a single role by ID."""
+    role = await get_role_db(role_id)
+    if not role:
+        raise HTTPException(404, f"Role '{role_id}' not found.")
+    return role
+
+
+@app.put("/admin/roles/{role_id}", tags=["Admin"])
+async def admin_update_role(role_id: str, req: UpdateRoleRequest):
+    """
+    Partially update a role. Only supplied fields are changed.
+    Triggers async FAISS + BM25 rebuild.
+    """
+    updates = {k: v for k, v in req.model_dump().items() if v is not None}
+    updated = await update_role_db(role_id, updates)
+    if not updated:
+        raise HTTPException(404, f"Role '{role_id}' not found.")
+    asyncio.get_event_loop().create_task(_rebuild_indexes())
+    return updated
+
+
+@app.delete("/admin/roles/{role_id}", tags=["Admin"])
+async def admin_delete_role(role_id: str):
+    """
+    Delete a role by ID. Triggers async FAISS + BM25 rebuild.
+    Returns 404 if not found.
+    """
+    deleted = await delete_role_db(role_id)
+    if not deleted:
+        raise HTTPException(404, f"Role '{role_id}' not found.")
+    asyncio.get_event_loop().create_task(_rebuild_indexes())
+    return {"deleted": role_id}
 
 
 # ── CV Upload ─────────────────────────────────────────────────────────────────
