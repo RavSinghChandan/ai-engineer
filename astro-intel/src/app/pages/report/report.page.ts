@@ -1084,6 +1084,7 @@ import { firstValueFrom } from 'rxjs';
 ═══════════════════════════════════════════════════════════════════════════ */
 :host {
   display: flex; flex-direction: column;
+  height: 100vh;
   background: #f2ede6;
   font-family: 'Georgia', 'Times New Roman', serif;
 }
@@ -1224,6 +1225,7 @@ import { firstValueFrom } from 'rxjs';
   flex-shrink: 0;
 }
 .page-hdr-right { font-size: 9px; color: #bbb; letter-spacing: 0.08em; text-transform: uppercase; }
+.page-hdr-title { font-size: 11px; font-weight: 700; color: #6b7280; letter-spacing: 0.06em; text-transform: uppercase; }
 .page-hdr-dark { background: transparent !important; border-bottom-color: rgba(255,255,255,0.07) !important; }
 .page-hdr-logo-dark {
   width: 80px; height: auto;
@@ -1291,12 +1293,12 @@ import { firstValueFrom } from 'rxjs';
 /* ═══════════════════════════════════════════════════════════════════════════
    PAGE 1: COVER
 ═══════════════════════════════════════════════════════════════════════════ */
-.cover { background: #14100c; min-height: 600px; }
+.cover { background: #14100c; min-height: 600px; overflow: hidden; }
 .cover-photo-wrap {
-  position: absolute; inset: 0;
+  position: absolute; inset: 0; overflow: hidden;
   display: flex; align-items: stretch; justify-content: flex-end;
 }
-.cover-photo { width: 52%; height: 100%; object-fit: cover; object-position: center top; opacity: 0.28; }
+.cover-photo { width: 52%; height: 100%; object-fit: cover; object-position: center top; opacity: 0.72; display: block; }
 .cover-fade {
   position: absolute; inset: 0;
   background: linear-gradient(105deg, #14100c 46%, transparent 80%);
@@ -1354,18 +1356,17 @@ import { firstValueFrom } from 'rxjs';
 ═══════════════════════════════════════════════════════════════════════════ */
 .page-letter { background: #fff; }
 .letter-watermark-zone {
-  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 80px;
+  padding: 40px 56px;
   width: 100%;
   pointer-events: none;
 }
 .letter-watermark {
   width: 100%;
-  max-width: 900px;
-  opacity: 0.15;
+  max-width: 320px;
+  opacity: 0.12;
   object-fit: contain;
   display: block;
 }
@@ -1760,16 +1761,14 @@ import { firstValueFrom } from 'rxjs';
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 80px;
+  min-height: 60px;
   width: 100%;
   pointer-events: none;
-  border: none;
-  outline: none;
 }
 .dm-watermark {
-  width: 100%;
-  max-width: 900px;
-  opacity: 0.35;
+  width: 60%;
+  max-width: 320px;
+  opacity: 0.25;
   object-fit: contain;
   display: block;
 }
@@ -1933,7 +1932,7 @@ import { firstValueFrom } from 'rxjs';
   content: '';
   position: absolute;
   inset: 0;
-  background: url('rav-logo.png') center center / 70% auto no-repeat;
+  background: url('/rav-logo.png') center center / 70% auto no-repeat;
   opacity: 0.12;
   pointer-events: none;
   z-index: 0;
@@ -2065,9 +2064,55 @@ export class ReportPage implements OnInit {
   // translated report overrides base report when language !== en
   private translatedReport = signal<any>(null);
 
-  readonly displayReport = computed(() =>
-    this.translatedReport() ?? this.report()
-  );
+  readonly displayReport = computed(() => {
+    const r = this.translatedReport() ?? this.report();
+    if (!r) return r;
+    // If sections have domain_breakdown but no domain_summary, build domain_summary from it
+    const DOMAIN_META: Record<string, { label: string; icon: string; order: number }> = {
+      astrology:  { label: 'Astrology',     icon: '★',  order: 1 },
+      numerology: { label: 'Numerology',    icon: '🔢', order: 2 },
+      palmistry:  { label: 'Palmistry',     icon: '✋', order: 3 },
+      tarot:      { label: 'Tarot',         icon: '🃏', order: 4 },
+      vastu:      { label: 'Vastu Shastra', icon: '🏠', order: 5 },
+    };
+    const TRADITION_LABELS: Record<string, string> = {
+      vedic_parashara: 'Vedic Astrology', kp_system: 'KP Astrology',
+      western_tropical: 'Western Astrology', indian_vedic: 'Indian Numerology',
+      chaldean: 'Chaldean Numerology', pythagorean: 'Pythagorean Numerology',
+      indian: 'Indian', chinese: 'Chinese', western: 'Western',
+      rider_waite: 'Rider-Waite', intuitive: 'Intuitive',
+      traditional: 'Traditional Vastu', modern: 'Modern Vastu',
+    };
+    const DOMAIN_TRADITIONS: Record<string, string[]> = {
+      astrology:  ['vedic_parashara', 'kp_system',   'western_tropical'],
+      numerology: ['indian_vedic',    'chaldean',     'pythagorean'],
+      palmistry:  ['indian',          'chinese',      'western'],
+      tarot:      ['rider_waite',     'intuitive'],
+      vastu:      ['traditional',     'modern'],
+    };
+    const patched = { ...r, sections: (r.sections ?? []).map((s: any) => {
+      if (s.domain_summary?.length) return s;
+      const db: Record<string, string[]> = s.domain_breakdown ?? {};
+      if (!Object.keys(db).length) return s;
+      const domain_summary = Object.entries(db)
+        .filter(([d]) => DOMAIN_META[d])
+        .sort(([a], [b]) => (DOMAIN_META[a]?.order ?? 99) - (DOMAIN_META[b]?.order ?? 99))
+        .map(([d, bullets]) => {
+          const traditions = DOMAIN_TRADITIONS[d] ?? [];
+          const subGroups = (bullets as string[])
+            .slice(0, traditions.length || 3)
+            .map((bullet, i) => ({
+              sub_agent: traditions[i] ?? `tradition_${i + 1}`,
+              label: traditions[i] ? (TRADITION_LABELS[traditions[i]] ?? traditions[i]) : `Tradition ${i + 1}`,
+              bullets: [bullet],
+            }));
+          return { domain: d, label: DOMAIN_META[d].label, icon: DOMAIN_META[d].icon,
+                   bullets: bullets as string[], subGroups };
+        });
+      return { ...s, domain_summary };
+    })};
+    return patched;
+  });
 
   readonly currentLangNative = computed(() => {
     const lang = this.languages().find(l => l.code === this.selectedLang());
@@ -3087,7 +3132,7 @@ export class ReportPage implements OnInit {
           overflow: hidden !important;
         }
         .cover-photo {
-          display: block !important; opacity: 0.28 !important;
+          display: block !important; opacity: 0.72 !important;
           position: absolute !important; right: 0 !important; top: 0 !important;
           width: 55% !important; height: 100% !important;
           object-fit: cover !important; object-position: center top !important;
@@ -3633,7 +3678,7 @@ export class ReportPage implements OnInit {
           content: '' !important;
           position: absolute !important;
           inset: 0 !important;
-          background: url('rav-logo.png') center center / 70% auto no-repeat !important;
+          background: url('/rav-logo.png') center center / 70% auto no-repeat !important;
           opacity: 0.12 !important;
           pointer-events: none !important;
           z-index: 0 !important;

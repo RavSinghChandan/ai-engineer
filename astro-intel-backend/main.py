@@ -39,10 +39,12 @@ import leads.store as leads_store
 import cache as response_cache
 from guardrails.production import all_guardrail_stats
 import database as _database
+import session_store as _session_store
 
 # ── Bootstrap database ───────────────────────────────────────────────────────
 _database.init_db()           # CREATE TABLE IF NOT EXISTS (idempotent)
 _database.migrate_from_json() # one-shot INSERT OR IGNORE from legacy JSON files
+_session_store.sweep_expired() # purge stale sessions from previous runs
 auth_store.load()
 users_store.load()
 leads_store.load()
@@ -68,6 +70,11 @@ _default_origins = [
     "http://localhost:4301",
     "http://127.0.0.1:4200",
     "http://127.0.0.1:4300",
+    # Production domains
+    "https://aurawithrav.com",
+    "https://www.aurawithrav.com",
+    "https://aurawithrav.in",
+    "https://www.aurawithrav.in",
 ]
 _env_origins = os.environ.get("ALLOWED_ORIGINS", "")
 _allowed_origins = (

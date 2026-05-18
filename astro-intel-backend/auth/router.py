@@ -34,7 +34,7 @@ _OTP_TTL = 600  # 10 minutes
 
 # OTP send rate limit: 3 sends per 15 min per IP (prevents email spam DoS)
 _otp_send_attempts: dict = defaultdict(list)
-_OTP_SEND_MAX = 10
+_OTP_SEND_MAX = 3
 
 def _check_otp_send_limit(ip: str) -> None:
     now = time.time()

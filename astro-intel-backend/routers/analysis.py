@@ -21,15 +21,17 @@ import memory.store as store
 import cache.store as response_cache
 from metrics.collector import get_collector, RunRecord
 from utils.deepseek_client import get_session_usage, reset_session_usage
-from guardrails.production import rate_limiter
+from fastapi import Request
+from guardrails.production import rate_limiter, RateLimiter
 from auth.dependencies import get_tenant_ctx
 from auth.models import TenantContext, Role
 from auth.rbac import Permission, can, check_resource_access, audit
+import session_store
 
 router = APIRouter(prefix="/api/v1/analysis", tags=["Analysis"])
 
-# In-memory session store (maps session_id → completed pipeline state)
-_sessions: Dict[str, Dict[str, Any]] = {}
+# IP-based rate limiter for the auth-free /simplify-bullets endpoint
+_simplify_limiter = RateLimiter(max_requests=10, window_seconds=60)
 
 
 # ── POST /run — start full analysis ──────────────────────────────────────────
@@ -43,8 +45,9 @@ async def run_analysis(
     Accepts single user_question AND/OR list of questions.
     Returns admin_review with question-wise insights.
     """
-    # ── G1: Rate Limiter — keyed by tenant_id so tenants are isolated ────────
-    allowed, reason = rate_limiter.is_allowed(ctx.tenant_id)
+    # ── G1: Rate Limiter — keyed by user_id when provided, else tenant_id ────
+    rate_key = getattr(req, "user_id", None) or ctx.tenant_id
+    allowed, reason = rate_limiter.is_allowed(rate_key)
     if not allowed:
         raise HTTPException(status_code=429, detail=reason)
 
@@ -110,7 +113,7 @@ async def run_analysis(
     final_state = await loop.run_in_executor(None, run_pipeline, initial_state)
     t_end = time.time()
 
-    _sessions[session_id] = final_state
+    session_store.save(session_id, final_state, tenant_id=ctx.tenant_id)
     await store.write_meta(session_id, "state", final_state)
     await store.write_meta(session_id, "profile", profile_dict)
 
@@ -168,7 +171,7 @@ async def approve_and_generate(
     Uses approved_insight_ids / rejected_insight_ids (enterprise schema).
     """
     session_id = req.session_id
-    state = _sessions.get(session_id)
+    state = session_store.get(session_id)
     if not state:
         state = await store.read_meta(session_id, "state")
     if not state:
@@ -197,7 +200,7 @@ async def approve_and_generate(
     # Record approve-phase token usage back into the session's run record
     _record_approve_tokens(session_id, t_approve_start, t_approve_end)
 
-    _sessions[session_id]["final_report"] = report
+    session_store.update(session_id, "final_report", report, tenant_id=ctx.tenant_id)
     await store.write_meta(session_id, "final_report", report)
 
     return JSONResponse(content={
@@ -212,7 +215,7 @@ async def get_session(
     session_id: str,
     ctx: TenantContext = Depends(get_tenant_ctx),
 ) -> JSONResponse:
-    state = _sessions.get(session_id)
+    state = session_store.get(session_id)
     if not state:
         state = await store.read_meta(session_id, "state")
     if not state:
@@ -396,7 +399,7 @@ async def translate_report(
 
     # Fall back to session-stored report if no report body provided
     if not report and req.session_id:
-        state = _sessions.get(req.session_id)
+        state = session_store.get(req.session_id)
         if not state:
             state = await store.read_meta(req.session_id, "state")
         if state:
@@ -506,12 +509,16 @@ Rules:
 
 
 @router.post("/simplify-bullets")
-async def simplify_bullets(req: SimplifyBulletsRequest) -> JSONResponse:
+async def simplify_bullets(req: SimplifyBulletsRequest, request: Request) -> JSONResponse:
     """
     Rewrite a list of spiritual insight bullets into plain, simple English.
     Called client-side after Generate Report — not during the review pipeline.
     No auth required (operates on already-approved, non-PII text).
     """
+    client_ip = request.client.host if request.client else "unknown"
+    allowed, reason = _simplify_limiter.is_allowed(client_ip)
+    if not allowed:
+        raise HTTPException(status_code=429, detail=reason)
     from agents.plain_english_agent import _preprocess, _safety_filter
     try:
         from utils.deepseek_client import call as ds_call

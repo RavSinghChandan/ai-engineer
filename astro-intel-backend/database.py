@@ -115,10 +115,21 @@ def _ddl() -> str:
             preferred_language TEXT NOT NULL DEFAULT 'en'
         );
 
+        CREATE TABLE IF NOT EXISTS sessions (
+            session_id  TEXT PRIMARY KEY,
+            tenant_id   TEXT NOT NULL DEFAULT '',
+            state_json  TEXT NOT NULL DEFAULT '{}',
+            created_at  DOUBLE PRECISION NOT NULL,
+            updated_at  DOUBLE PRECISION NOT NULL,
+            expires_at  DOUBLE PRECISION NOT NULL
+        );
+
         CREATE INDEX IF NOT EXISTS idx_api_keys_tenant ON api_keys(tenant_id);
         CREATE INDEX IF NOT EXISTS idx_users_email     ON users(email);
         CREATE INDEX IF NOT EXISTS idx_leads_tenant    ON leads(tenant_id);
         CREATE INDEX IF NOT EXISTS idx_leads_status    ON leads(status);
+        CREATE INDEX IF NOT EXISTS idx_sessions_tenant ON sessions(tenant_id);
+        CREATE INDEX IF NOT EXISTS idx_sessions_exp    ON sessions(expires_at);
         """
     else:
         return """
@@ -170,10 +181,21 @@ def _ddl() -> str:
             preferred_language TEXT NOT NULL DEFAULT 'en'
         );
 
+        CREATE TABLE IF NOT EXISTS sessions (
+            session_id  TEXT PRIMARY KEY,
+            tenant_id   TEXT NOT NULL DEFAULT '',
+            state_json  TEXT NOT NULL DEFAULT '{}',
+            created_at  REAL NOT NULL,
+            updated_at  REAL NOT NULL,
+            expires_at  REAL NOT NULL
+        );
+
         CREATE INDEX IF NOT EXISTS idx_api_keys_tenant ON api_keys(tenant_id);
         CREATE INDEX IF NOT EXISTS idx_users_email     ON users(email);
         CREATE INDEX IF NOT EXISTS idx_leads_tenant    ON leads(tenant_id);
         CREATE INDEX IF NOT EXISTS idx_leads_status    ON leads(status);
+        CREATE INDEX IF NOT EXISTS idx_sessions_tenant ON sessions(tenant_id);
+        CREATE INDEX IF NOT EXISTS idx_sessions_exp    ON sessions(expires_at);
         """
 
 
