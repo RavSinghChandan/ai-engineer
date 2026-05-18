@@ -36,17 +36,30 @@ Angular application that renders LangGraph agent execution graphs in real time.
 
 ---
 
-### 4. AstroIntel 360° — `astro-intel/` + `astro-intel-backend/`
+### 4. ⭐ AstroIntel 360° — `astro-intel/` + `astro-intel-backend/` ← FLAGSHIP PROJECT
 
-Production multi-agent astrological analysis platform. The flagship project demonstrating senior-level AI architecture.
+**The most complete project in this portfolio.** A production-grade, full-stack AI platform demonstrating every layer of enterprise AI engineering — from LLM orchestration to cloud deployment.
 
-**Covers:** 5 parallel domain agents (ThreadPoolExecutor), LangGraph interrupt/resume for admin review, consensus voting across agents, SSE streaming of pipeline progress, Angular neural graph visualization.
+**What it does:** A user submits their birth profile. A 12-node LangGraph pipeline runs 5 domain agents in parallel (Vedic Astrology, Numerology, Palmistry, Tarot, Vastu), a meta-agent synthesises cross-domain consensus, an admin reviews and approves insights, and a branded 20-page PDF report is generated — with 30+ language translation support.
 
-**Architecture:** User submits birth profile → 5 specialist agents run in parallel (career, health, finance, relationships, spiritual) → consensus layer → synthesis agent → admin review (optional) → final report.
+**Key engineering highlights:**
 
-**Key numbers:** 6 LLM calls per analysis, ~15s pipeline, ~$0.07 cost per analysis at gpt-4o-mini × 5 + gpt-4o × 1.
+| Area | What Was Built |
+|------|---------------|
+| AI Pipeline | 12-agent LangGraph StateGraph — sequential + parallel fan-out |
+| Security | 4-layer guardrail stack: input validation, prompt hardening, output validation, audit logging |
+| Auth | JWT + multi-tenant RBAC (user / admin / superadmin) + OTP email |
+| Caching | 2-tier semantic cache: 30-day profile TTL, 20-min session TTL |
+| Observability | 10 KPIs + RAGAS-proxy metrics (faithfulness, precision, relevancy, recall) |
+| NLP | Plain English agent: 30+ regex jargon patterns + LLM rewrite + safety filter |
+| PDF Engine | 20-page branded PDF via Angular @media print CSS — no server-side library |
+| Translation | 30+ language support with LLM translation agent |
+| Prod Guardrails | G1 rate limiter, G2 circuit breaker, G3 JSON repair, G4 PII filter, G5 degradation |
+| Cloud | AWS ECS Fargate + S3 + CloudFront + RDS + Secrets Manager + GitHub Actions CI/CD |
 
-**Tech:** Python, FastAPI, LangGraph, Angular, OpenAI
+**→ [Full Architecture & README](astro-intel/README.md)**
+
+**Tech:** Python 3.11, FastAPI, LangGraph, DeepSeek LLM, Angular 17, SQLite/PostgreSQL, Docker, AWS
 
 ---
 
@@ -143,5 +156,11 @@ Phase 4 — Domain Applications
 
 ## Author
 
-Chandan Kumar — Senior Full Stack Engineer transitioning to Senior AI Engineer.
-Background: Java, Spring Boot, Angular, DevOps, Cloud (6+ years).
+**Rav Singh Chandan** — Senior AI Engineer
+
+6+ years background in Java, Spring Boot, Angular, DevOps, and Cloud (AWS/GCP).
+Now building production AI systems: multi-agent pipelines, LLM guardrails, semantic caching, and full-stack AI applications.
+
+The AstroIntel 360° project (above) is the most complete demonstration of these skills — it is not a tutorial follow-along. Every component — the security stack, the caching layer, the RBAC system, the PDF engine, the CI/CD pipeline — was designed and built from scratch to solve real production problems.
+
+> *Available for Senior AI Engineer, AI Platform Engineer, and Full-Stack AI Engineer roles.*

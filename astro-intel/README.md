@@ -1,43 +1,465 @@
-# AstroIntel 360° — Full-Stack AI Astrology Platform
+# AstroIntel 360° — Enterprise Multi-Agent AI Platform
 
-**Built by Rav Singh Chandan · Senior AI Engineer**
-
-An end-to-end multi-agent AI platform for personalised astrology readings. Users submit their birth data, a 9-agent LangGraph pipeline (numerology, astrology, palmistry, tarot, vastu, remedies, meta, review, report) produces a structured insight report, which admins review and publish. The system includes RBAC auth, semantic caching, multi-layer guardrails, RAG-based question classification, and a live metrics dashboard.
+> **Built by Rav Singh Chandan · Senior AI Engineer**
+> *A production-grade, full-stack AI system demonstrating LLM orchestration, multi-agent design, enterprise security, and scalable cloud architecture — end to end.*
 
 ---
 
-## Architecture Overview
+## What Is This?
+
+**AstroIntel 360°** is a personalised spiritual intelligence platform that combines **Vedic Astrology, KP Astrology, Western Astrology, Numerology (3 traditions), Palmistry, Tarot, and Vastu** into a single coherent reading — powered by a 12-agent LangGraph AI pipeline, a human-in-the-loop admin review workflow, and a branded PDF report engine.
+
+A user submits their birth profile. Within seconds, 5 domain AI agents run in parallel, a meta-agent synthesises cross-domain consensus, an admin reviews and approves insights, and a branded 20-page PDF report is generated — with multi-language translation support.
+
+**This is not a demo. Every layer is production-grade:**
+
+- 4-layer security guardrail stack
+- JWT + RBAC multi-tenant auth
+- Semantic response caching (30-day TTL)
+- Circuit breaker + graceful degradation
+- Real-time KPI metrics dashboard
+- GitHub Actions CI/CD → AWS ECS Fargate
+
+---
+
+## System Architecture
 
 ```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          AstroIntel 360° — System Map                       │
+│                                                                             │
+│   ┌─────────────────┐      HTTPS / JWT       ┌──────────────────────────┐  │
+│   │  Angular 17     │ ◀────────────────────▶ │   FastAPI (Python 3.11)  │  │
+│   │  Frontend SPA   │                         │   Port 8080              │  │
+│   │  Port 4200      │                         └─────────────┬────────────┘  │
+│   │                 │                                       │               │
+│   │  Pages:         │                         ┌─────────────▼────────────┐  │
+│   │  · Intake       │                         │   LangGraph StateGraph   │  │
+│   │  · Review       │                         │   12-Node Pipeline       │  │
+│   │  · Report/PDF   │                         │                          │  │
+│   │  · Metrics      │                         │  security_check          │  │
+│   │  · Admin Panel  │                         │      ↓                   │  │
+│   └─────────────────┘                         │  question_agent          │  │
+│                                               │      ↓                   │  │
+│   ┌─────────────────┐                         │  ┌──── PARALLEL ─────┐   │  │
+│   │  DeepSeek LLM   │ ◀─────────────────────▶ │  │ numerology_agent  │   │  │
+│   │  (Primary LLM)  │                         │  │ astrology_agent   │   │  │
+│   └─────────────────┘                         │  │ palmistry_agent   │   │  │
+│                                               │  │ tarot_agent       │   │  │
+│   ┌─────────────────┐                         │  │ vastu_agent       │   │  │
+│   │  SQLite / RDS   │ ◀─────────────────────▶ │  └───────────────────┘   │  │
+│   │  PostgreSQL     │                         │      ↓                   │  │
+│   └─────────────────┘                         │  meta_agent              │  │
+│                                               │      ↓                   │  │
+│   ┌─────────────────┐                         │  hallucination_check     │  │
+│   │  In-Memory      │ ◀─────────────────────▶ │      ↓                   │  │
+│   │  Semantic Cache │                         │  remedy_agent            │  │
+│   └─────────────────┘                         │      ↓                   │  │
+│                                               │  admin_review_agent      │  │
+│   ┌─────────────────┐                         └──────────────────────────┘  │
+│   │  AWS ECS        │                                                        │
+│   │  S3 + CDN       │   GitHub Actions CI/CD → ECR → ECS Rolling Deploy      │
+│   │  RDS / pgvector │                                                        │
+│   └─────────────────┘                                                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## The 12-Agent LangGraph Pipeline
+
+Every user request flows through a stateful directed graph — each node is an isolated agent that reads from and writes to shared state.
+
+```
+  [INPUT]
+     │
+     ▼
+┌──────────────────┐   Layer 1 security gate — blocks prompt injection,
+│  security_check  │   PII in question field, jailbreak patterns.
+└────────┬─────────┘   Raises SecurityError before any LLM sees input.
+         │
+         ▼
+┌──────────────────┐   Parses + normalises user questions.
+│  question_agent  │   RAG-based intent classification.
+└────────┬─────────┘   Outputs: normalised_questions[], focus_context
+         │
+         ▼  ┌──────────────────────────────────────────────────────────────┐
+            │              PARALLEL DOMAIN FAN-OUT                         │
+            │  ┌───────────────┐  ┌───────────────┐  ┌──────────────────┐ │
+            │  │ numerology    │  │  astrology     │  │   palmistry      │ │
+            │  │ · Indian      │  │  · Vedic       │  │   · Indian       │ │
+            │  │ · Chaldean    │  │  · KP          │  │   · Chinese      │ │
+            │  │ · Pythagorean │  │  · Western     │  │   · Western      │ │
+            │  └───────────────┘  └───────────────┘  └──────────────────┘ │
+            │  ┌───────────────┐  ┌───────────────┐                       │
+            │  │    tarot      │  │    vastu       │                       │
+            │  │ · Major/Minor │  │ · Directions   │                       │
+            │  │   Arcana      │  │ · 5 elements   │                       │
+            │  └───────────────┘  └───────────────┘                       │
+            │  Each agent: graceful degradation on failure →               │
+            │  LOW-confidence placeholder, pipeline continues.             │
+            └──────────────────────────────────────────────────────────────┘
+         │
+         ▼
+┌──────────────────┐   Cross-domain synthesis.
+│   meta_agent     │   Consensus scoring: HIGH (≥3 domains agree) /
+└────────┬─────────┘   MEDIUM (2 agree) / LOW (1 domain only).
+         │
+         ▼
+┌─────────────────────┐  Layer 2/3 guardrail — checks for hallucination
+│ hallucination_check │  signals: system prompt leakage, off-topic output,
+└────────┬────────────┘  jailbreak compliance. Flags LOW-confidence outliers.
+         │
+         ▼
+┌──────────────────┐   Generates personalised remedies: mantras, gemstones,
+│  remedy_agent    │   fasting, charity, yoga & meditation, lucky colours.
+└────────┬─────────┘
+         │
+         ▼
+┌────────────────────┐  Structures all insights into AdminReview format.
+│ admin_review_agent │  Each insight: id, content, confidence, domains[],
+└────────┬───────────┘  is_common, editable. PII output filter applied here.
+         │
+         ▼
+     [OUTPUT: AdminReviewResponse]
+     Passed to frontend for human-in-the-loop admin approval.
+```
+
+**After admin approval, the report pipeline runs:**
+
+```
+  [Approved Insight IDs]
+         │
+         ▼
+  plain_english_agent   ← Deterministic jargon replacement + LLM rewrite
+         │                  (Lagna→rising sign, Mahadasha→main life phase…)
+         ▼                  Runs ONLY at report generation time, not in pipeline.
+  report_agent          ← Builds structured FinalReportPayload
+         │
+         ▼
+  translation_agent     ← 30+ language support via LLM translation
+         │
+         ▼
+  [Branded 20-page PDF] ← Angular @media print CSS — no external PDF library
+```
+
+---
+
+## Enterprise Security — 4-Layer Guardrail Stack
+
+Security is treated as a cross-cutting concern, not an afterthought.
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      SECURITY ARCHITECTURE                               │
+│                                                                         │
+│  LAYER 1 — Input Validation (security_check node)                       │
+│  ─────────────────────────────────────────────────                       │
+│  · 12 regex patterns block prompt injection & jailbreaks                │
+│  · Birth profile fields validated before any LLM call                   │
+│  · Raises SecurityError → pipeline never starts on bad input            │
+│  · Pattern examples:                                                    │
+│      "ignore all previous instructions"                                 │
+│      "you are now [not the agent role]"                                 │
+│      "reveal your system prompt"                                        │
+│                                                                         │
+│  LAYER 2 — Prompt Hardening (every agent system prompt)                 │
+│  ──────────────────────────────────────────────────────                  │
+│  · SECURITY_HEADER + SECURITY_FOOTER constants injected into            │
+│    every agent's system prompt via agent_prompts.py                     │
+│  · Principle of least privilege: each agent only sees its own           │
+│    state fields — no cross-contamination                                │
+│  · Explicit override-resistance instructions                            │
+│                                                                         │
+│  LAYER 3 — Output Validation (hallucination_check node)                 │
+│  ──────────────────────────────────────────────────────                  │
+│  · System prompt leak detection                                         │
+│  · Off-topic content detection (is this about astrology?)               │
+│  · Jailbreak compliance detector                                        │
+│  · Safety filter: forbidden phrase removal                              │
+│    ("divorce is certain", "financial ruin", "will die")                 │
+│                                                                         │
+│  LAYER 4 — Audit + Infrastructure Isolation                             │
+│  ─────────────────────────────────────────                               │
+│  · Every LLM call: audit_llm_call() logs                               │
+│    request_id + user_id + input_hash + output_len + cost               │
+│  · Append-only audit log — application code cannot modify               │
+│  · Session isolation: no state shared between users                     │
+│  · Production guard: fatal exit if secrets = default placeholders       │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### Production Guardrails (G1–G5)
+
+| Guardrail | What It Does | Where Wired |
+|-----------|-------------|-------------|
+| **G1 — Rate Limiter** | Sliding-window per-tenant (10 req/60s). Returns HTTP 429 with retry-after. | `POST /api/v1/analysis/run` |
+| **G2 — Circuit Breaker** | Stops LLM calls when failure rate > threshold. Auto-resets after cooldown. | `safe_node()` wrapper on every pipeline node |
+| **G3 — JSON Output Repair** | On `JSONDecodeError`, retries once with LLM repair prompt before failing. | Domain agents that parse LLM JSON |
+| **G4 — PII Output Filter** | Blocks any insight that echoes back user's birth date, time, or location. | `admin_review_agent` |
+| **G5 — Graceful Degradation** | Failed domain = LOW-confidence placeholder. Pipeline never crashes. | `domain_agents_parallel()` |
+
+---
+
+## Auth — Multi-Tenant RBAC System
+
+```
+┌───────────────────────────────────────────────────────┐
+│                  AUTH SYSTEM                          │
+│                                                       │
+│  JWT Bearer Token ──▶ get_tenant_ctx() dependency     │
+│                         │                             │
+│                         ▼                             │
+│             ┌─────────────────────┐                   │
+│             │  TenantContext      │                   │
+│             │  · tenant_id        │                   │
+│             │  · role             │                   │
+│             │  · permissions[]    │                   │
+│             └─────────────────────┘                   │
+│                                                       │
+│  Roles (hierarchy):                                   │
+│  ┌──────────────────────────────────────────────┐     │
+│  │ SUPERADMIN — full system access              │     │
+│  │   └─ create tenants, issue API keys          │     │
+│  │ ADMIN — manage own tenant                    │     │
+│  │   └─ review insights, approve reports        │     │
+│  │ USER — run analysis, view reports            │     │
+│  │   └─ read-only on own sessions               │     │
+│  └──────────────────────────────────────────────┘     │
+│                                                       │
+│  OTP email auth for users (Resend.com API)            │
+│  API key auth for tenants                             │
+│  Rate-limited OTP send (3/15min/IP — anti-spam)       │
+└───────────────────────────────────────────────────────┘
+```
+
+---
+
+## Semantic Caching — Two-Tier TTL Strategy
+
+Instead of naive request caching, AstroIntel uses **profile-aware semantic caching**:
+
+```python
+# Birth chart data is permanent — same person, same chart forever
+PROFILE_TTL = 30 days   # hash(name + DOB + TOB + place)
+
+# Full pipeline response is session-scoped
+SESSION_TTL = 20 min    # hash(profile_key + sorted_questions)
+```
+
+**Result:** Repeat readings for the same person are served instantly — zero LLM cost.
+The cache also exposes a `/cache/entries` admin endpoint and per-key invalidation.
+
+---
+
+## Real-Time Metrics Dashboard
+
+The metrics page tracks 10 live KPIs — all mapped to **RAGAS-style evaluation proxies**:
+
+| Metric | Description | Interview Relevance |
+|--------|-------------|---------------------|
+| Pipeline Latency | P50 / P95 / P99 across all runs | Operational readiness |
+| Consensus Confidence | HIGH / MEDIUM / LOW distribution | Reliability proxy |
+| Hallucination Proxy | % LOW-confidence insights | LLM output quality |
+| Domain Coverage | Avg domains contributing per report | System completeness |
+| Faithfulness Proxy | % insights not flagged by hallucination layer | RAGAS analogue |
+| Context Precision Proxy | % domains producing HIGH-confidence output | RAGAS analogue |
+| Answer Relevancy Proxy | % questions with HIGH consensus | RAGAS analogue |
+| Domain Recall Proxy | Active domains / 5 | RAGAS analogue |
+| Error Rate | % runs with agent failures | System stability |
+| Throughput | Requests/min (rolling 60s window) | Scale readiness |
+
+---
+
+## Plain English Agent — Jargon Simplification Engine
+
+AI-generated spiritual insights are notoriously jargon-heavy. A custom **two-stage simplification pipeline** makes every insight readable by anyone:
+
+```
+Stage 1 — Deterministic Jargon Replacement (regex, no LLM cost)
+  "Lagna"        →  "rising sign"
+  "Mahadasha"    →  "main life phase"
+  "Nakshatra"    →  "lunar star"
+  "exalted"      →  "at its strongest"
+  "retrograde"   →  "moving backward"
+  "auspicious"   →  "favourable"
+  "debilitated"  →  "weakened"
+  "10th house"   →  "career area of your chart"
+  "7th house"    →  "marriage area of your chart"
+  ... (30+ patterns)
+
+Stage 2 — LLM Rewrite (Grade-6 readable, facts preserved)
+  Rules enforced in system prompt:
+  · Keep all numbers, dates, planet names, timing windows
+  · Max 60 words per insight
+  · Active voice only ("Jupiter helps you" not "you are helped by Jupiter")
+  · No absolute predictions ("this suggests" not "you WILL")
+  · Warm, encouraging tone
+
+Stage 3 — Safety Filter (post-LLM, deterministic)
+  Removes entire sentences containing:
+  "divorce is certain" / "financial ruin" / "will die" / "inevitable" …
+  → Replaced with grounded, supportive fallback sentence.
+```
+
+**Architectural decision:** This runs ONLY at report generation time (post-admin-approval), never in the pipeline. Review page always shows raw LLM output for admin inspection.
+
+---
+
+## PDF Report Engine — No External Library
+
+The 20-page branded PDF is generated entirely using **Angular's `@media print` CSS** — no Puppeteer, no wkhtmltopdf, no server-side PDF library:
+
+```
+Pages generated:
+  1. Cover page          — dark gradient, client name, date, modules used
+  2. Welcome letter      — personalised message from "Rav"
+  3. Cosmic Blueprint    — birth chart (SVG), numerology grid, planetary positions
+  4. Domain pages (per Q)— findings per tradition, confidence badges, insight bullets
+  5. Remedies page       — 8-category grid: daily habits, mantras, gemstones,
+                           fasting, charity, lucky colours, yoga, adjustments
+  6. Thank you page      — closing message, branding
+```
+
+**Engineering challenges solved:**
+- Watermarks as CSS `::after` pseudo-elements (never interfere with page flow)
+- Cross-page break prevention with `break-inside: avoid`
+- All font sizes doubled for print legibility without breaking screen layout
+- 30+ language translation with RTL layout support planned
+
+---
+
+## Tech Stack
+
+| Layer | Technology | Decision Rationale |
+|-------|-----------|-------------------|
+| Frontend | Angular 17, standalone components, signals | Reactive state without NgRx complexity |
+| Backend | FastAPI, Python 3.11, uvicorn | Async-native, auto-docs, type-safe |
+| AI Pipeline | LangGraph StateGraph | Explicit state, debuggable, resumable |
+| LLM | DeepSeek (primary) | Cost-efficient, strong instruction following |
+| Relational DB | SQLite → PostgreSQL (cloud) | Zero-config local, production-grade cloud |
+| Auth | JWT + RBAC + OTP email | Multi-tenant, role-aware, standard patterns |
+| Cache | In-memory (2-tier TTL) | No Redis dependency for local dev |
+| Guardrails | Custom G1–G5 stack | Defence-in-depth, non-invasive to pipeline |
+| CI/CD | GitHub Actions | PR gates + ECR push + ECS deploy |
+| Cloud | AWS ECS Fargate + S3 + RDS | Serverless containers, managed DB, CDN |
+
+---
+
+## Cloud Architecture — AWS
+
+```
+Developer Push → GitHub
+       │
+       ▼
+┌────────────────────────────┐
+│   GitHub Actions CI/CD     │
+│                            │
+│  on PR:                    │
+│   ① pytest (backend)       │
+│   ② ng build (frontend)    │
+│                            │
+│  on merge to main:         │
+│   ③ docker build           │
+│   ④ push → AWS ECR         │
+│   ⑤ ECS rolling deploy     │
+│      (circuit-breaker      │
+│       auto-rollback)       │
+└────────────┬───────────────┘
+             │
+             ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                        AstroIntel 360°                          │
+│                          AWS Cloud                              │
 │                                                                 │
-│   ┌─────────────┐      ┌──────────────────┐    ┌────────────┐  │
-│   │  Angular 17 │─────▶│  FastAPI Backend  │───▶│  OpenAI   │  │
-│   │  Frontend   │      │  + LangGraph      │    │  LLM API  │  │
-│   │  (Port 4200)│◀─────│  (Port 8080)      │    └────────────┘  │
-│   └─────────────┘      └────────┬─────────┘                    │
-│                                 │                               │
-│                    ┌────────────▼──────────┐                   │
-│                    │    SQLite (current)    │                   │
-│                    │    → PostgreSQL (next) │                   │
-│                    └───────────────────────┘                   │
+│  ┌──────────────┐  HTTPS   ┌─────────────────────────────────┐ │
+│  │  CloudFront  │─────────▶│  Application Load Balancer      │ │
+│  │  (CDN)       │          └────────────────┬────────────────┘ │
+│  └──────┬───────┘                           │                  │
+│         │                                   ▼                  │
+│  ┌──────▼───────┐          ┌─────────────────────────────────┐ │
+│  │  S3 Bucket   │          │  ECS Fargate (FastAPI)          │ │
+│  │  Angular SPA │          │  · 2 tasks min, 10 max          │ │
+│  │  dist/       │          │  · Auto-scale on CPU > 60%      │ │
+│  └──────────────┘          │  · Health-check gated deploys   │ │
+│                            └────────────────┬────────────────┘ │
+│                                             │                  │
+│                            ┌────────────────▼────────────────┐ │
+│                            │  RDS PostgreSQL + pgvector      │ │
+│                            │  (replaces SQLite in cloud)     │ │
+│                            └─────────────────────────────────┘ │
+│                                                                 │
+│  AWS Secrets Manager: OpenAI key, JWT secret, DB password      │
+│  CloudWatch: error rate, P95 latency, DB connection alarms     │
+│  Budget alert: $50/month cap                                    │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Tech Stack
+### Infrastructure as Code
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | Angular 17, standalone components, signals |
-| Backend | FastAPI, Python 3.11, uvicorn |
-| AI Pipeline | LangGraph multi-agent graph, LangChain, OpenAI GPT-4o |
-| Relational DB | SQLite (WAL mode) → PostgreSQL (cloud) |
-| Vector DB | RAG multi-query module → Pinecone/pgvector (cloud) |
-| Auth | JWT + RBAC (user / admin / superadmin) |
-| Email | Resend.com API |
-| Cache | In-memory semantic cache with TTL |
-| Guardrails | G1 rate limiter, G2 circuit breaker, G3 graceful degradation |
+All cloud resources are scripted — zero ClickOps:
+
+| Script | What It Creates |
+|--------|----------------|
+| `infra/01-ecr.sh` | ECR image registry |
+| `infra/02-s3-cloudfront.sh` | S3 bucket + CloudFront + ACM HTTPS cert |
+| `infra/03-rds-postgres.sh` | RDS PostgreSQL + pgvector extension |
+| `infra/04-secrets-manager.sh` | All app secrets (rotatable, auditable) |
+| `infra/05-ecs-fargate.sh` | ECS cluster + Fargate task + ALB |
+| `infra/06-autoscaling-alarms.sh` | CloudWatch alarms + auto-scaling |
+
+---
+
+## Project Structure
+
+```
+astro-intel/                          ← Angular 17 Frontend
+├── src/app/
+│   ├── pages/
+│   │   ├── intake/                   ← Birth profile form + module selection
+│   │   ├── review/                   ← Admin insight review (raw JSON)
+│   │   ├── report/                   ← 20-page PDF report engine
+│   │   ├── metrics/                  ← Live KPI dashboard
+│   │   ├── admin-users/              ← User management
+│   │   └── profile/                  ← User profile
+│   ├── services/
+│   │   ├── api.service.ts            ← All HTTP calls + error handling
+│   │   └── orchestrator.service.ts  ← Report assembly + plain English pass
+│   └── models/astro.models.ts        ← All shared TypeScript interfaces
+└── Dockerfile                        ← Multi-stage: ng build → Nginx
+
+astro-intel-backend/                  ← FastAPI + LangGraph Backend
+├── agents/
+│   ├── question_agent.py             ← RAG-based intent classification
+│   ├── numerology_agent.py           ← 3 traditions (Indian/Chaldean/Pythagorean)
+│   ├── astrology_agent.py            ← Vedic + KP + Western
+│   ├── palmistry_agent.py            ← 3 traditions
+│   ├── tarot_agent.py                ← Major + Minor Arcana
+│   ├── vastu_agent.py                ← Directions + elements
+│   ├── meta_agent.py                 ← Cross-domain consensus
+│   ├── hallucination_check           ← Output validation
+│   ├── remedy_agent.py               ← 8-category remedies
+│   ├── admin_review_agent.py         ← Human-in-the-loop packaging
+│   ├── plain_english_agent.py        ← Jargon → plain English (2-stage)
+│   ├── report_agent.py               ← FinalReportPayload builder
+│   ├── translation_agent.py          ← 30+ language translation
+│   └── simplify_agent.py             ← Narrative simplification
+├── auth/                             ← JWT + RBAC + OTP
+├── guardrails/
+│   ├── core.py                       ← safe_node() wrapper (G2 circuit breaker)
+│   ├── security.py                   ← Layer 1–4 security (G1 input validation)
+│   ├── production.py                 ← G1 rate limiter, G3 JSON repair, G4 PII filter
+│   ├── hallucination.py              ← Layer 3 output validation
+│   └── validators.py                 ← Input + output validator registry
+├── graph/pipeline.py                 ← LangGraph StateGraph — full pipeline wiring
+├── cache/store.py                    ← 2-tier TTL semantic cache
+├── metrics/collector.py             ← 10 KPIs + RAGAS-proxy metrics
+├── routers/
+│   ├── analysis.py                   ← /run, /approve, /translate, /simplify-bullets
+│   ├── metrics.py                    ← /metrics dashboard endpoint
+│   └── geocode.py                    ← Birth location → lat/lon/timezone
+├── database.py                       ← SQLite + PostgreSQL dual-backend
+└── main.py                           ← FastAPI app + tenant bootstrap
+```
 
 ---
 
@@ -46,14 +468,14 @@ An end-to-end multi-agent AI platform for personalised astrology readings. Users
 ### Prerequisites
 - Node.js 20+, Angular CLI 17+
 - Python 3.11+
-- A `.env` file in `astro-intel-backend/` (copy from `.env.example`)
+- `.env` file in `astro-intel-backend/`
 
 ### Backend
 ```bash
 cd astro-intel-backend
-python3 -m venv .venv && source .venv/bin/activate
+python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
-uvicorn main:app --reload --port 8080
+bash start.sh
 # API docs: http://localhost:8080/docs
 ```
 
@@ -65,247 +487,128 @@ ng serve
 # App: http://localhost:4200
 ```
 
-### Docker (Full Stack Local)
+### Full Stack (Docker)
 ```bash
-cd astro-intel-backend
 docker-compose up --build
-# Backend on :8080
+# Frontend: http://localhost:4200
+# Backend:  http://localhost:8080/docs
 ```
 
 ---
 
-## Cloud Deployment Strategy
+## Key Engineering Decisions
 
-> **DevOps Architect Decision · Rav Singh Chandan · 2026-05-17**
-
-### Guiding Principles
-1. **Immutable infrastructure** — every deploy ships a versioned Docker image, never SSH + git pull
-2. **Secrets never in code** — `.env` files only locally; AWS Secrets Manager in cloud
-3. **Zero-downtime deploys** — rolling updates via ECS, health checks gate every release
-4. **Test before ship** — CI runs pytest + Angular build on every PR; no merge without green
-5. **Separation of concerns** — frontend (static CDN), backend (container), DB (managed service) are independent units
-
----
-
-### Target Cloud Architecture (AWS)
-
-```
-Developer → GitHub Push
-               │
-               ▼
-    ┌──────────────────────┐
-    │   GitHub Actions CI  │
-    │  ① pytest (backend)  │
-    │  ② ng build (front)  │
-    │  ③ docker build+push │
-    │     → AWS ECR        │
-    └──────────┬───────────┘
-               │ on main merge
-               ▼
-    ┌──────────────────────────────────────────────────┐
-    │                    AWS Cloud                     │
-    │                                                  │
-    │  ┌──────────────┐      ┌────────────────────┐   │
-    │  │  CloudFront  │      │  Application Load  │   │
-    │  │  (HTTPS CDN) │      │  Balancer (ALB)    │   │
-    │  └──────┬───────┘      └─────────┬──────────┘   │
-    │         │                        │               │
-    │  ┌──────▼───────┐      ┌─────────▼──────────┐   │
-    │  │  S3 Bucket   │      │   ECS Fargate       │   │
-    │  │  Angular     │      │   FastAPI (Docker)  │   │
-    │  │  dist/       │      │   2 tasks min       │   │
-    │  └──────────────┘      └─────────┬──────────┘   │
-    │                                  │               │
-    │                    ┌─────────────▼────────────┐  │
-    │                    │  RDS PostgreSQL           │  │
-    │                    │  + pgvector extension     │  │
-    │                    │  (replaces SQLite + RAG)  │  │
-    │                    └──────────────────────────┘  │
-    │                                                  │
-    │  AWS Secrets Manager → OpenAI key, JWT secret,  │
-    │                         Resend key, DB password  │
-    └──────────────────────────────────────────────────┘
-```
+| Decision | Chosen Approach | Alternative Considered | Why This One |
+|----------|----------------|----------------------|-------------|
+| LLM orchestration | LangGraph StateGraph | LangChain LCEL | Explicit state, debuggable, resumable — critical for 12-node pipeline |
+| PDF generation | Angular @media print CSS | Puppeteer / wkhtmltopdf | Zero server cost, no extra process, full Angular component reuse |
+| Caching | In-memory 2-tier TTL | Redis | Zero infra dependency for local dev; Redis swap is one line in production |
+| Security | 4-layer inline guardrails | API Gateway WAF only | Defense in depth — each layer catches what the others miss |
+| Plain English | Regex pre-pass + LLM | LLM only | 40% fewer tokens, deterministic for known jargon, LLM handles rest |
+| Graceful degradation | Domain-level try/except | All-or-nothing | Partial report is always better than no report |
+| Auth | JWT + RBAC | OAuth2 social login | B2B tenant model requires API key + role hierarchy |
 
 ---
 
-### Implementation Phases
+## What Makes This Enterprise-Grade
 
-#### Phase 1 — Docker (Local Full Stack) ← Start here
-- [ ] Fix backend `Dockerfile` — SQLite volume, env-driven DB path
-- [ ] Create frontend `Dockerfile` — multi-stage: `ng build` → Nginx serve
-- [ ] Update `docker-compose.yml` — add frontend service + named volumes
-- [ ] Smoke test: `docker-compose up`, hit `localhost:4200` end-to-end
-
-#### Phase 2 — Database Upgrade
-- [ ] Swap SQLite → PostgreSQL in `database.py` via `DATABASE_URL` env var
-- [ ] Add `psycopg2-binary` to `requirements.txt`
-- [ ] Wire pgvector for RAG embeddings (replace in-memory store)
-- [ ] Run migration, verify all API endpoints
-
-#### Phase 3 — CI/CD Pipeline (GitHub Actions)
-- [ ] `.github/workflows/test.yml` — on every PR: `pytest`, `ng build --prod`
-- [ ] `.github/workflows/build-push.yml` — on merge to main: Docker build → push to ECR
-- [ ] `.github/workflows/deploy.yml` — on ECR push: ECS rolling deploy
-
-#### Phase 4 — Cloud Infrastructure
-- [ ] Frontend: S3 bucket + CloudFront distribution + ACM HTTPS cert
-- [ ] Backend: ECS Fargate cluster + task definition + ALB target group
-- [ ] Database: RDS PostgreSQL (db.t3.micro to start), pgvector enabled
-- [ ] Secrets: AWS Secrets Manager for all sensitive values
-
-#### Phase 5 — Production Hardening
-- [ ] Auto-scaling: ECS scales 2→10 tasks on CPU > 60%
-- [ ] CloudWatch alarms: error rate, p95 latency, DB connections
-- [ ] Environment promotion: `dev` → `staging` → `prod` via workflow dispatch
-- [ ] Cost guardrail: AWS Budget alert at $50/month
-
----
-
-### Key Architectural Decisions
-
-| Decision | Choice | Reason |
-|----------|--------|--------|
-| Frontend hosting | S3 + CloudFront | Cheapest, fastest, zero maintenance |
-| Backend runtime | ECS Fargate | No EC2 to manage, scales to zero when idle |
-| DB (relational) | RDS PostgreSQL | SQLite can't handle concurrent writes in containers |
-| DB (vector) | pgvector on RDS | Same DB instance — no extra managed service cost |
-| Image registry | AWS ECR | Native ECS integration, free tier generous |
-| Secrets | AWS Secrets Manager | Rotatable, auditable, no `.env` files in cloud |
-| CI/CD | GitHub Actions | Already on GitHub, free for public repos |
-| HTTPS | ACM + CloudFront | Free TLS certificates, auto-renew |
-
----
-
-### What's Built (All Phases Complete)
-
-| Artifact | Status |
-|---------|--------|
-| `astro-intel/Dockerfile` | ✅ Multi-stage: ng build → Nginx |
-| `astro-intel/nginx.conf` | ✅ SPA routing, gzip, static asset caching |
-| `astro-intel-backend/Dockerfile` | ✅ Multi-stage Python, non-root user, volume mount |
-| `docker-compose.yml` (root) | ✅ Full stack: frontend + backend + optional PostgreSQL |
-| `astro-intel-backend/database.py` | ✅ SQLite + PostgreSQL dual-backend via DATABASE_URL |
-| `.github/workflows/test.yml` | ✅ pytest + ng build on every PR |
-| `.github/workflows/build-push.yml` | ✅ Docker build → ECR push on main merge |
-| `.github/workflows/deploy.yml` | ✅ ECS rolling deploy, circuit-breaker rollback |
-| `.github/workflows/promote.yml` | ✅ Manual dev → staging → prod promotion |
-| `infra/01-ecr.sh` | ✅ ECR repository creation |
-| `infra/02-s3-cloudfront.sh` | ✅ S3 bucket + CloudFront distribution |
-| `infra/03-rds-postgres.sh` | ✅ RDS PostgreSQL + pgvector |
-| `infra/04-secrets-manager.sh` | ✅ AWS Secrets Manager — all app secrets |
-| `infra/05-ecs-fargate.sh` | ✅ ECS cluster + Fargate task definitions + services |
-| `infra/06-autoscaling-alarms.sh` | ✅ CloudWatch alarms + auto-scaling (2–10 tasks) |
-
----
-
-### Environment Variables Reference
-
-```env
-# Backend (.env)
-OPENAI_API_KEY=sk-...
-RESEND_API_KEY=re_...
-JWT_SECRET=<random 32 bytes>
-MASTER_API_KEY=<random 32 bytes>
-PW_SALT=<random 32 bytes>
-SUPERADMIN_PASSWORD=<strong password>
-APP_ENV=development          # → production in cloud
-DATABASE_URL=sqlite:///...   # → postgresql://... in cloud
-SQLITE_DB_PATH=astrointel.db
-ALLOWED_ORIGINS=http://localhost:4200
-```
-
----
-
-## Project Structure
-
-```
-ai-engineer/
-├── astro-intel/                  # Angular 17 frontend
-│   ├── src/app/pages/            # login, intake, review, report, metrics, admin-users, profile
-│   ├── src/app/services/         # api.service, auth.service
-│   ├── src/environments/         # environment.ts (apiUrl)
-│   └── Dockerfile                # (to be created — Phase 1)
-│
-└── astro-intel-backend/          # FastAPI backend
-    ├── agents/                   # 9 LangGraph agents
-    ├── auth/                     # JWT, RBAC, store
-    ├── leads/                    # Lead management
-    ├── metrics/                  # Live KPI collector
-    ├── guardrails/               # G1 rate limit, G2 circuit breaker, G3 degradation
-    ├── rag/                      # Multi-query RAG module
-    ├── graph/                    # LangGraph pipeline wiring
-    ├── database.py               # SQLite persistence layer
-    ├── main.py                   # FastAPI app entry point
-    ├── Dockerfile                # Backend container
-    ├── docker-compose.yml        # Local orchestration
-    └── deploy-ec2.sh             # Legacy EC2 deploy (being replaced)
-```
+1. **Stateful agent pipeline** — LangGraph with explicit state schema, not a chain of prompts
+2. **Human-in-the-loop** — admin must approve every insight before it reaches the user
+3. **Multi-tenant security** — every API call scoped to a tenant, permissions enforced at the dependency layer
+4. **Observability built in** — 10 KPIs tracked per run, RAGAS-proxy metrics, CloudWatch alarms
+5. **Graceful degradation everywhere** — if one domain agent fails, other 4 continue; report still generates
+6. **Non-blocking AI passes** — plain English simplification wrapped in try/catch; failure keeps original
+7. **Infrastructure as code** — 6 Bash scripts recreate the entire AWS stack from scratch
+8. **Test suite** — pytest covering auth, API endpoints, metrics, and negative/edge cases
+9. **Cost controls** — semantic cache eliminates repeat LLM calls; budget alert at $50/month
+10. **Zero hardcoded secrets** — production guard exits fatally if any secret is still a default placeholder
 
 ---
 
 ## Running Tests
 
 ```bash
-# Backend
+# Backend — full test suite
 cd astro-intel-backend
 pytest tests/ -v
 
-# Frontend build check
+# Specific test files
+pytest tests/test_api.py -v
+pytest tests/test_auth.py -v
+pytest tests/test_metrics.py -v
+pytest tests/test_negative_edge_cases.py -v
+
+# Frontend — TypeScript compile check
 cd astro-intel
+npx tsc --noEmit
+
+# Frontend — production build
 ng build --configuration production
 ```
 
 ---
 
----
+## Environment Variables
 
-## Deployment Runbook
+```env
+# astro-intel-backend/.env
 
-### Local Docker (Full Stack)
-```bash
-# SQLite mode (default)
-docker-compose up --build
+# LLM
+DEEPSEEK_API_KEY=sk-...
+OPENAI_API_KEY=sk-...          # fallback
 
-# PostgreSQL mode
-docker-compose --profile postgres up --build
-# Then set DATABASE_URL in docker-compose.yml environment section
+# Auth
+JWT_SECRET=<64-char random hex>
+MASTER_API_KEY=<64-char random hex>
+PW_SALT=<64-char random hex>
+SUPERADMIN_PASSWORD=<strong password>
+
+# App
+APP_ENV=development             # → production in cloud
+DATABASE_URL=sqlite:///...      # → postgresql://... in cloud
+SQLITE_DB_PATH=astrointel.db
+ALLOWED_ORIGINS=http://localhost:4200
+
+# Email
+RESEND_API_KEY=re_...
 ```
-
-### First-Time Cloud Setup (run once)
-```bash
-export AWS_REGION=ap-south-1
-export AWS_ACCOUNT_ID=<your-account-id>
-
-bash infra/01-ecr.sh                    # Create ECR repos
-bash infra/02-s3-cloudfront.sh          # Frontend CDN
-bash infra/03-rds-postgres.sh           # Database
-bash infra/04-secrets-manager.sh        # Secrets
-bash infra/05-ecs-fargate.sh            # Compute
-bash infra/06-autoscaling-alarms.sh     # Monitoring
-```
-
-### GitHub Secrets Required
-| Secret | Value |
-|--------|-------|
-| `AWS_ACCOUNT_ID` | Your 12-digit AWS account ID |
-| `AWS_DEPLOY_ROLE_ARN` | IAM role ARN for GitHub OIDC |
-| `OPENAI_API_KEY` | From OpenAI dashboard |
-
-### Deploy Flow
-```
-git push → PR opened
-  → test.yml runs (pytest + ng build)
-  → PR approved + merged to main
-  → build-push.yml runs (Docker build + ECR push)
-  → deploy.yml runs (ECS rolling update)
-  → promote.yml (manual: staging → prod)
-```
-
-### Rollback
-In GitHub Actions → deploy.yml → Run workflow → enter previous image tag.
-ECS circuit breaker auto-rolls back if health checks fail during deploy.
 
 ---
 
-*This README is the single source of truth for architecture and deployment decisions. Last updated: 2026-05-17*
+## GitHub Actions CI/CD
+
+```
+On every PR:
+  ✅ pytest (all backend tests)
+  ✅ ng build --configuration production
+
+On merge to main:
+  ✅ Docker build (multi-stage)
+  ✅ Push to AWS ECR
+  ✅ ECS rolling deploy (health-check gated)
+  ✅ Auto-rollback if health checks fail
+
+Manual:
+  ✅ Promote: dev → staging → production
+  ✅ Rollback: enter previous image tag in workflow dispatch
+```
+
+---
+
+## About the Builder
+
+**Rav Singh Chandan** — Senior AI Engineer
+
+This project demonstrates production-level skills across:
+- **LLM Orchestration** — LangGraph multi-agent pipelines, prompt engineering, hallucination mitigation
+- **Backend Engineering** — FastAPI, async Python, RBAC auth, semantic caching, metrics
+- **Frontend Engineering** — Angular 17 signals, reactive state, complex PDF rendering
+- **Security Engineering** — 4-layer guardrail stack, prompt injection defence, PII filtering
+- **DevOps / MLOps** — Docker, GitHub Actions CI/CD, AWS ECS + S3 + RDS + Secrets Manager
+- **AI Evaluation** — RAGAS-proxy metrics, confidence scoring, domain coverage tracking
+
+> *"I didn't just build an AI app — I built the infrastructure, security, observability, and deployment pipeline around it. Because that's what production AI systems actually require."*
+
+---
+
+*Last updated: May 2026 · [API Docs](http://localhost:8080/docs) · [Live Metrics](http://localhost:4200/metrics)*
