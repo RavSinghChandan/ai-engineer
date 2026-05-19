@@ -17,6 +17,8 @@ Flow (with security gate — Module 2):
       ↓
   admin_review_agent
       ↓
+  grammar_agent           ← grammar correction on all insight bullets
+      ↓
   END
 
 Security layers active across the pipeline:
@@ -46,6 +48,7 @@ from agents import (
     meta_agent_node,
     remedy_agent_node,
     admin_review_agent_node,
+    grammar_agent_node,
 )
 from guardrails import safe_node, run_hallucination_check, run_security_check
 from guardrails.production import degradation_tracker
@@ -107,6 +110,7 @@ def build_graph() -> Any:
     builder.add_node("hallucination_check",   run_hallucination_check)
     builder.add_node("remedy_agent",          safe_node(remedy_agent_node,       "remedy_agent"))
     builder.add_node("admin_review_agent",    safe_node(admin_review_agent_node, "admin_review_agent"))
+    builder.add_node("grammar_agent",         safe_node(grammar_agent_node,      "grammar_agent"))
 
     builder.set_entry_point("security_check")
     builder.add_edge("security_check",       "question_agent")
@@ -115,7 +119,8 @@ def build_graph() -> Any:
     builder.add_edge("meta_agent",           "hallucination_check")
     builder.add_edge("hallucination_check",  "remedy_agent")
     builder.add_edge("remedy_agent",         "admin_review_agent")
-    builder.add_edge("admin_review_agent",   END)
+    builder.add_edge("admin_review_agent",   "grammar_agent")
+    builder.add_edge("grammar_agent",        END)
 
     return builder.compile()
 

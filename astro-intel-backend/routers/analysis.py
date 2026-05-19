@@ -16,6 +16,7 @@ from schemas import AnalysisRequest, ApprovalRequest
 from graph.pipeline import run_pipeline
 import agents.prompt_config as prompt_config
 from agents.report_agent import final_report_agent
+from agents.grammar_agent import correct_report
 from agents.translation_agent import translation_agent, list_languages
 import memory.store as store
 import cache.store as response_cache
@@ -195,6 +196,12 @@ async def approve_and_generate(
         memory       = memory,
         remedies     = remedies,
     )
+
+    # Grammar agent — polish all report prose before PDF / translation
+    try:
+        report = correct_report(report, use_llm=True)
+    except Exception:
+        pass  # never block report delivery on grammar failure
 
     t_approve_end = time.time()
     # Record approve-phase token usage back into the session's run record

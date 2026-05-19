@@ -7,6 +7,7 @@ from .vastu_agent       import vastu_agent_node
 from .meta_agent        import meta_agent_node
 from .remedy_agent      import remedy_agent_node
 from .admin_review_agent  import admin_review_agent_node
+from .grammar_agent       import grammar_agent_node, correct_report
 from .plain_english_agent import plain_english_agent_node
 from .report_agent        import final_report_agent
 from .simplify_agent      import simplify_narrative, simplify_agent_node
