@@ -431,10 +431,20 @@ function validateProfile(p: {
                 <div class="inp-wrap"
                      [class.inp-err]="touched()['date_of_birth'] && errors()['date_of_birth']"
                      [class.inp-ok]="touched()['date_of_birth'] && !errors()['date_of_birth'] && profile().date_of_birth">
-                  <input class="inp" type="date" [max]="todayStr"
-                         [value]="profile().date_of_birth"
-                         (input)="patch('date_of_birth', $any($event.target).value)"
-                         (blur)="touch('date_of_birth')"/>
+                  <div class="dob-selects">
+                    <select class="inp dob-sel" (change)="patchDobPart('d', $any($event.target).value)" (blur)="touch('date_of_birth')">
+                      <option value="">Day</option>
+                      @for (d of dobDays; track d) { <option [value]="d" [selected]="dobDay() === d">{{ d }}</option> }
+                    </select>
+                    <select class="inp dob-sel" (change)="patchDobPart('m', $any($event.target).value)" (blur)="touch('date_of_birth')">
+                      <option value="">Month</option>
+                      @for (m of dobMonths; track m.v) { <option [value]="m.v" [selected]="dobMonth() === m.v">{{ m.l }}</option> }
+                    </select>
+                    <select class="inp dob-sel dob-yr" (change)="patchDobPart('y', $any($event.target).value)" (blur)="touch('date_of_birth')">
+                      <option value="">Year</option>
+                      @for (y of dobYears; track y) { <option [value]="y" [selected]="dobYear() === y">{{ y }}</option> }
+                    </select>
+                  </div>
                   @if (touched()['date_of_birth'] && !errors()['date_of_birth'] && profile().date_of_birth) {
                     <span class="inp-check">✓</span>
                   }
@@ -1331,14 +1341,14 @@ function validateProfile(p: {
   position: relative; z-index: 100; gap: 16px;
 }
 .hdr-brand { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
-.hdr-logo  { width: 44px; height: 44px; object-fit: contain; border-radius: 10px; border: 1.5px solid rgba(99,102,241,0.2); background: #f5f3ff; padding: 2px; }
+.hdr-logo  { width: 40px; height: 40px; object-fit: contain; border-radius: 0; background: transparent; padding: 0; border: none; }
 .hdr-brand-text { display: flex; flex-direction: column; gap: 1px; }
 .hdr-name  { font-size: 17px; font-weight: 700; color: #1e1b4b; letter-spacing: 0.04em; line-height: 1.2; }
 .hdr-name em { font-style: normal; font-weight: 400; color: #6366f1; }
 .hdr-tag   { font-size: 11px; color: #94a3b8; letter-spacing: 0.03em; }
 .hdr-nav   { display: flex; align-items: center; gap: 2px; flex: 1; justify-content: center; }
-.hdr-nav-item { font-size: 13px; color: #6b7280; padding: 5px 10px; border-radius: 8px; cursor: default; transition: background 0.15s; white-space: nowrap; font-weight: 500; }
-.hdr-nav-item:hover { background: rgba(99,102,241,0.07); color: #4338ca; }
+.hdr-nav-item { font-size: 12px; color: #6b7280; padding: 5px 11px; border-radius: 99px; cursor: default; transition: all 0.15s; white-space: nowrap; font-weight: 600; letter-spacing: 0.01em; border: 1px solid transparent; }
+.hdr-nav-item:hover { background: rgba(99,102,241,0.08); color: #4338ca; border-color: rgba(99,102,241,0.15); }
 .hdr-sep { color: rgba(0,0,0,0.12); font-size: 14px; }
 
 /* ── User zone: right-aligned, single flex row, never overflows ── */
@@ -1513,6 +1523,10 @@ function validateProfile(p: {
 /* ── Modules grid: 2-col in right panel (was 5-col for wide workspace) ── */
 .panel-right .mod-grid { grid-template-columns: repeat(2, 1fr); }
 
+.dob-selects { display: flex; gap: 6px; width: 100%; }
+.dob-sel { flex: 1; min-width: 0; appearance: auto; }
+.dob-yr { flex: 1.4; }
+
 /* ── Panel toolbar ── */
 .ptb {
   display: flex; align-items: center; justify-content: space-between;
@@ -1615,26 +1629,32 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
 @keyframes chipPulse { 0%,100%{opacity:1}50%{opacity:0.3} }
 
 /* ══ MODULE CHIPS ══ */
-.mod-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; }
+.mod-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
 .mod-chip {
-  position: relative; display: flex; flex-direction: column; align-items: center; gap: 5px;
-  padding: 11px 6px 9px; border-radius: 12px; border: 1.5px solid rgba(0,0,0,0.09);
-  background: #f9fafb; cursor: pointer; transition: all 0.18s; text-align: center;
-  font-family: inherit;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; padding: 14px 10px 12px;
+  border-radius: 14px; border: 1.5px solid rgba(0,0,0,0.08);
+  background: #fff; cursor: pointer; font-family: inherit;
+  transition: all 0.18s cubic-bezier(0.4,0,0.2,1);
+  position: relative; text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
-.mod-chip:hover { border-color: #6366f1; background: #eef2ff; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99,102,241,0.12); }
+.mod-chip:hover { border-color: #6366f1; background: #fafbff; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99,102,241,0.13); }
 .mod-chip-on {
-  border-color: #6366f1 !important; background: #eef2ff !important;
-  box-shadow: 0 0 0 3px rgba(99,102,241,0.12) !important;
+  border-color: #6366f1 !important; background: linear-gradient(145deg, #eef2ff, #f5f3ff) !important;
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.12), 0 4px 16px rgba(99,102,241,0.15) !important;
 }
-.mod-chip-icon { font-size: 22px; line-height: 1; }
-.mod-chip-body { display: flex; flex-direction: column; gap: 1px; }
-.mod-chip-name { font-size: 10px; font-weight: 700; color: #374151; }
-.mod-chip-desc { font-size: 8.5px; color: #9ca3af; line-height: 1.3; }
+.mod-chip-icon { font-size: 28px; line-height: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
+.mod-chip-body { display: flex; flex-direction: column; gap: 2px; }
+.mod-chip-name { font-size: 11px; font-weight: 700; color: #1e1b4b; letter-spacing: 0.01em; }
+.mod-chip-desc { font-size: 9px; color: #94a3b8; line-height: 1.4; }
 .mod-chip-check {
-  position: absolute; top: 5px; right: 5px;
-  width: 14px; height: 14px; border-radius: 50%; background: #6366f1;
-  color: #fff; font-size: 8px; font-weight: 900; display: flex; align-items: center; justify-content: center;
+  position: absolute; top: 7px; right: 8px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: #6366f1; color: #fff;
+  font-size: 9px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 1px 4px rgba(99,102,241,0.4);
 }
 
 /* ══ SUB CARDS ══ */
@@ -2231,7 +2251,7 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
 
 /* Floating action button — anchored to bottom-right of home-wrapper */
 .graph-fab {
-  position: absolute; bottom: 16px; right: 20px; z-index: 50;
+  position: absolute; bottom: 56px; right: 20px; z-index: 50;
   display: inline-flex; align-items: center; gap: 8px;
   padding: 9px 18px; border-radius: 99px; border: none;
   background: #1e1b4b;
@@ -2398,6 +2418,33 @@ export class IntakePage {
   readonly handShapes = HAND_SHAPES;
   readonly year       = new Date().getFullYear();
   readonly todayStr   = new Date().toISOString().split('T')[0];
+  readonly dobDays   = Array.from({length: 31}, (_, i) => String(i + 1).padStart(2, '0'));
+  readonly dobMonths = [
+    {v:'01',l:'January'},{v:'02',l:'February'},{v:'03',l:'March'},
+    {v:'04',l:'April'},{v:'05',l:'May'},{v:'06',l:'June'},
+    {v:'07',l:'July'},{v:'08',l:'August'},{v:'09',l:'September'},
+    {v:'10',l:'October'},{v:'11',l:'November'},{v:'12',l:'December'},
+  ];
+  readonly dobYears  = (() => {
+    const y = new Date().getFullYear(); const a = [];
+    for (let i = y - 5; i >= y - 100; i--) a.push(String(i));
+    return a;
+  })();
+
+  readonly dobDay   = computed(() => { const d = this.profile().date_of_birth; return d ? d.split('-')[2] : ''; });
+  readonly dobMonth = computed(() => { const d = this.profile().date_of_birth; return d ? d.split('-')[1] : ''; });
+  readonly dobYear  = computed(() => { const d = this.profile().date_of_birth; return d ? d.split('-')[0] : ''; });
+
+  patchDobPart(part: 'd'|'m'|'y', val: string) {
+    const cur = this.profile().date_of_birth || '--';
+    const [y, m, d] = cur.split('-');
+    const ny = part === 'y' ? val : (y || '');
+    const nm = part === 'm' ? val : (m || '');
+    const nd = part === 'd' ? val : (d || '');
+    if (ny && nm && nd) {
+      this.patch('date_of_birth', `${ny}-${nm}-${nd}`);
+    }
+  }
 
   readonly selectedModules = signal<Set<Module>>(new Set(['astrology','numerology']));
   readonly launchError     = signal('');
