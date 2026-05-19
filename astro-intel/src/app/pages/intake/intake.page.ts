@@ -2271,6 +2271,7 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
   .hdr-btn-label { display: none; }
   .hdr-icon-btn, .hdr-signout-btn { padding: 7px 9px; }
   .hdr-uname { max-width: 80px; overflow: hidden; text-overflow: ellipsis; }
+  .hdr-avatar { width: 34px !important; height: 34px !important; }
   .workspace { padding: 8px; gap: 8px; }
 }
 @media (max-width: 600px) {
@@ -2279,12 +2280,36 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
   .hdr-divider { display: none; }
   .workspace { padding: 6px; gap: 6px; }
   .panel { border-radius: 10px; }
+  /* Hide name/role text — keep avatar + icon buttons only */
+  .hdr-id-text, .hdr-uname, .hdr-urole, .hdr-user-text { display: none; }
+  /* Logo/brand: shrink */
+  .hdr-logo { width: 32px !important; height: 32px !important; }
+  .hdr-brand { gap: 6px; min-width: 0; }
+  .hdr-name { font-size: 14px; }
+  .hdr-tag { display: none; }
+  /* Avatar: small */
+  .hdr-avatar { width: 26px !important; height: 26px !important; }
+  /* Tighter icon buttons */
+  .hdr-icon-btn { padding: 5px 6px; }
+  .hdr-signout-btn { font-size: 0 !important; padding: 5px 6px; }
+  .hdr-signout-btn svg { width: 14px; height: 14px; }
+  .hdr-nav-btn { font-size: 0 !important; padding: 5px 6px; }
+  .hdr-user { gap: 4px; }
 }
 @media (max-width: 480px) {
   .hdr { height: 56px; padding: 0 12px; }
   .hdr-logo { height: 30px; }
   .hdr-brand { font-size: 14px; }
+  /* Hide name/role text — keep only avatar + icon buttons */
+  .hdr-uname, .hdr-urole, .hdr-user-text, .hdr-id-text { display: none; }
   .hdr-uname { max-width: 60px; }
+  /* Sign out: icon only */
+  .hdr-signout-btn { font-size: 0 !important; padding: 6px 8px; }
+  .hdr-signout-btn svg { width: 16px; height: 16px; }
+  /* Nav buttons: icon only */
+  .hdr-nav-btn { font-size: 0 !important; padding: 6px 8px; }
+  .hdr-nav-btn svg { width: 14px; height: 14px; }
+  .hdr-icon-btn { padding: 6px 8px; }
   .workspace { padding: 4px; gap: 4px; }
   .panel { border-radius: 8px; }
   .panel-right .mod-grid { grid-template-columns: repeat(2, 1fr); }

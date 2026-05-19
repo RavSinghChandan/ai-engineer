@@ -564,8 +564,8 @@ interface LeadRow {
 }
 
 /* Table */
-.au-table-wrap { overflow-x: auto; }
-.au-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.au-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.au-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 480px; }
 .au-table th { text-align: left; padding: 10px 12px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; }
 .au-table td { padding: 12px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
 .au-row-locked { opacity: 0.6; }
@@ -747,6 +747,36 @@ interface LeadRow {
   margin-left: auto;
 }
 .au-btn-do-reading:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(99,102,241,0.5); }
+
+/* ══ RESPONSIVE — MOBILE ══ */
+@media (max-width: 768px) {
+  .au-wrap { padding: 0 12px 40px; }
+  .au-header { flex-direction: column; align-items: flex-start; gap: 10px; padding: 14px 0; }
+  .au-header-right { flex-wrap: wrap; gap: 6px; }
+  .au-brand-name, .au-divider, .au-page-name { font-size: 12px; }
+  /* Tenant cards: stack actions */
+  .au-tenant-row { flex-wrap: wrap; gap: 8px; }
+  .au-tenant-actions { flex-wrap: wrap; }
+  .au-btn-sm { padding: 5px 10px; font-size: 11px; }
+  .au-btn-danger { padding: 5px 10px; font-size: 11px; }
+  /* Key rows */
+  .au-key-row { flex-wrap: wrap; gap: 6px; }
+  /* Leads table — horizontal scroll */
+  .au-leads-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .au-leads-table { min-width: 560px; }
+  /* Section padding */
+  .au-section { padding: 14px; }
+  .au-section-hdr { flex-wrap: wrap; gap: 8px; }
+}
+@media (max-width: 480px) {
+  .au-wrap { padding: 0 8px 32px; }
+  .au-header { padding: 10px 0; }
+  .au-role-badge { font-size: 9px; padding: 2px 7px; }
+  .au-tenant-name { font-size: 13px; }
+  /* Hide less critical header items */
+  .au-brand-name, .au-divider, .au-page-name { display: none; }
+  .au-tenant-actions .au-btn-sm:not(:first-child) { font-size: 0 !important; padding: 6px 8px; width: 32px; }
+}
   `]
 })
 export class AdminUsersPage implements OnInit {

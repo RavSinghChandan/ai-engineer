@@ -1969,6 +1969,40 @@ const BACKEND = environment.apiUrl;
   font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em;
   color: #7c3aed; padding-bottom: 4px; border-bottom: 1px solid rgba(139,92,246,0.15);
 }
+
+/* ══ RESPONSIVE — MOBILE ══ */
+@media (max-width: 860px) {
+  /* Header: icon-only right-side buttons */
+  .hdr { padding: 0 12px; height: 52px; }
+  .brand-name, .brand-sep, .brand-page { display: none; }
+  .hdr-right { gap: 6px; }
+  .hdr-nav-btn { font-size: 0 !important; padding: 7px 8px; }
+  .hdr-nav-btn svg { width: 15px; height: 15px; }
+  .progress-pill { display: none; }
+  .user-chip, .lead-chip { max-width: 90px; overflow: hidden; text-overflow: ellipsis; font-size: 10px; padding: 2px 8px; }
+  /* Tabs: scroll horizontally */
+  .tabs { overflow-x: auto; padding: 0 12px; -webkit-overflow-scrolling: touch; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { padding: 10px 12px; font-size: 11.5px; }
+  /* Body padding */
+  .body { padding: 12px 10px 60px; }
+  /* Action buttons in cards */
+  .insight-actions { flex-wrap: wrap; }
+  /* Coverage table */
+  .cov-table { min-width: 600px; }
+  /* Astrology grid */
+  .detail-line-key.house-key { min-width: 130px; }
+}
+@media (max-width: 600px) {
+  .hdr { padding: 0 8px; }
+  .body { padding: 8px 6px 60px; }
+  .tab { padding: 9px 10px; font-size: 11px; }
+  .card { margin: 0; }
+}
+@media (max-width: 480px) {
+  .hdr-right .btn-outline-green,
+  .hdr-right .hdr-nav-btn:not(:first-child) { display: none; }
+}
 `]
 })
 export class ReviewPage {
