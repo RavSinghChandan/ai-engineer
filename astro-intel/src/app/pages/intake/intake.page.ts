@@ -2280,8 +2280,9 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
     overflow: visible; height: auto;
   }
   /* Panels: full width, natural height (no inner scroll on mobile) */
-  .panel-center { width: 100% !important; flex-shrink: 1; height: auto; }
-  .panel-right  { width: 100% !important; flex-shrink: 1; height: auto; }
+  /* panel-right (Analysis Modules) floats to top so users see module picker + CTA first */
+  .panel-center { width: 100% !important; flex-shrink: 1; height: auto; order: 2; }
+  .panel-right  { width: 100% !important; flex-shrink: 1; height: auto; order: 1; }
   /* Panel scroll becomes auto-height — no clipping */
   .panel-scroll { overflow-y: visible; height: auto; max-height: none; flex: none; }
   /* Module grid */
