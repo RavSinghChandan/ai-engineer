@@ -2266,18 +2266,20 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
    can grow to their full content height and the HOST scrolls.
 ══════════════════════════════════════════════════════════════ */
 @media (max-width: 960px) {
-  /* ── Host: natural page scroll ── */
-  :host { height: auto; min-height: 100dvh; overflow-y: auto; }
+  /* ── Host + Shell: unlock fixed height so page scrolls naturally ── */
+  :host { height: auto !important; min-height: 100dvh; overflow: visible !important; }
+  .shell { height: auto !important; overflow: visible !important; }
   .workspace {
-    overflow: visible;       /* let content grow, host scrolls */
-    height: auto;
+    overflow: visible !important;
+    height: auto !important;
+    flex: none !important;
     flex-direction: column;
     padding: 8px; gap: 8px;
   }
-  .home-wrapper { overflow: visible; height: auto; flex: none; }
+  .home-wrapper { overflow: visible !important; height: auto !important; flex: none !important; }
   .home-layout {
     flex-direction: column; align-items: stretch;
-    overflow: visible; height: auto;
+    overflow: visible !important; height: auto !important;
   }
   /* Panels: full width, natural height (no inner scroll on mobile) */
   /* panel-right (Analysis Modules) floats to top so users see module picker + CTA first */
@@ -2348,12 +2350,13 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
 
 /* ── Landscape mobile: side-by-side panels, natural scroll ── */
 @media (max-width: 860px) and (orientation: landscape) {
-  :host { height: auto; min-height: 100dvh; overflow-y: auto; }
-  .workspace { flex-direction: row; flex-wrap: wrap; overflow: visible; height: auto; }
-  .home-wrapper { overflow: visible; }
-  .home-layout { flex-direction: row; flex-wrap: wrap; overflow: visible; }
-  .panel-center { width: 55% !important; }
-  .panel-right  { width: 43% !important; }
+  :host { height: auto !important; min-height: 100dvh; overflow: visible !important; }
+  .shell { height: auto !important; overflow: visible !important; }
+  .workspace { flex-direction: row; flex-wrap: wrap; overflow: visible !important; height: auto !important; flex: none !important; }
+  .home-wrapper { overflow: visible !important; height: auto !important; flex: none !important; }
+  .home-layout { flex-direction: row; flex-wrap: wrap; overflow: visible !important; }
+  .panel-center { width: 55% !important; order: 2; }
+  .panel-right  { width: 43% !important; order: 1; }
   .panel-scroll { overflow-y: visible; height: auto; max-height: none; }
   .hdr { height: 48px; }
   /* Graph drawer landscape: right half of screen */
