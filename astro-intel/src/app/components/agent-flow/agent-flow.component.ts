@@ -554,6 +554,27 @@ const PIPELINE_STEPS: { id: string; label: string }[] = [
 .ring1 { animation: ringPulse 1.8s ease-in-out infinite; }
 .ring2 { animation: ringPulse 1.8s ease-in-out infinite 0.55s; }
 @keyframes ringPulse { 0%,100%{transform:scale(1);opacity:0.3} 50%{transform:scale(1.07);opacity:0.08} }
+
+/* ── Responsive ── */
+@media (max-width: 860px) {
+  .af-bar { flex-wrap: wrap; gap: 6px; padding: 8px 12px; }
+  .af-bar-left { gap: 7px; }
+  .af-bar-right { gap: 6px; flex-wrap: wrap; }
+  .af-sub { display: none; }
+  .af-cache-badge { font-size: 9.5px; padding: 2px 7px; }
+  /* Canvas: horizontal scroll, start from left on mobile */
+  .af-canvas-wrap { justify-content: flex-start; padding: 8px 4px; }
+  .af-ticker { padding: 6px 10px; }
+}
+@media (max-width: 480px) {
+  .af-bar { padding: 6px 8px; }
+  .af-title { font-size: 11px; }
+  .zoom-group { gap: 1px; }
+  .zoom-label { min-width: 28px; font-size: 9px; }
+  .af-icon-btn { width: 24px; height: 24px; }
+  .af-ticker { padding: 5px 8px; min-height: 28px; }
+  .ticker-text { font-size: 9.5px; }
+}
   `]
 })
 export class AgentFlowComponent implements OnDestroy {

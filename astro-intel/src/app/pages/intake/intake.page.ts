@@ -2260,20 +2260,51 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
   box-shadow: 0 4px 16px rgba(99,102,241,0.45);
 }
 
-/* ══ RESPONSIVE ══ */
+/* ══ RESPONSIVE — MOBILE ══
+   Core fix: on mobile the whole page must scroll naturally.
+   Remove overflow:hidden from workspace/home-wrapper so panels
+   can grow to their full content height and the HOST scrolls.
+══════════════════════════════════════════════════════════════ */
 @media (max-width: 960px) {
-  .home-layout { flex-direction: column; align-items: stretch; overflow-y: auto; }
-  .panel-center { width: 100% !important; }
-  .panel-right  { width: 100% !important; }
+  /* ── Host: natural page scroll ── */
+  :host { height: auto; min-height: 100dvh; overflow-y: auto; }
+  .workspace {
+    overflow: visible;       /* let content grow, host scrolls */
+    height: auto;
+    flex-direction: column;
+    padding: 8px; gap: 8px;
+  }
+  .home-wrapper { overflow: visible; height: auto; flex: none; }
+  .home-layout {
+    flex-direction: column; align-items: stretch;
+    overflow: visible; height: auto;
+  }
+  /* Panels: full width, natural height (no inner scroll on mobile) */
+  .panel-center { width: 100% !important; flex-shrink: 1; height: auto; }
+  .panel-right  { width: 100% !important; flex-shrink: 1; height: auto; }
+  /* Panel scroll becomes auto-height — no clipping */
+  .panel-scroll { overflow-y: visible; height: auto; max-height: none; flex: none; }
+  /* Module grid */
   .panel-right .mod-grid { grid-template-columns: repeat(3, 1fr); }
+  /* Header */
   .hdr-nav, .ftr-links { display: none; }
   .hdr { padding: 0 16px; height: 64px; }
   .hdr-btn-label { display: none; }
   .hdr-icon-btn, .hdr-signout-btn { padding: 7px 9px; }
   .hdr-uname { max-width: 80px; overflow: hidden; text-overflow: ellipsis; }
   .hdr-avatar { width: 34px !important; height: 34px !important; }
-  .workspace { padding: 8px; gap: 8px; }
+  /* Graph drawer: full-height overlay on mobile */
+  .graph-drawer {
+    position: fixed; inset: 0; z-index: 200;
+    height: 100dvh !important;
+    animation: drawerFadeIn 0.2s ease;
+  }
+  @keyframes drawerFadeIn { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+  /* Pipeline view: full natural scroll */
+  .pipeline-layout { overflow: visible; height: auto; }
+  .pipeline-panel { flex: none; height: 90dvh; }
 }
+
 @media (max-width: 600px) {
   .panel-right .mod-grid { grid-template-columns: repeat(2, 1fr); }
   .field-row { grid-template-columns: 1fr; }
@@ -2282,63 +2313,50 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
   .panel { border-radius: 10px; }
   /* Hide name/role text — keep avatar + icon buttons only */
   .hdr-id-text, .hdr-uname, .hdr-urole, .hdr-user-text { display: none; }
-  /* Logo/brand: shrink */
   .hdr-logo { width: 32px !important; height: 32px !important; }
   .hdr-brand { gap: 6px; min-width: 0; }
   .hdr-name { font-size: 14px; }
   .hdr-tag { display: none; }
-  /* Avatar: small */
   .hdr-avatar { width: 26px !important; height: 26px !important; }
-  /* Tighter icon buttons */
   .hdr-icon-btn { padding: 5px 6px; }
   .hdr-signout-btn { font-size: 0 !important; padding: 5px 6px; }
   .hdr-signout-btn svg { width: 14px; height: 14px; }
   .hdr-nav-btn { font-size: 0 !important; padding: 5px 6px; }
   .hdr-user { gap: 4px; }
 }
+
 @media (max-width: 480px) {
   .hdr { height: 56px; padding: 0 12px; }
-  .hdr-logo { height: 30px; }
-  .hdr-brand { font-size: 14px; }
-  /* Hide name/role text — keep only avatar + icon buttons */
+  .hdr-logo { height: 30px !important; width: 30px !important; }
   .hdr-uname, .hdr-urole, .hdr-user-text, .hdr-id-text { display: none; }
-  .hdr-uname { max-width: 60px; }
-  /* Sign out: icon only */
   .hdr-signout-btn { font-size: 0 !important; padding: 6px 8px; }
-  .hdr-signout-btn svg { width: 16px; height: 16px; }
-  /* Nav buttons: icon only */
-  .hdr-nav-btn { font-size: 0 !important; padding: 6px 8px; }
-  .hdr-nav-btn svg { width: 14px; height: 14px; }
   .hdr-icon-btn { padding: 6px 8px; }
   .workspace { padding: 4px; gap: 4px; }
   .panel { border-radius: 8px; }
-  .panel-right .mod-grid { grid-template-columns: repeat(2, 1fr); }
   .field-row { grid-template-columns: 1fr; }
-  .pipeline-topbar { flex-wrap: wrap; gap: 6px; padding: 8px 12px; min-height: unset; }
-  .pipeline-topbar-left { flex-wrap: wrap; gap: 6px; }
-  .pipeline-topbar-right { flex-wrap: wrap; gap: 6px; }
+  .pipeline-topbar { flex-wrap: wrap; gap: 6px; padding: 8px 12px; }
 }
+
 @media (max-width: 380px) {
   .hdr { height: 52px; padding: 0 8px; }
   .hdr-brand { display: none; }
   .workspace { padding: 2px; gap: 4px; }
   .panel-right .mod-grid { grid-template-columns: 1fr 1fr; }
-  .field-row { grid-template-columns: 1fr; }
   .hdr-icon-btn, .hdr-signout-btn { padding: 5px 7px; }
 }
-/* Landscape mobile — ensure content scrolls and panels stack */
-@media (max-height: 500px) and (orientation: landscape) {
-  :host { height: auto; min-height: 100vh; }
-  .workspace { overflow-y: auto; height: auto; }
-  .home-layout { flex-direction: row; flex-wrap: wrap; }
-  .panel-center { min-width: 280px; width: 55% !important; }
-  .panel-right  { min-width: 240px; width: 42% !important; }
-  .hdr { height: 48px; }
-}
-@media (max-width: 600px) and (orientation: landscape) {
-  .home-layout { flex-direction: row; flex-wrap: wrap; }
+
+/* ── Landscape mobile: side-by-side panels, natural scroll ── */
+@media (max-width: 860px) and (orientation: landscape) {
+  :host { height: auto; min-height: 100dvh; overflow-y: auto; }
+  .workspace { flex-direction: row; flex-wrap: wrap; overflow: visible; height: auto; }
+  .home-wrapper { overflow: visible; }
+  .home-layout { flex-direction: row; flex-wrap: wrap; overflow: visible; }
   .panel-center { width: 55% !important; }
-  .panel-right  { width: 42% !important; }
+  .panel-right  { width: 43% !important; }
+  .panel-scroll { overflow-y: visible; height: auto; max-height: none; }
+  .hdr { height: 48px; }
+  /* Graph drawer landscape: right half of screen */
+  .graph-drawer { position: fixed; inset: 0; z-index: 200; height: 100dvh !important; }
 }
   
 .refresh-btn {
