@@ -339,11 +339,6 @@ function validateProfile(p: {
   @if (view() === 'home') {
   <div class="home-wrapper">
   <div class="workspace home-layout">
-  <!-- Brand watermark — inside workspace, bottom-right, above grey bg but below panels -->
-  <div class="wm-overlay" aria-hidden="true">
-    <img src="rav-logo.png" alt="" draggable="false"/>
-    <span class="wm-overlay-label">AURA with Rav</span>
-  </div>
 
     <!-- ── CENTER: Birth Profile ── -->
     <section class="panel panel-center">
@@ -1341,7 +1336,7 @@ function validateProfile(p: {
   position: relative; z-index: 100; gap: 16px;
 }
 .hdr-brand { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
-.hdr-logo  { width: 52px; height: 52px; object-fit: contain; border-radius: 0; background: transparent; padding: 0; border: none; }
+.hdr-logo  { width: 40px; height: 40px; object-fit: contain; border-radius: 0; background: transparent; padding: 0; border: none; }
 .hdr-brand-text { display: flex; flex-direction: column; gap: 1px; }
 .hdr-name  { font-size: 17px; font-weight: 700; color: #1e1b4b; letter-spacing: 0.04em; line-height: 1.2; }
 .hdr-name em { font-style: normal; font-weight: 400; color: #6366f1; }
@@ -1438,7 +1433,6 @@ function validateProfile(p: {
   display: flex; flex-direction: row;
   padding: 10px; gap: 10px;
   background: #f1f5f9;
-  position: relative;
 }
 
 /* Home layout: center panel + right aside */
@@ -2215,21 +2209,6 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
 /* ══ HOME WRAPPER — column that holds the row + optional graph drawer ══ */
 .home-wrapper {
   flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative;
-}
-.wm-overlay {
-  position:absolute;bottom:16px;right:16px;
-  pointer-events:none;z-index:0;
-  display:flex;flex-direction:column;align-items:center;gap:6px;
-}
-.wm-overlay img {
-  width:110px;height:110px;object-fit:contain;
-  opacity:0.28;
-  filter:saturate(0.3) hue-rotate(240deg);
-}
-.wm-overlay-label {
-  font-size:9.5px;font-weight:800;letter-spacing:0.14em;
-  color:#4338ca;opacity:0.45;white-space:nowrap;text-transform:uppercase;
-  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter',system-ui,sans-serif;
 }
 
 /* Graph drawer — slides up from the bottom of home-wrapper */
