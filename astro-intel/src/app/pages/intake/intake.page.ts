@@ -338,12 +338,12 @@ function validateProfile(p: {
   <!-- ══ VIEW: HOME — Birth Profile (center) + Modules (right) ══ -->
   @if (view() === 'home') {
   <div class="home-wrapper">
-  <!-- Brand watermark — bottom-right corner of workspace -->
+  <div class="workspace home-layout">
+  <!-- Brand watermark — inside workspace, bottom-right, above grey bg but below panels -->
   <div class="wm-overlay" aria-hidden="true">
     <img src="rav-logo.png" alt="" draggable="false"/>
     <span class="wm-overlay-label">AURA with Rav</span>
   </div>
-  <div class="workspace home-layout">
 
     <!-- ── CENTER: Birth Profile ── -->
     <section class="panel panel-center">
@@ -1437,8 +1437,8 @@ function validateProfile(p: {
   flex: 1; overflow: hidden;
   display: flex; flex-direction: row;
   padding: 10px; gap: 10px;
-  background: transparent;
-  position: relative; z-index: 1;
+  background: #f1f5f9;
+  position: relative;
 }
 
 /* Home layout: center panel + right aside */
@@ -2215,21 +2215,20 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
 /* ══ HOME WRAPPER — column that holds the row + optional graph drawer ══ */
 .home-wrapper {
   flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative;
-  background: #f1f5f9;
 }
 .wm-overlay {
-  position:absolute;bottom:8px;right:12px;
-  pointer-events:none;z-index:2;
-  display:flex;flex-direction:column;align-items:center;gap:4px;
+  position:absolute;bottom:16px;right:16px;
+  pointer-events:none;z-index:0;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
 }
 .wm-overlay img {
-  width:90px;height:90px;object-fit:contain;
-  opacity:0.22;
-  filter:saturate(0.5) hue-rotate(240deg);
+  width:110px;height:110px;object-fit:contain;
+  opacity:0.28;
+  filter:saturate(0.3) hue-rotate(240deg);
 }
 .wm-overlay-label {
-  font-size:10px;font-weight:700;letter-spacing:0.12em;
-  color:#6366f1;opacity:0.35;white-space:nowrap;
+  font-size:9.5px;font-weight:800;letter-spacing:0.14em;
+  color:#4338ca;opacity:0.45;white-space:nowrap;text-transform:uppercase;
   font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter',system-ui,sans-serif;
 }
 
