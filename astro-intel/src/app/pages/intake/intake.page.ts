@@ -338,9 +338,10 @@ function validateProfile(p: {
   <!-- ══ VIEW: HOME — Birth Profile (center) + Modules (right) ══ -->
   @if (view() === 'home') {
   <div class="home-wrapper">
-  <!-- Full-page brand watermark — low opacity, non-interactive -->
+  <!-- Brand watermark — bottom-right corner of workspace -->
   <div class="wm-overlay" aria-hidden="true">
     <img src="rav-logo.png" alt="" draggable="false"/>
+    <span class="wm-overlay-label">AURA with Rav</span>
   </div>
   <div class="workspace home-layout">
 
@@ -2217,14 +2218,19 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
   background: #f1f5f9;
 }
 .wm-overlay {
-  position:absolute;inset:0;pointer-events:none;z-index:0;
-  display:flex;align-items:center;justify-content:center;overflow:hidden;
+  position:absolute;bottom:8px;right:12px;
+  pointer-events:none;z-index:2;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
 }
 .wm-overlay img {
-  width:360px;height:360px;object-fit:contain;opacity:0.09;
-  filter:saturate(0.4) hue-rotate(240deg);
-  mask-image:radial-gradient(ellipse 55% 55% at 50% 50%,rgba(0,0,0,.9) 0%,rgba(0,0,0,.5) 50%,transparent 100%);
-  -webkit-mask-image:radial-gradient(ellipse 55% 55% at 50% 50%,rgba(0,0,0,.9) 0%,rgba(0,0,0,.5) 50%,transparent 100%);
+  width:90px;height:90px;object-fit:contain;
+  opacity:0.22;
+  filter:saturate(0.5) hue-rotate(240deg);
+}
+.wm-overlay-label {
+  font-size:10px;font-weight:700;letter-spacing:0.12em;
+  color:#6366f1;opacity:0.35;white-space:nowrap;
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter',system-ui,sans-serif;
 }
 
 /* Graph drawer — slides up from the bottom of home-wrapper */
