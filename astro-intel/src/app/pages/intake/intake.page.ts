@@ -431,20 +431,15 @@ function validateProfile(p: {
                 <div class="inp-wrap"
                      [class.inp-err]="touched()['date_of_birth'] && errors()['date_of_birth']"
                      [class.inp-ok]="touched()['date_of_birth'] && !errors()['date_of_birth'] && profile().date_of_birth">
-                  <div class="dob-selects">
-                    <select class="inp dob-sel" (change)="patchDobPart('d', $any($event.target).value)" (blur)="touch('date_of_birth')">
-                      <option value="">Day</option>
-                      @for (d of dobDays; track d) { <option [value]="d" [selected]="dobDay() === d">{{ d }}</option> }
-                    </select>
-                    <select class="inp dob-sel" (change)="patchDobPart('m', $any($event.target).value)" (blur)="touch('date_of_birth')">
-                      <option value="">Month</option>
-                      @for (m of dobMonths; track m.v) { <option [value]="m.v" [selected]="dobMonth() === m.v">{{ m.l }}</option> }
-                    </select>
-                    <select class="inp dob-sel dob-yr" (change)="patchDobPart('y', $any($event.target).value)" (blur)="touch('date_of_birth')">
-                      <option value="">Year</option>
-                      @for (y of dobYears; track y) { <option [value]="y" [selected]="dobYear() === y">{{ y }}</option> }
-                    </select>
-                  </div>
+                  <input class="inp dob-text-inp"
+                         type="text"
+                         inputmode="numeric"
+                         placeholder="DD / MM / YYYY"
+                         maxlength="14"
+                         autocomplete="bday"
+                         [value]="dobDisplayValue()"
+                         (input)="onDobInput($any($event.target).value)"
+                         (blur)="touch('date_of_birth')" />
                   @if (touched()['date_of_birth'] && !errors()['date_of_birth'] && profile().date_of_birth) {
                     <span class="inp-check">✓</span>
                   }
@@ -1523,9 +1518,7 @@ function validateProfile(p: {
 /* ── Modules grid: 2-col in right panel (was 5-col for wide workspace) ── */
 .panel-right .mod-grid { grid-template-columns: repeat(2, 1fr); }
 
-.dob-selects { display: flex; gap: 6px; width: 100%; }
-.dob-sel { flex: 1; min-width: 0; appearance: auto; }
-.dob-yr { flex: 1.4; }
+.dob-text-inp { width: 100%; letter-spacing: 0.08em; font-size: 1rem; font-weight: 500; }
 
 /* ── Panel toolbar ── */
 .ptb {
@@ -2251,7 +2244,7 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
 
 /* Floating action button — anchored to bottom-right of home-wrapper */
 .graph-fab {
-  position: absolute; bottom: 56px; right: 20px; z-index: 50;
+  position: absolute; bottom: 56px; left: 20px; z-index: 50;
   display: inline-flex; align-items: center; gap: 8px;
   padding: 9px 18px; border-radius: 99px; border: none;
   background: #1e1b4b;
@@ -2418,31 +2411,23 @@ export class IntakePage {
   readonly handShapes = HAND_SHAPES;
   readonly year       = new Date().getFullYear();
   readonly todayStr   = new Date().toISOString().split('T')[0];
-  readonly dobDays   = Array.from({length: 31}, (_, i) => String(i + 1).padStart(2, '0'));
-  readonly dobMonths = [
-    {v:'01',l:'January'},{v:'02',l:'February'},{v:'03',l:'March'},
-    {v:'04',l:'April'},{v:'05',l:'May'},{v:'06',l:'June'},
-    {v:'07',l:'July'},{v:'08',l:'August'},{v:'09',l:'September'},
-    {v:'10',l:'October'},{v:'11',l:'November'},{v:'12',l:'December'},
-  ];
-  readonly dobYears  = (() => {
-    const y = new Date().getFullYear(); const a = [];
-    for (let i = y - 5; i >= y - 100; i--) a.push(String(i));
-    return a;
-  })();
+  readonly dobDisplayValue = computed(() => {
+    const d = this.profile().date_of_birth;
+    if (!d) return '';
+    const [y, m, dd] = d.split('-');
+    if (!y || !m || !dd) return '';
+    return `${dd} / ${m} / ${y}`;
+  });
 
-  readonly dobDay   = computed(() => { const d = this.profile().date_of_birth; return d ? d.split('-')[2] : ''; });
-  readonly dobMonth = computed(() => { const d = this.profile().date_of_birth; return d ? d.split('-')[1] : ''; });
-  readonly dobYear  = computed(() => { const d = this.profile().date_of_birth; return d ? d.split('-')[0] : ''; });
-
-  patchDobPart(part: 'd'|'m'|'y', val: string) {
-    const cur = this.profile().date_of_birth || '--';
-    const [y, m, d] = cur.split('-');
-    const ny = part === 'y' ? val : (y || '');
-    const nm = part === 'm' ? val : (m || '');
-    const nd = part === 'd' ? val : (d || '');
-    if (ny && nm && nd) {
-      this.patch('date_of_birth', `${ny}-${nm}-${nd}`);
+  onDobInput(raw: string) {
+    const digits = raw.replace(/\D/g, '');
+    const dd = digits.slice(0, 2);
+    const mm = digits.slice(2, 4);
+    const yyyy = digits.slice(4, 8);
+    if (dd && mm && yyyy && yyyy.length === 4) {
+      this.patch('date_of_birth', `${yyyy}-${mm.padStart(2,'0')}-${dd.padStart(2,'0')}`);
+    } else if (!digits) {
+      this.patch('date_of_birth', '');
     }
   }
 

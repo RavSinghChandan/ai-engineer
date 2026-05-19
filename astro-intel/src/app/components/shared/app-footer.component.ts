@@ -94,39 +94,39 @@ import { CommonModule } from '@angular/common';
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 0 24px;
-  height: 36px;
-  background: rgba(255,255,255,0.95);
+  gap: 16px;
+  padding: 0 28px;
+  height: 48px;
+  background: rgba(255,255,255,0.97);
   backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(99,102,241,0.1);
+  border-top: 1px solid rgba(99,102,241,0.15);
   flex-wrap: nowrap;
   overflow: hidden;
 }
 
 .sf-d-left {
-  display: flex; align-items: center; gap: 7px; flex-shrink: 0;
+  display: flex; align-items: center; gap: 8px; flex-shrink: 0;
 }
 .sf-d-logo {
-  width: 18px; height: 18px;
+  width: 22px; height: 22px;
   border-radius: 4px;
   object-fit: contain;
   flex-shrink: 0;
 }
 .sf-d-name {
-  font-size: 11px; font-weight: 700; color: #1e1b4b; letter-spacing: 0.04em; white-space: nowrap;
+  font-size: 12.5px; font-weight: 700; color: #1e1b4b; letter-spacing: 0.04em; white-space: nowrap;
 }
 .sf-d-name em { font-style: italic; color: #6366f1; font-weight: 400; }
-.sf-d-tag { font-size: 10px; color: #94a3b8; white-space: nowrap; }
-.sf-d-sep { color: rgba(0,0,0,0.15); font-size: 10px; }
+.sf-d-tag { font-size: 11px; color: #94a3b8; white-space: nowrap; }
+.sf-d-sep { color: rgba(0,0,0,0.2); font-size: 11px; }
 
 .sf-d-links {
-  display: flex; align-items: center; gap: 6px; flex: 1; justify-content: center;
+  display: flex; align-items: center; gap: 8px; flex: 1; justify-content: center;
 }
 .sf-d-link {
-  display: inline-flex; align-items: center; gap: 4px;
-  font-size: 10.5px; color: #6b7280; text-decoration: none;
-  transition: color 0.15s; white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12px; color: #4b5563; text-decoration: none;
+  transition: color 0.15s; white-space: nowrap; font-weight: 500;
 }
 .sf-d-link:hover { color: #4338ca; }
 .sf-yt:hover { color: #dc2626; }
@@ -134,13 +134,13 @@ import { CommonModule } from '@angular/common';
 
 .sf-d-book {
   display: inline-flex; align-items: center;
-  font-size: 10.5px; font-weight: 700; color: #6366f1;
+  font-size: 12px; font-weight: 700; color: #6366f1;
   text-decoration: none; white-space: nowrap;
   transition: color 0.15s;
 }
 .sf-d-book:hover { color: #4338ca; text-decoration: underline; }
 
-.sf-d-copy { font-size: 10px; color: #d1d5db; white-space: nowrap; flex-shrink: 0; }
+.sf-d-copy { font-size: 11px; color: #9ca3af; white-space: nowrap; flex-shrink: 0; font-weight: 500; }
 
 /* ══════════════════════════════════════════════════
    MOBILE EXPANDED — visible only <960px
