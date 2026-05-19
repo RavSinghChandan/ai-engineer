@@ -5,8 +5,12 @@ import { OrchestratorService } from '../../services/orchestrator.service';
 
 /* ─────────────────────────────────────────────────────────────────────────────
    GRAPH DATA  — mirrors backend graph/pipeline.py exactly
-   Canvas: 820 × 1260
-   Vertical rhythm: each layer 155px apart, enough room for circle + sub-label
+   Pipeline (LangGraph nodes in order):
+     security_check → question_agent → domain_agents (parallel fan-out)
+     → meta_agent → hallucination_check → remedy_agent
+     → admin_review_agent → grammar_agent → END
+   Post-approve HTTP calls (outside LangGraph):
+     admin → report_agent + simplify_agent → translation_agent → Final Report
 ───────────────────────────────────────────────────────────────────────────── */
 interface GNode {
   id: string;
@@ -22,18 +26,20 @@ interface GEdge { from: string; to: string; label?: string; dashed?: boolean; }
 const W = 820;
 const CX = W / 2;
 
-/* Y positions — each layer needs: circle(r=44) + sub-text(~18px) + gap(30px) = ~92px min */
+/* Y positions — 10 LangGraph nodes + input layer + post-approve section */
 const Y_INPUT   =   70;
-const Y_SEC     =  200;   // security_check (NEW Node 0 — LangGraph entry point)
-const Y_NODE1   =  360;   // question_agent
-const Y_NODE2   =  550;   // domain_agents (parallel fan-out display)
-const Y_NODE3   =  750;   // meta_agent
-const Y_NODE4   =  900;   // remedy_agent
-const Y_NODE5   = 1055;   // admin_review_agent
-const Y_NODE6A  = 1215;   // report_agent   (post-approve)
-const Y_NODE6B  = 1215;   // simplify_agent (post-approve)
-const Y_NODE7   = 1375;   // translation_agent (optional, on-demand)
-const Y_OUT     = 1535;   // END
+const Y_SEC     =  205;   // Node 0: security_check
+const Y_NODE1   =  360;   // Node 1: question_agent
+const Y_NODE2   =  540;   // Node 2: domain_agents (parallel fan-out)
+const Y_NODE3   =  720;   // Node 3: meta_agent
+const Y_NODE3B  =  860;   // Node 3.5: hallucination_check  ← NEW
+const Y_NODE4   = 1005;   // Node 4: remedy_agent
+const Y_NODE5   = 1150;   // Node 5: admin_review_agent
+const Y_NODE5B  = 1295;   // Node 5.5: grammar_agent         ← NEW
+const Y_NODE6A  = 1450;   // Post-approve: report_agent
+const Y_NODE6B  = 1450;   // Post-approve: simplify_agent
+const Y_NODE7   = 1600;   // Post-approve: translation_agent
+const Y_OUT     = 1740;   // END
 
 const H = Y_OUT + 55;
 
@@ -42,11 +48,11 @@ const DX: number[] = [70, 230, CX, 590, 750];
 
 const NODES: GNode[] = [
   /* ── Input layer ──────────────────────────────────── */
-  { id: 'inp-profile',  label: 'User Profile',   sub: 'Name · DOB · Time · Place',        icon: '👤', stepIds: [],                                               color: '#6366f1', x: CX - 200, y: Y_INPUT, r: 36 },
-  { id: 'inp-question', label: 'Questions',       sub: 'Topic · Intent · Focus',           icon: '💬', stepIds: [],                                               color: '#6366f1', x: CX,       y: Y_INPUT, r: 36 },
-  { id: 'inp-prompt',   label: 'Prompt Style',    sub: 'v1 Warm · v2 Laser-Sharp',         icon: '⚡', stepIds: [],                                               color: '#818cf8', x: CX + 200, y: Y_INPUT, r: 36 },
+  { id: 'inp-profile',  label: 'User Profile',  sub: 'Name · DOB · Time · Place',    icon: '👤', stepIds: [], color: '#6366f1', x: CX - 200, y: Y_INPUT, r: 36 },
+  { id: 'inp-question', label: 'Questions',      sub: 'Topic · Intent · Focus',       icon: '💬', stepIds: [], color: '#6366f1', x: CX,       y: Y_INPUT, r: 36 },
+  { id: 'inp-prompt',   label: 'Prompt Style',   sub: 'v1 Warm · v2 Laser-Sharp',     icon: '⚡', stepIds: [], color: '#818cf8', x: CX + 200, y: Y_INPUT, r: 36 },
 
-  /* ── Node 0 — security_check (LangGraph entry point) ─ */
+  /* ── Node 0 — security_check ──────────────────────── */
   { id: 'security', label: 'Security Check', sub: 'Inject · Jailbreak · Leak · Audit', icon: '🛡',
     stepIds: ['security'], color: '#dc2626', x: CX, y: Y_SEC, r: 44 },
 
@@ -54,21 +60,20 @@ const NODES: GNode[] = [
   { id: 'q', label: 'Question Agent', sub: 'Multi-Query RAG · Normalize · Intent', icon: '🧩',
     stepIds: ['question'], color: '#f59e0b', x: CX, y: Y_NODE1, r: 44 },
 
-  /* ── Node 2 — domain_agents (fan-out display) ─────── */
-  { id: 'astro',  label: 'Astrology',  sub: 'Vedic · KP · Western',          icon: '🪐',
-    stepIds: ['astro-vedic','astro-kp','astro-western'],      color: '#3b82f6', x: DX[0], y: Y_NODE2, r: 38 },
-  { id: 'num',    label: 'Numerology', sub: 'Indian · Chaldean · Pythag',     icon: '🔢',
-    stepIds: ['num-indian','num-chaldean','num-pythagorean'], color: '#8b5cf6', x: DX[1], y: Y_NODE2, r: 38 },
-  { id: 'palm',   label: 'Palmistry',  sub: 'Indian · Chinese · Western',     icon: '✋',
-    stepIds: ['palm-indian','palm-chinese','palm-western'],   color: '#10b981', x: DX[2], y: Y_NODE2, r: 38 },
-  { id: 'tarot',  label: 'Tarot',      sub: 'Rider-Waite · Intuitive',        icon: '🃏',
-    stepIds: ['tarot-rw','tarot-int'],                        color: '#f43f5e', x: DX[3], y: Y_NODE2, r: 38 },
-  { id: 'vastu',  label: 'Vastu',      sub: 'Traditional · Modern',           icon: '🏠',
-    stepIds: ['vastu-trad','vastu-modern'],                   color: '#f97316', x: DX[4], y: Y_NODE2, r: 38 },
+  /* ── Node 2 — domain_agents (parallel fan-out) ─────── */
+  { id: 'astro',  label: 'Astrology',  sub: 'Vedic · KP · Western',         icon: '🪐', stepIds: ['astro-vedic','astro-kp','astro-western'],      color: '#3b82f6', x: DX[0], y: Y_NODE2, r: 38 },
+  { id: 'num',    label: 'Numerology', sub: 'Indian · Chaldean · Pythag',    icon: '🔢', stepIds: ['num-indian','num-chaldean','num-pythagorean'], color: '#8b5cf6', x: DX[1], y: Y_NODE2, r: 38 },
+  { id: 'palm',   label: 'Palmistry',  sub: 'Indian · Chinese · Western',    icon: '✋', stepIds: ['palm-indian','palm-chinese','palm-western'],   color: '#10b981', x: DX[2], y: Y_NODE2, r: 38 },
+  { id: 'tarot',  label: 'Tarot',      sub: 'Rider-Waite · Intuitive',       icon: '🃏', stepIds: ['tarot-rw','tarot-int'],                        color: '#f43f5e', x: DX[3], y: Y_NODE2, r: 38 },
+  { id: 'vastu',  label: 'Vastu',      sub: 'Traditional · Modern',          icon: '🏠', stepIds: ['vastu-trad','vastu-modern'],                   color: '#f97316', x: DX[4], y: Y_NODE2, r: 38 },
 
   /* ── Node 3 — meta_agent ──────────────────────────── */
   { id: 'meta', label: 'Meta Agent', sub: 'Cross-tradition merge · Consensus', icon: '🧠',
     stepIds: ['meta'], color: '#7c3aed', x: CX, y: Y_NODE3, r: 44 },
+
+  /* ── Node 3.5 — hallucination_check (NEW) ─────────── */
+  { id: 'hallucination', label: 'Hallucination Check', sub: 'Fact-check · Leak detect · Confidence', icon: '🔍',
+    stepIds: ['hallucination'], color: '#b45309', x: CX, y: Y_NODE3B, r: 42 },
 
   /* ── Node 4 — remedy_agent ────────────────────────── */
   { id: 'remedy', label: 'Remedy Agent', sub: 'Habits · Mantras · Gems · Colors', icon: '🌿',
@@ -78,13 +83,17 @@ const NODES: GNode[] = [
   { id: 'admin', label: 'Admin Review', sub: 'Validate · Quality Gate · Approve', icon: '📋',
     stepIds: ['admin'], color: '#0ea5e9', x: CX, y: Y_NODE5, r: 42 },
 
-  /* ── Node 6 — report + simplify (post-approve) ────── */
+  /* ── Node 5.5 — grammar_agent (NEW) ──────────────── */
+  { id: 'grammar', label: 'Grammar Agent', sub: 'Bullet polish · Grammar · Tone fix', icon: '✍️',
+    stepIds: ['grammar'], color: '#4f46e5', x: CX, y: Y_NODE5B, r: 42 },
+
+  /* ── Post-approve HTTP: report + simplify ─────────── */
   { id: 'report',   label: 'Report Agent',   sub: 'Narrative · 360° Analysis', icon: '📝',
-    stepIds: ['report'], color: '#a855f7', x: CX - 120, y: Y_NODE6A, r: 38 },
+    stepIds: ['report'],   color: '#a855f7', x: CX - 120, y: Y_NODE6A, r: 38 },
   { id: 'simplify', label: 'Simplify Agent', sub: 'WHO/WHAT/WHEN/WHERE · LLM', icon: '✨',
     stepIds: ['simplify'], color: '#ec4899', x: CX + 120, y: Y_NODE6B, r: 38 },
 
-  /* ── Node 7 — translation_agent (on-demand) ─────────── */
+  /* ── Post-approve HTTP: translation_agent ────────── */
   { id: 'translate', label: 'Translation Agent', sub: '22 Languages · Parallel · DeepSeek', icon: '🌐',
     stepIds: ['translate'], color: '#0891b2', x: CX, y: Y_NODE7, r: 42 },
 
@@ -94,34 +103,35 @@ const NODES: GNode[] = [
 ];
 
 const EDGES: GEdge[] = [
-  /* inputs → security_check (new LangGraph entry point) */
+  /* inputs → security_check */
   { from: 'inp-profile',  to: 'security' },
   { from: 'inp-question', to: 'security' },
   { from: 'inp-prompt',   to: 'security', label: 'prompt_v' },
   /* security_check → question_agent */
   { from: 'security', to: 'q', label: 'validated' },
-  /* question agent → all 5 domain agents */
+  /* question_agent → all 5 domain agents (parallel) */
   { from: 'q', to: 'astro', label: 'intent[]' },
   { from: 'q', to: 'num' },
   { from: 'q', to: 'palm' },
   { from: 'q', to: 'tarot' },
   { from: 'q', to: 'vastu' },
-  /* all domain agents → meta */
+  /* all domain agents → meta_agent */
   { from: 'astro', to: 'meta' },
   { from: 'num',   to: 'meta' },
   { from: 'palm',  to: 'meta' },
   { from: 'tarot', to: 'meta' },
   { from: 'vastu', to: 'meta' },
-  /* sequential backbone */
-  { from: 'meta',    to: 'remedy', label: 'insights[]' },
-  { from: 'remedy',  to: 'admin',  label: 'remedies[]' },
-  /* POST /approve — dashed to show separate HTTP call */
-  { from: 'admin',   to: 'report',   dashed: true, label: 'POST /approve' },
-  { from: 'admin',   to: 'simplify', dashed: true },
-  /* report + simplify merge into translation (on-demand) */
+  /* meta → hallucination_check → remedy → admin → grammar (LangGraph backbone) */
+  { from: 'meta',          to: 'hallucination', label: 'insights[]' },
+  { from: 'hallucination', to: 'remedy',         label: 'verified' },
+  { from: 'remedy',        to: 'admin',          label: 'remedies[]' },
+  { from: 'admin',         to: 'grammar',        label: 'approved' },
+  /* grammar → END (LangGraph terminates here) */
+  { from: 'grammar', to: 'report',   dashed: true, label: 'POST /approve' },
+  { from: 'grammar', to: 'simplify', dashed: true },
+  /* report + simplify → translation (on-demand HTTP) */
   { from: 'report',   to: 'translate', label: 'narrative' },
   { from: 'simplify', to: 'translate', label: 'hw_bullets' },
-  /* POST /translate — on-demand */
   { from: 'translate', to: 'out', dashed: true, label: 'POST /translate' },
 ];
 
@@ -129,15 +139,17 @@ const NM = new Map(NODES.map(n => [n.id, n]));
 
 /* Backend node labels in execution order (for the live ticker) */
 const PIPELINE_STEPS: { id: string; label: string }[] = [
-  { id: 'security',  label: 'Node 0 · Security Check — injection detection, jailbreak guard, audit logging (Layer 1–4)' },
-  { id: 'question',  label: 'Node 1 · Question Agent — Multi-Query RAG: 2 variants → best-confidence intent classification' },
-  { id: 'domain',    label: 'Node 2 · Domain Agents — Astrology · Numerology · Palmistry · Tarot · Vastu running in parallel' },
-  { id: 'meta',      label: 'Node 3 · Meta Agent — merging cross-tradition insights & resolving conflicts' },
-  { id: 'remedy',    label: 'Node 4 · Remedy Agent — generating habits, mantras, colors & gemstones' },
-  { id: 'admin',     label: 'Node 5 · Admin Review — validating quality, approving insights' },
-  { id: 'report',    label: 'Node 6 · Report Agent — assembling narrative 360° report (POST /approve)' },
-  { id: 'simplify',  label: 'Node 6 · Simplify Agent — structuring WHO/WHAT/WHEN/WHERE bullets (POST /approve)' },
-  { id: 'translate', label: 'Node 7 · Translation Agent — translating to target language via DeepSeek (POST /translate)' },
+  { id: 'security',      label: 'Node 0 · Security Check — injection detection, jailbreak guard, audit logging (Layer 1–4)' },
+  { id: 'question',      label: 'Node 1 · Question Agent — Multi-Query RAG: 2 variants → best-confidence intent classification' },
+  { id: 'domain',        label: 'Node 2 · Domain Agents — Astrology · Numerology · Palmistry · Tarot · Vastu running in parallel' },
+  { id: 'meta',          label: 'Node 3 · Meta Agent — merging cross-tradition insights & resolving conflicts' },
+  { id: 'hallucination', label: 'Node 4 · Hallucination Check — fact-checking insights, output leak detection, confidence scoring' },
+  { id: 'remedy',        label: 'Node 5 · Remedy Agent — generating habits, mantras, colors & gemstones' },
+  { id: 'admin',         label: 'Node 6 · Admin Review — validating quality, approving insights' },
+  { id: 'grammar',       label: 'Node 7 · Grammar Agent — polishing all insight bullets for grammar, tone & clarity' },
+  { id: 'report',        label: 'Node 8 · Report Agent — assembling narrative 360° report (POST /approve)' },
+  { id: 'simplify',      label: 'Node 8 · Simplify Agent — structuring WHO/WHAT/WHEN/WHERE bullets (POST /approve)' },
+  { id: 'translate',     label: 'Node 9 · Translation Agent — translating to target language via DeepSeek (POST /translate)' },
 ];
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -155,7 +167,7 @@ const PIPELINE_STEPS: { id: string; label: string }[] = [
     <div class="af-bar-left">
       <span class="af-dot" [class.af-dot-live]="anyRunning()"></span>
       <span class="af-title">Agent Pipeline</span>
-      <span class="af-sub">8 Nodes · 4-Layer Security · Multi-Query RAG · 5 Traditions · 22 Languages · Prompt v1/v2 · LangGraph</span>
+      <span class="af-sub">10 Nodes · 4-Layer Security · Hallucination Check · Grammar Agent · Multi-Query RAG · 5 Traditions · 22 Languages · LangGraph</span>
     </div>
     <div class="af-bar-right">
       @if (orch.cacheHit()) {
@@ -260,9 +272,9 @@ const PIPELINE_STEPS: { id: string; label: string }[] = [
         Layer 4: Audit Log · Rate Limit
       </text>
 
-      <!-- Guardrails band -->
+      <!-- Guardrails band — spans question_agent through grammar_agent -->
       <rect x="6" [attr.y]="Y_NODE1 - 62" [attr.width]="W - 12"
-            [attr.height]="Y_NODE5 - Y_NODE1 + 148" rx="14"
+            [attr.height]="Y_NODE5B - Y_NODE1 + 148" rx="14"
             fill="rgba(99,102,241,0.012)" stroke="rgba(99,102,241,0.14)"
             stroke-width="1" stroke-dasharray="8 5"/>
       <rect x="6" [attr.y]="Y_NODE1 - 62" [attr.width]="W - 12" height="22" rx="14"
@@ -562,15 +574,19 @@ const PIPELINE_STEPS: { id: string; label: string }[] = [
   .af-bar-right { gap: 6px; flex-wrap: wrap; }
   .af-sub { display: none; }
   .af-cache-badge { font-size: 9.5px; padding: 2px 7px; }
-  /* Canvas: horizontal scroll, start from left on mobile */
-  .af-canvas-wrap { justify-content: flex-start; padding: 8px 4px; }
+  /* Canvas: SVG fills full width, scales via viewBox — no horizontal scroll needed */
+  .af-canvas-wrap {
+    justify-content: flex-start; padding: 8px 4px;
+    overflow-x: hidden; overflow-y: auto;
+  }
+  .af-svg { width: 100% !important; max-width: 100%; }
   .af-ticker { padding: 6px 10px; }
+  /* Hide zoom controls on mobile — viewBox handles scaling */
+  .zoom-group { display: none; }
 }
 @media (max-width: 480px) {
   .af-bar { padding: 6px 8px; }
   .af-title { font-size: 11px; }
-  .zoom-group { gap: 1px; }
-  .zoom-label { min-width: 28px; font-size: 9px; }
   .af-icon-btn { width: 24px; height: 24px; }
   .af-ticker { padding: 5px 8px; min-height: 28px; }
   .ticker-text { font-size: 9.5px; }
@@ -596,12 +612,14 @@ export class AgentFlowComponent implements OnDestroy {
   readonly EDGES = EDGES;
   readonly W = W;
   readonly H = H;
-  readonly Y_SEC   = Y_SEC;
-  readonly Y_NODE1 = Y_NODE1;
-  readonly Y_NODE2 = Y_NODE2;
-  readonly Y_NODE3 = Y_NODE3;
-  readonly Y_NODE4 = Y_NODE4;
-  readonly Y_NODE5 = Y_NODE5;
+  readonly Y_SEC    = Y_SEC;
+  readonly Y_NODE1  = Y_NODE1;
+  readonly Y_NODE2  = Y_NODE2;
+  readonly Y_NODE3  = Y_NODE3;
+  readonly Y_NODE3B = Y_NODE3B;
+  readonly Y_NODE4  = Y_NODE4;
+  readonly Y_NODE5  = Y_NODE5;
+  readonly Y_NODE5B = Y_NODE5B;
   readonly Y_NODE6A = Y_NODE6A;
   readonly Y_NODE7  = Y_NODE7;
   readonly CX = CX;
