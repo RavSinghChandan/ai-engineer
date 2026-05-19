@@ -12,6 +12,15 @@ export interface GeoResult {
   source:       string;
 }
 
+export interface GeoSearchItem {
+  display_name: string;
+  city:         string;
+  country:      string;
+  lat:          number;
+  lon:          number;
+  timezone:     string;
+}
+
 // Built-in fallback table — used instantly when backend is offline
 const FALLBACK: Record<string, GeoResult> = {
   'chandigarh':    { lat:30.7333, lon:76.7794, timezone:'Asia/Kolkata',       display_name:'Chandigarh, India',       source:'builtin' },
@@ -58,6 +67,39 @@ const _sessionCache = new Map<string, GeoResult>();
 @Injectable({ providedIn: 'root' })
 export class GeocodeService {
   private http = inject(HttpClient);
+
+  async search(q: string, limit = 6): Promise<GeoSearchItem[]> {
+    if (!q || q.trim().length < 2) return [];
+    try {
+      const items = await firstValueFrom(
+        this.http.get<GeoSearchItem[]>(
+          `/api/v1/geocode/search?q=${encodeURIComponent(q.trim())}&limit=${limit}`
+        ).pipe(timeout(5000), catchError(() => of([])))
+      );
+      return items ?? [];
+    } catch {
+      return this._builtinSearch(q.trim().toLowerCase(), limit);
+    }
+  }
+
+  private _builtinSearch(lower: string, limit: number): GeoSearchItem[] {
+    const hits: GeoSearchItem[] = [];
+    for (const [k, v] of Object.entries(FALLBACK)) {
+      if (k.startsWith(lower) || lower.startsWith(k) || k.includes(lower)) {
+        const parts = v.display_name.split(',');
+        hits.push({
+          display_name: v.display_name,
+          city:    parts[0]?.trim() ?? k,
+          country: parts[parts.length - 1]?.trim() ?? '',
+          lat:     v.lat,
+          lon:     v.lon,
+          timezone: v.timezone,
+        });
+      }
+      if (hits.length >= limit) break;
+    }
+    return hits;
+  }
 
   async resolve(city: string): Promise<GeoResult | null> {
     if (!city?.trim()) return null;
