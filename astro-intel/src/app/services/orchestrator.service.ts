@@ -13,6 +13,7 @@ import { TarotService }      from './tarot.service';
 import { VastuService }      from './vastu.service';
 import { RemedyService }     from './remedy.service';
 import { GeocodeService }    from './geocode.service';
+import { GrammarService }   from './grammar.service';
 
 // Known tradition order per domain — matches the backend sub-agent execution order.
 // Used to assign tradition labels by position when sub_agent field is missing.
@@ -99,7 +100,8 @@ export class OrchestratorService {
   private palmSvc   = inject(PalmistryService);
   private tarotSvc  = inject(TarotService);
   private vastuSvc  = inject(VastuService);
-  private remedySvc = inject(RemedyService);
+  private remedySvc  = inject(RemedyService);
+  private grammarSvc = inject(GrammarService);
 
   // ── Run ────────────────────────────────────────────────────────────────────
   async run(input: SystemInput): Promise<void> {
@@ -397,9 +399,12 @@ export class OrchestratorService {
       closing_note: 'Use this as a compass, not a map. Your choices remain the most powerful force in your journey.',
       confidence_distribution: { high: 0, medium: 0, low: 0 },
     };
-    this.finalReport.set(report);
-    this.englishReport.set(report);
-    return report;
+
+    // Grammar agent — apply deterministic corrections to all prose in the report
+    const correctedReport = this.grammarSvc.correctReport(report) as FinalReport;
+    this.finalReport.set(correctedReport);
+    this.englishReport.set(correctedReport);
+    return correctedReport;
   }
 
   // ── Edit insight content ───────────────────────────────────────────────────
