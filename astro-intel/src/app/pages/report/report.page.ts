@@ -2042,6 +2042,78 @@ import { firstValueFrom } from 'rxjs';
    in print context, so real print rules are injected via printPdf() below.
    This block is kept for completeness but has no effect in print.
 ═══════════════════════════════════════════════════════════════════════════ */
+/* ══ RESPONSIVE — MOBILE ══ */
+@media (max-width: 900px) {
+  /* Toolbar: shrink buttons */
+  .tb-btn { padding: 7px 10px; font-size: 12px; }
+  .tb-btn-primary { padding: 8px 14px; font-size: 12px; }
+  .lang-select { max-width: 90px; font-size: 11px; }
+}
+@media (max-width: 860px) {
+  .toolbar { padding: 0 14px; height: 56px; gap: 8px; overflow: hidden; }
+  .tb-page-name { display: none; }
+  .tb-divider { display: none; }
+  .tb-brand-name { font-size: 14px; }
+  .tb-center { flex: 0 0 auto; }
+  .lang-pill { padding: 5px 8px; }
+  .lang-select { max-width: 80px; font-size: 11px; }
+  .tb-right { gap: 6px; }
+  /* Icon-only buttons: hide text, keep SVG */
+  .tb-btn { font-size: 0 !important; padding: 8px; width: 34px; min-width: 34px; }
+  .tb-btn svg { width: 16px; height: 16px; }
+  .tb-btn-primary { font-size: 0 !important; padding: 8px 10px; gap: 0; }
+  .tb-btn-primary svg { width: 16px; height: 16px; }
+  /* Report content */
+  .report-scroll { padding: 10px 4px 40px; }
+  .report-wrap { max-width: 100%; box-shadow: none; }
+  .page-hdr { padding: 8px 12px; }
+  .page-hdr-logo, .page-hdr-logo-dark { width: 56px; }
+  /* Module sections: stack SVG above data panel */
+  .mod-body-row { flex-direction: column; gap: 10px; }
+  .chart-svg-wrap { width: 100% !important; max-width: 200px; margin: 0 auto; }
+  .vedic-svg-v2 { width: 100% !important; max-width: 200px; height: auto !important; }
+  .loshu-wrap { width: 100% !important; max-width: 160px; margin: 0 auto; }
+  .loshu-svg { width: 100% !important; max-width: 160px; height: auto !important; }
+  .hand-svg-wrap { width: 100% !important; max-width: 140px; margin: 0 auto; }
+  .hand-svg { width: 100% !important; max-width: 140px; height: auto !important; }
+  .astro-data-panel, .num-cells-panel, .palm-trad-panel { width: 100%; }
+  .ntt-hdr-row, .ntt-row { grid-template-columns: 80px repeat(4, 1fr); font-size: 8px; padding: 5px 6px; }
+  .pt-row { grid-template-columns: 16px 60px 24px 1fr; }
+  .astro-meta-grid { grid-template-columns: 1fr 1fr; }
+  .tarot-spread-area { flex-wrap: wrap; gap: 6px; }
+  .tarot-card-v2 { min-width: 60px; max-width: 80px; }
+  .num-cards-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 480px) {
+  .toolbar { height: 52px; padding: 0 10px; gap: 6px; }
+  .tb-brand-name { font-size: 12px; }
+  .tb-brand-mark { font-size: 14px; }
+  .lang-pill { padding: 4px 6px; }
+  .lang-select { max-width: 65px; font-size: 10px; }
+  .lang-badge { display: none; }
+  .tb-right { gap: 4px; }
+  .tb-btn { padding: 6px 8px; }
+  .tb-btn-primary { padding: 6px 10px; }
+  .report-scroll { padding: 6px 2px 32px; }
+  .page-hdr { padding: 6px 8px; }
+  .page-hdr-logo, .page-hdr-logo-dark { width: 44px; }
+  .page-hdr-title { font-size: 9px; }
+  .ntt-hdr-row, .ntt-row { grid-template-columns: 60px repeat(4, 1fr); font-size: 7px; padding: 4px; gap: 2px; }
+  .num-cards-grid { gap: 3px; }
+  .tarot-spread-area { gap: 4px; }
+}
+@media (max-width: 380px) {
+  .toolbar { height: 48px; padding: 0 8px; gap: 4px; }
+  .tb-brand-name { display: none; }
+  .tb-btn-primary { padding: 5px 8px; font-size: 10px; }
+  .lang-select { max-width: 55px; }
+  .ntt-hdr-row, .ntt-row { grid-template-columns: 52px repeat(4, 1fr); font-size: 6.5px; }
+}
+/* Landscape mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .toolbar { height: 48px; }
+  .report-scroll { padding: 6px 4px 24px; }
+}
 @media print {
   .no-print, .translate-banner, .translate-error-banner { display: none !important; }
 }

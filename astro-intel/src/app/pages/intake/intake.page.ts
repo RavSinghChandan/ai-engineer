@@ -2271,11 +2271,49 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
   .hdr-btn-label { display: none; }
   .hdr-icon-btn, .hdr-signout-btn { padding: 7px 9px; }
   .hdr-uname { max-width: 80px; overflow: hidden; text-overflow: ellipsis; }
+  .workspace { padding: 8px; gap: 8px; }
 }
 @media (max-width: 600px) {
   .panel-right .mod-grid { grid-template-columns: repeat(2, 1fr); }
   .field-row { grid-template-columns: 1fr; }
   .hdr-divider { display: none; }
+  .workspace { padding: 6px; gap: 6px; }
+  .panel { border-radius: 10px; }
+}
+@media (max-width: 480px) {
+  .hdr { height: 56px; padding: 0 12px; }
+  .hdr-logo { height: 30px; }
+  .hdr-brand { font-size: 14px; }
+  .hdr-uname { max-width: 60px; }
+  .workspace { padding: 4px; gap: 4px; }
+  .panel { border-radius: 8px; }
+  .panel-right .mod-grid { grid-template-columns: repeat(2, 1fr); }
+  .field-row { grid-template-columns: 1fr; }
+  .pipeline-topbar { flex-wrap: wrap; gap: 6px; padding: 8px 12px; min-height: unset; }
+  .pipeline-topbar-left { flex-wrap: wrap; gap: 6px; }
+  .pipeline-topbar-right { flex-wrap: wrap; gap: 6px; }
+}
+@media (max-width: 380px) {
+  .hdr { height: 52px; padding: 0 8px; }
+  .hdr-brand { display: none; }
+  .workspace { padding: 2px; gap: 4px; }
+  .panel-right .mod-grid { grid-template-columns: 1fr 1fr; }
+  .field-row { grid-template-columns: 1fr; }
+  .hdr-icon-btn, .hdr-signout-btn { padding: 5px 7px; }
+}
+/* Landscape mobile — ensure content scrolls and panels stack */
+@media (max-height: 500px) and (orientation: landscape) {
+  :host { height: auto; min-height: 100vh; }
+  .workspace { overflow-y: auto; height: auto; }
+  .home-layout { flex-direction: row; flex-wrap: wrap; }
+  .panel-center { min-width: 280px; width: 55% !important; }
+  .panel-right  { min-width: 240px; width: 42% !important; }
+  .hdr { height: 48px; }
+}
+@media (max-width: 600px) and (orientation: landscape) {
+  .home-layout { flex-direction: row; flex-wrap: wrap; }
+  .panel-center { width: 55% !important; }
+  .panel-right  { width: 42% !important; }
 }
   
 .refresh-btn {
