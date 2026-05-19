@@ -338,6 +338,10 @@ function validateProfile(p: {
   <!-- ══ VIEW: HOME — Birth Profile (center) + Modules (right) ══ -->
   @if (view() === 'home') {
   <div class="home-wrapper">
+  <!-- Full-page brand watermark — low opacity, non-interactive -->
+  <div class="wm-overlay" aria-hidden="true">
+    <img src="rav-logo.png" alt="" draggable="false"/>
+  </div>
   <div class="workspace home-layout">
 
     <!-- ── CENTER: Birth Profile ── -->
@@ -1336,7 +1340,7 @@ function validateProfile(p: {
   position: relative; z-index: 100; gap: 16px;
 }
 .hdr-brand { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
-.hdr-logo  { width: 40px; height: 40px; object-fit: contain; border-radius: 0; background: transparent; padding: 0; border: none; }
+.hdr-logo  { width: 52px; height: 52px; object-fit: contain; border-radius: 0; background: transparent; padding: 0; border: none; }
 .hdr-brand-text { display: flex; flex-direction: column; gap: 1px; }
 .hdr-name  { font-size: 17px; font-weight: 700; color: #1e1b4b; letter-spacing: 0.04em; line-height: 1.2; }
 .hdr-name em { font-style: normal; font-weight: 400; color: #6366f1; }
@@ -1432,7 +1436,8 @@ function validateProfile(p: {
   flex: 1; overflow: hidden;
   display: flex; flex-direction: row;
   padding: 10px; gap: 10px;
-  background: #f1f5f9;
+  background: transparent;
+  position: relative; z-index: 1;
 }
 
 /* Home layout: center panel + right aside */
@@ -2209,6 +2214,17 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
 /* ══ HOME WRAPPER — column that holds the row + optional graph drawer ══ */
 .home-wrapper {
   flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative;
+  background: #f1f5f9;
+}
+.wm-overlay {
+  position:absolute;inset:0;pointer-events:none;z-index:0;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+}
+.wm-overlay img {
+  width:360px;height:360px;object-fit:contain;opacity:0.09;
+  filter:saturate(0.4) hue-rotate(240deg);
+  mask-image:radial-gradient(ellipse 55% 55% at 50% 50%,rgba(0,0,0,.9) 0%,rgba(0,0,0,.5) 50%,transparent 100%);
+  -webkit-mask-image:radial-gradient(ellipse 55% 55% at 50% 50%,rgba(0,0,0,.9) 0%,rgba(0,0,0,.5) 50%,transparent 100%);
 }
 
 /* Graph drawer — slides up from the bottom of home-wrapper */
