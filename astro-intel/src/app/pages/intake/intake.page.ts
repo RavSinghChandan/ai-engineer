@@ -7,6 +7,7 @@ import { OrchestratorService } from '../../services/orchestrator.service';
 import { GeocodeService } from '../../services/geocode.service';
 import { Module, SystemInput } from '../../models/astro.models';
 import { AgentFlowComponent } from '../../components/agent-flow/agent-flow.component';
+import { AppFooterComponent } from '../../components/shared/app-footer.component';
 import { AuthService } from '../../services/auth.service';
 import { ApiService } from '../../services/api.service';
 import { firstValueFrom } from 'rxjs';
@@ -220,7 +221,7 @@ function validateProfile(p: {
 @Component({
   selector: 'app-intake',
   standalone: true,
-  imports: [CommonModule, FormsModule, AgentFlowComponent],
+  imports: [CommonModule, FormsModule, AgentFlowComponent, AppFooterComponent],
   template: `
 <div class="shell">
 
@@ -295,6 +296,9 @@ function validateProfile(p: {
           }
         </button>
       }
+
+      <!-- Book a Session CTA -->
+      <a href="https://topmate.io/aurawithrav" class="hdr-book-btn" target="_blank" rel="noopener">Book a Session</a>
 
       <!-- Divider -->
       <div class="hdr-divider"></div>
@@ -1214,22 +1218,7 @@ function validateProfile(p: {
   </div>
 }
 
-  <footer class="ftr">
-    <div class="ftr-brand">
-      <img src="rav-logo.png" class="ftr-logo" alt=""/>
-      <span class="ftr-name">AURA with Rav</span>
-      <span class="ftr-sep">·</span>
-      <span class="ftr-tag">See life — as it is.</span>
-    </div>
-    <div class="ftr-links">
-      <span>Vedic Astrology</span><span class="ftr-sep">·</span>
-      <span>Numerology</span><span class="ftr-sep">·</span>
-      <span>Palmistry</span><span class="ftr-sep">·</span>
-      <span>Tarot</span><span class="ftr-sep">·</span>
-      <span>Vastu</span>
-    </div>
-    <p class="ftr-copy">© {{ year }} Aura with Rav · For guidance only · Powered by AI</p>
-  </footer>
+  <app-footer></app-footer>
 
 </div>
   `,
@@ -1342,7 +1331,7 @@ function validateProfile(p: {
   position: relative; z-index: 100; gap: 16px;
 }
 .hdr-brand { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
-.hdr-logo  { width: 44px; height: 44px; object-fit: cover; object-position: center top; border-radius: 50%; border: 2px solid rgba(99,102,241,0.3); }
+.hdr-logo  { width: 44px; height: 44px; object-fit: contain; border-radius: 10px; border: 1.5px solid rgba(99,102,241,0.2); background: #f5f3ff; padding: 2px; }
 .hdr-brand-text { display: flex; flex-direction: column; gap: 1px; }
 .hdr-name  { font-size: 17px; font-weight: 700; color: #1e1b4b; letter-spacing: 0.04em; line-height: 1.2; }
 .hdr-name em { font-style: normal; font-weight: 400; color: #6366f1; }
@@ -1369,6 +1358,18 @@ function validateProfile(p: {
 .hdr-btn-label { display: inline; }
 /* Vertical rule between nav buttons and identity chip */
 .hdr-divider { width: 1px; height: 28px; background: rgba(0,0,0,0.1); margin: 0 4px; flex-shrink: 0; }
+
+.hdr-book-btn {
+  display: inline-flex; align-items: center;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff; text-decoration: none;
+  font-size: 0.75rem; font-weight: 700;
+  padding: 0.38rem 0.85rem; border-radius: 0.5rem;
+  white-space: nowrap; flex-shrink: 0;
+  transition: opacity 0.15s, transform 0.15s;
+  letter-spacing: 0.02em;
+}
+.hdr-book-btn:hover { opacity: 0.88; transform: translateY(-1px); }
 /* Identity: small avatar + name + role in one tight block */
 .hdr-identity { display: flex; align-items: center; gap: 8px; }
 .hdr-avatar { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; object-position: top; border: 2px solid rgba(99,102,241,0.28); flex-shrink: 0; }
@@ -2054,22 +2055,7 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
   box-shadow: 0 1px 4px rgba(245,158,11,0.25);
 }
 
-/* ══ FOOTER ══ */
-.ftr {
-  flex-shrink: 0; height: 32px; padding: 0 20px;
-  background: rgba(255,255,255,0.8); backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(0,0,0,0.06);
-  display: flex; align-items: center; justify-content: space-between;
-  position: relative; z-index: 100;
-}
-.ftr-brand { display: flex; align-items: center; gap: 6px; }
-.ftr-logo  { width: 16px; height: 16px; object-fit: contain; border-radius: 4px; }
-.ftr-name  { font-size: 10.5px; font-weight: 700; color: #4338ca; letter-spacing: 0.06em; }
-.ftr-tag   { font-size: 10px; color: #9ca3af; }
-.ftr-sep   { color: rgba(0,0,0,0.15); font-size: 10px; }
-.ftr-links { display: flex; align-items: center; gap: 5px; }
-.ftr-links span { font-size: 10px; color: #9ca3af; }
-.ftr-copy  { font-size: 9.5px; color: #d1d5db; }
+/* ══ FOOTER — old strip removed; app-footer component handles this ══ */
 
 /* ══ ENHANCED FORM ELEMENTS ══ */
 
@@ -2290,7 +2276,7 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
   /* Module grid */
   .panel-right .mod-grid { grid-template-columns: repeat(3, 1fr); }
   /* Header */
-  .hdr-nav, .ftr-links { display: none; }
+  .hdr-nav { display: none; }
   .hdr { padding: 0 16px; height: 64px; }
   .hdr-btn-label { display: none; }
   .hdr-icon-btn, .hdr-signout-btn { padding: 7px 9px; }
@@ -2312,6 +2298,7 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
   .panel-right .mod-grid { grid-template-columns: repeat(2, 1fr); }
   .field-row { grid-template-columns: 1fr; }
   .hdr-divider { display: none; }
+  .hdr-book-btn { font-size: 0.68rem; padding: 0.32rem 0.55rem; }
   .workspace { padding: 6px; gap: 6px; }
   .panel { border-radius: 10px; }
   /* Hide name/role text — keep avatar + icon buttons only */

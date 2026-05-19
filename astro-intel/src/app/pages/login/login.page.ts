@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { AppFooterComponent } from '../../components/shared/app-footer.component';
 
 const EMAIL_RE   = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE   = /^[+]?[\d\s\-().]{7,15}$/;
@@ -37,7 +38,7 @@ function validateConfirm(pass: string, confirm: string): string {
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AppFooterComponent],
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.css'],
 })

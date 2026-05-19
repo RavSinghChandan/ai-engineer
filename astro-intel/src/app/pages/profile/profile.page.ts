@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
+import { AppFooterComponent } from '../../components/shared/app-footer.component';
 import { environment } from '../../../environments/environment';
 
 const BACKEND = environment.apiUrl;
@@ -36,7 +37,7 @@ function validateConfirm(pass: string, confirm: string): string {
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AppFooterComponent],
   templateUrl: './profile.page.html',
   styleUrls: ['./profile.page.css'],
 })

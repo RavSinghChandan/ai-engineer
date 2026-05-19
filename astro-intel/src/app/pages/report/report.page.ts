@@ -5,12 +5,13 @@ import { Router } from '@angular/router';
 import { OrchestratorService } from '../../services/orchestrator.service';
 import { ApiService, LanguageOption } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
+import { AppFooterComponent } from '../../components/shared/app-footer.component';
 import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-report',
   standalone: true,
-  imports: [CommonModule, FormsModule, KeyValuePipe],
+  imports: [CommonModule, FormsModule, KeyValuePipe, AppFooterComponent],
   template: `
 <!-- ══ Toolbar ═══════════════════════════════════════════════════════════════ -->
 <div class="toolbar no-print">
@@ -1077,6 +1078,7 @@ import { firstValueFrom } from 'rxjs';
     </div>
   </div>
 }
+<app-footer></app-footer>
   `,
   styles: [`
 /* ═══════════════════════════════════════════════════════════════════════════

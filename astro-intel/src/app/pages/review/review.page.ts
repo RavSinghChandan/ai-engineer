@@ -8,6 +8,7 @@ import { ApiService, LanguageOption } from '../../services/api.service';
 import { AdminInsight, AdminQuestion, InsightDetail } from '../../models/astro.models';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
+import { AppFooterComponent } from '../../components/shared/app-footer.component';
 import { environment } from '../../../environments/environment';
 
 const BACKEND = environment.apiUrl;
@@ -15,7 +16,7 @@ const BACKEND = environment.apiUrl;
 @Component({
   selector: 'app-review',
   standalone: true,
-  imports: [CommonModule, FormsModule, KeyValuePipe],
+  imports: [CommonModule, FormsModule, KeyValuePipe, AppFooterComponent],
   template: `
 <div class="shell">
 
@@ -1148,6 +1149,7 @@ const BACKEND = environment.apiUrl;
     </div>
   }
 
+<app-footer></app-footer>
 </div>
   `,
   styles: [`
