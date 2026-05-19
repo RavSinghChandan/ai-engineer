@@ -7,7 +7,6 @@ import { OrchestratorService } from '../../services/orchestrator.service';
 import { GeocodeService } from '../../services/geocode.service';
 import { Module, SystemInput } from '../../models/astro.models';
 import { AgentFlowComponent } from '../../components/agent-flow/agent-flow.component';
-import { CityAutocompleteComponent, CitySelection } from '../../components/city-autocomplete/city-autocomplete.component';
 import { AuthService } from '../../services/auth.service';
 import { ApiService } from '../../services/api.service';
 import { firstValueFrom } from 'rxjs';
@@ -221,7 +220,7 @@ function validateProfile(p: {
 @Component({
   selector: 'app-intake',
   standalone: true,
-  imports: [CommonModule, FormsModule, AgentFlowComponent, CityAutocompleteComponent],
+  imports: [CommonModule, FormsModule, AgentFlowComponent],
   template: `
 <div class="shell">
 
@@ -492,19 +491,39 @@ function validateProfile(p: {
               </div>
             </div>
 
-            <!-- Place of Birth — smart autocomplete -->
+            <!-- Place of Birth -->
             <div class="field">
               <label class="flabel">{{ uiStrings().label_place_of_birth }} <span class="req">*</span></label>
-              <app-city-autocomplete
-                [placeholder]="uiStrings().ph_place_of_birth"
-                [showError]="!!(touched()['place_of_birth'] && errors()['place_of_birth'])"
-                (citySelected)="onCitySelected($event)"
-                (valueChange)="onPlaceTyped($event)" />
+              <div class="inp-wrap"
+                   [class.inp-err]="touched()['place_of_birth'] && errors()['place_of_birth']"
+                   [class.inp-ok]="touched()['place_of_birth'] && !errors()['place_of_birth'] && profile().place_of_birth">
+                <svg class="inp-ico" viewBox="0 0 16 16" fill="none">
+                  <path d="M8 1.5C5.515 1.5 3.5 3.515 3.5 6c0 3.75 4.5 8.5 4.5 8.5s4.5-4.75 4.5-8.5c0-2.485-2.015-4.5-4.5-4.5Z" stroke="currentColor" stroke-width="1.2"/>
+                  <circle cx="8" cy="6" r="1.5" stroke="currentColor" stroke-width="1.2"/>
+                </svg>
+                <input class="inp inp-icon" type="text"
+                       [placeholder]="uiStrings().ph_place_of_birth"
+                       [value]="profile().place_of_birth"
+                       (input)="patch('place_of_birth', $any($event.target).value)"
+                       (blur)="touch('place_of_birth')"/>
+                @if (touched()['place_of_birth'] && !errors()['place_of_birth'] && profile().place_of_birth) {
+                  <span class="inp-check">✓</span>
+                }
+              </div>
               @if (touched()['place_of_birth'] && errors()['place_of_birth']) {
                 <span class="ferr">
                   <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="#ef4444" stroke-width="1.2"/><path d="M6 3.5v3M6 8v.5" stroke="#ef4444" stroke-width="1.3" stroke-linecap="round"/></svg>
                   {{ errors()['place_of_birth'] }}
                 </span>
+              }
+              @if (geoResolved()) {
+                <span class="geo-badge">
+                  <svg width="9" height="9" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="#10b981" stroke-width="1.4"/><path d="M3.5 6l2 2L8.5 4" stroke="#10b981" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  {{ geoResolved()!.display_name | slice:0:48 }} · {{ geoResolved()!.lat.toFixed(2) }}°N {{ geoResolved()!.lon.toFixed(2) }}°E
+                </span>
+              }
+              @if (geoResolving()) {
+                <span class="geo-resolving">Resolving coordinates…</span>
               }
             </div>
 
@@ -2468,31 +2487,6 @@ export class IntakePage {
   touch(field: string) { this.touchedSig.update(t => ({ ...t, [field]: true })); }
   touchAll() {
     this.touchedSig.update(t => ({ ...t, full_name: true, date_of_birth: true, time_of_birth: true, place_of_birth: true, pincode: true }));
-  }
-
-  // ── City autocomplete handlers ────────────────────────────────────────────
-  readonly selectedCity = signal<CitySelection | null>(null);
-
-  onCitySelected(sel: CitySelection | null) {
-    this.selectedCity.set(sel);
-    this.patch('place_of_birth', sel ? sel.display_name : '');
-    this.touch('place_of_birth');
-    if (sel) {
-      // Store geocode data so orchestrator picks it up without a second API call
-      this.geoResolved.set({ display_name: sel.display_name, lat: sel.lat, lon: sel.lon });
-    } else {
-      this.geoResolved.set(null);
-    }
-  }
-
-  onPlaceTyped(val: string) {
-    // Keep profile in sync while user types (before a suggestion is picked)
-    this.profileSig.update(p => ({ ...p, place_of_birth: val }));
-    this.touch('place_of_birth');
-    if (!val) {
-      this.selectedCity.set(null);
-      this.geoResolved.set(null);
-    }
   }
 
   userQuestion = '';
