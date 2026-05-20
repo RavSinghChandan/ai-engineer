@@ -21,7 +21,8 @@ Never crashes the pipeline — returns original text on any failure.
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, List, Set
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Any, Dict, List, Set, Tuple
 
 # ── Keys that must never be grammar-corrected ─────────────────────────────────
 _SKIP_KEYS: Set[str] = {
@@ -293,21 +294,25 @@ def correct_report(report: Dict[str, Any], use_llm: bool = True) -> Dict[str, An
             elif isinstance(val, list):
                 report[key] = _fix_list(val) if use_llm else val
 
-    # ── Sections ──────────────────────────────────────────────────────────
-    for section in report.get("sections", []):
+    # ── Sections — parallel correction ───────────────────────────────────
+    def _fix_section(section: Dict[str, Any]) -> Dict[str, Any]:
         for prose_key in ("narrative", "simple_narrative"):
             if prose_key in section and isinstance(section[prose_key], str):
                 section[prose_key] = correct(section[prose_key], use_llm=use_llm)
-
         if "structured_summary" in section:
             section["structured_summary"] = _fix_structured_summary(section["structured_summary"])
-
-        # Insight content (already fixed in pipeline node, but do a fast deterministic pass)
         for insight in section.get("insights", []):
             content = insight.get("content", "")
             if content and not insight.get("grammar_checked"):
                 insight["content"]         = _deterministic_fix(content)
                 insight["grammar_checked"] = True
+        return section
+
+    sections = report.get("sections", [])
+    if sections:
+        with ThreadPoolExecutor(max_workers=min(len(sections), 5)) as pool:
+            corrected = list(pool.map(_fix_section, sections))
+        report["sections"] = corrected
 
     # ── Remedies ──────────────────────────────────────────────────────────
     remedies = report.get("remedies", {})

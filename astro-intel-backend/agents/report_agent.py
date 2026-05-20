@@ -5,8 +5,9 @@ Generates 4 prompt variants (simple/detailed × low-temp/precise-temp).
 Temperature: 0 (deterministic) or 0.1 (near-deterministic) — never creative randomness.
 """
 from __future__ import annotations
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 from .simplify_agent import simplify_narrative, build_structured_summary_prompt
 from .agent_prompts import get_prompt, REPORT_AGENT, REPORT_AGENT_STRUCTURED
@@ -219,6 +220,8 @@ def final_report_agent(
     from agents.admin_review_agent import build_module_methodology, MODULE_METHODOLOGY
     module_methodology = admin_review.get("module_methodology") or build_module_methodology(memory)
 
+    # Pre-process all questions to extract approved insights (fast, no LLM)
+    tasks: List[Tuple[int, str, str, List[Dict]]] = []
     for q_idx, q_block in enumerate(all_questions):
         question = q_block.get("question", "")
         intent   = q_block.get("intent", "general")
@@ -233,24 +236,35 @@ def final_report_agent(
                 "domains":    i.get("domains", []),
                 "is_common":  i.get("is_common", False),
                 "approved":   True,
-                "editable":   True,   # kept so frontend can still edit
+                "editable":   True,
             }
             for i in insights if i["id"] in approved_ids
         ]
         rejected_count += len([i for i in insights if i["id"] in rejected_ids])
         approved_count += len(approved_insights)
-
         for ins in approved_insights:
-            c = ins.get("confidence", "medium")
-            conf_dist[c] = conf_dist.get(c, 0) + 1
-
+            conf_dist[ins.get("confidence", "medium")] = conf_dist.get(ins.get("confidence", "medium"), 0) + 1
         if approved_insights:
-            # Pass empty remedies per section — remedies appear once at report level
-            section = _consolidate_section(
+            tasks.append((q_idx, question, intent, approved_insights))
+
+    # Run all section consolidations in parallel (each makes one LLM call)
+    section_results: Dict[int, Dict] = {}
+    if tasks:
+        def _run_section(args: Tuple[int, str, str, List[Dict]]) -> Tuple[int, Dict]:
+            q_idx, question, intent, approved_insights = args
+            return q_idx, _consolidate_section(
                 question, intent, approved_insights, subject, modules_used, {}, memory,
                 question_index=q_idx,
             )
-            report_sections.append(section)
+
+        with ThreadPoolExecutor(max_workers=min(len(tasks), 5)) as pool:
+            futures = {pool.submit(_run_section, t): t[0] for t in tasks}
+            for future in as_completed(futures):
+                q_idx, section = future.result()
+                section_results[q_idx] = section
+
+    # Preserve original question order
+    report_sections = [section_results[t[0]] for t in tasks if t[0] in section_results]
 
     # ── Legacy flat-structure fallback ─────────────────────────────────────
     if not all_questions and "sections" in admin_review:
