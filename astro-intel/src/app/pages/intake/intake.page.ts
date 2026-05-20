@@ -1263,8 +1263,8 @@ function validateProfile(p: {
   margin-left: -325px;
   filter:
     brightness(0) saturate(1)
-    invert(68%) sepia(100%) saturate(700%) hue-rotate(15deg) brightness(1.05);
-  opacity: 0.45;
+    invert(56%) sepia(100%) saturate(200%) hue-rotate(0deg) brightness(0.95);
+  opacity: 0.5;
 }
 @keyframes chakra-spin { to { transform: rotate(360deg); } }
 
