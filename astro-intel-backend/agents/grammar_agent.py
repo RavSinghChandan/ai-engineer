@@ -34,17 +34,25 @@ _SKIP_KEYS: Set[str] = {
     "max_tokens", "system", "user",
 }
 
-# ── Report keys whose values ARE prose and should be corrected ────────────────
-_REPORT_PROSE_KEYS = {
-    "narrative", "simple_narrative", "disclaimer", "closing_note",
+# ── Report keys whose values ARE AI-generated prose needing LLM correction ───
+# Static template strings (letter_para*, disclaimer, cover_*, closing_*) are
+# already grammatically correct — run deterministic fix only, skip LLM.
+_REPORT_PROSE_KEYS_LLM = {
+    "narrative", "simple_narrative",
+    # structured_summary sub-keys (AI-generated)
+    "who", "what", "when", "where", "how",
+}
+
+# Keys that get deterministic fix only (template text — no LLM needed)
+_REPORT_PROSE_KEYS_DET = {
+    "disclaimer", "closing_note",
     "letter_para1", "letter_para2", "letter_para3", "letter_para4",
     "letter_sign", "letter_tagline", "cover_sub", "cover_footer",
     "closing_consult", "closing_confidential",
-    # structured_summary sub-keys
-    "who", "what", "when", "where", "how",
-    # remedy
-    "daily_habits",
 }
+
+# Combined for backwards-compat references
+_REPORT_PROSE_KEYS = _REPORT_PROSE_KEYS_LLM | _REPORT_PROSE_KEYS_DET
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -253,23 +261,33 @@ def grammar_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
         )
         return state
 
-    total_fixed = 0
+    # Collect all insights across all questions into one batch LLM call
+    all_insights: List[Any] = []
     for q_item in admin_review.get("questions", []):
         for insight in q_item.get("insights", []):
-            original = insight.get("content", "").strip()
-            if not original:
-                continue
-            try:
-                corrected = correct(original, use_llm=True)
-                if corrected != original:
-                    insight["original_content_pre_grammar"] = original
-                insight["content"]         = corrected
-                insight["grammar_checked"] = True
-                total_fixed += 1
-            except Exception as exc:
-                state.setdefault("agent_log", []).append(
-                    f"[GrammarAgent] Skipped insight {insight.get('id', '?')}: {exc}"
-                )
+            if insight.get("content", "").strip():
+                all_insights.append(insight)
+
+    if not all_insights:
+        state["admin_review"] = admin_review
+        state.setdefault("agent_log", []).append("[GrammarAgent] No insights to check.")
+        return state
+
+    originals = [ins["content"].strip() for ins in all_insights]
+    det_fixed = [_deterministic_fix(t) for t in originals]
+
+    try:
+        corrected_texts = _llm_grammar_fix_batch(det_fixed)
+    except Exception:
+        corrected_texts = det_fixed
+
+    total_fixed = 0
+    for ins, original, corrected in zip(all_insights, originals, corrected_texts):
+        if corrected and corrected != original:
+            ins["original_content_pre_grammar"] = original
+        ins["content"]         = corrected or original
+        ins["grammar_checked"] = True
+        total_fixed += 1
 
     state["admin_review"] = admin_review
     state.setdefault("agent_log", []).append(
@@ -283,10 +301,21 @@ def grammar_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
 # ══════════════════════════════════════════════════════════════════════════════
 
 def _fix_list(items: Any) -> Any:
-    """Grammar-correct each string in a list."""
+    """Grammar-correct each string in a list — batched into one LLM call."""
     if not isinstance(items, list):
         return items
-    return [correct(item, use_llm=True) if isinstance(item, str) else item for item in items]
+    strs = [(i, t) for i, t in enumerate(items) if isinstance(t, str) and len(t.strip()) >= 20]
+    if not strs:
+        return items
+    det_fixed = [_deterministic_fix(t) for _, t in strs]
+    try:
+        corrected = _llm_grammar_fix_batch(det_fixed)
+    except Exception:
+        corrected = det_fixed
+    out = list(items)
+    for (i, _), fixed in zip(strs, corrected):
+        out[i] = fixed
+    return out
 
 
 def _fix_structured_summary(ss: Dict) -> Dict:
@@ -321,49 +350,40 @@ def correct_report(report: Dict[str, Any], use_llm: bool = True) -> Dict[str, An
     report = copy.deepcopy(report)
 
     # ── Top-level prose fields ────────────────────────────────────────────
-    for key in _REPORT_PROSE_KEYS:
+    # LLM keys: AI-generated narrative fields — batch into one LLM call
+    llm_keys: List[str] = []
+    llm_vals: List[str] = []
+    for key in _REPORT_PROSE_KEYS_LLM:
+        if key in report and key not in _SKIP_KEYS:
+            val = report[key]
+            if isinstance(val, str) and len(val.strip()) >= 20:
+                llm_keys.append(key)
+                llm_vals.append(_deterministic_fix(val))
+
+    if use_llm and llm_vals:
+        fixed_llm = _llm_grammar_fix_batch(llm_vals)
+        for key, val in zip(llm_keys, fixed_llm):
+            report[key] = val
+    else:
+        for key, val in zip(llm_keys, llm_vals):
+            report[key] = val
+
+    # Deterministic-only keys: template text, already correct — no LLM
+    for key in _REPORT_PROSE_KEYS_DET:
         if key in report and key not in _SKIP_KEYS:
             val = report[key]
             if isinstance(val, str):
-                report[key] = correct(val, use_llm=use_llm)
+                report[key] = _deterministic_fix(val)
             elif isinstance(val, list):
-                report[key] = _fix_list(val) if use_llm else val
+                report[key] = [_deterministic_fix(i) if isinstance(i, str) else i for i in val]
 
     # ── Sections — batch + parallel correction ────────────────────────────
     def _fix_section(section: Dict[str, Any]) -> Dict[str, Any]:
-        # Collect all prose strings for this section into one batch LLM call
-        batch_keys: List[str] = []
-        batch_texts: List[str] = []
-
+        # narrative/simple_narrative are built from insight bullets already
+        # LLM-corrected in grammar_agent_node — deterministic fix is sufficient.
         for prose_key in ("narrative", "simple_narrative"):
             if prose_key in section and isinstance(section[prose_key], str):
-                batch_keys.append(prose_key)
-                batch_texts.append(_deterministic_fix(section[prose_key]))
-
-        ss = section.get("structured_summary", {})
-        ss_prose_keys: List[str] = []
-        if isinstance(ss, dict):
-            for k, v in ss.items():
-                if k not in _SKIP_KEYS and isinstance(v, str) and len(v.strip()) >= 20:
-                    ss_prose_keys.append(k)
-                    batch_texts.append(_deterministic_fix(v))
-
-        if use_llm and batch_texts:
-            fixed_texts = _llm_grammar_fix_batch(batch_texts)
-        else:
-            fixed_texts = batch_texts
-
-        # Write back narrative fields
-        for i, key in enumerate(batch_keys):
-            section[key] = fixed_texts[i]
-
-        # Write back structured_summary fields
-        if isinstance(ss, dict):
-            for j, k in enumerate(ss_prose_keys):
-                idx = len(batch_keys) + j
-                if idx < len(fixed_texts):
-                    ss[k] = fixed_texts[idx]
-            section["structured_summary"] = ss
+                section[prose_key] = _deterministic_fix(section[prose_key])
 
         # Insights — deterministic only (already LLM-corrected in pipeline)
         for insight in section.get("insights", []):
@@ -379,10 +399,13 @@ def correct_report(report: Dict[str, Any], use_llm: bool = True) -> Dict[str, An
             corrected = list(pool.map(_fix_section, sections))
         report["sections"] = corrected
 
-    # ── Remedies ──────────────────────────────────────────────────────────
+    # ── Remedies — deterministic only (short template strings, no LLM needed) ──
     remedies = report.get("remedies", {})
     if isinstance(remedies.get("daily_habits"), list):
-        remedies["daily_habits"] = _fix_list(remedies["daily_habits"])
+        remedies["daily_habits"] = [
+            _deterministic_fix(h) if isinstance(h, str) else h
+            for h in remedies["daily_habits"]
+        ]
     report["remedies"] = remedies
 
     report["grammar_agent_applied"] = True

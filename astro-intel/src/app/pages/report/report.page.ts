@@ -13,6 +13,14 @@ import { firstValueFrom } from 'rxjs';
   standalone: true,
   imports: [CommonModule, FormsModule, KeyValuePipe, AppFooterComponent],
   template: `
+@if (chakraSpinning()) {
+  <div class="chakra-spin-portal" aria-hidden="true">
+    <div class="chakra-spin-circle">
+      <img src="rav-logo.png" class="chakra-spin-img" alt=""/>
+    </div>
+  </div>
+}
+
 <!-- ══ Toolbar ═══════════════════════════════════════════════════════════════ -->
 <div class="toolbar no-print">
 
@@ -877,6 +885,54 @@ import { firstValueFrom } from 'rxjs';
         </div>
       }
 
+      <!-- ══ STRUCTURED SUMMARY PAGE — WHO/WHAT/WHEN/WHERE/HOW per question ══ -->
+      @if (section.structured_summary?.hw_bullets?.length) {
+        <div class="pdf-page page-hw-summary">
+          <div class="page-hdr">
+            <img src="rav-logo.png" alt="Aura with Rav" class="page-hdr-logo"/>
+            <span class="page-hdr-right">{{ displayReport()!.user_name }} · {{ formatDate(displayReport()!.generated_at) }}</span>
+          </div>
+          <div class="hw-q-banner">
+            <div class="hw-q-circle">Q{{ si + 1 }}</div>
+            <div class="hw-q-text">{{ despacify(section.question) }}</div>
+          </div>
+          <div class="hw-body">
+            <ul class="hw-list">
+              @for (bullet of section.structured_summary!.hw_bullets; track bullet.label) {
+                <li class="hw-item">
+                  <div class="hw-label">{{ bullet.label }}</div>
+                  @if (bullet.type === 'list' && isArray(bullet.answer)) {
+                    <ul class="hw-sub-list">
+                      @for (pt of asArray(bullet.answer); track pt; let bi = $index) {
+                        <li class="hw-sub-item">
+                          <span class="hw-sub-num">{{ bi + 1 }}</span>
+                          <span class="hw-sub-text">{{ pt }}</span>
+                        </li>
+                      }
+                    </ul>
+                  } @else if (bullet.type === 'timing') {
+                    <div class="hw-timing">
+                      <span class="hw-timing-window">{{ asTiming(bullet.answer).window }}</span>
+                      <span class="hw-timing-peak">{{ asTiming(bullet.answer).peak }}</span>
+                      <span class="hw-timing-dur">{{ asTiming(bullet.answer).duration }}</span>
+                    </div>
+                  } @else {
+                    <span class="hw-answer">{{ bullet.answer }}</span>
+                  }
+                </li>
+              }
+            </ul>
+          </div>
+          <div class="page-footer">
+            <span>{{ displayReport()!.user_name }}</span>
+            <span class="page-footer-sep">·</span>
+            <span>Q{{ si + 1 }} · At a Glance</span>
+            <span class="page-footer-sep">·</span>
+            <span>{{ formatDate(displayReport()!.generated_at) }}</span>
+          </div>
+        </div>
+      }
+
     }
 
     <!-- ══ CONSOLIDATED REMEDIES PAGE — exactly once, one A4 page ══ -->
@@ -1185,6 +1241,23 @@ import { firstValueFrom } from 'rxjs';
 /* ═══════════════════════════════════════════════════════════════════════════
    SCREEN LAYOUT — scrollable preview
 ═══════════════════════════════════════════════════════════════════════════ */
+.chakra-spin-portal {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none; background: transparent;
+}
+.chakra-spin-circle {
+  width: 440px; height: 440px; border-radius: 50%; overflow: hidden;
+  animation: chakra-spin 8s linear infinite; flex-shrink: 0;
+}
+.chakra-spin-img {
+  width: auto; height: 700px; display: block;
+  margin-top: -30px; margin-left: -325px;
+  filter: brightness(0) saturate(1) invert(56%) sepia(100%) saturate(200%) hue-rotate(0deg) brightness(0.95);
+  opacity: 0.5;
+}
+@keyframes chakra-spin { to { transform: rotate(360deg); } }
+
 .report-scroll {
   flex: 1; overflow-y: auto; padding: 28px 16px 56px; background: #f2ede6;
 }
@@ -1654,6 +1727,18 @@ import { firstValueFrom } from 'rxjs';
    QUESTION PAGES
 ═══════════════════════════════════════════════════════════════════════════ */
 .page-question { background: #fff; }
+
+/* ── WHO/WHAT/WHEN/WHERE/HOW summary page ──────────────────────────────────── */
+.page-hw-summary { background: #fff; display: flex; flex-direction: column; }
+.hw-q-banner { display: flex; align-items: flex-start; gap: 16px; padding: 24px 48px 0; flex-shrink: 0; }
+.hw-q-circle {
+  flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%;
+  background: linear-gradient(135deg, #8a6a00, #d4af37);
+  color: #fff; font-size: 13px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; margin-top: 2px;
+}
+.hw-q-text { font-size: 17px; font-weight: 700; color: #14100c; line-height: 1.4; }
+.hw-body { padding: 20px 48px 0; flex: 1; }
 
 .q-banner { display: flex; align-items: flex-start; gap: 16px; padding: 32px 48px 0; flex-shrink: 0; }
 .q-circle {
@@ -2127,6 +2212,7 @@ export class ReportPage implements OnInit {
   readonly orch  = inject(OrchestratorService);
   readonly auth  = inject(AuthService);
 
+  readonly chakraSpinning = signal(false);
   readonly editMode    = signal(false);
   readonly report      = computed(() => this.orch.finalReport());
   readonly languages   = signal<LanguageOption[]>([]);
@@ -2336,6 +2422,12 @@ export class ReportPage implements OnInit {
 
   // Strip the spaced-uppercase pattern the AI sometimes emits:
   // "W H O I S T H E R I G H T P A R T N E R" → "Who Is The Right Partner"
+  isArray(v: any): boolean { return Array.isArray(v); }
+  asArray(v: any): string[] { return Array.isArray(v) ? v : []; }
+  asTiming(v: any): { window: string; peak: string; duration: string } {
+    return { window: v?.window ?? '', peak: v?.peak ?? '', duration: v?.duration ?? '' };
+  }
+
   despacify(text: string): string {
     if (!text) return '';
     // Detect: every character is separated by a single space (spaced-caps pattern)
@@ -3081,6 +3173,9 @@ export class ReportPage implements OnInit {
   }
 
   async printPdf(): Promise<void> {
+    this.chakraSpinning.set(true);
+    const chakraTimer = new Promise(r => setTimeout(r, 4000));
+
     // 1. Convert images to base64 so they survive the print context
     const imgs = document.querySelectorAll<HTMLImageElement>('#report-doc img');
     const origSrcs: string[] = [];
@@ -3182,6 +3277,27 @@ export class ReportPage implements OnInit {
           break-inside: auto !important;
           background: #fff !important;
         }
+
+        .page-hw-summary {
+          page-break-before: always !important;
+          break-before: page !important;
+          background: #fff !important;
+          padding: 0 !important;
+        }
+        .hw-q-banner {
+          display: flex !important; align-items: flex-start !important;
+          gap: 12px !important; padding: 20px 32px 0 !important;
+          break-after: avoid !important;
+        }
+        .hw-q-circle {
+          flex-shrink: 0 !important; width: 30px !important; height: 30px !important;
+          border-radius: 50% !important; font-size: 12px !important; font-weight: 900 !important;
+          display: flex !important; align-items: center !important; justify-content: center !important;
+          background: linear-gradient(135deg,#8a6a00,#d4af37) !important; color: #fff !important;
+          -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+        }
+        .hw-q-text { font-size: 14px !important; font-weight: 700 !important; line-height: 1.35 !important; }
+        .hw-body { padding: 12px 32px 0 !important; }
 
         /* ════════════════════════════════════════════════════
            COVER PAGE — full A4, dark, portrait
@@ -3871,6 +3987,9 @@ export class ReportPage implements OnInit {
       }
     `;
     document.head.appendChild(style);
+
+    await chakraTimer;
+    this.chakraSpinning.set(false);
 
     window.print();
 

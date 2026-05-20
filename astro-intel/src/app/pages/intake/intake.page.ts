@@ -2859,6 +2859,8 @@ export class IntakePage {
     if (!review) return;
     const allIds = review.questions.flatMap(q => q.insights.map(i => i.id));
     this.view.set('pipeline');
+    this.chakraSpinning.set(true);
+    const chakraTimer = new Promise(r => setTimeout(r, 4000));
     const lang = this.uiLanguage();
 
     try {
@@ -2891,6 +2893,8 @@ export class IntakePage {
       // approveAndGenerate failed — navigate anyway
     }
 
+    await chakraTimer;
+    this.chakraSpinning.set(false);
     this.router.navigate(['/report']);
   }
 

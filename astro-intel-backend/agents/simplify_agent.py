@@ -1851,26 +1851,10 @@ def _build_remedy_bullets(intent: str, remedies: Dict[str, Any]) -> Dict[str, Li
 
 # ── DeepSeek LLM caller for HW bullets ───────────────────────────────────────
 
-_HW_SYSTEM = """You are an expert Vedic astrology and numerology insight generator for Aura with Rav.
-Your job is to generate a structured WHO / WHAT / WHERE summary for a user's question based on their chart data.
-
-Rules:
-- WHO: exactly 3 bullet points — specific person types, backgrounds, or sources relevant to this question
-- WHAT: exactly 3 bullet points — concrete, actionable steps the user must take right now
-- WHERE: exactly 3 bullet points — specific environments, cities, platforms, or contexts
-- Each bullet must be direct, specific, and personalised to the dasha planet and intent
-- No generic advice. No tradition labels. No jargon. Plain English only.
-- No preamble, no explanations — output ONLY the JSON block below
-
-Output EXACTLY this JSON (no markdown, no code fences):
-{
-  "who_label": "<question that WHO answers>",
-  "what_label": "<question that WHAT answers>",
-  "where_label": "<question that WHERE answers>",
-  "who": ["point 1", "point 2", "point 3"],
-  "what": ["action 1", "action 2", "action 3"],
-  "where": ["place 1", "place 2", "place 3"]
-}"""
+_HW_SYSTEM = """Vedic astrology insight generator for Aura with Rav. Generate WHO/WHAT/WHERE bullets.
+WHO: 3 specific person types relevant to this question. WHAT: 3 concrete actions. WHERE: 3 specific places/contexts.
+Plain English, no jargon, no preamble. Output ONLY this JSON:
+{"who_label":"<who question>","what_label":"<what question>","where_label":"<where question>","who":["1","2","3"],"what":["1","2","3"],"where":["1","2","3"]}"""
 
 
 def _llm_hw_bullets(
@@ -1890,21 +1874,21 @@ def _llm_hw_bullets(
     except ImportError:
         return None
 
-    user_prompt = f"""User question: {question}
-Intent: {intent}
-Current life phase (dasha): {dasha_planet}
-Rising sign (lagna): {lagna}
-Moon sign: {moon}
-
-Key insights from the analysis:
-{insights_text or "No specific insights available — use chart data only."}
-
-Generate WHO / WHAT / WHERE specifically for this question and this person's {dasha_planet} dasha.
-Every point must be unique to this question — not generic {intent} advice."""
+    user_prompt = (
+        f"Q: {question} | intent: {intent} | dasha: {dasha_planet} | lagna: {lagna} | moon: {moon}\n"
+        f"Insights: {insights_text or 'none'}\n"
+        f"Generate WHO/WHAT/WHERE for this {intent} question. Be specific to {dasha_planet} dasha."
+    )
 
     try:
         import json as _j
-        raw = ds_call(system=_HW_SYSTEM, user=user_prompt, temperature=0.75, max_tokens=600)
+        from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeout
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(ds_call, system=_HW_SYSTEM, user=user_prompt, temperature=0.3, max_tokens=350)
+            try:
+                raw = future.result(timeout=8)
+            except FuturesTimeout:
+                return None
         parsed = _j.loads(raw)
         # Validate structure
         for key in ("who", "what", "where"):
@@ -1960,17 +1944,9 @@ def build_structured_summary(
     c  = _chart_from_memory(memory)
     dp = c["dasha_planet"]
 
-    # ── LLM-generated WHO/WHAT/WHERE ─────────────────────────────────────────
-    llm_result = _llm_hw_bullets(
-        question      = question,
-        intent        = intent,
-        dasha_planet  = dp,
-        lagna         = c.get("lagna", ""),
-        moon          = c.get("moon", ""),
-        insights_text = insights_text,
-    )
-
-    if llm_result:
+    # ── WHO/WHAT/WHERE: static only (deterministic, instant, dasha-aware) ────────
+    llm_result = None
+    if False:  # LLM path disabled — adds 3-8s per question with no quality gain
         who_list   = llm_result["who"][:3]
         what_list  = llm_result["what"][:3]
         where_list = llm_result["where"][:3]
