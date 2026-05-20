@@ -1247,7 +1247,7 @@ function validateProfile(p: {
   position: fixed; inset: 0; z-index: 9999;
   display: flex; align-items: center; justify-content: center;
   pointer-events: none;
-  background: rgba(255, 255, 255, 0.96);
+  background: transparent;
 }
 .chakra-spin-circle {
   width: 440px; height: 440px;
