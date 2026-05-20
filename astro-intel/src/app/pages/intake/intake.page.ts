@@ -225,6 +225,15 @@ function validateProfile(p: {
   template: `
 <div class="shell">
 
+<!-- ══ GOLDEN CHAKRA SPIN — Begin 360° transition ══════════════════════════ -->
+@if (chakraSpinning()) {
+  <div class="chakra-spin-portal" aria-hidden="true">
+    <div class="chakra-spin-circle">
+      <img src="rav-logo.png" class="chakra-spin-img" alt=""/>
+    </div>
+  </div>
+}
+
 <!-- ══ ASTROLOGICAL TRANSLATION OVERLAY ══════════════════════════════════════ -->
 @if (preparingReport()) {
   <div class="astro-overlay">
@@ -1232,6 +1241,32 @@ function validateProfile(p: {
    AURA WITH RAV — Apple-quality UI · White + Indigo/Green
 ════════════════════════════════════════════════════════════════ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Golden Chakra Spinner ── */
+.chakra-spin-portal {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none;
+  background: transparent;
+}
+.chakra-spin-circle {
+  width: 440px; height: 440px;
+  border-radius: 50%;
+  overflow: hidden;
+  animation: chakra-spin 8s linear infinite;
+  flex-shrink: 0;
+}
+.chakra-spin-img {
+  width: auto; height: 700px;
+  display: block;
+  margin-top: -30px;
+  margin-left: -325px;
+  filter:
+    sepia(1) saturate(10) hue-rotate(3deg) brightness(1.4)
+    drop-shadow(0 0 32px rgba(255,200,0,1));
+  opacity: 0.38;
+}
+@keyframes chakra-spin { to { transform: rotate(360deg); } }
 
 /* ── Astrological translation overlay ─────────────────────────── */
 .astro-overlay {
@@ -2490,6 +2525,7 @@ export class IntakePage {
   readonly reportTranslating   = signal(false);
   readonly preparingReport     = signal(false);  // true while translating before navigating to /report
   readonly preparingLangName   = signal('');     // e.g. "Hindi" shown in overlay
+  readonly chakraSpinning      = signal(false);  // golden chakra spins on Begin 360° click
   readonly reportDownloadError = signal('');     // shown when report fetch fails
 
   private _autoPollTimer: ReturnType<typeof setInterval> | null = null;
@@ -2803,6 +2839,9 @@ export class IntakePage {
       },
       prompt_version: this.promptVersion(),
     };
+    this.chakraSpinning.set(true);
+    await new Promise(r => setTimeout(r, 5000));
+    this.chakraSpinning.set(false);
     this.view.set('pipeline');
     this.orch.run(input);
   }
