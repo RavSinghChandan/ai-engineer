@@ -20,6 +20,14 @@ const BACKEND = environment.apiUrl;
   template: `
 <div class="shell">
 
+@if (chakraSpinning()) {
+  <div class="chakra-spin-portal" aria-hidden="true">
+    <div class="chakra-spin-circle">
+      <img src="rav-logo.png" class="chakra-spin-img" alt=""/>
+    </div>
+  </div>
+}
+
   <!-- ══ Header ════════════════════════════════════════════════════════════ -->
   <header class="hdr">
     <div class="hdr-left">
@@ -1153,6 +1161,26 @@ const BACKEND = environment.apiUrl;
 </div>
   `,
   styles: [`
+/* ── Golden Chakra Spinner ── */
+.chakra-spin-portal {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none; background: transparent;
+}
+.chakra-spin-circle {
+  width: 440px; height: 440px; border-radius: 50%; overflow: hidden;
+  animation: chakra-spin 8s linear infinite; flex-shrink: 0;
+}
+.chakra-spin-img {
+  width: auto; height: 700px; display: block;
+  margin-top: -30px; margin-left: -325px;
+  filter:
+    brightness(0) saturate(1)
+    invert(75%) sepia(80%) saturate(600%) hue-rotate(5deg) brightness(1.1);
+  opacity: 0.42;
+}
+@keyframes chakra-spin { to { transform: rotate(360deg); } }
+
 /* ── Shell ────────────────────────────────────────────────────────────────── */
 :host { display: flex; flex-direction: column; min-height: 100vh; background: transparent; }
 .shell { display: flex; flex-direction: column; min-height: 100vh; }
@@ -2029,8 +2057,9 @@ export class ReviewPage {
   private _branchEdits: Record<string, string> = {};
 
   // Report generation state
-  readonly generating     = signal(false);
+  readonly generating      = signal(false);
   readonly reportGenerated = signal(false);
+  readonly chakraSpinning  = signal(false);
 
   // Translation state
   readonly translating       = signal(false);
@@ -2455,6 +2484,9 @@ export class ReviewPage {
     }
     this.generating.set(true);
     this.generateError.set('');
+    this.chakraSpinning.set(true);
+    const chakraTimer = new Promise(r => setTimeout(r, 5000));
+
     try {
       // Treat selected-but-not-explicitly-approved as approved
       const selected   = this.selectedBranchIds();
@@ -2488,6 +2520,8 @@ export class ReviewPage {
     } catch (err: any) {
       this.generateError.set(err?.message ?? 'Failed to generate report. Please try again.');
     } finally {
+      await chakraTimer;
+      this.chakraSpinning.set(false);
       this.generating.set(false);
     }
   }

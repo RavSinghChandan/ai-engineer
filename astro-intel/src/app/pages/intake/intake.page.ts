@@ -1262,9 +1262,9 @@ function validateProfile(p: {
   margin-top: -30px;
   margin-left: -325px;
   filter:
-    sepia(1) saturate(10) hue-rotate(3deg) brightness(1.4)
-    drop-shadow(0 0 32px rgba(255,200,0,1));
-  opacity: 0.38;
+    brightness(0) saturate(1)
+    invert(75%) sepia(80%) saturate(600%) hue-rotate(5deg) brightness(1.1);
+  opacity: 0.42;
 }
 @keyframes chakra-spin { to { transform: rotate(360deg); } }
 
@@ -2839,11 +2839,12 @@ export class IntakePage {
       },
       prompt_version: this.promptVersion(),
     };
+    // Chakra spins on home page for 5s, pipeline starts in parallel behind it
     this.chakraSpinning.set(true);
+    this.orch.run(input);
     await new Promise(r => setTimeout(r, 5000));
     this.chakraSpinning.set(false);
     this.view.set('pipeline');
-    this.orch.run(input);
   }
 
   async goReview() {
