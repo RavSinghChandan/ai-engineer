@@ -228,36 +228,9 @@ function validateProfile(p: {
 <!-- ══ ASTROLOGICAL TRANSLATION OVERLAY ══════════════════════════════════════ -->
 @if (preparingReport() || chakraLoading()) {
   <div class="astro-overlay">
-    <div class="astro-overlay-card">
-
-      <!-- Spinning chakra logo -->
-      <div class="chakra-spin-wrap">
-        <div class="chakra-glow-ring"></div>
-        <img src="rav-logo.png" class="chakra-spin-logo" alt=""/>
-      </div>
-
-      <h2 class="astro-title">
-        @if (chakraLoading()) { Awakening the Cosmos… }
-        @else { Weaving Your Report in {{ preparingLangName() }} }
-      </h2>
-      <p class="astro-sub">The stars are aligning your personalised 360° reading…</p>
-
-      <!-- Rotating mystical phrases -->
-      <div class="astro-phrases">
-        <span class="astro-phrase">Vedic planets calculating planetary periods…</span>
-        <span class="astro-phrase">Numerology vibrations resonating…</span>
-        <span class="astro-phrase">Palm lines revealing life path…</span>
-        <span class="astro-phrase">Tarot cards drawing your destiny…</span>
-        <span class="astro-phrase">Vastu energies aligning your space…</span>
-      </div>
-
-      <!-- Progress dots -->
-      <div class="astro-dots">
-        <span class="astro-dot"></span>
-        <span class="astro-dot"></span>
-        <span class="astro-dot"></span>
-      </div>
-
+    <div class="chakra-spin-wrap">
+      <div class="chakra-glow-ring"></div>
+      <img src="rav-logo.png" class="chakra-spin-logo" alt=""/>
     </div>
   </div>
 }
@@ -1234,86 +1207,36 @@ function validateProfile(p: {
 ════════════════════════════════════════════════════════════════ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── Astrological translation overlay ─────────────────────────── */
+/* ── Chakra loading overlay — golden spinning logo only ── */
 .astro-overlay {
   position: fixed; inset: 0; z-index: 9999;
-  background: rgba(15, 10, 40, 0.88);
-  backdrop-filter: blur(6px);
+  background: rgba(10, 8, 4, 0.92);
+  backdrop-filter: blur(8px);
   display: flex; align-items: center; justify-content: center;
 }
-.astro-overlay-card {
-  background: linear-gradient(145deg, #1e1b4b, #312e81);
-  border: 1px solid rgba(165, 180, 252, 0.2);
-  border-radius: 24px;
-  padding: 48px 52px;
-  text-align: center;
-  max-width: 460px; width: 90%;
-  box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 60px rgba(99,102,241,0.15);
-}
-
-/* ── Chakra spinning logo ── */
 .chakra-spin-wrap {
-  position: relative; width: 130px; height: 130px;
-  margin: 0 auto 28px;
+  position: relative;
+  width: 180px; height: 180px;
   display: flex; align-items: center; justify-content: center;
 }
 .chakra-glow-ring {
-  position: absolute; inset: -8px; border-radius: 50%;
-  background: conic-gradient(from 0deg, #6366f1, #a78bfa, #f0abfc, #818cf8, #6366f1);
-  animation: chakra-rotate 2.4s linear infinite;
-  opacity: 0.55;
-  filter: blur(4px);
+  position: absolute; inset: -14px; border-radius: 50%;
+  background: conic-gradient(from 0deg,
+    #b8860b, #ffd700, #ffec6e, #ffc200, #f0a500, #b8860b);
+  animation: chakra-rotate 3s linear infinite;
+  opacity: 0.6;
+  filter: blur(10px);
 }
 .chakra-spin-logo {
-  width: 110px; height: 110px; object-fit: contain;
-  border-radius: 50%; background: rgba(30,27,75,0.7);
+  width: 160px; height: 160px; object-fit: contain;
   position: relative; z-index: 1;
-  animation: chakra-rotate 6s linear infinite;
-  filter: drop-shadow(0 0 18px rgba(139,92,246,0.7));
+  animation: chakra-rotate 4s linear infinite;
+  filter:
+    sepia(1) saturate(4) hue-rotate(5deg) brightness(1.1)
+    drop-shadow(0 0 22px rgba(255, 200, 0, 0.85))
+    drop-shadow(0 0 50px rgba(255, 165, 0, 0.4));
 }
 @keyframes chakra-rotate { to { transform: rotate(360deg); } }
-
-.astro-title {
-  font-size: 20px; font-weight: 700; color: #e0e7ff;
-  margin-bottom: 10px; line-height: 1.3;
-}
-.astro-sub {
-  font-size: 13.5px; color: #a5b4fc; margin-bottom: 28px; line-height: 1.5;
-}
-
-/* Rotating phrases */
-.astro-phrases {
-  height: 22px; overflow: hidden; margin-bottom: 28px; position: relative;
-}
-.astro-phrase {
-  display: block; font-size: 12.5px; color: #c7d2fe;
-  animation: astro-cycle 10s linear infinite;
-  position: absolute; width: 100%; left: 0;
-  opacity: 0;
-}
-.astro-phrase:nth-child(1) { animation-delay: 0s; }
-.astro-phrase:nth-child(2) { animation-delay: 2s; }
-.astro-phrase:nth-child(3) { animation-delay: 4s; }
-.astro-phrase:nth-child(4) { animation-delay: 6s; }
-.astro-phrase:nth-child(5) { animation-delay: 8s; }
-@keyframes astro-cycle {
-  0%   { opacity: 0; transform: translateY(8px); }
-  8%   { opacity: 1; transform: translateY(0); }
-  18%  { opacity: 1; transform: translateY(0); }
-  26%  { opacity: 0; transform: translateY(-8px); }
-  100% { opacity: 0; }
-}
-
-/* Animated dots */
-.astro-dots { display: flex; gap: 8px; justify-content: center; }
-.astro-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: #6366f1; opacity: 0.3;
-  animation: astro-dot-pulse 1.4s ease-in-out infinite;
-}
-.astro-dot:nth-child(2) { animation-delay: 0.2s; }
-.astro-dot:nth-child(3) { animation-delay: 0.4s; }
-@keyframes astro-dot-pulse { 0%,100%{opacity:0.3;transform:scale(1)} 50%{opacity:1;transform:scale(1.4)} }
 
 :host {
   display: block; height: 100vh; overflow: hidden;
@@ -2805,7 +2728,7 @@ export class IntakePage {
       prompt_version: this.promptVersion(),
     };
     this.chakraLoading.set(true);
-    await new Promise(r => setTimeout(r, 1200));
+    await new Promise(r => setTimeout(r, 4000));
     this.chakraLoading.set(false);
     this.view.set('pipeline');
     this.orch.run(input);
@@ -2813,7 +2736,7 @@ export class IntakePage {
 
   async goReview() {
     this.chakraLoading.set(true);
-    await new Promise(r => setTimeout(r, 900));
+    await new Promise(r => setTimeout(r, 4000));
     this.chakraLoading.set(false);
     if (this.auth.isAdmin()) {
       this.router.navigate(['/review'], {
