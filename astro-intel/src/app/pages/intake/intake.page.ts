@@ -226,19 +226,20 @@ function validateProfile(p: {
 <div class="shell">
 
 <!-- ══ ASTROLOGICAL TRANSLATION OVERLAY ══════════════════════════════════════ -->
-@if (preparingReport()) {
+@if (preparingReport() || chakraLoading()) {
   <div class="astro-overlay">
     <div class="astro-overlay-card">
 
-      <!-- Animated mandala / orbit rings -->
-      <div class="astro-orbit">
-        <div class="astro-ring astro-ring-1"></div>
-        <div class="astro-ring astro-ring-2"></div>
-        <div class="astro-ring astro-ring-3"></div>
-        <div class="astro-center-glyph">✦</div>
+      <!-- Spinning chakra logo -->
+      <div class="chakra-spin-wrap">
+        <div class="chakra-glow-ring"></div>
+        <img src="rav-logo.png" class="chakra-spin-logo" alt=""/>
       </div>
 
-      <h2 class="astro-title">Weaving Your Report in {{ preparingLangName() }}</h2>
+      <h2 class="astro-title">
+        @if (chakraLoading()) { Awakening the Cosmos… }
+        @else { Weaving Your Report in {{ preparingLangName() }} }
+      </h2>
       <p class="astro-sub">The stars are aligning your personalised 360° reading…</p>
 
       <!-- Rotating mystical phrases -->
@@ -1250,28 +1251,27 @@ function validateProfile(p: {
   box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 60px rgba(99,102,241,0.15);
 }
 
-/* Orbit rings */
-.astro-orbit {
-  position: relative; width: 100px; height: 100px;
+/* ── Chakra spinning logo ── */
+.chakra-spin-wrap {
+  position: relative; width: 130px; height: 130px;
   margin: 0 auto 28px;
-}
-.astro-ring {
-  position: absolute; inset: 0; border-radius: 50%;
-  border: 1.5px solid rgba(165,180,252,0.3);
-  animation: astro-spin linear infinite;
-}
-.astro-ring-1 { animation-duration: 4s; }
-.astro-ring-2 { inset: 12px; border-color: rgba(196,181,253,0.4); animation-duration: 7s; animation-direction: reverse; }
-.astro-ring-3 { inset: 24px; border-color: rgba(251,207,232,0.35); animation-duration: 11s; }
-@keyframes astro-spin { to { transform: rotate(360deg); } }
-
-.astro-center-glyph {
-  position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
-  font-size: 28px; color: #a5b4fc;
-  animation: astro-pulse 2s ease-in-out infinite;
 }
-@keyframes astro-pulse { 0%,100%{opacity:0.7;transform:scale(1)} 50%{opacity:1;transform:scale(1.15)} }
+.chakra-glow-ring {
+  position: absolute; inset: -8px; border-radius: 50%;
+  background: conic-gradient(from 0deg, #6366f1, #a78bfa, #f0abfc, #818cf8, #6366f1);
+  animation: chakra-rotate 2.4s linear infinite;
+  opacity: 0.55;
+  filter: blur(4px);
+}
+.chakra-spin-logo {
+  width: 110px; height: 110px; object-fit: contain;
+  border-radius: 50%; background: rgba(30,27,75,0.7);
+  position: relative; z-index: 1;
+  animation: chakra-rotate 6s linear infinite;
+  filter: drop-shadow(0 0 18px rgba(139,92,246,0.7));
+}
+@keyframes chakra-rotate { to { transform: rotate(360deg); } }
 
 .astro-title {
   font-size: 20px; font-weight: 700; color: #e0e7ff;
@@ -2490,6 +2490,7 @@ export class IntakePage {
   readonly reportTranslating   = signal(false);
   readonly preparingReport     = signal(false);  // true while translating before navigating to /report
   readonly preparingLangName   = signal('');     // e.g. "Hindi" shown in overlay
+  readonly chakraLoading       = signal(false);  // spinning chakra overlay on page transitions
   readonly reportDownloadError = signal('');     // shown when report fetch fails
 
   private _autoPollTimer: ReturnType<typeof setInterval> | null = null;
@@ -2803,11 +2804,17 @@ export class IntakePage {
       },
       prompt_version: this.promptVersion(),
     };
+    this.chakraLoading.set(true);
+    await new Promise(r => setTimeout(r, 1200));
+    this.chakraLoading.set(false);
     this.view.set('pipeline');
     this.orch.run(input);
   }
 
   async goReview() {
+    this.chakraLoading.set(true);
+    await new Promise(r => setTimeout(r, 900));
+    this.chakraLoading.set(false);
     if (this.auth.isAdmin()) {
       this.router.navigate(['/review'], {
         queryParams: this.leadReadingMode() ? { leadId: this.leadReadingId() } : {}
