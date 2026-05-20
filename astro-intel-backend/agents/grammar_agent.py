@@ -169,6 +169,8 @@ Rules:
 6. If the text is already correct, return it EXACTLY as given."""
 
 
+_BATCH_SEP = "\n<<<NEXT>>>\n"
+
 def _llm_grammar_fix(text: str) -> str:
     """Call DeepSeek for grammar polishing. Returns original on any failure."""
     if not text or len(text.strip()) < 20:
@@ -186,6 +188,39 @@ def _llm_grammar_fix(text: str) -> str:
     except Exception:
         pass
     return text
+
+
+def _llm_grammar_fix_batch(texts: List[str]) -> List[str]:
+    """
+    Grammar-fix multiple texts in ONE LLM call using a separator.
+    Falls back to per-text calls if batching fails.
+    """
+    valid = [(i, t) for i, t in enumerate(texts) if t and len(t.strip()) >= 20]
+    if not valid:
+        return texts
+    sep = _BATCH_SEP
+    combined = sep.join(t for _, t in valid)
+    try:
+        from utils.deepseek_client import call as ds_call
+        total_words = sum(len(t.split()) for _, t in valid)
+        result = ds_call(
+            system=_GRAMMAR_SYSTEM + f"\n\nIMPORTANT: The input contains {len(valid)} separate texts separated by '{sep.strip()}'. Return them corrected in the SAME order, separated by the SAME separator. Do not merge or reorder them.",
+            user=combined,
+            temperature=0,
+            max_tokens=min(total_words * 2 + len(valid) * 20, 2000),
+        )
+        if result:
+            parts = result.split(sep.strip())
+            if len(parts) == len(valid):
+                out = list(texts)
+                for j, (i, _) in enumerate(valid):
+                    if parts[j].strip():
+                        out[i] = parts[j].strip()
+                return out
+    except Exception:
+        pass
+    # Fallback: fix each individually
+    return [_llm_grammar_fix(t) for t in texts]
 
 
 def correct(text: str, use_llm: bool = True) -> str:
@@ -294,13 +329,43 @@ def correct_report(report: Dict[str, Any], use_llm: bool = True) -> Dict[str, An
             elif isinstance(val, list):
                 report[key] = _fix_list(val) if use_llm else val
 
-    # ── Sections — parallel correction ───────────────────────────────────
+    # ── Sections — batch + parallel correction ────────────────────────────
     def _fix_section(section: Dict[str, Any]) -> Dict[str, Any]:
+        # Collect all prose strings for this section into one batch LLM call
+        batch_keys: List[str] = []
+        batch_texts: List[str] = []
+
         for prose_key in ("narrative", "simple_narrative"):
             if prose_key in section and isinstance(section[prose_key], str):
-                section[prose_key] = correct(section[prose_key], use_llm=use_llm)
-        if "structured_summary" in section:
-            section["structured_summary"] = _fix_structured_summary(section["structured_summary"])
+                batch_keys.append(prose_key)
+                batch_texts.append(_deterministic_fix(section[prose_key]))
+
+        ss = section.get("structured_summary", {})
+        ss_prose_keys: List[str] = []
+        if isinstance(ss, dict):
+            for k, v in ss.items():
+                if k not in _SKIP_KEYS and isinstance(v, str) and len(v.strip()) >= 20:
+                    ss_prose_keys.append(k)
+                    batch_texts.append(_deterministic_fix(v))
+
+        if use_llm and batch_texts:
+            fixed_texts = _llm_grammar_fix_batch(batch_texts)
+        else:
+            fixed_texts = batch_texts
+
+        # Write back narrative fields
+        for i, key in enumerate(batch_keys):
+            section[key] = fixed_texts[i]
+
+        # Write back structured_summary fields
+        if isinstance(ss, dict):
+            for j, k in enumerate(ss_prose_keys):
+                idx = len(batch_keys) + j
+                if idx < len(fixed_texts):
+                    ss[k] = fixed_texts[idx]
+            section["structured_summary"] = ss
+
+        # Insights — deterministic only (already LLM-corrected in pipeline)
         for insight in section.get("insights", []):
             content = insight.get("content", "")
             if content and not insight.get("grammar_checked"):
