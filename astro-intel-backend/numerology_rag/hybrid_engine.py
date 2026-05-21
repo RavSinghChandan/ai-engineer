@@ -35,20 +35,29 @@ def _next_personal_year(dob: str) -> tuple[int, int]:
 
 # ── Single-shot system prompt ─────────────────────────────────────────────────
 
-_EXPERT_SYSTEM = """You are a master numerologist — 30 years of expertise across Indian,
-Chaldean, and Pythagorean traditions. You are also the author of the book passages provided.
+_EXPERT_SYSTEM = """You are a master numerologist — 30 years of expertise in {tradition}.
+You are also the author of the book passages provided below.
 
-Your task: write a 3-sentence expert answer that directly addresses the client's question.
+Your task: write a RICH, DETAILED expert reading for this client using the {tradition} tradition.
+
+Structure your answer as 4-5 sentences covering ALL of these:
+1. Core character truth — what their Life Path + Name Number reveal about WHO they are
+2. Current energy window — what Personal Year {current_year} and {next_year} mean specifically for them
+3. Domain insight — what {tradition} specifically reveals about their question that the other traditions don't
+4. Timing precision — exact year or cycle window when things shift
+5. One concrete remedy or practice from {tradition} specifically — a number-based action, mantra, colour,
+   or timing rule that is UNIQUE to this tradition
 
 Rules:
-1. Sentence 1: answer the question directly — no warmup, no "your numbers show"
-2. Name at least 2 of the client's actual numbers (Life Path, Personal Year, Destiny, Name Number)
-3. Give a specific year window (use the current or next personal year provided)
-4. If book passages are provided, weave in one specific insight from them naturally
-5. End with one concrete action tied to the numbers
-6. No markdown, no headers, no labels — pure flowing prose
-7. Do NOT say "From the X perspective" or "As a numerologist"
-8. Simple, clear English — a non-expert should understand every sentence"""
+- Answer the question directly — no warmup preamble
+- Name every number explicitly: Life Path X, Destiny X, Name Number X, Personal Year X
+- Include actual years (2026, 2027) not vague phrases like "soon" or "in the coming months"
+- Each tradition must give a DIFFERENT angle — Indian focuses on karma/dharma,
+  Chaldean on hidden vibrations/soul energy, Pythagorean on personality/life cycles
+- Weave in specific insight from the book passages provided
+- No markdown, no headers — pure flowing prose
+- Do NOT say "From the {tradition} perspective" as an opener
+- Simple clear English that a non-expert can understand"""
 
 
 def hybrid_numerology_answer(
@@ -65,30 +74,34 @@ def hybrid_numerology_answer(
     timeout_seconds: int = 8,
 ) -> str:
     """
-    Single-call hybrid: RAG retrieval runs in parallel with prompt build,
-    then one LLM call produces the final answer. Falls back to static_fallback.
+    Single-call hybrid: fetch RAG chunks (FAISS, fast) then one rich LLM call
+    per tradition. Each tradition gets full depth — 4-5 sentences, all numbers,
+    tradition-specific remedy woven in. Falls back to static_fallback on error.
     """
     current_year = date.today().year
     py_now       = _personal_year(dob, current_year)
     py_next, next_year = _next_personal_year(dob)
 
-    # Fetch RAG context (fast — FAISS local search)
+    # Fetch RAG context — top_k=4 gives more book material for richer answers
     rag_context = ""
     try:
         from numerology_rag.retriever import retrieve_for_rag
         rag_context = retrieve_for_rag(
             life_path=life_path, intent=intent,
             tradition=tradition, question=question,
-            personal_year=py_now, top_k=3,
+            personal_year=py_now, top_k=4,
         )
     except Exception:
         pass
 
+    system = _EXPERT_SYSTEM.replace("{tradition}", tradition) \
+                           .replace("{current_year}", str(current_year)) \
+                           .replace("{next_year}", str(next_year))
+
     user_prompt = (
-        f"Tradition: {tradition}\n"
-        f"Question: {question}\n"
+        f"Client question: {question}\n"
         f"Intent: {intent}\n\n"
-        f"Client numbers:\n"
+        f"Client numbers ({tradition}):\n"
         f"  Life Path: {life_path}\n"
         f"  Destiny Number: {destiny}\n"
         f"  Soul Urge: {soul_urge_num}\n"
@@ -98,18 +111,18 @@ def hybrid_numerology_answer(
     )
     if rag_context:
         user_prompt += f"\n{rag_context}\n"
-    user_prompt += "\nWrite the 3-sentence expert answer now:"
+    user_prompt += f"\nWrite the detailed {tradition} reading now (4-5 sentences, all numbers named, tradition-specific remedy included):"
 
     try:
         from utils.deepseek_client import call as ds_call
         result = ds_call(
-            system=_EXPERT_SYSTEM,
+            system=system,
             user=user_prompt,
-            temperature=0.15,
-            max_tokens=220,
+            temperature=0.20,
+            max_tokens=400,
         )
         answer = (result or "").strip()
-        if len(answer) > 40:
+        if len(answer) > 80:
             return answer
     except Exception:
         pass
