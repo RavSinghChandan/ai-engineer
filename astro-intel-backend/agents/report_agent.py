@@ -171,6 +171,22 @@ def _consolidate_section(
         include_remedy_bullets=False,   # remedies appear once in consolidated block
     )
 
+    # Numerology: weave all tradition answers into one storytelling narrative
+    raw_breakdown = _domain_breakdown(approved_insights)
+    merged_breakdown: Dict[str, List[str]] = {}
+    for domain, bullets in raw_breakdown.items():
+        if domain == "numerology" and len(bullets) > 1:
+            from agents.storytelling_agent import numerology_story
+            story = numerology_story(
+                bullets=bullets,
+                question=question,
+                intent=intent,
+                subject=subject,
+            )
+            merged_breakdown[domain] = [story] if story else bullets[:1]
+        else:
+            merged_breakdown[domain] = bullets
+
     return {
         "question":           question,
         "intent":             intent,
@@ -179,7 +195,7 @@ def _consolidate_section(
         "structured_summary": structured_summary,
         "prompts":            prompts,
         "insights":           approved_insights,
-        "domain_breakdown":   _domain_breakdown(approved_insights),
+        "domain_breakdown":   merged_breakdown,
     }
 
 
@@ -189,6 +205,8 @@ def _domain_breakdown(insights: List[Dict[str, Any]]) -> Dict[str, List[str]]:
         for d in ins.get("domains", []):
             breakdown.setdefault(d, []).append(ins["content"])
     return breakdown
+
+
 
 
 # ── Public entry point ─────────────────────────────────────────────────────────

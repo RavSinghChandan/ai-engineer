@@ -777,6 +777,7 @@ import { firstValueFrom } from 'rxjs';
       @if (section.domain_summary?.length && !editMode()) {
 
         @for (grp of section.domain_summary; track grp.domain; let gi = $index) {
+          @if (grp.bullets?.length) {
 
           <!-- ══ MASTER TEMPLATE: full A4 page per domain ══ -->
           <div class="pdf-page page-domain-master">
@@ -810,41 +811,18 @@ import { firstValueFrom } from 'rxjs';
               <div class="dm-findings">
                 <div class="dm-findings-title" [style.color]="dsAccent(grp.domain)">
                   Findings &amp; Insights
-                  <span class="dm-insight-pill" [style.background]="dsIconBg(grp.domain)" [style.color]="dsAccent(grp.domain)">
-                    {{ grp.bullets.length }} insight{{ grp.bullets.length !== 1 ? 's' : '' }}
-                  </span>
                 </div>
                 <div class="dm-divider" [style.background]="dsAccent(grp.domain)"></div>
 
-                @if (grp.subGroups && grp.subGroups.length > 0) {
-                  <!-- ── Tradition subheadings layout ── -->
-                  @for (sg of grp.subGroups; track sg.sub_agent; let sgi = $index) {
-                    <div class="dm-subgroup">
-                      <div class="dm-subgroup-hdr" [style.borderLeftColor]="dsAccent(grp.domain)">
-                        <span class="dm-subgroup-num" [style.background]="dsAccent(grp.domain)">{{ sgi + 1 }}</span>
-                        <span class="dm-subgroup-label">{{ sg.label }}</span>
-                      </div>
-                      <ul class="dm-bullets dm-bullets-sub">
-                        @for (bullet of sg.bullets; track bullet) {
-                          <li class="dm-bullet dm-bullet-sub">
-                            <span class="dm-bullet-dot" [style.background]="dsAccent(grp.domain)"></span>
-                            <span class="dm-bullet-text" [innerHTML]="highlightBullet(bullet, section.intent, grp.domain)"></span>
-                          </li>
-                        }
-                      </ul>
-                    </div>
+                <!-- ── Flat numbered bullets — no tradition subheadings ── -->
+                <ul class="dm-bullets">
+                  @for (bullet of grp.bullets; track bullet; let bi = $index) {
+                    <li class="dm-bullet">
+                      <span class="dm-bullet-num" [style.background]="dsAccent(grp.domain)">{{ bi + 1 }}</span>
+                      <span class="dm-bullet-text" [innerHTML]="highlightBullet(bullet, section.intent, grp.domain)"></span>
+                    </li>
                   }
-                } @else {
-                  <!-- ── Flat numbered bullets (fallback) ── -->
-                  <ul class="dm-bullets">
-                    @for (bullet of grp.bullets; track bullet; let bi = $index) {
-                      <li class="dm-bullet">
-                        <span class="dm-bullet-num" [style.background]="dsAccent(grp.domain)">{{ bi + 1 }}</span>
-                        <span class="dm-bullet-text" [innerHTML]="highlightBullet(bullet, section.intent, grp.domain)"></span>
-                      </li>
-                    }
-                  </ul>
-                }
+                </ul>
 
                 <!-- ── WATERMARK: only in the remaining empty space after bullets ── -->
                 <div class="dm-watermark-zone">
@@ -857,6 +835,7 @@ import { firstValueFrom } from 'rxjs';
 
           </div>
 
+          } <!-- /@if grp.bullets?.length -->
         }
 
       } @else {
@@ -935,165 +914,7 @@ import { firstValueFrom } from 'rxjs';
 
     }
 
-    <!-- ══ CONSOLIDATED REMEDIES PAGE — exactly once, one A4 page ══ -->
-    @if (displayReport()!.remedies) {
-      <div class="pdf-page remedy-page">
-        <div class="page-hdr">
-          <img src="rav-logo.png" alt="Aura with Rav" class="page-hdr-logo"/>
-          <span class="page-hdr-title">{{ displayReport()!.label_remedies_heading || 'Remedies to Support Your Journey' }}</span>
-        </div>
-
-        <div class="remedy-grid">
-
-          <!-- DAILY HABITS -->
-          @if (displayReport()!.remedies.daily_habits?.length) {
-            <div class="r-card">
-              <div class="r-card-hdr">
-                <span class="r-icon">☀</span>
-                <span class="r-label">{{ displayReport()!.label_daily_habits || 'Daily Habits' }}</span>
-              </div>
-              <ul class="r-list">
-                @for (h of displayReport()!.remedies.daily_habits.slice(0,4); track h) {
-                  <li [innerHTML]="colorize(h)"></li>
-                }
-              </ul>
-            </div>
-          }
-
-          <!-- MANTRAS -->
-          @if (displayReport()!.remedies.mantras?.length) {
-            <div class="r-card">
-              <div class="r-card-hdr">
-                <span class="r-icon">ॐ</span>
-                <span class="r-label">{{ displayReport()!.label_mantra || 'Mantras' }}</span>
-              </div>
-              <ul class="r-list">
-                @for (m of displayReport()!.remedies.mantras.slice(0,3); track m.mantra) {
-                  <li><strong>{{ m.mantra }}</strong> — {{ m.purpose }} ({{ m.count }}×)</li>
-                }
-              </ul>
-            </div>
-          }
-
-          <!-- LUCKY COLORS — dynamic swatches -->
-          @if (displayReport()!.remedies.colors?.length) {
-            <div class="r-card">
-              <div class="r-card-hdr">
-                <span class="r-icon">◈</span>
-                <span class="r-label">{{ displayReport()!.label_lucky_colors || 'Lucky Colors' }}</span>
-              </div>
-              <div class="r-color-row">
-                @for (c of displayReport()!.remedies.colors.slice(0,6); track c) {
-                  <div class="r-color-chip">
-                    <span class="r-swatch" [style.background]="colorHex(c)"></span>
-                    <span class="r-color-name">{{ c }}</span>
-                  </div>
-                }
-              </div>
-            </div>
-          }
-
-          <!-- GEMSTONES -->
-          @if (displayReport()!.remedies.gemstones?.length) {
-            <div class="r-card">
-              <div class="r-card-hdr">
-                <span class="r-icon">◇</span>
-                <span class="r-label">Gemstones</span>
-              </div>
-              <ul class="r-list">
-                @for (g of displayReport()!.remedies.gemstones.slice(0,3); track g.stone) {
-                  <li><strong>{{ g.stone }}</strong> — {{ g.purpose }}<br/><em class="r-sub">{{ g.finger }}</em></li>
-                }
-              </ul>
-            </div>
-          }
-
-          <!-- FASTING -->
-          @if (displayReport()!.remedies.fasting?.length) {
-            <div class="r-card">
-              <div class="r-card-hdr">
-                <span class="r-icon">☽</span>
-                <span class="r-label">Fasting</span>
-              </div>
-              <ul class="r-list">
-                @for (f of displayReport()!.remedies.fasting.slice(0,2); track f) {
-                  <li [innerHTML]="colorize(f)"></li>
-                }
-              </ul>
-            </div>
-          }
-
-          <!-- CHARITY -->
-          @if (displayReport()!.remedies.charity?.length) {
-            <div class="r-card">
-              <div class="r-card-hdr">
-                <span class="r-icon">♡</span>
-                <span class="r-label">Charity</span>
-              </div>
-              <ul class="r-list">
-                @for (ch of displayReport()!.remedies.charity.slice(0,3); track ch) {
-                  <li [innerHTML]="colorize(ch)"></li>
-                }
-              </ul>
-            </div>
-          }
-
-          <!-- BEHAVIORAL ADJUSTMENTS -->
-          @if (displayReport()!.remedies.behavioral_adjustments?.length) {
-            <div class="r-card">
-              <div class="r-card-hdr">
-                <span class="r-icon">⚖</span>
-                <span class="r-label">Behavioral Adjustments</span>
-              </div>
-              <ul class="r-list">
-                @for (b of displayReport()!.remedies.behavioral_adjustments.slice(0,3); track b) {
-                  <li [innerHTML]="colorize(b)"></li>
-                }
-              </ul>
-            </div>
-          }
-
-          <!-- YOGA & MEDITATION -->
-          @if (displayReport()!.remedies.yoga_meditation?.length) {
-            <div class="r-card">
-              <div class="r-card-hdr">
-                <span class="r-icon">🪷</span>
-                <span class="r-label">Yoga & Meditation</span>
-              </div>
-              <ul class="r-list">
-                @for (y of displayReport()!.remedies.yoga_meditation.slice(0,3); track y) {
-                  <li [innerHTML]="colorize(y)"></li>
-                }
-              </ul>
-            </div>
-          }
-
-          <!-- VASTU REMEDIES (only if present) -->
-          @if (displayReport()!.remedies.vastu_remedies?.length) {
-            <div class="r-card">
-              <div class="r-card-hdr">
-                <span class="r-icon">⊕</span>
-                <span class="r-label">Vastu Remedies</span>
-              </div>
-              <ul class="r-list">
-                @for (v of displayReport()!.remedies.vastu_remedies.slice(0,3); track v) {
-                  <li [innerHTML]="colorize(v)"></li>
-                }
-              </ul>
-            </div>
-          }
-
-        </div><!-- /remedy-grid -->
-
-        <div class="page-footer">
-          <span>{{ displayReport()!.user_name }}</span>
-          <span class="page-footer-sep">·</span>
-          <span>Remedies</span>
-          <span class="page-footer-sep">·</span>
-          <span>{{ formatDate(displayReport()!.generated_at) }}</span>
-        </div>
-      </div>
-    }
+    <!-- REMEDIES PAGE removed — remedies will be embedded in storytelling narrative -->
 
     <!-- ══ CLOSING PAGE ════════════════════════════════════════════════════════ -->
     <div class="pdf-page closing-page">
@@ -2081,6 +1902,37 @@ import { firstValueFrom } from 'rxjs';
 }
 .r-color-name { font-size: 10.5px; font-weight: 600; color: #374151; }
 
+/* ── Clean remedies page ── */
+.remedy-clean-page {
+  display: flex; flex-direction: column; min-height: 0; position: relative;
+}
+.remedy-clean-body {
+  flex: 1; padding: 20px 36px 16px; overflow: hidden; position: relative; z-index: 1;
+}
+.remedy-clean-list {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.remedy-clean-item {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 11px 16px; border-radius: 10px;
+  background: linear-gradient(135deg, #fdf8ee, #fffbf2);
+  border: 1px solid rgba(212,175,55,0.20);
+}
+.remedy-clean-icon {
+  font-size: 16px; line-height: 1.4; flex-shrink: 0; width: 24px; text-align: center;
+}
+.remedy-clean-content {
+  display: flex; flex-direction: column; gap: 2px;
+}
+.remedy-clean-cat {
+  font-size: 9px; font-weight: 800; letter-spacing: 0.08em;
+  text-transform: uppercase; color: #92400e;
+}
+.remedy-clean-text {
+  font-size: 11.5px; color: #374151; line-height: 1.6;
+}
+
 .edit-area {
   width: 100%; box-sizing: border-box; padding: 12px 16px;
   border: 1.5px solid #d4af37; border-radius: 8px;
@@ -2265,24 +2117,24 @@ export class ReportPage implements OnInit {
       vastu:      ['traditional',     'modern'],
     };
     const patched = { ...r, sections: (r.sections ?? []).map((s: any) => {
-      if (s.domain_summary?.length) return s;
+      // Always prefer domain_breakdown (contains storytelling-merged bullets) over cached domain_summary
       const db: Record<string, string[]> = s.domain_breakdown ?? {};
       if (!Object.keys(db).length) return s;
       const domain_summary = Object.entries(db)
         .filter(([d]) => DOMAIN_META[d])
         .sort(([a], [b]) => (DOMAIN_META[a]?.order ?? 99) - (DOMAIN_META[b]?.order ?? 99))
-        .map(([d, bullets]) => {
-          const traditions = DOMAIN_TRADITIONS[d] ?? [];
-          const subGroups = (bullets as string[])
-            .slice(0, traditions.length || 3)
-            .map((bullet, i) => ({
-              sub_agent: traditions[i] ?? `tradition_${i + 1}`,
-              label: traditions[i] ? (TRADITION_LABELS[traditions[i]] ?? traditions[i]) : `Tradition ${i + 1}`,
-              bullets: [bullet],
-            }));
-          return { domain: d, label: DOMAIN_META[d].label, icon: DOMAIN_META[d].icon,
-                   bullets: bullets as string[], subGroups };
-        });
+        .map(([d, rawBullets]) => {
+          // Deduplicate and filter empty bullets
+          const seen = new Set<string>();
+          const bullets = (rawBullets as string[]).filter(b => {
+            const key = b.trim().slice(0, 80).toLowerCase();
+            if (!b.trim() || seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+          return { domain: d, label: DOMAIN_META[d].label, icon: DOMAIN_META[d].icon, bullets };
+        })
+        .filter(grp => grp.bullets.length > 0); // never create pages for empty domains
       return { ...s, domain_summary };
     })};
     return patched;
@@ -2557,8 +2409,22 @@ export class ReportPage implements OnInit {
     return `color:${color};font-weight:700;`;
   }
 
+  cleanBullet(text: string): string {
+    if (!text) return '';
+    // Remove tradition-label prefixes that confuse users
+    // e.g. "From the Vedic Astrology perspective: ..." → strip opener
+    // e.g. "Across all selected traditions — ... the analysis for "Q?" consistently indicates ..." → strip
+    let t = text.trim();
+    t = t.replace(/^From the [^:]+perspective:\s*/i, '');
+    t = t.replace(/^Across all selected traditions[^.]+\.\s*/i, '');
+    t = t.replace(/^There is a tendency toward /i, 'Your natural tendency is toward ');
+    // Capitalise first letter after stripping
+    return t.charAt(0).toUpperCase() + t.slice(1);
+  }
+
   highlightBullet(text: string, intent: string, domain: string): string {
     if (!text) return '';
+    text = this.cleanBullet(text);
     const intentColor = this.INTENT_HIGHLIGHT[intent] ?? this.INTENT_HIGHLIGHT['general'];
     const keywords = [...(this.INTENT_KEYWORDS[intent] ?? [])];
     // Build a fast lookup set of single-word intent keywords (lowercase)
@@ -2821,6 +2687,42 @@ export class ReportPage implements OnInit {
   }
   hasModule(m: string): boolean {
     return (this.displayReport()?.modules_used ?? []).includes(m);
+  }
+
+  hasRemedies(): boolean {
+    const r = (this.displayReport() as any)?.remedies;
+    if (!r) return false;
+    return !!(
+      r.daily_habits?.length || r.mantras?.length || r.colors?.length ||
+      r.gemstones?.length || r.fasting?.length || r.charity?.length ||
+      r.behavioral_adjustments?.length || r.yoga_meditation?.length ||
+      r.vastu_remedies?.length
+    );
+  }
+
+  remedyItems(): Array<{icon: string; category: string; text: string}> {
+    const r = (this.displayReport() as any)?.remedies;
+    if (!r) return [];
+    const items: Array<{icon: string; category: string; text: string}> = [];
+    for (const h of (r.daily_habits ?? []).slice(0, 3))
+      items.push({ icon: '☀', category: 'Daily Habit', text: h });
+    for (const m of (r.mantras ?? []).slice(0, 3))
+      items.push({ icon: 'ॐ', category: 'Mantra', text: `${m.mantra} — ${m.purpose} (${m.count}×)` });
+    for (const g of (r.gemstones ?? []).slice(0, 2))
+      items.push({ icon: '◇', category: 'Gemstone', text: `${g.stone} — ${g.purpose} · ${g.finger}` });
+    for (const c of (r.colors ?? []).slice(0, 5))
+      items.push({ icon: '◈', category: 'Lucky Color', text: c });
+    for (const f of (r.fasting ?? []).slice(0, 2))
+      items.push({ icon: '☽', category: 'Fasting', text: f });
+    for (const ch of (r.charity ?? []).slice(0, 2))
+      items.push({ icon: '♡', category: 'Charity', text: ch });
+    for (const b of (r.behavioral_adjustments ?? []).slice(0, 2))
+      items.push({ icon: '⚖', category: 'Practice', text: b });
+    for (const y of (r.yoga_meditation ?? []).slice(0, 2))
+      items.push({ icon: '🪷', category: 'Yoga & Meditation', text: y });
+    for (const v of (r.vastu_remedies ?? []).slice(0, 2))
+      items.push({ icon: '⊕', category: 'Vastu', text: v });
+    return items;
   }
 
   moduleMethods(): Record<string, any> {
@@ -3929,6 +3831,38 @@ export class ReportPage implements OnInit {
         .r-color-chip { display: flex !important; align-items: center !important; gap: 5px !important; }
         .r-swatch { width: 16px !important; height: 16px !important; border-radius: 50% !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         .r-color-name { font-size: 13px !important; }
+        .remedy-clean-page {
+          width: 210mm !important; height: 297mm !important;
+          min-height: 297mm !important; max-height: 297mm !important;
+          overflow: hidden !important;
+          display: flex !important; flex-direction: column !important;
+          page-break-before: always !important; break-before: page !important;
+          page-break-after: avoid !important;
+          position: relative !important;
+        }
+        .remedy-clean-body {
+          flex: 1 !important; padding: 20px 36px 16px !important;
+          overflow: hidden !important; position: relative !important; z-index: 1 !important;
+        }
+        .remedy-clean-list {
+          list-style: none !important; margin: 0 !important; padding: 0 !important;
+          display: flex !important; flex-direction: column !important; gap: 10px !important;
+        }
+        .remedy-clean-item {
+          display: flex !important; align-items: flex-start !important; gap: 14px !important;
+          padding: 11px 16px !important; border-radius: 10px !important;
+          background: rgba(253,248,238,0.8) !important;
+          border: 1px solid rgba(212,175,55,0.20) !important;
+          break-inside: avoid !important; page-break-inside: avoid !important;
+          -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+        }
+        .remedy-clean-icon { font-size: 16px !important; flex-shrink: 0 !important; width: 24px !important; }
+        .remedy-clean-cat {
+          display: block !important; font-size: 9px !important; font-weight: 800 !important;
+          letter-spacing: 0.08em !important; text-transform: uppercase !important; color: #92400e !important;
+          -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+        }
+        .remedy-clean-text { display: block !important; font-size: 13px !important; color: #374151 !important; line-height: 1.6 !important; }
 
         .narrative-para { font-size: 15px !important; line-height: 1.75 !important; }
 

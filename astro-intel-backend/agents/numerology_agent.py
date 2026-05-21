@@ -153,7 +153,22 @@ def _run_sub_agent(name: str, dob: str, lmap: Dict[str, int], tradition: str, fo
         lp=lp, dest=dest, nm=nm, su=su, pn=pn, lucky=_lucky,
     )
 
-    prediction = _build_numerology_prediction(lp, nm, dest, su, pn, tradition, focus, dob)
+    static_prediction = _build_numerology_prediction(lp, nm, dest, su, pn, tradition, focus, dob)
+
+    # Hybrid RAGless + RAG pipeline — falls back to static if it fails
+    prediction = static_prediction
+    try:
+        from numerology_rag.hybrid_engine import hybrid_numerology_answer
+        prediction = hybrid_numerology_answer(
+            name=name, dob=dob,
+            life_path=lp, destiny=dest,
+            soul_urge_num=su, name_number_val=nm,
+            tradition=tradition, intent=focus, question=question,
+            static_fallback=static_prediction,
+            timeout_seconds=18,
+        )
+    except Exception:
+        pass  # keep static_prediction
 
     return {
         "sub_agent":        tradition,

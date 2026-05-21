@@ -196,6 +196,7 @@ export class OrchestratorService {
   // ── Approve ────────────────────────────────────────────────────────────────
   async approveAndGenerate(approvedIds: string[], rejectedIds: string[]): Promise<FinalReport> {
     const input = this.currentInput()!;
+    console.log('[APPROVE] approvedIds count:', approvedIds.length, '| backendMode:', this.backendMode());
 
     // Check if any insights have been edited locally
     const review = this.adminReview();
@@ -219,33 +220,28 @@ export class OrchestratorService {
     // Local fallback: build report from current adminReview (includes any edited content)
     if (!review) throw new Error('No review available');
 
-    const sections = review.questions.map(q => {
+    const DOMAIN_META: Record<string, { label: string; icon: string; order: number }> = {
+      astrology:  { label: 'Astrology',    icon: '★',  order: 1 },
+      numerology: { label: 'Numerology',   icon: '🔢', order: 2 },
+      palmistry:  { label: 'Palmistry',    icon: '✋', order: 3 },
+      tarot:      { label: 'Tarot',        icon: '🃏', order: 4 },
+      vastu:      { label: 'Vastu Shastra',icon: '🏠', order: 5 },
+    };
+
+    const sections = await Promise.all(review.questions.map(async q => {
       const approved = q.insights
         .filter(i => approvedIds.includes(i.id))
         .map(i => ({ ...i, approved: true }));
-      // Build domain breakdown
+      // Build domain breakdown — exclude remedy/consensus insights
       const domain_breakdown: Record<string, string[]> = {};
       for (const ins of approved) {
+        if (ins.id.endsWith('_remedy') || ins.id.endsWith('_consensus')) continue;
         for (const d of ins.domains) {
           if (!domain_breakdown[d]) domain_breakdown[d] = [];
           domain_breakdown[d].push(ins.content);
         }
       }
-      // Build domain_summary: group approved insights by domain, split into clean sentence bullets
-      const DOMAIN_META: Record<string, { label: string; icon: string; order: number }> = {
-        astrology:  { label: 'Astrology',    icon: '★',  order: 1 },
-        numerology: { label: 'Numerology',   icon: '🔢', order: 2 },
-        palmistry:  { label: 'Palmistry',    icon: '✋', order: 3 },
-        tarot:      { label: 'Tarot',        icon: '🃏', order: 4 },
-        vastu:      { label: 'Vastu Shastra',icon: '🏠', order: 5 },
-      };
 
-      // Each approved insight's full content goes in as-is — one bullet per insight.
-      // Zero summarization, zero sentence-splitting, zero deduplication.
-      // The user approved these in review; they go to PDF exactly as written.
-      // Group by domain, then by sub_agent within each domain for tradition subheadings.
-      const domainMap: Record<string, string[]> = {};
-      const subAgentMap: Record<string, Record<string, string[]>> = {}; // domain → sub_agent → bullets
       const insightsToGroup = approved.length > 0 ? approved : q.insights.map(i => ({ ...i, approved: true }));
 
       // First pass: collect insights per domain in order
@@ -254,12 +250,10 @@ export class OrchestratorService {
         if (ins.id.endsWith('_consensus') || ins.id.endsWith('_remedy')) continue;
         const content = ins.content?.trim();
         if (!content) continue;
-        // Prefer sub_agent field, then content text, then assign by position later
         let subAgent = ins.sub_agent?.trim() ?? '';
         if (!subAgent || subAgent === 'general' || subAgent === 'consensus') {
           subAgent = _extractTraditionFromContent(content);
         }
-        // If domains is empty, infer from sub_agent or fall back to astrology
         const domains = (ins.domains?.length ? ins.domains : (
           subAgent.includes('indian_vedic') || subAgent.includes('chaldean') || subAgent.includes('pythagorean') ? ['numerology'] :
           subAgent.includes('kp') || subAgent.includes('parashara') || subAgent.includes('western_tropical') ? ['astrology'] :
@@ -275,13 +269,11 @@ export class OrchestratorService {
         }
       }
 
-      // Second pass: for insights still without a tradition key, assign by position
+      // For insights without a tradition key, assign by position
       for (const d of Object.keys(domainInsightList)) {
         const traditions = DOMAIN_TRADITIONS[d] ?? [];
         const list = domainInsightList[d];
-        // Count how many already have a known tradition
         const unresolved = list.filter(x => !x.sub_agent).length;
-        // If most are unresolved and we know the traditions, assign by index
         if (traditions.length > 0 && unresolved >= list.length / 2) {
           list.forEach((x, i) => {
             if (!x.sub_agent) x.sub_agent = traditions[i] ?? `tradition_${i + 1}`;
@@ -289,7 +281,26 @@ export class OrchestratorService {
         }
       }
 
+      // Merge numerology bullets into one storytelling narrative via backend
+      // Merge numerology bullets into one storytelling narrative via backend
+      console.log('[STORY] numerology bullets count:', domainInsightList['numerology']?.length, '| backendMode:', this.backendMode());
+      if (this.backendMode() === 'backend' && domainInsightList['numerology']?.length > 1) {
+        try {
+          const numBullets = domainInsightList['numerology'].map(x => x.content);
+          const subject = (this.currentInput() as any)?.profile?.full_name ?? '';
+          const remedies = (this.rawOutputs() as any)?.remedies ?? {};
+          const res = await firstValueFrom(this.api.mergeStory(numBullets, q.question, q.intent, subject, remedies));
+          if (res.story && res.story.length > 80) {
+            domainInsightList['numerology'] = [{ content: res.story, sub_agent: 'numerology' }];
+            // Also update domain_breakdown so displayReport computed doesn't rebuild from old 3 bullets
+            domain_breakdown['numerology'] = [res.story];
+          }
+        } catch { /* keep original bullets on failure */ }
+      }
+
       // Build domainMap and subAgentMap from resolved list
+      const domainMap: Record<string, string[]> = {};
+      const subAgentMap: Record<string, Record<string, string[]>> = {};
       for (const d of Object.keys(domainInsightList)) {
         for (const { content, sub_agent } of domainInsightList[d]) {
           if (!domainMap[d]) domainMap[d] = [];
@@ -307,7 +318,6 @@ export class OrchestratorService {
         .map(([d, bullets]) => {
           const subs = subAgentMap[d] ?? {};
           const traditions = DOMAIN_TRADITIONS[d] ?? [];
-          // Order subGroups by known tradition order, then any extras
           const allKeys = Object.keys(subs).filter(k => k && k !== 'consensus');
           const orderedKeys = [
             ...traditions.filter(t => allKeys.includes(t)),
@@ -329,14 +339,12 @@ export class OrchestratorService {
           };
         });
 
-      // Simple narrative kept for edit-mode fallback
       const narrative = insightsToGroup.map(i => i.content.replace(/\.$/, '')).join('. ') + (insightsToGroup.length ? '.' : '');
       const simple_narrative = narrative;
 
-      // If no insights were explicitly approved, use all insights for this question
       const finalInsights = approved.length > 0 ? approved : q.insights.map(i => ({ ...i, approved: true }));
       return { question: q.question, intent: q.intent, narrative, simple_narrative, domain_summary, insights: finalInsights, domain_breakdown };
-    });
+    }));
 
     // ── Plain English pass: simplify all bullets for the PDF reader ──────────
     // Runs ONLY here (report generation), never on the review page.
@@ -368,9 +376,10 @@ export class OrchestratorService {
           const { firstValueFrom } = await import('rxjs');
           const res = await firstValueFrom(this.api.simplifyBullets(allBullets));
           const simplified = res.bullets;
-          // Write simplified bullets back into sections
+          // Write simplified bullets back — skip numerology (it's a crafted story, not a raw bullet)
           bulletRefs.forEach((ref, idx) => {
             const grp = sections[ref.si].domain_summary![ref.gi] as any;
+            if (grp.domain === 'numerology') return; // preserve storytelling narrative as-is
             if (ref.type === 'sub' && ref.sgi !== undefined) {
               grp.subGroups[ref.sgi].bullets[ref.bi] = simplified[idx] ?? allBullets[idx];
             } else {
@@ -814,3 +823,4 @@ export class OrchestratorService {
     return Array.from(str).reduce((a, c) => a + c.charCodeAt(0), 0);
   }
 }
+

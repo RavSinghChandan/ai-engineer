@@ -14,7 +14,7 @@ Example:  AGENT_VERSION_OVERRIDES = {"meta": "v2", "simplify": "v2"}
 ACTIVE_PROMPT_VERSION: str = "v2"   # "v1" or "v2"
 
 # ── Per-agent overrides (optional — leave empty to use master switch) ──────────
-AGENT_VERSION_OVERRIDES: dict = {}
+AGENT_VERSION_OVERRIDES: dict = {"numerology": "v3"}
 # Example:
 # AGENT_VERSION_OVERRIDES = {
 #     "astrology":  "v2",

@@ -2839,12 +2839,18 @@ export class IntakePage {
       },
       prompt_version: this.promptVersion(),
     };
-    // Chakra spins on home page for 5s, pipeline starts in parallel behind it
+    // Chakra spins while analysis runs, then navigate directly — no pipeline view shown
     this.chakraSpinning.set(true);
-    this.orch.run(input);
-    await new Promise(r => setTimeout(r, 5000));
-    this.chakraSpinning.set(false);
-    this.view.set('pipeline');
+    await this.orch.run(input);
+    // Admin → go to review page; User → auto-approve and go straight to PDF
+    if (this.auth.isAdmin()) {
+      this.chakraSpinning.set(false);
+      this.router.navigate(['/review'], {
+        queryParams: this.leadReadingMode() ? { leadId: this.leadReadingId() } : {}
+      });
+    } else {
+      await this.goReview();
+    }
   }
 
   async goReview() {
@@ -2858,8 +2864,9 @@ export class IntakePage {
     const review = this.orch.adminReview();
     if (!review) return;
     const allIds = review.questions.flatMap(q => q.insights.map(i => i.id));
-    this.view.set('pipeline');
-    this.chakraSpinning.set(true);
+    // Keep chakra spinning (already on if called from begin360); 4s minimum so it doesn't flash
+    const wasSpinning = this.chakraSpinning();
+    if (!wasSpinning) this.chakraSpinning.set(true);
     const chakraTimer = new Promise(r => setTimeout(r, 4000));
     const lang = this.uiLanguage();
 

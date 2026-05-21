@@ -554,3 +554,32 @@ async def simplify_bullets(req: SimplifyBulletsRequest, request: Request) -> JSO
             results.append(bullet)  # fallback: keep original
 
     return JSONResponse(content={"bullets": results})
+
+
+# ── Storytelling endpoint ──────────────────────────────────────────────────────
+
+class StoryRequest(BaseModel):
+    bullets: list[str]
+    question: str
+    intent: str
+    subject: str = ""
+    remedies: dict = {}
+
+@router.post("/story")
+async def merge_story(req: StoryRequest, request: Request) -> JSONResponse:
+    """
+    Merge multiple numerology tradition bullets into one storytelling narrative.
+    Called client-side during report generation — no auth required.
+    """
+    from agents.storytelling_agent import numerology_story
+    try:
+        story = numerology_story(
+            bullets=req.bullets,
+            question=req.question,
+            intent=req.intent,
+            subject=req.subject,
+            remedies=req.remedies,
+        )
+        return JSONResponse(content={"story": story})
+    except Exception:
+        return JSONResponse(content={"story": req.bullets[0] if req.bullets else ""})
