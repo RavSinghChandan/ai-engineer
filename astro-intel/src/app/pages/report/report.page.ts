@@ -1437,6 +1437,10 @@ import { firstValueFrom } from 'rxjs';
   padding: 40px 56px;
   width: 100%;
   pointer-events: none;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  overflow: hidden;
 }
 .letter-watermark {
   width: 100%;
@@ -1444,6 +1448,9 @@ import { firstValueFrom } from 'rxjs';
   opacity: 0.12;
   object-fit: contain;
   display: block;
+  border: none;
+  outline: none;
+  box-shadow: none;
 }
 .letter-page-body {
   flex: 0 0 auto;
@@ -1851,6 +1858,10 @@ import { firstValueFrom } from 'rxjs';
   min-height: 60px;
   width: 100%;
   pointer-events: none;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  overflow: hidden;
 }
 .dm-watermark {
   width: 60%;
@@ -1858,6 +1869,9 @@ import { firstValueFrom } from 'rxjs';
   opacity: 0.25;
   object-fit: contain;
   display: block;
+  border: none;
+  outline: none;
+  box-shadow: none;
 }
 
 /* ── Top band: white with gold accent border ── */
@@ -3645,10 +3659,13 @@ export class ReportPage implements OnInit {
           align-items: center !important; justify-content: center !important;
           width: 100% !important; min-height: 50px !important;
           pointer-events: none !important; border: none !important;
+          outline: none !important; box-shadow: none !important;
+          overflow: hidden !important;
         }
         .dm-watermark {
           width: 100% !important; max-width: 760px !important; opacity: 0.35 !important;
           object-fit: contain !important; display: block !important;
+          border: none !important; outline: none !important; box-shadow: none !important;
           -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
         }
         .dm-top-band {
