@@ -199,6 +199,12 @@ export class ApiService {
       .pipe(timeout(60_000), catchError(() => of({ bullets })));
   }
 
+  getRagRemedies(life_path: number, intent: string = 'general'): Observable<{ remedies: Array<{ icon: string; category: string; text: string }> }> {
+    return this.http
+      .post<{ remedies: Array<{ icon: string; category: string; text: string }> }>(`${BACKEND}/api/v1/analysis/remedies`, { life_path, intent, top_k: 5 })
+      .pipe(timeout(20_000), catchError(() => of({ remedies: [] })));
+  }
+
   mergeStory(bullets: string[], question: string, intent: string, subject: string = '', life_path: number = 0): Observable<{ story: string }> {
     return this.http
       .post<{ story: string }>(`${BACKEND}/api/v1/analysis/story`, { bullets, question, intent, subject, life_path })

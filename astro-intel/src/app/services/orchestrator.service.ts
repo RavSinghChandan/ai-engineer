@@ -282,24 +282,39 @@ export class OrchestratorService {
       }
 
       // Merge numerology bullets into one storytelling narrative via backend
+      const raw = this.rawOutputs() as any;
+      const lifePathNum = Number(
+        raw?.numerology?.indian?.core_numbers?.life_path
+        ?? raw?.numerology?.indian?.life_path_number
+        ?? raw?.numerology?.pythagorean?.core_numbers?.life_path
+        ?? 0
+      );
+
       if (this.backendMode() === 'backend' && domainInsightList['numerology']?.length > 1) {
         try {
           const numBullets = domainInsightList['numerology'].map(x => x.content);
           const subject = (this.currentInput() as any)?.profile?.full_name ?? '';
-          const raw = this.rawOutputs() as any;
-          const lifePathNum = raw?.numerology?.indian?.core_numbers?.life_path
-            ?? raw?.numerology?.indian?.life_path_number
-            ?? raw?.numerology?.pythagorean?.core_numbers?.life_path
-            ?? 0;
           const res = await firstValueFrom(
-            this.api.mergeStory(numBullets, q.question, q.intent, subject, Number(lifePathNum))
+            this.api.mergeStory(numBullets, q.question, q.intent, subject, lifePathNum)
           );
           if (res.story && res.story.length > 80) {
             domainInsightList['numerology'] = [{ content: res.story, sub_agent: 'numerology' }];
-            // Also update domain_breakdown so displayReport computed rebuilds from the merged story
             domain_breakdown['numerology'] = [res.story];
           }
         } catch { /* keep original bullets on failure */ }
+      }
+
+      // Fetch RAG remedies from numerology books for this question
+      if (this.backendMode() === 'backend' && lifePathNum > 0) {
+        try {
+          const remRes = await firstValueFrom(
+            this.api.getRagRemedies(lifePathNum, q.intent)
+          );
+          if (remRes.remedies?.length) {
+            // Store as JSON string so displayReport can detect and render specially
+            domain_breakdown['remedies'] = [JSON.stringify(remRes.remedies)];
+          }
+        } catch { /* remedies optional — skip on failure */ }
       }
 
       // Build domainMap and subAgentMap from resolved list

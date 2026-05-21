@@ -614,7 +614,41 @@ const BACKEND = environment.apiUrl;
         </div>
       }
 
-      <!-- Remedies section removed — remedies come from RAG and are woven into storytelling narrative -->
+      <!-- ── RAG Remedies — from numerology books ─────────────────────────── -->
+      <div class="q-card">
+        <div class="q-hdr">
+          <div class="q-num-circle" style="background: linear-gradient(135deg,#d4af37,#b8962e)">📖</div>
+          <div class="q-info">
+            <div class="q-text">Remedies from Books</div>
+            <div class="q-meta">
+              <span class="intent-tag" style="background:rgba(212,175,55,0.1);color:#92600a;border-color:rgba(212,175,55,0.3)">RAG · Numerology Library</span>
+              <span class="q-stat">{{ ragRemedies().length }} remedies</span>
+            </div>
+          </div>
+          @if (!ragRemedies().length && !ragRemediesLoading()) {
+            <button class="act-btn act-approve" style="margin-left:auto" (click)="loadRagRemedies()">Load from Books</button>
+          }
+          @if (ragRemediesLoading()) {
+            <span style="margin-left:auto;font-size:12px;color:#92600a">Loading...</span>
+          }
+        </div>
+
+        @if (ragRemedies().length) {
+          <div class="remedy-body">
+            @for (rem of ragRemedies(); track rem.category) {
+              <div class="rag-rem-row">
+                <span class="rag-rem-icon">{{ rem.icon }}</span>
+                <span class="rag-rem-cat">{{ rem.category }}</span>
+                <span class="rag-rem-text">{{ rem.text }}</span>
+              </div>
+            }
+          </div>
+        } @else if (!ragRemediesLoading()) {
+          <p class="branch-text" style="padding:16px 20px;color:#6b7280">
+            Remedies are sourced from your numerology book library via RAG. Click "Load from Books" to fetch them.
+          </p>
+        }
+      </div>
 
     </div>
   }
@@ -1870,7 +1904,12 @@ const BACKEND = environment.apiUrl;
 
 /* ── Remedies section ────────────────────────────────────────────────────── */
 .remedy-card { border-color: rgba(139,92,246,0.2); }
-.remedy-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; }
+.remedy-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
+.rag-rem-row { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(212,175,55,0.1); }
+.rag-rem-row:last-child { border-bottom: none; }
+.rag-rem-icon { font-size: 18px; flex-shrink: 0; width: 24px; text-align: center; }
+.rag-rem-cat { flex-shrink: 0; min-width: 110px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #92600a; padding-top: 2px; }
+.rag-rem-text { font-size: 13px; color: #374151; line-height: 1.6; }
 .remedy-section { display: flex; flex-direction: column; gap: 8px; }
 .remedy-section-title {
   font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em;
@@ -1958,6 +1997,27 @@ export class ReviewPage {
   readonly questionBlocks = computed(() => this.orch.adminReview()?.questions ?? []);
   readonly userName       = computed(() => this.orch.currentInput()?.user_profile.full_name ?? '');
   readonly remedyData     = computed(() => (this.orch.rawOutputs() as any)?.remedies ?? null);
+
+  // RAG remedies from numerology books
+  readonly ragRemedies = signal<Array<{ icon: string; category: string; text: string }>>([]);
+  readonly ragRemediesLoading = signal(false);
+
+  loadRagRemedies(): void {
+    const raw = this.orch.rawOutputs() as any;
+    const lifePathNum = Number(
+      raw?.numerology?.indian?.core_numbers?.life_path
+      ?? raw?.numerology?.indian?.life_path_number
+      ?? raw?.numerology?.pythagorean?.core_numbers?.life_path
+      ?? 0
+    );
+    const intent = this.orch.adminReview()?.questions?.[0]?.intent ?? 'general';
+    if (!lifePathNum) return;
+    this.ragRemediesLoading.set(true);
+    this.api.getRagRemedies(lifePathNum, intent).subscribe({
+      next: res => { this.ragRemedies.set(res.remedies ?? []); this.ragRemediesLoading.set(false); },
+      error: () => this.ragRemediesLoading.set(false),
+    });
+  }
 
   // Remedy item edits (keyed by item id)
   _remedyEdits: Record<string, string> = {};

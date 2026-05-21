@@ -556,6 +556,56 @@ async def simplify_bullets(req: SimplifyBulletsRequest, request: Request) -> JSO
     return JSONResponse(content={"bullets": results})
 
 
+# ── RAG Remedies endpoint ─────────────────────────────────────────────────────
+
+class RemediesRequest(BaseModel):
+    life_path: int
+    intent: str = "general"
+    top_k: int = 5
+
+@router.post("/remedies")
+async def get_rag_remedies(req: RemediesRequest, request: Request) -> JSONResponse:
+    """
+    Retrieve remedy bullet points from the numerology book corpus (RAG).
+    Returns structured list: [{icon, category, text}]
+    """
+    try:
+        from numerology_rag.retriever import retrieve_remedy
+        raw = retrieve_remedy(life_path=req.life_path, intent=req.intent, top_k=req.top_k)
+        if not raw:
+            return JSONResponse(content={"remedies": []})
+
+        # Parse raw chunks into short bullet points via LLM
+        from utils.deepseek_client import call as ds_call
+        result = ds_call(
+            system=(
+                "You are a numerology remedy expert. Given book passages about numerology remedies, "
+                "extract 4-6 concrete, actionable remedy bullet points for this person.\n\n"
+                "Output ONLY a JSON array like:\n"
+                "[\n"
+                "  {\"icon\": \"🕉\", \"category\": \"Mantra\", \"text\": \"Chant Om Namah Shivaya 108 times at sunrise\"},\n"
+                "  {\"icon\": \"💎\", \"category\": \"Gemstone\", \"text\": \"Wear blue sapphire on right middle finger\"},\n"
+                "  {\"icon\": \"🎨\", \"category\": \"Color\", \"text\": \"Wear indigo or deep blue on Saturdays\"},\n"
+                "  {\"icon\": \"🌅\", \"category\": \"Daily Practice\", \"text\": \"Meditate for 11 minutes each morning before speaking\"}\n"
+                "]\n\n"
+                "Use icons: 🕉 for mantra, 💎 for gemstone, 🎨 for color, 🌅 for daily practice, "
+                "🍃 for diet/fasting, 🏠 for vastu, ✦ for other.\n"
+                "Keep each text under 15 words. Simple English only. No preamble."
+            ),
+            user=f"Life Path: {req.life_path}\nIntent: {req.intent}\n\nBook passages:\n{raw}",
+            temperature=0.1,
+            max_tokens=400,
+        )
+        import json as _json
+        from guardrails.production import repair_json
+        parsed, _ = repair_json(result or "[]")
+        if isinstance(parsed, list):
+            return JSONResponse(content={"remedies": parsed[:6]})
+        return JSONResponse(content={"remedies": []})
+    except Exception:
+        return JSONResponse(content={"remedies": []})
+
+
 # ── Storytelling endpoint ──────────────────────────────────────────────────────
 
 class StoryRequest(BaseModel):

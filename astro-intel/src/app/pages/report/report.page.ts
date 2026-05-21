@@ -836,6 +836,25 @@ import { firstValueFrom } from 'rxjs';
                 </ul>
                 }
 
+                <!-- ── RAG Remedies — shown only on numerology page, from book corpus ── -->
+                @if (grp.domain === 'numerology' && section.rag_remedies?.length) {
+                  <div class="dm-remedies">
+                    <div class="dm-remedies-title" [style.color]="dsAccent('numerology')">
+                      Remedies &amp; Practices
+                    </div>
+                    <div class="dm-divider" [style.background]="dsAccent('numerology')"></div>
+                    <ul class="dm-rem-list">
+                      @for (rem of section.rag_remedies; track rem.category) {
+                        <li class="dm-rem-item">
+                          <span class="dm-rem-icon">{{ rem.icon }}</span>
+                          <span class="dm-rem-cat">{{ rem.category }}</span>
+                          <span class="dm-rem-text">{{ rem.text }}</span>
+                        </li>
+                      }
+                    </ul>
+                  </div>
+                }
+
                 <!-- ── WATERMARK: only in the remaining empty space after bullets ── -->
                 <div class="dm-watermark-zone">
                   <img src="rav-logo.png" alt="" class="dm-watermark" aria-hidden="true"/>
@@ -1797,6 +1816,35 @@ import { firstValueFrom } from 'rxjs';
   margin-top: 1px;
   opacity: 0.9;
 }
+/* ── RAG Remedies block (below story on numerology page) ── */
+.dm-remedies {
+  margin-top: 22px; padding-top: 18px;
+  border-top: 1px solid rgba(212,175,55,0.18);
+}
+.dm-remedies-title {
+  font-size: 13px; font-weight: 800; letter-spacing: 0.06em;
+  text-transform: uppercase; margin-bottom: 10px;
+}
+.dm-rem-list {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.dm-rem-item {
+  display: flex; align-items: flex-start; gap: 10px;
+}
+.dm-rem-icon {
+  flex-shrink: 0; font-size: 16px; width: 22px; text-align: center; margin-top: 1px;
+}
+.dm-rem-cat {
+  flex-shrink: 0; min-width: 100px;
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.05em; color: #d4af37; padding-top: 2px;
+}
+.dm-rem-text {
+  font-size: 14px; font-weight: 400; color: #374151;
+  line-height: 1.7; font-family: Georgia, serif;
+}
+
 /* ── Storytelling paragraph blocks (numerology 5-part arc) ── */
 .dm-story {
   display: flex; flex-direction: column; gap: 16px;
@@ -2149,11 +2197,17 @@ export class ReportPage implements OnInit {
       // Always prefer domain_breakdown (contains storytelling-merged bullets) over cached domain_summary
       const db: Record<string, string[]> = s.domain_breakdown ?? {};
       if (!Object.keys(db).length) return s;
+
+      // Extract RAG remedies — stored as JSON string in db['remedies']
+      let rag_remedies: Array<{ icon: string; category: string; text: string }> = [];
+      if (db['remedies']?.length) {
+        try { rag_remedies = JSON.parse(db['remedies'][0]); } catch { /* ignore */ }
+      }
+
       const domain_summary = Object.entries(db)
-        .filter(([d]) => DOMAIN_META[d])
+        .filter(([d]) => DOMAIN_META[d])   // 'remedies' key not in DOMAIN_META — excluded here
         .sort(([a], [b]) => (DOMAIN_META[a]?.order ?? 99) - (DOMAIN_META[b]?.order ?? 99))
         .map(([d, rawBullets]) => {
-          // Deduplicate and filter empty bullets
           const seen = new Set<string>();
           const bullets = (rawBullets as string[]).filter(b => {
             const key = b.trim().slice(0, 80).toLowerCase();
@@ -2163,8 +2217,8 @@ export class ReportPage implements OnInit {
           });
           return { domain: d, label: DOMAIN_META[d].label, icon: DOMAIN_META[d].icon, bullets };
         })
-        .filter(grp => grp.bullets.length > 0); // never create pages for empty domains
-      return { ...s, domain_summary };
+        .filter(grp => grp.bullets.length > 0);
+      return { ...s, domain_summary, rag_remedies };
     })};
     return patched;
   });
@@ -3715,6 +3769,30 @@ export class ReportPage implements OnInit {
           font-family: Georgia, serif !important;
           word-wrap: break-word !important; overflow-wrap: break-word !important;
         }
+
+        /* ── RAG Remedies print rules ── */
+        .dm-remedies {
+          margin-top: 16px !important; padding-top: 14px !important;
+          border-top: 1px solid rgba(212,175,55,0.2) !important;
+          break-inside: avoid !important;
+          -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+        }
+        .dm-remedies-title {
+          font-size: 11px !important; font-weight: 800 !important;
+          letter-spacing: 0.06em !important; text-transform: uppercase !important;
+          margin-bottom: 8px !important;
+          -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+        }
+        .dm-rem-list { display: flex !important; flex-direction: column !important; gap: 8px !important; }
+        .dm-rem-item { display: flex !important; align-items: flex-start !important; gap: 8px !important; break-inside: avoid !important; }
+        .dm-rem-icon { flex-shrink: 0 !important; font-size: 14px !important; width: 20px !important; text-align: center !important; }
+        .dm-rem-cat {
+          flex-shrink: 0 !important; min-width: 90px !important;
+          font-size: 10px !important; font-weight: 700 !important;
+          text-transform: uppercase !important; color: #d4af37 !important;
+          -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+        }
+        .dm-rem-text { font-size: 12px !important; color: #374151 !important; line-height: 1.6 !important; font-family: Georgia, serif !important; }
 
         /* ── Story paragraph print rules ── */
         .dm-story { display: flex !important; flex-direction: column !important; gap: 12px !important; }
