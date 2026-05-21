@@ -34,6 +34,8 @@ Security layers active across the pipeline:
 """
 from __future__ import annotations
 import asyncio
+import copy
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Dict, List
 
 from langgraph.graph import StateGraph, END
@@ -57,10 +59,10 @@ from guardrails.production import degradation_tracker
 # ── Parallel domain fan-out ─────────────────────────────────────────────────
 def domain_agents_parallel(state: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Run all selected domain agents sequentially in one node.
-    Each agent is wrapped in a try/except so one failure never
-    kills the others — the failed domain contributes a LOW confidence
-    placeholder (graceful degradation pattern).
+    Run all selected domain agents in TRUE parallel using ThreadPoolExecutor.
+    Each agent gets its own deep-copy of state (read-only input).
+    Results (memory updates + agent_log entries) are merged back safely.
+    One failure never kills the others — graceful degradation stays intact.
     """
     selected = set(state.get("selected_modules", ["numerology","astrology","palmistry","tarot","vastu"]))
     agent_map = {
@@ -71,25 +73,51 @@ def domain_agents_parallel(state: Dict[str, Any]) -> Dict[str, Any]:
         "vastu":      vastu_agent_node,
     }
 
-    for domain, agent_fn in agent_map.items():
-        if domain not in selected:
-            continue
+    active = {d: fn for d, fn in agent_map.items() if d in selected}
+    if not active:
+        return state
+
+    def _run_agent(domain: str, agent_fn, state_snapshot: Dict) -> Dict:
         try:
-            state = agent_fn(state)
+            return agent_fn(state_snapshot)
         except Exception as exc:
-            # Domain failed — inject LOW confidence placeholder, keep pipeline alive
-            state.setdefault("memory", {})[domain] = {
+            state_snapshot.setdefault("memory", {})[domain] = {
                 "_degraded": True,
                 "_reason":   str(exc),
                 "confidence": "low",
                 "question_wise_analysis": [],
             }
-            state.setdefault("agent_log", []).append(
+            state_snapshot.setdefault("agent_log", []).append(
                 f"[DomainLayer] {domain} FAILED — degraded placeholder injected. Reason: {exc}"
             )
-            state.setdefault("errors", []).append(f"{domain}: {exc}")
+            state_snapshot.setdefault("errors", []).append(f"{domain}: {exc}")
+            return state_snapshot
 
-    state.setdefault("agent_log", []).append("[DomainLayer] All selected domain agents completed.")
+    futures = {}
+    with ThreadPoolExecutor(max_workers=len(active)) as pool:
+        for domain, agent_fn in active.items():
+            snapshot = copy.deepcopy(state)
+            futures[pool.submit(_run_agent, domain, agent_fn, snapshot)] = domain
+
+        for future in as_completed(futures):
+            domain = futures[future]
+            try:
+                result = future.result()
+                # Merge only the domain-specific memory key + new log entries
+                mem = result.get("memory", {})
+                if domain in mem:
+                    state.setdefault("memory", {})[domain] = mem[domain]
+                for entry in result.get("agent_log", []):
+                    if entry not in state.get("agent_log", []):
+                        state.setdefault("agent_log", []).append(entry)
+                for err in result.get("errors", []):
+                    state.setdefault("errors", []).append(err)
+            except Exception as exc:
+                state.setdefault("agent_log", []).append(
+                    f"[DomainLayer] {domain} future raised: {exc}"
+                )
+
+    state.setdefault("agent_log", []).append("[DomainLayer] All selected domain agents completed (parallel).")
 
     # G5: Record degradation snapshot for this run
     session_id = state.get("session_id", "unknown")

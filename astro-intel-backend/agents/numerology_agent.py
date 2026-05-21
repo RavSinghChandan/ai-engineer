@@ -195,10 +195,17 @@ def _run_sub_agent(name: str, dob: str, lmap: Dict[str, int], tradition: str, fo
 
 
 def _analyze_question(name: str, dob: str, question: str, intent: str, q_idx: int) -> Dict[str, Any]:
-    sub_results = []
-    for tradition, lmap_fn in TRADITION_MAPS.items():
-        result = _run_sub_agent(name, dob, lmap_fn(), tradition, intent, question)
-        sub_results.append(result)
+    from concurrent.futures import ThreadPoolExecutor
+
+    tradition_items = list(TRADITION_MAPS.items())
+
+    def _run(item):
+        tradition, lmap_fn = item
+        return _run_sub_agent(name, dob, lmap_fn(), tradition, intent, question)
+
+    # Run 3 tradition sub-agents in parallel — cuts 3×serial → 1× wall-clock time
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        sub_results = list(pool.map(_run, tradition_items))
 
     lp = sub_results[0]["extra"]["core_numbers"]["life_path"]
     traits_str = ", ".join(sub_results[0]["traits"][:2])
@@ -214,6 +221,8 @@ def _analyze_question(name: str, dob: str, question: str, intent: str, q_idx: in
         "domain_summary":    summary,
         "agreements":        ["All three numerology traditions confirm the core life-path trajectory for this question."],
         "conflicts":         [],
+        # Carry per-tradition results so numerology_agent_node can reuse without re-running
+        "_sub_by_tradition": {r["sub_agent"]: r for r in sub_results},
     }
 
 
@@ -236,6 +245,36 @@ def numerology_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
         analysis = _analyze_question(name, dob, nq["question"], nq["intent"], nq["index"])
         question_wise_analysis.append(analysis)
 
+    # Reuse already-computed sub_results from first question — no extra LLM calls
+    first_subs = question_wise_analysis[0].get("_sub_by_tradition", {})
+    _trad_key_map = {
+        "Indian Numerology":      ("indian",      "Indian"),
+        "Chaldean Numerology":    ("chaldean",    "Chaldean"),
+        "Pythagorean Numerology": ("pythagorean", "Pythagorean"),
+    }
+
+    def _build_trad_entry(full_trad: str, short_trad: str, r: Dict) -> Dict:
+        lmap_fn = TRADITION_MAPS[full_trad]
+        lmap    = lmap_fn()
+        lp_val  = r["extra"]["core_numbers"]["life_path"]
+        nm_val  = r["extra"]["core_numbers"]["name_number"]
+        dest_val = r["extra"]["core_numbers"]["destiny"]
+        su_val   = r["extra"]["core_numbers"]["soul_urge"]
+        pn_val   = r["extra"]["core_numbers"]["personality"]
+        return r["extra"] | {
+            "tradition":    short_trad,
+            "predictions":  [_build_numerology_prediction(lp_val, nm_val, dest_val, su_val, pn_val, full_trad, normalized_questions[0]["intent"], dob)],
+            "traits":       get_traits(lp_val)["traits"],
+            "core_numbers": r["extra"]["core_numbers"],
+        }
+
+    q0_intent   = normalized_questions[0]["intent"]
+    q0_question = normalized_questions[0]["question"]
+
+    r_indian  = first_subs.get("Indian Numerology")    or _run_sub_agent(name, dob, letter_map_indian(),      "Indian Numerology",      q0_intent, q0_question)
+    r_chald   = first_subs.get("Chaldean Numerology")  or _run_sub_agent(name, dob, letter_map_chaldean(),    "Chaldean Numerology",    q0_intent, q0_question)
+    r_pyth    = first_subs.get("Pythagorean Numerology") or _run_sub_agent(name, dob, letter_map_pythagorean(), "Pythagorean Numerology", q0_intent, q0_question)
+
     _prompt_cfg = get_prompt("numerology")
     domain_output = {
         "domain":                 "numerology",
@@ -245,9 +284,9 @@ def numerology_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
             "top_p":       _prompt_cfg["top_p"],
             "role":        _prompt_cfg["role"],
         },
-        "indian":      _run_sub_agent(name, dob, letter_map_indian(),      "Indian Numerology",      normalized_questions[0]["intent"], normalized_questions[0]["question"])["extra"] | {"tradition": "Indian",      "predictions": [_build_numerology_prediction(life_path(dob), name_number(name, letter_map_indian()),      destiny_number(dob), soul_urge(name, letter_map_indian()),      personality_number(name, letter_map_indian()),      "Indian Numerology",      normalized_questions[0]["intent"], dob)], "traits": get_traits(life_path(dob))["traits"], "core_numbers": _run_sub_agent(name, dob, letter_map_indian(),      "Indian",      normalized_questions[0]["intent"], normalized_questions[0]["question"])["extra"]["core_numbers"]},
-        "chaldean":    _run_sub_agent(name, dob, letter_map_chaldean(),    "Chaldean Numerology",    normalized_questions[0]["intent"], normalized_questions[0]["question"])["extra"] | {"tradition": "Chaldean",    "predictions": [_build_numerology_prediction(life_path(dob), name_number(name, letter_map_chaldean()),    destiny_number(dob), soul_urge(name, letter_map_chaldean()),    personality_number(name, letter_map_chaldean()),    "Chaldean Numerology",    normalized_questions[0]["intent"], dob)], "traits": get_traits(life_path(dob))["traits"], "core_numbers": _run_sub_agent(name, dob, letter_map_chaldean(),    "Chaldean",    normalized_questions[0]["intent"], normalized_questions[0]["question"])["extra"]["core_numbers"]},
-        "pythagorean": _run_sub_agent(name, dob, letter_map_pythagorean(), "Pythagorean Numerology", normalized_questions[0]["intent"], normalized_questions[0]["question"])["extra"] | {"tradition": "Pythagorean", "predictions": [_build_numerology_prediction(life_path(dob), name_number(name, letter_map_pythagorean()), destiny_number(dob), soul_urge(name, letter_map_pythagorean()), personality_number(name, letter_map_pythagorean()), "Pythagorean Numerology", normalized_questions[0]["intent"], dob)], "traits": get_traits(life_path(dob))["traits"], "core_numbers": _run_sub_agent(name, dob, letter_map_pythagorean(), "Pythagorean", normalized_questions[0]["intent"], normalized_questions[0]["question"])["extra"]["core_numbers"]},
+        "indian":      _build_trad_entry("Indian Numerology",      "Indian",      r_indian),
+        "chaldean":    _build_trad_entry("Chaldean Numerology",    "Chaldean",    r_chald),
+        "pythagorean": _build_trad_entry("Pythagorean Numerology", "Pythagorean", r_pyth),
     }
 
     state.setdefault("memory", {})["numerology"] = domain_output

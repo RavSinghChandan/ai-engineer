@@ -274,12 +274,10 @@ def grammar_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
         return state
 
     originals = [ins["content"].strip() for ins in all_insights]
-    det_fixed = [_deterministic_fix(t) for t in originals]
-
-    try:
-        corrected_texts = _llm_grammar_fix_batch(det_fixed)
-    except Exception:
-        corrected_texts = det_fixed
+    # Deterministic-only fix — no LLM call here (saves 2-5s per run).
+    # LLM grammar is redundant: domain agents already produce clean text,
+    # and the storytelling agent runs its own quality pass.
+    corrected_texts = [_deterministic_fix(t) for t in originals]
 
     total_fixed = 0
     for ins, original, corrected in zip(all_insights, originals, corrected_texts):

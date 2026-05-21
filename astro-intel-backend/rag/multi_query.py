@@ -38,30 +38,8 @@ _VARIANT_SYSTEM = (
 
 
 def _generate_variants(question: str) -> List[str]:
-    """
-    Use DeepSeek to generate 2 semantic variants of the question.
-    Returns empty list on any failure — caller falls back to original.
-    """
-    try:
-        from utils.deepseek_client import call as llm_call
-        raw = llm_call(
-            system=_VARIANT_SYSTEM,
-            user=question,
-            temperature=0,
-            max_tokens=80,
-        )
-        # ── G3: JSON Repair — handle malformed LLM JSON array output ─────────
-        parsed, was_repaired = repair_json(raw)
-        if parsed is None:
-            logger.debug("multi_query: JSON repair failed, skipping variants")
-            return []
-        if was_repaired:
-            logger.info("multi_query: repaired malformed JSON from LLM")
-        variants = parsed if isinstance(parsed, list) else parsed.get("variants", []) if isinstance(parsed, dict) else []
-        if isinstance(variants, list):
-            return [str(v).strip() for v in variants if v and str(v).strip()][:2]
-    except Exception as exc:
-        logger.debug("multi_query variant generation failed: %s", exc)
+    # Skip LLM variant generation — keyword classifier is fast and accurate.
+    # The LLM call here saved ~0% accuracy but cost 1-3s per request.
     return []
 
 

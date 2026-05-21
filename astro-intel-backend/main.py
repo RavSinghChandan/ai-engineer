@@ -49,6 +49,17 @@ auth_store.load()
 users_store.load()
 leads_store.load()
 
+# ── Pre-warm RAG index in background so first request is fast ────────────────
+def _warm_rag():
+    try:
+        from numerology_rag.retriever import _load
+        _load()
+    except Exception:
+        pass
+
+import threading as _threading
+_threading.Thread(target=_warm_rag, daemon=True).start()
+
 # ── App factory ──────────────────────────────────────────────────────────────
 app = FastAPI(
     title="AstroIntel 360° API",
