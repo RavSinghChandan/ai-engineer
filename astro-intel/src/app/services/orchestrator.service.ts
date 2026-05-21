@@ -282,17 +282,21 @@ export class OrchestratorService {
       }
 
       // Merge numerology bullets into one storytelling narrative via backend
-      // Merge numerology bullets into one storytelling narrative via backend
-      console.log('[STORY] numerology bullets count:', domainInsightList['numerology']?.length, '| backendMode:', this.backendMode());
       if (this.backendMode() === 'backend' && domainInsightList['numerology']?.length > 1) {
         try {
           const numBullets = domainInsightList['numerology'].map(x => x.content);
           const subject = (this.currentInput() as any)?.profile?.full_name ?? '';
-          const remedies = (this.rawOutputs() as any)?.remedies ?? {};
-          const res = await firstValueFrom(this.api.mergeStory(numBullets, q.question, q.intent, subject, remedies));
+          const raw = this.rawOutputs() as any;
+          const lifePathNum = raw?.numerology?.indian?.core_numbers?.life_path
+            ?? raw?.numerology?.indian?.life_path_number
+            ?? raw?.numerology?.pythagorean?.core_numbers?.life_path
+            ?? 0;
+          const res = await firstValueFrom(
+            this.api.mergeStory(numBullets, q.question, q.intent, subject, Number(lifePathNum))
+          );
           if (res.story && res.story.length > 80) {
             domainInsightList['numerology'] = [{ content: res.story, sub_agent: 'numerology' }];
-            // Also update domain_breakdown so displayReport computed doesn't rebuild from old 3 bullets
+            // Also update domain_breakdown so displayReport computed rebuilds from the merged story
             domain_breakdown['numerology'] = [res.story];
           }
         } catch { /* keep original bullets on failure */ }

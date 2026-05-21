@@ -563,22 +563,36 @@ class StoryRequest(BaseModel):
     question: str
     intent: str
     subject: str = ""
-    remedies: dict = {}
+    life_path: int = 0      # used to retrieve remedy from RAG
+    remedies: dict = {}     # legacy field kept for backwards-compat, ignored
 
 @router.post("/story")
 async def merge_story(req: StoryRequest, request: Request) -> JSONResponse:
     """
     Merge multiple numerology tradition bullets into one storytelling narrative.
-    Called client-side during report generation — no auth required.
+    Remedy is fetched from RAG (numerology books), not from LLM-generated JSON.
     """
     from agents.storytelling_agent import numerology_story
     try:
+        # Fetch remedy passage from RAG — grounded in actual book content
+        rag_remedy_text = ""
+        if req.life_path > 0:
+            try:
+                from numerology_rag.retriever import retrieve_remedy
+                rag_remedy_text = retrieve_remedy(
+                    life_path=req.life_path,
+                    intent=req.intent,
+                    top_k=3,
+                )
+            except Exception:
+                pass
+
         story = numerology_story(
             bullets=req.bullets,
             question=req.question,
             intent=req.intent,
             subject=req.subject,
-            remedies=req.remedies,
+            rag_remedy_text=rag_remedy_text,
         )
         return JSONResponse(content={"story": story})
     except Exception:

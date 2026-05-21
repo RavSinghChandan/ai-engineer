@@ -814,6 +814,17 @@ import { firstValueFrom } from 'rxjs';
                 </div>
                 <div class="dm-divider" [style.background]="dsAccent(grp.domain)"></div>
 
+                <!-- ── Story paragraphs (numerology only, when LLM returns 5-part arc) ── -->
+                @if (grp.domain === 'numerology' && grp.bullets.length === 1 && parseStoryParagraphs(grp.bullets[0]); as storyParts) {
+                  <div class="dm-story">
+                    @for (part of storyParts; track part.label) {
+                      <div class="dm-story-block" [style.borderLeftColor]="part.color">
+                        <div class="dm-story-label" [style.color]="part.color">{{ part.label }}</div>
+                        <p class="dm-story-text">{{ part.text }}</p>
+                      </div>
+                    }
+                  </div>
+                } @else {
                 <!-- ── Flat numbered bullets — no tradition subheadings ── -->
                 <ul class="dm-bullets">
                   @for (bullet of grp.bullets; track bullet; let bi = $index) {
@@ -823,6 +834,7 @@ import { firstValueFrom } from 'rxjs';
                     </li>
                   }
                 </ul>
+                }
 
                 <!-- ── WATERMARK: only in the remaining empty space after bullets ── -->
                 <div class="dm-watermark-zone">
@@ -1785,6 +1797,23 @@ import { firstValueFrom } from 'rxjs';
   margin-top: 1px;
   opacity: 0.9;
 }
+/* ── Storytelling paragraph blocks (numerology 5-part arc) ── */
+.dm-story {
+  display: flex; flex-direction: column; gap: 16px;
+}
+.dm-story-block {
+  border-left: 4px solid; padding: 10px 14px;
+  background: rgba(255,255,255,0.55); border-radius: 0 6px 6px 0;
+}
+.dm-story-label {
+  font-size: 10px; font-weight: 800; letter-spacing: 0.08em;
+  text-transform: uppercase; margin-bottom: 5px; opacity: 0.9;
+}
+.dm-story-text {
+  margin: 0; font-size: 15px; font-weight: 400; color: #1f2937;
+  line-height: 1.8; font-family: Georgia, serif;
+}
+
 .dm-bullet-text {
   flex: 1;
   font-size: 16px; font-weight: 400; color: #1f2937;
@@ -2483,6 +2512,35 @@ export class ReportPage implements OnInit {
   }
   setInsight(si: number, ii: number, v: string) {
     this.insightEdits.update(e => ({ ...e, [`${si}_${ii}`]: v }));
+  }
+
+  // Parse storytelling narrative (5-part labelled paragraphs) into segments for colored rendering
+  private readonly STORY_THEMES: Array<{ key: string; label: string; color: string }> = [
+    { key: 'HOOK',       label: 'Your Truth',        color: '#d4af37' },
+    { key: 'TENSION',    label: 'The Challenge',     color: '#b45309' },
+    { key: 'TURN',       label: 'The Turning Point', color: '#7c3aed' },
+    { key: 'RESOLUTION', label: 'What To Do',        color: '#059669' },
+    { key: 'CLOSING',    label: 'Remember This',     color: '#1d4ed8' },
+  ];
+
+  parseStoryParagraphs(text: string): Array<{ label: string; color: string; text: string }> | null {
+    if (!text || !text.includes('[HOOK]')) return null;
+    const result: Array<{ label: string; color: string; text: string }> = [];
+    for (let i = 0; i < this.STORY_THEMES.length; i++) {
+      const { key, label, color } = this.STORY_THEMES[i];
+      const start = text.indexOf(`[${key}]`);
+      if (start === -1) continue;
+      const contentStart = start + key.length + 2; // skip "[KEY]"
+      const nextKeys = this.STORY_THEMES.slice(i + 1).map(t => `[${t.key}]`);
+      let end = text.length;
+      for (const nk of nextKeys) {
+        const pos = text.indexOf(nk);
+        if (pos !== -1 && pos < end) end = pos;
+      }
+      const content = text.slice(contentStart, end).trim();
+      if (content) result.push({ label, color, text: content });
+    }
+    return result.length >= 2 ? result : null;
   }
 
   // ── North Indian Vedic chart ─────────────────────────────────────────────────
@@ -3656,6 +3714,24 @@ export class ReportPage implements OnInit {
           color: #1f2937 !important; line-height: 1.8 !important;
           font-family: Georgia, serif !important;
           word-wrap: break-word !important; overflow-wrap: break-word !important;
+        }
+
+        /* ── Story paragraph print rules ── */
+        .dm-story { display: flex !important; flex-direction: column !important; gap: 12px !important; }
+        .dm-story-block {
+          border-left-width: 4px !important; border-left-style: solid !important;
+          padding: 8px 12px !important; border-radius: 0 5px 5px 0 !important;
+          break-inside: avoid !important;
+          -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+        }
+        .dm-story-label {
+          font-size: 9px !important; font-weight: 800 !important; letter-spacing: 0.08em !important;
+          text-transform: uppercase !important; margin-bottom: 4px !important;
+          -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+        }
+        .dm-story-text {
+          margin: 0 !important; font-size: 13px !important; font-weight: 400 !important;
+          color: #1f2937 !important; line-height: 1.8 !important; font-family: Georgia, serif !important;
         }
 
         /* ── Tradition subgroup print rules ── */

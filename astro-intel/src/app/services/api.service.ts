@@ -199,9 +199,9 @@ export class ApiService {
       .pipe(timeout(60_000), catchError(() => of({ bullets })));
   }
 
-  mergeStory(bullets: string[], question: string, intent: string, subject: string = '', remedies: any = {}): Observable<{ story: string }> {
+  mergeStory(bullets: string[], question: string, intent: string, subject: string = '', life_path: number = 0): Observable<{ story: string }> {
     return this.http
-      .post<{ story: string }>(`${BACKEND}/api/v1/analysis/story`, { bullets, question, intent, subject, remedies })
+      .post<{ story: string }>(`${BACKEND}/api/v1/analysis/story`, { bullets, question, intent, subject, life_path })
       .pipe(timeout(30_000), catchError(() => of({ story: bullets[0] ?? '' })));
   }
 
