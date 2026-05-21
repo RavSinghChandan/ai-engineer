@@ -89,19 +89,8 @@ def admin_review_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
                     "editable":    True,
                 })
 
-            # Add remedy insight for this question if remedies exist
-            if remedies:
-                intent = qc.get("intent", "general")
-                habits = remedies.get("daily_habits", [])
-                if habits:
-                    formatted_insights.append({
-                        "id":         f"q{q_idx}_remedy",
-                        "content":    f"Recommended practice: {habits[0]}",
-                        "confidence": "high",
-                        "domains":    ["astrology", "numerology", "vastu"],
-                        "is_common":  True,
-                        "editable":   True,
-                    })
+            # Remedy insights removed — remedies come from RAG and are woven
+            # into the storytelling narrative, not injected as separate insights.
 
             questions_output.append({
                 "question": qc["question"],
@@ -189,22 +178,7 @@ def admin_review_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
             ti.get("sources", ["astrology"]),
         ))
 
-        if r:
-            sections.append(_sec(
-                "sec_remedy_habits", "Daily Habits & Lifestyle",
-                " ".join(r.get("daily_habits", [])),
-                "high",
-                ["astrology", "numerology", "palmistry", "vastu", "tarot"],
-            ))
-            sections.append(_sec(
-                "sec_remedy_mantras", "Mantras & Spiritual Practices",
-                "; ".join(
-                    f"{m['mantra']} — {m['purpose']} ({m['count']} times)"
-                    for m in r.get("mantras", [])
-                ),
-                "high",
-                ["astrology", "numerology"],
-            ))
+        # Remedy sections removed — remedies come from RAG storytelling narrative.
 
         # Convert legacy sections into question-wise format
         q_insights = []

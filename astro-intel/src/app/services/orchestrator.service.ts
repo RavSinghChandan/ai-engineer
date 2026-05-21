@@ -709,43 +709,8 @@ export class OrchestratorService {
           });
         }
 
-        // 11. Remedy — daily habits
-        if (remedyHabits.length) {
-          insights.push({
-            id: id(11),
-            content: `Recommended daily practice: ${remedyHabits[0]} ${remedyHabits[1] ?? ''}`.trim(),
-            confidence: 'high', domains: mods.filter(m => ['astrology','numerology'].includes(m)), is_common: true, editable: true,
-          });
-        }
-
-        // 12. Remedy — mantra
-        if (mantras.length) {
-          const m = mantras[0];
-          insights.push({
-            id: id(12),
-            content: `Mantra recommendation: "${m.mantra}" — ${m.purpose}. Chant ${m.count ?? 108} times daily for best effect.`,
-            confidence: 'high', domains: ['astrology'], is_common: true, editable: true,
-          });
-        }
-
-        // 13. Gemstone
-        if (gemstones.length) {
-          const g = gemstones[0];
-          insights.push({
-            id: id(13),
-            content: `Gemstone recommendation: ${g.stone} worn on the ${g.finger} — ${g.purpose}.`,
-            confidence: 'medium', domains: ['astrology','numerology'], is_common: true, editable: true,
-          });
-        }
-
-        // 14. Lucky colors
-        if (colors.length) {
-          insights.push({
-            id: id(14),
-            content: `Lucky colors for this period: ${colors.slice(0,3).join(', ')}. Wearing or surrounding yourself with these colors activates supportive energy.`,
-            confidence: 'low', domains: mods, is_common: true, editable: true,
-          });
-        }
+        // Remedy insights (11-14) removed — remedies come from RAG and are woven
+        // into the storytelling narrative, not shown as separate insights.
 
         return { question: q, intent: this._detectIntent(q), insights };
       }),
