@@ -167,6 +167,33 @@ async def run_analysis(
         },
     }
 
+    # ── Auto-evaluate RAGAS at run time using all insight IDs ────────────────
+    # Computes quality scores immediately without requiring admin approval step.
+    # approved_ids = all insight IDs so precision/recall see the full output.
+    try:
+        all_insight_ids = [
+            ins["id"]
+            for q in admin_review.get("questions", [])
+            for ins in q.get("insights", [])
+            if isinstance(ins, dict) and ins.get("id")
+        ]
+        ragas_rec = ragas_evaluate(
+            session_id   = session_id,
+            report       = admin_review,
+            question     = final_question,
+            approved_ids = all_insight_ids,
+        )
+        response_body["ragas_evaluation"] = {
+            "faithfulness_proxy":      ragas_rec.faithfulness,
+            "answer_relevancy_proxy":  ragas_rec.answer_relevancy,
+            "context_precision_proxy": ragas_rec.context_precision,
+            "domain_recall_proxy":     ragas_rec.domain_recall,
+            "overall_score":           ragas_rec.overall,
+            "alerts":                  ragas_rec.alerts,
+        }
+    except Exception:
+        response_body["ragas_evaluation"] = {}
+
     # ── Store in Redis (distributed) + in-memory (local fast path) ───────────
     cache_meta = {
         "key_type":       "profile",

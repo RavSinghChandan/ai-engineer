@@ -47,6 +47,21 @@ LP_MARRIAGE_INSIGHTS = {
          "Marriage is deeply spiritual and service-oriented in nature."),
 }
 
+LP_CAREER_INSIGHTS = {
+    1: "Life Path 1 is the pioneer — you must lead, originate, or own; subordinate roles drain your vitality and ambition.",
+    2: "Life Path 2 excels in collaboration and diplomacy — your greatest career leverage is in partnerships, mediation, and behind-the-scenes influence.",
+    3: "Life Path 3 thrives through self-expression — writing, speaking, performing, or creating are the domains where your career ignites and sustains itself.",
+    4: "Life Path 4 builds empires through discipline and systems — you are the architect who turns vision into durable reality across years, not months.",
+    5: "Life Path 5 needs freedom and variety — careers in travel, sales, media, entrepreneurship, or anything with constant change and new stimulation are your engine.",
+    6: "Life Path 6 leads through responsibility and care — service roles, healing professions, education, and family-oriented businesses are your highest fulfillment.",
+    7: "Life Path 7 operates in cycles of deep solitary focus followed by breakthrough contributions — your career thrives when you have long uninterrupted windows to investigate, research, and master; setbacks are rarely failures but necessary isolation phases that precede your biggest leaps forward.",
+    8: "Life Path 8 is built for power and material mastery — executive roles, business ownership, finance, and ambitious institutional leadership are where your full potential unfolds.",
+    9: "Life Path 9 carries a humanitarian mission — your career gains its greatest force when connected to a cause larger than personal gain, and your influence expands globally when it does.",
+    11: "Life Path 11 is a master teacher and visionary — your career has an unusual intensity; you are meant to inspire at scale, not just succeed personally.",
+    22: "Life Path 22 is the master builder — you are rare: someone who can conceive large-scale visions AND execute them across decades; your career landmark will be something that outlives you.",
+    33: "Life Path 33 carries master-level compassion in career — you are meant to serve, heal, and uplift entire communities, and your career fulfillment is inseparable from that mission.",
+}
+
 LP_INTENT_TEMPLATES = {
     "marriage": (
         "From the {tradition} perspective, your Life Path {lp} and Name Number {nm} together shape your relationship destiny. "
@@ -55,9 +70,9 @@ LP_INTENT_TEMPLATES = {
         "Numerically, ages {age1} and {age2} carry strong marriage vibrations based on your personal year cycles."
     ),
     "career": (
-        "From the {tradition} perspective, your Life Path {lp} indicates a {trait} nature in professional contexts. "
-        "Your Destiny Number {dest} points toward long-term career fulfillment in areas aligned with leadership, creativity, or service. "
-        "The current personal year cycle supports deliberate skill-building — recognition and advancement follow consistent effort."
+        "From the {tradition} perspective, your Life Path {lp} carries a {trait} quality that shapes how you build and advance professionally. "
+        "{lp_career_insight} "
+        "Your Destiny Number {dest} confirms the field where you create the deepest long-term impact — follow the work that demands your full depth, not just your effort."
     ),
     "finance": (
         "From the {tradition} perspective, your Life Path {lp} and lucky numbers {lucky} align with financial cycles. "
@@ -121,13 +136,15 @@ def _build_numerology_prediction(lp: int, nm: int, dest: int, su: int, pn: int, 
     traits = get_traits(lp)
     trait  = traits["traits"][0].lower() if traits["traits"] else "purposeful"
     lucky  = ", ".join(str(n) for n in lucky_numbers(lp, nm)[:3])
-    lp_marriage = LP_MARRIAGE_INSIGHTS.get(lp, LP_MARRIAGE_INSIGHTS[1])
+    lp_marriage    = LP_MARRIAGE_INSIGHTS.get(lp, LP_MARRIAGE_INSIGHTS[1])
+    lp_career      = LP_CAREER_INSIGHTS.get(lp, LP_CAREER_INSIGHTS[1])
     age1, age2 = _marriage_age_hints(lp, dob)
 
     template = LP_INTENT_TEMPLATES.get(intent, LP_INTENT_TEMPLATES["general"])
     return template.format(
         tradition=tradition, lp=lp, nm=nm, dest=dest, su=su, pn=pn,
         trait=trait, lucky=lucky, lp_marriage_insight=lp_marriage,
+        lp_career_insight=lp_career,
         age1=age1, age2=age2,
     )
 

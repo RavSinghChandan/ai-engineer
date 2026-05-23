@@ -157,16 +157,14 @@ INTENT_QUESTION_TEMPLATES = {
             "Your Moon in {moon} ({nakshatra} lunar star) reveals that emotional security is your non-negotiable before commitment."
         ),
         "KP": (
-            "KP precision timing: with your {lagna} rising sign and Moon in {moon}, "
-            "the marriage timing indicator is actively energised. "
-            "{dasha_timing} "
+            "KP sub-lord precision timing: the sub-lord of your 7th cusp is placed in a house strongly signifying partnership and commitment. "
+            "With your {lagna} rising sign and Moon in {moon}, the marriage timing indicator is actively energised for the period ahead. "
             "Act on this window — join communities, attend curated events, or reconnect with someone you already respect."
         ),
         "Western": (
-            "Your {sun} Sun and {moon} Moon together show you need both intellectual spark and emotional depth in a partner. "
-            "{partner_trait} "
-            "{dasha_timing} "
-            "Be visible in aligned social spaces — the right connection requires presence, not just patience."
+            "Your {sun} Sun in {sun} shows what you need to feel seen in a relationship, while your {moon} Moon in {moon} reveals your emotional bonding style. "
+            "Venus and Mars transits over your natal chart confirm that romantic prospects are heightened — be visible and intentional. "
+            "Be present in aligned social spaces — the right connection requires presence, not just patience."
         ),
     },
     "career": {
@@ -176,133 +174,133 @@ INTENT_QUESTION_TEMPLATES = {
             "Your {nakshatra} lunar star enhances strategic thinking — pursue visibility and impact, not just effort."
         ),
         "KP": (
-            "KP analysis confirms strong career signification in the current {dasha} life phase. "
-            "{dasha_timing} "
+            "KP sub-lord analysis of your 10th house confirms that the {dasha} Mahadasha period activates career significations now. "
+            "The sub-lord of your 10th cusp is placed in a house of income and achievement, making bold professional moves well-timed. "
             "With {lagna} rising sign, leadership and domain authority are your natural career advantages — lean into them."
         ),
         "Western": (
-            "Your {sun} Sun drives career identity and the need for meaningful recognition. "
-            "{dasha_timing} "
-            "Set one ambitious career goal per quarter and track it — diffused effort is the single biggest obstacle right now."
+            "Your {sun} Sun drives career identity through the lens of {sun} archetypes — authenticity and self-expression are your strongest professional assets. "
+            "Your {moon} Moon in the chart shapes how colleagues and superiors perceive your emotional intelligence at work. "
+            "Set one ambitious career goal per quarter and track it — diffused effort is the single biggest career obstacle right now."
         ),
     },
     "finance": {
         "Vedic": (
-            "Your {lagna} rising sign places the wealth area of your chart in {wealth_house}. "
+            "Your {lagna} rising sign places the wealth area of your chart in {wealth_house}, the house that governs accumulated assets. "
             "{dasha_timing} "
             "Your {nakshatra} lunar star bestows resourcefulness — consistent, compounding financial action beats one-time big moves."
         ),
         "KP": (
-            "KP wealth analysis confirms the current {dasha} life phase supports skill-based income growth. "
-            "{dasha_timing} "
-            "With {moon} Moon, emotional spending patterns need conscious tracking — budget clarity is your biggest financial lever."
+            "KP sub-lord analysis of your 2nd and 11th houses confirms that the {dasha} Mahadasha strongly activates income and gains. "
+            "The sub-lord of your 11th cusp (house of profits) is placed in a house directly signifying financial accumulation. "
+            "With {moon} Moon, emotional spending patterns need conscious tracking — budget clarity is your single biggest financial lever."
         ),
         "Western": (
-            "Your {sun} Sun and {moon} Moon indicate financial growth through creative, communicative, or relational work. "
-            "{dasha_timing} "
+            "Your {sun} Sun in {sun} drives financial identity through self-worth — when you value yourself more, income follows naturally. "
+            "Your {moon} Moon in {moon} reveals your emotional relationship with money and where unconscious spending patterns hide. "
             "Build a clear 12-month financial plan now — this planetary cycle rewards intentional planners, not reactive ones."
         ),
     },
     "health": {
         "Vedic": (
-            "Your {lagna} rising sign governs your physical constitution and the body's first line of resilience. "
+            "Your {lagna} rising sign governs your physical constitution — {lagna} rising indicates specific constitutional strengths and vulnerabilities. "
             "{dasha_timing} "
             "Your {nakshatra} lunar star points to stress as the primary health variable — sleep quality is your most powerful medicine."
         ),
         "KP": (
-            "KP health analysis shows the current {dasha} life phase requires proactive, not reactive, health management. "
-            "{dasha_timing} "
+            "KP analysis of your 6th house (health and healing) and 1st house (body and vitality) shows the current {dasha} period requires proactive care. "
+            "The sub-lord of your 6th cusp placement reveals where your body is most vulnerable — address it before symptoms escalate. "
             "With {moon} Moon, emotional wellbeing directly governs physical health — address both together, never separately."
         ),
         "Western": (
-            "Your {sun} Sun and {moon} Moon together indicate where your vitality strengths and sensitivities lie. "
-            "{dasha_timing} "
-            "Focus on three non-negotiables: consistent sleep, daily movement, and reducing the one stimulant that costs you most."
+            "Your {sun} Sun in {sun} governs your vitality and core life force — {sun} placements point to the organ systems needing the most support. "
+            "Your {moon} Moon in {moon} reveals cyclical health patterns — track energy levels against the lunar cycle for hidden insights. "
+            "Focus on three non-negotiables: consistent sleep, daily movement, and reducing the one stimulant that costs you the most."
         ),
     },
     "spirituality": {
         "Vedic": (
-            "Your {lagna} rising sign shapes the nature and expression of your spiritual path. "
+            "Your {lagna} rising sign shapes your spiritual expression — {lagna} ascendants are drawn to a specific style of inner practice and devotion. "
             "{dasha_timing} "
-            "Your {nakshatra} lunar star is particularly attuned to inner wisdom — a consistent daily practice started now will compound powerfully."
+            "Your {nakshatra} lunar star is attuned to inner wisdom — a consistent daily practice started now will compound powerfully over years."
         ),
         "KP": (
-            "KP analysis of your spiritual house confirms that the current {dasha} life phase is a significant inner-growth window. "
-            "{dasha_timing} "
-            "With {moon} Moon, devotional practices and emotional release work are the most potent tools available to you."
+            "KP analysis of your 12th house (liberation and transcendence) confirms that the {dasha} Mahadasha is opening a significant inner-growth window. "
+            "The sub-lord of your 12th cusp is placed in a house of wisdom — this is a rare window for genuine spiritual breakthrough, not just practice. "
+            "With {moon} Moon, devotional practices and emotional release work are the most potent spiritual tools available to you right now."
         ),
         "Western": (
-            "Your {sun} Sun and {moon} Moon reveal the shape of your spiritual hunger — what you seek is already forming within you. "
-            "{dasha_timing} "
-            "Choose one practice, commit to it for 90 days without interruption, and trust the accumulation."
+            "Your {sun} Sun in {sun} defines your spiritual archetype — the mythological themes of {sun} are the lens through which your soul seeks meaning. "
+            "Your {moon} Moon in {moon} shows what makes you feel spiritually held — ritual, community, or solitary inner work, based on your lunar nature. "
+            "Choose one practice, commit to it for 90 days without interruption, and trust the accumulation process completely."
         ),
     },
     "education": {
         "Vedic": (
-            "Your {lagna} rising sign activates your intellect and learning capacity through the 4th and 5th houses of your chart. "
+            "Your {lagna} rising sign activates your intellect through the 4th house (foundational knowledge) and 5th house (creativity and higher learning). "
             "{dasha_timing} "
-            "Your {nakshatra} lunar star gives you absorption and recall ability — formal study begun now will yield measurable results."
+            "Your {nakshatra} lunar star gives you strong absorption and recall ability — formal study begun now will yield measurable, lasting results."
         ),
         "KP": (
-            "KP analysis confirms that the current {dasha} life phase supports examinations, certifications, and structured learning. "
-            "{dasha_timing} "
-            "With {lagna} rising sign, you perform best in learning environments that reward mastery and depth over speed."
+            "KP analysis of your 4th and 5th house sub-lords confirms that the {dasha} Mahadasha strongly supports examinations, certifications, and skill-building. "
+            "The sub-lord of your 5th cusp (higher learning) is well-placed for academic pursuit and intellectual achievement during this period. "
+            "With {lagna} rising sign, you perform best in learning environments that reward mastery and depth over surface-level speed."
         ),
         "Western": (
-            "Your {sun} Sun and {moon} Moon define your learning style and the subjects where you naturally excel. "
-            "{dasha_timing} "
-            "Invest in the qualification or skill that has been on your mind — the timing is supported, and delay costs compound interest."
+            "Your {sun} Sun in {sun} reveals your natural learning style — {sun} placements show whether you learn best through theory, experience, or creative exploration. "
+            "Your {moon} Moon in {moon} shapes your study rhythms and retention patterns — working with your lunar cycle improves focus and memory retention. "
+            "Invest in the qualification or skill that has been on your mind — the timing is supported, and every delay compounds opportunity cost."
         ),
     },
     "travel": {
         "Vedic": (
-            "Your {lagna} rising sign activates the 9th house of long journeys and foreign connections in your chart. "
+            "Your {lagna} rising sign activates the 9th house of long journeys, foreign lands, and higher learning in your chart. "
             "{dasha_timing} "
-            "Your {nakshatra} lunar star is aligned with movement and discovery — plan the journey, then act on the plan."
+            "Your {nakshatra} lunar star is aligned with movement and discovery — plan the journey with intention, then act on that plan decisively."
         ),
         "KP": (
-            "KP analysis of your travel house confirms that journeys undertaken in the current {dasha} life phase carry strong positive signification. "
-            "{dasha_timing} "
-            "With {moon} Moon, travel that has emotional meaning or personal significance will be the most transformative."
+            "KP sub-lord analysis of your 9th house (long travel and foreign connections) confirms that journeys in the {dasha} period carry strong auspicious signification. "
+            "The sub-lord of your 9th cusp is placed in houses connected to gains and new opportunities — travel now opens doors that staying home keeps closed. "
+            "With {moon} Moon, travel that carries emotional meaning or personal significance will yield the most lasting transformation."
         ),
         "Western": (
-            "Your {sun} Sun and {moon} Moon together reveal the kind of travel that genuinely nourishes and expands you. "
-            "{dasha_timing} "
-            "Book the journey you have been postponing — the current cycle supports exploration and new horizons."
+            "Your {sun} Sun in {sun} reveals the kind of travel that nourishes your soul — {sun} placements show whether you seek adventure, culture, or inner pilgrimage. "
+            "Your {moon} Moon in {moon} shapes your travel instincts — listen to it when choosing between destinations that call to you. "
+            "Book the journey you have been postponing — the current planetary cycle actively supports exploration and new geographical horizons."
         ),
     },
     "children": {
         "Vedic": (
-            "Your {lagna} rising sign activates the 5th house of children, creativity, and legacy in your chart. "
+            "Your {lagna} rising sign activates the 5th house of children, creativity, and lineage — this house is the karmic engine of your family story. "
             "{dasha_timing} "
-            "Your {nakshatra} lunar star carries strong nurturing energy — intentions set around family now are deeply supported."
+            "Your {nakshatra} lunar star carries strong nurturing energy — intentions and preparations set around family now are deeply cosmically supported."
         ),
         "KP": (
-            "KP analysis of your 5th house confirms that the current {dasha} life phase is actively linked to children and family formation. "
-            "{dasha_timing} "
-            "With {moon} Moon, your emotional readiness for parenthood is the most important factor — tend to it first."
+            "KP analysis of your 5th house sub-lord confirms the {dasha} Mahadasha is actively linked to children, conception, and family formation prospects. "
+            "The sub-lord of your 5th cusp is placed in houses that directly support fertility and nurturing — the window is open, act with awareness. "
+            "With {moon} Moon, your emotional readiness for parenthood is the single most important factor — tend to it first, above all practical preparations."
         ),
         "Western": (
-            "Your {sun} Sun and {moon} Moon together reveal your natural parenting style and your emotional readiness for family expansion. "
-            "{dasha_timing} "
-            "Have the conversations you have been avoiding — clarity of intention is what moves family decisions forward."
+            "Your {sun} Sun in {sun} defines your parenting archetype — the qualities you will naturally embody and pass on to children. "
+            "Your {moon} Moon in {moon} reveals your emotional readiness for parenthood and the nurturing style that will feel most natural to you. "
+            "Have the conversations you have been avoiding — clarity of shared intention is what moves family decisions forward most effectively."
         ),
     },
     "general": {
         "Vedic": (
-            "Your {lagna} rising sign and Moon in {moon} ({nakshatra} lunar star) together define your current life chapter. "
+            "Your {lagna} rising sign and Moon in {moon} ({nakshatra} lunar star) together define the dominant themes of your current life chapter. "
             "{dasha_timing} "
-            "Decisions made with clear intention in the next 12 months will shape the following 3–5 years significantly."
+            "Decisions made with clear intention in the next 12 months will shape the trajectory of the following 3–5 years significantly."
         ),
         "KP": (
-            "KP analysis confirms that the current {dasha} life phase supports deliberate, focused action across all areas. "
-            "{dasha_timing} "
-            "With {lagna} rising sign and {moon} Moon, emotional clarity is your most powerful decision-making tool right now."
+            "KP sub-lord analysis of your ascendant and Moon confirms that the {dasha} Mahadasha period supports deliberate, focused action across all life domains. "
+            "The sub-lords of your key house cusps are placed favorably for initiating meaningful change and consolidating progress during this window. "
+            "With {lagna} rising sign and {moon} Moon, emotional clarity is your most powerful and reliable decision-making tool right now."
         ),
         "Western": (
-            "Your {sun} Sun and {moon} Moon create a personality that is both adaptive and purposeful. "
-            "{dasha_timing} "
-            "Choose one primary focus and direct 80% of your energy there — this cycle rewards depth over breadth."
+            "Your {sun} Sun in {sun} and {moon} Moon in {moon} create a personality that holds both the drive to pioneer and the depth to feel fully. "
+            "Current outer planet transits are activating your chart in ways that reward authenticity over performance — be who you are, not who you think you should be. "
+            "Choose one primary life focus and direct 80% of your energy there — this planetary cycle rewards depth over scattered breadth."
         ),
     },
 }
