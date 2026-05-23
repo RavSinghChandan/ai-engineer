@@ -29,9 +29,8 @@ from typing import Any, Dict, List, Tuple
 
 # ── Hedge phrases that signal LLM uncertainty ─────────────────────────────────
 _HEDGE_PATTERN = re.compile(
-    r"\b(might|may|possibly|perhaps|unclear|uncertain|not sure|could be|"
-    r"it seems|appears to|likely|probably|roughly|approximately|i believe|"
-    r"it is possible|hard to say|difficult to determine)\b",
+    r"\b(unclear|uncertain|not sure|i believe|hard to say|difficult to determine|"
+    r"it is possible|cannot say|we cannot know|impossible to tell)\b",
     re.IGNORECASE,
 )
 

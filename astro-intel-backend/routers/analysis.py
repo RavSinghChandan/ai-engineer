@@ -310,14 +310,23 @@ def _record_metrics(session_id: str, state: dict, t_start: float, t_end: float) 
     """Extract signals from completed pipeline state and record to MetricsCollector."""
     total_ms = (t_end - t_start) * 1000
 
-    # Agent latency from agent_log timestamps (best-effort parse)
+    # Agent latency — parse real elapsed time from guardrails agent_log entries
+    # Format: "[Guardrails/question_agent] ✓ completed in 1.234s"
+    import re as _re
     agent_latencies: dict = {}
     agent_log = state.get("agent_log", [])
+    _ag_pattern = _re.compile(r"\[Guardrails/([a-z_]+)\] ✓ completed in ([\d.]+)s")
+    for entry in agent_log:
+        m = _ag_pattern.search(str(entry))
+        if m:
+            ag_name, secs = m.group(1), float(m.group(2))
+            agent_latencies[ag_name] = round(secs * 1000, 1)
+    # Fill any missing agents with a proportional fallback
     known_agents = ["question_agent", "domain_agents", "meta_agent", "remedy_agent", "admin_review_agent"]
-    # Approximate equal split as fallback (pipeline is mostly sequential)
-    per_agent_ms = total_ms / max(len(known_agents), 1)
-    for ag in known_agents:
-        agent_latencies[ag] = round(per_agent_ms, 1)
+    if not agent_latencies:
+        per_agent_ms = total_ms / max(len(known_agents), 1)
+        for ag in known_agents:
+            agent_latencies[ag] = round(per_agent_ms, 1)
 
     # Confidence distribution from admin_review
     conf_counts: dict = {"high": 0, "medium": 0, "low": 0}

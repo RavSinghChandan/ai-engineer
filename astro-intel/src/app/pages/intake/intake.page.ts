@@ -2465,7 +2465,7 @@ export class IntakePage {
     }
   }
 
-  readonly selectedModules = signal<Set<Module>>(new Set(['astrology','numerology']));
+  readonly selectedModules = signal<Set<Module>>(new Set(['astrology','numerology','palmistry','tarot','vastu']));
   readonly launchError     = signal('');
   readonly leftFileName    = signal('');
   readonly rightFileName   = signal('');

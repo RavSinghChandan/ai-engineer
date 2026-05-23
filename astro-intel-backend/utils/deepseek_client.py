@@ -96,7 +96,7 @@ def call(
     )
 
     def _do_http_call():
-        with urllib.request.urlopen(http_req, timeout=120) as resp:
+        with urllib.request.urlopen(http_req, timeout=12) as resp:
             return json.loads(resp.read().decode())
 
     # ── G2: Circuit Breaker wraps the actual HTTP call ────────────────────────

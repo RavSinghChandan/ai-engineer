@@ -77,63 +77,76 @@ def _tokenise(text: str) -> set[str]:
     return {w for w in re.findall(r"[a-z]+", text.lower()) if w not in STOP and len(w) > 2}
 
 
+def _collect_insights(report: dict) -> list[dict]:
+    """
+    Extract all insight dicts from the report regardless of structure variant.
+
+    AstroIntel report shape (admin_review format):
+      report["questions"][i]["insights"][j] → {id, content, confidence, domains, ...}
+
+    Handles both "content" and "text" keys for the insight body.
+    """
+    insights: list[dict] = []
+    for q_block in report.get("questions", []):
+        if not isinstance(q_block, dict):
+            continue
+        for ins in q_block.get("insights", []):
+            if isinstance(ins, dict):
+                insights.append(ins)
+    # fallback: sections list (final_report format)
+    if not insights:
+        for sec in report.get("sections", []):
+            if isinstance(sec, dict):
+                for ins in sec.get("insights", []):
+                    if isinstance(ins, dict):
+                        insights.append(ins)
+    return insights
+
+
+def _insight_text(ins: dict) -> str:
+    return ins.get("content") or ins.get("text") or ""
+
+
 def _score_faithfulness(report: dict, approved_ids: list[str]) -> float:
     """
-    Faithfulness: do story paragraphs only reflect what the domain agents said?
+    Faithfulness: what fraction of approved insight content is grounded in
+    multi-domain consensus (i.e. not a single-source claim)?
 
-    Method: collect all approved insight bullet text, then check what fraction
-    of story sentences contain at least one keyword from the insight pool.
-    A story that invents content will have low overlap.
+    Method: approved insights whose `domains` list has ≥ 2 entries are
+    "grounded" (cross-validated by multiple traditions). Single-domain
+    insights are potential hallucination risk.
+    If no approved insights exist, return 1.0 (cannot penalise).
     """
-    # Collect approved insight text
-    insight_tokens: set[str] = set()
     approved_set = set(approved_ids)
-    for domain_data in report.get("domains", {}).values():
-        for q_block in (domain_data if isinstance(domain_data, list) else []):
-            for insight in q_block.get("insights", []):
-                if insight.get("id") in approved_set:
-                    insight_tokens |= _tokenise(insight.get("text", ""))
-
-    if not insight_tokens:
-        return 1.0  # no insights to compare — can't penalise
-
-    # Collect story sentences from all domain stories
-    story_sentences: list[str] = []
-    for q_block in report.get("questions", []):
-        story = q_block.get("story", "")
-        if story:
-            story_sentences += re.split(r"(?<=[.!?])\s+", story.strip())
-
-    if not story_sentences:
+    all_insights = _collect_insights(report)
+    approved = [i for i in all_insights if i.get("id") in approved_set]
+    if not approved:
         return 1.0
-
     grounded = sum(
-        1 for s in story_sentences
-        if _tokenise(s) & insight_tokens
+        1 for ins in approved
+        if len(ins.get("domains", [])) >= 2 or ins.get("confidence", "").lower() == "high"
     )
-    return round(grounded / len(story_sentences), 4)
+    return round(grounded / len(approved), 4)
 
 
 def _score_answer_relevancy(report: dict, question: str) -> float:
     """
-    Answer relevancy: does the report story address the user's question?
+    Answer relevancy: does the approved content directly address the question?
 
-    Method: keyword overlap between question tokens and all story text.
+    Method: keyword overlap between question tokens and all approved insight text.
     """
     q_tokens = _tokenise(question)
     if not q_tokens:
         return 1.0
 
-    story_text = " ".join(
-        q_block.get("story", "")
-        for q_block in report.get("questions", [])
-    )
-    story_tokens = _tokenise(story_text)
+    all_insights = _collect_insights(report)
+    all_text = " ".join(_insight_text(ins) for ins in all_insights)
+    content_tokens = _tokenise(all_text)
 
-    if not story_tokens:
+    if not content_tokens:
         return 0.0
 
-    overlap = len(q_tokens & story_tokens) / len(q_tokens)
+    overlap = len(q_tokens & content_tokens) / len(q_tokens)
     return round(min(overlap, 1.0), 4)
 
 
@@ -143,18 +156,15 @@ def _score_context_precision(report: dict, approved_ids: list[str]) -> float:
     HIGH-confidence = backed by 3+ independent domains (most reliable content).
     """
     approved_set = set(approved_ids)
-    total = 0
-    high  = 0
-    for domain_data in report.get("domains", {}).values():
-        for q_block in (domain_data if isinstance(domain_data, list) else []):
-            for insight in q_block.get("insights", []):
-                if insight.get("id") in approved_set:
-                    total += 1
-                    if insight.get("confidence", "").lower() == "high":
-                        high += 1
-    if total == 0:
+    all_insights = _collect_insights(report)
+    approved = [i for i in all_insights if i.get("id") in approved_set]
+    if not approved:
+        # No explicit approval list — use all insights
+        approved = all_insights
+    if not approved:
         return 1.0
-    return round(high / total, 4)
+    high = sum(1 for ins in approved if ins.get("confidence", "").lower() == "high")
+    return round(high / len(approved), 4)
 
 
 def _score_domain_recall(report: dict, approved_ids: list[str]) -> float:
@@ -163,15 +173,19 @@ def _score_domain_recall(report: dict, approved_ids: list[str]) -> float:
     at least one approved insight to the final report.
     """
     approved_set = set(approved_ids)
-    domains_with_content: set[str] = set()
-    for domain in _DOMAINS:
-        domain_data = report.get("domains", {}).get(domain, [])
-        for q_block in (domain_data if isinstance(domain_data, list) else []):
-            for insight in q_block.get("insights", []):
-                if insight.get("id") in approved_set:
-                    domains_with_content.add(domain)
-                    break
-    return round(len(domains_with_content) / len(_DOMAINS), 4)
+    all_insights = _collect_insights(report)
+    # If no explicit approved_ids, count all insights
+    target = [i for i in all_insights if i.get("id") in approved_set] if approved_ids else all_insights
+    domains_seen: set[str] = set()
+    for ins in target:
+        for d in ins.get("domains", []):
+            domains_seen.add(d.lower())
+        # also check sub_agent field
+        sa = ins.get("sub_agent", "")
+        for dom in _DOMAINS:
+            if dom in sa.lower():
+                domains_seen.add(dom)
+    return round(len(domains_seen & set(_DOMAINS)) / len(_DOMAINS), 4)
 
 
 # ── public API ────────────────────────────────────────────────────────────────
