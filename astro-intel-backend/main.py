@@ -27,7 +27,7 @@ if _ENV == "production":
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import analysis_router, geocode_router, metrics_router
+from routers import analysis_router, async_analysis_router, geocode_router, metrics_router, stream_router
 from auth.router import router as auth_router
 from leads.router import router as leads_router
 from auth.dependencies import require_role, get_tenant_ctx
@@ -59,6 +59,10 @@ def _warm_rag():
 
 import threading as _threading
 _threading.Thread(target=_warm_rag, daemon=True).start()
+
+# ── Start Kafka consumer (no-op when KAFKA_ENABLED=false) ────────────────────
+from pipeline_queue.consumer import start_consumer as _start_consumer
+_start_consumer()
 
 # ── App factory ──────────────────────────────────────────────────────────────
 app = FastAPI(
@@ -104,9 +108,11 @@ app.add_middleware(
 # ── Routers ──────────────────────────────────────────────────────────────────
 app.include_router(auth_router)          # /auth/token, /admin/*
 app.include_router(leads_router)         # /leads, /admin/leads
-app.include_router(analysis_router)      # /api/v1/analysis/* — auth wired per-endpoint
+app.include_router(analysis_router)       # /api/v1/analysis/* — auth wired per-endpoint
+app.include_router(async_analysis_router) # /api/v1/analysis/submit + /job/{id} — Kafka async
 app.include_router(geocode_router)
 app.include_router(metrics_router)       # /api/v1/metrics — ADMIN+
+app.include_router(stream_router)        # /api/v1/stream/{session_id} — SSE
 
 
 # ── Health check (public) ────────────────────────────────────────────────────

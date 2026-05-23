@@ -235,6 +235,10 @@ export class ApiService {
     return this.http.get(`${BACKEND}/guardrails/stats`).pipe(catchError(this._handleError));
   }
 
+  getRagasScores(): Observable<any> {
+    return this.http.get(`${BACKEND}/api/v1/metrics/ragas`).pipe(catchError(this._handleError));
+  }
+
   resetCircuitBreaker(): Observable<any> {
     return this.http.post(`${BACKEND}/guardrails/circuit-breaker/reset`, {}).pipe(catchError(this._handleError));
   }

@@ -1033,6 +1033,124 @@
 
     </div><!-- gr-section -->
 
+    <!-- ══ RAGAS EVALUATION PANEL ══════════════════════════════════════════ -->
+    <div class="ragas-section">
+      <div class="section-header">
+        <span class="section-icon">🧪</span>
+        <span class="section-title">RAGAS Report Evaluation</span>
+        <span class="section-badge">Per-report quality scores · auto-scored after every approval</span>
+        <button class="refresh-btn" [class.spinning]="secLoading['ragas']" [disabled]="secLoading['ragas']" (click)="refreshSection('ragas')">
+          <span class="refresh-icon">↻</span> Refresh
+        </button>
+      </div>
+
+      @if (ragasLoading() && !ragasData()) {
+        <div class="ragas-loading">Scoring reports…</div>
+      }
+
+      @if (ragasData()) {
+        @if (ragasData().total_scored === 0) {
+          <div class="panel empty-panel">
+            <div class="empty-icon">🧪</div>
+            <h3 class="empty-title">No reports scored yet</h3>
+            <p class="empty-sub">Approve an analysis to see RAGAS quality scores here.</p>
+          </div>
+        } @else {
+
+        <!-- Average score cards -->
+        <div class="kpi-row">
+          <div class="kpi-card kpi-accent">
+            <div class="kpi-label">Overall Score</div>
+            <div class="kpi-value" [class]="ragasColor(ragasData().averages.overall, 0.70)">
+              {{ (ragasData().averages.overall * 100).toFixed(1) }}%
+            </div>
+            <div class="kpi-note">Average across all 4 metrics · {{ ragasData().total_scored }} report(s)</div>
+          </div>
+          <div class="kpi-card" [class.kpi-warn]="ragasData().averages.faithfulness < 0.80">
+            <div class="kpi-label">Faithfulness</div>
+            <div class="kpi-value" [class]="ragasColor(ragasData().averages.faithfulness, 0.80)">
+              {{ (ragasData().averages.faithfulness * 100).toFixed(1) }}%
+            </div>
+            <div class="kpi-note">{{ ragasData().explainer.faithfulness }}</div>
+          </div>
+          <div class="kpi-card" [class.kpi-warn]="ragasData().averages.answer_relevancy < 0.70">
+            <div class="kpi-label">Answer Relevancy</div>
+            <div class="kpi-value" [class]="ragasColor(ragasData().averages.answer_relevancy, 0.70)">
+              {{ (ragasData().averages.answer_relevancy * 100).toFixed(1) }}%
+            </div>
+            <div class="kpi-note">{{ ragasData().explainer.answer_relevancy }}</div>
+          </div>
+          <div class="kpi-card" [class.kpi-warn]="ragasData().averages.context_precision < 0.60">
+            <div class="kpi-label">Context Precision</div>
+            <div class="kpi-value" [class]="ragasColor(ragasData().averages.context_precision, 0.60)">
+              {{ (ragasData().averages.context_precision * 100).toFixed(1) }}%
+            </div>
+            <div class="kpi-note">{{ ragasData().explainer.context_precision }}</div>
+          </div>
+          <div class="kpi-card" [class.kpi-warn]="ragasData().averages.domain_recall < 0.60">
+            <div class="kpi-label">Domain Recall</div>
+            <div class="kpi-value" [class]="ragasColor(ragasData().averages.domain_recall, 0.60)">
+              {{ (ragasData().averages.domain_recall * 100).toFixed(1) }}%
+            </div>
+            <div class="kpi-note">{{ ragasData().explainer.domain_recall }}</div>
+          </div>
+        </div>
+
+        @if (ragasData().alerts?.length > 0) {
+          <div class="ragas-alert-row">
+            <span class="ragas-alert-icon">⚠️</span>
+            <span class="ragas-alert-text">Below threshold: </span>
+            @for (a of ragasData().alerts; track a) {
+              <span class="ragas-alert-chip">{{ a }}</span>
+            }
+          </div>
+        }
+
+        @if (ragasTrend().length > 1) {
+          <div class="panel sparkline-panel">
+            <div class="sparkline-label">Overall score trend (last {{ ragasTrend().length }} reports)</div>
+            <div class="sparkline">
+              @for (s of ragasTrend(); track $index) {
+                <div class="spark-bar"
+                  [style.height.%]="s * 100"
+                  [class.spark-warn]="s < 0.70"
+                  [title]="(s * 100).toFixed(1) + '%'">
+                </div>
+              }
+            </div>
+            <div class="sparkline-axis"><span>oldest</span><span>latest</span></div>
+          </div>
+        }
+
+        @if (ragasData().recent?.length > 0) {
+          <div class="panel table-panel">
+            <div class="tbl-row tbl-head ragas-head">
+              <span>Session</span>
+              <span>Question</span>
+              <span>Faith.</span>
+              <span>Relevancy</span>
+              <span>Precision</span>
+              <span>Recall</span>
+              <span>Overall</span>
+            </div>
+            @for (r of ragasData().recent; track r.session_id) {
+              <div class="tbl-row ragas-row" [class.tbl-row-err]="r.alerts?.length > 0">
+                <span class="run-id">{{ r.session_id }}</span>
+                <span class="ragas-q">{{ r.question }}</span>
+                <span [class]="ragasColor(r.faithfulness, 0.80)">{{ (r.faithfulness * 100).toFixed(0) }}%</span>
+                <span [class]="ragasColor(r.answer_relevancy, 0.70)">{{ (r.answer_relevancy * 100).toFixed(0) }}%</span>
+                <span [class]="ragasColor(r.context_precision, 0.60)">{{ (r.context_precision * 100).toFixed(0) }}%</span>
+                <span [class]="ragasColor(r.domain_recall, 0.60)">{{ (r.domain_recall * 100).toFixed(0) }}%</span>
+                <span class="ragas-overall" [class]="ragasColor(r.overall, 0.70)">{{ (r.overall * 100).toFixed(0) }}%</span>
+              </div>
+            }
+          </div>
+        }
+
+        } <!-- end total_scored > 0 -->
+      }
+    </div><!-- ragas-section -->
+
     <!-- ══ INTERVIEW EXPLAINER — always at bottom ══════════════════════════ -->
     <div class="explainer-section">
       <div class="explainer-section-header">

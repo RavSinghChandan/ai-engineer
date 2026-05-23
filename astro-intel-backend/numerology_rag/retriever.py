@@ -8,20 +8,27 @@ Two retrieval modes used by the hybrid agent:
   retrieve_for_rag()     — top-k chunks for RAG context injection
   retrieve_for_ragless() — top-k chunks used to VERIFY / anchor the
                            RAGless LLM answer (hallucination guard)
+
+Phase 1 (production): CrossEncoder reranking re-scores the FAISS
+candidates with a cross-encoder model for higher precision.
+Controlled by env var RERANKER_ENABLED=true (default: false).
 """
 from __future__ import annotations
 import json
+import os
 import numpy as np
-from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
 INDEX_DIR = Path(__file__).parent / "index"
 
+RERANKER_ENABLED = os.getenv("RERANKER_ENABLED", "false").lower() == "true"
+
 # ── Lazy-loaded singletons ────────────────────────────────────────────────────
-_index    = None
-_metadata = None
-_model    = None
+_index     = None
+_metadata  = None
+_model     = None
+_reranker  = None
 
 
 def _load():
@@ -33,6 +40,24 @@ def _load():
     _index    = faiss.read_index(str(INDEX_DIR / "faiss.index"))
     _metadata = json.loads((INDEX_DIR / "metadata.json").read_text())
     _model    = SentenceTransformer("all-MiniLM-L6-v2")
+
+
+def _load_reranker():
+    global _reranker
+    if _reranker is not None:
+        return
+    from sentence_transformers import CrossEncoder
+    _reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+
+
+def _rerank(query: str, candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Re-score candidates with CrossEncoder and return sorted list."""
+    _load_reranker()
+    pairs = [(query, c["text"]) for c in candidates]
+    ce_scores = _reranker.predict(pairs).tolist()
+    for c, s in zip(candidates, ce_scores):
+        c["score"] = round(float(s), 4)
+    return sorted(candidates, key=lambda x: x["score"], reverse=True)
 
 
 def retrieve(
@@ -91,10 +116,15 @@ def retrieve(
         if key not in seen:
             seen.add(key)
             deduped.append(r)
-        if len(deduped) >= top_k:
-            break
 
-    return deduped
+    # CrossEncoder reranking: re-score deduplicated pool, then take top_k
+    if RERANKER_ENABLED and deduped:
+        try:
+            deduped = _rerank(query, deduped)
+        except Exception:
+            pass  # fall back to bi-encoder order on failure
+
+    return deduped[:top_k]
 
 
 def retrieve_for_rag(

@@ -20,6 +20,9 @@ from agents.grammar_agent import correct_report
 from agents.translation_agent import translation_agent, list_languages
 import memory.store as store
 import cache.store as response_cache
+from cache.semantic import semantic_get, semantic_set, semantic_stats
+from cache.redis_store import redis_get, redis_set, redis_stats
+from metrics.ragas_evaluator import evaluate as ragas_evaluate
 from metrics.collector import get_collector, RunRecord
 from utils.deepseek_client import get_session_usage, reset_session_usage
 from fastapi import Request
@@ -28,6 +31,7 @@ from auth.dependencies import get_tenant_ctx
 from auth.models import TenantContext, Role
 from auth.rbac import Permission, can, check_resource_access, audit
 import session_store
+from utils.event_bus import emit as _emit
 
 router = APIRouter(prefix="/api/v1/analysis", tags=["Analysis"])
 
@@ -78,12 +82,30 @@ async def run_analysis(
     )
 
     if not bypass:
+        # ── Redis distributed cache (multi-instance) — checked first ─────────
+        redis_cached = redis_get(cache_key)
+        if redis_cached is not None:
+            redis_cached["cache_hit"]    = True
+            redis_cached["cache_key"]    = cache_key
+            redis_cached["redis_cache"]  = True
+            return JSONResponse(content=redis_cached)
+
+        # ── In-memory cache (single-instance fast path) ───────────────────────
         cached = response_cache.get(cache_key, ttl=response_cache.PROFILE_TTL_SECONDS)
         if cached is not None:
-            # Return cached response instantly — no LLM calls, no pipeline
             cached["cache_hit"]  = True
             cached["cache_key"]  = cache_key
             return JSONResponse(content=cached)
+
+        # ── Semantic cache: similar question from same user ───────────────────
+        profile_key   = response_cache.make_profile_key(profile_dict)
+        query_text    = final_question or " ".join(extra_questions)
+        sem_cached    = semantic_get(query_text, profile_key, ttl=response_cache.PROFILE_TTL_SECONDS)
+        if sem_cached is not None:
+            sem_cached["cache_hit"]       = True
+            sem_cached["cache_key"]       = cache_key
+            sem_cached["semantic_cache"]  = True
+            return JSONResponse(content=sem_cached)
 
     # ── Cache miss — run the full pipeline ────────────────────────────────────
     session_id = str(uuid.uuid4())
@@ -145,18 +167,22 @@ async def run_analysis(
         },
     }
 
-    # ── Store in cache for future requests from same user ─────────────────────
-    response_cache.set(
-        cache_key,
-        response_body,
-        ttl  = response_cache.PROFILE_TTL_SECONDS,
-        meta = {
-            "key_type":      "profile",
-            "user_name":     profile_dict.get("full_name", ""),
-            "date_of_birth": profile_dict.get("date_of_birth", ""),
-            "place_of_birth": profile_dict.get("place_of_birth", ""),
-        },
-    )
+    # ── Store in Redis (distributed) + in-memory (local fast path) ───────────
+    cache_meta = {
+        "key_type":       "profile",
+        "user_name":      profile_dict.get("full_name", ""),
+        "date_of_birth":  profile_dict.get("date_of_birth", ""),
+        "place_of_birth": profile_dict.get("place_of_birth", ""),
+    }
+    response_cache.set(cache_key, response_body, ttl=response_cache.PROFILE_TTL_SECONDS, meta=cache_meta)
+    redis_set(cache_key, response_body, ttl=response_cache.PROFILE_TTL_SECONDS)
+
+    # ── Store in semantic cache (embeds query for future similarity matches) ───
+    profile_key = response_cache.make_profile_key(profile_dict)
+    query_text  = final_question or " ".join(extra_questions)
+    if query_text:
+        semantic_set(query_text, profile_key, response_body,
+                     ttl=response_cache.PROFILE_TTL_SECONDS, meta=cache_meta)
 
     return JSONResponse(content=response_body)
 
@@ -210,9 +236,34 @@ async def approve_and_generate(
     session_store.update(session_id, "final_report", report, tenant_id=ctx.tenant_id)
     await store.write_meta(session_id, "final_report", report)
 
+    # ── RAGAS evaluation — score the report against the user's question ───────
+    try:
+        original_state   = session_store.get(session_id) or {}
+        original_question = (
+            original_state.get("user_question") or
+            (original_state.get("questions") or [""])[0]
+        )
+        ragas_record = ragas_evaluate(
+            session_id   = session_id,
+            report       = report,
+            question     = original_question,
+            approved_ids = list(req.approved_insight_ids or []),
+        )
+        ragas_scores = {
+            "faithfulness":      ragas_record.faithfulness,
+            "answer_relevancy":  ragas_record.answer_relevancy,
+            "context_precision": ragas_record.context_precision,
+            "domain_recall":     ragas_record.domain_recall,
+            "overall":           ragas_record.overall,
+            "alerts":            ragas_record.alerts,
+        }
+    except Exception:
+        ragas_scores = {}
+
     return JSONResponse(content={
         "session_id":   session_id,
         "final_report": report,
+        "ragas_scores": ragas_scores,
     })
 
 

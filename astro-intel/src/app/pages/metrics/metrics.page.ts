@@ -23,11 +23,13 @@ export class MetricsPage implements OnInit, OnDestroy {
   grData       = signal<any>(null);
   grLoading    = signal(false);
   grEvents     = signal<any[]>([]);
+  ragasData    = signal<any>(null);
+  ragasLoading = signal(false);
 
   // Per-section refresh loading states
   secLoading: Record<string, boolean> = {
     latency: false, quality: false, hallucination: false,
-    tokens: false, ops: false, agents: false, runs: false, cache: false, guardrails: false
+    tokens: false, ops: false, agents: false, runs: false, cache: false, guardrails: false, ragas: false
   };
 
   refreshSection(section: string) {
@@ -47,6 +49,11 @@ export class MetricsPage implements OnInit, OnDestroy {
         next: (d) => { this.grData.set(d); this.secLoading[section] = false; },
         error: ()  => { this.secLoading[section] = false; },
       });
+    } else if (section === 'ragas') {
+      this.api.getRagasScores().subscribe({
+        next: (d) => { this.ragasData.set(d); this.secLoading[section] = false; },
+        error: ()  => { this.secLoading[section] = false; },
+      });
     }
   }
 
@@ -56,10 +63,12 @@ export class MetricsPage implements OnInit, OnDestroy {
     this.loadMetrics();
     this.loadCache();
     this.loadGuardrails();
+    this.loadRagas();
     this._timer = setInterval(() => {
       this.loadMetrics();
       this.loadCache();
       this.loadGuardrails();
+      this.loadRagas();
     }, 10_000);
   }
 
@@ -89,6 +98,14 @@ export class MetricsPage implements OnInit, OnDestroy {
           this.cacheError.set(msg || 'Failed to load cache');
         }
       },
+    });
+  }
+
+  loadRagas() {
+    this.ragasLoading.set(true);
+    this.api.getRagasScores().subscribe({
+      next: (d) => { this.ragasData.set(d); this.ragasLoading.set(false); },
+      error: ()  => { this.ragasLoading.set(false); },
     });
   }
 
@@ -231,6 +248,16 @@ export class MetricsPage implements OnInit, OnDestroy {
 
   agentKeys(): string[] {
     return Object.keys(this.metrics()?.agent_latency_avg_ms ?? {});
+  }
+
+  ragasColor(score: number, threshold: number): string {
+    if (score >= threshold) return 'ragas-good';
+    if (score >= threshold * 0.85) return 'ragas-warn';
+    return 'ragas-bad';
+  }
+
+  ragasTrend(): number[] {
+    return this.ragasData()?.trend ?? [];
   }
 
   fmtAgent(k: string): string {
