@@ -152,16 +152,14 @@ def _build_question_consensus(memory: Dict[str, Any], question: str, intent: str
     domain_count    = len(domains_present)
     q_idx = _q_index(memory, question)
 
-    # One rich insight card per tradition — carries full structured data
-    # Dedup key uses sub_agent so each tradition always gets its own card,
-    # even when LLM outputs start with similar sentences.
+    # ── Build one insight card per tradition ──────────────────────────────────
+    # Confidence is assigned AFTER all cards are built, based on cross-domain
+    # agreement rather than per-sub-agent hardcoded rank.
     insights = []
     seen_keys: set = set()
     for i, p in enumerate(pool):
         text = p["text"].strip()
         sub_agent_key = p.get("sub_agent", "")
-        # Per-tradition dedup: same tradition seen twice → skip second
-        # Different traditions with similar text → keep both (different sub_agent key)
         dedup_key = sub_agent_key if sub_agent_key else text[:80].lower()
         if dedup_key in seen_keys:
             continue
@@ -176,7 +174,7 @@ def _build_question_consensus(memory: Dict[str, Any], question: str, intent: str
         insights.append({
             "id":         insight_id,
             "content":    text,
-            "confidence": p.get("confidence", _assign_confidence(domain_count)),
+            "confidence": p.get("confidence", "medium"),  # placeholder — re-assigned below
             "domains":    [domain],
             "sub_agent":  sub_agent,
             "is_common":  domain_count >= 3,
@@ -185,7 +183,19 @@ def _build_question_consensus(memory: Dict[str, Any], question: str, intent: str
             "source_predictions": [text],
         })
 
-    # Cross-domain summary card (AI-suggested, admin can reject)
+    # ── Re-assign confidence based on cross-domain agreement ──────────────────
+    # Rule: an insight's confidence = how many DISTINCT OTHER top-level domains
+    # contributed at least one insight for the same question.
+    # If 5 domains all ran → every insight is backed by a 5-domain consensus → HIGH
+    # If 3-4 domains ran → HIGH
+    # If 2 domains → MEDIUM
+    # If 1 domain (single source) → LOW
+    # This replaces the per-sub-agent hardcoded rank and correctly signals to
+    # context_precision_proxy and admin review UI.
+    for ins in insights:
+        ins["confidence"] = _assign_confidence(domain_count)
+
+    # ── Cross-domain consensus card ────────────────────────────────────────────
     if domain_count >= 3:
         all_texts = [p["text"].rstrip(".").strip() for p in pool[:6]]
         insights.append({

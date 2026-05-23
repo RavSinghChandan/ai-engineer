@@ -119,7 +119,7 @@ def hybrid_numerology_answer(
             system=system,
             user=user_prompt,
             temperature=0.20,
-            max_tokens=250,
+            max_tokens=180,
         )
         answer = (result or "").strip()
         if len(answer) > 80:

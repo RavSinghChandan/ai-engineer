@@ -98,15 +98,17 @@ class TestDetectHedgePhrases:
         assert flagged is True
         assert "hedge_phrases" in reason
 
-    def test_possibly_flagged(self):
+    def test_possibly_not_flagged(self):
+        # "possibly" is normal language in spiritual predictions — not a genuine uncertainty marker
         ins = _insight(content="Possibly you will find success in business.")
         flagged, _ = _detect_hedge_phrases(ins)
-        assert flagged is True
+        assert flagged is False
 
-    def test_perhaps_flagged(self):
+    def test_perhaps_not_flagged(self):
+        # "perhaps" is normal language in spiritual predictions — not a genuine uncertainty marker
         ins = _insight(content="Perhaps your marriage will improve.")
         flagged, _ = _detect_hedge_phrases(ins)
-        assert flagged is True
+        assert flagged is False
 
     def test_uncertain_flagged(self):
         ins = _insight(content="The outcome is uncertain and hard to say.")

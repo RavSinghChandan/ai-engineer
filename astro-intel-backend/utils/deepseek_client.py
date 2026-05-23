@@ -3,10 +3,17 @@ Shared DeepSeek API client.
 Used by any agent that needs LLM inference via DeepSeek.
 
 Token economics tracking:
-  Every call() updates a thread-local accumulator with real token counts
-  from the API `usage` field. Callers (e.g. _record_metrics) read it via:
-    get_session_usage()   → {"prompt_tokens": N, "completion_tokens": N, "total_tokens": N, "calls": N}
-    reset_session_usage() → clears the accumulator for the current thread
+  call() accumulates real token counts from the API `usage` field into a
+  thread-local AND a shared cross-thread accumulator dict.
+
+  Pipeline runs via run_in_executor (ThreadPoolExecutor). Each worker thread
+  accumulates into _usage_local (thread-local). At pipeline end, graph/pipeline.py
+  calls collect_pipeline_usage() which merges ALL worker-thread accumulators into
+  a process-level dict, then writes to state["_token_usage"].
+  _record_metrics() then reads state["_token_usage"] directly — no cross-thread
+  data loss.
+
+  reset_session_usage() clears both local and cross-thread accumulator.
 """
 from __future__ import annotations
 import json
@@ -16,8 +23,12 @@ import urllib.request
 from typing import Any, Dict, Optional
 from guardrails.production import llm_circuit_breaker, CircuitOpenError
 
-# ── Thread-local token accumulator ───────────────────────────────────────────
+# ── Thread-local token accumulator (per worker thread) ───────────────────────
 _usage_local = threading.local()
+
+# ── Cross-thread accumulator: all worker threads write here under a lock ─────
+_global_lock = threading.Lock()
+_global_usage: Dict[str, int] = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "calls": 0}
 
 
 def _acc() -> Dict[str, int]:
@@ -27,13 +38,16 @@ def _acc() -> Dict[str, int]:
 
 
 def get_session_usage() -> Dict[str, int]:
-    """Return accumulated token counts for the current thread since last reset."""
-    return dict(_acc())
+    """Return cross-thread accumulated token counts since last reset."""
+    with _global_lock:
+        return dict(_global_usage)
 
 
 def reset_session_usage() -> None:
-    """Reset token accumulator for the current thread (call before each pipeline run)."""
+    """Reset both thread-local and cross-thread accumulators."""
     _usage_local.data = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "calls": 0}
+    with _global_lock:
+        _global_usage.update({"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "calls": 0})
 
 
 def _load_key() -> str:
@@ -105,13 +119,21 @@ def call(
     except CircuitOpenError as exc:
         raise RuntimeError(str(exc)) from exc
 
-    # ── Accumulate real token counts from API response ────────────────────────
+    # ── Accumulate real token counts — thread-local AND cross-thread ─────────
     usage = data.get("usage", {})
+    pt = usage.get("prompt_tokens", 0)
+    ct = usage.get("completion_tokens", 0)
+    tt = usage.get("total_tokens", 0)
     acc = _acc()
-    acc["prompt_tokens"]     += usage.get("prompt_tokens", 0)
-    acc["completion_tokens"] += usage.get("completion_tokens", 0)
-    acc["total_tokens"]      += usage.get("total_tokens", 0)
+    acc["prompt_tokens"]     += pt
+    acc["completion_tokens"] += ct
+    acc["total_tokens"]      += tt
     acc["calls"]             += 1
+    with _global_lock:
+        _global_usage["prompt_tokens"]     += pt
+        _global_usage["completion_tokens"] += ct
+        _global_usage["total_tokens"]      += tt
+        _global_usage["calls"]             += 1
 
     raw = data["choices"][0]["message"]["content"]
     # Strip markdown code fences if present

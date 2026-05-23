@@ -93,10 +93,23 @@ def domain_agents_parallel(state: Dict[str, Any]) -> Dict[str, Any]:
             state_snapshot.setdefault("errors", []).append(f"{domain}: {exc}")
             return state_snapshot
 
+    # Build a minimal read-only snapshot: only fields each domain agent reads.
+    # Avoids deepcopy of the entire growing state (memory, agent_log, etc.)
+    # which adds 20-50ms overhead as state grows across pipeline nodes.
+    _INPUT_FIELDS = (
+        "user_profile", "user_question", "questions", "selected_modules",
+        "module_inputs", "geocode", "normalized_questions", "focus_context",
+    )
+    _base_snapshot = {k: state.get(k) for k in _INPUT_FIELDS}
+    _base_snapshot["memory"] = {}
+    _base_snapshot["agent_log"] = []
+    _base_snapshot["errors"] = []
+
     futures = {}
     with ThreadPoolExecutor(max_workers=len(active)) as pool:
         for domain, agent_fn in active.items():
-            snapshot = copy.deepcopy(state)
+            snapshot = dict(_base_snapshot)          # shallow copy — safe because agents only write memory[domain]
+            snapshot["memory"] = {}                  # isolated write target per domain
             futures[pool.submit(_run_agent, domain, agent_fn, snapshot)] = domain
 
         for future in as_completed(futures):
