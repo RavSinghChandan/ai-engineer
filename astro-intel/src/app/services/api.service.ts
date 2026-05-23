@@ -239,6 +239,10 @@ export class ApiService {
     return this.http.get(`${BACKEND}/api/v1/metrics/ragas`).pipe(catchError(this._handleError));
   }
 
+  getJobStats(): Observable<any> {
+    return this.http.get(`${BACKEND}/api/v1/analysis/jobs/stats`).pipe(catchError(() => of({ kafka_enabled: false, total: 0 })));
+  }
+
   resetCircuitBreaker(): Observable<any> {
     return this.http.post(`${BACKEND}/guardrails/circuit-breaker/reset`, {}).pipe(catchError(this._handleError));
   }

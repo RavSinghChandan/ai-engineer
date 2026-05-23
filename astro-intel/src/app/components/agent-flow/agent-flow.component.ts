@@ -1,7 +1,9 @@
-import { Component, inject, computed, signal, HostListener, OnDestroy } from '@angular/core';
+import { Component, inject, computed, signal, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { OrchestratorService } from '../../services/orchestrator.service';
+import { ApiService } from '../../services/api.service';
+import { catchError, of, forkJoin } from 'rxjs';
 
 /* ─────────────────────────────────────────────────────────────────────────────
    GRAPH DATA  — mirrors backend graph/pipeline.py exactly
@@ -40,8 +42,9 @@ const Y_NODE6A  = 1450;   // Post-approve: report_agent
 const Y_NODE6B  = 1450;   // Post-approve: simplify_agent
 const Y_NODE7   = 1600;   // Post-approve: translation_agent
 const Y_OUT     = 1740;   // END
+const Y_FEAT    = 1840;   // Feature badges strip
 
-const H = Y_OUT + 55;
+const H = Y_FEAT + 120;
 
 /* Domain agent x-positions — 5 nodes spaced across width */
 const DX: number[] = [70, 230, CX, 590, 750];
@@ -137,6 +140,20 @@ const EDGES: GEdge[] = [
 
 const NM = new Map(NODES.map(n => [n.id, n]));
 
+/* ── Feature badge definitions (static metadata; enabled state loaded at runtime) */
+interface FeatureBadge {
+  key: string; label: string; icon: string;
+  desc: string; color: string; disabledColor: string;
+}
+const FEATURE_BADGES: FeatureBadge[] = [
+  { key: 'reranker',      label: 'CrossEncoder',    icon: '🎯', desc: 'RAG Reranking',   color: '#f59e0b', disabledColor: '#94a3b8' },
+  { key: 'semantic',      label: 'Semantic Cache',  icon: '🧬', desc: 'Cosine Sim',      color: '#8b5cf6', disabledColor: '#94a3b8' },
+  { key: 'redis',         label: 'Redis Cache',     icon: '⚡', desc: 'Distributed',     color: '#ef4444', disabledColor: '#94a3b8' },
+  { key: 'kafka',         label: 'Kafka Async',     icon: '📨', desc: 'Job Queue',        color: '#10b981', disabledColor: '#94a3b8' },
+  { key: 'ragas',         label: 'RAGAS Eval',      icon: '📊', desc: 'Quality Scores',  color: '#6366f1', disabledColor: '#94a3b8' },
+  { key: 'prometheus',    label: 'Prometheus',      icon: '🔥', desc: 'Metrics Export',  color: '#dc2626', disabledColor: '#94a3b8' },
+];
+
 /* Backend node labels in execution order (for the live ticker) */
 const PIPELINE_STEPS: { id: string; label: string }[] = [
   { id: 'security',      label: 'Node 0 · Security Check — injection detection, jailbreak guard, audit logging (Layer 1–4)' },
@@ -170,6 +187,9 @@ const PIPELINE_STEPS: { id: string; label: string }[] = [
       <span class="af-sub">10 Nodes · 4-Layer Security · Hallucination Check · Grammar Agent · Multi-Query RAG · 5 Traditions · 22 Languages · LangGraph</span>
     </div>
     <div class="af-bar-right">
+      <span class="af-feat-count" [title]="activeFeatureCount() + ' production features active'">
+        {{ activeFeatureCount() }}/{{ FEATURE_BADGES.length }} Features Active
+      </span>
       @if (orch.cacheHit()) {
         <span class="af-cache-badge">⚡ Cached</span>
       }
@@ -428,6 +448,57 @@ const PIPELINE_STEPS: { id: string; label: string }[] = [
         }
       }
 
+      <!-- ── Production Features Strip ──────────────────────────────────── -->
+      <!-- Separator line -->
+      <line [attr.x1]="60" [attr.y1]="Y_FEAT - 20" [attr.x2]="W - 60" [attr.y2]="Y_FEAT - 20"
+            stroke="rgba(99,102,241,0.12)" stroke-width="1" stroke-dasharray="5 4"/>
+      <text [attr.x]="CX" [attr.y]="Y_FEAT - 6" text-anchor="middle"
+            style="font-size:9px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;fill:rgba(99,102,241,0.45);font-family:'Inter',sans-serif">
+        Production Features
+      </text>
+
+      @for (badge of FEATURE_BADGES; track badge.key; let i = $index) {
+        @if (featPos(i); as fp) {
+          <!-- Badge background pill -->
+          <rect [attr.x]="fp.x - 48" [attr.y]="Y_FEAT + 10"
+                width="96" height="68" rx="10"
+                [attr.fill]="isFeatOn(badge.key) ? fp.bgFill : 'rgba(241,245,249,0.9)'"
+                [attr.stroke]="isFeatOn(badge.key) ? badge.color : '#cbd5e1'"
+                [attr.stroke-width]="isFeatOn(badge.key) ? 1.5 : 1"
+                [attr.opacity]="isFeatOn(badge.key) ? 1 : 0.7"/>
+          <!-- Icon -->
+          <text [attr.x]="fp.x" [attr.y]="Y_FEAT + 34"
+                text-anchor="middle"
+                style="font-size:18px;dominant-baseline:middle">{{ badge.icon }}</text>
+          <!-- Label -->
+          <text [attr.x]="fp.x" [attr.y]="Y_FEAT + 52"
+                text-anchor="middle"
+                [attr.fill]="isFeatOn(badge.key) ? '#1e1b4b' : '#94a3b8'"
+                style="font-size:9px;font-weight:700;font-family:'Inter',sans-serif;dominant-baseline:middle">
+            {{ badge.label }}
+          </text>
+          <!-- Desc -->
+          <text [attr.x]="fp.x" [attr.y]="Y_FEAT + 64"
+                text-anchor="middle"
+                [attr.fill]="isFeatOn(badge.key) ? badge.color : '#cbd5e1'"
+                style="font-size:7.5px;font-family:'Inter',sans-serif;dominant-baseline:middle">
+            {{ badge.desc }}
+          </text>
+          <!-- Status dot -->
+          <circle [attr.cx]="fp.x + 36" [attr.cy]="Y_FEAT + 16" r="5"
+                  [attr.fill]="isFeatOn(badge.key) ? badge.color : '#e2e8f0'"
+                  [attr.stroke]="isFeatOn(badge.key) ? badge.color : '#cbd5e1'"
+                  stroke-width="1.5"/>
+          <!-- ON/OFF label -->
+          <text [attr.x]="fp.x + 36" [attr.y]="Y_FEAT + 16"
+                text-anchor="middle"
+                [attr.fill]="isFeatOn(badge.key) ? '#fff' : '#94a3b8'"
+                style="font-size:5.5px;font-weight:900;font-family:'Inter',sans-serif;dominant-baseline:middle">
+            {{ isFeatOn(badge.key) ? 'ON' : 'OFF' }}
+          </text>
+        }
+      }
+
     </svg>
   </div>
 
@@ -471,6 +542,13 @@ const PIPELINE_STEPS: { id: string; label: string }[] = [
 .af-led-idle { background: #e2e8f0; border: 1px solid #cbd5e1; }
 .af-led-run  { background: #f59e0b; box-shadow: 0 0 6px rgba(245,158,11,0.5); animation: dotPulse 1.3s infinite; }
 .af-led-done { background: #10b981; }
+
+.af-feat-count {
+  padding: 3px 9px; border-radius: 99px;
+  background: linear-gradient(90deg,#eef2ff,#e0e7ff);
+  border: 1px solid rgba(99,102,241,0.3);
+  font-size: 10px; font-weight: 700; color: #4338ca; white-space: nowrap; cursor: default;
+}
 
 .af-cache-badge {
   padding: 3px 9px; border-radius: 99px;
@@ -593,12 +671,19 @@ const PIPELINE_STEPS: { id: string; label: string }[] = [
 }
   `]
 })
-export class AgentFlowComponent implements OnDestroy {
+export class AgentFlowComponent implements OnInit, OnDestroy {
   readonly orch = inject(OrchestratorService);
   protected readonly router = inject(Router);
+  private readonly api = inject(ApiService);
 
   maximized = false;
   readonly zoom = signal(1.0);
+
+  /* Feature enabled states — fetched from backend metrics */
+  readonly featureStates = signal<Record<string, boolean>>({
+    reranker: false, semantic: false, redis: false,
+    kafka: false, ragas: false, prometheus: true,
+  });
 
   readonly zoomPct  = computed(() => Math.round(this.zoom() * 100) + '%');
   readonly svgWidth = computed(() => Math.round(820 * this.zoom()) + 'px');
@@ -608,8 +693,9 @@ export class AgentFlowComponent implements OnDestroy {
   resetZoom() { this.zoom.set(1.0); }
 
   /* expose to template */
-  readonly NODES = NODES;
-  readonly EDGES = EDGES;
+  readonly NODES         = NODES;
+  readonly EDGES         = EDGES;
+  readonly FEATURE_BADGES = FEATURE_BADGES;
   readonly W = W;
   readonly H = H;
   readonly Y_SEC    = Y_SEC;
@@ -622,9 +708,47 @@ export class AgentFlowComponent implements OnDestroy {
   readonly Y_NODE5B = Y_NODE5B;
   readonly Y_NODE6A = Y_NODE6A;
   readonly Y_NODE7  = Y_NODE7;
+  readonly Y_FEAT   = Y_FEAT;
   readonly CX = CX;
 
+  ngOnInit() { this._loadFeatureStates(); }
   ngOnDestroy() {}
+
+  private _loadFeatureStates() {
+    forkJoin({
+      metrics:  this.api.getMetrics().pipe(catchError(() => of(null))),
+      jobStats: this.api.getJobStats().pipe(catchError(() => of(null))),
+    }).subscribe(({ metrics, jobStats }) => {
+      const states: Record<string, boolean> = {
+        reranker:   false,
+        semantic:   metrics?.semantic_cache?.enabled  ?? false,
+        redis:      metrics?.redis_cache?.enabled     ?? false,
+        kafka:      jobStats?.kafka_enabled           ?? false,
+        ragas:      true,  /* always wired — runs on every /approve call */
+        prometheus: true,
+      };
+      this.featureStates.set(states);
+    });
+  }
+
+  readonly activeFeatureCount = computed(() =>
+    Object.values(this.featureStates()).filter(Boolean).length
+  );
+
+  /* Feature badge x-position: 6 badges evenly spaced across W=820 */
+  featPos(i: number): { x: number; bgFill: string } {
+    const badge = FEATURE_BADGES[i];
+    const cols = 6;
+    const step = W / cols;
+    const x = step * i + step / 2;
+    const on = this.featureStates()[badge.key] ?? false;
+    const bgFill = on ? `${badge.color}12` : 'rgba(241,245,249,0.9)';
+    return { x, bgFill };
+  }
+
+  isFeatOn(key: string): boolean {
+    return this.featureStates()[key] ?? false;
+  }
 
   @HostListener('document:keydown.escape')
   onEsc() { if (this.maximized) this.maximized = false; }
