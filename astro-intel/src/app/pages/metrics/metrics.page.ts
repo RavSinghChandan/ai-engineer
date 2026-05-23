@@ -226,6 +226,26 @@ export class MetricsPage implements OnInit, OnDestroy {
     return this.grData()?.graceful_degradation?.domain_health?.[domain]?.[status] ?? 0;
   }
 
+  // ── Cache deduplication ────────────────────────────────────────────────────
+  // Multiple cache layers (session, semantic, redis) can store the same user.
+  // Show only the newest entry per unique (name + dob + place) combination.
+  uniqueCacheEntries(): any[] {
+    const entries: any[] = this.cacheData()?.entries ?? [];
+    const seen = new Map<string, any>();
+    for (const e of entries) {
+      if (!e.user_name) continue; // skip entries with no user identity
+      const key = `${(e.user_name || '').toLowerCase().trim()}|${e.date_of_birth || ''}|${(e.place_of_birth || '').toLowerCase().trim()}`;
+      const existing = seen.get(key);
+      // Keep the entry with the highest hit_count; on tie keep the newest (lowest age)
+      if (!existing ||
+          e.hit_count > existing.hit_count ||
+          (e.hit_count === existing.hit_count && e.age_seconds < existing.age_seconds)) {
+        seen.set(key, e);
+      }
+    }
+    return Array.from(seen.values()).sort((a, b) => a.age_seconds - b.age_seconds);
+  }
+
   // ── Shared helpers ─────────────────────────────────────────────────────────
 
   fmtAge(seconds: number): string {

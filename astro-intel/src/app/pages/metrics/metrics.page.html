@@ -508,7 +508,7 @@
     @if (cacheData()?.stats) {
     <div class="cache-stats-row">
       <div class="cstat">
-        <div class="cstat-val">{{ cacheData().stats.total_entries }}</div>
+        <div class="cstat-val">{{ uniqueCacheEntries().length }}</div>
         <div class="cstat-lbl">Cached Users</div>
       </div>
       <div class="cstat cstat-green">
@@ -530,8 +530,8 @@
     </div>
     }
 
-    <!-- Entry table -->
-    @if (cacheData()?.entries?.length > 0) {
+    <!-- Entry table — deduplicated by user identity across all cache layers -->
+    @if (uniqueCacheEntries().length > 0) {
     <div class="cache-table-wrap">
       <table class="cache-table">
         <thead>
@@ -546,7 +546,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (entry of cacheData().entries; track entry.key) {
+          @for (entry of uniqueCacheEntries(); track entry.key) {
           <tr>
             <td class="td-name">{{ entry.user_name || '—' }}</td>
             <td>{{ entry.date_of_birth || '—' }}</td>
