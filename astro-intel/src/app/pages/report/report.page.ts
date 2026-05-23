@@ -473,6 +473,11 @@ import { firstValueFrom } from 'rxjs';
           </div>
         }
 
+        <!-- ── Watermark fills remaining space on profile page ── -->
+        <div class="profile-watermark-zone">
+          <img src="rav-logo.png" alt="" class="profile-watermark" aria-hidden="true"/>
+        </div>
+
       </div>
     </div>
 
@@ -814,20 +819,13 @@ import { firstValueFrom } from 'rxjs';
                 </div>
                 <div class="dm-divider" [style.background]="dsAccent(grp.domain)"></div>
 
-                <!-- ── Story paragraphs (numerology only, when LLM returns 5-part arc) ── -->
+                <!-- ── Story paragraphs (numerology only, when LLM returns story arc) ── -->
                 @if (grp.domain === 'numerology' && grp.bullets.length === 1 && parseStoryParagraphs(grp.bullets[0]); as storyParts) {
                   <div class="dm-story">
                     @for (part of storyParts; track part.label) {
                       <div class="dm-story-block" [style.borderLeftColor]="part.color">
                         <div class="dm-story-label" [style.color]="part.color">{{ part.label }}</div>
                         <p class="dm-story-text">{{ part.text }}</p>
-                      </div>
-                    }
-                    <!-- ── RAG remedy blocks — same style, flow right after story ── -->
-                    @for (rem of (section.rag_remedies ?? []).slice(0, 3); track rem.category) {
-                      <div class="dm-story-block" style="border-left-color:#059669">
-                        <div class="dm-story-label" style="color:#059669">{{ rem.icon }} {{ rem.category }}</div>
-                        <p class="dm-story-text">{{ rem.text }}</p>
                       </div>
                     }
                   </div>
@@ -947,6 +945,27 @@ import { firstValueFrom } from 'rxjs';
         <p class="closing-text">{{ displayReport()!.closing_note }}</p>
         <p class="closing-text">{{ displayReport()!.closing_consult || 'For follow-up consultations, personalised sessions, or deeper readings, reach out through Aura with Rav.' }}</p>
         <div class="closing-seal">✦</div>
+        <!-- Contact links — clickable in PDF -->
+        <div class="closing-contact-row">
+          <a href="mailto:aurawithrav@gmail.com" class="closing-contact-link">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+            aurawithrav&#64;gmail.com
+          </a>
+          <span class="closing-contact-sep">·</span>
+          <a href="https://www.youtube.com/@aurawithrav" class="closing-contact-link" target="_blank" rel="noopener">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-1.96C18.88 4 12 4 12 4s-6.88 0-8.6.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.94 1.96C5.12 20 12 20 12 20s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58zM9.75 15.02V8.98L15.5 12l-5.75 3.02z"/></svg>
+            YouTube — &#64;aurawithrav
+          </a>
+          <span class="closing-contact-sep">·</span>
+          <a href="https://www.linkedin.com/groups/10040340/" class="closing-contact-link" target="_blank" rel="noopener">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+            LinkedIn Community
+          </a>
+          <span class="closing-contact-sep">·</span>
+          <a href="https://topmate.io/aurawithrav" class="closing-contact-link closing-contact-cta" target="_blank" rel="noopener">
+            Book a Session ↗
+          </a>
+        </div>
       </div>
       <div class="closing-footer">
         <img src="rav-logo.png" alt="Aura with Rav" class="closing-footer-logo"/>
@@ -2014,6 +2033,33 @@ import { firstValueFrom } from 'rxjs';
   padding: 0;
 }
 
+/* Contact links row on closing page */
+.closing-contact-row {
+  display: flex; align-items: center; flex-wrap: wrap; justify-content: center;
+  gap: 6px; margin-top: 22px;
+}
+.closing-contact-link {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11.5px; color: rgba(255,255,255,0.45); text-decoration: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+  transition: color 0.15s; white-space: nowrap;
+}
+.closing-contact-link:hover { color: #d4af37; }
+.closing-contact-link svg { opacity: 0.6; flex-shrink: 0; }
+.closing-contact-cta { color: #d4af37 !important; font-weight: 700; }
+.closing-contact-sep { color: rgba(255,255,255,0.18); font-size: 11px; }
+
+/* Watermark zone on spiritual profile page */
+.profile-watermark-zone {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  min-height: 80px; overflow: hidden; pointer-events: none;
+}
+.profile-watermark {
+  width: 220px; height: auto; opacity: 0.06;
+  filter: grayscale(1);
+  object-fit: contain;
+}
+
 /* ── Empty state ─────────────────────────────────────────────────────────── */
 .empty-state {
   flex: 1; display: flex; flex-direction: column;
@@ -2527,13 +2573,14 @@ export class ReportPage implements OnInit {
     this.insightEdits.update(e => ({ ...e, [`${si}_${ii}`]: v }));
   }
 
-  // Parse storytelling narrative (5-part labelled paragraphs) into segments for colored rendering
+  // Parse storytelling narrative (6-part labelled paragraphs) into segments for colored rendering
   private readonly STORY_THEMES: Array<{ key: string; label: string; color: string }> = [
     { key: 'HOOK',       label: 'Your Truth',        color: '#d4af37' },
     { key: 'TENSION',    label: 'The Challenge',     color: '#b45309' },
     { key: 'TURN',       label: 'The Turning Point', color: '#7c3aed' },
     { key: 'RESOLUTION', label: 'What To Do',        color: '#059669' },
     { key: 'CLOSING',    label: 'Remember This',     color: '#1d4ed8' },
+    { key: 'REMEDIES',   label: 'Remedies',          color: '#059669' },
   ];
 
   parseStoryParagraphs(text: string): Array<{ label: string; color: string; text: string }> | null {
@@ -3997,7 +4044,18 @@ export class ReportPage implements OnInit {
           font-size: 16px !important; color: rgba(255,255,255,0.55) !important;
           max-width: 420px !important; line-height: 1.8 !important; margin: 0 0 14px !important;
         }
-        .closing-seal { font-size: 42px !important; color: #d4af37 !important; margin: 28px 0 0 !important; }
+        .closing-seal { font-size: 42px !important; color: #d4af37 !important; margin: 20px 0 0 !important; }
+        .closing-contact-row {
+          display: flex !important; align-items: center !important; flex-wrap: wrap !important;
+          justify-content: center !important; gap: 6px !important; margin-top: 16px !important;
+        }
+        .closing-contact-link {
+          display: inline-flex !important; align-items: center !important; gap: 4px !important;
+          font-size: 10px !important; color: rgba(255,255,255,0.4) !important;
+          text-decoration: none !important; white-space: nowrap !important;
+        }
+        .closing-contact-cta { color: #d4af37 !important; font-weight: 700 !important; }
+        .closing-contact-sep { color: rgba(255,255,255,0.15) !important; font-size: 10px !important; }
         .closing-footer {
           flex-shrink: 0 !important;
           display: flex !important; align-items: center !important;
@@ -4011,6 +4069,21 @@ export class ReportPage implements OnInit {
           width: 48px !important; height: auto !important;
           border-radius: 0 !important; object-fit: contain !important;
           background: transparent !important; display: block !important;
+        }
+
+        /* Hide UI footer — not part of PDF */
+        app-footer, .site-footer { display: none !important; }
+
+        /* Profile page watermark */
+        .profile-watermark-zone {
+          flex: 1 !important; display: flex !important;
+          align-items: center !important; justify-content: center !important;
+          min-height: 60px !important; overflow: hidden !important;
+        }
+        .profile-watermark {
+          width: 200px !important; height: auto !important;
+          opacity: 0.06 !important; filter: grayscale(1) !important;
+          object-fit: contain !important; display: block !important;
         }
 
         /* ════════════════════════════════════════════════════

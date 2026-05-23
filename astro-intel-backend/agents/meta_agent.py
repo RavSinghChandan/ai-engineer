@@ -153,14 +153,19 @@ def _build_question_consensus(memory: Dict[str, Any], question: str, intent: str
     q_idx = _q_index(memory, question)
 
     # One rich insight card per tradition — carries full structured data
+    # Dedup key uses sub_agent so each tradition always gets its own card,
+    # even when LLM outputs start with similar sentences.
     insights = []
-    seen_texts: set = set()
+    seen_keys: set = set()
     for i, p in enumerate(pool):
         text = p["text"].strip()
-        key = text[:80].lower()
-        if key in seen_texts:
+        sub_agent_key = p.get("sub_agent", "")
+        # Per-tradition dedup: same tradition seen twice → skip second
+        # Different traditions with similar text → keep both (different sub_agent key)
+        dedup_key = sub_agent_key if sub_agent_key else text[:80].lower()
+        if dedup_key in seen_keys:
             continue
-        seen_texts.add(key)
+        seen_keys.add(dedup_key)
 
         insight_id = f"q{q_idx}_i{i+1}"
         domain     = p["source"]

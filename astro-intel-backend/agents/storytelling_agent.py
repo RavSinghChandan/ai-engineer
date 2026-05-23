@@ -2,15 +2,16 @@
 Storytelling Agent
 ==================
 Takes multiple numerology tradition answers (Indian Vedic, Chaldean, Pythagorean)
-for the same question and weaves them into 5 themed story paragraphs using human
+for the same question and weaves them into 6 themed story paragraphs using human
 psychology and storytelling principles.
 
-Output format — 5 labelled paragraphs, one per arc element:
+Output format — 6 labelled paragraphs, one per arc element:
   [HOOK] ...
   [TENSION] ...
   [TURN] ...
   [RESOLUTION] ...
   [CLOSING] ...
+  [REMEDIES] ...
 
 Each paragraph is 1-2 simple English sentences. The frontend splits on these
 labels and renders each with a distinct coloured left-border.
@@ -24,9 +25,9 @@ and a gifted storyteller.
 
 You receive 2–3 numerology readings for the same client question from different traditions
 (Indian Vedic, Chaldean, Pythagorean). Your job is to weave them into ONE story — but told
-as 5 SHORT, clearly separated paragraphs. Each paragraph covers ONE emotion or theme.
+as 6 SHORT, clearly separated paragraphs. Each paragraph covers ONE emotion or theme.
 
-OUTPUT FORMAT — write exactly 5 paragraphs in this order. Start each paragraph with its label:
+OUTPUT FORMAT — write exactly 6 paragraphs in this order. Start each paragraph with its label:
 
 [HOOK]
 One sentence. The most surprising truth from the numbers. Make the client feel "this is about me."
@@ -40,12 +41,15 @@ One or two sentences. The specific year, month, or cycle where things change. Na
 (Life Path, Personal Year, Name Number). Be precise.
 
 [RESOLUTION]
-One or two sentences. One clear action tied to their numbers. Weave in ONE remedy from the book
-knowledge provided — a mantra, a colour, a morning practice — as a natural part of the story,
-not a label or bullet.
+One or two sentences. One clear action tied to their numbers. Keep this practical and grounded.
 
 [CLOSING]
 One sentence. Something warm and personal that they will remember hours later.
+
+[REMEDIES]
+One or two sentences. Draw from the book remedy knowledge provided. Write the remedies as flowing
+prose — a mantra to chant, a stone to wear, a colour to use — woven into one natural sentence.
+No bullet points. No icons. Just one sentence that feels like advice from a wise friend.
 
 RULES:
 - Write in second person ("you", "your")
@@ -84,7 +88,7 @@ def numerology_story(
         remedy_block = ""
         if rag_remedy_text:
             remedy_block = (
-                f"\n\nREMEDY KNOWLEDGE FROM BOOK (use ONE of these in your Resolution paragraph):\n"
+                f"\n\nREMEDY KNOWLEDGE FROM BOOK (use these in your [REMEDIES] paragraph):\n"
                 f"{rag_remedy_text[:800]}"
             )
 
@@ -95,17 +99,17 @@ def numerology_story(
             f"Here are {len(bullets)} numerology readings for this question:\n\n"
             f"{sources_block}"
             f"{remedy_block}\n\n"
-            f"Now write the story as exactly 5 paragraphs labelled [HOOK], [TENSION], [TURN], "
-            f"[RESOLUTION], [CLOSING]. Each paragraph: 1-2 simple English sentences. "
-            f"In [RESOLUTION], weave in one remedy from the book knowledge above. "
-            f"Make the language simple and easy — clear everyday English."
+            f"Now write the story as exactly 6 paragraphs labelled [HOOK], [TENSION], [TURN], "
+            f"[RESOLUTION], [CLOSING], [REMEDIES]. Each paragraph: 1-2 simple English sentences. "
+            f"In [REMEDIES], write the remedies as flowing prose in one sentence — no bullets, "
+            f"no icons, just natural advice. Make the language simple and easy — clear everyday English."
         )
 
         result = ds_call(
             system=_STORY_SYSTEM,
             user=user_prompt,
             temperature=0.30,
-            max_tokens=500,
+            max_tokens=600,
         )
 
         story = (result or "").strip()

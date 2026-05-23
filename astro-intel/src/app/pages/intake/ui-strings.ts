@@ -90,7 +90,7 @@ export const UI_STRINGS_EN = {
 
   // CTA
   btn_begin:               'Begin 360° Reading',
-  hint_begin:              'All selected agents run · 20–60 s',
+  hint_begin:              '',
   btn_review:              'Download PDF Report',
   btn_rerun:               'New Reading',
   btn_review_admin:        'Review & Edit',

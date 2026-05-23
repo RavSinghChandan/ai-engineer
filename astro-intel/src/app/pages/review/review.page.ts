@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule, KeyValuePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -625,27 +625,81 @@ const BACKEND = environment.apiUrl;
               <span class="q-stat">{{ ragRemedies().length }} remedies</span>
             </div>
           </div>
-          @if (!ragRemedies().length && !ragRemediesLoading()) {
-            <button class="act-btn act-approve" style="margin-left:auto" (click)="loadRagRemedies()">Load from Books</button>
-          }
           @if (ragRemediesLoading()) {
-            <span style="margin-left:auto;font-size:12px;color:#92600a">Loading...</span>
+            <span style="margin-left:auto;font-size:12px;color:#92600a">Loading from books…</span>
           }
         </div>
 
         @if (ragRemedies().length) {
-          <div class="remedy-body">
-            @for (rem of ragRemedies(); track rem.category) {
-              <div class="rag-rem-row">
-                <span class="rag-rem-icon">{{ rem.icon }}</span>
-                <span class="rag-rem-cat">{{ rem.category }}</span>
-                <span class="rag-rem-text">{{ rem.text }}</span>
-              </div>
-            }
+          <div class="domain-section">
+            <div class="domain-section-hdr">
+              <span class="domain-icon">🌿</span>
+              <span class="domain-label">Numerology Remedies</span>
+              <span class="branch-count">{{ ragRemedies().length }} remedies</span>
+            </div>
+            <div class="branch-grid">
+              @for (rem of ragRemedies(); track rem.id) {
+                <div class="branch-card"
+                     [class.branch-selected]="selectedBranchIds().has(rem.id)"
+                     [class.branch-approved]="approvedIds().has(rem.id)"
+                     [class.branch-rejected]="rejectedIds().has(rem.id)">
+
+                  <div class="branch-hdr">
+                    <div class="branch-hdr-left">
+                      <span class="branch-name">{{ rem.icon }} {{ rem.category }}</span>
+                      <span class="branch-priority priority-m">RAG</span>
+                    </div>
+                    @if (auth.isAdmin()) {
+                      <button class="branch-select-btn"
+                              [class.branch-select-on]="selectedBranchIds().has(rem.id)"
+                              (click)="toggleBranchSelect(rem.id, null, null)">
+                        @if (selectedBranchIds().has(rem.id)) {
+                          <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 5.5l2.5 2.5L9 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                          Selected
+                        } @else {
+                          + Select
+                        }
+                      </button>
+                    }
+                  </div>
+
+                  @if (editingId() === rem.id) {
+                    <textarea class="ins-editor"
+                      [value]="getRemedyContent(rem.id, rem.text)"
+                      (input)="onRemedyEdit(rem.id, $event)"
+                      rows="3"></textarea>
+                  } @else {
+                    <p class="branch-text">{{ getRemedyContent(rem.id, rem.text) }}</p>
+                  }
+
+                  @if (selectedBranchIds().has(rem.id)) {
+                    <div class="branch-actions">
+                      @if (auth.isAdmin()) {
+                        <button class="act-btn act-edit" (click)="toggleEdit(rem.id)">
+                          {{ editingId() === rem.id ? '✓ Save' : 'Edit' }}
+                        </button>
+                        <button class="act-btn act-reject"
+                                [class.act-reject-on]="rejectedIds().has(rem.id)"
+                                (click)="toggleReject(rem.id)">Reject</button>
+                        <button class="act-btn act-approve"
+                                [class.act-approve-on]="approvedIds().has(rem.id)"
+                                (click)="toggleApprove(rem.id)">
+                          @if (approvedIds().has(rem.id)) {
+                            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 5.5l2.5 2.5L9 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                          }
+                          Approve
+                        </button>
+                      }
+                    </div>
+                  }
+
+                </div>
+              }
+            </div>
           </div>
         } @else if (!ragRemediesLoading()) {
           <p class="branch-text" style="padding:16px 20px;color:#6b7280">
-            Remedies are sourced from your numerology book library via RAG. Click "Load from Books" to fetch them.
+            Remedies will auto-load from your numerology book library once the analysis is complete.
           </p>
         }
       </div>
@@ -1998,9 +2052,27 @@ export class ReviewPage {
   readonly userName       = computed(() => this.orch.currentInput()?.user_profile.full_name ?? '');
   readonly remedyData     = computed(() => (this.orch.rawOutputs() as any)?.remedies ?? null);
 
-  // RAG remedies from numerology books
-  readonly ragRemedies = signal<Array<{ icon: string; category: string; text: string }>>([]);
+  // RAG remedies from numerology books (with stable IDs for branch-card tracking)
+  readonly ragRemedies = signal<Array<{ id: string; icon: string; category: string; text: string }>>([]);
   readonly ragRemediesLoading = signal(false);
+  private _ragLoaded = false;
+
+  constructor() {
+    // Auto-load RAG remedies once numerology data is available
+    effect(() => {
+      const raw = this.orch.rawOutputs() as any;
+      if (this._ragLoaded || this.ragRemediesLoading()) return;
+      const lifePathNum = Number(
+        raw?.numerology?.indian?.core_numbers?.life_path
+        ?? raw?.numerology?.indian?.life_path_number
+        ?? raw?.numerology?.pythagorean?.core_numbers?.life_path
+        ?? 0
+      );
+      if (!lifePathNum) return;
+      this._ragLoaded = true;
+      this.loadRagRemedies();
+    });
+  }
 
   loadRagRemedies(): void {
     const raw = this.orch.rawOutputs() as any;
@@ -2014,7 +2086,11 @@ export class ReviewPage {
     if (!lifePathNum) return;
     this.ragRemediesLoading.set(true);
     this.api.getRagRemedies(lifePathNum, intent).subscribe({
-      next: res => { this.ragRemedies.set(res.remedies ?? []); this.ragRemediesLoading.set(false); },
+      next: res => {
+        const items = (res.remedies ?? []).map((r, i) => ({ ...r, id: `rag_rem_${i}` }));
+        this.ragRemedies.set(items);
+        this.ragRemediesLoading.set(false);
+      },
       error: () => this.ragRemediesLoading.set(false),
     });
   }

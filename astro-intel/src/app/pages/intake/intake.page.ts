@@ -786,7 +786,7 @@ function validateProfile(p: {
         <div class="cta-row">
           @if (launchError()) { <p class="launch-err">⚠ {{ launchError() }}</p> }
 
-          @if (orch.isDone()) {
+          @if (orch.isDone() && !chakraSpinning()) {
             <!-- Results are ready — show Review button prominently -->
             <div class="results-ready-row">
               <div class="results-ready-badge">
@@ -806,15 +806,14 @@ function validateProfile(p: {
               </button>
             </div>
           } @else {
-            <button class="cta" [disabled]="orch.isRunning()" (click)="launch()">
-              @if (orch.isRunning()) {
+            <button class="cta" [disabled]="orch.isRunning() || chakraSpinning()" (click)="launch()">
+              @if (orch.isRunning() || chakraSpinning()) {
                 <span class="spinner"></span> Agents Running…
               } @else {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke-linejoin="round"/></svg>
                 {{ uiStrings().btn_begin }}
               }
             </button>
-            <p class="cta-hint">{{ uiStrings().hint_begin }}</p>
           }
         </div>
 
@@ -886,7 +885,7 @@ function validateProfile(p: {
         @if (auth.isAdmin() && orch.sessionId()) {
           <div class="alert-ok">🔑 Session {{ orch.sessionId() }} · Focus: <strong>{{ orch.focusContext()['intent'] | titlecase }}</strong></div>
         }
-        @if (orch.isDone()) {
+        @if (orch.isDone() && !chakraSpinning()) {
           <div class="done-row">
             @if (orch.cacheHit()) {
               <span class="cache-hit-badge">⚡ Response served from cache</span>
@@ -2795,6 +2794,9 @@ export class IntakePage {
   onEsc() { this.maxPanel.set(null); }
 
   async launch() {
+    // Prevent double-launch if pipeline is already running
+    if (this.chakraSpinning() || this.orch.isRunning()) return;
+
     this.touchAll();
     if (Object.keys(this.errors()).length) {
       this.launchError.set('Please fix the highlighted errors in Birth Profile.'); return;
@@ -2862,12 +2864,11 @@ export class IntakePage {
     }
     // USER — auto-approve all insights, generate PDF directly
     const review = this.orch.adminReview();
-    if (!review) return;
+    if (!review) { this.chakraSpinning.set(false); return; }
     const allIds = review.questions.flatMap(q => q.insights.map(i => i.id));
-    // Keep chakra spinning (already on if called from begin360); 4s minimum so it doesn't flash
+    // Keep chakra spinning (already on if called from begin360)
     const wasSpinning = this.chakraSpinning();
     if (!wasSpinning) this.chakraSpinning.set(true);
-    const chakraTimer = new Promise(r => setTimeout(r, 4000));
     const lang = this.uiLanguage();
 
     try {
@@ -2897,16 +2898,17 @@ export class IntakePage {
         }
       }
     } catch {
-      // approveAndGenerate failed — navigate anyway
+      // approveAndGenerate failed — navigate anyway so user sees whatever report was generated
+    } finally {
+      this.chakraSpinning.set(false);
     }
 
-    await chakraTimer;
-    this.chakraSpinning.set(false);
     this.router.navigate(['/report']);
   }
 
   rerun() {
     this.orch.reset();
+    this.chakraSpinning.set(false);
     this.view.set('home');
     this.showLeadForm.set(false);
     this.leadSubmitted.set(false);
