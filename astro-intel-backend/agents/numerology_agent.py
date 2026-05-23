@@ -182,7 +182,7 @@ def _run_sub_agent(name: str, dob: str, lmap: Dict[str, int], tradition: str, fo
             soul_urge_num=su, name_number_val=nm,
             tradition=tradition, intent=focus, question=question,
             static_fallback=static_prediction,
-            timeout_seconds=5,
+            timeout_seconds=7,
         )
     except Exception:
         pass  # keep static_prediction
