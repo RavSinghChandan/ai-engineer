@@ -115,16 +115,16 @@ def hybrid_numerology_answer(
 
     try:
         from utils.deepseek_client import call as ds_call
-        result = ds_call(
-            system=system,
-            user=user_prompt,
-            temperature=0.20,
-            max_tokens=180,
-        )
+        with ThreadPoolExecutor(max_workers=1) as _ex:
+            _fut = _ex.submit(ds_call,
+                system=system, user=user_prompt,
+                temperature=0.20, max_tokens=180,
+            )
+            result = _fut.result(timeout=timeout_seconds)
         answer = (result or "").strip()
         if len(answer) > 80:
             return answer
-    except Exception:
+    except (FutTimeout, Exception):
         pass
 
     return static_fallback
