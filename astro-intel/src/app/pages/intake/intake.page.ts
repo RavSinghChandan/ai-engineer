@@ -786,7 +786,7 @@ function validateProfile(p: {
         <div class="cta-row">
           @if (launchError()) { <p class="launch-err">⚠ {{ launchError() }}</p> }
 
-          @if (orch.isDone() && !chakraSpinning()) {
+          @if (orch.isDone() && !chakraSpinning() && orch.runCount() > 0) {
             <!-- Results are ready — show Review button prominently -->
             <div class="results-ready-row">
               <div class="results-ready-badge">
@@ -885,7 +885,7 @@ function validateProfile(p: {
         @if (auth.isAdmin() && orch.sessionId()) {
           <div class="alert-ok">🔑 Session {{ orch.sessionId() }} · Focus: <strong>{{ orch.focusContext()['intent'] | titlecase }}</strong></div>
         }
-        @if (orch.isDone() && !chakraSpinning()) {
+        @if (orch.isDone() && !chakraSpinning() && orch.runCount() > 0) {
           <div class="done-row">
             @if (orch.cacheHit()) {
               <span class="cache-hit-badge">⚡ Response served from cache</span>

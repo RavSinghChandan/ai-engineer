@@ -3394,14 +3394,18 @@ export class ReportPage implements OnInit {
         ════════════════════════════════════════════════════ */
         .page-letter { background: #fff !important; }
         .letter-watermark-zone {
-          flex: 1 !important; display: flex !important;
-          align-items: center !important; justify-content: center !important;
-          width: 100% !important; min-height: 60px !important;
-          pointer-events: none !important;
+          flex: 0 0 auto !important; display: block !important;
+          text-align: center !important;
+          width: 100% !important; height: auto !important;
+          max-height: 160px !important; min-height: 0 !important;
+          padding: 20px 0 10px !important;
+          pointer-events: none !important; overflow: hidden !important;
         }
         .letter-watermark {
-          width: 100% !important; max-width: 760px !important; opacity: 0.15 !important;
-          object-fit: contain !important; display: block !important;
+          width: 200px !important; max-width: 200px !important;
+          height: auto !important; max-height: 140px !important;
+          opacity: 0.15 !important;
+          object-fit: contain !important; display: inline-block !important;
           -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
         }
         .letter-page-body { flex: 0 0 auto !important; }
@@ -3664,8 +3668,7 @@ export class ReportPage implements OnInit {
         .page-domain-master {
           page-break-before: always !important;
           break-before: page !important;
-          display: flex !important;
-          flex-direction: column !important;
+          display: block !important;
           background: #fff !important;
           padding: 0 !important;
           width: 210mm !important;
@@ -3675,16 +3678,21 @@ export class ReportPage implements OnInit {
           overflow: visible !important;
         }
         .dm-watermark-zone {
-          flex: 1 !important; display: flex !important;
-          align-items: center !important; justify-content: center !important;
-          width: 100% !important; min-height: 50px !important;
+          flex: 0 0 auto !important; display: block !important;
+          text-align: center !important;
+          width: 100% !important; height: auto !important;
+          max-height: 140px !important; min-height: 0 !important;
+          padding: 16px 0 8px !important;
           pointer-events: none !important; border: none !important;
           outline: none !important; box-shadow: none !important;
           overflow: hidden !important;
+          break-inside: avoid !important; page-break-inside: avoid !important;
         }
         .dm-watermark {
-          width: 100% !important; max-width: 760px !important; opacity: 0.35 !important;
-          object-fit: contain !important; display: block !important;
+          width: 180px !important; max-width: 180px !important;
+          height: auto !important; max-height: 120px !important;
+          opacity: 0.18 !important;
+          object-fit: contain !important; display: inline-block !important;
           border: none !important; outline: none !important; box-shadow: none !important;
           -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
         }
@@ -3726,13 +3734,12 @@ export class ReportPage implements OnInit {
         .dm-q-text { font-size: 15px !important; font-weight: 800 !important; color: #14100c !important; flex: 1 !important; line-height: 1.35 !important; }
         .dm-cont-badge { font-size: 9px !important; padding: 1px 6px !important; border: 1px solid #e5e7eb !important; border-radius: 3px !important; color: #9ca3af !important; }
         .dm-body {
-          display: flex !important; flex: 1 !important;
+          display: block !important;
           height: auto !important; overflow: visible !important;
           position: relative !important; z-index: 1 !important;
         }
         .dm-findings {
-          flex: 1 !important; padding: 14px 20px !important;
-          display: flex !important; flex-direction: column !important;
+          display: block !important; padding: 14px 20px !important;
           height: auto !important; overflow: visible !important;
         }
         .dm-findings-title {
@@ -4076,14 +4083,18 @@ export class ReportPage implements OnInit {
 
         /* Profile page watermark */
         .profile-watermark-zone {
-          flex: 1 !important; display: flex !important;
-          align-items: center !important; justify-content: center !important;
-          min-height: 60px !important; overflow: hidden !important;
+          flex: 0 0 auto !important; display: block !important;
+          text-align: center !important;
+          width: 100% !important; height: auto !important;
+          max-height: 160px !important; min-height: 0 !important;
+          padding: 20px 0 10px !important;
+          overflow: hidden !important;
         }
         .profile-watermark {
-          width: 200px !important; height: auto !important;
+          width: 180px !important; max-width: 180px !important;
+          height: auto !important; max-height: 140px !important;
           opacity: 0.06 !important; filter: grayscale(1) !important;
-          object-fit: contain !important; display: block !important;
+          object-fit: contain !important; display: inline-block !important;
         }
 
         /* ════════════════════════════════════════════════════
