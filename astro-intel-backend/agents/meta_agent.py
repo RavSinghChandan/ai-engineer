@@ -148,8 +148,13 @@ def _build_structured_detail(domain: str, sub_agent: str, extra: Dict[str, Any],
 def _build_question_consensus(memory: Dict[str, Any], question: str, intent: str) -> Dict[str, Any]:
     pool = _get_predictions_for_question(memory, question, intent)
 
-    domains_present = list(dict.fromkeys(p["source"] for p in pool))
-    domain_count    = len(domains_present)
+    domains_present    = list(dict.fromkeys(p["source"] for p in pool))
+    domain_count       = len(domains_present)
+    # When only 1 top-level domain ran (e.g. numerology-only mode),
+    # count distinct sub-traditions instead (Indian + Chaldean + Pythagorean = 3).
+    # This prevents HIGH-quality single-domain runs from being labelled LOW.
+    sub_traditions     = list(dict.fromkeys(p["sub_agent"] for p in pool if p.get("sub_agent")))
+    effective_count    = domain_count if domain_count > 1 else len(sub_traditions)
     q_idx = _q_index(memory, question)
 
     # ── Build one insight card per tradition ──────────────────────────────────
@@ -177,23 +182,18 @@ def _build_question_consensus(memory: Dict[str, Any], question: str, intent: str
             "confidence": p.get("confidence", "medium"),  # placeholder — re-assigned below
             "domains":    [domain],
             "sub_agent":  sub_agent,
-            "is_common":  domain_count >= 3,
+            "is_common":  effective_count >= 3,
             "editable":   True,
             "detail":     _build_structured_detail(domain, sub_agent, extra, traits),
             "source_predictions": [text],
         })
 
-    # ── Re-assign confidence based on cross-domain agreement ──────────────────
-    # Rule: an insight's confidence = how many DISTINCT OTHER top-level domains
-    # contributed at least one insight for the same question.
-    # If 5 domains all ran → every insight is backed by a 5-domain consensus → HIGH
-    # If 3-4 domains ran → HIGH
-    # If 2 domains → MEDIUM
-    # If 1 domain (single source) → LOW
-    # This replaces the per-sub-agent hardcoded rank and correctly signals to
-    # context_precision_proxy and admin review UI.
+    # ── Re-assign confidence based on effective agreement count ──────────────
+    # Multi-domain run:  effective_count = number of top-level domains (max 5)
+    # Single-domain run: effective_count = number of sub-traditions (e.g. 3 for numerology)
+    # HIGH = 3+, MEDIUM = 2, LOW = 1 — same thresholds either way.
     for ins in insights:
-        ins["confidence"] = _assign_confidence(domain_count)
+        ins["confidence"] = _assign_confidence(effective_count)
 
     # ── Cross-domain consensus card ────────────────────────────────────────────
     if domain_count >= 3:
