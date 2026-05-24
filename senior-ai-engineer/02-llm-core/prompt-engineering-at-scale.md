@@ -349,7 +349,7 @@ Three approaches.
 First: keep the reasoning prompt in English even if user input is in another language. Translate input to English, process, translate output back. More reliable than prompting in the target language.
 Second: use a dedicated translation agent instead of asking the primary agent to translate. Separation of concerns — each agent does one thing well.
 Third: few-shot examples in the target language. If the output quality in Hindi is poor, add 2-3 Hindi examples to the prompt.
-In AstroIntel: we separated translation into its own agent, ran it after all English reasoning was complete, and parallelized 55 string translations with ThreadPoolExecutor. That architecture change dropped translation time from 6 minutes to 15 seconds.
+In AstroIntel: we separated translation into its own agent, ran it after all English reasoning was complete, and parallelized 55 string translations with ThreadPoolExecutor. The full latency journey: 78s (sequential, GPT-4o) → 15s (parallel, GPT-4o-mini) → 4s (parallel + DeepSeek + 3-tier cache). Translation was one of three optimization rounds.
 
 ---
 

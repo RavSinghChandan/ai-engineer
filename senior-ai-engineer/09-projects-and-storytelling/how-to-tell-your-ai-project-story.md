@@ -122,7 +122,7 @@ Learning: "If I built this today, I would also [improvement]."
 ```
 
 **Example — AstroIntel parallel vs sequential:**
-"The most interesting decision was parallel vs sequential agent execution. Sequential would be simple — call Agent 1, pass output to Agent 2, and so on. But with 5 domain agents, sequential would take 5 × 3s = 15 seconds minimum. I chose parallel with ThreadPoolExecutor — all 5 agents run simultaneously, completing in 3-4 seconds total. The trade-off was losing inter-agent context: each agent can't see what other agents said. I mitigated this with the consensus agent that runs after all 5 complete and synthesizes their outputs. This gave us 5x latency reduction with equivalent output quality. If I rebuilt this, I would add a lightweight shared context object that agents can write to via a queue, without blocking each other."
+"The most interesting decision was parallel vs sequential agent execution. Sequential would be simple — call Agent 1, pass output to Agent 2, and so on. But with 5 domain agents, sequential took 78 seconds. I chose parallel with ThreadPoolExecutor inside a single LangGraph node — all 5 agents run simultaneously, completing in ~15s. The trade-off was losing inter-agent context, mitigated by the meta_agent consensus layer. Round 2: switched from GPT-4o to DeepSeek for structured output tasks — equivalent quality, 50x cheaper. Round 3: 3-tier cache (L1 in-memory + L2 Redis + L3 semantic) brought fresh queries to ~4s and cache hits to <50ms. Total journey: 78s → 15s → 4s. If I rebuilt this, I would also add the enterprise Kafka async path from day one — submit→job_id→consumer worker pattern decouples user response time from actual processing time entirely."
 
 ---
 

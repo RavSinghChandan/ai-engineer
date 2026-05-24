@@ -164,9 +164,11 @@ You did not train a model. You built a pipeline:
 
 This IS the senior answer. When interviewer asks "tell me about your AI system":
 - You used LLMs for unstructured reasoning (not ML — no labeled dataset exists for this domain)
-- You ran agents in parallel to cut wall time from 6 minutes to under 15 seconds
+- You ran 5 domain agents in parallel to cut wall time from 78s → 15s → 4s (three optimization rounds)
 - You solved a production hallucination problem by adding a consensus layer across 5 agents
-- You managed cost by capping max_tokens per agent and batching translation
+- You managed cost by using rule-based domain agents (zero LLM tokens) + DeepSeek for synthesis only ($0.000137/report)
+- Enterprise Kafka async pipeline: submit→job_id→consumer worker→result, with retry+DLQ+graceful shutdown
+- 3-tier cache: L1 in-memory + L2 Redis DB0 + L3 semantic embedding similarity
 
 **LangChain Service (your interview demo):**
 Used FAISS RAG + OpenAI function-calling agent to answer questions over company documents.
@@ -237,7 +239,7 @@ Step 3 — State your trade-off explicitly:
 "We chose LLM because the task required language reasoning, not structured prediction. We accepted 3x higher cost and 800ms average latency. We mitigated cost by capping max_tokens and caching repeated prompts."
 
 Step 4 — Add production war story (makes you stand out):
-"In production, we hit a case where batch LLM calls exceeded max_tokens and caused silent parse failures. We fixed it by switching to per-string calls with parallelism — dropped wall time from 6 minutes to 15 seconds."
+"In production, we hit a case where sequential domain agents took 78 seconds. We optimized in three rounds: parallelizing agents (78s→15s), switching to DeepSeek from GPT-4o (cost 10x cheaper), and adding a 3-tier cache (L1 in-memory + L2 Redis + L3 semantic). Final result: ~4s for fresh queries, <50ms for cache hits."
 
 Step 5 — Close with what you would do differently at larger scale:
 "At 10x traffic, I would add a semantic cache layer (e.g., GPTCache) and model tiering — route simple queries to GPT-4o-mini, complex ones to GPT-4o."
@@ -298,7 +300,7 @@ Answer:
 Several ways that data scientists typically miss:
 First, I understand API design and contract stability — I design LLM wrappers as internal APIs with versioned schemas, not ad-hoc scripts.
 Second, I bring retry, circuit breaker, and timeout patterns from distributed Java systems — these are exactly what LLM API calls need but most AI engineers skip.
-Third, I understand threading models — I used ThreadPoolExecutor to parallelize 55 LLM calls and cut wall time from 6 minutes to 15 seconds.
+Third, I understand threading models — I used ThreadPoolExecutor to parallelize domain agents and cut wall time from 78s → 4s. I also added enterprise Kafka consumers (3 parallel worker threads in a consumer group) and Redis connection pooling (DB0 cache + DB1 job store).
 Fourth, I think in pipelines and state machines — LangGraph's graph model maps directly to Spring Batch job steps or Spring State Machine concepts I already know.
 Fifth, CI/CD discipline: I containerize AI services, version prompts alongside code, and treat model changes as deployable artifacts — not one-off notebook runs.
 

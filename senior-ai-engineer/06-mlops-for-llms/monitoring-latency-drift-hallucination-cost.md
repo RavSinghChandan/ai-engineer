@@ -244,7 +244,37 @@ These proxies are tracked per-run in `dashboard()["ragas_proxies"]` and can be t
 - `json_repair.total_calls >= 0` tracked per session
 - Cache hit rate: same birth profile, different session → `cache_hit: true` (dedup confirmed)
 
-In interview: "AstroIntel's monitoring stack tracks 10 KPIs per run via `/api/v1/metrics`: P50/P95/P99 latency, HIGH/MEDIUM/LOW confidence distribution, hallucination audit (3-layer), token cost, and RAGAS proxy metrics adapted for a non-retrieval pipeline. Every run produces a `hallucination_audit` block live — not sampled, not nightly — so any response with cross-domain contradictions or hedge phrases is flagged in real time. The confidence distribution trend is the earliest signal I watch: if LOW starts climbing, the prompt is degrading or the model behavior has shifted."
+**RAGAS score accumulation pattern — deque + thread-local mutex (AstroIntel MetricsCollector):**
+
+```python
+# Thread-safe rolling window for RAGAS proxy metrics
+from collections import deque
+import threading
+
+_metrics_lock = threading.Lock()
+_latency_window = deque(maxlen=100)   # last 100 run latencies
+_confidence_window = deque(maxlen=100) # last 100 confidence distributions
+
+def record_run(latency_ms: float, confidence: dict):
+    with _metrics_lock:               # global mutex — one writer at a time
+        _latency_window.append(latency_ms)
+        _confidence_window.append(confidence)
+
+def dashboard() -> dict:
+    with _metrics_lock:
+        latencies = list(_latency_window)
+    sorted_l = sorted(latencies)
+    n = len(sorted_l)
+    return {
+        "p50_ms": sorted_l[int(n * 0.50)] if n else 0,
+        "p95_ms": sorted_l[int(n * 0.95)] if n else 0,
+        "p99_ms": sorted_l[int(n * 0.99)] if n else 0,
+    }
+# Key: deque(maxlen=N) auto-evicts oldest entries — O(1) append, bounded memory
+# Key: single global mutex prevents torn reads when multiple requests write concurrently
+```
+
+In interview: "AstroIntel's monitoring stack tracks 10 KPIs per run via `/api/v1/metrics`: P50/P95/P99 latency (deque + mutex accumulator), HIGH/MEDIUM/LOW confidence distribution, hallucination audit (3-layer), token cost, and RAGAS proxy metrics adapted for a non-retrieval pipeline. Every run produces a `hallucination_audit` block live — not sampled, not nightly — so any response with cross-domain contradictions or hedge phrases is flagged in real time. The confidence distribution trend is the earliest signal I watch: if LOW starts climbing, the prompt is degrading or the model behavior has shifted. The deque+mutex pattern is the same as a ring buffer in Java — bounded memory, O(1) writes, lock protects concurrent append from 3 Kafka consumer threads."
 
 ---
 

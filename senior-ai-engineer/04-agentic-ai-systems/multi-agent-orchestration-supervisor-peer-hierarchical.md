@@ -175,11 +175,22 @@ The Reduce phase: Meta Consensus Agent merges all 5 outputs.
 - 2 agents with HIGH → MEDIUM
 - 1 or fewer → LOW
 
+**effective_count pattern** — critical edge case fix:
+```python
+# Problem: numerology-only mode has domain_count=1 but 3 sub-traditions
+# Without this fix: numerology-only → LOW confidence (wrong)
+# With this fix: numerology-only → HIGH confidence (correct)
+effective_count = domain_count if domain_count > 1 else len(sub_traditions)
+confidence = "HIGH" if effective_count >= 3 else "MEDIUM" if effective_count >= 2 else "LOW"
+```
+This is the difference between a system that degrades incorrectly on valid sub-domain queries vs one that handles them faithfully.
+
 Key design decisions:
 1. Agents are stateless — they receive inputs, produce outputs, share no state
-2. Parallel execution cut wall time from ~6 minutes (sequential) to ~15 seconds (parallel)
+2. Parallel execution + DeepSeek + 3-tier cache cut wall time from 78s → 4s
 3. Each agent fails independently — if Tarot agent fails, the other 4 still contribute
-4. Consensus uses a majority-voting model — one failed/hallucinating agent cannot poison the final answer
+4. Consensus uses effective_count majority-voting — one failed/hallucinating agent cannot poison the final answer
+5. Every node wrapped in safe_node() — circuit breaker + ThreadPoolExecutor timeout hard kill
 
 In interview: "AstroIntel uses a parallel map-reduce multi-agent architecture. Five independent specialist agents run concurrently, each reasoning about the user's question from a different domain. The consensus agent synthesizes their outputs with a confidence voting model. This is not just elegant — it directly addressed our hallucination problem because one agent hallucinating cannot dominate the final answer."
 
@@ -235,7 +246,7 @@ Step 1 — Choose the right coordination model:
 "I choose multi-agent patterns based on the coordination need: parallel map-reduce for independent same-type tasks, supervisor for dynamic routing to specialists, hierarchical for complex multi-phase tasks."
 
 Step 2 — From your project:
-"In AstroIntel, I used parallel map-reduce — 5 independent domain agents running concurrently, results merged by a consensus agent. This cut wall time from 6 minutes to 15 seconds."
+"In AstroIntel, I used parallel map-reduce — 5 independent domain agents running concurrently, results merged by a consensus agent. The latency journey: 78s (sequential) → 15s (parallel) → 4s (parallel + DeepSeek + 3-tier cache). Three optimization rounds, not one."
 
 Step 3 — Failure handling:
 "Each agent fails independently. The consensus agent handles missing outputs gracefully — fewer inputs means lower confidence, but the system still returns a result."

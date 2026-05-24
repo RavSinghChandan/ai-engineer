@@ -188,12 +188,12 @@ export class StreamingService {
 
 **AstroIntel — SSE for agent pipeline progress:**
 
-The agent pipeline takes 15 seconds. Without streaming, users stare at a loading spinner for 15 seconds.
-With SSE: as each domain agent completes (asynchronously), the frontend receives an event and updates the neural graph visualization in real time. Users see agents completing one by one — the wait feels active, not passive.
+The agent pipeline runs ~4s for fresh queries (optimized from 78s). Without streaming, users stare at a loading spinner even for 4 seconds.
+With SSE: as each LangGraph node completes, the frontend receives an event and updates the neural graph visualization in real time. Users see the 8 nodes activate one by one — the wait feels active, not passive.
 
 This is exactly what `orchestrator.service.ts` manages — SSE stream from the backend, step tracking in signals, real-time agent status in the pipeline visualization.
 
-In interview: "We used SSE to stream agent completion events in AstroIntel. Users see the neural graph nodes activate as each agent completes — a 15-second wait becomes a 15-second animated experience. Perceived performance is dramatically better even though the actual processing time is identical."
+In interview: "We used SSE to stream LangGraph node completion events in AstroIntel. Users see the 8-node graph activate in sequence — security_check, question_agent, domain_agents, meta_agent, hallucination_check, remedy_agent, admin_review_agent, grammar_agent. Even at 4s total, streaming makes the experience feel progressive and transparent. For async Kafka jobs, the SSE stream reports job_id + status so users can poll /job/{id} rather than blocking."
 
 ---
 

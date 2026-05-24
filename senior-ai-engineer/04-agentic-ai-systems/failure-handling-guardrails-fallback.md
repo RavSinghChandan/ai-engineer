@@ -628,6 +628,23 @@ The key insight: "the AI is down" should not mean "the service is down." Design 
 
 AstroIntel implements 5 independent production guardrails, each non-invasively wired — agent logic was never modified.
 
+**Hard-kill timeout pattern** (used inside safe_node()):
+```python
+# ThreadPoolExecutor.submit().result(timeout=N) — kills hung LLM calls
+def _run_with_timeout(fn, state, seconds=60):
+    with ThreadPoolExecutor(max_workers=1) as ex:
+        future = ex.submit(fn, state)
+        return future.result(timeout=seconds)  # raises TimeoutError if exceeded
+```
+
+**effective_count pattern** (meta_agent — prevents numerology-only LOW confidence):
+```python
+# Problem: numerology alone has 3 sub-traditions (Indian + Chaldean + Pythagorean)
+# but domain_count=1, which would score LOW confidence
+effective_count = domain_count if domain_count > 1 else len(sub_traditions)
+# Result: numerology-only run → effective_count=3 → HIGH confidence (not LOW)
+```
+
 ```
 G1 — Rate Limiter (guardrails/production.py)
   Sliding-window per-tenant: 10 requests / 60 seconds

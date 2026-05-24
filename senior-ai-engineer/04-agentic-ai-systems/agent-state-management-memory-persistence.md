@@ -209,10 +209,24 @@ Relevant past context: {chr(10).join(relevant_memories) if relevant_memories els
 
 ## 6. Example (From Your Projects — Senior Framing)
 
-**AstroIntel — stateless agents with stateful session:**
+**AstroIntel — stateless agents with stateful session + Redis persistence:**
 
 Domain agents are stateless — they receive inputs, produce outputs, and retain nothing.
 But the session has state: birth profile, user question, and all 5 agent outputs flow through the LangGraph state object.
+
+**3-tier cache as the memory layer (actually implemented):**
+```
+L1 — in-memory dict:  fastest, evicted on restart
+L2 — Redis DB0:       connection pool (max_connections=20), 30-day TTL for profiles
+                      pub/sub invalidation on channel: astrointel:cache:invalidate
+                      batch ops: redis_mget(), redis_pipeline_set()
+L3 — semantic embed:  cosine similarity ≥ 0.92, catches paraphrase queries
+
+Job state (Redis DB1): write-through on every transition (queued→processing→done→failed)
+                       _restore_from_redis() on in-memory miss = survives process restart
+```
+
+Redis split rationale: DB0 = response cache (evictable, allkeys-lru), DB1 = job state (must-not-evict).
 
 If I were to add persistent memory:
 - Short-term: store the last 5 analyses for a user in Redis with 30-day TTL. When the user returns, show them "Based on your previous consultation on March 15..."

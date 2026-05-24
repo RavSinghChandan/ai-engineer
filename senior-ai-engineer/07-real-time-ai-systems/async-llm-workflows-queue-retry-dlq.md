@@ -172,15 +172,44 @@ async def get_task_status(task_id: str, user: dict = Depends(verify_api_key)):
 
 ## 5. Example (From Your Projects — Senior Framing)
 
-**AstroIntel — async upgrade path:**
+**AstroIntel — Enterprise Kafka Async Pipeline (actually implemented):**
 
-Current: synchronous 15-second pipeline. User waits.
-Async upgrade: submit analysis → get task_id immediately → agents process in background → webhook/SSE when done.
+AstroIntel now has a fully built enterprise-grade async pipeline — not a planned upgrade, but live code.
 
-For premium users: high-priority queue processed first.
-For bulk analysis (astrologer processes 50 clients): batch submission to queue, progress dashboard.
+**Architecture:**
+```
+POST /api/v1/analysis/submit → create_job() → publish(job_id, payload)
+    → returns {job_id, status: "queued"} immediately
 
-In interview: "The 15-second synchronous pipeline in AstroIntel is acceptable for the current prototype. For production scale, I would convert it to async: submit → task_id → SSE progress events → result available. This is the same pattern as Spring Boot's @Async with a result future stored in Redis."
+Kafka producer (pipeline_queue/producer.py):
+  - acks="all", compression_type="gzip"
+  - retry loop: up to KAFKA_MAX_RETRIES with exponential backoff + jitter
+  - DLQ fallback: if all retries fail → send to astrointel.analysis.dlq
+  - _inline fallback: if KAFKA_ENABLED=false → run in background thread
+
+Kafka consumer (pipeline_queue/consumer.py):
+  - KAFKA_CONSUMER_WORKERS=3 parallel threads in same consumer group
+  - enable_auto_commit=False → manual commit after processing
+  - per-message retry with increment_retry() tracking
+  - graceful shutdown via threading.Event + atexit.register()
+  - DLQ routing after exhausted retries
+
+Job store (pipeline_queue/job_store.py):
+  - write-through to Redis DB1 on every state transition
+  - recovery from Redis on in-memory miss (_restore_from_redis)
+  - states: queued → processing → done | failed
+
+GET /api/v1/analysis/job/{id} → poll status + result
+GET /api/v1/analysis/jobs/stats → kafka_enabled, total, queued, done, failed
+```
+
+**Key numbers:**
+- KAFKA_ENABLED=false by default → inline fallback, zero Kafka dependency
+- KAFKA_CONSUMER_WORKERS=3 → Kafka distributes 3 topic partitions across workers
+- Retry backoff: base × 2^(attempt-1) × (0.8 + random × 0.4) — full jitter
+- Job TTL: configurable via JOB_TTL_SECONDS, expired done jobs return None
+
+In interview: "AstroIntel has an enterprise-grade Kafka async pipeline. The /submit endpoint returns a job_id immediately. Three consumer worker threads run in a Kafka consumer group — each processes one message at a time with manual offset commit. If Kafka is down, the producer falls back to an inline background thread automatically. Failed messages go to a dead letter queue after exhausting retries. Job state is persisted write-through to Redis DB1 so jobs survive process restarts. This is the same pattern as Spring Boot @Async with a Redis result store — just with Kafka durability on top."
 
 ---
 

@@ -179,12 +179,79 @@ def process_dead_letter(event: dict, error: str):
 
 ## 5. Example (From Your Projects — Senior Framing)
 
-**AstroIntel — implicit event-driven opportunities:**
+**AstroIntel — Enterprise Event-Driven Kafka Pipeline (actually implemented):**
 
-Current design: synchronous pipeline. User submits, waits 15 seconds.
-Event-driven upgrade: emit analysis request event → return immediately → 5 agents process → emit completion → frontend gets websocket update.
+AstroIntel's event-driven async pipeline is built and live, not a planned upgrade.
 
-This is the pattern for reducing perceived wait time without reducing actual processing time.
+**Producer (`pipeline_queue/producer.py`) — enterprise features:**
+```python
+# Thread-safe singleton producer
+_producer_lock = threading.Lock()
+
+# Enterprise config
+KafkaProducer(
+    acks="all",                    # wait for all replicas — no data loss
+    compression_type="gzip",       # reduce network payload
+    request_timeout_ms=5000,
+    max_block_ms=5000,
+)
+
+# Retry with exponential backoff + jitter
+for attempt in range(1, KAFKA_MAX_RETRIES + 1):
+    try:
+        _producer.send(topic, key=job_id, value=message)
+        _producer.flush(timeout=5)
+        return True                # Kafka delivery confirmed
+    except Exception:
+        _reset_producer()          # reset on any failure
+        wait = KAFKA_RETRY_BACKOFF * (2 ** (attempt - 1)) * (0.8 + random() * 0.4)
+        sleep(wait)
+# All retries exhausted → send to DLQ, fall back to inline
+```
+
+**Consumer (`pipeline_queue/consumer.py`) — enterprise features:**
+```python
+# Multi-worker consumer group
+KAFKA_CONSUMER_WORKERS = 3   # 3 threads, Kafka distributes 3 partitions
+
+KafkaConsumer(
+    enable_auto_commit=False,  # manual commit after processing
+    max_poll_records=1,        # one message per poll — no partial batches
+    session_timeout_ms=30000,
+    heartbeat_interval_ms=10000,
+)
+
+# Per-message retry loop
+for attempt in range(1, KAFKA_MAX_RETRIES + 1):
+    try:
+        result = _execute_job(payload)
+        mark_done(job_id, result)
+        break
+    except Exception as e:
+        increment_retry(job_id)
+        if attempt < KAFKA_MAX_RETRIES:
+            sleep(backoff_with_jitter(attempt))
+
+if not success:
+    mark_failed(job_id, last_error)
+    _send_to_dlq(dlq_producer, job_id, payload, last_error)
+
+consumer.commit()  # only after processing complete
+```
+
+**Graceful shutdown:**
+```python
+_stop_event = threading.Event()   # signal all workers to drain and exit
+atexit.register(stop_consumer)    # called on process exit
+```
+
+**Docker Compose — full enterprise stack:**
+- `zookeeper` + `kafka` (confluentinc/cp-kafka:7.6.0) with 3 partitions
+- `kafka-ui` at :8090 — message browser
+- `redis` 7.2-alpine — cache DB0 + job store DB1
+- `redis-commander` at :8091 — key browser for both DBs
+
+In interview: "My Kafka experience from Java microservices maps directly. The consumer group pattern is identical — 3 worker threads each own 1 Kafka partition. Manual offset commit means no message is acknowledged until fully processed. DLQ routing after retry exhaustion is the same pattern as Java's @KafkaListener with a @RetryableTopic. The LLM pipeline is just another consumer payload type — all the durability and reliability patterns are the same."
 
 **LangChain Service — batch re-indexing:**
 

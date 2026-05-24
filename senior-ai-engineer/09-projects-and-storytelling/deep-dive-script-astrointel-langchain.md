@@ -15,7 +15,7 @@ This module is a scripted reference. Read it until you can speak it fluently.
 
 ### ⚠️ CURRENT ARCHITECTURE (Updated May 2026 — use these answers, not older versions)
 
-The real system is a **12-node LangGraph StateGraph** with:
+The real system is an **8-node LangGraph StateGraph** with:
 - **5 domain agents**: Vedic Astrology, Numerology (3 traditions), Palmistry, Tarot, Vastu — not "career/health/finance"
 - **LangGraph** for orchestration — not ThreadPoolExecutor
 - **DeepSeek LLM** — not GPT-4o-mini
@@ -130,7 +130,7 @@ The lesson: tool use is where agents fail in production. The LLM's JSON generati
 
 I made the call to go parallel based on first principles: each domain agent is stateless (doesn't need output from other agents to do its job), so there was no functional dependency that required sequential execution. The only risk was conflicting outputs, which I mitigated architecturally with the consensus layer.
 
-In retrospect, it was the right call. Parallel execution cut the latency from ~15s to ~4s. The consensus layer also added value beyond conflict detection — it improved output quality by filtering low-confidence agent results."
+In retrospect, it was the right call. The latency journey was: 78s (sequential, GPT-4o) → 15s (parallel, GPT-4o-mini) → 4s (parallel + DeepSeek + 3-tier cache). The consensus layer also added value beyond conflict detection — it improved output quality by filtering low-confidence agent results."
 
 ---
 
@@ -176,11 +176,13 @@ Response to User
 ```
 
 Key numbers to annotate:
-- Parallel phase: 3-4s
-- Synthesis: 5-6s
-- Total: 15-20s (P50 confirmed via live `/api/v1/metrics` after real runs)
-- LLM calls: 6 (5 agents + 1 synthesis, plus classifier)
-- Cost: ~$0.07 (gpt-4o-mini × 5 + gpt-4o × 1)
+- Total latency: ~4s (fresh), <50ms (cache hit)
+- Latency journey: 78s → 15s → 4s (3 optimization rounds)
+- LLM: DeepSeek, max_tokens=250, HTTP timeout=8s, ~$0.000137/analysis
+- 8 LangGraph nodes, every node wrapped in safe_node() circuit breaker
+- 3-tier cache: L1 in-memory + L2 Redis DB0 + L3 semantic similarity
+- Enterprise Kafka: 3 consumer workers, manual offset commit, DLQ, graceful shutdown
+- Job store: write-through to Redis DB1, recovery on in-memory miss
 
 **Multi-tenant SaaS auth system — 76/76 tests passing (2026-05-15):**
 
@@ -389,11 +391,23 @@ Key numbers to annotate:
 **What are the current numbers you can quote cold?**
 ```
 Pipeline:
-  LLM calls per analysis:   8-10
+  Graph nodes:              8 (security_check→question_agent→domain_agents→meta_agent
+                               →hallucination_check→remedy_agent→admin_review_agent→grammar_agent)
+  LLM calls per analysis:   8-10 (DeepSeek, max_tokens=250, HTTP timeout=8s)
   Domain agents:            5 (9 traditions across them)
+  Pipeline latency:         ~4s (from 78s — 3 optimization rounds)
   Languages supported:      30+
   PDF pages:                20
   Guardrail layers:         4 (security) + 5 production (G1-G5)
+
+Enterprise Kafka+Redis:
+  Kafka consumer workers:   3 threads, consumer group, manual offset commit
+  Kafka retry:              exponential backoff + jitter, DLQ after exhaustion
+  Redis DB0:                cache (L2), connection pool, pub/sub invalidation
+  Redis DB1:                job store, write-through from job_store.py
+  Cache tiers:              L1 in-memory + L2 Redis + L3 semantic embedding
+  Cost per analysis:        ~$0.000137 (DeepSeek pricing)
+  Test suite:               82/82 Kafka+Redis tests passing
 
 Auth:
   Roles:                    3 (USER / ADMIN / SUPERADMIN)

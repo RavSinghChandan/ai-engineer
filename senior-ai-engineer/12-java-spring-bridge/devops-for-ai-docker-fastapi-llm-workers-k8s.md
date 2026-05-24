@@ -404,15 +404,20 @@ Benefits:
 
 ## 6. Example (From Your Projects)
 
-**AstroIntel Containerization (with multi-tenant auth):**
+**AstroIntel Containerization — Enterprise Stack (7 services):**
 
-AstroIntel has a full multi-tenant auth layer that adds specific Docker/deploy considerations:
+AstroIntel's docker-compose.yml runs a full enterprise stack:
 
 ```
 services:
-  astro-gateway: FastAPI (8080) — auth + analysis pipeline + SSE streaming
-  redis: semantic cache + rate limiter state
-  postgres: (future) user data + pgvector knowledge base
+  astro-gateway:   FastAPI (8080) — auth + LangGraph pipeline + SSE streaming
+  zookeeper:       Kafka coordination
+  kafka:           confluentinc/cp-kafka:7.6.0, 3 partitions, KAFKA_ENABLED=true
+  kafka-ui:        :8090 — message browser (confluentinc/cp-enterprise-control-center)
+  redis:           7.2-alpine, maxmemory 512mb, allkeys-lru, appendonly yes
+                   DB0 = response cache, DB1 = job store
+  redis-commander: :8091 — key browser, REDIS_HOSTS: "cache:redis:6379:0,jobs:redis:6379:1"
+  postgres:        (future) user data + pgvector knowledge base
 
 Auth-specific Docker concerns:
   - MASTER_API_KEY: injected as environment variable (never in Dockerfile or image)

@@ -67,6 +67,8 @@ SENIOR AI ENGINEER — FULL SYSTEM VIEW
 
 7. ASYNC & EVENT-DRIVEN
    ├── Kafka: producer → topic → consumer group (document ingestion)
+   ├── AstroIntel Kafka: acks="all", gzip, retry+jitter, DLQ, 3 consumer workers
+   ├── Job store: write-through Redis DB1, recovery on miss, increment_retry()
    ├── Celery + Redis: async tasks, retry, DLQ, priority queues
    ├── Pattern: submit → task_id → worker processes → SSE progress
    └── Long-running: checkpoint per step, background execution, status API
@@ -174,11 +176,14 @@ Latency Targets:
 - Total RAG latency target: < 3s
 
 AstroIntel Reference Numbers:
-- 6 LLM calls per analysis (5 agents + 1 synthesis)
-- Pipeline latency: 15-20s total, 4s parallel phase
-- Cost per analysis: ~$0.07 (mini × 5 + 4o × 1)
-- Context per agent: 4-6K tokens
-- Latency improvement (parallel vs sequential): 5x
+- 8-node LangGraph StateGraph (security→question→domain→meta→hallucination→remedy→admin→grammar)
+- 8-10 DeepSeek LLM calls per analysis (max_tokens=250, HTTP timeout=8s)
+- Pipeline latency: ~4s (from 78s — 3 optimization rounds)
+- Cost per analysis: ~$0.000137 (DeepSeek pricing)
+- 3-tier cache: L1 in-memory + L2 Redis DB0 + L3 semantic similarity
+- Enterprise Kafka: 3 consumer workers, acks=all, gzip, retry+DLQ+graceful shutdown
+- Job persistence: write-through Redis DB1, recovery on miss
+- Test suite: 82/82 Kafka+Redis tests passing
 
 ---
 
@@ -186,7 +191,7 @@ AstroIntel Reference Numbers:
 
 Memorize this. Deliver it in 45 seconds.
 
-"I'm a Senior Full Stack Engineer with 6+ years in Java, Spring Boot, Angular, DevOps, and cloud architecture. In the last year, I've built two production AI systems: AstroIntel, a multi-agent astrological analysis platform built on LangGraph with 5 parallel domain agents, LangGraph interrupt/resume for human review, and SSE streaming; and a LangChain AI Service demonstrating RAG, agent tool use, and LCEL streaming pipelines. My background gives me a unique angle — I apply production reliability patterns from distributed systems (circuit breakers, async queues, Kafka consumer design) to AI infrastructure. I'm targeting Senior AI Engineer roles where I can architect and ship production-grade AI systems, not just prototype them."
+"I'm a Senior Full Stack Engineer with 6+ years in Java, Spring Boot, Angular, DevOps, and cloud architecture. In the last year, I've built two production AI systems: AstroIntel, a multi-agent astrological analysis platform — 8-node LangGraph StateGraph, 5 parallel domain agents, enterprise Kafka async pipeline with 3 consumer workers and DLQ, 3-tier Redis cache, G1–G5 production guardrails, and human-in-the-loop admin review. The pipeline runs in ~4s (optimized from 78s) at $0.000137/analysis. My second project is a LangChain AI Service demonstrating RAG, agent tool use, and LCEL streaming pipelines. My backend background gives me a unique angle — I apply distributed system patterns (circuit breakers, Kafka consumer groups, Redis connection pooling) directly to AI infrastructure. I'm targeting Senior AI Engineer roles where I can architect and ship production-grade AI systems, not just prototype them."
 
 ---
 

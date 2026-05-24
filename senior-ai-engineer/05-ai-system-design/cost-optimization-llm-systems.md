@@ -189,21 +189,35 @@ def optimized_llm_call(
 
 ## 5. Example (From Your Projects)
 
-**AstroIntel — cost profile:**
+**AstroIntel — cost profile (updated — DeepSeek, not GPT-4o-mini):**
 
-5 domain agents × ~400 input tokens (birth profile + question) × 400 output tokens (capped) = 2,000 input + 2,000 output tokens per analysis.
+Real measured numbers from live pipeline (DeepSeek API):
+```
+avg_prompt_tokens:     437
+avg_completion_tokens: 272
+avg_total_tokens:      709
+avg_llm_calls:         1
+avg_cost_per_run_usd:  $0.000137
+```
 
-On GPT-4o-mini:
-- Input: 2,000 × $0.15/1M = $0.0003
-- Output: 2,000 × $0.60/1M = $0.0012
-- Total per analysis: ~$0.0015
+DeepSeek pricing: $0.14/1M input + $0.28/1M output
+- Input: 437 × $0.14/1M = $0.0000612
+- Output: 272 × $0.28/1M = $0.0000762
+- Total per analysis: ~$0.000137
 
-Translation: 55 strings × avg 50 output tokens = 2,750 output tokens × $0.60/1M = $0.00165
-Total per full report: ~$0.003 (less than a third of a cent)
+At 1,000 reports/month: $0.14/month in LLM costs.
+At 10,000 reports/month: $1.37/month — effectively free at scale.
 
-At 1,000 reports/month: $3/month on LLM costs.
+**Why so cheap:** Domain agents (astrology, numerology, palmistry, tarot, vastu) are fully rule-based — zero LLM calls. DeepSeek is only called for synthesis and report generation. max_tokens=250, HTTP timeout=8s.
 
-In interview: "We capped each agent's max_tokens at 400 — enough for a structured insight. Without this cap, verbose outputs could push costs 3-4× higher. At 1,000 reports/month, the token cap saves approximately 70% in LLM spend compared to uncapped output."
+**Cost comparison:**
+| Model | Per analysis | 10K/month |
+|---|---|---|
+| GPT-4o | ~$0.30 | $3,000 |
+| GPT-4o-mini | ~$0.007 | $70 |
+| DeepSeek | ~$0.000137 | $1.37 |
+
+In interview: "We migrated from GPT-4o-mini to DeepSeek for structured JSON output tasks — the quality was equivalent and the cost dropped 50x. Domain agents were already rule-based (zero LLM tokens). DeepSeek's max_tokens=250 cap with 8s HTTP timeout means a single runaway call can never blow the budget. The 3-tier cache (L1 in-memory + L2 Redis + L3 semantic) means ~35% of analyses cost $0 in LLM calls — cache hits return in <50ms."
 
 ---
 

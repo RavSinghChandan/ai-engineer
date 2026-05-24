@@ -215,6 +215,27 @@ What we would discover:
 
 In interview: "We did not have a formal eval pipeline in the initial demo. For a production version, I would build a 30-50 query eval set on day one, run RAGAS before every deployment, and block releases that drop faithfulness below 0.85 or context precision below 0.75."
 
+**AstroIntel — RAGAS proxy metrics (non-RAG system, adapted signals):**
+
+AstroIntel is not a RAG system (no vector retrieval), so standard RAGAS doesn't apply directly. Instead, RAGAS dimensions are mapped to equivalent consensus-based proxies:
+
+| RAGAS metric | AstroIntel proxy | What it measures |
+|---|---|---|
+| `faithfulness` | HIGH confidence insight rate | Did 3+ domains corroborate? (multi-source = grounded) |
+| `context_precision` | Domain coverage ≥ 3 | Did enough domains contribute relevant insights? |
+| `answer_relevancy` | Question→insight alignment | Did the answer address what was actually asked? |
+| `context_recall` | Fraction of active domains | Did any domain fail silently without contributing? |
+
+**RAGAS debugging lessons from AstroIntel (3 root-cause fixes):**
+
+Root cause 1 — faithfulness was tied to `confidence ∈ {high, medium}`, not `domains ≥ 2`. Fix: faithfulness = HIGH or MEDIUM confidence insight (regardless of domain count).
+
+Root cause 2 — answer_relevancy was computing similarity against the wrong baseline. Fix: compare insight text against the actual user question embedding, not a generic template.
+
+Root cause 3 — `effective_count` not applied. Numerology-only mode has 3 sub-traditions, so `domain_count=1` gave incorrectly LOW confidence. Fix: `effective_count = domain_count if domain_count > 1 else len(sub_traditions)`.
+
+In interview: "AstroIntel's RAGAS proxy scores went from degrading to 1.0 after fixing three root causes: faithfulness tied to confidence labels not domain count, answer relevancy measuring against the right baseline, and the effective_count pattern for sub-tradition scoring. These are the kinds of subtle evaluation bugs that only surface when you run the eval suite on 20+ diverse profiles."
+
 ---
 
 **Bench Resource Optimizer — RAGAS evaluation (implemented, semantic engine):**

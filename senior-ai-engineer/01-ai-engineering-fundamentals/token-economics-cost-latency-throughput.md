@@ -165,11 +165,16 @@ def route_to_model(query: str, context_length: int) -> str:
 **AstroIntel 360° — Real Token Economics Tracking (actually implemented):**
 
 The key insight for AstroIntel: domain agents (astrology, numerology, palmistry, tarot, vastu) are fully rule-based — they fire zero LLM calls.
-LLM is only called in:
-- `simplify_agent` (WHO/WHAT/WHERE timing windows — called during `/run`)
-- `final_report_agent` (full report generation — called during `/approve`)
+LLM is only called via DeepSeek (max_tokens=250, HTTP timeout=8s) for synthesis and report generation.
 
-This means the cost model is: **cost per report = cost of 1 simplify_agent call + cost of 1 report_agent call.**
+This means the cost model is: **cost per report ≈ $0.000137 (DeepSeek pricing: $0.14/1M input + $0.28/1M output)**
+
+**DeepSeek pricing (add to cost table):**
+| Model | Input (per 1M tokens) | Output (per 1M tokens) |
+|---|---|---|
+| DeepSeek Chat | ~$0.14 | ~$0.28 |
+
+At ~709 tokens per run (avg_prompt=437 + avg_completion=272), cost per analysis = $0.000137 — 500x cheaper than GPT-4o.
 
 ---
 

@@ -89,7 +89,7 @@ Before: "I built a RAG pipeline with LangChain and FAISS."
 After: "I built a RAG pipeline with LangChain for document loading and direct OpenAI API for query execution. I bypassed LangChain's chain abstraction because it hid token usage — I needed per-call cost tracking for a billing feature. FAISS is the right choice for this demo scale, but I'd migrate to pgvector at multi-tenant production scale."
 
 Before: "The agents run in parallel."
-After: "The 5 domain agents run via ThreadPoolExecutor. Parallel execution cuts latency from ~15s sequential to ~4s — roughly 5x improvement. The trade-off is that agents can't see each other's outputs. I addressed this with a consensus layer that runs after all agents complete."
+After: "The 5 domain agents run via ThreadPoolExecutor inside a single LangGraph node. The latency journey was 78s (sequential) → 15s (parallel) → 4s (parallel + DeepSeek + 3-tier cache). The trade-off: agents can't see each other's outputs — addressed by the meta_agent consensus layer. For async scale, an enterprise Kafka pipeline handles submit→job_id→3 consumer workers→result, with retry+DLQ+graceful shutdown."
 
 ---
 

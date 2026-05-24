@@ -189,11 +189,19 @@ def resume_with_feedback(thread_id: str, feedback: str) -> dict:
 
 **AstroIntel — LangGraph mapping:**
 
-AstroIntel uses LangGraph for the multi-agent pipeline:
-- State: `{birth_profile, question, agent_outputs, consensus, final_answer}`
-- Nodes: normalize_question → [5 parallel domain agents] → consensus → remedy → admin_review
-- Interrupt: at admin_review node — human approves, edits, or rejects each insight
-- Resume: admin submits feedback → graph resumes with updated insights
+AstroIntel uses LangGraph for the multi-agent pipeline — **8-node StateGraph** (not 12, not 6):
+
+```
+security_check → question_agent → domain_agents_parallel → meta_agent
+    → hallucination_check → remedy_agent → admin_review_agent → grammar_agent
+```
+
+- State: `{user_profile, user_question, questions, selected_modules, module_inputs, geocode, normalized_questions, focus_context, memory, consolidated, question_consensus, admin_review_data, remedies, admin_review, final_report, agent_log, errors}`
+- Each node wrapped in `safe_node()` — circuit breaker + timeout + fallback state
+- `domain_agents_parallel`: 5 domain agents run via ThreadPoolExecutor inside one node
+- `hallucination_check`: inserted between meta_agent and remedy_agent — scans for single-source, hedge phrases, contradictions
+- Interrupt: at admin_review — human approves/rejects insights; graph pauses via LangGraph interrupt
+- Resume: admin submits → graph resumes from checkpoint with updated admin_review state
 
 The interrupt/resume pattern is what makes the human-in-the-loop review work. Without LangGraph, this would require complex state persistence and re-invocation logic.
 
@@ -251,7 +259,7 @@ Step 3 — Interrupt/resume:
 "LangGraph's interrupt mechanism pauses the graph at a defined node, persists state via checkpointer, and resumes when input is provided. This is how AstroIntel's admin review works."
 
 Step 4 — From your project:
-"AstroIntel's 6-step pipeline is a LangGraph StateGraph. The admin review node uses interrupt/resume. The parallel domain agents run via ThreadPoolExecutor within a single node."
+"AstroIntel's 8-node LangGraph StateGraph runs: security_check → question_agent → domain_agents_parallel → meta_agent → hallucination_check → remedy_agent → admin_review_agent → grammar_agent. Every node is wrapped in safe_node() — circuit breaker + timeout + fallback state. The admin review node uses interrupt/resume with a persistent checkpointer."
 
 Step 5 — Testing:
 "Each node is a pure function (state in, state out) — independently unit testable. I test the conditional edge logic separately from the node logic."

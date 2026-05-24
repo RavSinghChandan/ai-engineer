@@ -39,6 +39,21 @@ Cache LLM responses keyed by semantic similarity of the query embedding.
 Hit when a similar query was already answered (cosine similarity > 0.92).
 Hit rate: 25-40% on enterprise chatbots where users ask similar questions.
 
+**AstroIntel 3-tier cache (actually implemented):**
+```
+L1 in-memory:  dict-based, O(1) lookup, evicted on restart
+L2 Redis DB0:  ConnectionPool(max_connections=20, health_check_interval=30)
+               Profile TTL = 30 days (birth chart is mathematically immutable)
+               Session TTL = 20 minutes
+               Pub/sub invalidation: channel astrointel:cache:invalidate
+               Batch: redis_mget() for multi-key lookups, redis_pipeline_set() for writes
+L3 semantic:   SentenceTransformer embedding, cosine ≥ 0.92 threshold
+               Catches: "career in 2025" vs "job prospects this year" (same cache hit)
+
+Cache hit rate: ~35% on repeat users → 35% of analyses cost $0 in LLM calls
+Cache dedup fix: key = profile+question hash only (user_id removed) → same person, any session = same cache entry
+```
+
 **Embedding cache:**
 Cache query embeddings keyed by exact query text.
 Same user asking the same question twice = free embedding.
@@ -262,7 +277,7 @@ def query_rag_at_scale(query: str, tenant_id: str, user_id: str) -> dict:
 
 **AstroIntel — latency optimization:**
 
-Parallel agent execution (ThreadPoolExecutor) was the primary latency optimization — from 6 minutes sequential to 15 seconds parallel.
+Parallel agent execution (ThreadPoolExecutor) was round 1 of three latency optimizations — 78s → 15s. Round 2: switched from GPT-4o to DeepSeek (15s → ~8s, cost 50x cheaper). Round 3: 3-tier cache (L1 in-memory + L2 Redis DB0 + L3 semantic) → fresh queries ~4s, cache hits <50ms.
 
 For the query side (if RAG were added):
 - Cache birth profile embeddings (same profile asked multiple times → embedding is free)
