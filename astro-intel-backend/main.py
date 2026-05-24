@@ -61,7 +61,7 @@ import threading as _threading
 _threading.Thread(target=_warm_rag, daemon=True).start()
 
 # ── Start Kafka consumer (no-op when KAFKA_ENABLED=false) ────────────────────
-from pipeline_queue.consumer import start_consumer as _start_consumer
+from pipeline_queue.consumer import start_consumer as _start_consumer, stop_consumer as _stop_consumer
 _start_consumer()
 
 # ── App factory ──────────────────────────────────────────────────────────────
@@ -115,10 +115,30 @@ app.include_router(metrics_router)       # /api/v1/metrics — ADMIN+
 app.include_router(stream_router)        # /api/v1/stream/{session_id} — SSE
 
 
+# ── Graceful shutdown ─────────────────────────────────────────────────────────
+import atexit as _atexit
+_atexit.register(_stop_consumer)
+
+
 # ── Health check (public) ────────────────────────────────────────────────────
 @app.get("/health", tags=["Health"])
 async def health():
-    return {"status": "ok", "service": "AstroIntel 360° API", "version": "1.0.0"}
+    from pipeline_queue.producer import kafka_producer_health
+    from pipeline_queue.consumer import consumer_health
+    from cache.redis_store import redis_stats, job_redis_stats
+    return {
+        "status":   "ok",
+        "service":  "AstroIntel 360° API",
+        "version":  "1.0.0",
+        "kafka":    {
+            "producer": kafka_producer_health(),
+            "consumer": consumer_health(),
+        },
+        "redis": {
+            "cache": redis_stats(),
+            "jobs":  job_redis_stats(),
+        },
+    }
 
 
 # ── Cache management (ADMIN+) ─────────────────────────────────────────────────

@@ -1,18 +1,17 @@
 """
-Kafka Job Store (Phase 7)
-==========================
-In-memory job status tracker for async pipeline jobs submitted via Kafka.
+Kafka Job Store — Enterprise Grade
+=====================================
+In-memory job lifecycle tracker with Redis persistence fallback.
 
-Each job has a lifecycle:
-  queued → processing → done | failed
+Lifecycle: queued → processing → done | failed
 
-This store is the bridge between:
-  - POST /api/v1/analysis/submit  (producer — creates job, publishes to Kafka)
-  - GET  /api/v1/analysis/job/{id} (consumer — polls job status + result)
+Redis persistence (when REDIS_ENABLED=true):
+  All state transitions are written through to Redis DB 1.
+  On startup, in-memory store is warm — Redis is used for durability only.
+  This means jobs survive API restarts when Redis is available.
 
-Storage: in-memory dict (same process).
-For multi-instance deployments, swap this for Redis-backed job store
-(redis_store.redis_get/set with "job::" prefix).
+In-memory store is always the read path (fast), Redis is the write-through
+durability layer. No Redis round-trip on every get — only on state transitions.
 """
 from __future__ import annotations
 import time
@@ -20,17 +19,33 @@ import uuid
 from typing import Any, Optional
 from collections import deque
 
-# job_id → job dict
 _jobs: dict[str, dict] = {}
-
-# Keep last 500 completed jobs (FIFO eviction)
 _completed: deque[str] = deque(maxlen=500)
 
-JOB_TTL_SECONDS = 3600  # 1 hour — completed jobs expire after this
+JOB_TTL_SECONDS = 3600
+
+
+def _persist(job_id: str) -> None:
+    """Write current job state to Redis (fire-and-forget, never raises)."""
+    try:
+        from cache.redis_store import job_redis_set
+        job = _jobs.get(job_id)
+        if job:
+            job_redis_set(job_id, job)
+    except Exception:
+        pass
+
+
+def _restore_from_redis(job_id: str) -> Optional[dict]:
+    """Try to recover a job from Redis if not in memory (e.g., after restart)."""
+    try:
+        from cache.redis_store import job_redis_get
+        return job_redis_get(job_id)
+    except Exception:
+        return None
 
 
 def create_job(payload: dict[str, Any]) -> str:
-    """Create a new job record. Returns job_id."""
     job_id = str(uuid.uuid4())
     _jobs[job_id] = {
         "job_id":     job_id,
@@ -40,16 +55,21 @@ def create_job(payload: dict[str, Any]) -> str:
         "updated_at": time.time(),
         "result":     None,
         "error":      None,
+        "retry_count": 0,
     }
+    _persist(job_id)
     return job_id
 
 
 def get_job(job_id: str) -> Optional[dict]:
-    """Return job dict or None if not found / expired."""
     job = _jobs.get(job_id)
     if job is None:
+        # Try Redis recovery (e.g., job was created before this instance started)
+        job = _restore_from_redis(job_id)
+        if job:
+            _jobs[job_id] = job
+    if job is None:
         return None
-    # Lazy expiry for completed/failed jobs
     if job["status"] in ("done", "failed"):
         age = time.time() - job["updated_at"]
         if age > JOB_TTL_SECONDS:
@@ -62,6 +82,7 @@ def mark_processing(job_id: str) -> None:
     if job_id in _jobs:
         _jobs[job_id]["status"]     = "processing"
         _jobs[job_id]["updated_at"] = time.time()
+        _persist(job_id)
 
 
 def mark_done(job_id: str, result: dict[str, Any]) -> None:
@@ -70,6 +91,7 @@ def mark_done(job_id: str, result: dict[str, Any]) -> None:
         _jobs[job_id]["result"]     = result
         _jobs[job_id]["updated_at"] = time.time()
         _completed.append(job_id)
+        _persist(job_id)
 
 
 def mark_failed(job_id: str, error: str) -> None:
@@ -78,6 +100,18 @@ def mark_failed(job_id: str, error: str) -> None:
         _jobs[job_id]["error"]      = error
         _jobs[job_id]["updated_at"] = time.time()
         _completed.append(job_id)
+        _persist(job_id)
+
+
+def increment_retry(job_id: str) -> int:
+    """Increment retry counter. Returns new count."""
+    if job_id in _jobs:
+        count = _jobs[job_id].get("retry_count", 0) + 1
+        _jobs[job_id]["retry_count"] = count
+        _jobs[job_id]["updated_at"]  = time.time()
+        _persist(job_id)
+        return count
+    return 0
 
 
 def active_count() -> int:

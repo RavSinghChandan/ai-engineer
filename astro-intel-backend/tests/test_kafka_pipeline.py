@@ -267,5 +267,6 @@ class TestKafkaSmoke:
     def test_start_consumer_noop_when_disabled(self, monkeypatch):
         import pipeline_queue.consumer as cons
         monkeypatch.setattr(cons, "KAFKA_ENABLED", False)
-        cons.start_consumer()   # must not raise or start a thread
-        assert cons._consumer_thread is None or not getattr(cons._consumer_thread, 'is_alive', lambda: False)()
+        cons._worker_threads.clear()
+        cons.start_consumer()   # must not raise or start any threads
+        assert len(cons._worker_threads) == 0

@@ -26,14 +26,14 @@ class TestRedisCachePositive:
 
     def setup_method(self):
         import cache.redis_store as rs
-        rs._client = None
+        rs._cache_client = None
 
     def test_redis_get_returns_payload_when_key_exists(self, monkeypatch):
         import json, cache.redis_store as rs
         monkeypatch.setattr(rs, "REDIS_ENABLED", True)
         payload = {"session_id": "abc", "status": "completed"}
         mock = _mock_client(get_val=json.dumps(payload))
-        monkeypatch.setattr(rs, "_client", mock)
+        monkeypatch.setattr(rs, "_cache_client", mock)
         result = rs.redis_get("some_key")
         assert result == payload
 
@@ -41,7 +41,7 @@ class TestRedisCachePositive:
         import cache.redis_store as rs
         monkeypatch.setattr(rs, "REDIS_ENABLED", True)
         mock = _mock_client()
-        monkeypatch.setattr(rs, "_client", mock)
+        monkeypatch.setattr(rs, "_cache_client", mock)
         ok = rs.redis_set("key1", {"data": "x"}, ttl=300)
         assert ok is True
         mock.setex.assert_called_once()
@@ -50,7 +50,7 @@ class TestRedisCachePositive:
         import cache.redis_store as rs
         monkeypatch.setattr(rs, "REDIS_ENABLED", True)
         mock = _mock_client()
-        monkeypatch.setattr(rs, "_client", mock)
+        monkeypatch.setattr(rs, "_cache_client", mock)
         result = rs.redis_delete("key1")
         assert result is True
 
@@ -58,11 +58,12 @@ class TestRedisCachePositive:
         import cache.redis_store as rs
         monkeypatch.setattr(rs, "REDIS_ENABLED", True)
         mock = _mock_client()
-        mock.info.side_effect = lambda section: (
-            {"redis_version": "7.0", "used_memory": 2097152}
-            if section == "server" else {}
-        )
-        monkeypatch.setattr(rs, "_client", mock)
+        mock.info.side_effect = lambda section: {
+            "server":   {"redis_version": "7.0", "used_memory": 2097152},
+            "keyspace": {},
+            "stats":    {"keyspace_hits": 0, "keyspace_misses": 0, "evicted_keys": 0},
+        }.get(section, {})
+        monkeypatch.setattr(rs, "_cache_client", mock)
         s = rs.redis_stats()
         assert s["status"] == "connected"
         assert s["redis_version"] == "7.0"
@@ -71,7 +72,7 @@ class TestRedisCachePositive:
         import cache.redis_store as rs
         monkeypatch.setattr(rs, "REDIS_ENABLED", True)
         mock = _mock_client(get_val=None)
-        monkeypatch.setattr(rs, "_client", mock)
+        monkeypatch.setattr(rs, "_cache_client", mock)
         result = rs.redis_get("missing_key")
         assert result is None
 
@@ -82,7 +83,7 @@ class TestRedisCacheNegative:
 
     def setup_method(self):
         import cache.redis_store as rs
-        rs._client = None
+        rs._cache_client = None
 
     def test_redis_disabled_get_returns_none(self, monkeypatch):
         import cache.redis_store as rs
@@ -106,7 +107,7 @@ class TestRedisCacheNegative:
         monkeypatch.setattr(rs, "REDIS_ENABLED", True)
         mock = _mock_client()
         mock.get.side_effect = Exception("connection lost")
-        monkeypatch.setattr(rs, "_client", mock)
+        monkeypatch.setattr(rs, "_cache_client", mock)
         result = rs.redis_get("key")
         assert result is None
 
@@ -115,7 +116,7 @@ class TestRedisCacheNegative:
         monkeypatch.setattr(rs, "REDIS_ENABLED", True)
         mock = _mock_client()
         mock.setex.side_effect = Exception("write failed")
-        monkeypatch.setattr(rs, "_client", mock)
+        monkeypatch.setattr(rs, "_cache_client", mock)
         result = rs.redis_set("key", {"x": 1}, ttl=60)
         assert result is False
 
@@ -123,16 +124,16 @@ class TestRedisCacheNegative:
         import cache.redis_store as rs
         monkeypatch.setattr(rs, "REDIS_ENABLED", True)
         mock = _mock_client(get_val="not valid json {{")
-        monkeypatch.setattr(rs, "_client", mock)
+        monkeypatch.setattr(rs, "_cache_client", mock)
         result = rs.redis_get("key")
         assert result is None
 
     def test_redis_unreachable_stats_shows_unreachable(self, monkeypatch):
         import cache.redis_store as rs
         monkeypatch.setattr(rs, "REDIS_ENABLED", True)
-        monkeypatch.setattr(rs, "_client", None)
-        with patch("cache.redis_store._get_client", return_value=None):
-            s = rs.redis_stats()
+        monkeypatch.setattr(rs, "_cache_client", None)
+        monkeypatch.setattr(rs, "_get_cache_client", lambda: None)
+        s = rs.redis_stats()
         assert s["status"] in ("unreachable", "error", "disabled")
 
 
@@ -185,5 +186,6 @@ class TestRedisCacheSmoke:
 
     def test_client_starts_none(self):
         import cache.redis_store as rs
-        # attribute must exist (even if set to a client by now)
-        assert hasattr(rs, "_client")
+        # both pool clients must exist as attributes
+        assert hasattr(rs, "_cache_client")
+        assert hasattr(rs, "_job_client")
