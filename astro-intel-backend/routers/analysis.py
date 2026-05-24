@@ -263,18 +263,27 @@ async def approve_and_generate(
     session_store.update(session_id, "final_report", report, tenant_id=ctx.tenant_id)
     await store.write_meta(session_id, "final_report", report)
 
-    # ── RAGAS evaluation — score the report against the user's question ───────
+    # ── RAGAS evaluation — score against admin_review (full pipeline output) ────
+    # Use admin_review (not final_report) — it has the full insight structure.
+    # Pass ALL insight IDs so domain_recall/precision reflect the full pipeline,
+    # not just the admin's partial selection.
     try:
         original_state   = session_store.get(session_id) or {}
         original_question = (
             original_state.get("user_question") or
             (original_state.get("questions") or [""])[0]
         )
+        all_insight_ids = [
+            ins["id"]
+            for q in admin_review.get("questions", [])
+            for ins in q.get("insights", [])
+            if isinstance(ins, dict) and ins.get("id")
+        ]
         ragas_record = ragas_evaluate(
             session_id   = session_id,
-            report       = report,
+            report       = admin_review,
             question     = original_question,
-            approved_ids = list(req.approved_insight_ids or []),
+            approved_ids = all_insight_ids,
         )
         ragas_scores = {
             "faithfulness":      ragas_record.faithfulness,

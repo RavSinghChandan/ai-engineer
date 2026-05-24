@@ -109,22 +109,21 @@ def _insight_text(ins: dict) -> str:
 
 def _score_faithfulness(report: dict, approved_ids: list[str]) -> float:
     """
-    Faithfulness: what fraction of approved insight content is grounded in
-    multi-domain consensus (i.e. not a single-source claim)?
+    Faithfulness: what fraction of insights are grounded (not hallucinated)?
 
-    Method: approved insights whose `domains` list has ≥ 2 entries are
-    "grounded" (cross-validated by multiple traditions). Single-domain
-    insights are potential hallucination risk.
-    If no approved insights exist, return 1.0 (cannot penalise).
+    Method: HIGH confidence = cross-domain validated by meta_agent (3+ traditions
+    agreed). MEDIUM = 2 traditions. LOW = single source (hallucination risk).
+    Grounded = HIGH or MEDIUM confidence. LOW confidence = not grounded.
+    If no insights found, return 1.0.
     """
     approved_set = set(approved_ids)
     all_insights = _collect_insights(report)
-    approved = [i for i in all_insights if i.get("id") in approved_set]
+    approved = [i for i in all_insights if i.get("id") in approved_set] if approved_set else all_insights
     if not approved:
         return 1.0
     grounded = sum(
         1 for ins in approved
-        if len(ins.get("domains", [])) >= 2 or ins.get("confidence", "").lower() == "high"
+        if ins.get("confidence", "low").lower() in ("high", "medium")
     )
     return round(grounded / len(approved), 4)
 
@@ -152,19 +151,17 @@ def _score_answer_relevancy(report: dict, question: str) -> float:
 
 def _score_context_precision(report: dict, approved_ids: list[str]) -> float:
     """
-    Context precision: of the approved insights, what fraction were HIGH confidence?
-    HIGH-confidence = backed by 3+ independent domains (most reliable content).
+    Context precision: fraction of insights that are HIGH confidence.
+    HIGH = backed by cross-domain agreement (meta_agent assigns this when
+    3+ traditions ran). Measures how much of the pipeline output is top quality.
     """
     approved_set = set(approved_ids)
     all_insights = _collect_insights(report)
-    approved = [i for i in all_insights if i.get("id") in approved_set]
-    if not approved:
-        # No explicit approval list — use all insights
-        approved = all_insights
-    if not approved:
+    target = [i for i in all_insights if i.get("id") in approved_set] if approved_set else all_insights
+    if not target:
         return 1.0
-    high = sum(1 for ins in approved if ins.get("confidence", "").lower() == "high")
-    return round(high / len(approved), 4)
+    high = sum(1 for ins in target if ins.get("confidence", "").lower() == "high")
+    return round(high / len(target), 4)
 
 
 def _score_domain_recall(report: dict, approved_ids: list[str]) -> float:
@@ -174,8 +171,7 @@ def _score_domain_recall(report: dict, approved_ids: list[str]) -> float:
     """
     approved_set = set(approved_ids)
     all_insights = _collect_insights(report)
-    # If no explicit approved_ids, count all insights
-    target = [i for i in all_insights if i.get("id") in approved_set] if approved_ids else all_insights
+    target = [i for i in all_insights if i.get("id") in approved_set] if approved_set else all_insights
     domains_seen: set[str] = set()
     for ins in target:
         for d in ins.get("domains", []):
