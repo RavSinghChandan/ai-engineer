@@ -20,4 +20,5 @@ sentence-transformers>=3.0.0
 faiss-cpu>=1.7.4
 structlog>=24.0.0
 redis>=5.0.0
+kafka-python-ng>=2.2.0
 aiokafka>=0.10.0

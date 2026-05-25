@@ -161,7 +161,7 @@ services:
       AUTH_STORE_PATH: /data/auth_keys.json
       USERS_STORE_PATH: /data/users.json
       LEADS_STORE_PATH: /data/leads.json
-      APP_ENV: development
+      APP_ENV: production
       # Kafka enterprise settings
       KAFKA_ENABLED: "true"
       KAFKA_BOOTSTRAP: "kafka:29092"
@@ -186,5 +186,26 @@ services:
       interval: 30s
       timeout: 10s
       start_period: 30s
+      retries: 3
+    restart: unless-stopped
+
+# ── AstroIntel Web (Angular + Nginx) ─────────────────────────────────────────
+  astro-web:
+    build:
+      context: ../astro-intel
+      dockerfile: Dockerfile
+    image: astrointel-web:latest
+    container_name: astrointel-web
+    networks: [astrointel]
+    depends_on:
+      astro-api:
+        condition: service_healthy
+    ports:
+      - "4200:80"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/nginx-health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
       retries: 3
     restart: unless-stopped
