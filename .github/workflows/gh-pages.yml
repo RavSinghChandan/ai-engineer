@@ -2,17 +2,15 @@ name: Deploy UI — GitHub Pages
 
 # Deploys the Angular frontend as a static site to GitHub Pages.
 # The backend is NOT deployed — the UI is a live demo shell.
-# Any API calls go to https://api.aurawithrav.com (backend must be running separately).
-#
 # Live URL: https://ravsinghchandan.github.io/ai-engineer/
 on:
   push:
     branches: [main]
     paths:
-      - "astro-intel/**"           # only rebuild when frontend changes
+      - "astro-intel/**"
       - ".github/workflows/gh-pages.yml"
 
-  workflow_dispatch:               # manual trigger from GitHub Actions UI
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -20,17 +18,15 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
-  cancel-in-progress: true         # cancel any in-flight deploy if a new push arrives
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
-    name: Build Angular + Deploy to GitHub Pages
-    runs-on: ubuntu-latest
 
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+  # ── Job 1: Build ─────────────────────────────────────────────────────────────
+  build:
+    name: Build Angular
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -46,23 +42,32 @@ jobs:
         working-directory: astro-intel
         run: npm ci --legacy-peer-deps
 
-      # Build with base-href=/ai-engineer/ so Angular router works at the GitHub Pages sub-path.
-      # The repo is RavSinghChandan/ai-engineer → URL is ravsinghchandan.github.io/ai-engineer/
       - name: Build production bundle
         working-directory: astro-intel
         run: npx ng build --configuration production --base-href /ai-engineer/
 
-      # GitHub Pages doesn't support Angular's HTML5 router — deep links return 404.
-      # This trick: copy index.html as 404.html. GitHub Pages serves 404.html on any unknown path.
-      # The Angular app then reads the URL and routes correctly client-side.
-      - name: Add 404.html for SPA deep-link support
+      - name: Add 404.html for SPA router support
         run: cp astro-intel/dist/astro-intel/browser/index.html astro-intel/dist/astro-intel/browser/404.html
 
-      - name: Upload Pages artifact
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: astro-intel/dist/astro-intel/browser
 
+  # ── Job 2: Deploy ─────────────────────────────────────────────────────────────
+  deploy:
+    name: Deploy to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: build
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
       - name: Deploy to GitHub Pages
-        id: deploy
+        id: deployment
         uses: actions/deploy-pages@v4
