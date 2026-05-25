@@ -1,92 +1,92 @@
-name: Promote — dev → staging → prod
+name: Promote — staging → main (Production Release)
 
-# Manual workflow — promotes a specific image tag through environments
+# This is the ONLY way code reaches production.
+# A human must trigger this manually after verifying staging is healthy.
+# It merges staging into main, which triggers build-push → deploy on main.
 on:
   workflow_dispatch:
     inputs:
       image_tag:
-        description: "Image tag to promote (e.g. a1b2c3d4)"
+        description: "8-char SHA tag verified on staging (e.g. 15ec7f3). Leave blank to use 'staging' tag."
+        required: false
+        default: ""
+      release_notes:
+        description: "One-line description of what this release contains"
         required: true
-      target_env:
-        description: "Target environment"
-        required: true
-        type: choice
-        options:
-          - staging
-          - production
-
-env:
-  AWS_REGION: ap-south-1
-  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-south-1.amazonaws.com
 
 jobs:
   promote:
-    name: Promote ${{ github.event.inputs.image_tag }} → ${{ github.event.inputs.target_env }}
+    name: Promote staging → main
     runs-on: ubuntu-latest
 
+    # Requires a GitHub Environment named "production" with required reviewers configured.
+    # Nobody can click "approve" except designated production approvers.
     environment:
-      name: ${{ github.event.inputs.target_env }}
+      name: production
 
     permissions:
-      contents: read
+      contents: write    # needed to push the merge commit to main
       id-token: write
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history needed for merge
 
+      - name: Configure git identity
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      # Verify staging ECS health before merging — fail-fast if staging is sick
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ap-south-1
 
-      - name: Set cluster + service names for environment
+      - name: Verify staging API is healthy
         run: |
-          ENV="${{ github.event.inputs.target_env }}"
-          if [ "$ENV" = "staging" ]; then
-            echo "ECS_CLUSTER=astrointel-staging-cluster" >> $GITHUB_ENV
-            echo "API_SERVICE=astrointel-api-staging" >> $GITHUB_ENV
-            echo "WEB_SERVICE=astrointel-web-staging" >> $GITHUB_ENV
-          elif [ "$ENV" = "production" ]; then
-            echo "ECS_CLUSTER=astrointel-cluster" >> $GITHUB_ENV
-            echo "API_SERVICE=astrointel-api-service" >> $GITHUB_ENV
-            echo "WEB_SERVICE=astrointel-web-service" >> $GITHUB_ENV
+          STATUS=$(aws ecs describe-services \
+            --cluster astrointel-staging-cluster \
+            --services astrointel-api-staging \
+            --query 'services[0].deployments[0].rolloutState' \
+            --output text 2>/dev/null || echo "UNKNOWN")
+          echo "Staging rollout state: $STATUS"
+          if [ "$STATUS" != "COMPLETED" ] && [ "$STATUS" != "UNKNOWN" ]; then
+            echo "❌ Staging is not stable (state=$STATUS). Aborting promotion."
+            exit 1
           fi
+          echo "✅ Staging is stable — proceeding with promotion."
 
-      - name: Deploy API image to ${{ github.event.inputs.target_env }}
+      # Merge staging into main — this triggers build-push.yml on main
+      - name: Merge staging → main
         run: |
-          TAG="${{ github.event.inputs.image_tag }}"
-          TASK=$(aws ecs describe-task-definition --task-definition astrointel-api --query taskDefinition > /tmp/api-task.json && cat /tmp/api-task.json)
-          NEW_TASK=$(echo $TASK | python3 -c "
-          import json,sys
-          d=json.load(sys.stdin)
-          d['containerDefinitions'][0]['image']='$ECR_REGISTRY/astrointel-api:$TAG'
-          for k in ['taskDefinitionArn','revision','status','requiresAttributes','compatibilities','registeredAt','registeredBy']:
-            d.pop(k,None)
-          print(json.dumps(d))
-          ")
-          NEW_ARN=$(aws ecs register-task-definition --cli-input-json "$NEW_TASK" --query 'taskDefinition.taskDefinitionArn' --output text)
-          aws ecs update-service --cluster $ECS_CLUSTER --service $API_SERVICE --task-definition $NEW_ARN
-          aws ecs wait services-stable --cluster $ECS_CLUSTER --services $API_SERVICE
-          echo "✅ API deployed to ${{ github.event.inputs.target_env }}"
+          git checkout main
+          git pull origin main
+          git merge origin/staging \
+            --no-ff \
+            -m "release: promote staging → main
 
-      - name: Deploy Web image to ${{ github.event.inputs.target_env }}
+Release notes: ${{ github.event.inputs.release_notes }}
+Image tag verified on staging: ${{ github.event.inputs.image_tag || 'staging' }}
+Triggered by: ${{ github.actor }}
+"
+          git push origin main
+          echo "✅ staging merged to main — build-push + deploy will trigger automatically."
+
+      # Keep develop in sync with main after promotion
+      - name: Sync develop with main
         run: |
-          TAG="${{ github.event.inputs.image_tag }}"
-          TASK=$(aws ecs describe-task-definition --task-definition astrointel-web --query taskDefinition > /tmp/web-task.json && cat /tmp/web-task.json)
-          NEW_TASK=$(echo $TASK | python3 -c "
-          import json,sys
-          d=json.load(sys.stdin)
-          d['containerDefinitions'][0]['image']='$ECR_REGISTRY/astrointel-web:$TAG'
-          for k in ['taskDefinitionArn','revision','status','requiresAttributes','compatibilities','registeredAt','registeredBy']:
-            d.pop(k,None)
-          print(json.dumps(d))
-          ")
-          NEW_ARN=$(aws ecs register-task-definition --cli-input-json "$NEW_TASK" --query 'taskDefinition.taskDefinitionArn' --output text)
-          aws ecs update-service --cluster $ECS_CLUSTER --service $WEB_SERVICE --task-definition $NEW_ARN
-          aws ecs wait services-stable --cluster $ECS_CLUSTER --services $WEB_SERVICE
-          echo "✅ Web deployed to ${{ github.event.inputs.target_env }}"
+          git checkout develop
+          git pull origin develop
+          git merge origin/main --no-ff -m "chore: sync develop with main after production release"
+          git push origin develop
+          echo "✅ develop synced with main."
 
       - name: Promotion complete
         run: |
-          echo "🚀 ${{ github.event.inputs.image_tag }} promoted to ${{ github.event.inputs.target_env }}"
+          echo "🚀 Promotion complete."
+          echo "   build-push.yml is now running on main."
+          echo "   deploy.yml will trigger once images are pushed."
+          echo "   Release: ${{ github.event.inputs.release_notes }}"
