@@ -79,3 +79,12 @@ coverage/
 
 # OS
 Thumbs.db
+
+# SQLite database files — runtime artifacts, never commit
+*.db
+*.db-shm
+*.db-wal
+
+# JSON data stores — runtime artifacts, never commit (auth_keys.json already covered above)
+leads.json
+users.json

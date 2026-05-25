@@ -1,19 +1,20 @@
 name: Build & Push — Docker Images to ECR
 
-# Runs only on merge to main (after CI tests pass)
+# Triggered when code lands on staging (→ staging deploy) or main (→ prod deploy).
+# Tests run inline as a REQUIRED gate — images are never built if tests fail.
 on:
   push:
-    branches: [main]
+    branches: [staging, main]
 
 env:
-  AWS_REGION: ap-south-1          # Mumbai — change to your region
+  AWS_REGION: ap-south-1
   ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-south-1.amazonaws.com
   API_IMAGE: astrointel-api
   WEB_IMAGE: astrointel-web
 
 jobs:
 
-  # ── Gate: run tests before building images ───────────────────────────────────
+  # ── Gate 1: Backend tests ────────────────────────────────────────────────────
   backend-test:
     name: Backend Tests (pytest)
     runs-on: ubuntu-latest
@@ -51,6 +52,7 @@ jobs:
           RESEND_API_KEY: re_test_placeholder
         run: pytest tests/ -v --tb=short --no-header
 
+  # ── Gate 2: Frontend build ───────────────────────────────────────────────────
   frontend-build:
     name: Frontend Build (ng build)
     runs-on: ubuntu-latest
@@ -67,15 +69,15 @@ jobs:
         working-directory: astro-intel
         run: npx ng build --configuration production
 
+  # ── Build & Push (only after both gates pass) ────────────────────────────────
   build-and-push:
     name: Build & Push Docker Images
     runs-on: ubuntu-latest
-    # GATE: both test jobs must pass before any image is built or pushed
-    needs: [backend-test, frontend-build]
+    needs: [backend-test, frontend-build]   # HARD GATE — will not run if either fails
 
     permissions:
       contents: read
-      id-token: write   # needed for OIDC auth to AWS
+      id-token: write   # required for OIDC auth to AWS
 
     steps:
       - uses: actions/checkout@v4
@@ -87,41 +89,47 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Log in to Amazon ECR
-        id: ecr-login
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Set image tag (short SHA)
-        run: echo "IMAGE_TAG=${GITHUB_SHA::8}" >> $GITHUB_ENV
+      # Tag strategy:
+      #   staging branch → :staging + :<sha>
+      #   main branch    → :latest  + :<sha>  (production)
+      - name: Set image tags
+        run: |
+          SHA="${GITHUB_SHA::8}"
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            ENV_TAG="latest"
+          else
+            ENV_TAG="${{ github.ref_name }}"   # "staging"
+          fi
+          echo "IMAGE_TAG=$SHA"      >> $GITHUB_ENV
+          echo "ENV_TAG=$ENV_TAG"    >> $GITHUB_ENV
 
       # ── Build + push backend ──────────────────────────────────────────────
-      - name: Build backend image
+      - name: Build & push backend image
         run: |
           docker build \
             -t $ECR_REGISTRY/$API_IMAGE:$IMAGE_TAG \
-            -t $ECR_REGISTRY/$API_IMAGE:latest \
+            -t $ECR_REGISTRY/$API_IMAGE:$ENV_TAG \
             ./astro-intel-backend
-
-      - name: Push backend image
-        run: |
           docker push $ECR_REGISTRY/$API_IMAGE:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$API_IMAGE:latest
+          docker push $ECR_REGISTRY/$API_IMAGE:$ENV_TAG
 
       # ── Build + push frontend ─────────────────────────────────────────────
-      - name: Build frontend image
+      - name: Build & push frontend image
         run: |
           docker build \
             -t $ECR_REGISTRY/$WEB_IMAGE:$IMAGE_TAG \
-            -t $ECR_REGISTRY/$WEB_IMAGE:latest \
+            -t $ECR_REGISTRY/$WEB_IMAGE:$ENV_TAG \
             ./astro-intel
-
-      - name: Push frontend image
-        run: |
           docker push $ECR_REGISTRY/$WEB_IMAGE:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$WEB_IMAGE:latest
+          docker push $ECR_REGISTRY/$WEB_IMAGE:$ENV_TAG
 
-      # ── Output image URIs for deploy workflow ─────────────────────────────
       - name: Output image URIs
         run: |
+          echo "Branch   : ${{ github.ref_name }}"
+          echo "SHA tag  : $IMAGE_TAG"
+          echo "Env tag  : $ENV_TAG"
           echo "API image: $ECR_REGISTRY/$API_IMAGE:$IMAGE_TAG"
           echo "Web image: $ECR_REGISTRY/$WEB_IMAGE:$IMAGE_TAG"
 

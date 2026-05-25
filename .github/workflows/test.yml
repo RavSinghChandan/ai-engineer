@@ -1,11 +1,13 @@
 name: CI — Test
 
-# Runs on every PR and push to main
+# Runs on every PR targeting develop, staging, or main.
+# Also runs on direct pushes to develop (from merged feature branches).
+# This is the ONLY gate before any code moves up the branch ladder.
 on:
   pull_request:
-    branches: [main]
+    branches: [develop, staging, main]
   push:
-    branches: [main]
+    branches: [develop]
 
 jobs:
 
@@ -53,8 +55,7 @@ jobs:
           APP_ENV: development
           RESEND_API_KEY: re_test_placeholder
           # DEEPSEEK_API_KEY not set — live pipeline + accuracy tests auto-skip
-        run: |
-          pytest tests/ -v --tb=short --no-header
+        run: pytest tests/ -v --tb=short --no-header
 
   # ── Frontend: Angular build check ───────────────────────────────────────────
   frontend-build:
@@ -77,9 +78,6 @@ jobs:
 
       - name: Build production bundle
         working-directory: astro-intel
-        env:
-          # Override API URL at build time if secret is set; falls back to environment.prod.ts value
-          BACKEND_URL: ${{ secrets.BACKEND_URL || 'https://api.aurawithrav.com' }}
         run: npx ng build --configuration production
 
       - name: Upload build artifact
