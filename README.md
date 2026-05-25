@@ -40,26 +40,25 @@ Angular application that renders LangGraph agent execution graphs in real time.
 
 **The most complete project in this portfolio.** A production-grade, full-stack AI platform demonstrating every layer of enterprise AI engineering — from LLM orchestration to cloud deployment.
 
-**What it does:** A user submits their birth profile. A 12-node LangGraph pipeline runs 5 domain agents in parallel (Vedic Astrology, Numerology, Palmistry, Tarot, Vastu), a meta-agent synthesises cross-domain consensus, an admin reviews and approves insights, and a branded 20-page PDF report is generated — with 30+ language translation support.
+**What it does:** A user submits their birth profile. An 8-node LangGraph pipeline runs 5 domain agents in parallel (Vedic Astrology, Numerology, Palmistry, Tarot, Vastu), a meta-agent synthesises cross-domain consensus, hallucination is checked, an admin reviews and approves insights, and a branded PDF report is generated — with 30+ language translation support.
 
 **Key engineering highlights:**
 
 | Area | What Was Built |
 |------|---------------|
-| AI Pipeline | 12-agent LangGraph StateGraph — sequential + parallel fan-out |
+| AI Pipeline | 8-node LangGraph StateGraph — security_check → question_agent → domain_agents (parallel) → meta_agent → hallucination_check → remedy_agent → admin_review_agent → grammar_agent |
+| Latency | 78s (sequential GPT-4o) → 15s (parallel GPT-4o-mini) → **4s** (parallel + DeepSeek + 3-tier cache) |
+| LLM Cost | DeepSeek at $0.000137/analysis (500× cheaper than GPT-4o) |
+| Caching | 3-tier: L1 in-memory + L2 Redis DB0 (connection pool, pub/sub invalidation) + L3 semantic (cosine ≥ 0.92) |
+| Async Queue | Enterprise Kafka: 3 consumer workers, acks=all, gzip, exponential backoff + jitter, DLQ fallback |
 | Security | 4-layer guardrail stack: input validation, prompt hardening, output validation, audit logging |
 | Auth | JWT + multi-tenant RBAC (user / admin / superadmin) + OTP email |
-| Caching | 2-tier semantic cache: 30-day profile TTL, 20-min session TTL |
-| Observability | 10 KPIs + RAGAS-proxy metrics (faithfulness, precision, relevancy, recall) |
-| NLP | Plain English agent: 30+ regex jargon patterns + LLM rewrite + safety filter |
-| PDF Engine | 20-page branded PDF via Angular @media print CSS — no server-side library |
-| Translation | 30+ language support with LLM translation agent |
-| Prod Guardrails | G1 rate limiter, G2 circuit breaker, G3 JSON repair, G4 PII filter, G5 degradation |
-| Cloud | AWS ECS Fargate + S3 + CloudFront + RDS + Secrets Manager + GitHub Actions CI/CD |
+| Observability | RAGAS proxy metrics (faithfulness, context precision, answer relevancy, domain recall) + Prometheus |
+| Guardrails | G1 rate limiter, G2 circuit breaker (safe_node hard-kill timeout), G3 JSON repair cascade, G4 PII filter, G5 graceful degradation |
+| Testing | 82 tests — all Kafka + Redis paths mocked, no real broker needed in CI |
+| Cloud | AWS ECS Fargate + ECR + GitHub Actions CI/CD (OIDC auth, rolling deploy) |
 
-**→ [Full Architecture & README](astro-intel/README.md)**
-
-**Tech:** Python 3.11, FastAPI, LangGraph, DeepSeek LLM, Angular 17, SQLite/PostgreSQL, Docker, AWS
+**Tech:** Python 3.11, FastAPI, LangGraph, DeepSeek LLM, Angular 17, SQLite/PostgreSQL, Redis 7.2, Kafka (Confluent 7.6), Docker, AWS
 
 ---
 
@@ -103,17 +102,116 @@ AI tutoring and knowledge assistant application.
 
 ---
 
-## Study Notes
+## Branching Strategy
 
-### Associate AI Engineer — `associate-ai-engineer/`
+This repository follows a **trunk-based branching model with environment gates**. Every merge to production goes through a human-approved promotion step — no direct push to `main` is allowed.
 
-Structured study notes covering AI engineering fundamentals: RAG, embeddings, vector databases, agents, prompt engineering, MLOps, streaming, and LLM frameworks. 11 modules, 39 files.
+```
+feature/*  ──PR──→  develop  ──PR──→  staging  ──promote.yml──→  main
+hotfix/*   ─────────────────────────────────────────────────────→  main
+```
 
-### Senior AI Engineer — `senior-ai-engineer/`
+### Branch Roles
 
-Production-depth study notes targeting Senior AI Engineer interview preparation. Covers the same domains as associate level but at production scale: failure modes, cost analysis, reliability patterns, Java/Spring bridge, CI/CD for AI, and cloud deployment. 12 modules, 48 files.
+| Branch | Purpose | Deploys to |
+|--------|---------|------------|
+| `main` | Production-ready code only. No direct push — only `promote.yml` merges here. | AWS ECS prod cluster (`astrointel-cluster`) |
+| `staging` | Pre-production verification. Merged from `develop` via PR. | AWS ECS staging cluster (`astrointel-staging-cluster`) |
+| `develop` | Integration of all features. Merged from `feature/*` via PR. | No deploy — CI tests only |
+| `feature/*` | One branch per feature or fix. Always cut from `develop`. | No deploy |
+| `hotfix/*` | Emergency production fix. Cut from `main`, promoted directly. | No deploy |
 
-**Module 12 (Java/Spring Bridge)** is the unique differentiator — maps Resilience4j, Spring Batch, and Kafka consumer patterns directly to LLM API resilience, async task processing, and event-driven AI pipelines.
+### Developer Workflow
+
+```bash
+# Start new work — always from develop
+git checkout develop && git pull origin develop
+git checkout -b feature/your-feature-name
+
+# Work, commit, push
+git commit -m "feat: description"
+git push origin feature/your-feature-name
+
+# Open PR: feature/your-feature-name → develop
+# CI must pass (pytest + ng build) before merge is allowed
+```
+
+### Path to Production
+
+```
+1. PR: feature/* → develop       CI gate (test.yml): pytest + ng build
+2. PR: develop  → staging        CI gate again + auto-deploy to staging ECS
+3. Verify staging manually        https://staging.aurawithrav.com
+4. Run promote.yml (manual)       GitHub Actions → requires production approver
+   └─ Verifies staging ECS health
+   └─ Merges staging → main
+   └─ Triggers build-push.yml on main
+   └─ Triggers deploy.yml → prod ECS rolling update
+   └─ Syncs develop with main
+```
+
+### CI/CD Pipeline Map
+
+| Workflow | Triggers on | What it does |
+|----------|-------------|--------------|
+| `test.yml` | PR to develop/staging/main + push to develop | pytest + ng build — pure CI gate |
+| `build-push.yml` | Push to staging or main | Inline test gate → Docker build → ECR push (`:staging` or `:latest` + `:<sha>`) |
+| `deploy.yml` | After build-push on staging/main | ECS rolling update — auto-selects cluster based on branch |
+| `promote.yml` | Manual dispatch only | Verifies staging health → merges staging→main → triggers full prod deploy chain |
+
+### Image Tagging
+
+| Branch | Tags |
+|--------|------|
+| `staging` | `:staging` + `:<8-char-sha>` |
+| `main` | `:latest` + `:<8-char-sha>` |
+
+Always reference images by SHA tag in production — SHA tags are immutable; `:latest` is not.
+
+> Full details: see [BRANCH_STRATEGY.md](BRANCH_STRATEGY.md)
+
+---
+
+## Folder Structure
+
+```
+ai-engineer/                          ← repo root (monorepo)
+├── astro-intel/                      ← Angular 17 frontend (AstroIntel 360°)
+├── astro-intel-backend/              ← FastAPI + LangGraph backend (AstroIntel 360°)
+│   └── docker-compose.yml            ← Enterprise stack (Kafka + Redis + UIs)
+├── bench-resource-optimizer/         ← Bench project
+├── langchain_project/                ← Interview demo
+├── senior-ai-engineer/               ← Study materials / interview prep (12 modules)
+├── .github/workflows/                ← All CI/CD workflows
+├── docker-compose.yml                ← Simple dev stack (SQLite, no Kafka/Redis)
+├── BRANCH_STRATEGY.md                ← Full branching strategy documentation
+├── PRODUCTION_DEPLOYMENT_GUIDE.md    ← AWS/ECS deployment guide
+└── README.md                         ← This file
+```
+
+**Two docker-compose files:**
+
+| File | Use when |
+|------|----------|
+| Root `docker-compose.yml` | Local dev — simple SQLite stack, no Kafka/Redis overhead |
+| `astro-intel-backend/docker-compose.yml` | Full enterprise stack — Kafka, Redis, ZooKeeper, admin UIs |
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| LLM APIs | DeepSeek (primary), OpenAI GPT-4o / GPT-4o-mini |
+| Agent Framework | LangGraph, LangChain |
+| Backend | Python 3.11, FastAPI, Uvicorn |
+| Async Queue | Apache Kafka (Confluent 7.6), kafka-python-ng |
+| Cache | Redis 7.2 (L2 response cache + L1 in-memory + L3 semantic) |
+| Vector Store | FAISS, pgvector |
+| Frontend | Angular 17, TypeScript, SSE |
+| Auth | JWT, RBAC, OTP email |
+| DevOps | Docker, GitHub Actions (OIDC, no long-lived keys) |
+| Cloud | AWS ECS Fargate, ECR, ap-south-1 |
 
 ---
 
@@ -121,36 +219,21 @@ Production-depth study notes targeting Senior AI Engineer interview preparation.
 
 ```
 Phase 1 — Foundation
-  langchain_project     Basic RAG + agents + streaming
+  langchain_project       Basic RAG + agents + streaming
 
 Phase 2 — State & Orchestration
-  langraph_project      Stateful agents, interrupt/resume
-  graph-visualizer      Real-time agent graph visualization
+  langraph_project        Stateful agents, interrupt/resume
+  graph-visualizer        Real-time agent graph visualization
 
 Phase 3 — Production Multi-Agent
-  astro-intel           Parallel agents, consensus, admin review
+  astro-intel             Parallel agents, consensus, guardrails, Kafka, Redis
 
 Phase 4 — Domain Applications
-  agentic-growth-os     Growth planning automation
-  ai-report-app         Document intelligence
+  agentic-growth-os       Growth planning automation
+  ai-report-app           Document intelligence
   bench-resource-optimizer  Resource optimization
-  guru-app              Adaptive tutoring
+  guru-app                Adaptive tutoring
 ```
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| LLM APIs | OpenAI GPT-4o, GPT-4o-mini, Anthropic Claude |
-| Agent Framework | LangGraph, LangChain |
-| Backend | Python, FastAPI, Uvicorn |
-| Vector Store | FAISS, pgvector |
-| Async | Celery, Redis |
-| Frontend | Angular, TypeScript, SSE |
-| DevOps | Docker, GitHub Actions |
-| Cloud | AWS ECS / GCP Cloud Run |
 
 ---
 
@@ -161,6 +244,6 @@ Phase 4 — Domain Applications
 6+ years background in Java, Spring Boot, Angular, DevOps, and Cloud (AWS/GCP).
 Now building production AI systems: multi-agent pipelines, LLM guardrails, semantic caching, and full-stack AI applications.
 
-The AstroIntel 360° project (above) is the most complete demonstration of these skills — it is not a tutorial follow-along. Every component — the security stack, the caching layer, the RBAC system, the PDF engine, the CI/CD pipeline — was designed and built from scratch to solve real production problems.
+The AstroIntel 360° project is the most complete demonstration of these skills — it is not a tutorial follow-along. Every component — the 8-node LangGraph graph, the 3-tier Redis cache, the enterprise Kafka pipeline, the RBAC system, the G1–G5 guardrail stack, the CI/CD pipeline — was designed and built from scratch to solve real production problems.
 
 > *Available for Senior AI Engineer, AI Platform Engineer, and Full-Stack AI Engineer roles.*
