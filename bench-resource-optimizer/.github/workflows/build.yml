@@ -1,0 +1,72 @@
+name: Frontend CI — ng build + ng test
+
+on:
+  push:
+    branches: [main, staging, develop, "feature/**"]
+  pull_request:
+    branches: [main, staging, develop]
+
+jobs:
+  build:
+    name: Angular build (production)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: bench-resource-optimizer/frontend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: bench-resource-optimizer/frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production bundle
+        run: npx ng build --configuration=production
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: bench-resource-optimizer/frontend/dist/
+          retention-days: 7
+
+  test:
+    name: Angular unit tests (ng test)
+    runs-on: ubuntu-latest
+    # Will run 0 specs now — grows to 80+ after Phase 5
+    continue-on-error: true
+
+    defaults:
+      run:
+        working-directory: bench-resource-optimizer/frontend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: bench-resource-optimizer/frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests (headless Chrome)
+        run: |
+          npx ng test \
+            --watch=false \
+            --browsers=ChromeHeadless \
+            --code-coverage \
+            2>&1 | tail -20 || true
