@@ -1,4 +1,6 @@
 import { Routes } from '@angular/router';
+import { authGuard, adminGuard } from './guards/auth.guard';
+import { LoginComponent } from './components/login/login.component';
 import { UploadCvComponent } from './components/upload-cv/upload-cv.component';
 import { RoleMappingComponent } from './components/role-mapping/role-mapping.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
@@ -8,12 +10,16 @@ import { AgentGraphComponent } from './components/agent-graph/agent-graph.compon
 import { MemoryComponent } from './components/memory/memory.component';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'upload', pathMatch: 'full' },
-  { path: 'upload',    component: UploadCvComponent },
-  { path: 'mapping',   component: RoleMappingComponent },
-  { path: 'dashboard', component: DashboardComponent },
-  { path: 'memory',    component: MemoryComponent },
-  { path: 'metrics',   component: MetricsComponent },
-  { path: 'admin',     component: AdminComponent },
-  { path: 'graph',     component: AgentGraphComponent },
+  { path: 'login', component: LoginComponent },
+  { path: '',      redirectTo: 'upload', pathMatch: 'full' },
+
+  { path: 'upload',    component: UploadCvComponent,    canActivate: [authGuard] },
+  { path: 'mapping',   component: RoleMappingComponent, canActivate: [authGuard] },
+  { path: 'dashboard', component: DashboardComponent,   canActivate: [authGuard] },
+  { path: 'memory',    component: MemoryComponent,      canActivate: [authGuard] },
+  { path: 'metrics',   component: MetricsComponent,     canActivate: [authGuard] },
+  { path: 'graph',     component: AgentGraphComponent,  canActivate: [authGuard] },
+
+  // Admin-only route — requires role: admin
+  { path: 'admin', component: AdminComponent, canActivate: [authGuard, adminGuard] },
 ];
