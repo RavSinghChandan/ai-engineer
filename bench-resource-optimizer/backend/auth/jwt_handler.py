@@ -4,7 +4,6 @@ JWT authentication handler.
 - HS256 tokens, configurable secret + expiry via env vars
 - Creates access tokens with user_id + role claims
 - Verifies tokens and returns decoded claims
-- No third-party auth server needed — self-contained for demo/production
 """
 from __future__ import annotations
 
@@ -17,9 +16,20 @@ from pydantic import BaseModel
 
 # ── Config ──────────────────────────────────────────────────────────────────
 
-JWT_SECRET  = os.getenv("JWT_SECRET", "bench-resource-optimizer-secret-change-in-prod")
-JWT_ALGO    = "HS256"
-JWT_EXPIRY  = int(os.getenv("JWT_EXPIRY_SECONDS", "86400"))   # 24 hours default
+_INSECURE_DEFAULTS = {
+    "bench-resource-optimizer-secret-change-in-prod",
+    "changeme",
+    "secret",
+}
+
+JWT_SECRET = os.getenv("JWT_SECRET", "")
+if not JWT_SECRET:
+    raise RuntimeError("JWT_SECRET environment variable is not set. Set a strong random secret before starting.")
+if JWT_SECRET in _INSECURE_DEFAULTS:
+    raise RuntimeError("JWT_SECRET is set to a known-insecure default. Set a strong random secret before starting.")
+
+JWT_ALGO   = "HS256"
+JWT_EXPIRY = int(os.getenv("JWT_EXPIRY_SECONDS", "86400"))
 
 
 # ── Models ───────────────────────────────────────────────────────────────────
@@ -42,14 +52,19 @@ class LoginRequest(BaseModel):
     password: str
 
 
-# ── Simple credential store (demo) ───────────────────────────────────────────
-# In a real system this would be a DB table with hashed passwords.
-# For this demo: hardcoded admin + any user_id with password "bench123"
+# ── Credential store ─────────────────────────────────────────────────────────
+# Passwords loaded exclusively from environment variables — no fallback defaults.
 
-ADMIN_CREDENTIALS: dict[str, str] = {
-    "admin": os.getenv("ADMIN_PASSWORD", "admin123"),
-}
-DEFAULT_USER_PASSWORD = os.getenv("DEFAULT_USER_PASSWORD", "bench123")
+_admin_password = os.getenv("ADMIN_PASSWORD", "")
+_user_password  = os.getenv("DEFAULT_USER_PASSWORD", "")
+
+if not _admin_password:
+    raise RuntimeError("ADMIN_PASSWORD environment variable is not set.")
+if not _user_password:
+    raise RuntimeError("DEFAULT_USER_PASSWORD environment variable is not set.")
+
+ADMIN_CREDENTIALS: dict[str, str] = {"admin": _admin_password}
+DEFAULT_USER_PASSWORD = _user_password
 
 
 def _check_credentials(user_id: str, password: str) -> Optional[str]:

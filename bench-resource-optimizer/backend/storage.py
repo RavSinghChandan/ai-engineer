@@ -1,4 +1,4 @@
-"""Simple JSON file storage — replaces a database for this demo."""
+"""JSON file storage layer."""
 import json
 import uuid
 from pathlib import Path

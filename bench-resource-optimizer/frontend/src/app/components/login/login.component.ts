@@ -52,17 +52,6 @@ import { AuthService } from '../../services/auth.service';
           </button>
         </form>
 
-        <div class="hint-box">
-          <div class="hint-title">Demo credentials</div>
-          <div class="hint-row">
-            <span class="badge badge-user">User</span>
-            any user ID &nbsp;·&nbsp; password <code>bench123</code>
-          </div>
-          <div class="hint-row">
-            <span class="badge badge-admin">Admin</span>
-            user ID <code>admin</code> &nbsp;·&nbsp; password <code>admin123</code>
-          </div>
-        </div>
 
       </div>
     </div>
@@ -171,51 +160,6 @@ import { AuthService } from '../../services/auth.service';
       display: inline-block;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .hint-box {
-      margin-top: 28px;
-      padding: 14px 16px;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 10px;
-    }
-    .hint-title {
-      font-size: 11px;
-      font-weight: 700;
-      color: #94a3b8;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 10px;
-    }
-    .hint-row {
-      font-size: 13px;
-      color: #475569;
-      margin-bottom: 6px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .hint-row:last-child { margin-bottom: 0; }
-    .badge-user {
-      background: #dbeafe; color: #1d4ed8;
-      font-size: 10px; font-weight: 700;
-      padding: 2px 8px; border-radius: 4px;
-      text-transform: uppercase;
-    }
-    .badge-admin {
-      background: #fef3c7; color: #92400e;
-      font-size: 10px; font-weight: 700;
-      padding: 2px 8px; border-radius: 4px;
-      text-transform: uppercase;
-    }
-    code {
-      background: #f1f5f9;
-      border: 1px solid #e2e8f0;
-      border-radius: 4px;
-      padding: 1px 6px;
-      font-size: 12px;
-      color: #0f172a;
-    }
   `],
 })
 export class LoginComponent {

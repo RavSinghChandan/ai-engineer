@@ -90,7 +90,7 @@ def _expired_token() -> str:
 class TestLogin:
 
     def test_positive_admin_login_returns_token(self, client):
-        resp = client.post("/auth/login", json={"user_id": "admin", "password": "admin123"})
+        resp = client.post("/auth/login", json={"user_id": "admin", "password": "test-admin-pass"})
         assert resp.status_code == 200
         body = resp.json()
         assert "access_token" in body
@@ -98,7 +98,7 @@ class TestLogin:
         assert body["expires_in"] > 0
 
     def test_positive_regular_user_login_returns_token(self, client):
-        resp = client.post("/auth/login", json={"user_id": "some_employee", "password": "bench123"})
+        resp = client.post("/auth/login", json={"user_id": "some_employee", "password": "test-user-pass"})
         assert resp.status_code == 200
         assert "access_token" in resp.json()
 
@@ -123,14 +123,14 @@ class TestLogin:
         assert resp.status_code == 422
 
     def test_positive_token_is_valid_jwt(self, client):
-        resp = client.post("/auth/login", json={"user_id": "admin", "password": "admin123"})
+        resp = client.post("/auth/login", json={"user_id": "admin", "password": "test-admin-pass"})
         token = resp.json()["access_token"]
         decoded = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGO])
         assert decoded["sub"] == "admin"
         assert decoded["role"] == "admin"
 
     def test_positive_regular_user_role_is_user(self, client):
-        resp = client.post("/auth/login", json={"user_id": "alice", "password": "bench123"})
+        resp = client.post("/auth/login", json={"user_id": "alice", "password": "test-user-pass"})
         token = resp.json()["access_token"]
         decoded = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGO])
         assert decoded["role"] == "user"

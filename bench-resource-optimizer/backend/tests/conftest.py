@@ -13,6 +13,11 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 import pytest_asyncio
 
+# ── Test env vars — must be set before any module-level imports of jwt_handler ──
+os.environ.setdefault("JWT_SECRET", "test-secret-for-ci-only")
+os.environ.setdefault("ADMIN_PASSWORD", "test-admin-pass")
+os.environ.setdefault("DEFAULT_USER_PASSWORD", "test-user-pass")
+
 # ── Path setup ────────────────────────────────────────────────────────────────
 # Ensure backend/ is on sys.path so all imports resolve without the package
 BACKEND = Path(__file__).parent.parent
@@ -22,9 +27,7 @@ if str(BACKEND) not in sys.path:
 # ── Auth helpers ──────────────────────────────────────────────────────────────
 
 def make_auth_headers(user_id: str = "test_user", role: str = "user") -> dict:
-    """Generate a real JWT for test requests. Uses the default test secret."""
-    import os
-    os.environ.setdefault("JWT_SECRET", "test-secret")
+    """Generate a real JWT for test requests. Uses the CI test secret."""
     from auth.jwt_handler import create_token
     token_resp = create_token(user_id, role)
     return {"Authorization": f"Bearer {token_resp.access_token}"}

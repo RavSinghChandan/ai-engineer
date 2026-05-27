@@ -413,12 +413,7 @@ def health():
 @app.post("/auth/login", tags=["Auth"], response_model=TokenResponse)
 def auth_login(req: LoginRequest):
     """
-    Login with user_id + password.
-    Returns a JWT access token (24h expiry by default).
-
-    Demo credentials:
-    - Admin: user_id="admin", password="admin123" (or JWT_SECRET env var)
-    - Any user: any user_id, password="bench123" (or DEFAULT_USER_PASSWORD env var)
+    Authenticate with user_id + password. Returns a JWT access token (24h expiry by default).
     """
     token = login(req.user_id, req.password)
     if token is None:

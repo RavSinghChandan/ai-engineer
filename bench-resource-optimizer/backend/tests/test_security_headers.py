@@ -104,6 +104,6 @@ class TestSecurityHeaders:
 
     def test_positive_security_headers_on_post_endpoints(self, client):
         """Security headers apply to POST responses too."""
-        resp = client.post("/auth/login", json={"user_id": "admin", "password": "admin123"})
+        resp = client.post("/auth/login", json={"user_id": "admin", "password": "test-admin-pass"})
         assert "x-content-type-options" in {k.lower() for k in resp.headers}
         assert "x-frame-options" in {k.lower() for k in resp.headers}
