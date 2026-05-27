@@ -19,6 +19,20 @@ BACKEND = Path(__file__).parent.parent
 if str(BACKEND) not in sys.path:
     sys.path.insert(0, str(BACKEND))
 
+# ── Auth helpers ──────────────────────────────────────────────────────────────
+
+def make_auth_headers(user_id: str = "test_user", role: str = "user") -> dict:
+    """Generate a real JWT for test requests. Uses the default test secret."""
+    import os
+    os.environ.setdefault("JWT_SECRET", "test-secret")
+    from auth.jwt_handler import create_token
+    token_resp = create_token(user_id, role)
+    return {"Authorization": f"Bearer {token_resp.access_token}"}
+
+
+def make_admin_headers(user_id: str = "admin") -> dict:
+    return make_auth_headers(user_id=user_id, role="admin")
+
 # ── Reusable test data ────────────────────────────────────────────────────────
 
 SAMPLE_PROFILE = {

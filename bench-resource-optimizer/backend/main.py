@@ -33,13 +33,16 @@ from typing import AsyncGenerator, List, Optional
 
 import aiosqlite
 from dotenv import load_dotenv
-from fastapi import FastAPI, File, HTTPException, Request, UploadFile
+from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
 
 # ── Internal imports ──────────────────────────────────────────────────────────
+from auth import LoginRequest, TokenResponse, get_current_user, login, require_admin
+from infra.redis_client import redis_get, redis_ping, redis_set
+from infra.kafka_producer import kafka_ping, publish as kafka_publish
 from agents.cv_parser_agent import parse_cv
 from agents.planning_agent import generate_plan
 from agents.role_mapping_agent import map_role
@@ -61,6 +64,7 @@ from memory.session_store import (
 from metrics.collector import RequestRecord, get_collector
 from middleware.logging_mw import RequestLoggingMiddleware, configure_logging
 from middleware.rate_limit import RateLimitMiddleware
+from middleware.security_headers import SecurityHeadersMiddleware
 from metrics.ragas_eval import evaluate as ragas_evaluate, get_ragas_store
 from rag.advanced_retrieval import init_bm25_from_roles, get_bm25_index
 from rag.knowledge_base import build_vector_store, get_all_roles, get_all_roles_async, get_embeddings
@@ -169,6 +173,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
 app.add_middleware(
@@ -316,6 +321,8 @@ class HealthReadyResponse(BaseModel):
     hybrid_retrieval: str
     circuit_breakers: dict
     active_prompts:   dict
+    redis:            str = "not_configured"
+    kafka:            str = "not_configured"
 
 class UploadCvResponse(BaseModel):
     user_id: str
@@ -391,12 +398,38 @@ async def health_ready():
         "hybrid_retrieval": "FAISS+BM25+RRF",
         "circuit_breakers": breaker_status(),
         "active_prompts":   ACTIVE_VERSIONS,
+        "redis":            "ok" if redis_ping() else "unavailable",
+        "kafka":            "ok" if kafka_ping() else "unavailable",
     }
 
 
 @app.get("/health", tags=["Health"])
 def health():
     return {"status": "ok", "version": "3.0.0"}
+
+
+# ── Authentication ────────────────────────────────────────────────────────────
+
+@app.post("/auth/login", tags=["Auth"], response_model=TokenResponse)
+def auth_login(req: LoginRequest):
+    """
+    Login with user_id + password.
+    Returns a JWT access token (24h expiry by default).
+
+    Demo credentials:
+    - Admin: user_id="admin", password="admin123" (or JWT_SECRET env var)
+    - Any user: any user_id, password="bench123" (or DEFAULT_USER_PASSWORD env var)
+    """
+    token = login(req.user_id, req.password)
+    if token is None:
+        raise HTTPException(status_code=401, detail="Invalid user_id or password.")
+    return token
+
+
+@app.get("/auth/me", tags=["Auth"])
+def auth_me(claims=Depends(get_current_user)):
+    """Return the current authenticated user's claims."""
+    return {"user_id": claims.sub, "role": claims.role, "exp": claims.exp}
 
 
 # ── Observability ─────────────────────────────────────────────────────────────
@@ -481,7 +514,7 @@ async def _rebuild_indexes() -> int:
 
 
 @app.post("/admin/roles", tags=["Admin"], status_code=201)
-async def admin_create_role(req: CreateRoleRequest):
+async def admin_create_role(req: CreateRoleRequest, _claims=Depends(require_admin)):
     """
     Create a new role in SQLite. Triggers async FAISS + BM25 rebuild.
     Returns 409 if role_id already exists.
@@ -497,7 +530,7 @@ async def admin_create_role(req: CreateRoleRequest):
 
 
 @app.get("/admin/roles/{role_id}", tags=["Admin"])
-async def admin_get_role(role_id: str):
+async def admin_get_role(role_id: str, _claims=Depends(require_admin)):
     """Return a single role by ID."""
     role = await get_role_db(role_id)
     if not role:
@@ -506,7 +539,7 @@ async def admin_get_role(role_id: str):
 
 
 @app.put("/admin/roles/{role_id}", tags=["Admin"])
-async def admin_update_role(role_id: str, req: UpdateRoleRequest):
+async def admin_update_role(role_id: str, req: UpdateRoleRequest, _claims=Depends(require_admin)):
     """
     Partially update a role. Only supplied fields are changed.
     Triggers async FAISS + BM25 rebuild.
@@ -520,7 +553,7 @@ async def admin_update_role(role_id: str, req: UpdateRoleRequest):
 
 
 @app.delete("/admin/roles/{role_id}", tags=["Admin"])
-async def admin_delete_role(role_id: str):
+async def admin_delete_role(role_id: str, _claims=Depends(require_admin)):
     """
     Delete a role by ID. Triggers async FAISS + BM25 rebuild.
     Returns 404 if not found.
@@ -535,7 +568,7 @@ async def admin_delete_role(role_id: str):
 # ── CV Upload ─────────────────────────────────────────────────────────────────
 
 @app.post("/upload-cv", tags=["CV"], response_model=UploadCvResponse)
-async def upload_cv(request: Request, file: UploadFile = File(...)):
+async def upload_cv(request: Request, file: UploadFile = File(...), _claims=Depends(get_current_user)):
     """
     Upload PDF → inject detection → extract text → LLM parse (prompt v2) →
     validate → save to SQLite.
@@ -589,6 +622,15 @@ async def upload_cv(request: Request, file: UploadFile = File(...)):
                 prompt_tokens=usage["prompt_tokens"],
                 completion_tokens=usage["completion_tokens"])
 
+        # Publish event to Kafka — decoupled downstream consumers (analytics, notifications)
+        # Fire-and-forget: CV upload succeeds even if Kafka is unavailable
+        kafka_publish(
+            "KAFKA_CV_TOPIC", "cv.parsed",
+            {"user_id": user_id, "skills_count": len(parsed.get("skills", [])),
+             "experience_years": parsed.get("experience_years", 0)},
+            key=user_id,
+        )
+
         return {"user_id": user_id, "profile": parsed}
 
     except (GuardrailError, SecurityError) as e:
@@ -605,7 +647,7 @@ async def upload_cv(request: Request, file: UploadFile = File(...)):
 # ── Role Mapping ──────────────────────────────────────────────────────────────
 
 @app.post("/map-role", tags=["Role Mapping"])
-async def map_role_endpoint(request: Request, req: MapRoleRequest):
+async def map_role_endpoint(request: Request, req: MapRoleRequest, _claims=Depends(get_current_user)):
     """
     RAG role mapping pipeline (full production stack):
       HyDE → Hybrid retrieval (BM25+FAISS+RRF) → Cross-encoder rerank →
@@ -702,7 +744,7 @@ async def map_role_endpoint(request: Request, req: MapRoleRequest):
 # ── Plan Generation ───────────────────────────────────────────────────────────
 
 @app.post("/generate-plan", tags=["Planning"])
-async def generate_plan_endpoint(request: Request, req: GeneratePlanRequest):
+async def generate_plan_endpoint(request: Request, req: GeneratePlanRequest, _claims=Depends(get_current_user)):
     """Async two-phase plan generation with in-memory cache."""
     t_start = time.time()
     reset_tracker()
@@ -746,6 +788,15 @@ async def generate_plan_endpoint(request: Request, req: GeneratePlanRequest):
                 prompt_tokens=usage["prompt_tokens"],
                 completion_tokens=usage["completion_tokens"],
                 cache_hit=is_cache_hit)
+
+        # Publish plan-generated event for downstream consumers (manager dashboards, nudge service)
+        kafka_publish(
+            "KAFKA_PLAN_TOPIC", "plan.generated",
+            {"user_id": req.user_id, "target_role": req.target_role,
+             "total_days": plan.get("total_days", 0), "cache_hit": is_cache_hit},
+            key=req.user_id,
+        )
+
         return plan
 
     except HTTPException:
@@ -763,7 +814,7 @@ async def generate_plan_endpoint(request: Request, req: GeneratePlanRequest):
 # ── SSE Streaming Plan Generation (Module 5/7) ────────────────────────────────
 
 @app.post("/generate-plan/stream", tags=["Planning"])
-async def generate_plan_stream(request: Request, req: GeneratePlanRequest):
+async def generate_plan_stream(request: Request, req: GeneratePlanRequest, _claims=Depends(get_current_user)):
     """
     SSE streaming version of plan generation.
     Emits day-by-day results as they complete (parallel generation).
@@ -820,7 +871,7 @@ async def generate_plan_stream(request: Request, req: GeneratePlanRequest):
 # ── Progress ──────────────────────────────────────────────────────────────────
 
 @app.post("/update-progress", tags=["Progress"], response_model=ReadinessResponse)
-async def update_progress(request: Request, req: UpdateProgressRequest):
+async def update_progress(request: Request, req: UpdateProgressRequest, _claims=Depends(get_current_user)):
     """Pure Python — no LLM call. Returns instantly."""
     t_start = time.time()
     try:
@@ -864,7 +915,7 @@ async def update_progress(request: Request, req: UpdateProgressRequest):
 
 
 @app.get("/progress/{user_id}", tags=["Progress"])
-async def get_progress_endpoint(request: Request, user_id: str):
+async def get_progress_endpoint(request: Request, user_id: str, _claims=Depends(get_current_user)):
     t_start  = time.time()
     progress = await get_progress(user_id)
     if not progress:
@@ -879,7 +930,7 @@ async def get_progress_endpoint(request: Request, user_id: str):
 
 
 @app.get("/progress/{user_id}/history", tags=["Progress"], response_model=ProgressHistoryResponse)
-async def get_progress_history(request: Request, user_id: str, limit: int = 30):
+async def get_progress_history(request: Request, user_id: str, limit: int = 30, _claims=Depends(get_current_user)):
     """
     Phase 4: Return the readiness score time-series for a user.
     Sorted oldest-first so frontend can render a sparkline/trend chart directly.
@@ -895,7 +946,7 @@ async def get_progress_history(request: Request, user_id: str, limit: int = 30):
 # ── Memory inspection (Module 4) ─────────────────────────────────────────────
 
 @app.get("/memory/{user_id}", tags=["Memory"])
-async def get_memory_endpoint(request: Request, user_id: str):
+async def get_memory_endpoint(request: Request, user_id: str, _claims=Depends(get_current_user)):
     """
     Return full memory profile for a user: episodic sessions + long-term facts
     + rendered context string used in LLM prompts.
@@ -973,6 +1024,7 @@ async def admin_upload_resource(
     file: UploadFile = File(...),
     skill_tags: str = "",
     classification: str = "internal",
+    _claims=Depends(require_admin),
 ):
     """
     Upload a company-internal training document (PDF or .txt).
@@ -1052,7 +1104,7 @@ async def admin_upload_resource(
 
 
 @app.get("/admin/resources", tags=["Admin"])
-async def list_internal_resources():
+async def list_internal_resources(_claims=Depends(require_admin)):
     """
     List all indexed internal documents and the internal resource registry.
     Returns metadata only — no document content or chunk text.
