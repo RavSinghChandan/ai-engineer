@@ -28,13 +28,13 @@ import { AuthService } from './services/auth.service';
         </nav>
 
         <div class="user-area" *ngIf="auth.isLoggedIn()">
-          <div class="user-chip">
+          <a routerLink="/profile" class="user-chip" title="View my profile">
             <span class="user-avatar">{{ userInitial }}</span>
             <span class="user-id">{{ auth.currentUser()?.user_id }}</span>
             <span class="role-badge" [class.role-admin]="auth.isAdmin()">
               {{ auth.isAdmin() ? 'Admin' : 'User' }}
             </span>
-          </div>
+          </a>
           <button class="btn-logout" (click)="auth.logout()">Sign out</button>
         </div>
       </div>
@@ -122,6 +122,13 @@ import { AuthService } from './services/auth.service';
       border: 1px solid rgba(255,255,255,0.12);
       border-radius: 20px;
       padding: 4px 12px 4px 5px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .user-chip:hover {
+      background: rgba(255,255,255,0.15);
+      border-color: rgba(255,255,255,0.25);
     }
     .user-avatar {
       width: 26px; height: 26px;
