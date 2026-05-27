@@ -18,6 +18,7 @@ from pydantic import BaseModel
 
 _INSECURE_DEFAULTS = {
     "bench-resource-optimizer-secret-change-in-prod",
+    "bench-dev-secret-local",
     "changeme",
     "secret",
 }
