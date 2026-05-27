@@ -64,6 +64,7 @@ from memory.session_store import (
 from metrics.collector import RequestRecord, get_collector
 from middleware.logging_mw import RequestLoggingMiddleware, configure_logging
 from middleware.rate_limit import RateLimitMiddleware
+from middleware.security_headers import SecurityHeadersMiddleware
 from metrics.ragas_eval import evaluate as ragas_evaluate, get_ragas_store
 from rag.advanced_retrieval import init_bm25_from_roles, get_bm25_index
 from rag.knowledge_base import build_vector_store, get_all_roles, get_all_roles_async, get_embeddings
@@ -172,6 +173,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
 app.add_middleware(
