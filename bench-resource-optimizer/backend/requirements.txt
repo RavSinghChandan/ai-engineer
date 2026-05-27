@@ -18,3 +18,21 @@ PyPDF2==3.0.1
 
 # Async SQLite storage
 aiosqlite==0.20.0
+
+# Auth
+PyJWT==2.8.0
+
+# Redis (cache + session store)
+redis==5.0.6
+
+# Kafka (event streaming)
+kafka-python==2.0.2
+
+# YAML (docker config tests)
+pyyaml==6.0.1
+
+# Testing
+pytest==8.4.2
+pytest-asyncio==1.2.0
+pytest-cov==7.1.0
+anyio==4.12.1
