@@ -41,6 +41,8 @@ from pydantic import BaseModel
 
 # ── Internal imports ──────────────────────────────────────────────────────────
 from auth import LoginRequest, TokenResponse, get_current_user, login, require_admin
+from infra.redis_client import redis_get, redis_ping, redis_set
+from infra.kafka_producer import kafka_ping, publish as kafka_publish
 from agents.cv_parser_agent import parse_cv
 from agents.planning_agent import generate_plan
 from agents.role_mapping_agent import map_role
@@ -317,6 +319,8 @@ class HealthReadyResponse(BaseModel):
     hybrid_retrieval: str
     circuit_breakers: dict
     active_prompts:   dict
+    redis:            str = "not_configured"
+    kafka:            str = "not_configured"
 
 class UploadCvResponse(BaseModel):
     user_id: str
@@ -392,6 +396,8 @@ async def health_ready():
         "hybrid_retrieval": "FAISS+BM25+RRF",
         "circuit_breakers": breaker_status(),
         "active_prompts":   ACTIVE_VERSIONS,
+        "redis":            "ok" if redis_ping() else "unavailable",
+        "kafka":            "ok" if kafka_ping() else "unavailable",
     }
 
 
@@ -614,6 +620,15 @@ async def upload_cv(request: Request, file: UploadFile = File(...), _claims=Depe
                 prompt_tokens=usage["prompt_tokens"],
                 completion_tokens=usage["completion_tokens"])
 
+        # Publish event to Kafka — decoupled downstream consumers (analytics, notifications)
+        # Fire-and-forget: CV upload succeeds even if Kafka is unavailable
+        kafka_publish(
+            "KAFKA_CV_TOPIC", "cv.parsed",
+            {"user_id": user_id, "skills_count": len(parsed.get("skills", [])),
+             "experience_years": parsed.get("experience_years", 0)},
+            key=user_id,
+        )
+
         return {"user_id": user_id, "profile": parsed}
 
     except (GuardrailError, SecurityError) as e:
@@ -771,6 +786,15 @@ async def generate_plan_endpoint(request: Request, req: GeneratePlanRequest, _cl
                 prompt_tokens=usage["prompt_tokens"],
                 completion_tokens=usage["completion_tokens"],
                 cache_hit=is_cache_hit)
+
+        # Publish plan-generated event for downstream consumers (manager dashboards, nudge service)
+        kafka_publish(
+            "KAFKA_PLAN_TOPIC", "plan.generated",
+            {"user_id": req.user_id, "target_role": req.target_role,
+             "total_days": plan.get("total_days", 0), "cache_hit": is_cache_hit},
+            key=req.user_id,
+        )
+
         return plan
 
     except HTTPException:
