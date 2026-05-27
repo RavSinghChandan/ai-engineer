@@ -79,11 +79,26 @@ senior-ai-engineer/
 │   ├── 1.md     — Senior Answer Framework — How to Answer Like a 40-50 LPA Candidate
 │   └── 2.md     — Mind Map — Senior AI Engineer (Full System View)
 │
-└── 12-module/   — Java/Spring Bridge (YOUR UNIQUE DIFFERENTIATOR — NEW)
-    ├── 1.md     — Integrating LLM APIs into Spring Boot Microservices
-    ├── 2.md     — CI/CD for AI Systems — Model Versioning in Jenkins/GitHub Actions
-    ├── 3.md     — Cloud Deployment — AI on AWS/GCP (ECS, Cloud Run, SageMaker)
-    └── 4.md     — DevOps for AI — Dockerizing FastAPI + LLM Workers, K8s Considerations
+├── 12-module/   — Java/Spring Bridge (YOUR UNIQUE DIFFERENTIATOR — NEW)
+│   ├── 1.md     — Integrating LLM APIs into Spring Boot Microservices
+│   ├── 2.md     — CI/CD for AI Systems — Model Versioning in Jenkins/GitHub Actions
+│   ├── 3.md     — Cloud Deployment — AI on AWS/GCP (ECS, Cloud Run, SageMaker)
+│   └── 4.md     — DevOps for AI — Dockerizing FastAPI + LLM Workers, K8s Considerations
+│
+├── ai-engineer-architect-bible/   — 5 Universal AI Architecture Patterns (Production Code + Interview Cheat Sheets)
+│   ├── 01-plain-llm-application.md     — Golden Memory: Request → Prompt → LLM → Parse → Response
+│   ├── 02-rag-application.md           — Golden Memory: Document → Chunk → Embed → Store | Query → Embed → Retrieve → Context → LLM
+│   ├── 03-agent-tool-calling.md        — Golden Memory: Think → Tool → Result → Think → Answer
+│   ├── 04-memory-based-ai.md           — Golden Memory: Retrieve → Context Build → LLM → Store
+│   └── 05-streaming-and-async.md       — Golden Memory: Generate → Push Token → Repeat | Accept → Queue → Worker → Status
+│
+└── python-for-ai-engineering/   — 5-Phase Python curriculum (Java-anchored) + Revision
+    ├── phase-1-python-core-for-java-devs/         — 8 lessons: syntax, OOP, async, error handling
+    ├── phase-2-python-production-internals/        — 8 lessons: decorators, context managers, dataclasses, typing
+    ├── phase-3-python-ai-libraries/                — 8 lessons: NumPy, pandas, HuggingFace, OpenAI SDK, LangChain
+    ├── phase-4-ai-engineering-projects/            — 8 lessons: RAG pipelines, vector DBs, FastAPI, agents, streaming
+    ├── phase-5-senior-ai-architecture/             — 5 lessons: clean structure, DI, background jobs, caching, observability
+    └── revision-1/PYTHON-AI-ENGINEER-REVISION.md  — All 5 phases condensed: concept + Java anchor + code + interview line
 ```
 
 ---
@@ -115,9 +130,30 @@ senior-ai-engineer/
 
 ---
 
+## Bench Resource Optimizer — What You Actually Built (Live Evidence for Interviews)
+
+| What | Result | Where in Notes |
+|---|---|---|
+| 222-test enterprise suite — full stack | 222/222 passing, 3.6s runtime | Module 1, Module 6 |
+| Hybrid RAG: FAISS + BM25 + RRF + HyDE + CRAG + cross-encoder rerank | Live, verified | Module 3 |
+| G1–G5 Production guardrails: rate limit, injection, hallucination, PII, token budget | Live, all tested | Module 4, Module 5 |
+| JWT HS256 auth — role-based (admin/user), startup secret validation | Live, 24 auth tests | Module 5 |
+| Semantic cache L1 (exact hash) + L2 (cosine ≥ 0.92) with Redis | Live | Module 5 |
+| Episodic + long-term memory persisted to SQLite | Live, survives restart | Module 4 |
+| SSE streaming plan generation + Angular EventSource consumer | Live | Module 5, Module 7 |
+| Kafka event architecture: 3 topics + DLQ | Implemented | Module 7 |
+| Admin Role CRUD API + async FAISS/BM25 index rebuild on role change | Live, 15 role tests | Module 6 |
+| Readiness score time-series history — trend chart in dashboard | Live | Module 1 |
+
+**Project files:** `bench-resource-optimizer/` — see `SYSTEM_ARCHITECTURE.md` for full module coverage map
+
+---
+
 ## How to Use
 
 1. Read the corresponding senior file AFTER reading the basic file — they build on each other
 2. Module 12 is your competitive edge — no other candidate has this bridge
 3. In interviews, always anchor answers to your projects in Module 9
 4. Practice the Answer Framework in Module 11 before any interview
+5. **ai-engineer-architect-bible/** — memorize all 5 golden memories cold. When an interviewer asks "write a RAG system", you draw the architecture first, then the production code pattern
+6. **python-for-ai-engineering/** — use `revision-1/PYTHON-AI-ENGINEER-REVISION.md` as your 30-minute pre-interview refresher for all Python patterns
