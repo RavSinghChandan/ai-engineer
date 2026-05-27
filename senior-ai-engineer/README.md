@@ -12,78 +12,80 @@ You are NOT targeting AI Architect or Team Lead. You are targeting **Senior AI E
 ```
 senior-ai-engineer/
 │
-├── 01-module/   — AI + LLM Fundamentals (Senior Depth)
-│   ├── 1.md     — AI vs ML vs LLM (Production Framing)
-│   ├── 2.md     — Evaluation Metrics (Beyond Accuracy — Production KPIs)
-│   ├── 3.md     — Bias, Variance, Overfitting (Senior Context)
-│   ├── 4.md     — Hallucination — Root Cause, Detection, Mitigation at Scale
-│   └── 5.md     — Token Economics — Cost, Latency, Throughput (NEW — missing from basic)
+├── 01-ai-engineering-fundamentals/   — AI + LLM Fundamentals (Senior Depth)
+│   ├── ai-vs-ml-vs-llm-production-framing.md
+│   ├── evaluation-metrics-production-kpis.md
+│   ├── bias-variance-overfitting-senior.md
+│   ├── hallucination-root-cause-detection-mitigation.md
+│   └── token-economics-cost-latency-throughput.md
 │
-├── 02-module/   — LLM Core (Production-Grade)
-│   ├── 1.md     — Prompt Engineering at Scale (System Prompts, Few-Shot, Chain-of-Thought)
-│   ├── 2.md     — Context Window — Engineering Around Limits (Compression, Summary Memory)
-│   ├── 3.md     — Embeddings (Choosing Models, Drift, Refresh Strategy)
-│   ├── 4.md     — Vector Databases (FAISS vs Pinecone vs pgvector — When to Use What)
-│   └── 5.md     — LLM Security — Prompt Injection, Jailbreaks, Data Leakage (NEW — senior topic)
+├── 02-llm-core/   — LLM Core (Production-Grade)
+│   ├── prompt-engineering-at-scale.md
+│   ├── context-window-engineering-around-limits.md
+│   ├── embeddings-model-drift-refresh.md
+│   ├── vector-databases-faiss-pinecone-pgvector.md
+│   └── llm-security-injection-jailbreaks-leakage.md
 │
-├── 03-module/   — RAG Systems (Production-Grade)
-│   ├── 1.md     — RAG Pipeline — Full Architecture + Failure Modes
-│   ├── 2.md     — Chunking Strategies — Fixed, Semantic, Hierarchical (Trade-offs)
-│   ├── 3.md     — Retrieval Optimization — Hybrid Search, Reranking, MMR
-│   ├── 4.md     — RAG Evaluation — RAGAS Metrics, Precision@K, Recall (NEW)
-│   └── 5.md     — Advanced RAG Patterns — Self-RAG, Corrective RAG, HyDE (NEW — senior)
+├── 03-rag-systems/   — RAG Systems (Production-Grade)
+│   ├── rag-pipeline-architecture-failure-modes.md         ← BRO: CRAG quality gate, FAISS+BM25 hybrid
+│   ├── chunking-strategies-tradeoffs.md                   ← BRO: 512-token recursive chunks on CV text
+│   ├── retrieval-optimization-hybrid-reranking-mmr.md     ← BRO: real cross-encoder reranker implemented
+│   ├── rag-evaluation-ragas-precision-recall.md           ← BRO: RAGAS + LLM-as-judge per role mapping
+│   └── advanced-rag-self-rag-crag-hyde.md                 ← BRO: HyDE + CRAG + RRF fusion pipeline
 │
-├── 04-module/   — Agentic AI Systems (Senior Depth)
-│   ├── 1.md     — Agent vs Workflow — Design Decision Framework
-│   ├── 2.md     — Multi-Agent Orchestration — Supervisor, Peer, Hierarchical
-│   ├── 3.md     — Tool Usage / Function Calling — Reliability Patterns
-│   ├── 4.md     — Planning vs Execution — ReAct, Plan-and-Execute, Tree-of-Thought
-│   ├── 5.md     — Failure Handling, Guardrails, Fallback Design
-│   └── 6.md     — Agent State Management — Memory Types, Persistence (NEW — senior)
+├── 04-agentic-ai-systems/   — Agentic AI Systems (Senior Depth)
+│   ├── agent-vs-workflow-decision-framework.md            ← BRO: 4-agent pipeline (parser→mapper→planner→tracker)
+│   ├── multi-agent-orchestration-supervisor-peer-hierarchical.md  ← BRO: asyncio.gather for parallel day planning
+│   ├── tool-usage-function-calling-reliability.md         ← BRO: CV search + role lookup tools with auth
+│   ├── planning-vs-execution-react-plan-execute-tot.md    ← BRO: Plan-and-Execute for 30-day resource plan
+│   ├── failure-handling-guardrails-fallback.md            ← BRO: G1–G5 production guardrails (all implemented)
+│   └── agent-state-management-memory-persistence.md       ← BRO: write-through episodic memory to SQLite
 │
-├── 05-module/   — AI System Design (Senior Depth)
-│   ├── 1.md     — Chat with PDF at Scale — Full Production Design
-│   ├── 2.md     — RAG at Scale — Latency Budget, Caching, CDN, DB Design
-│   ├── 3.md     — Streaming Responses — SSE, WebSocket, Backpressure
-│   ├── 4.md     — Cost Optimization — Caching, Model Tiering, Prompt Compression
-│   └── 5.md     — AI API Gateway Design — Rate Limiting, Auth, Quota, Fallback (NEW)
+├── 05-ai-system-design/   — AI System Design (Senior Depth)
+│   ├── chat-with-pdf-at-scale-production-design.md
+│   ├── rag-at-scale-latency-budget-caching.md             ← BRO: L1/L2 semantic cache, DeepSeek TTFT
+│   ├── streaming-responses-sse-websocket.md               ← BRO: SSE plan generation + Angular EventSource
+│   ├── cost-optimization-llm-systems.md                   ← BRO: model tiering for gap analysis vs routing
+│   ├── ai-api-gateway-rate-limiting-quota-fallback.md     ← BRO: JWT auth + rate limit + circuit breaker chain
+│   └── api-gateway-rate-limiting-caching-routing.md
 │
-├── 06-module/   — MLOps for LLMs (Senior Depth)
-│   ├── 1.md     — Model Serving — FastAPI vs BentoML vs vLLM (When to Use What)
-│   ├── 2.md     — Monitoring — Latency, Drift, Hallucination Rate, Token Cost
-│   ├── 3.md     — Feedback Loops — RLHF Lite, Thumbs Up/Down → Fine-tune Pipeline (NEW)
-│   └── 4.md     — Versioning — Models, Prompts, Embeddings, Data Versioning
+├── 06-mlops-for-llms/   — MLOps for LLMs (Senior Depth)
+│   ├── model-serving-fastapi-bentoml-vllm.md              ← BRO: multi-stage Docker, non-root, K8s-ready
+│   ├── monitoring-latency-drift-hallucination-cost.md     ← BRO: CI/CD pipeline, pytest + ng build on every PR
+│   ├── feedback-loops-rlhf-lite-finetune-pipeline.md      ← BRO: LLM-as-judge automated feedback loop
+│   └── versioning-models-prompts-embeddings-data.md       ← BRO: Role CRUD + async FAISS/BM25 index rebuild
 │
-├── 07-module/   — Real-Time AI Systems (Senior Depth)
-│   ├── 1.md     — Event-Driven AI — Kafka + LLM Worker Pattern
-│   ├── 2.md     — Async LLM Workflows — Queue, Retry, Dead Letter, Idempotency
-│   └── 3.md     — Streaming Inference — Token Streaming, Partial Renders, SSE
+├── 07-real-time-ai-systems/   — Real-Time AI Systems (Senior Depth)
+│   ├── event-driven-pipelines-kafka-llm-worker.md         ← BRO: Kafka topics bench.cv.uploaded + bench.dlq
+│   ├── async-llm-workflows-queue-retry-dlq.md             ← BRO: async plan generation, 202 + poll pattern
+│   └── streaming-inference-token-streaming-sse.md         ← BRO: DeepSeek token stream → Angular Signal
 │
-├── 08-module/   — Frameworks & Tools (Senior Depth)
-│   ├── 1.md     — LangChain — When to Use, When to NOT Use, Escape Hatches
-│   ├── 2.md     — LangGraph — State Machines, Conditional Edges, Interrupt/Resume
-│   ├── 3.md     — FAISS vs pgvector vs Pinecone — Production Choice Framework
-│   └── 4.md     — OpenAI API — Retry Logic, Rate Limits, Fallback to Anthropic/Bedrock
+├── 08-frameworks-and-tools/   — Frameworks & Tools (Senior Depth)
+│   ├── langchain-when-to-use-escape-hatches.md
+│   ├── langgraph-state-machines-conditional-edges.md
+│   ├── faiss-vs-pgvector-vs-pinecone-production.md
+│   └── openai-api-retry-rate-limits-fallback.md
 │
-├── 09-module/   — Your Projects (Storytelling for Senior Role)
-│   ├── 1.md     — How to Tell Your AI Project Story (STAR + Architecture)
-│   └── 2.md     — Deep Dive Script — AstroIntel 360° / LangChain Service
+├── 09-projects-and-storytelling/   — Your Projects (Storytelling for Senior Role)
+│   ├── how-to-tell-your-ai-project-story.md
+│   ├── deep-dive-script-astrointel-langchain.md           ← AstroIntel + LangChain deep dive + Q&A
+│   └── deep-dive-script-bench-resource-optimizer.md       ← BRO: 3-level script + 20 Q&A + architecture
 │
-├── 10-module/   — Advanced Topics (Senior Awareness Layer)
-│   ├── 1.md     — Fine-tuning vs RAG — Decision Matrix (Not Just Theory)
-│   ├── 2.md     — LoRA / QLoRA — When Your Team Needs It
-│   ├── 3.md     — RLHF — How It Shaped GPT-4 (Conceptual Depth)
-│   └── 4.md     — Multi-Modal AI — Architecture When Vision/Audio Is in Play
+├── 10-advanced-topics/   — Advanced Topics (Senior Awareness Layer)
+│   ├── fine-tuning-vs-rag-decision-matrix.md
+│   ├── lora-qlora-when-your-team-needs-it.md
+│   ├── rlhf-how-it-shaped-gpt4.md
+│   └── multi-modal-ai-vision-text-architecture.md
 │
-├── 11-module/   — Interview Mastery (Senior AI Engineer Edition)
-│   ├── 1.md     — Senior Answer Framework — How to Answer Like a 40-50 LPA Candidate
-│   └── 2.md     — Mind Map — Senior AI Engineer (Full System View)
+├── 11-interview-mastery/   — Interview Mastery (Senior AI Engineer Edition)
+│   ├── senior-answer-framework-40-50-lpa.md
+│   └── mind-map-senior-ai-engineer-full-system.md
 │
-├── 12-module/   — Java/Spring Bridge (YOUR UNIQUE DIFFERENTIATOR — NEW)
-│   ├── 1.md     — Integrating LLM APIs into Spring Boot Microservices
-│   ├── 2.md     — CI/CD for AI Systems — Model Versioning in Jenkins/GitHub Actions
-│   ├── 3.md     — Cloud Deployment — AI on AWS/GCP (ECS, Cloud Run, SageMaker)
-│   └── 4.md     — DevOps for AI — Dockerizing FastAPI + LLM Workers, K8s Considerations
+├── 12-java-spring-bridge/   — Java/Spring Bridge (YOUR UNIQUE DIFFERENTIATOR)
+│   ├── llm-apis-into-spring-boot-microservices.md
+│   ├── cicd-for-ai-model-versioning-jenkins-github-actions.md
+│   ├── cloud-deployment-aws-gcp-ecs-cloud-run-sagemaker.md
+│   └── devops-for-ai-docker-fastapi-llm-workers-k8s.md
 │
 ├── ai-engineer-architect-bible/   — 5 Universal AI Architecture Patterns (Production Code + Interview Cheat Sheets)
 │   ├── 01-plain-llm-application.md     — Golden Memory: Request → Prompt → LLM → Parse → Response
