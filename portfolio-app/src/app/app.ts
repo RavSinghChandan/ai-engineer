@@ -97,7 +97,7 @@ export class App implements OnInit, AfterViewInit {
         { p: 'Non-technical users need to design agent pipelines visually', s: 'SVG drag-and-drop canvas with animated edges showing live agent data flow' },
         { p: 'Campaign memory must persist and be queryable across runs', s: 'JSON campaign store with similarity matching — retrieves closest past run on new execution' },
       ],
-      imgSrc: '',
+      imgSrc: 'project-agentic.png',
     },
   ];
 
