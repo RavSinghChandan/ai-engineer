@@ -112,6 +112,15 @@ class QuestionRemedy(BaseModel):
 
 
 # ── Approval ───────────────────────────────────────────────────────────────
+
+class EditedInsight(BaseModel):
+    """One insight that was manually corrected before approval."""
+    insight_id:     str
+    original_text:  str
+    corrected_text: str
+    reason_tag:     str = ""   # e.g. "tone", "wrong_remedy", "factual", "language"
+
+
 class ApprovalRequest(BaseModel):
     session_id: str
     approved_insight_ids: List[str]
@@ -119,6 +128,8 @@ class ApprovalRequest(BaseModel):
     brand_name: str = "{{BRAND_NAME}}"
     logo_url: str = "{{LOGO_URL}}"
     image_url: str = "{{IMAGE_URL}}"
+    # Optional: insights that were edited before approval → auto-logged to episodic memory
+    edited_insights: List[EditedInsight] = Field(default_factory=list)
 
 
 # ── Final report ───────────────────────────────────────────────────────────

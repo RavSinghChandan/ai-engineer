@@ -14,6 +14,8 @@ from pydantic import BaseModel
 
 from schemas import AnalysisRequest, ApprovalRequest
 from graph.pipeline import run_pipeline
+from memory.persona import build_chandan_context
+from memory.episodic import log_correction
 import agents.prompt_config as prompt_config
 from agents.report_agent import final_report_agent
 from agents.grammar_agent import correct_report
@@ -110,6 +112,12 @@ async def run_analysis(
     # ── Cache miss — run the full pipeline ────────────────────────────────────
     session_id = str(uuid.uuid4())
 
+    # Build Chandan's episodic context — top-K past corrections + persona prompt
+    chandan_preferences = build_chandan_context(
+        query=final_question or (extra_questions[0] if extra_questions else ""),
+        intent="general",
+    )
+
     initial_state: Dict[str, Any] = {
         "user_profile":        profile_dict,
         "user_question":       final_question,
@@ -128,6 +136,7 @@ async def run_analysis(
         "final_report":        {},
         "agent_log":           [],
         "errors":              [],
+        "chandan_preferences": chandan_preferences,   # episodic memory injection
     }
 
     reset_session_usage()
@@ -235,6 +244,31 @@ async def approve_and_generate(
     # Inject user_profile into memory so simplify_agent can personalise WHEN windows by birth month
     memory       = {**state.get("memory", {}), "user_profile": state.get("user_profile", {})}
     remedies     = state.get("remedies", {})
+
+    # ── Episodic memory: auto-log any edited insights before approval ─────────
+    if req.edited_insights:
+        original_question = state.get("user_question") or \
+            (state.get("questions") or ["general"])[0]
+        for edit in req.edited_insights:
+            if edit.original_text.strip() != edit.corrected_text.strip():
+                # Resolve intent from admin_review question matching
+                intent = "general"
+                for q_item in admin_review.get("questions", []):
+                    for ins in q_item.get("insights", []):
+                        if ins.get("id") == edit.insight_id:
+                            intent = q_item.get("intent", "general")
+                            break
+                try:
+                    log_correction(
+                        insight_id=edit.insight_id,
+                        original_text=edit.original_text,
+                        corrected_text=edit.corrected_text,
+                        intent=intent,
+                        query_type=original_question[:80],
+                        reason_tag=edit.reason_tag,
+                    )
+                except Exception:
+                    pass  # never block approval on memory write failure
 
     reset_session_usage()          # clear accumulator before report generation
     t_approve_start = time.time()

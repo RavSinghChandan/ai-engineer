@@ -211,6 +211,10 @@ def init_db() -> None:
             conn.executescript(_ddl())
     db_label = _DATABASE_URL.split("@")[-1] if _USE_PG else str(_SQLITE_DB_PATH)
     print(f"[DB] Schema ready ({'PostgreSQL' if _USE_PG else 'SQLite'}): {db_label}")
+    # Episodic memory tables (correction store + persona preferences)
+    from memory.episodic import init_episodic_tables
+    init_episodic_tables()
+    print("[DB] Episodic memory tables ready.")
 
 
 def migrate_from_json() -> None:
