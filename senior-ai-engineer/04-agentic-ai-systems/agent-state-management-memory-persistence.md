@@ -402,3 +402,108 @@ The write is fire-and-forget (`loop.create_task()`), not awaited. This means:
 - On restart: DB is the source of truth, in-memory is rebuilt from it
 
 The same trade-off exists in Redis + Postgres dual-write: you write to Redis (fast) and Postgres (durable). Bench uses SQLite as the durable store — same principle, SQLite-scale.
+
+---
+
+## LIVE IMPLEMENTATION — AstroIntel 360° Episodic Memory System (2025-05-28)
+
+This is the real production code that runs in `astro-intel-backend/`.
+
+### What was built
+
+**Problem:** Chandan reviews AI-generated spiritual insights and corrects them before approval. The system had no memory of these corrections — every new report repeated the same mistakes.
+
+**Solution:** A three-layer episodic memory system that logs every correction, retrieves similar past corrections at query time, and injects them into the LangGraph state before any agent runs.
+
+### File structure
+
+```
+astro-intel-backend/
+├── memory/
+│   ├── episodic.py    ← correction store + cosine similarity retrieval
+│   └── persona.py     ← static persona prompt + dynamic context builder
+├── routers/
+│   └── feedback.py    ← /api/v1/feedback/* — 7 ADMIN endpoints
+└── tests/
+    └── test_episodic_memory.py  ← 16 tests, all passing
+```
+
+### How it flows
+
+```
+/approve receives edited_insights[]
+    ↓
+log_correction() → SQLite episodic_corrections table
+  stores: original_text, corrected_text, intent, similarity_key (bag-of-words fingerprint)
+    ↓
+Next /run call:
+    ↓
+build_chandan_context(query, intent)
+  → retrieve_similar_corrections() — cosine similarity on bag-of-words fingerprint
+  → top-5 most relevant past corrections retrieved
+  → merged with static CHANDAN_PERSONA prompt
+    ↓
+chandan_preferences injected into LangGraph initial_state
+    ↓
+Every agent has Chandan's corrections and tone rules before it generates a single token
+```
+
+### Key code — correction retrieval (no external vector DB)
+
+```python
+# memory/episodic.py
+def _cosine(a: Counter, b: Counter) -> float:
+    dot = sum(a[k] * b.get(k, 0) for k in a)
+    mag_a = math.sqrt(sum(v * v for v in a.values()))
+    mag_b = math.sqrt(sum(v * v for v in b.values()))
+    return dot / (mag_a * mag_b) if mag_a and mag_b else 0.0
+
+def retrieve_similar_corrections(query, intent, top_k=5, min_score=0.12):
+    q_vec = Counter(_tokenise(query))
+    rows = conn.execute(
+        "SELECT ... FROM episodic_corrections WHERE intent=? OR intent='general'", (intent,)
+    ).fetchall()
+    scored = [(cosine(q_vec, parse_key(row["similarity_key"])), row) for row in rows]
+    return [format(row) for score, row in sorted(scored, reverse=True)[:top_k] if score >= min_score]
+```
+
+### Key code — LangGraph injection
+
+```python
+# routers/analysis.py — /run endpoint
+chandan_preferences = build_chandan_context(query=final_question, intent="general")
+
+initial_state = {
+    "user_profile":        profile_dict,
+    "user_question":       final_question,
+    # ... all existing state keys unchanged ...
+    "chandan_preferences": chandan_preferences,   # ← new key, non-breaking
+}
+```
+
+### Static persona prompt (excerpt)
+
+```
+TONE RULES (always apply):
+- Use grounded, precise language — no vague filler phrases
+- Avoid: "may", "might", "could possibly" when confidence is high
+- Prefer: direct declarative statements ("Saturn in your 10th house indicates...")
+- Each finding must connect cause → effect → practical action
+
+FORBIDDEN PATTERNS:
+- "The stars suggest you may want to consider..."  → too weak
+- Repeating "powerful" or "strong" more than once per section
+- Generic remedies without specifics: day, time, material, duration
+```
+
+### Senior interview talking point
+
+"In AstroIntel we implemented a human-in-the-loop episodic memory system. Every time the admin corrects an insight before approval, that correction is stored with a bag-of-words similarity fingerprint. At the start of the next pipeline run, we retrieve the top-5 most similar past corrections using cosine similarity — no external vector DB, pure SQLite. These corrections are injected into the LangGraph state as `chandan_preferences`, so every agent downstream receives them before generating output. This is Phase 1 of a three-phase fine-tuning roadmap: correct → log → retrieve → inject → (Phase 3) distil into a LoRA dataset and fine-tune Mistral-7B on Chandan's actual correction history."
+
+### The roadmap from here
+
+| Phase | When | What |
+|-------|------|------|
+| Phase 1 (live now) | 0–100 corrections | Log every correction. Persona prompt injection. Agents learn Chandan's tone immediately. |
+| Phase 2 | 100+ corrections | Run distillation script: use GPT-4/Claude to generate synthetic training pairs in Chandan's corrected style. Human review. Dataset ready. |
+| Phase 3 | 500+ corrections | LoRA fine-tune Mistral-7B on the correction dataset. Hosted privately. Nobody else sounds like Chandan. |

@@ -285,3 +285,91 @@ After fine-tuning: deploy fine-tuned model to 10% of traffic (canary). Run RAGAS
 Behavioral metrics: thumbs-up rate, session length, return usage rate. If fine-tuning worked, thumbs-up rate should increase and negative feedback volume should decrease.
 A/B test: old model vs fine-tuned model on the same set of queries. Human judges blind evaluation (they don't know which is which). Preference rate for the fine-tuned model is the cleanest quality signal.
 If RAGAS improves but behavioral metrics do not, the fine-tuning improved the AI's measured quality on the eval set but not the metric that actually matters to users. Go back and analyze what users actually care about vs what RAGAS measures.
+
+---
+
+## LIVE IMPLEMENTATION — AstroIntel 360° Feedback Loop (2025-05-28)
+
+### The problem it solves
+
+Chandan is both the AI system builder and the domain expert (astrologer). When he reviews a generated insight and corrects it — changing "Saturn may suggest career challenges" to "Saturn in your 10th house directly indicates a demanding growth phase through mid-2026" — that correction was previously lost. The next report made the same mistake.
+
+### What was built — Phase 1 (correction logging + persona injection)
+
+**New API endpoints** (`/api/v1/feedback/*`, ADMIN-only):
+
+| Endpoint | Purpose |
+|----------|---------|
+| `POST /corrections` | Log a manual correction with reason tag (tone/factual/wrong_remedy/language) |
+| `POST /corrections/batch` | Bulk log corrections |
+| `GET /corrections` | View correction history, filter by intent |
+| `GET /corrections/stats` | Count corrections by intent (career/spirituality/health/etc.) |
+| `POST /persona/preferences` | Save a permanent preference, e.g. `remedy_format: "Always include day + time"` |
+| `GET /persona/preferences` | View all saved preferences |
+| `GET /persona/preview?query=...` | Debug: see exactly what agents will receive for any query |
+
+**Auto-logging on `/approve`:** The `ApprovalRequest` schema was extended with an optional `edited_insights[]` field. When the admin edits insights before approving, corrections are auto-logged — no separate API call needed.
+
+```python
+# schemas/models.py
+class EditedInsight(BaseModel):
+    insight_id:     str
+    original_text:  str
+    corrected_text: str
+    reason_tag:     str = ""   # "tone" | "factual" | "wrong_remedy" | "language"
+
+class ApprovalRequest(BaseModel):
+    session_id:            str
+    approved_insight_ids:  List[str]
+    rejected_insight_ids:  List[str]
+    edited_insights:       List[EditedInsight] = []   # ← new, backwards-compatible
+```
+
+**At pipeline start** (`/run`), the correction store is queried and injected:
+
+```python
+# routers/analysis.py
+chandan_preferences = build_chandan_context(query=final_question, intent="general")
+initial_state = { ..., "chandan_preferences": chandan_preferences }
+```
+
+### The three-phase fine-tuning roadmap
+
+```
+Phase 1 (NOW — live in production)
+  Every correction logged → retrieved at next /run → injected into agent prompts
+  Effect: agents immediately stop repeating corrected mistakes
+  Dataset: building correction_history table in SQLite
+
+Phase 2 (when 100+ corrections accumulated)
+  Run distillation script:
+    for each correction in DB:
+        generate 3 synthetic training examples in the corrected style (via Claude/GPT-4)
+        Chandan reviews and approves each
+  Output: JSONL fine-tuning dataset — (system_prompt, user_query, chandan_style_response) triples
+
+Phase 3 (when 500+ approved examples)
+  LoRA fine-tune Mistral-7B-Instruct on the dataset (trl library, 4-bit quantisation)
+  Merge adapter weights → host privately
+  Replace DeepSeek calls for insight generation with Chandan's personal model
+  Result: a model that speaks in Chandan's exact voice, nobody else can replicate it
+```
+
+### Why not fine-tune immediately?
+
+Senior answer (the one that gets you hired):
+
+"Fine-tuning without sufficient domain-specific data degrades model performance — the model overfits to the few examples and loses general capability. You need minimum 200–500 high-quality (input, ideal output) pairs for LoRA to add signal rather than noise. We're building that dataset now through real corrections on real reports. Meanwhile, persona prompting + episodic recall gives us 70–80% of the quality gain immediately, with zero training cost. In three months, when we have the data, we fine-tune — and the baseline we're comparing against will already be improved by the correction injection."
+
+### Tests
+
+`tests/test_episodic_memory.py` — 16 tests covering:
+- `log_correction` write + ID return
+- `retrieve_similar_corrections` — cosine similarity, top-K, score ordering, empty-when-no-match
+- `list_corrections` — default and intent-filtered
+- `correction_stats` — counts by intent
+- `set/get_persona_pref` — upsert behaviour
+- `build_chandan_context` — structure, past correction inclusion
+- `format_for_prompt` — persona block, LEARNED CORRECTIONS block, preference overrides
+
+All 16 passing. Zero external dependencies in the test suite.

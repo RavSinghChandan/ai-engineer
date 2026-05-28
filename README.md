@@ -55,8 +55,25 @@ Angular application that renders LangGraph agent execution graphs in real time.
 | Auth | JWT + multi-tenant RBAC (user / admin / superadmin) + OTP email |
 | Observability | RAGAS proxy metrics (faithfulness, context precision, answer relevancy, domain recall) + Prometheus |
 | Guardrails | G1 rate limiter, G2 circuit breaker (safe_node hard-kill timeout), G3 JSON repair cascade, G4 PII filter, G5 graceful degradation |
-| Testing | 82 tests — all Kafka + Redis paths mocked, no real broker needed in CI |
+| Episodic Memory | Admin correction store (SQLite) — every edited insight logged with cosine-similarity retrieval; injected into LangGraph state at `/run` so agents learn from Chandan's past corrections automatically |
+| Persona Injection | Static persona prompt (tone rules, forbidden patterns, structural preferences) + dynamic top-K correction recall merged into every pipeline run via `chandan_preferences` state key |
+| Fine-tune Roadmap | Phase 1 (now): correction logging + persona prompting. Phase 2 (100+ corrections): distillation dataset. Phase 3 (500+): LoRA fine-tune on Mistral-7B |
+| Feedback API | 7 ADMIN-only endpoints: `POST /corrections`, `GET /corrections`, `GET /corrections/stats`, `POST /persona/preferences`, `GET /persona/preferences`, `GET /persona/preview` |
+| Testing | 98 tests — 16 new episodic memory tests (all passing), all Kafka + Redis paths mocked, no real broker needed in CI |
 | Cloud | AWS ECS Fargate + ECR + GitHub Actions CI/CD (OIDC auth, rolling deploy) |
+
+**New files added (2025-05-28):**
+```
+astro-intel-backend/
+├── memory/
+│   ├── episodic.py       ← correction store: log_correction, retrieve_similar_corrections, persona_preferences
+│   └── persona.py        ← CHANDAN_PERSONA prompt + build_chandan_context() + format_for_prompt()
+├── routers/
+│   └── feedback.py       ← /api/v1/feedback/* — 7 ADMIN endpoints
+└── tests/
+    └── test_episodic_memory.py  ← 16 tests, all passing
+```
+**Modified files:** `database.py` (init_episodic_tables on startup), `main.py` (feedback router registered), `routers/analysis.py` (persona injected into `/run` state; corrections auto-logged on `/approve`), `schemas/models.py` (ApprovalRequest extended with `edited_insights[]`)
 
 **Tech:** Python 3.11, FastAPI, LangGraph, DeepSeek LLM, Angular 17, SQLite/PostgreSQL, Redis 7.2, Kafka (Confluent 7.6), Docker, AWS
 

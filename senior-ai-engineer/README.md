@@ -39,7 +39,7 @@ senior-ai-engineer/
 │   ├── tool-usage-function-calling-reliability.md         ← BRO: CV search + role lookup tools with auth
 │   ├── planning-vs-execution-react-plan-execute-tot.md    ← BRO: Plan-and-Execute for 30-day resource plan
 │   ├── failure-handling-guardrails-fallback.md            ← BRO: G1–G5 production guardrails (all implemented)
-│   └── agent-state-management-memory-persistence.md       ← BRO: write-through episodic memory to SQLite
+│   └── agent-state-management-memory-persistence.md       ← AURA: episodic correction store (SQLite) + persona injection into LangGraph state
 │
 ├── 05-ai-system-design/   — AI System Design (Senior Depth)
 │   ├── chat-with-pdf-at-scale-production-design.md
@@ -52,7 +52,7 @@ senior-ai-engineer/
 ├── 06-mlops-for-llms/   — MLOps for LLMs (Senior Depth)
 │   ├── model-serving-fastapi-bentoml-vllm.md              ← BRO: multi-stage Docker, non-root, K8s-ready
 │   ├── monitoring-latency-drift-hallucination-cost.md     ← BRO: CI/CD pipeline, pytest + ng build on every PR
-│   ├── feedback-loops-rlhf-lite-finetune-pipeline.md      ← BRO: LLM-as-judge automated feedback loop
+│   ├── feedback-loops-rlhf-lite-finetune-pipeline.md      ← AURA: human-in-the-loop correction logging → episodic memory → Phase 3 LoRA fine-tune roadmap
 │   └── versioning-models-prompts-embeddings-data.md       ← BRO: Role CRUD + async FAISS/BM25 index rebuild
 │
 ├── 07-real-time-ai-systems/   — Real-Time AI Systems (Senior Depth)

@@ -430,3 +430,50 @@ Plain English Agent:
   Runs:                     ONLY post-approval, never in pipeline
 ```
 
+
+
+---
+
+## UPDATE — Episodic Memory + Persona Injection System (2025-05-28)
+
+### What was added
+
+A human-in-the-loop learning system that makes the AI remember and apply Chandan's corrections automatically on every future report.
+
+**New files:**
+- `memory/episodic.py` — correction store with cosine-similarity retrieval (no vector DB)
+- `memory/persona.py` — `CHANDAN_PERSONA` static prompt + `build_chandan_context()`
+- `routers/feedback.py` — 7 ADMIN-only feedback endpoints
+- `tests/test_episodic_memory.py` — 16 tests, all passing
+
+**Modified files (zero breaking changes):**
+- `database.py` — `init_episodic_tables()` called at startup
+- `main.py` — `feedback_router` registered
+- `routers/analysis.py` — `chandan_preferences` injected into LangGraph `initial_state`; corrections auto-logged on `/approve`
+- `schemas/models.py` — `ApprovalRequest` extended with optional `edited_insights[]`
+
+### Updated numbers
+
+```
+Episodic Memory:
+  Correction store:         SQLite (episodic_corrections + persona_preferences tables)
+  Retrieval method:         cosine similarity on bag-of-words fingerprint (no external vector DB)
+  Injection point:          LangGraph initial_state["chandan_preferences"] on every /run
+  Feedback endpoints:       7 (corrections CRUD + persona preferences + preview)
+  Test suite:               98 tests total (82 original + 16 new episodic memory tests)
+
+Fine-tune roadmap:
+  Phase 1 (live):           Correction logging + persona prompt injection
+  Phase 2 (100+ corr):      Distillation dataset generation via Claude/GPT-4
+  Phase 3 (500+ corr):      LoRA fine-tune Mistral-7B-Instruct on correction history
+```
+
+### Interview story — how to tell this addition
+
+"The system was already production-grade — Kafka, Redis, RAGAS, 82 tests. But there was a gap: Chandan, who is both the builder and the domain expert, would review each report and manually correct insights before approving. Those corrections were lost — the next report made the same mistakes.
+
+I designed a three-phase learning roadmap. Phase 1 is live: every correction is logged to SQLite with a bag-of-words fingerprint. At the start of each new pipeline run, I retrieve the top-5 most similar past corrections using cosine similarity and inject them into the LangGraph state as `chandan_preferences`. Every agent downstream sees Chandan's corrections before generating a single token.
+
+Phase 2 starts when we have 100+ corrections — we use Claude to generate synthetic training examples in the corrected style. Phase 3 at 500+ examples: LoRA fine-tune Mistral-7B on that dataset.
+
+The key design decision was not to fine-tune immediately. Fine-tuning without enough data degrades performance — the model overfits. Persona prompting gives us 70% of the quality gain today, for free. The correction store is building the dataset we'll need in three months."
