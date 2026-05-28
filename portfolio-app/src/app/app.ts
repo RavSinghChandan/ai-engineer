@@ -13,6 +13,10 @@ export class App implements OnInit, AfterViewInit {
   theme = signal<'dark' | 'light'>('dark');
   typedText = signal('');
   scrolled = signal(false);
+  mobileNavOpen = signal(false);
+
+  toggleMobileNav() { this.mobileNavOpen.update(v => !v); }
+  closeMobileNav() { this.mobileNavOpen.set(false); }
 
   // PDF resume — user to replace with actual hosted PDF URL
   readonly RESUME_PDF = 'AI_Engineer_Chandan_Kumar_4_Yrs.pdf';
