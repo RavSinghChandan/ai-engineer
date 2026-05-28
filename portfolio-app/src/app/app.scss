@@ -218,7 +218,20 @@ h1 {
 .present-badge { font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 999px; background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
 .tl-role { font-size: 0.8rem; color: var(--text3); }
 .tl-period { font-size: 0.75rem; color: var(--text3); font-family: 'Fira Code', monospace; flex-shrink: 0; }
+.tl-content-row {
+  display: grid; grid-template-columns: 1fr 200px; gap: 1.5rem; align-items: center;
+  @media (max-width: 700px) { grid-template-columns: 1fr; }
+}
 .tl-points { margin: 0; padding-left: 1rem; display: flex; flex-direction: column; gap: 0.3rem; li { font-size: 0.87rem; color: var(--text2); } }
+
+/* City skyline art */
+.tl-city { display: flex; align-items: flex-end; justify-content: center; opacity: 0.85; }
+.city-svg {
+  width: 100%; height: 80px; color: var(--purple-lt);
+  @media (max-width: 700px) { display: none; }
+}
+.city-svg-edu { height: 70px; color: var(--purple-lt); opacity: 0.75; margin-top: 0.75rem; width: 100%; max-width: 300px; }
+.edu-city { margin-top: 0.5rem; }
 
 /* Education card */
 .edu-card {
