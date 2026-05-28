@@ -29,12 +29,12 @@ export class MetricsPage implements OnInit, OnDestroy {
   // Per-section refresh loading states
   secLoading: Record<string, boolean> = {
     latency: false, quality: false, hallucination: false,
-    tokens: false, ops: false, agents: false, runs: false, cache: false, guardrails: false, ragas: false
+    tokens: false, ops: false, agents: false, runs: false, cache: false, guardrails: false, ragas: false, episodic: false
   };
 
   refreshSection(section: string) {
     this.secLoading[section] = true;
-    if (['latency','quality','hallucination','tokens','ops','agents','runs'].includes(section)) {
+    if (['latency','quality','hallucination','tokens','ops','agents','runs','episodic'].includes(section)) {
       this.api.getMetrics().subscribe({
         next: (d) => { this.metrics.set(d); this.secLoading[section] = false; },
         error: ()  => { this.secLoading[section] = false; },

@@ -1033,6 +1033,89 @@
 
     </div><!-- gr-section -->
 
+    <!-- ══ EPISODIC MEMORY PANEL ═══════════════════════════════════════════ -->
+    @if (metrics()?.episodic_memory) {
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">🧠</span>
+        <span class="section-title">Episodic Memory & Persona Injection</span>
+        <span class="section-badge">Multi-tenant · Per-tenant correction recall · Fine-tune Phase 1</span>
+        <button class="refresh-btn" [class.spinning]="secLoading['episodic']" [disabled]="secLoading['episodic']" (click)="refreshSection('episodic')">
+          <span class="refresh-icon">↻</span> Refresh
+        </button>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi-card kpi-accent">
+          <div class="kpi-label">Persona Injection Rate</div>
+          <div class="kpi-value" [class.kpi-warn]="metrics().episodic_memory.persona_injection_rate_pct < 80">
+            {{ metrics().episodic_memory.persona_injection_rate_pct }}%
+          </div>
+          <div class="kpi-note">Runs where tenant persona context was injected into LLM prompts</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Corrections Logged</div>
+          <div class="kpi-value">{{ metrics().episodic_memory.total_corrections_logged }}</div>
+          <div class="kpi-note">Total admin corrections stored across all tenants</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Avg Corrections Recalled</div>
+          <div class="kpi-value">{{ metrics().episodic_memory.avg_corrections_recalled_per_run }}</div>
+          <div class="kpi-note">Top-K similar corrections injected per pipeline run</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Persona Context Size</div>
+          <div class="kpi-value">{{ metrics().episodic_memory.avg_persona_context_chars }}</div>
+          <div class="kpi-note">Avg chars prepended to LLM system prompt per run</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Runs with Persona</div>
+          <div class="kpi-value">{{ metrics().episodic_memory.runs_with_persona }}</div>
+          <div class="kpi-note">Pipeline executions with active tenant persona context</div>
+        </div>
+      </div>
+
+      <!-- Phase progress -->
+      <div class="panel" style="padding:16px 20px">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <div style="flex:1;min-width:200px">
+            <div class="panel-inner-title" style="margin-bottom:6px">Fine-tune Roadmap</div>
+            <div style="font-size:12px;color:var(--text-2)">{{ metrics().episodic_memory.phase }}</div>
+          </div>
+          <div style="display:flex;gap:16px;align-items:center;flex-shrink:0">
+            <div style="text-align:center">
+              <div style="font-size:20px;font-weight:700;color:var(--accent)">{{ metrics().episodic_memory.total_corrections_logged }}</div>
+              <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em">Logged</div>
+            </div>
+            <div style="font-size:18px;color:var(--text-3)">→</div>
+            <div style="text-align:center">
+              <div style="font-size:20px;font-weight:700;color:var(--text-2)">{{ metrics().episodic_memory.next_phase_at }}</div>
+              <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em">Phase 2 threshold</div>
+            </div>
+          </div>
+        </div>
+        <!-- Progress bar toward next phase -->
+        <div style="margin-top:12px">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-3);margin-bottom:4px">
+            <span>Progress to Phase 2 (distillation dataset)</span>
+            <span>{{ metrics().episodic_memory.corrections_until_next_phase }} corrections remaining</span>
+          </div>
+          <div class="conf-track" style="height:8px;border-radius:4px">
+            <div class="conf-fill fill-high"
+              [style.width.%]="(metrics().episodic_memory.total_corrections_logged / metrics().episodic_memory.next_phase_at) * 100"
+              style="border-radius:4px">
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+          <span class="ex-chip ex-chip-purple">Phase 1 — correction logging + persona injection</span>
+          <span class="ex-chip ex-chip-blue">Phase 2 — distillation dataset (at {{ metrics().episodic_memory.next_phase_at }} corrections)</span>
+          <span class="ex-chip ex-chip-green">Phase 3 — LoRA fine-tune on Mistral-7B</span>
+        </div>
+      </div>
+    </div>
+    }
+
     <!-- ══ RAGAS EVALUATION PANEL ══════════════════════════════════════════ -->
     <div class="ragas-section">
       <div class="section-header">
