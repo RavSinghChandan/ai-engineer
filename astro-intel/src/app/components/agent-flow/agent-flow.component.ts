@@ -28,21 +28,22 @@ interface GEdge { from: string; to: string; label?: string; dashed?: boolean; }
 const W = 820;
 const CX = W / 2;
 
-/* Y positions — 10 LangGraph nodes + input layer + post-approve section */
+/* Y positions — 11 LangGraph nodes + episodic memory + input layer + post-approve section */
 const Y_INPUT   =   70;
-const Y_SEC     =  205;   // Node 0: security_check
-const Y_NODE1   =  360;   // Node 1: question_agent
-const Y_NODE2   =  540;   // Node 2: domain_agents (parallel fan-out)
-const Y_NODE3   =  720;   // Node 3: meta_agent
-const Y_NODE3B  =  860;   // Node 3.5: hallucination_check  ← NEW
-const Y_NODE4   = 1005;   // Node 4: remedy_agent
-const Y_NODE5   = 1150;   // Node 5: admin_review_agent
-const Y_NODE5B  = 1295;   // Node 5.5: grammar_agent         ← NEW
-const Y_NODE6A  = 1450;   // Post-approve: report_agent
-const Y_NODE6B  = 1450;   // Post-approve: simplify_agent
-const Y_NODE7   = 1600;   // Post-approve: translation_agent
-const Y_OUT     = 1740;   // END
-const Y_FEAT    = 1840;   // Feature badges strip
+const Y_PERSONA =  160;   // Node -1: persona_injection (episodic memory recall)  ← NEW
+const Y_SEC     =  310;   // Node 0: security_check
+const Y_NODE1   =  465;   // Node 1: question_agent
+const Y_NODE2   =  645;   // Node 2: domain_agents (parallel fan-out)
+const Y_NODE3   =  825;   // Node 3: meta_agent
+const Y_NODE3B  =  965;   // Node 3.5: hallucination_check
+const Y_NODE4   = 1110;   // Node 4: remedy_agent
+const Y_NODE5   = 1255;   // Node 5: admin_review_agent
+const Y_NODE5B  = 1400;   // Node 5.5: grammar_agent
+const Y_NODE6A  = 1555;   // Post-approve: report_agent
+const Y_NODE6B  = 1555;   // Post-approve: simplify_agent
+const Y_NODE7   = 1705;   // Post-approve: translation_agent
+const Y_OUT     = 1845;   // END
+const Y_FEAT    = 1945;   // Feature badges strip
 
 const H = Y_FEAT + 120;
 
@@ -54,6 +55,10 @@ const NODES: GNode[] = [
   { id: 'inp-profile',  label: 'User Profile',  sub: 'Name · DOB · Time · Place',    icon: '👤', stepIds: [], color: '#6366f1', x: CX - 200, y: Y_INPUT, r: 36 },
   { id: 'inp-question', label: 'Questions',      sub: 'Topic · Intent · Focus',       icon: '💬', stepIds: [], color: '#6366f1', x: CX,       y: Y_INPUT, r: 36 },
   { id: 'inp-prompt',   label: 'Prompt Style',   sub: 'v1 Warm · v2 Laser-Sharp',     icon: '⚡', stepIds: [], color: '#818cf8', x: CX + 200, y: Y_INPUT, r: 36 },
+
+  /* ── Node -1 — persona_injection (EPISODIC MEMORY) ── */
+  { id: 'persona', label: 'Persona Injection', sub: 'Episodic recall · Top-K corrections · Tone rules', icon: '🧬',
+    stepIds: ['persona'], color: '#0891b2', x: CX, y: Y_PERSONA, r: 42 },
 
   /* ── Node 0 — security_check ──────────────────────── */
   { id: 'security', label: 'Security Check', sub: 'Inject · Jailbreak · Leak · Audit', icon: '🛡',
@@ -106,10 +111,12 @@ const NODES: GNode[] = [
 ];
 
 const EDGES: GEdge[] = [
-  /* inputs → security_check */
-  { from: 'inp-profile',  to: 'security' },
-  { from: 'inp-question', to: 'security' },
-  { from: 'inp-prompt',   to: 'security', label: 'prompt_v' },
+  /* inputs → persona_injection (episodic memory lookup runs first) */
+  { from: 'inp-profile',  to: 'persona' },
+  { from: 'inp-question', to: 'persona', label: 'query' },
+  { from: 'inp-prompt',   to: 'persona', label: 'prompt_v' },
+  /* persona_injection → security_check (chandan_preferences injected into state) */
+  { from: 'persona', to: 'security', label: 'chandan_prefs' },
   /* security_check → question_agent */
   { from: 'security', to: 'q', label: 'validated' },
   /* question_agent → all 5 domain agents (parallel) */
@@ -146,16 +153,18 @@ interface FeatureBadge {
   desc: string; color: string; disabledColor: string;
 }
 const FEATURE_BADGES: FeatureBadge[] = [
-  { key: 'reranker',      label: 'CrossEncoder',    icon: '🎯', desc: 'RAG Reranking',   color: '#f59e0b', disabledColor: '#94a3b8' },
-  { key: 'semantic',      label: 'Semantic Cache',  icon: '🧬', desc: 'Cosine Sim',      color: '#8b5cf6', disabledColor: '#94a3b8' },
-  { key: 'redis',         label: 'Redis Cache',     icon: '⚡', desc: 'Distributed',     color: '#ef4444', disabledColor: '#94a3b8' },
-  { key: 'kafka',         label: 'Kafka Async',     icon: '📨', desc: 'Job Queue',        color: '#10b981', disabledColor: '#94a3b8' },
-  { key: 'ragas',         label: 'RAGAS Eval',      icon: '📊', desc: 'Quality Scores',  color: '#6366f1', disabledColor: '#94a3b8' },
-  { key: 'prometheus',    label: 'Prometheus',      icon: '🔥', desc: 'Metrics Export',  color: '#dc2626', disabledColor: '#94a3b8' },
+  { key: 'episodic',      label: 'Episodic Memory', icon: '🧬', desc: 'Learns corrections', color: '#0891b2', disabledColor: '#94a3b8' },
+  { key: 'reranker',      label: 'CrossEncoder',    icon: '🎯', desc: 'RAG Reranking',       color: '#f59e0b', disabledColor: '#94a3b8' },
+  { key: 'semantic',      label: 'Semantic Cache',  icon: '💡', desc: 'Cosine Sim',           color: '#8b5cf6', disabledColor: '#94a3b8' },
+  { key: 'redis',         label: 'Redis Cache',     icon: '⚡', desc: 'Distributed',          color: '#ef4444', disabledColor: '#94a3b8' },
+  { key: 'kafka',         label: 'Kafka Async',     icon: '📨', desc: 'Job Queue',             color: '#10b981', disabledColor: '#94a3b8' },
+  { key: 'ragas',         label: 'RAGAS Eval',      icon: '📊', desc: 'Quality Scores',       color: '#6366f1', disabledColor: '#94a3b8' },
+  { key: 'prometheus',    label: 'Prometheus',      icon: '🔥', desc: 'Metrics Export',       color: '#dc2626', disabledColor: '#94a3b8' },
 ];
 
 /* Backend node labels in execution order (for the live ticker) */
 const PIPELINE_STEPS: { id: string; label: string }[] = [
+  { id: 'persona',       label: 'Node -1 · Persona Injection — episodic memory recall: top-K past corrections injected into LangGraph state' },
   { id: 'security',      label: 'Node 0 · Security Check — injection detection, jailbreak guard, audit logging (Layer 1–4)' },
   { id: 'question',      label: 'Node 1 · Question Agent — Multi-Query RAG: 2 variants → best-confidence intent classification' },
   { id: 'domain',        label: 'Node 2 · Domain Agents — Astrology · Numerology · Palmistry · Tarot · Vastu running in parallel' },
@@ -681,7 +690,7 @@ export class AgentFlowComponent implements OnInit, OnDestroy {
 
   /* Feature enabled states — fetched from backend metrics */
   readonly featureStates = signal<Record<string, boolean>>({
-    reranker: false, semantic: false, redis: false,
+    episodic: true, reranker: false, semantic: false, redis: false,
     kafka: false, ragas: false, prometheus: true,
   });
 
@@ -698,6 +707,7 @@ export class AgentFlowComponent implements OnInit, OnDestroy {
   readonly FEATURE_BADGES = FEATURE_BADGES;
   readonly W = W;
   readonly H = H;
+  readonly Y_PERSONA = Y_PERSONA;
   readonly Y_SEC    = Y_SEC;
   readonly Y_NODE1  = Y_NODE1;
   readonly Y_NODE2  = Y_NODE2;
@@ -720,6 +730,7 @@ export class AgentFlowComponent implements OnInit, OnDestroy {
       jobStats: this.api.getJobStats().pipe(catchError(() => of(null))),
     }).subscribe(({ metrics, jobStats }) => {
       const states: Record<string, boolean> = {
+        episodic:   (metrics?.episodic_memory?.total_corrections ?? 0) >= 0, /* always wired — live from day 1 */
         reranker:   false,
         semantic:   metrics?.semantic_cache?.enabled  ?? false,
         redis:      metrics?.redis_cache?.enabled     ?? false,
@@ -738,7 +749,7 @@ export class AgentFlowComponent implements OnInit, OnDestroy {
   /* Feature badge x-position: 6 badges evenly spaced across W=820 */
   featPos(i: number): { x: number; bgFill: string } {
     const badge = FEATURE_BADGES[i];
-    const cols = 6;
+    const cols = 7;
     const step = W / cols;
     const x = step * i + step / 2;
     const on = this.featureStates()[badge.key] ?? false;
@@ -765,16 +776,17 @@ export class AgentFlowComponent implements OnInit, OnDestroy {
 
     // Map individual step ID → pipeline stage label
     const id = running.id;
-    if (id === 'security') return PIPELINE_STEPS[0].label;
-    if (id === 'question') return PIPELINE_STEPS[1].label;
+    if (id === 'persona')   return PIPELINE_STEPS[0].label;
+    if (id === 'security')  return PIPELINE_STEPS[1].label;
+    if (id === 'question')  return PIPELINE_STEPS[2].label;
     if (id.startsWith('astro') || id.startsWith('num') || id.startsWith('palm') || id.startsWith('tarot') || id.startsWith('vastu'))
-      return PIPELINE_STEPS[2].label;
-    if (id === 'meta')      return PIPELINE_STEPS[3].label;
-    if (id === 'remedy')    return PIPELINE_STEPS[4].label;
-    if (id === 'admin')     return PIPELINE_STEPS[5].label;
-    if (id === 'report')    return PIPELINE_STEPS[6].label;
-    if (id === 'simplify')  return PIPELINE_STEPS[7].label;
-    if (id === 'translate') return PIPELINE_STEPS[8].label;
+      return PIPELINE_STEPS[3].label;
+    if (id === 'meta')      return PIPELINE_STEPS[4].label;
+    if (id === 'remedy')    return PIPELINE_STEPS[5].label;
+    if (id === 'admin')     return PIPELINE_STEPS[6].label;
+    if (id === 'report')    return PIPELINE_STEPS[7].label;
+    if (id === 'simplify')  return PIPELINE_STEPS[8].label;
+    if (id === 'translate') return PIPELINE_STEPS[9].label;
     return `Running: ${running.label}`;
   });
 

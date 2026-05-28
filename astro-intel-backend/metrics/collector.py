@@ -37,6 +37,62 @@ from typing import Any, Dict, List, Optional
 _COST_PER_1K_TOKENS = 0.000165  # USD — $0.15/1M input + $0.60/1M output blended
 
 
+def _compute_episodic_metrics(runs: list) -> dict:
+    """
+    Episodic memory metrics — aggregated across the rolling window.
+
+    corrections_recalled:
+      How many past corrections the persona injector retrieved and injected
+      into the LangGraph state on average.  Higher = richer correction history.
+
+    persona_injection_rate:
+      % of runs where chandan_preferences was present in state.
+      Should be 100% once the system is running normally.
+
+    avg_persona_context_chars:
+      Average size of the persona prompt block (static persona + recalled corrections).
+      Grows as the correction store fills up.
+
+    total_corrections_db:
+      Live count from the episodic_corrections table — pulled fresh each dashboard call.
+    """
+    n = max(len(runs), 1)
+    runs_with_persona = [r for r in runs if getattr(r, 'has_persona_injection', False)]
+    avg_recalled = round(
+        sum(getattr(r, 'corrections_recalled', 0) for r in runs) / n, 2
+    )
+    avg_chars = round(
+        sum(getattr(r, 'persona_context_chars', 0) for r in runs_with_persona)
+        / max(len(runs_with_persona), 1)
+    )
+    injection_rate = round(len(runs_with_persona) / n * 100, 1)
+
+    # Pull live total from DB (non-blocking — returns 0 on any error)
+    total_db = 0
+    try:
+        from memory.episodic import correction_stats
+        total_db = correction_stats().get("total_corrections", 0)
+    except Exception:
+        pass
+
+    return {
+        "total_corrections_logged": total_db,
+        "avg_corrections_recalled_per_run": avg_recalled,
+        "persona_injection_rate_pct": injection_rate,
+        "avg_persona_context_chars": avg_chars,
+        "runs_with_persona": len(runs_with_persona),
+        "phase": (
+            "Phase 1 — correction logging + persona injection (active)"
+            if total_db < 100 else
+            "Phase 2 — distillation dataset ready for generation"
+            if total_db < 500 else
+            "Phase 3 — LoRA fine-tune dataset threshold reached"
+        ),
+        "next_phase_at": 100 if total_db < 100 else 500 if total_db < 500 else None,
+        "corrections_until_next_phase": max(0, (100 if total_db < 100 else 500) - total_db) if total_db < 500 else 0,
+    }
+
+
 def _compute_ragas_proxies(
     runs: list,
     conf_totals: dict,
@@ -150,6 +206,10 @@ class RunRecord:
     suppressed_count: int = 0
     fallback_injected: int = 0
     coverage_gap: bool = False
+    # Episodic memory fields (populated from chandan_preferences in state)
+    corrections_recalled: int = 0           # how many past corrections were retrieved
+    persona_context_chars: int = 0          # length of the persona prompt block injected
+    has_persona_injection: bool = False     # True if chandan_preferences was present in state
 
 
 class MetricsCollector:
@@ -349,6 +409,7 @@ class MetricsCollector:
                 for r in list(runs)[-10:]
             ],
             "ragas_proxies": _compute_ragas_proxies(runs, conf_totals, total_insights, hallucination_proxy, answer_relevance_proxy, avg_domains),
+            "episodic_memory": _compute_episodic_metrics(runs),
             "interview_explainer": {
                 "why_these_metrics": (
                     "AstroIntel uses rule-based domain agents + a consensus layer — not retrieval-augmented generation. "
@@ -385,6 +446,7 @@ class MetricsCollector:
             "throughput": {"requests_last_60s": 0, "total_sessions": 0},
             "agent_latency_avg_ms": {},
             "ragas_proxies": {"scores": {}, "thresholds": {}, "alerts": [], "note": "No data yet."},
+            "episodic_memory": _compute_episodic_metrics([]),
             "recent_runs": [],
             "interview_explainer": {},
         }

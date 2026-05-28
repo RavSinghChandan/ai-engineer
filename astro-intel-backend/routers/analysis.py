@@ -478,6 +478,10 @@ def _record_metrics(session_id: str, state: dict, t_start: float, t_end: float) 
         suppressed_count=h_l3.get("suppressed_count", 0),
         fallback_injected=h_l3.get("fallback_injected", 0),
         coverage_gap=h_l2.get("coverage_gap", False),
+        # Episodic memory metrics
+        corrections_recalled=len(state.get("chandan_preferences", {}).get("past_corrections", [])),
+        persona_context_chars=len(state.get("chandan_preferences", {}).get("correction_summary", "")),
+        has_persona_injection="chandan_preferences" in state,
     )
     get_collector().record(record)
 
