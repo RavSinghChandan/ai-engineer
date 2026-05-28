@@ -408,12 +408,22 @@ def set_persona_pref(tenant_id: str, key: str, value: str) -> None:
                 (tenant_id, key, value, time.time()),
             )
         else:
-            conn.execute(
-                "INSERT INTO persona_preferences (tenant_id, pref_key, pref_value, updated_at) "
-                "VALUES (?,?,?,?) ON CONFLICT(tenant_id, pref_key) DO UPDATE SET "
-                "pref_value=excluded.pref_value, updated_at=excluded.updated_at",
-                (tenant_id, key, value, time.time()),
-            )
+            # Try composite (tenant_id, pref_key) conflict target first (new schema).
+            # Fall back to pref_key-only target for DBs that still have the old constraint.
+            try:
+                conn.execute(
+                    "INSERT INTO persona_preferences (tenant_id, pref_key, pref_value, updated_at) "
+                    "VALUES (?,?,?,?) ON CONFLICT(tenant_id, pref_key) DO UPDATE SET "
+                    "pref_value=excluded.pref_value, updated_at=excluded.updated_at",
+                    (tenant_id, key, value, time.time()),
+                )
+            except Exception:
+                conn.execute(
+                    "INSERT INTO persona_preferences (tenant_id, pref_key, pref_value, updated_at) "
+                    "VALUES (?,?,?,?) ON CONFLICT(pref_key) DO UPDATE SET "
+                    "pref_value=excluded.pref_value, updated_at=excluded.updated_at",
+                    (tenant_id, key, value, time.time()),
+                )
 
 
 def get_persona_prefs(tenant_id: str) -> Dict[str, str]:

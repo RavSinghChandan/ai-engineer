@@ -485,11 +485,16 @@ def get_prompt(agent_key: str) -> Dict[str, Any]:
     return _REGISTRY.get(agent_key, REPORT_AGENT)
 
 
-def build_prompt(agent_key: str, **kwargs: Any) -> Dict[str, Any]:
+def build_prompt(agent_key: str, persona_context: str = "", **kwargs: Any) -> Dict[str, Any]:
     """
     Return a ready-to-send prompt dict for the given agent,
     with user_template rendered using the provided kwargs.
     Version-aware: respects ACTIVE_PROMPT_VERSION from prompt_config.py.
+
+    If persona_context is provided (non-empty string), it is prepended to the
+    agent's system prompt so that every LLM call receives the tenant's
+    correction history and tone rules before domain-specific instructions.
+    This is the injection point for the multi-tenant episodic memory system.
     """
     cfg = get_prompt(agent_key).copy()
     user_template = cfg.pop("user_template", "")
@@ -497,4 +502,7 @@ def build_prompt(agent_key: str, **kwargs: Any) -> Dict[str, Any]:
         cfg["user"] = user_template.format(**kwargs)
     except KeyError:
         cfg["user"] = user_template
+    # Prepend tenant persona context to system prompt when available
+    if persona_context and persona_context.strip():
+        cfg["system"] = persona_context.strip() + "\n\n---\n\n" + cfg.get("system", "")
     return cfg

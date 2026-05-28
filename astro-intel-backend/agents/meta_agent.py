@@ -399,6 +399,7 @@ def meta_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
 
     profile = state.get("user_profile", {})
     name    = profile.get("full_name", "") if isinstance(profile, dict) else getattr(profile, "full_name", "")
+    persona_context = state.get("persona_context", "")
     for qc in question_consensus:
         domain_texts = "\n".join(
             f"[{ins['domains']}] {ins['content']}"
@@ -406,6 +407,7 @@ def meta_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
         )
         build_prompt(
             "meta",
+            persona_context=persona_context,
             name=name, question=qc["question"],
             intent=qc["intent"], domain_insights=domain_texts,
         )

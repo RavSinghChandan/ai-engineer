@@ -8,9 +8,11 @@ import { catchError, of, forkJoin } from 'rxjs';
 /* ─────────────────────────────────────────────────────────────────────────────
    GRAPH DATA  — mirrors backend graph/pipeline.py exactly
    Pipeline (LangGraph nodes in order):
-     security_check → question_agent → domain_agents (parallel fan-out)
+     persona_injection → security_check → question_agent → domain_agents (parallel fan-out)
      → meta_agent → hallucination_check → remedy_agent
      → admin_review_agent → grammar_agent → END
+   persona_injection: per-tenant episodic recall → formats persona_context string
+     → prepended to every subsequent agent's LLM system prompt via build_prompt()
    Post-approve HTTP calls (outside LangGraph):
      admin → report_agent + simplify_agent → translation_agent → Final Report
 ───────────────────────────────────────────────────────────────────────────── */
@@ -776,7 +778,7 @@ export class AgentFlowComponent implements OnInit, OnDestroy {
 
     // Map individual step ID → pipeline stage label
     const id = running.id;
-    if (id === 'persona')   return PIPELINE_STEPS[0].label;
+    if (id === 'persona' || id === 'persona_injection')   return PIPELINE_STEPS[0].label;
     if (id === 'security')  return PIPELINE_STEPS[1].label;
     if (id === 'question')  return PIPELINE_STEPS[2].label;
     if (id.startsWith('astro') || id.startsWith('num') || id.startsWith('palm') || id.startsWith('tarot') || id.startsWith('vastu'))

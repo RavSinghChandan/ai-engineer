@@ -272,9 +272,11 @@ def remedy_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
         lp_num = num_mem.get(trad, {}).get("core_numbers", {}).get("life_path", 0)
         if lp_num:
             break
+    persona_context = state.get("persona_context", "")
     for nq in normalized_questions:
         build_prompt(
             "remedy",
+            persona_context=persona_context,
             name=name, lagna=lagna, dasha=dasha_planet,
             question=nq["question"], intent=nq["intent"], lp=lp_num,
         )

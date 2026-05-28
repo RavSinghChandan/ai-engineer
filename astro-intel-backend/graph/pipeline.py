@@ -1,9 +1,11 @@
 """
 LangGraph StateGraph — 360° Astro Intelligence Pipeline
 
-Flow (with security gate — Module 2):
+Flow (multi-tenant episodic memory + security gate):
 
-  security_check          ← NEW: Layer 1 input validation + Layer 4 audit setup
+  persona_injection       ← Node -1: per-tenant episodic recall → formats persona_context string
+      ↓
+  security_check          ← Node 0: Layer 1 input validation + Layer 4 audit setup
       ↓
   question_agent
       ↓
@@ -20,6 +22,13 @@ Flow (with security gate — Module 2):
   grammar_agent           ← grammar correction on all insight bullets
       ↓
   END
+
+Persona injection (Node -1):
+  Reads chandan_preferences (set by routers/analysis.py per-tenant before invoking the graph).
+  Calls format_for_prompt() → produces a formatted persona_context string.
+  Stores it as state["persona_context"].
+  All subsequent agents receive persona_context via build_prompt(persona_context=...) so
+  the tenant's correction history and tone rules are prepended to every LLM system prompt.
 
 Security layers active across the pipeline:
   Layer 1 — security_check node: validates user_question + birth_profile fields
@@ -54,6 +63,47 @@ from agents import (
 )
 from guardrails import safe_node, run_hallucination_check, run_security_check
 from guardrails.production import degradation_tracker
+
+
+# ── Node -1: Tenant Persona Injection ──────────────────────────────────────
+def persona_injection_node(state: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    First node in the graph — runs before security_check and all domain agents.
+
+    Reads `chandan_preferences` (set by routers/analysis.py using
+    build_tenant_context(tenant_id=ctx.tenant_id) before graph invocation).
+    Formats it into a ready-to-use persona_context string via format_for_prompt().
+    Stores as state["persona_context"] so every subsequent agent can call
+    build_prompt(persona_context=state["persona_context"], ...) to prepend
+    the tenant's correction history and tone rules to its LLM system prompt.
+
+    Non-blocking: if chandan_preferences is absent or format_for_prompt fails,
+    persona_context is set to "" and the pipeline continues unaffected.
+    """
+    try:
+        from memory.persona import format_for_prompt
+        prefs = state.get("chandan_preferences")
+        if prefs and isinstance(prefs, dict):
+            tenant_id = prefs.get("tenant_id", "unknown")
+            persona_context = format_for_prompt(prefs)
+            corrections_count = len(prefs.get("past_corrections", []))
+            state["persona_context"] = persona_context
+            state.setdefault("agent_log", []).append(
+                f"[PersonaInjection] tenant={tenant_id} | "
+                f"corrections_recalled={corrections_count} | "
+                f"persona_chars={len(persona_context)}"
+            )
+        else:
+            state["persona_context"] = ""
+            state.setdefault("agent_log", []).append(
+                "[PersonaInjection] No tenant preferences found — using bare system prompts."
+            )
+    except Exception as exc:
+        state["persona_context"] = ""
+        state.setdefault("agent_log", []).append(
+            f"[PersonaInjection] ERROR: {exc} — pipeline continues without persona context."
+        )
+    return state
 
 
 # ── Parallel domain fan-out ─────────────────────────────────────────────────
@@ -99,6 +149,7 @@ def domain_agents_parallel(state: Dict[str, Any]) -> Dict[str, Any]:
     _INPUT_FIELDS = (
         "user_profile", "user_question", "questions", "selected_modules",
         "module_inputs", "geocode", "normalized_questions", "focus_context",
+        "persona_context",  # tenant persona context from persona_injection_node
     )
     _base_snapshot = {k: state.get(k) for k in _INPUT_FIELDS}
     _base_snapshot["memory"] = {}
@@ -143,7 +194,9 @@ def domain_agents_parallel(state: Dict[str, Any]) -> Dict[str, Any]:
 def build_graph() -> Any:
     builder = StateGraph(dict)
 
-    # Security gate is the new entry point — runs before any agent sees user input
+    # Node -1: persona injection — runs first, before security or any domain agent
+    builder.add_node("persona_injection",     persona_injection_node)
+    # Node 0: security gate — validates input before any agent sees it
     builder.add_node("security_check",        run_security_check)
     builder.add_node("question_agent",        safe_node(question_agent_node,     "question_agent"))
     builder.add_node("domain_agents",         safe_node(domain_agents_parallel,  "domain_agents"))
@@ -153,7 +206,8 @@ def build_graph() -> Any:
     builder.add_node("admin_review_agent",    safe_node(admin_review_agent_node, "admin_review_agent"))
     builder.add_node("grammar_agent",         safe_node(grammar_agent_node,      "grammar_agent"))
 
-    builder.set_entry_point("security_check")
+    builder.set_entry_point("persona_injection")
+    builder.add_edge("persona_injection",    "security_check")
     builder.add_edge("security_check",       "question_agent")
     builder.add_edge("question_agent",       "domain_agents")
     builder.add_edge("domain_agents",        "meta_agent")

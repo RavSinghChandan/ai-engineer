@@ -204,10 +204,12 @@ def admin_review_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
             ],
         }
 
+    persona_context = state.get("persona_context", "")
     for q_item in admin_review["questions"]:
         domain_texts = "\n".join(ins["content"] for ins in q_item["insights"][:6])
         build_prompt(
             "admin_review",
+            persona_context=persona_context,
             name=name,
             question=q_item["question"],
             intent=q_item.get("intent", "general"),
