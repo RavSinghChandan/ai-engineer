@@ -57,7 +57,7 @@ const NODES: GNode[] = [
   { id: 'inp-prompt',   label: 'Prompt Style',   sub: 'v1 Warm · v2 Laser-Sharp',     icon: '⚡', stepIds: [], color: '#818cf8', x: CX + 200, y: Y_INPUT, r: 36 },
 
   /* ── Node -1 — persona_injection (EPISODIC MEMORY) ── */
-  { id: 'persona', label: 'Persona Injection', sub: 'Episodic recall · Top-K corrections · Tone rules', icon: '🧬',
+  { id: 'persona', label: 'Tenant Persona Injection', sub: 'Per-tenant episodic recall · Top-K corrections · Tone rules', icon: '🧬',
     stepIds: ['persona'], color: '#0891b2', x: CX, y: Y_PERSONA, r: 42 },
 
   /* ── Node 0 — security_check ──────────────────────── */
@@ -115,8 +115,8 @@ const EDGES: GEdge[] = [
   { from: 'inp-profile',  to: 'persona' },
   { from: 'inp-question', to: 'persona', label: 'query' },
   { from: 'inp-prompt',   to: 'persona', label: 'prompt_v' },
-  /* persona_injection → security_check (chandan_preferences injected into state) */
-  { from: 'persona', to: 'security', label: 'chandan_prefs' },
+  /* persona_injection → security_check (tenant_preferences injected into state) */
+  { from: 'persona', to: 'security', label: 'tenant_prefs' },
   /* security_check → question_agent */
   { from: 'security', to: 'q', label: 'validated' },
   /* question_agent → all 5 domain agents (parallel) */
@@ -153,7 +153,7 @@ interface FeatureBadge {
   desc: string; color: string; disabledColor: string;
 }
 const FEATURE_BADGES: FeatureBadge[] = [
-  { key: 'episodic',      label: 'Episodic Memory', icon: '🧬', desc: 'Learns corrections', color: '#0891b2', disabledColor: '#94a3b8' },
+  { key: 'episodic',      label: 'Tenant Episodic Memory', icon: '🧬', desc: 'Per-tenant correction learning', color: '#0891b2', disabledColor: '#94a3b8' },
   { key: 'reranker',      label: 'CrossEncoder',    icon: '🎯', desc: 'RAG Reranking',       color: '#f59e0b', disabledColor: '#94a3b8' },
   { key: 'semantic',      label: 'Semantic Cache',  icon: '💡', desc: 'Cosine Sim',           color: '#8b5cf6', disabledColor: '#94a3b8' },
   { key: 'redis',         label: 'Redis Cache',     icon: '⚡', desc: 'Distributed',          color: '#ef4444', disabledColor: '#94a3b8' },
@@ -164,7 +164,7 @@ const FEATURE_BADGES: FeatureBadge[] = [
 
 /* Backend node labels in execution order (for the live ticker) */
 const PIPELINE_STEPS: { id: string; label: string }[] = [
-  { id: 'persona',       label: 'Node -1 · Persona Injection — episodic memory recall: top-K past corrections injected into LangGraph state' },
+  { id: 'persona',       label: 'Node -1 · Tenant Persona Injection — per-tenant episodic memory recall: top-K past corrections injected into LangGraph state' },
   { id: 'security',      label: 'Node 0 · Security Check — injection detection, jailbreak guard, audit logging (Layer 1–4)' },
   { id: 'question',      label: 'Node 1 · Question Agent — Multi-Query RAG: 2 variants → best-confidence intent classification' },
   { id: 'domain',        label: 'Node 2 · Domain Agents — Astrology · Numerology · Palmistry · Tarot · Vastu running in parallel' },

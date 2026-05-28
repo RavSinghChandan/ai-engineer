@@ -55,25 +55,26 @@ Angular application that renders LangGraph agent execution graphs in real time.
 | Auth | JWT + multi-tenant RBAC (user / admin / superadmin) + OTP email |
 | Observability | RAGAS proxy metrics (faithfulness, context precision, answer relevancy, domain recall) + Prometheus |
 | Guardrails | G1 rate limiter, G2 circuit breaker (safe_node hard-kill timeout), G3 JSON repair cascade, G4 PII filter, G5 graceful degradation |
-| Episodic Memory | Admin correction store (SQLite) — every edited insight logged with cosine-similarity retrieval; injected into LangGraph state at `/run` so agents learn from Chandan's past corrections automatically |
-| Persona Injection | Static persona prompt (tone rules, forbidden patterns, structural preferences) + dynamic top-K correction recall merged into every pipeline run via `chandan_preferences` state key |
-| Fine-tune Roadmap | Phase 1 (now): correction logging + persona prompting. Phase 2 (100+ corrections): distillation dataset. Phase 3 (500+): LoRA fine-tune on Mistral-7B |
-| Feedback API | 7 ADMIN-only endpoints: `POST /corrections`, `GET /corrections`, `GET /corrections/stats`, `POST /persona/preferences`, `GET /persona/preferences`, `GET /persona/preview` |
-| Testing | 98 tests — 16 new episodic memory tests (all passing), all Kafka + Redis paths mocked, no real broker needed in CI |
+| Episodic Memory | **Multi-tenant** correction store (SQLite/PG) — every edited insight logged per `tenant_id` with cosine-similarity retrieval; injected into LangGraph state at `/run` so each tenant's pipeline learns from their own past corrections only |
+| Tenant Persona Injection | Per-tenant persona prompt (custom voice, tone rules, forbidden patterns) + dynamic top-K correction recall merged into every pipeline run via `tenant_preferences` state key — tenants can set a custom `__persona__` pref to fully override the default |
+| Multi-tenant Isolation | All episodic data (corrections + persona prefs) is strictly `tenant_id`-scoped — Tenant A's corrections never influence Tenant B's pipeline; `correction_stats_global()` available to SUPER_ADMIN only |
+| Fine-tune Roadmap | Phase 1 (now): per-tenant correction logging + persona prompting. Phase 2 (100+ corrections/tenant): distillation dataset. Phase 3 (500+): LoRA fine-tune on Mistral-7B |
+| Feedback API | 7 tenant-scoped endpoints: `POST /corrections`, `GET /corrections`, `GET /corrections/stats`, `POST /persona/preferences`, `GET /persona/preferences`, `GET /persona/preview` — all scoped to authenticated tenant |
+| Testing | 112 tests — 30 episodic memory tests (16 original + 14 new multi-tenant isolation tests, all passing), all Kafka + Redis paths mocked, no real broker needed in CI |
 | Cloud | AWS ECS Fargate + ECR + GitHub Actions CI/CD (OIDC auth, rolling deploy) |
 
 **New files added (2025-05-28):**
 ```
 astro-intel-backend/
 ├── memory/
-│   ├── episodic.py       ← correction store: log_correction, retrieve_similar_corrections, persona_preferences
-│   └── persona.py        ← CHANDAN_PERSONA prompt + build_chandan_context() + format_for_prompt()
+│   ├── episodic.py       ← multi-tenant correction store: log_correction(tenant_id, ...), retrieve_similar_corrections(tenant_id, ...), correction_stats(tenant_id), correction_stats_global()
+│   └── persona.py        ← DEFAULT_PERSONA + build_tenant_context(query, intent, tenant_id) + format_for_prompt() + build_chandan_context() alias
 ├── routers/
-│   └── feedback.py       ← /api/v1/feedback/* — 7 ADMIN endpoints
+│   └── feedback.py       ← /api/v1/feedback/* — 7 tenant-scoped endpoints (ctx.tenant_id passed to all DB functions)
 └── tests/
-    └── test_episodic_memory.py  ← 16 tests, all passing
+    └── test_episodic_memory.py  ← 30 tests (16 original + 14 multi-tenant isolation), all passing
 ```
-**Modified files:** `database.py` (init_episodic_tables on startup), `main.py` (feedback router registered), `routers/analysis.py` (persona injected into `/run` state; corrections auto-logged on `/approve`), `schemas/models.py` (ApprovalRequest extended with `edited_insights[]`)
+**Modified files:** `database.py` (init_episodic_tables on startup + live ALTER TABLE migration for tenant_id column), `main.py` (feedback router registered), `routers/analysis.py` (build_tenant_context(tenant_id=ctx.tenant_id) in `/run`; log_correction(tenant_id=ctx.tenant_id) in `/approve`), `schemas/models.py` (ApprovalRequest extended with `edited_insights[]`), `metrics/collector.py` (correction_stats_global() for dashboard)
 
 **Tech:** Python 3.11, FastAPI, LangGraph, DeepSeek LLM, Angular 17, SQLite/PostgreSQL, Redis 7.2, Kafka (Confluent 7.6), Docker, AWS
 

@@ -288,27 +288,31 @@ If RAGAS improves but behavioral metrics do not, the fine-tuning improved the AI
 
 ---
 
-## LIVE IMPLEMENTATION — AstroIntel 360° Feedback Loop (2025-05-28)
+## LIVE IMPLEMENTATION — AstroIntel 360° Multi-Tenant Feedback Loop (2026-05-28)
 
 ### The problem it solves
 
-Chandan is both the AI system builder and the domain expert (astrologer). When he reviews a generated insight and corrects it — changing "Saturn may suggest career challenges" to "Saturn in your 10th house directly indicates a demanding growth phase through mid-2026" — that correction was previously lost. The next report made the same mistake.
+AstroIntel is a multi-tenant SaaS. Each enterprise tenant has a domain expert who reviews AI-generated spiritual insights and corrects them before approval. Two problems existed:
+1. **No memory:** Corrections were discarded — the next report repeated the same mistakes.
+2. **Data isolation bug:** A naive single-table correction store would mix Tenant A's editorial style into Tenant B's pipeline — a critical multi-tenant violation.
 
-### What was built — Phase 1 (correction logging + persona injection)
+**Solution:** A per-tenant correction store. Every correction is tagged with `tenant_id`. All retrieval is scoped to the authenticated tenant. Tenant A's corrections never influence Tenant B's pipeline.
 
-**New API endpoints** (`/api/v1/feedback/*`, ADMIN-only):
+### What was built — Phase 1 (multi-tenant correction logging + tenant persona injection)
+
+**New API endpoints** (`/api/v1/feedback/*`, tenant-scoped — RBAC via `can(Permission.ANALYSIS__APPROVE)`):
 
 | Endpoint | Purpose |
 |----------|---------|
-| `POST /corrections` | Log a manual correction with reason tag (tone/factual/wrong_remedy/language) |
-| `POST /corrections/batch` | Bulk log corrections |
-| `GET /corrections` | View correction history, filter by intent |
-| `GET /corrections/stats` | Count corrections by intent (career/spirituality/health/etc.) |
-| `POST /persona/preferences` | Save a permanent preference, e.g. `remedy_format: "Always include day + time"` |
-| `GET /persona/preferences` | View all saved preferences |
-| `GET /persona/preview?query=...` | Debug: see exactly what agents will receive for any query |
+| `POST /corrections` | Log a correction for this tenant (reason tag: tone/factual/wrong_remedy/language) |
+| `POST /corrections/batch` | Bulk log corrections for this tenant |
+| `GET /corrections` | View this tenant's correction history, filter by intent |
+| `GET /corrections/stats` | Count this tenant's corrections by intent |
+| `POST /persona/preferences` | Save a permanent preference for this tenant (e.g. `__persona__: "custom voice"`) |
+| `GET /persona/preferences` | View all saved preferences for this tenant |
+| `GET /persona/preview?query=...` | Debug: see exactly what agents will receive for this tenant + query |
 
-**Auto-logging on `/approve`:** The `ApprovalRequest` schema was extended with an optional `edited_insights[]` field. When the admin edits insights before approving, corrections are auto-logged — no separate API call needed.
+**Auto-logging on `/approve`:** The `ApprovalRequest` schema was extended with an optional `edited_insights[]` field. When the admin edits insights before approving, corrections are auto-logged for `ctx.tenant_id` — no separate API call needed.
 
 ```python
 # schemas/models.py
@@ -325,51 +329,95 @@ class ApprovalRequest(BaseModel):
     edited_insights:       List[EditedInsight] = []   # ← new, backwards-compatible
 ```
 
-**At pipeline start** (`/run`), the correction store is queried and injected:
+**At pipeline start** (`/run`), the per-tenant correction store is queried and injected:
 
 ```python
-# routers/analysis.py
-chandan_preferences = build_chandan_context(query=final_question, intent="general")
+# routers/analysis.py — ctx.tenant_id comes from authenticated JWT
+chandan_preferences = build_tenant_context(
+    query=final_question,
+    intent="general",
+    tenant_id=ctx.tenant_id,   # ← CRITICAL: scoped to this tenant only
+)
 initial_state = { ..., "chandan_preferences": chandan_preferences }
 ```
 
-### The three-phase fine-tuning roadmap
+**DB schema** — `tenant_id` as partition key on both tables:
+
+```sql
+CREATE TABLE episodic_corrections (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    tenant_id      TEXT NOT NULL DEFAULT 'tenant_master',  -- ← partition key
+    insight_id     TEXT NOT NULL,
+    intent         TEXT NOT NULL DEFAULT 'general',
+    original_text  TEXT NOT NULL,
+    corrected_text TEXT NOT NULL,
+    similarity_key TEXT NOT NULL DEFAULT '',               -- bag-of-words fingerprint
+    created_at     REAL NOT NULL
+);
+CREATE INDEX idx_ec_tenant_intent ON episodic_corrections(tenant_id, intent);
+
+CREATE TABLE persona_preferences (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    tenant_id  TEXT NOT NULL DEFAULT 'tenant_master',      -- ← partition key
+    pref_key   TEXT NOT NULL,
+    pref_value TEXT NOT NULL,
+    updated_at REAL NOT NULL,
+    UNIQUE(tenant_id, pref_key)                            -- ← per-tenant uniqueness
+);
+```
+
+### The three-phase fine-tuning roadmap (now per-tenant)
 
 ```
 Phase 1 (NOW — live in production)
-  Every correction logged → retrieved at next /run → injected into agent prompts
-  Effect: agents immediately stop repeating corrected mistakes
-  Dataset: building correction_history table in SQLite
+  Every correction logged per tenant_id → retrieved at next /run for same tenant
+  Effect: each tenant's agents immediately stop repeating that tenant's corrected mistakes
+  Dataset: building correction_history per tenant in SQLite
 
-Phase 2 (when 100+ corrections accumulated)
-  Run distillation script:
-    for each correction in DB:
-        generate 3 synthetic training examples in the corrected style (via Claude/GPT-4)
-        Chandan reviews and approves each
-  Output: JSONL fine-tuning dataset — (system_prompt, user_query, chandan_style_response) triples
+Phase 2 (when 100+ corrections per tenant)
+  Run per-tenant distillation script:
+    for each correction in DB WHERE tenant_id=X:
+        generate 3 synthetic training examples in that tenant's corrected style
+        tenant admin reviews and approves each
+  Output: per-tenant JSONL fine-tuning dataset triples
 
-Phase 3 (when 500+ approved examples)
-  LoRA fine-tune Mistral-7B-Instruct on the dataset (trl library, 4-bit quantisation)
-  Merge adapter weights → host privately
-  Replace DeepSeek calls for insight generation with Chandan's personal model
-  Result: a model that speaks in Chandan's exact voice, nobody else can replicate it
+Phase 3 (when 500+ approved examples per tenant)
+  LoRA fine-tune Mistral-7B-Instruct on the tenant's dataset (trl library, 4-bit quantisation)
+  Merge adapter weights → host privately per tenant
+  Replace DeepSeek calls for insight generation with the tenant's personal model
+  Result: each tenant gets a model that speaks in their exact editorial voice
 ```
 
 ### Why not fine-tune immediately?
 
 Senior answer (the one that gets you hired):
 
-"Fine-tuning without sufficient domain-specific data degrades model performance — the model overfits to the few examples and loses general capability. You need minimum 200–500 high-quality (input, ideal output) pairs for LoRA to add signal rather than noise. We're building that dataset now through real corrections on real reports. Meanwhile, persona prompting + episodic recall gives us 70–80% of the quality gain immediately, with zero training cost. In three months, when we have the data, we fine-tune — and the baseline we're comparing against will already be improved by the correction injection."
+"Fine-tuning without sufficient domain-specific data degrades model performance — the model overfits to the few examples and loses general capability. You need minimum 200–500 high-quality (input, ideal output) pairs for LoRA to add signal rather than noise. We're building that dataset per-tenant through real corrections on real reports. Meanwhile, per-tenant persona prompting + episodic recall gives us 70–80% of the quality gain immediately, with zero training cost. In three months, when we have the data, we fine-tune — and the baseline we're comparing against will already be improved by the per-tenant correction injection."
 
 ### Tests
 
-`tests/test_episodic_memory.py` — 16 tests covering:
+`tests/test_episodic_memory.py` — 30 tests covering:
+
+**Functional tests (16):**
 - `log_correction` write + ID return
 - `retrieve_similar_corrections` — cosine similarity, top-K, score ordering, empty-when-no-match
 - `list_corrections` — default and intent-filtered
 - `correction_stats` — counts by intent
 - `set/get_persona_pref` — upsert behaviour
-- `build_chandan_context` — structure, past correction inclusion
+- `build_tenant_context` — structure, past correction inclusion, tenant_id in output
 - `format_for_prompt` — persona block, LEARNED CORRECTIONS block, preference overrides
 
-All 16 passing. Zero external dependencies in the test suite.
+**Multi-tenant isolation tests (14):**
+- `test_tenant_isolation_retrieve` — Tenant B gets zero results from Tenant A's corrections
+- `test_tenant_isolation_list_corrections` — each tenant sees only their own rows
+- `test_tenant_isolation_correction_stats` — per-tenant counts are accurate
+- `test_correction_stats_global_counts_all` — global view shows both tenants
+- `test_tenant_isolation_persona_prefs` — prefs are scoped per tenant
+- `test_build_tenant_context_isolation` — Tenant B's context contains no Tenant A corrections
+- `test_build_tenant_context_own_corrections_visible` — Tenant A sees their own corrections
+- `test_custom_persona_override` — `__persona__` pref replaces DEFAULT_PERSONA for that tenant
+- `test_backward_compat_build_chandan_context` — alias still works, uses `tenant_master`
+- `test_chandan_persona_alias` — CHANDAN_PERSONA importable, equals DEFAULT_PERSONA
+- plus 4 additional edge-case isolation checks
+
+All 30 passing. Zero external dependencies in the test suite.

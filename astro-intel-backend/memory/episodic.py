@@ -1,12 +1,14 @@
 """
-Episodic Memory — Chandan's correction store.
+Episodic Memory — multi-tenant correction store.
 
-Every time an insight is edited before approval, we log:
-  (insight_id, original_text, corrected_text, query_type, intent, domains, reason_tag, ts)
+Every time a tenant's insight is edited before approval, we log:
+  (tenant_id, insight_id, original_text, corrected_text, query_type, intent, domains, reason_tag, ts)
 
-At pipeline time, the top-K most similar past corrections are retrieved
-and injected into the LangGraph state as `chandan_preferences` so every
-agent knows Chandan's known biases, tone, and structural preferences.
+At pipeline time, the top-K most similar past corrections FOR THAT TENANT are retrieved
+and injected into the LangGraph state as `tenant_preferences` so every agent knows
+that tenant's known biases, tone, and structural preferences.
+
+Corrections are strictly tenant-scoped: Tenant A's edits never influence Tenant B's pipeline.
 
 Similarity is cosine distance on a tiny TF-IDF-style keyword overlap
 (no external vector DB needed — keeps this self-contained).
@@ -27,6 +29,7 @@ import database as _db
 _DDL_SQLITE = """
 CREATE TABLE IF NOT EXISTS episodic_corrections (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    tenant_id       TEXT    NOT NULL DEFAULT 'tenant_master',
     insight_id      TEXT    NOT NULL,
     query_type      TEXT    NOT NULL DEFAULT 'general',
     intent          TEXT    NOT NULL DEFAULT 'general',
@@ -37,13 +40,14 @@ CREATE TABLE IF NOT EXISTS episodic_corrections (
     similarity_key  TEXT    NOT NULL DEFAULT '',
     created_at      REAL    NOT NULL
 );
-CREATE INDEX IF NOT EXISTS idx_ec_intent    ON episodic_corrections(intent);
-CREATE INDEX IF NOT EXISTS idx_ec_created   ON episodic_corrections(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_ec_tenant_intent  ON episodic_corrections(tenant_id, intent);
+CREATE INDEX IF NOT EXISTS idx_ec_tenant_created ON episodic_corrections(tenant_id, created_at DESC);
 """
 
 _DDL_PG = """
 CREATE TABLE IF NOT EXISTS episodic_corrections (
     id              SERIAL  PRIMARY KEY,
+    tenant_id       TEXT    NOT NULL DEFAULT 'tenant_master',
     insight_id      TEXT    NOT NULL,
     query_type      TEXT    NOT NULL DEFAULT 'general',
     intent          TEXT    NOT NULL DEFAULT 'general',
@@ -54,37 +58,70 @@ CREATE TABLE IF NOT EXISTS episodic_corrections (
     similarity_key  TEXT    NOT NULL DEFAULT '',
     created_at      DOUBLE PRECISION NOT NULL
 );
-CREATE INDEX IF NOT EXISTS idx_ec_intent    ON episodic_corrections(intent);
-CREATE INDEX IF NOT EXISTS idx_ec_created   ON episodic_corrections(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_ec_tenant_intent  ON episodic_corrections(tenant_id, intent);
+CREATE INDEX IF NOT EXISTS idx_ec_tenant_created ON episodic_corrections(tenant_id, created_at DESC);
 """
 
 _DDL_PERSONA_SQLITE = """
 CREATE TABLE IF NOT EXISTS persona_preferences (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    pref_key    TEXT    NOT NULL UNIQUE,
+    tenant_id   TEXT    NOT NULL DEFAULT 'tenant_master',
+    pref_key    TEXT    NOT NULL,
     pref_value  TEXT    NOT NULL,
-    updated_at  REAL    NOT NULL
+    updated_at  REAL    NOT NULL,
+    UNIQUE(tenant_id, pref_key)
 );
+CREATE INDEX IF NOT EXISTS idx_pp_tenant ON persona_preferences(tenant_id);
 """
 
 _DDL_PERSONA_PG = """
 CREATE TABLE IF NOT EXISTS persona_preferences (
     id          SERIAL  PRIMARY KEY,
-    pref_key    TEXT    NOT NULL UNIQUE,
+    tenant_id   TEXT    NOT NULL DEFAULT 'tenant_master',
+    pref_key    TEXT    NOT NULL,
     pref_value  TEXT    NOT NULL,
-    updated_at  DOUBLE PRECISION NOT NULL
+    updated_at  DOUBLE PRECISION NOT NULL,
+    UNIQUE(tenant_id, pref_key)
 );
+CREATE INDEX IF NOT EXISTS idx_pp_tenant ON persona_preferences(tenant_id);
+"""
+
+# ── Live migration for existing databases ─────────────────────────────────────
+_MIGRATION_SQLITE = """
+ALTER TABLE episodic_corrections ADD COLUMN tenant_id TEXT NOT NULL DEFAULT 'tenant_master';
+"""
+_MIGRATION_PERSONA_SQLITE = """
+ALTER TABLE persona_preferences ADD COLUMN tenant_id TEXT NOT NULL DEFAULT 'tenant_master';
 """
 
 
 def init_episodic_tables() -> None:
-    """Idempotent — safe to call every startup."""
+    """Idempotent — safe to call every startup. Handles live migration for existing DBs."""
     with _db._tx() as conn:
         if _db._USE_PG:
             cur = conn.cursor()
             cur.execute(_DDL_PG)
             cur.execute(_DDL_PERSONA_PG)
+            for alter in [
+                "ALTER TABLE episodic_corrections ADD COLUMN IF NOT EXISTS tenant_id TEXT NOT NULL DEFAULT 'tenant_master'",
+                "ALTER TABLE persona_preferences ADD COLUMN IF NOT EXISTS tenant_id TEXT NOT NULL DEFAULT 'tenant_master'",
+            ]:
+                try:
+                    cur.execute(alter)
+                except Exception:
+                    pass
         else:
+            # SQLite: migrate first (add tenant_id column if missing), then run DDL for new tables/indexes
+            # Must migrate before running CREATE INDEX that references tenant_id
+            for table, col in [("episodic_corrections", "tenant_id"), ("persona_preferences", "tenant_id")]:
+                try:
+                    cols = [r[1] for r in conn.execute(f"PRAGMA table_info({table})").fetchall()]
+                    if cols and col not in cols:
+                        # Table exists but missing tenant_id — add it
+                        conn.execute(f"ALTER TABLE {table} ADD COLUMN {col} TEXT NOT NULL DEFAULT 'tenant_master'")
+                except Exception:
+                    pass
+            # Now run the full DDL (CREATE TABLE IF NOT EXISTS + CREATE INDEX IF NOT EXISTS)
             conn.executescript(_DDL_SQLITE + _DDL_PERSONA_SQLITE)
 
 
@@ -129,6 +166,7 @@ def _parse_key(key: str) -> Counter:
 
 def log_correction(
     *,
+    tenant_id:      str,
     insight_id:     str,
     original_text:  str,
     corrected_text: str,
@@ -138,8 +176,9 @@ def log_correction(
     reason_tag:     str  = "",
 ) -> int:
     """
-    Persist one correction.  Returns the new row id.
+    Persist one correction scoped to tenant_id.  Returns the new row id.
     Called from the /approve endpoint whenever edited_insights are provided.
+    Corrections from one tenant NEVER appear in another tenant's retrieval.
     """
     domains = domains or []
     sim_key = _similarity_key(original_text)
@@ -149,11 +188,11 @@ def log_correction(
             cur.execute(
                 """
                 INSERT INTO episodic_corrections
-                  (insight_id, query_type, intent, domains,
+                  (tenant_id, insight_id, query_type, intent, domains,
                    original_text, corrected_text, reason_tag, similarity_key, created_at)
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id
                 """,
-                (insight_id, query_type, intent, json.dumps(domains),
+                (tenant_id, insight_id, query_type, intent, json.dumps(domains),
                  original_text, corrected_text, reason_tag, sim_key, time.time()),
             )
             row = cur.fetchone()
@@ -162,11 +201,11 @@ def log_correction(
             cur = conn.execute(
                 """
                 INSERT INTO episodic_corrections
-                  (insight_id, query_type, intent, domains,
+                  (tenant_id, insight_id, query_type, intent, domains,
                    original_text, corrected_text, reason_tag, similarity_key, created_at)
-                VALUES (?,?,?,?,?,?,?,?,?)
+                VALUES (?,?,?,?,?,?,?,?,?,?)
                 """,
-                (insight_id, query_type, intent, json.dumps(domains),
+                (tenant_id, insight_id, query_type, intent, json.dumps(domains),
                  original_text, corrected_text, reason_tag, sim_key, time.time()),
             )
             return cur.lastrowid
@@ -176,14 +215,15 @@ def log_correction(
 
 def retrieve_similar_corrections(
     query: str,
+    tenant_id: str,
     intent: str = "general",
     top_k: int = 5,
     min_score: float = 0.12,
 ) -> List[Dict[str, Any]]:
     """
-    Return up to top_k past corrections whose original_text is semantically
-    similar to `query`.  Filtered first by intent, then ranked by cosine score.
-    Used by the persona injector at pipeline start.
+    Return up to top_k past corrections (scoped to tenant_id) whose original_text
+    is semantically similar to `query`.  Filtered first by tenant + intent, then
+    ranked by cosine score.  Used by the persona injector at pipeline start.
     """
     q_vec = Counter(_tokenise(query))
     if not q_vec:
@@ -195,16 +235,18 @@ def retrieve_similar_corrections(
             cur.execute(
                 "SELECT id, insight_id, original_text, corrected_text, reason_tag, "
                 "similarity_key, intent, domains FROM episodic_corrections "
-                "WHERE intent=%s OR intent='general' ORDER BY created_at DESC LIMIT 200",
-                (intent,),
+                "WHERE tenant_id=%s AND (intent=%s OR intent='general') "
+                "ORDER BY created_at DESC LIMIT 200",
+                (tenant_id, intent),
             )
             rows = cur.fetchall()
         else:
             rows = conn.execute(
                 "SELECT id, insight_id, original_text, corrected_text, reason_tag, "
                 "similarity_key, intent, domains FROM episodic_corrections "
-                "WHERE intent=? OR intent='general' ORDER BY created_at DESC LIMIT 200",
-                (intent,),
+                "WHERE tenant_id=? AND (intent=? OR intent='general') "
+                "ORDER BY created_at DESC LIMIT 200",
+                (tenant_id, intent),
             ).fetchall()
 
     scored = []
@@ -242,8 +284,12 @@ def retrieve_similar_corrections(
     return result
 
 
-def list_corrections(limit: int = 50, intent: Optional[str] = None) -> List[Dict[str, Any]]:
-    """Return recent corrections for the admin dashboard."""
+def list_corrections(
+    tenant_id: str,
+    limit: int = 50,
+    intent: Optional[str] = None,
+) -> List[Dict[str, Any]]:
+    """Return recent corrections for a specific tenant's admin dashboard."""
     with _db._tx() as conn:
         if _db._USE_PG:
             cur = conn.cursor()
@@ -251,14 +297,15 @@ def list_corrections(limit: int = 50, intent: Optional[str] = None) -> List[Dict
                 cur.execute(
                     "SELECT id, insight_id, intent, original_text, corrected_text, "
                     "reason_tag, domains, created_at FROM episodic_corrections "
-                    "WHERE intent=%s ORDER BY created_at DESC LIMIT %s",
-                    (intent, limit),
+                    "WHERE tenant_id=%s AND intent=%s ORDER BY created_at DESC LIMIT %s",
+                    (tenant_id, intent, limit),
                 )
             else:
                 cur.execute(
                     "SELECT id, insight_id, intent, original_text, corrected_text, "
                     "reason_tag, domains, created_at FROM episodic_corrections "
-                    "ORDER BY created_at DESC LIMIT %s", (limit,),
+                    "WHERE tenant_id=%s ORDER BY created_at DESC LIMIT %s",
+                    (tenant_id, limit),
                 )
             rows = cur.fetchall()
             return [
@@ -274,15 +321,15 @@ def list_corrections(limit: int = 50, intent: Optional[str] = None) -> List[Dict
                 rows = conn.execute(
                     "SELECT id, insight_id, intent, original_text, corrected_text, "
                     "reason_tag, domains, created_at FROM episodic_corrections "
-                    "WHERE intent=? ORDER BY created_at DESC LIMIT ?",
-                    (intent, limit),
+                    "WHERE tenant_id=? AND intent=? ORDER BY created_at DESC LIMIT ?",
+                    (tenant_id, intent, limit),
                 ).fetchall()
             else:
                 rows = conn.execute(
                     "SELECT id, insight_id, intent, original_text, corrected_text, "
                     "reason_tag, domains, created_at FROM episodic_corrections "
-                    "ORDER BY created_at DESC LIMIT ?",
-                    (limit,),
+                    "WHERE tenant_id=? ORDER BY created_at DESC LIMIT ?",
+                    (tenant_id, limit),
                 ).fetchall()
             return [
                 {
@@ -295,59 +342,94 @@ def list_corrections(limit: int = 50, intent: Optional[str] = None) -> List[Dict
             ]
 
 
-def correction_stats() -> Dict[str, Any]:
+def correction_stats(tenant_id: str) -> Dict[str, Any]:
+    """Return correction counts for a specific tenant."""
+    with _db._tx() as conn:
+        if _db._USE_PG:
+            cur = conn.cursor()
+            cur.execute("SELECT COUNT(*) FROM episodic_corrections WHERE tenant_id=%s", (tenant_id,))
+            total = cur.fetchone()[0]
+            cur.execute(
+                "SELECT intent, COUNT(*) as cnt FROM episodic_corrections "
+                "WHERE tenant_id=%s GROUP BY intent ORDER BY cnt DESC",
+                (tenant_id,),
+            )
+            by_intent = {r[0]: r[1] for r in cur.fetchall()}
+        else:
+            total = conn.execute(
+                "SELECT COUNT(*) FROM episodic_corrections WHERE tenant_id=?", (tenant_id,)
+            ).fetchone()[0]
+            by_intent = {
+                r["intent"]: r["cnt"]
+                for r in conn.execute(
+                    "SELECT intent, COUNT(*) as cnt FROM episodic_corrections "
+                    "WHERE tenant_id=? GROUP BY intent ORDER BY cnt DESC",
+                    (tenant_id,),
+                ).fetchall()
+            }
+    return {"total_corrections": total, "by_intent": by_intent, "tenant_id": tenant_id}
+
+
+def correction_stats_global() -> Dict[str, Any]:
+    """Return global correction counts across all tenants (SUPER_ADMIN only)."""
     with _db._tx() as conn:
         if _db._USE_PG:
             cur = conn.cursor()
             cur.execute("SELECT COUNT(*) FROM episodic_corrections")
             total = cur.fetchone()[0]
             cur.execute(
-                "SELECT intent, COUNT(*) as cnt FROM episodic_corrections "
-                "GROUP BY intent ORDER BY cnt DESC"
+                "SELECT tenant_id, COUNT(*) as cnt FROM episodic_corrections "
+                "GROUP BY tenant_id ORDER BY cnt DESC"
             )
-            by_intent = {r[0]: r[1] for r in cur.fetchall()}
+            by_tenant = {r[0]: r[1] for r in cur.fetchall()}
         else:
             total = conn.execute("SELECT COUNT(*) FROM episodic_corrections").fetchone()[0]
-            by_intent = {
-                r["intent"]: r["cnt"]
+            by_tenant = {
+                r[0]: r[1]
                 for r in conn.execute(
-                    "SELECT intent, COUNT(*) as cnt FROM episodic_corrections "
-                    "GROUP BY intent ORDER BY cnt DESC"
+                    "SELECT tenant_id, COUNT(*) as cnt FROM episodic_corrections "
+                    "GROUP BY tenant_id ORDER BY cnt DESC"
                 ).fetchall()
             }
-    return {"total_corrections": total, "by_intent": by_intent}
+    return {"total_corrections": total, "by_tenant": by_tenant}
 
 
-# ── Persona preferences (key-value store for Chandan's static prefs) ─────────
+# ── Persona preferences (per-tenant key-value store) ─────────────────────────
 
-def set_persona_pref(key: str, value: str) -> None:
+def set_persona_pref(tenant_id: str, key: str, value: str) -> None:
+    """Upsert a persona preference key-value for a specific tenant."""
     with _db._tx() as conn:
         if _db._USE_PG:
             cur = conn.cursor()
             cur.execute(
-                "INSERT INTO persona_preferences (pref_key, pref_value, updated_at) "
-                "VALUES (%s,%s,%s) ON CONFLICT(pref_key) DO UPDATE SET "
+                "INSERT INTO persona_preferences (tenant_id, pref_key, pref_value, updated_at) "
+                "VALUES (%s,%s,%s,%s) ON CONFLICT(tenant_id, pref_key) DO UPDATE SET "
                 "pref_value=EXCLUDED.pref_value, updated_at=EXCLUDED.updated_at",
-                (key, value, time.time()),
+                (tenant_id, key, value, time.time()),
             )
         else:
             conn.execute(
-                "INSERT INTO persona_preferences (pref_key, pref_value, updated_at) "
-                "VALUES (?,?,?) ON CONFLICT(pref_key) DO UPDATE SET "
+                "INSERT INTO persona_preferences (tenant_id, pref_key, pref_value, updated_at) "
+                "VALUES (?,?,?,?) ON CONFLICT(tenant_id, pref_key) DO UPDATE SET "
                 "pref_value=excluded.pref_value, updated_at=excluded.updated_at",
-                (key, value, time.time()),
+                (tenant_id, key, value, time.time()),
             )
 
 
-def get_persona_prefs() -> Dict[str, str]:
+def get_persona_prefs(tenant_id: str) -> Dict[str, str]:
+    """Return all persona preferences for a specific tenant."""
     with _db._tx() as conn:
         if _db._USE_PG:
             cur = conn.cursor()
-            cur.execute("SELECT pref_key, pref_value FROM persona_preferences")
+            cur.execute(
+                "SELECT pref_key, pref_value FROM persona_preferences WHERE tenant_id=%s",
+                (tenant_id,),
+            )
             rows = cur.fetchall()
             return {r[0]: r[1] for r in rows}
         else:
             rows = conn.execute(
-                "SELECT pref_key, pref_value FROM persona_preferences"
+                "SELECT pref_key, pref_value FROM persona_preferences WHERE tenant_id=?",
+                (tenant_id,),
             ).fetchall()
             return {r["pref_key"]: r["pref_value"] for r in rows}

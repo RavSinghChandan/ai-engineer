@@ -434,46 +434,53 @@ Plain English Agent:
 
 ---
 
-## UPDATE — Episodic Memory + Persona Injection System (2025-05-28)
+## UPDATE — Multi-Tenant Episodic Memory + Tenant Persona Injection System (2026-05-28)
 
 ### What was added
 
-A human-in-the-loop learning system that makes the AI remember and apply Chandan's corrections automatically on every future report.
+A multi-tenant, human-in-the-loop learning system. Each tenant's corrections are stored and retrieved independently — no cross-tenant data leakage. The pipeline learns each tenant's editorial voice separately.
 
 **New files:**
-- `memory/episodic.py` — correction store with cosine-similarity retrieval (no vector DB)
-- `memory/persona.py` — `CHANDAN_PERSONA` static prompt + `build_chandan_context()`
-- `routers/feedback.py` — 7 ADMIN-only feedback endpoints
-- `tests/test_episodic_memory.py` — 16 tests, all passing
+- `memory/episodic.py` — multi-tenant correction store: all functions require `tenant_id`; `correction_stats_global()` for SUPER_ADMIN
+- `memory/persona.py` — `DEFAULT_PERSONA` + `build_tenant_context(query, intent, tenant_id)` + `build_chandan_context()` backward-compat alias
+- `routers/feedback.py` — 7 tenant-scoped endpoints (RBAC via `can(Permission.ANALYSIS__APPROVE)`)
+- `tests/test_episodic_memory.py` — 30 tests (16 functional + 14 multi-tenant isolation), all passing
 
 **Modified files (zero breaking changes):**
-- `database.py` — `init_episodic_tables()` called at startup
+- `database.py` — `init_episodic_tables()` with live ALTER TABLE migration for `tenant_id` column
 - `main.py` — `feedback_router` registered
-- `routers/analysis.py` — `chandan_preferences` injected into LangGraph `initial_state`; corrections auto-logged on `/approve`
+- `routers/analysis.py` — `build_tenant_context(tenant_id=ctx.tenant_id)` in `/run`; `log_correction(tenant_id=ctx.tenant_id)` in `/approve`
 - `schemas/models.py` — `ApprovalRequest` extended with optional `edited_insights[]`
+- `metrics/collector.py` — dashboard uses `correction_stats_global()` for cross-tenant total
 
 ### Updated numbers
 
 ```
-Episodic Memory:
-  Correction store:         SQLite (episodic_corrections + persona_preferences tables)
-  Retrieval method:         cosine similarity on bag-of-words fingerprint (no external vector DB)
-  Injection point:          LangGraph initial_state["chandan_preferences"] on every /run
-  Feedback endpoints:       7 (corrections CRUD + persona preferences + preview)
-  Test suite:               98 tests total (82 original + 16 new episodic memory tests)
+Multi-Tenant Episodic Memory:
+  Correction store:         SQLite (tenant_id-partitioned episodic_corrections + persona_preferences)
+  Retrieval method:         cosine similarity on bag-of-words fingerprint, WHERE tenant_id=X (no external vector DB)
+  Injection point:          LangGraph initial_state["chandan_preferences"] = build_tenant_context(tenant_id=ctx.tenant_id)
+  Custom persona:           Tenant sets __persona__ pref key → overrides DEFAULT_PERSONA for that tenant
+  Feedback endpoints:       7 tenant-scoped (corrections CRUD + persona preferences + preview)
+  Test suite:               112 tests total (82 original + 30 episodic memory tests)
 
-Fine-tune roadmap:
-  Phase 1 (live):           Correction logging + persona prompt injection
-  Phase 2 (100+ corr):      Distillation dataset generation via Claude/GPT-4
-  Phase 3 (500+ corr):      LoRA fine-tune Mistral-7B-Instruct on correction history
+Multi-tenant isolation:
+  episodic_corrections:     UNIQUE INDEX on (tenant_id, created_at) — zero cross-tenant reads possible
+  persona_preferences:      UNIQUE(tenant_id, pref_key) — prefs fully isolated per tenant
+  API layer:                ctx.tenant_id from JWT passed to all DB functions — never from request body
+
+Fine-tune roadmap (per-tenant):
+  Phase 1 (live):           Per-tenant correction logging + per-tenant persona prompt injection
+  Phase 2 (100+ corr/tenant): Per-tenant distillation dataset generation via Claude/GPT-4
+  Phase 3 (500+ corr/tenant): Per-tenant LoRA fine-tune Mistral-7B-Instruct
 ```
 
 ### Interview story — how to tell this addition
 
-"The system was already production-grade — Kafka, Redis, RAGAS, 82 tests. But there was a gap: Chandan, who is both the builder and the domain expert, would review each report and manually correct insights before approving. Those corrections were lost — the next report made the same mistakes.
+"The system was already production-grade — Kafka, Redis, RAGAS, RBAC, 82 tests. But there was a gap: each tenant's domain expert reviews reports and corrects insights before approving. Two problems: (1) those corrections were lost — the next report made the same mistakes; (2) a naive single-table store would mix Tenant A's editorial style into Tenant B's pipeline — a critical multi-tenant data isolation bug.
 
-I designed a three-phase learning roadmap. Phase 1 is live: every correction is logged to SQLite with a bag-of-words fingerprint. At the start of each new pipeline run, I retrieve the top-5 most similar past corrections using cosine similarity and inject them into the LangGraph state as `chandan_preferences`. Every agent downstream sees Chandan's corrections before generating a single token.
+I designed a multi-tenant episodic memory system. Every correction is stored with `tenant_id` as the partition key. All retrieval uses `WHERE tenant_id=X` — Tenant B can never see Tenant A's corrections even if they query the same text. Tenants can also set a custom `__persona__` preference to fully override the default voice and tone rules.
 
-Phase 2 starts when we have 100+ corrections — we use Claude to generate synthetic training examples in the corrected style. Phase 3 at 500+ examples: LoRA fine-tune Mistral-7B on that dataset.
+At the start of each pipeline run, `build_tenant_context(tenant_id=ctx.tenant_id)` retrieves the top-5 most similar past corrections for that tenant using cosine similarity and injects them into the LangGraph state. Every agent downstream sees that tenant's corrections before generating a single token.
 
-The key design decision was not to fine-tune immediately. Fine-tuning without enough data degrades performance — the model overfits. Persona prompting gives us 70% of the quality gain today, for free. The correction store is building the dataset we'll need in three months."
+The key design decision: `tenant_id` is a required keyword-only argument on every DB function — not optional, not defaulting silently. A missing tenant_id fails loudly. This pattern prevents the entire class of 'forgot to scope' bugs that cause silent data mixing in multi-tenant systems."

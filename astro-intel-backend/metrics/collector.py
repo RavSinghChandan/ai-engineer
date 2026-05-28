@@ -67,11 +67,11 @@ def _compute_episodic_metrics(runs: list) -> dict:
     )
     injection_rate = round(len(runs_with_persona) / n * 100, 1)
 
-    # Pull live total from DB (non-blocking — returns 0 on any error)
+    # Pull live total from DB across all tenants (non-blocking — returns 0 on any error)
     total_db = 0
     try:
-        from memory.episodic import correction_stats
-        total_db = correction_stats().get("total_corrections", 0)
+        from memory.episodic import correction_stats_global
+        total_db = correction_stats_global().get("total_corrections", 0)
     except Exception:
         pass
 

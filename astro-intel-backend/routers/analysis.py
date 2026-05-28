@@ -14,7 +14,7 @@ from pydantic import BaseModel
 
 from schemas import AnalysisRequest, ApprovalRequest
 from graph.pipeline import run_pipeline
-from memory.persona import build_chandan_context
+from memory.persona import build_tenant_context
 from memory.episodic import log_correction
 import agents.prompt_config as prompt_config
 from agents.report_agent import final_report_agent
@@ -112,10 +112,11 @@ async def run_analysis(
     # ── Cache miss — run the full pipeline ────────────────────────────────────
     session_id = str(uuid.uuid4())
 
-    # Build Chandan's episodic context — top-K past corrections + persona prompt
-    chandan_preferences = build_chandan_context(
+    # Build tenant's episodic context — top-K past corrections + persona prompt (scoped to this tenant)
+    chandan_preferences = build_tenant_context(
         query=final_question or (extra_questions[0] if extra_questions else ""),
         intent="general",
+        tenant_id=ctx.tenant_id,
     )
 
     initial_state: Dict[str, Any] = {
@@ -260,6 +261,7 @@ async def approve_and_generate(
                             break
                 try:
                     log_correction(
+                        tenant_id=ctx.tenant_id,
                         insight_id=edit.insight_id,
                         original_text=edit.original_text,
                         corrected_text=edit.corrected_text,

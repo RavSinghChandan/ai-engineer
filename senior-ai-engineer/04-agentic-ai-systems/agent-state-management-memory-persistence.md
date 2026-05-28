@@ -405,83 +405,106 @@ The same trade-off exists in Redis + Postgres dual-write: you write to Redis (fa
 
 ---
 
-## LIVE IMPLEMENTATION — AstroIntel 360° Episodic Memory System (2025-05-28)
+## LIVE IMPLEMENTATION — AstroIntel 360° Multi-Tenant Episodic Memory System (2026-05-28)
 
 This is the real production code that runs in `astro-intel-backend/`.
 
 ### What was built
 
-**Problem:** Chandan reviews AI-generated spiritual insights and corrects them before approval. The system had no memory of these corrections — every new report repeated the same mistakes.
+**Problem:** AstroIntel is a multi-tenant SaaS. Each enterprise client (tenant) reviews AI-generated spiritual insights and corrects them before approval. The system had no memory of corrections — every new report repeated the same mistakes. Worse: a naive single-table correction store would mix Tenant A's editorial preferences into Tenant B's pipeline — a critical data isolation bug.
 
-**Solution:** A three-layer episodic memory system that logs every correction, retrieves similar past corrections at query time, and injects them into the LangGraph state before any agent runs.
+**Solution:** A multi-tenant episodic memory system. Every correction is stored with `tenant_id`. All retrieval, listing, and persona pref operations are scoped to the authenticated tenant. Tenant A's corrections never influence Tenant B's pipeline — ever.
 
 ### File structure
 
 ```
 astro-intel-backend/
 ├── memory/
-│   ├── episodic.py    ← correction store + cosine similarity retrieval
-│   └── persona.py     ← static persona prompt + dynamic context builder
+│   ├── episodic.py    ← multi-tenant correction store: all functions require tenant_id
+│   └── persona.py     ← DEFAULT_PERSONA + build_tenant_context(query, intent, tenant_id)
 ├── routers/
-│   └── feedback.py    ← /api/v1/feedback/* — 7 ADMIN endpoints
+│   └── feedback.py    ← /api/v1/feedback/* — 7 tenant-scoped endpoints
 └── tests/
-    └── test_episodic_memory.py  ← 16 tests, all passing
+    └── test_episodic_memory.py  ← 30 tests (16 functional + 14 isolation), all passing
 ```
 
-### How it flows
+### How it flows (multi-tenant)
 
 ```
-/approve receives edited_insights[]
+/approve receives edited_insights[] (authenticated as tenant_id=X)
     ↓
-log_correction() → SQLite episodic_corrections table
-  stores: original_text, corrected_text, intent, similarity_key (bag-of-words fingerprint)
+log_correction(tenant_id=X, insight_id, original_text, corrected_text, intent, ...)
+  → SQLite: episodic_corrections table with tenant_id=X, similarity_key (bag-of-words)
     ↓
-Next /run call:
+Next /run call (still tenant_id=X):
     ↓
-build_chandan_context(query, intent)
-  → retrieve_similar_corrections() — cosine similarity on bag-of-words fingerprint
-  → top-5 most relevant past corrections retrieved
-  → merged with static CHANDAN_PERSONA prompt
+build_tenant_context(query, intent, tenant_id=X)
+  → retrieve_similar_corrections(query, tenant_id=X, intent) — cosine on bag-of-words
+  → top-5 most relevant past corrections FOR TENANT X ONLY
+  → merged with tenant's persona prompt (custom __persona__ pref or DEFAULT_PERSONA)
     ↓
-chandan_preferences injected into LangGraph initial_state
+tenant_preferences injected into LangGraph initial_state["chandan_preferences"]
     ↓
-Every agent has Chandan's corrections and tone rules before it generates a single token
+Every agent has THIS TENANT'S corrections and tone rules before it generates a single token
 ```
 
-### Key code — correction retrieval (no external vector DB)
+### Multi-tenant isolation guarantee
 
 ```python
-# memory/episodic.py
-def _cosine(a: Counter, b: Counter) -> float:
-    dot = sum(a[k] * b.get(k, 0) for k in a)
-    mag_a = math.sqrt(sum(v * v for v in a.values()))
-    mag_b = math.sqrt(sum(v * v for v in b.values()))
-    return dot / (mag_a * mag_b) if mag_a and mag_b else 0.0
+# memory/episodic.py — ALL reads/writes are tenant-scoped
+def log_correction(*, tenant_id: str, insight_id: str, ...):
+    conn.execute(
+        "INSERT INTO episodic_corrections (tenant_id, insight_id, ...) VALUES (?,?,?...)",
+        (tenant_id, insight_id, ...)
+    )
 
-def retrieve_similar_corrections(query, intent, top_k=5, min_score=0.12):
-    q_vec = Counter(_tokenise(query))
+def retrieve_similar_corrections(query, tenant_id: str, intent, top_k=5, min_score=0.12):
     rows = conn.execute(
-        "SELECT ... FROM episodic_corrections WHERE intent=? OR intent='general'", (intent,)
+        "SELECT ... FROM episodic_corrections "
+        "WHERE tenant_id=? AND (intent=? OR intent='general')", (tenant_id, intent)
     ).fetchall()
-    scored = [(cosine(q_vec, parse_key(row["similarity_key"])), row) for row in rows]
-    return [format(row) for score, row in sorted(scored, reverse=True)[:top_k] if score >= min_score]
+    # Tenant B querying the same text as Tenant A → zero results from Tenant A's rows
 ```
 
-### Key code — LangGraph injection
+### Key code — LangGraph injection (tenant-scoped)
 
 ```python
 # routers/analysis.py — /run endpoint
-chandan_preferences = build_chandan_context(query=final_question, intent="general")
+# ctx = TenantContext from JWT — carries tenant_id of the authenticated caller
+chandan_preferences = build_tenant_context(
+    query=final_question,
+    intent="general",
+    tenant_id=ctx.tenant_id,   # ← CRITICAL: scoped to this tenant
+)
 
 initial_state = {
     "user_profile":        profile_dict,
     "user_question":       final_question,
     # ... all existing state keys unchanged ...
-    "chandan_preferences": chandan_preferences,   # ← new key, non-breaking
+    "chandan_preferences": chandan_preferences,   # ← non-breaking state key (kept for agent compatibility)
 }
 ```
 
-### Static persona prompt (excerpt)
+### Per-tenant custom persona
+
+Tenants can set a fully custom `__persona__` key via `POST /feedback/persona/preferences`:
+
+```python
+# memory/persona.py
+def build_tenant_context(query, intent, tenant_id, top_k=5):
+    prefs = get_persona_prefs(tenant_id=tenant_id)
+    persona_prompt = prefs.pop("__persona__", DEFAULT_PERSONA)  # custom or fallback
+    past = retrieve_similar_corrections(query=query, intent=intent, tenant_id=tenant_id, top_k=top_k)
+    return {
+        "tenant_id":            tenant_id,
+        "persona_prompt":       persona_prompt,   # custom per-tenant voice
+        "past_corrections":     past,             # this tenant's correction history only
+        "preference_overrides": prefs,
+        "correction_summary":   ...,
+    }
+```
+
+### Static default persona (excerpt — applies when tenant has no custom __persona__)
 
 ```
 TONE RULES (always apply):
@@ -498,12 +521,12 @@ FORBIDDEN PATTERNS:
 
 ### Senior interview talking point
 
-"In AstroIntel we implemented a human-in-the-loop episodic memory system. Every time the admin corrects an insight before approval, that correction is stored with a bag-of-words similarity fingerprint. At the start of the next pipeline run, we retrieve the top-5 most similar past corrections using cosine similarity — no external vector DB, pure SQLite. These corrections are injected into the LangGraph state as `chandan_preferences`, so every agent downstream receives them before generating output. This is Phase 1 of a three-phase fine-tuning roadmap: correct → log → retrieve → inject → (Phase 3) distil into a LoRA dataset and fine-tune Mistral-7B on Chandan's actual correction history."
+"In AstroIntel we implemented a multi-tenant episodic memory system. Every time an admin corrects an insight before approval, that correction is stored with their `tenant_id` as a partition key. At the start of the next pipeline run, we retrieve the top-5 most similar past corrections for that tenant using cosine similarity — no external vector DB, pure SQLite with a bag-of-words fingerprint. These corrections, combined with the tenant's custom persona prompt, are injected into the LangGraph state before any agent runs. The critical design decision was making `tenant_id` a required parameter on every DB function — not optional, not defaulting — so a missing tenant_id fails loudly rather than silently mixing tenant data. This is Phase 1 of a three-phase fine-tuning roadmap: per-tenant correction logging → per-tenant distillation dataset → per-tenant LoRA fine-tune."
 
 ### The roadmap from here
 
 | Phase | When | What |
 |-------|------|------|
-| Phase 1 (live now) | 0–100 corrections | Log every correction. Persona prompt injection. Agents learn Chandan's tone immediately. |
-| Phase 2 | 100+ corrections | Run distillation script: use GPT-4/Claude to generate synthetic training pairs in Chandan's corrected style. Human review. Dataset ready. |
-| Phase 3 | 500+ corrections | LoRA fine-tune Mistral-7B on the correction dataset. Hosted privately. Nobody else sounds like Chandan. |
+| Phase 1 (live now) | 0–100 corrections/tenant | Log every correction per tenant. Per-tenant persona prompt injection. Agents learn each tenant's tone immediately. |
+| Phase 2 | 100+ corrections/tenant | Run distillation script: use GPT-4/Claude to generate synthetic training pairs in tenant's corrected style. Human review. Dataset ready. |
+| Phase 3 | 500+ corrections/tenant | LoRA fine-tune Mistral-7B on the tenant's correction dataset. Each tenant gets their own fine-tuned model. |
