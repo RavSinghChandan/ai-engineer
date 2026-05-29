@@ -63,16 +63,23 @@ def heal_json(raw: str) -> Any:
     except json.JSONDecodeError:
         pass
 
-    # Attempt 2: strip markdown fences
-    stripped = re.sub(r"^```(?:json)?\s*", "", raw)
-    stripped = re.sub(r"\s*```$", "", stripped).strip()
+    # Attempt 2: strip markdown fences using plain string ops (avoids ReDoS risk)
+    stripped = raw
+    for prefix in ("```json\n", "```json", "```\n", "```"):
+        if stripped.startswith(prefix):
+            stripped = stripped[len(prefix):]
+            break
+    if stripped.endswith("```"):
+        stripped = stripped[:-3]
+    stripped = stripped.strip()
     try:
         return json.loads(stripped)
     except json.JSONDecodeError:
         pass
 
     # Attempt 3: find first JSON object or array in the string
-    for pattern in (r"\{.*\}", r"\[.*\]"):
+    # Use non-backtracking patterns to avoid ReDoS on adversarial input
+    for pattern in (r"\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}", r"\[[^\[\]]*(?:\[[^\[\]]*\][^\[\]]*)*\]"):
         match = re.search(pattern, raw, re.DOTALL)
         if match:
             try:

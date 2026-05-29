@@ -16,8 +16,22 @@ WORKDIR /app
 # Copy installed packages from builder
 COPY --from=builder /install /usr/local
 
-# Copy application code
-COPY . .
+# Copy application code (explicit list avoids accidentally bundling secrets or local config)
+COPY main.py .
+COPY db.py .
+COPY storage.py .
+COPY agents/ agents/
+COPY auth/ auth/
+COPY cache/ cache/
+COPY guardrails/ guardrails/
+COPY infra/ infra/
+COPY memory/ memory/
+COPY metrics/ metrics/
+COPY middleware/ middleware/
+COPY prompts/ prompts/
+COPY rag/ rag/
+COPY utils/ utils/
+COPY data/ data/
 
 # Non-root user for security
 RUN adduser --disabled-password --gecos "" appuser && chown -R appuser /app

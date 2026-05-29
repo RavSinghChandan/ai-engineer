@@ -180,7 +180,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=os.getenv(
         "CORS_ORIGINS",
-        "http://localhost:4200,http://localhost:4202,http://127.0.0.1:4202"
+        "https://localhost:4200,https://localhost:4202,https://127.0.0.1:4202"
     ).split(","),
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
