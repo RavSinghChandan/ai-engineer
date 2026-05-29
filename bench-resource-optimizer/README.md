@@ -1,267 +1,441 @@
-# Bench Resource Optimizer
+# ⚡ Bench Resource Optimizer — Enterprise AI Platform
 
-AI-powered enterprise platform to track bench employees, map them to project roles using Hybrid RAG, identify skill gaps, and generate preparation roadmaps.
+> AI-powered platform to identify skill gaps in bench employees, map them to project roles using Hybrid RAG, and generate personalised training roadmaps.
 
-> **Full system walkthrough:** [FLOW.md](./FLOW.md) · [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) · [MASTER_PLAN_360.md](./MASTER_PLAN_360.md)
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Backend | Python · FastAPI v3.0 · SQLite (WAL) |
-| LLM | DeepSeek (`deepseek-chat`) via OpenAI-compatible SDK |
-| RAG | FAISS + BM25 + RRF fusion · HyDE · CRAG · Cross-encoder rerank |
-| Caching | Semantic cache L1 (exact hash) + L2 (cosine ≥ 0.92) · Redis |
-| Auth | JWT HS256 · role-based (admin / user) · all secrets from env |
-| Events | Kafka topics: `bench.cv.uploaded`, `bench.plan.requested`, `bench.dlq` |
-| Frontend | Angular 17 (standalone components) |
-| CI/CD | GitHub Actions — pytest + ng build on every push |
-| Tests | 222 tests · 3.6s runtime |
+**GitHub Repo:** https://github.com/RavSinghChandan/ai-engineer  
+**Folder:** `bench-resource-optimizer/`
 
 ---
 
-## Quick Start
+## Table of Contents
+
+1. [What It Does](#1-what-it-does)
+2. [Tech Stack](#2-tech-stack)
+3. [Architecture Diagram](#3-architecture-diagram)
+4. [Flow Diagram](#4-flow-diagram)
+5. [Technical Design](#5-technical-design)
+6. [Demo — Screenshots](#6-demo--screenshots)
+7. [Quick Start](#7-quick-start)
+8. [API Reference](#8-api-reference)
+9. [SonarQube Quality Report](#9-sonarqube-quality-report)
+10. [Test Results](#10-test-results)
+11. [Project Structure](#11-project-structure)
+
+---
+
+## 1. What It Does
+
+A software company has 50 employees "on the bench" — finished their last project, waiting for the next one. Managers have no visibility into:
+
+- What skills does each person have?
+- Which project role are they best suited for?
+- What are they missing to be deployable?
+- How prepared are they right now?
+
+This system answers all four questions automatically using AI.
+
+```
+Employee uploads CV  →  AI parses skills & experience
+Employee picks role  →  AI compares skills vs role (RAG + LLM)
+Employee gets plan   →  AI generates 7-day upskilling roadmap
+Employee ticks tasks →  System calculates readiness score
+Manager sees dashboard → Real-time bench visibility
+```
+
+---
+
+## 2. Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Backend** | Python 3.11 · FastAPI 3.0 · SQLite (WAL mode) |
+| **LLM** | DeepSeek `deepseek-chat` via OpenAI-compatible SDK |
+| **RAG** | FAISS + BM25 + RRF fusion · HyDE · CRAG · Cross-encoder reranker |
+| **Embeddings** | HuggingFace `all-MiniLM-L6-v2` (local, no API cost) |
+| **Cache** | L1 exact hash (SHA-256) + L2 semantic cosine ≥ 0.92 · Redis |
+| **Auth** | JWT HS256 · RBAC (admin / user) · all secrets from env |
+| **Events** | Kafka: `bench.cv.uploaded` · `bench.plan.requested` · `bench.dlq` |
+| **Frontend** | Angular 17 (standalone components · AG-Grid · SSE streaming) |
+| **Tests** | pytest · **502 tests · 94.7% coverage** · SonarQube Quality Gate PASSED |
+| **CI/CD** | GitHub Actions — pytest + ng build on every push |
+| **Container** | Docker multi-stage build · non-root user · docker-compose |
+
+---
+
+## 3. Architecture Diagram
+
+```
+                    ┌──────────────────────────────────────┐
+                    │         Angular 17 SPA               │
+                    │   Login → Upload → Map Role →        │
+                    │   Dashboard → Metrics → Memory       │
+                    └──────────────┬───────────────────────┘
+                                   │ HTTPS + JWT Bearer
+                                   ▼
+                    ┌──────────────────────────────────────┐
+                    │      FastAPI Gateway  :8000          │
+                    │                                      │
+                    │  SecurityHeaders → RateLimit(G1) →  │
+                    │  RequestLogging → JWT Auth →         │
+                    │  InjectionCheck → Route Handler      │
+                    └──┬──────────┬─────────────┬─────────┘
+                       │          │             │
+           ┌───────────▼──┐  ┌────▼──────┐  ┌──▼──────────────┐
+           │  LLM Agents  │  │   Cache   │  │  Kafka Topics   │
+           │              │  │           │  │                  │
+           │ cv_parser    │  │ L1: hash  │  │bench.cv.uploaded │
+           │ role_mapper  │  │ L2: cosine│  │bench.plan.req    │
+           │ planner      │  │ Redis     │  │bench.dlq         │
+           │ tracker      │  └───────────┘  └─────────────────┘
+           └──────┬───────┘
+                  │
+     ┌────────────▼──────────────┐
+     │    Hybrid RAG Pipeline    │
+     │                           │
+     │  BM25 (keyword)           │
+     │     +                     │
+     │  FAISS (dense vectors)    │
+     │     ↓                     │
+     │  RRF Fusion               │
+     │     ↓                     │
+     │  HyDE query expansion     │
+     │     ↓                     │
+     │  CRAG quality scoring     │
+     │     ↓                     │
+     │  Cross-encoder reranker   │
+     └────────────┬──────────────┘
+                  │
+     ┌────────────▼──────────────┐
+     │    DeepSeek LLM (API)     │
+     │  Retry + Circuit Breaker  │
+     │  Token tracker + Audit    │
+     │  Faithfulness check       │
+     │  G4 PII filter on output  │
+     └────────────┬──────────────┘
+                  │
+     ┌────────────▼──────────────┐
+     │      SQLite (WAL)         │
+     │  users · progress · roles │
+     │  readiness_history        │
+     │  episodic_memory · ragas  │
+     │  guardrail_counters       │
+     └───────────────────────────┘
+```
+
+---
+
+## 4. Flow Diagram
+
+### User Journey
+
+```
+╔══════════════════════════════════════════════════════════════╗
+║  STEP 1           STEP 2              STEP 3                 ║
+║                                                              ║
+║  Upload CV    →   Map to Role    →   Track Progress          ║
+║                                                              ║
+║  • Drag PDF       • Pick role        • See 7-day plan        ║
+║  • AI parses      • AI compares      • Tick off tasks        ║
+║    skills           skills vs role   • Score updates         ║
+║  • Stored in DB   • See % match      • Manager sees it       ║
+║                   • Missing skills                           ║
+╚══════════════════════════════════════════════════════════════╝
+```
+
+### Request Flow — Role Mapping
+
+```
+POST /map-role
+      │
+      ├─► G1: Rate limiter (60/min/user)
+      ├─► JWT auth check
+      ├─► Injection detection on role_name
+      ├─► Load episodic memory context
+      │
+      ├─► L1 cache check ──────────────────────────► HIT: return <1ms
+      │         MISS
+      ├─► HyDE: LLM generates hypothetical role doc
+      │
+      ├─► Hybrid retrieval:
+      │     BM25 + FAISS → RRF fusion → top-20
+      │     Cross-encoder reranker → top-5
+      │
+      ├─► CRAG quality score
+      │     LOW  → fallback to wider search
+      │     HIGH → proceed to LLM
+      │
+      ├─► LLM call (prompt v2) + token tracker
+      ├─► Faithfulness check
+      ├─► G4 PII filter on output
+      ├─► G3 JSON repair (if malformed)
+      ├─► L1 cache write
+      ├─► RAGAS evaluation (async)
+      ├─► Episodic memory write
+      ├─► Kafka event publish
+      └─► Return to Angular UI
+```
+
+### Guardrails (G1–G5)
+
+```
+G1 — Rate Limiter     60 req/min per user  →  429 if exceeded
+G2 — Circuit Breaker  Opens after 5 fails  →  graceful fallback
+G3 — JSON Repair      direct → fence → regex → LLM repair cascade
+G4 — PII Filter       Email/phone stripped from all LLM outputs
+G5 — Graceful Degrade Tracks full/partial/fallback/failed per agent
+```
+
+---
+
+## 5. Technical Design
+
+### RAG Pipeline — Why Each Layer Exists
+
+| Layer | Recall Improvement | Why |
+|-------|-------------------|-----|
+| FAISS only | ~60% | Dense retrieval misses keyword matches |
+| + BM25 + RRF | ~78% | Sparse retrieval catches exact skill names |
+| + HyDE | ~83% | Better query for novel role descriptions |
+| + Cross-encoder | Best precision | Expensive re-scoring on final top-5 |
+
+### Caching Strategy
+
+```
+Request arrives
+     │
+     ▼
+L1: SHA-256 exact hash (same role+skills → <1ms)
+     │ MISS
+     ▼
+L2: cosine similarity > 0.92 (similar roles share result)
+     │ MISS
+     ▼
+Full LLM pipeline (~3s)
+     │
+     └─► Write to L1 + L2 + Redis
+```
+
+### Agent Failure Handling
+
+```
+LLM call fails
+   → Retry #1 (0.5s)  → Retry #2 (1.0s)  → Retry #3 (2.0s)
+   → Circuit Breaker opens (5 failures/60s)
+   → Graceful fallback response returned to user
+   → Circuit resets after 30s
+```
+
+### Security Design
+
+```
+Every request:
+  1. SecurityHeadersMiddleware  — HSTS, CSP, X-Frame: DENY, nosniff
+  2. RateLimitMiddleware        — 60/min/IP (G1)
+  3. JWT verification           — HS256, 24h expiry
+  4. Injection check            — CV text + role name scanned
+  5. PII output filter (G4)     — email/phone stripped from LLM output
+```
+
+---
+
+## 6. Demo — Screenshots
+
+### Login
+![Login](demo/screenshots/01_login.png)
+
+`http://localhost:4200/login` — Enter credentials → redirected to Upload CV.
+
+---
+
+### Step 1 — Upload CV
+![Upload CV](demo/screenshots/03_upload_cv.png)
+
+`http://localhost:4200/upload` — Drag and drop a PDF resume. AI extracts name, skills, experience, projects, education in 3–5 seconds.
+
+---
+
+### Step 2 — Role Mapping
+![Role Mapping](demo/screenshots/04_role_mapping.png)
+
+`http://localhost:4200/mapping` — Select a target role → AI uses Hybrid RAG (BM25 + FAISS + RRF + HyDE + CRAG) to compare your skills. Returns match score (e.g. 80%), skills you have, and missing skills.
+
+---
+
+### Step 3 — Training Plan & Dashboard
+![Dashboard](demo/screenshots/05_dashboard.png)
+
+`http://localhost:4200/dashboard` — Day-by-day task plan. Tick tasks complete → readiness score gauge updates. All tasks linked to company-internal resources.
+
+---
+
+## 7. Quick Start
 
 ### Prerequisites
+- Python 3.9+, Node 18+, Angular CLI (`npm i -g @angular/cli`)
+- DeepSeek API key (free tier works)
 
-- Python 3.9+
-- Node.js 18+ and Angular CLI (`npm i -g @angular/cli`)
-- DeepSeek API key
-
-### 1. Set up environment
-
+### Start Backend
 ```bash
 cd bench-resource-optimizer/backend
 cp .env.example .env
-# Fill in: DEEPSEEK_API_KEY, JWT_SECRET (32+ chars), ADMIN_PASSWORD, DEFAULT_USER_PASSWORD
-```
+# Fill in: DEEPSEEK_API_KEY, JWT_SECRET, ADMIN_PASSWORD, DEFAULT_USER_PASSWORD
 
-### 2. Run backend
-
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
+python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
 
-Backend: http://localhost:8000  
-API Docs: http://localhost:8000/docs
-
-### 3. Run frontend
-
+### Start Frontend
 ```bash
-cd frontend
+cd bench-resource-optimizer/frontend
 npm install
-npm start        # runs: ng serve --proxy-config proxy.conf.json
+ng serve --proxy-config proxy.conf.json --port 4200
 ```
 
-Frontend: http://localhost:4200  
-Proxy: `/api/*` → `http://localhost:8000` (strips `/api` prefix)
+### Credentials
 
-### Or run both at once
+| Role | User ID | Password |
+|------|---------|----------|
+| User | `user` | `BenchUs3r@2026` |
+| Admin | `admin` | `BenchAdm!n@2026` |
 
+### URLs
+
+| Service | URL |
+|---------|-----|
+| Frontend | http://localhost:4200 |
+| Backend API | http://localhost:8000 |
+| Swagger Docs | http://localhost:8000/docs |
+
+---
+
+## 8. API Reference
+
+| Endpoint | Method | Auth | Purpose |
+|----------|--------|------|---------|
+| `/health/live` | GET | — | Liveness probe |
+| `/health/ready` | GET | — | Readiness (LLM + FAISS + BM25 + DB) |
+| `/auth/login` | POST | — | Get JWT token |
+| `/upload-cv` | POST | User | Upload PDF → parsed profile + user_id |
+| `/map-role` | POST | User | Map user to role → match score + gaps |
+| `/generate-plan` | POST | User | Generate N-day training plan |
+| `/generate-plan/stream` | POST | User | SSE streaming plan generation |
+| `/update-progress` | POST | User | Mark tasks complete → readiness score |
+| `/progress/{user_id}` | GET | User | Current plan + progress |
+| `/metrics` | GET | User | Token usage, latency, cache stats |
+| `/ragas` | GET | User | RAGAS evaluation dashboard |
+| `/memory/{user_id}` | GET | User | Episodic memory + long-term facts |
+| `/guardrails/stats` | GET | User | Live G1–G5 guardrail counters |
+| `/evaluate` | POST | User | LLM-as-Judge — score any AI output |
+| `/roles` | GET | User | List all roles |
+| `/admin/roles` | POST | Admin | Create new role |
+| `/admin/upload-resource` | POST | Admin | Upload internal training document |
+| `/admin/resources` | GET | Admin | List indexed internal documents |
+
+Full interactive docs: **http://localhost:8000/docs**
+
+---
+
+## 9. SonarQube Quality Report
+
+**Scan Date:** 2026-05-29 | **Quality Gate: PASSED ✅**
+
+| Metric | Value | Rating |
+|--------|-------|--------|
+| **Quality Gate** | **PASSED** | ✅ |
+| Bugs | **0** | A |
+| Vulnerabilities | **0** | A |
+| Code Smells | **0** | A |
+| Violations | **0** | ✅ |
+| Security Hotspots | **0** | ✅ |
+| Coverage | **94.7%** | ✅ |
+| Duplicated Lines | **0.2%** | ✅ |
+| Reliability | **A (1.0)** | ✅ |
+| Security | **A (1.0)** | ✅ |
+| Maintainability | **A (1.0)** | ✅ |
+| Lines of Code | **10,986** | — |
+
+### Security Hotspots Fixed (3 → 0)
+
+| File | Rule | Issue | Fix |
+|------|------|-------|-----|
+| `utils/guardrails.py` | S5852 | ReDoS — `\s*` regex on user input | Replaced with plain string operations — no regex engine backtracking possible |
+| `main.py` | S5332 | HTTP in CORS default origins | Changed default to `https://` |
+| `Dockerfile` | S6470 | `COPY . .` may bundle secrets | Replaced with explicit per-directory copies |
+
+### Reproduce the Scan
 ```bash
-chmod +x run.sh && ./run.sh
+cd bench-resource-optimizer/backend
+python -m pytest tests/ --cov=. --cov-report=xml:coverage.xml -q
+sonar-scanner -Dsonar.token=<your-token>
+# View: http://localhost:9000/dashboard?id=bench-resource-optimizer
 ```
 
 ---
 
-## Login Credentials
+## 10. Test Results
 
-| Role | User ID | Password (set in `.env`) |
-|------|---------|--------------------------|
-| Admin | `admin` | value of `ADMIN_PASSWORD` |
-| User | any string | value of `DEFAULT_USER_PASSWORD` |
+**502 tests · 94.7% coverage · 0 failures · ~20s runtime**
 
-> Passwords have **no hardcoded defaults** — the server refuses to start if `JWT_SECRET`, `ADMIN_PASSWORD`, or `DEFAULT_USER_PASSWORD` are missing or set to known-weak values.
+| Test File | Tests | Coverage Area |
+|-----------|-------|---------------|
+| `test_api.py` | 29 | All FastAPI endpoints |
+| `test_agents.py` | 18 | CV parser, role mapper, planner, tracker |
+| `test_auth.py` | 24 | JWT, RBAC, 401/403 |
+| `test_cache.py` | 7 | L1/L2 semantic cache |
+| `test_coverage_boost.py` | 106 | Cache, infra, memory, middleware, metrics |
+| `test_coverage_final.py` | 55 | Guardrails production, JSON parser, agents |
+| `test_db.py` | 11 | SQLite CRUD |
+| `test_docker_config.py` | 16 | Dockerfile + docker-compose |
+| `test_guardrails.py` | 35 | G1–G5 all guardrails |
+| `test_guardrails_extra.py` | 37 | Persistence, hallucination, security |
+| `test_infra.py` | 19 | Redis, Kafka, DLQ |
+| `test_main_coverage.py` | 27 | main.py error paths, SSE, admin |
+| `test_memory.py` | 11 | Episodic memory, facts |
+| `test_memory_persistence.py` | 12 | SQLite memory persistence |
+| `test_observability.py` | 9 | Health probes, correlation IDs |
+| `test_prompts.py` | 5 | Prompt versioning and fallback |
+| `test_rag.py` | 45 | BM25, FAISS, RRF, HyDE, CRAG |
+| `test_readiness_history.py` | 6 | Time-series readiness scores |
+| `test_roles.py` | 15 | Role CRUD API |
+| `test_security_headers.py` | 10 | HSTS, CSP, X-Frame, nosniff |
+| `test_storage.py` | 11 | Storage layer CRUD |
+| **Total** | **502** | **Full enterprise stack** |
 
 ---
 
-## Project Structure
+## 11. Project Structure
 
 ```
 bench-resource-optimizer/
 ├── backend/
-│   ├── main.py                      # FastAPI app v3.0 — routes + lifespan
-│   ├── db.py                        # SQLite (WAL mode) — all persistence
-│   ├── storage.py                   # JSON file storage layer
-│   ├── requirements.txt
-│   ├── agents/
-│   │   ├── cv_parser_agent.py       # LLM: PDF text → structured UserProfile
-│   │   ├── role_mapping_agent.py    # Hybrid RAG + LLM: skill gap analysis
-│   │   ├── planning_agent.py        # LLM: 7-day preparation roadmap
-│   │   └── tracking_agent.py        # Readiness % calculation
-│   ├── rag/
-│   │   ├── knowledge_base.py        # FAISS vector store build + load
-│   │   ├── advanced_retrieval.py    # BM25 + RRF + HyDE + CRAG + reranker
-│   │   └── document_store.py        # Internal admin document store
-│   ├── cache/
-│   │   └── semantic_cache.py        # L1 exact + L2 cosine semantic cache
-│   ├── guardrails/
-│   │   ├── production.py            # G1–G5: rate limit, injection, PII, hallucination
-│   │   ├── hallucination.py         # LLM-as-judge faithfulness gate
-│   │   └── persistence.py           # SQLite guardrail event log
-│   ├── memory/
-│   │   └── session_store.py         # Episodic + long-term facts per user (SQLite)
-│   ├── metrics/
-│   │   ├── collector.py             # Cache hit rate, latency, guardrail counts
-│   │   └── ragas_eval.py            # RAGAS faithfulness + answer relevance
-│   ├── middleware/
-│   │   ├── rate_limit.py            # 60 req/min per IP
-│   │   └── logging_mw.py            # Structured JSON logs + X-Request-Id
-│   ├── auth/
-│   │   ├── jwt_handler.py           # HS256 JWT — startup validation of secrets
-│   │   └── __init__.py              # LoginRequest, TokenResponse, get_current_user
-│   ├── prompts/
-│   │   └── loader.py                # Versioned prompt loader (v1/v2)
-│   ├── utils/
-│   │   ├── retry.py                 # Exponential backoff + circuit breaker
-│   │   ├── security.py              # Injection detection + LLM audit log
-│   │   ├── token_tracker.py         # Token count + cost per request
-│   │   └── prompts.py               # Prompt version registry
-│   ├── infra/
-│   │   └── redis_client.py          # Redis connection pool, graceful degradation
-│   ├── tests/                       # 222 tests — full enterprise stack
-│   ├── .env                         # local only — gitignored
-│   ├── .env.example                 # committed — shows required vars
-│   └── Dockerfile                   # multi-stage, non-root user
-└── frontend/
-    └── src/app/
-        ├── components/
-        │   ├── login/               # JWT login screen
-        │   ├── upload-cv/           # Screen 1: upload + parse CV
-        │   ├── role-mapping/        # Screen 2: RAG role fit analysis
-        │   ├── dashboard/           # Screen 3: tasks + readiness score
-        │   ├── memory/              # Screen 4: user memory view
-        │   ├── metrics/             # Screen 5: observability dashboard
-        │   ├── admin/               # Screen 6: internal doc upload (admin only)
-        │   └── agent-graph/         # Screen 7: agent pipeline visualiser
-        ├── services/
-        │   ├── auth.service.ts      # JWT login, token storage, isAdmin()
-        │   └── api.service.ts       # HTTP calls to backend
-        └── proxy.conf.json          # /api → http://localhost:8000 (strips /api)
+│   ├── main.py                   FastAPI app, all routes
+│   ├── agents/                   cv_parser, role_mapper, planner, tracker
+│   ├── rag/                      advanced_retrieval, document_store, knowledge_base
+│   ├── guardrails/               production (G1-G5), hallucination, persistence, security
+│   ├── cache/                    semantic_cache (L1 + L2)
+│   ├── memory/                   session_store (episodic + long-term facts)
+│   ├── metrics/                  collector, ragas_eval
+│   ├── middleware/               rate_limit, logging_mw, security_headers
+│   ├── infra/                    kafka_producer, redis_client
+│   ├── auth/                     jwt_handler
+│   ├── utils/                    json_parser, token_tracker, retry, security, prompts
+│   ├── prompts/                  loader (v1/v2 versioned prompts per operation)
+│   ├── data/                     roles_knowledge.json (6 roles seeded at startup)
+│   ├── tests/                    502 tests across 21 test files
+│   ├── Dockerfile                multi-stage, non-root user
+│   └── requirements.txt
+├── frontend/
+│   ├── src/app/
+│   │   ├── components/           upload, mapping, dashboard, metrics, memory, admin
+│   │   └── services/             api.service, auth.service
+│   └── proxy.conf.json           /api → localhost:8000
+├── demo/
+│   └── screenshots/              Login, Upload CV, Role Mapping, Dashboard
+├── docker-compose.yml            Full stack: backend + Redis + Kafka + ZooKeeper
+├── README.md                     This file — all deliverables in one place
+├── DEMO.md                       Step-by-step demo guide
+├── SYSTEM_ARCHITECTURE.md        Deep architecture reference (module-by-module)
+├── FLOW.md                       Plain-English flow explanation
+└── SONARQUBE_REPORT.md           Full SonarQube scan details
 ```
-
----
-
-## API Reference
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `POST` | `/auth/login` | — | Get JWT token |
-| `GET`  | `/auth/me` | Bearer | Current user claims |
-| `GET`  | `/health` | — | Health probe |
-| `GET`  | `/metrics` | Bearer | Cache, latency, guardrail stats |
-| `GET`  | `/roles` | Bearer | List all target roles |
-| `POST` | `/upload-cv` | Bearer | Upload PDF → parse → store profile |
-| `POST` | `/map-role` | Bearer | Hybrid RAG skill gap analysis |
-| `POST` | `/generate-plan` | Bearer | 7-day preparation roadmap |
-| `GET`  | `/generate-plan/stream` | Bearer | SSE streaming plan generation |
-| `POST` | `/update-progress` | Bearer | Save completed tasks |
-| `GET`  | `/progress/{user_id}` | Bearer | Fetch progress + readiness score |
-| `GET`  | `/memory/{user_id}` | Bearer | Episodic + long-term memory |
-| `POST` | `/admin/upload-resource` | Admin | Upload internal knowledge doc |
-| `POST` | `/admin/roles` | Admin | Create new role |
-| `PUT`  | `/admin/roles/{id}` | Admin | Update role |
-| `DELETE` | `/admin/roles/{id}` | Admin | Delete role |
-
----
-
-## How It Works
-
-### Hybrid RAG Flow
-
-```
-User selects role
-       ↓
-Query expansion via HyDE (Hypothetical Document Embedding)
-       ↓
-FAISS dense retrieval  +  BM25 sparse retrieval
-       ↓
-RRF fusion (Reciprocal Rank Fusion — combines both rankings)
-       ↓
-CRAG quality score — low score triggers broader fallback search
-       ↓
-Cross-encoder reranker — top-20 → top-5
-       ↓
-LLM: candidate skills vs role requirements
-       ↓
-Output: match %, matched skills, missing skills, recommendation
-```
-
-### Agent Pipeline
-
-```
-PDF upload → CV Parser Agent → UserProfile (SQLite)
-                                      ↓
-               Role Mapping Agent ← Hybrid RAG retriever
-                                      ↓
-                             Planning Agent → 7-day roadmap
-                                      ↓
-                            Tracking Agent → readiness %
-                                      ↓
-                         Readiness History → time-series chart
-```
-
-### Security Middleware Stack
-
-```
-Request → SecurityHeaders → RateLimit (60/min) → RequestLog → JWT Auth
-       → Injection detection → PII filter → LLM call → Audit log
-```
-
----
-
-## Guardrails (G1–G5)
-
-| # | Guardrail | What it does |
-|---|-----------|-------------|
-| G1 | Rate Limit | 60 req/min per IP — 429 with `Retry-After` header |
-| G2 | Injection Detection | Scans CV text + role names before any LLM call |
-| G3 | Hallucination Gate | LLM-as-judge faithfulness check on role mapping output |
-| G4 | PII Filter | Strips email/phone from LLM outputs before returning |
-| G5 | Token Budget | Per-operation max token limits enforced at LLM bind |
-
----
-
-## Test Coverage
-
-| Test file | Tests | What it covers |
-|-----------|-------|---------------|
-| test_agents.py | 18 | CV parser, role mapper, planner, tracker |
-| test_api.py | 29 | All FastAPI endpoints |
-| test_auth.py | 24 | JWT login, /auth/me, 401/403 guards |
-| test_cache.py | 7 | L1/L2 semantic cache |
-| test_db.py | 11 | SQLite CRUD |
-| test_docker_config.py | 16 | Dockerfile + docker-compose |
-| test_guardrails.py | 35 | G1–G5 guardrails |
-| test_infra.py | 19 | Redis, Kafka, DLQ |
-| test_memory.py | 11 | Episodic + facts store |
-| test_memory_persistence.py | 12 | SQLite memory persistence |
-| test_observability.py | 9 | Health, cache headers, correlation IDs |
-| test_readiness_history.py | 6 | Time-series score history |
-| test_roles.py | 15 | Role CRUD API |
-| test_security_headers.py | 10 | HSTS, CSP, X-Frame, Permissions-Policy |
-| **Total** | **222** | **Full enterprise stack** |
-
-Run tests:
-```bash
-cd backend && pytest tests/ -v
-```
-
----
-
-## Environment Variables
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `DEEPSEEK_API_KEY` | ✅ | DeepSeek API key |
-| `JWT_SECRET` | ✅ | Min 32 chars — server refuses weak values |
-| `ADMIN_PASSWORD` | ✅ | Admin login password |
-| `DEFAULT_USER_PASSWORD` | ✅ | Regular user login password |
-| `DEEPSEEK_BASE_URL` | optional | Default: `https://api.deepseek.com` |
-| `DEEPSEEK_MODEL` | optional | Default: `deepseek-chat` |
-| `REDIS_URL` | optional | Default: `redis://localhost:6379` |
-| `JWT_EXPIRY_SECONDS` | optional | Default: `86400` (24h) |
