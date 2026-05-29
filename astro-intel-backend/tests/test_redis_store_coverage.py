@@ -300,3 +300,189 @@ class TestJobRedisOperations:
             with patch.object(rs, "_get_job_client", return_value=mock_client):
                 result = rs.job_redis_get("job-miss")
         assert result is None
+
+
+class TestRedisFlushAndStats:
+    def test_redis_flush_prefix_disabled_returns_zero(self):
+        from cache import redis_store as rs
+        with patch.object(rs, "REDIS_ENABLED", False):
+            result = rs.redis_flush_prefix("cache:")
+        assert result == 0
+
+    def test_redis_flush_prefix_no_keys_returns_zero(self):
+        from cache import redis_store as rs
+        mock_client = MagicMock()
+        mock_client.keys.return_value = []
+        with patch.object(rs, "REDIS_ENABLED", True):
+            with patch.object(rs, "_get_cache_client", return_value=mock_client):
+                result = rs.redis_flush_prefix("cache:")
+        assert result == 0
+
+    def test_redis_flush_prefix_deletes_matching_keys(self):
+        from cache import redis_store as rs
+        mock_client = MagicMock()
+        mock_client.keys.return_value = ["cache:k1", "cache:k2"]
+        mock_client.delete.return_value = 2
+        with patch.object(rs, "REDIS_ENABLED", True):
+            with patch.object(rs, "_get_cache_client", return_value=mock_client):
+                with patch.object(rs, "_publish_invalidation"):
+                    result = rs.redis_flush_prefix("cache:")
+        assert result == 2
+
+    def test_redis_flush_prefix_exception_returns_zero(self):
+        from cache import redis_store as rs
+        mock_client = MagicMock()
+        mock_client.keys.side_effect = RuntimeError("redis down")
+        with patch.object(rs, "REDIS_ENABLED", True):
+            with patch.object(rs, "_get_cache_client", return_value=mock_client):
+                result = rs.redis_flush_prefix("cache:")
+        assert result == 0
+
+    def test_redis_stats_disabled(self):
+        from cache import redis_store as rs
+        with patch.object(rs, "REDIS_ENABLED", False):
+            result = rs.redis_stats()
+        assert result["enabled"] is False
+
+    def test_redis_stats_no_client(self):
+        from cache import redis_store as rs
+        with patch.object(rs, "REDIS_ENABLED", True):
+            with patch.object(rs, "_get_cache_client", return_value=None):
+                result = rs.redis_stats()
+        assert result["status"] == "unreachable"
+
+    def test_redis_stats_success(self):
+        from cache import redis_store as rs
+        mock_client = MagicMock()
+        mock_client.info.side_effect = lambda section: {
+            "server": {"redis_version": "7.0", "used_memory": 1024 * 1024},
+            "keyspace": {},
+            "stats": {"keyspace_hits": 10, "keyspace_misses": 2, "evicted_keys": 0},
+        }.get(section, {})
+        with patch.object(rs, "REDIS_ENABLED", True):
+            with patch.object(rs, "_get_cache_client", return_value=mock_client):
+                result = rs.redis_stats()
+        assert result["status"] == "connected"
+        assert result["redis_version"] == "7.0"
+
+    def test_redis_stats_exception_returns_error(self):
+        from cache import redis_store as rs
+        mock_client = MagicMock()
+        mock_client.info.side_effect = RuntimeError("info failed")
+        with patch.object(rs, "REDIS_ENABLED", True):
+            with patch.object(rs, "_get_cache_client", return_value=mock_client):
+                result = rs.redis_stats()
+        assert result["status"] == "error"
+
+
+class TestJobRedisDeleteAndStats:
+    def test_job_redis_delete_disabled(self):
+        from cache import redis_store as rs
+        with patch.object(rs, "REDIS_ENABLED", False):
+            result = rs.job_redis_delete("job-1")
+        assert result is False
+
+    def test_job_redis_delete_success(self):
+        from cache import redis_store as rs
+        mock_client = MagicMock()
+        mock_client.delete.return_value = 1
+        with patch.object(rs, "REDIS_ENABLED", True):
+            with patch.object(rs, "_get_job_client", return_value=mock_client):
+                result = rs.job_redis_delete("job-1")
+        assert result is True
+
+    def test_job_redis_delete_exception_returns_false(self):
+        from cache import redis_store as rs
+        mock_client = MagicMock()
+        mock_client.delete.side_effect = RuntimeError("del failed")
+        with patch.object(rs, "REDIS_ENABLED", True):
+            with patch.object(rs, "_get_job_client", return_value=mock_client):
+                result = rs.job_redis_delete("job-1")
+        assert result is False
+
+    def test_job_redis_stats_disabled(self):
+        from cache import redis_store as rs
+        with patch.object(rs, "REDIS_ENABLED", False):
+            result = rs.job_redis_stats()
+        assert result["enabled"] is False
+
+    def test_job_redis_stats_success(self):
+        from cache import redis_store as rs
+        mock_client = MagicMock()
+        mock_client.info.return_value = {"db1": {"keys": 5}}
+        with patch.object(rs, "REDIS_ENABLED", True):
+            with patch.object(rs, "_get_job_client", return_value=mock_client):
+                result = rs.job_redis_stats()
+        assert result["status"] == "connected"
+        assert result["total_jobs"] == 5
+
+    def test_job_redis_stats_exception_returns_error(self):
+        from cache import redis_store as rs
+        mock_client = MagicMock()
+        mock_client.info.side_effect = RuntimeError("stats failed")
+        with patch.object(rs, "REDIS_ENABLED", True):
+            with patch.object(rs, "_get_job_client", return_value=mock_client):
+                result = rs.job_redis_stats()
+        assert result["status"] == "error"
+
+
+class TestPublishAndPubSub:
+    def test_publish_invalidation_with_client(self):
+        from cache import redis_store as rs
+        mock_client = MagicMock()
+        with patch.object(rs, "_get_cache_client", return_value=mock_client):
+            rs._publish_invalidation("cache:key1")
+        mock_client.publish.assert_called_once()
+
+    def test_publish_invalidation_no_client_no_crash(self):
+        from cache import redis_store as rs
+        with patch.object(rs, "_get_cache_client", return_value=None):
+            rs._publish_invalidation("cache:key1")
+
+    def test_publish_invalidation_exception_no_crash(self):
+        from cache import redis_store as rs
+        mock_client = MagicMock()
+        mock_client.publish.side_effect = RuntimeError("publish failed")
+        with patch.object(rs, "_get_cache_client", return_value=mock_client):
+            rs._publish_invalidation("cache:key1")
+
+    def test_register_invalidation_callback(self):
+        from cache import redis_store as rs
+        orig_callbacks = rs._invalidate_callbacks[:]
+        cb = lambda key: None
+        with patch.object(rs, "_ensure_pubsub_listener"):
+            rs.register_invalidation_callback(cb)
+        assert cb in rs._invalidate_callbacks
+        rs._invalidate_callbacks.clear()
+        rs._invalidate_callbacks.extend(orig_callbacks)
+
+    def test_pubsub_loop_import_error_no_crash(self):
+        from cache import redis_store as rs
+        with patch.dict("sys.modules", {"redis": None}):
+            rs._pubsub_loop()
+
+    def test_pubsub_loop_calls_callbacks_on_message(self):
+        from cache import redis_store as rs
+        import threading
+
+        received = []
+        rs._invalidate_callbacks.clear()
+        rs._invalidate_callbacks.append(lambda key: received.append(key))
+
+        messages = [
+            {"type": "message", "data": "cache:key1"},
+            {"type": "subscribe", "data": None},
+        ]
+
+        mock_redis_lib = MagicMock()
+        mock_client = MagicMock()
+        mock_pubsub = MagicMock()
+        mock_pubsub.listen.return_value = iter(messages)
+        mock_client.pubsub.return_value = mock_pubsub
+        mock_redis_lib.Redis.from_url.return_value = mock_client
+
+        with patch.dict("sys.modules", {"redis": mock_redis_lib}):
+            rs._pubsub_loop()
+
+        assert "cache:key1" in received
+        rs._invalidate_callbacks.clear()
