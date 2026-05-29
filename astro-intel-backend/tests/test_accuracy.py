@@ -51,6 +51,27 @@ from main import app
 
 client = TestClient(app, raise_server_exceptions=False)
 
+_TEST_API_KEY = os.environ.get("TEST_ACC_API_KEY", "accuracy-test-key")
+_ACC_HEADERS = {"X-API-Key": _TEST_API_KEY}
+
+
+def _seed_auth():
+    import auth.store as auth_store
+    from auth.models import Role
+    from database import get_conn
+    auth_store.clear_for_tests()
+    t = auth_store.create_tenant("Accuracy Test Tenant")
+    auth_store.create_api_key(t.tenant_id, Role.ADMIN, "accuracy test admin key")
+    conn = get_conn()
+    conn.execute(
+        "UPDATE api_keys SET key=? WHERE tenant_id=? AND role='admin'",
+        (_TEST_API_KEY, t.tenant_id),
+    )
+    conn.commit()
+
+
+_seed_auth()
+
 # ── Ground Truth Registry ─────────────────────────────────────────────────────
 # 20 diverse famous public figures
 # Fields:
@@ -360,7 +381,7 @@ def _run_profile(profile_data: dict, user_id: str, bypass: bool = True):
         "user_id": user_id,
         "user_question": CAREER_Q,
         "bypass_cache": bypass,
-    }, timeout=120)
+    }, timeout=120, headers=_ACC_HEADERS)
 
 
 def _all_insight_text(data: dict) -> str:

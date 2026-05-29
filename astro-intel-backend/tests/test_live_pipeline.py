@@ -39,6 +39,27 @@ import cache.store as cache_store
 from main import app
 client = TestClient(app, raise_server_exceptions=False)
 
+_TEST_API_KEY = os.environ.get("TEST_LIVE_API_KEY", "live-pipeline-test-key")
+_LIVE_HEADERS = {"X-API-Key": _TEST_API_KEY}
+
+
+def _seed_auth():
+    import auth.store as auth_store
+    from auth.models import Role
+    from database import get_conn
+    auth_store.clear_for_tests()
+    t = auth_store.create_tenant("Live Pipeline Test Tenant")
+    auth_store.create_api_key(t.tenant_id, Role.ADMIN, "live pipeline test admin key")
+    conn = get_conn()
+    conn.execute(
+        "UPDATE api_keys SET key=? WHERE tenant_id=? AND role='admin'",
+        (_TEST_API_KEY, t.tenant_id),
+    )
+    conn.commit()
+
+
+_seed_auth()
+
 VARUN_PROFILE = {
     "full_name": "Varun Sharma",
     "alias_name": "",
@@ -82,7 +103,7 @@ def _run(user_id: str, question: str = CAREER_QUESTION, bypass: bool = True,
     }
     if extra_questions:
         payload["questions"] = extra_questions
-    return client.post("/api/v1/analysis/run", json=payload, timeout=timeout)
+    return client.post("/api/v1/analysis/run", json=payload, timeout=timeout, headers=_LIVE_HEADERS)
 
 
 # ── Live /run — Single question ───────────────────────────────────────────────
@@ -153,7 +174,7 @@ class TestLiveRunSingleQuestion:
             "user_id": "session_B_completely_different",
             "user_question": CAREER_QUESTION,
             "bypass_cache": False,
-        }, timeout=30)
+        }, timeout=30, headers=_LIVE_HEADERS)
         assert resp2.json()["cache_hit"] is True
         assert len(cache_store.entries()) == 1  # exactly 1 entry, not 2
 
@@ -204,7 +225,7 @@ class TestLiveApprove:
             "brand_name": "AstroIntel",
             "logo_url": "",
             "image_url": "",
-        }, timeout=120)
+        }, timeout=120, headers=_LIVE_HEADERS)
 
     def test_approve_returns_200(self):
         sid, ids = self._run_and_get_session(_uid("apr200"))
@@ -255,7 +276,7 @@ class TestLiveTranslation:
             "rejected_insight_ids": [],
             "brand_name": "AstroIntel",
             "logo_url": "", "image_url": "",
-        }, timeout=120)
+        }, timeout=120, headers=_LIVE_HEADERS)
         assert apr.status_code == 200
         return session_id, apr.json()["final_report"]
 
@@ -263,14 +284,14 @@ class TestLiveTranslation:
         session_id, report = self._get_report(_uid("trhi"))
         resp = client.post("/api/v1/analysis/translate", json={
             "session_id": session_id, "language_code": "hi", "report": report,
-        }, timeout=120)
+        }, timeout=120, headers=_LIVE_HEADERS)
         assert resp.status_code == 200
 
     def test_translate_response_has_language_code(self):
         session_id, report = self._get_report(_uid("trlc"))
         resp = client.post("/api/v1/analysis/translate", json={
             "session_id": session_id, "language_code": "hi", "report": report,
-        }, timeout=120)
+        }, timeout=120, headers=_LIVE_HEADERS)
         data = resp.json()
         assert "final_report" in data
         assert data["language_code"] == "hi"
@@ -281,17 +302,17 @@ class TestLiveTranslation:
 class TestLiveGuardrailStats:
     def test_guardrail_stats_update_after_run(self):
         _run(_uid("gs1"))
-        data = client.get("/guardrails/stats").json()
+        data = client.get("/guardrails/stats", headers=_LIVE_HEADERS).json()
         assert data["rate_limiter"]["total_allowed"] >= 1
 
     def test_json_repair_stats_recorded(self):
         _run(_uid("gs2"))
-        data = client.get("/guardrails/stats").json()
+        data = client.get("/guardrails/stats", headers=_LIVE_HEADERS).json()
         assert "json_repair" in data
         assert data["json_repair"]["total_calls"] >= 0
 
     def test_metrics_records_run(self):
         _run(_uid("gs3"))
-        data = client.get("/api/v1/metrics").json()
+        data = client.get("/api/v1/metrics", headers=_LIVE_HEADERS).json()
         assert data["total_runs"] >= 1
         assert data["latency"]["p50_ms"] > 0
