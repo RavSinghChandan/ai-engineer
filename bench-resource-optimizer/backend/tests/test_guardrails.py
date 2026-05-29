@@ -7,8 +7,6 @@ No LLM calls — all sync, deterministic.
 """
 from __future__ import annotations
 
-import json
-import time
 import pytest
 
 from utils.guardrails import (
@@ -169,7 +167,7 @@ class TestG5DegradationTracker:
     def test_positive_full_run_recorded(self):
         tracker = GracefulDegradationTracker()
         tracker.record_run("req_001", {
-            "cv_parser":  {"status": "full", "note": "ok"},
+            "cv_parser": {"status": "full", "note": "ok"},
             "role_mapper": {"status": "full", "note": "ok"},
         })
         stats = tracker.stats()
@@ -179,7 +177,7 @@ class TestG5DegradationTracker:
     def test_negative_failed_agent_degrades_overall(self):
         tracker = GracefulDegradationTracker()
         tracker.record_run("req_002", {
-            "cv_parser":  {"status": "full",   "note": "ok"},
+            "cv_parser": {"status": "full", "note": "ok"},
             "role_mapper": {"status": "failed", "note": "LLM timeout"},
         })
         stats = tracker.stats()

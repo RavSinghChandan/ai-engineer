@@ -11,7 +11,6 @@ Privacy: LLM only receives skill names, role title, and day themes.
 It never receives raw CV text, employee PII, or internal document content.
 """
 import asyncio
-import json
 import re
 from typing import List
 
@@ -55,7 +54,7 @@ def _parse_outline(text: str, num_days: int) -> list:
         if len(parts) >= 3:
             try:
                 items.append({
-                    "day":   int(re.sub(r"[^0-9]", "", parts[0]) or str(len(items)+1)),
+                    "day": int(re.sub(r"\D", "", parts[0]) or str(len(items) + 1)),
                     "theme": parts[1],
                     "skill": parts[2],
                 })
@@ -63,20 +62,19 @@ def _parse_outline(text: str, num_days: int) -> list:
                 continue
     # Fallback: if parsing fails, create generic entries
     if not items:
-        skills = []
         for i in range(num_days):
-            items.append({"day": i+1, "theme": f"Day {i+1}", "skill": "General"})
+            items.append({"day": i + 1, "theme": f"Day {i+1}", "skill": "General"})
     return items[:num_days]
 
 
 async def _get_outline(role: str, missing_skills: List[str], num_days: int, llm) -> list:
-    prompt  = ChatPromptTemplate.from_messages([("human", OUTLINE_PROMPT)])
+    prompt = ChatPromptTemplate.from_messages([("human", OUTLINE_PROMPT)])
     bounded = llm.bind(max_tokens=num_days * 12 + 10)
-    chain   = prompt | bounded
-    result  = await chain.ainvoke({
-        "role":           role,
+    chain = prompt | bounded
+    result = await chain.ainvoke({
+        "role": role,
         "missing_skills": ", ".join(missing_skills) or "core skills",
-        "num_days":       num_days,
+        "num_days": num_days,
     })
     return _parse_outline(result.content, num_days)
 
@@ -92,14 +90,15 @@ Role: {role}. Day {day}. Theme: {theme}. Skill: {skill}."""
 
 _SEM = asyncio.Semaphore(6)
 
+
 async def _generate_one_day(day_info: dict, role: str, llm) -> dict:
-    prompt  = ChatPromptTemplate.from_messages([("human", DAY_PROMPT)])
+    prompt = ChatPromptTemplate.from_messages([("human", DAY_PROMPT)])
     bounded = llm.bind(max_tokens=120)
-    chain   = prompt | bounded
+    chain = prompt | bounded
     async with _SEM:
         result = await chain.ainvoke({
-            "role":  role,
-            "day":   day_info["day"],
+            "role": role,
+            "day": day_info["day"],
             "theme": day_info["theme"],
             "skill": day_info["skill"],
         })
@@ -108,7 +107,7 @@ async def _generate_one_day(day_info: dict, role: str, llm) -> dict:
     except Exception:
         # Fallback if JSON parse fails: build a minimal valid day
         day = {
-            "day":   day_info["day"],
+            "day": day_info["day"],
             "theme": day_info["theme"],
             "tasks": [
                 {"id": f"d{day_info['day']}t1",
@@ -122,12 +121,12 @@ async def _generate_one_day(day_info: dict, role: str, llm) -> dict:
     # Inject internal resource metadata (never ask LLM for resources)
     for task in day.get("tasks", []):
         skill = task.get("skill", day_info["skill"])
-        meta  = _resource_meta_for(skill)
-        task["resource"]              = meta["location"]   # internal:// URI
-        task["resource_title"]        = meta["title"]
-        task["resource_owner"]        = meta["owner"]
+        meta = _resource_meta_for(skill)
+        task["resource"] = meta["location"]   # internal:// URI
+        task["resource_title"] = meta["title"]
+        task["resource_owner"] = meta["owner"]
         task["resource_classification"] = meta["classification"]
-        task["resource_type"]         = meta["type"]
+        task["resource_type"] = meta["type"]
         # Ensure description field exists for frontend
         task.setdefault("description", task["title"])
     return day
@@ -137,6 +136,7 @@ async def _generate_one_day(day_info: dict, role: str, llm) -> dict:
 _cache: dict = {}
 _MAX_CACHE = 30
 
+
 def _cache_key(role: str, missing: List[str], num_days: int) -> str:
     return f"{role.lower()}|{'|'.join(sorted(s.lower() for s in missing))}|{num_days}"
 
@@ -145,7 +145,6 @@ def _cache_key(role: str, missing: List[str], num_days: int) -> str:
 async def generate_plan(
     role: str,
     missing_skills: List[str],
-    current_skills: List[str],
     llm: ChatOpenAI,
     num_days: int = 7,
 ) -> dict:
@@ -153,7 +152,7 @@ async def generate_plan(
     if key in _cache:
         return _cache[key]
 
-    outline     = await _get_outline(role, missing_skills, num_days, llm)
+    outline = await _get_outline(role, missing_skills, num_days, llm)
     day_results = await asyncio.gather(
         *[_generate_one_day(d, role, llm) for d in outline]
     )
@@ -161,10 +160,10 @@ async def generate_plan(
     focus_skills = list(dict.fromkeys(d["skill"] for d in outline))[:5]
 
     plan = {
-        "role":         role,
-        "total_days":   num_days,
+        "role": role,
+        "total_days": num_days,
         "focus_skills": focus_skills,
-        "plan":         sorted(day_results, key=lambda d: d["day"]),
+        "plan": sorted(day_results, key=lambda d: d["day"]),
     }
 
     if len(_cache) >= _MAX_CACHE:

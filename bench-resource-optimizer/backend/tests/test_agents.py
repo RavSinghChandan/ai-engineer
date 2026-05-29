@@ -27,7 +27,7 @@ class TestTrackingAgent:
 
     def test_positive_zero_completed_returns_zero_score(self):
         from agents.tracking_agent import calculate_readiness
-        result = calculate_readiness("Dev Role", SAMPLE_PLAN, [])
+        result = calculate_readiness(SAMPLE_PLAN, [])
         assert result["readiness_score"] == 0
         assert result["status"] == "Not Started"
         assert result["completed_count"] == 0
@@ -36,47 +36,47 @@ class TestTrackingAgent:
     def test_positive_all_completed_returns_100(self):
         from agents.tracking_agent import calculate_readiness
         all_ids = ["d1t1", "d1t2", "d2t1", "d2t2", "d3t1"]
-        result = calculate_readiness("Dev Role", SAMPLE_PLAN, all_ids)
+        result = calculate_readiness(SAMPLE_PLAN, all_ids)
         assert result["readiness_score"] == 100
         assert result["status"] == "Ready"
         assert result["completed_count"] == 5
 
     def test_positive_partial_completion_score(self):
         from agents.tracking_agent import calculate_readiness
-        result = calculate_readiness("Dev Role", SAMPLE_PLAN, ["d1t1"])
+        result = calculate_readiness(SAMPLE_PLAN, ["d1t1"])
         assert result["readiness_score"] == 20  # 1/5
         assert result["status"] == "In Progress"
         assert "FastAPI" in result["covered_skills"]
 
     def test_positive_next_task_skips_completed(self):
         from agents.tracking_agent import calculate_readiness
-        result = calculate_readiness("Dev Role", SAMPLE_PLAN, ["d1t1"])
+        result = calculate_readiness(SAMPLE_PLAN, ["d1t1"])
         # Next task should be d1t2 (first incomplete)
         assert result["next_suggested_task"] == "Implement dependency injection"
 
     def test_positive_all_done_next_task_message(self):
         from agents.tracking_agent import calculate_readiness
         all_ids = ["d1t1", "d1t2", "d2t1", "d2t2", "d3t1"]
-        result = calculate_readiness("Dev Role", SAMPLE_PLAN, all_ids)
+        result = calculate_readiness(SAMPLE_PLAN, all_ids)
         assert result["next_suggested_task"] == "All tasks completed!"
 
     def test_negative_empty_plan_zero_score(self):
         from agents.tracking_agent import calculate_readiness
         empty_plan = {"role": "X", "total_days": 0, "plan": []}
-        result = calculate_readiness("X", empty_plan, [])
+        result = calculate_readiness(empty_plan, [])
         assert result["readiness_score"] == 0
         assert result["total_count"] == 0
 
     def test_negative_unknown_task_id_ignored(self):
         from agents.tracking_agent import calculate_readiness
-        result = calculate_readiness("Dev Role", SAMPLE_PLAN, ["BOGUS_ID"])
+        result = calculate_readiness(SAMPLE_PLAN, ["BOGUS_ID"])
         assert result["readiness_score"] == 0
         assert result["completed_count"] == 0
 
     def test_positive_almost_ready_threshold(self):
         from agents.tracking_agent import calculate_readiness
         # Complete 4/5 = 80% → "Almost Ready"
-        result = calculate_readiness("Dev Role", SAMPLE_PLAN, ["d1t1", "d1t2", "d2t1", "d2t2"])
+        result = calculate_readiness(SAMPLE_PLAN, ["d1t1", "d1t2", "d2t1", "d2t2"])
         assert result["status"] == "Almost Ready"
         assert result["readiness_score"] == 80
 
@@ -194,12 +194,12 @@ class TestRoleMappingAgent:
         tpl = self._chain_mock(content)
 
         with patch("agents.role_mapping_agent.ChatPromptTemplate") as MockCPT, \
-             patch("agents.role_mapping_agent.hybrid_retrieve", return_value=[doc]), \
-             patch("agents.role_mapping_agent.generate_hypothetical_doc", return_value="hypo doc"), \
-             patch("agents.role_mapping_agent.crag_retrieve", return_value=([doc], 0.85, "hybrid")), \
-             patch("agents.role_mapping_agent.check_faithfulness", return_value=(0.85, True, "faithful")), \
-             patch("agents.role_mapping_agent.l1_get", return_value=None), \
-             patch("agents.role_mapping_agent.l1_set"):
+                patch("agents.role_mapping_agent.hybrid_retrieve", return_value=[doc]), \
+                patch("agents.role_mapping_agent.generate_hypothetical_doc", return_value="hypo doc"), \
+                patch("agents.role_mapping_agent.crag_retrieve", return_value=([doc], 0.85, "hybrid")), \
+                patch("agents.role_mapping_agent.check_faithfulness", return_value=(0.85, True, "faithful")), \
+                patch("agents.role_mapping_agent.l1_get", return_value=None), \
+                patch("agents.role_mapping_agent.l1_set"):
             MockCPT.from_messages.return_value = tpl
             result = map_role(SAMPLE_PROFILE, "Senior Python Developer", vs, llm)
 
@@ -232,12 +232,12 @@ class TestRoleMappingAgent:
         # parse_llm_json raises JSONDecodeError when all repair levels fail — this is correct
         # production main.py catches it and returns 500; the agent itself should propagate it
         with patch("agents.role_mapping_agent.ChatPromptTemplate") as MockCPT, \
-             patch("agents.role_mapping_agent.hybrid_retrieve", return_value=[doc]), \
-             patch("agents.role_mapping_agent.generate_hypothetical_doc", return_value="hypo"), \
-             patch("agents.role_mapping_agent.crag_retrieve", return_value=([doc], 0.7, "dense")), \
-             patch("agents.role_mapping_agent.check_faithfulness", return_value=(0.5, False, "low")), \
-             patch("agents.role_mapping_agent.l1_get", return_value=None), \
-             patch("agents.role_mapping_agent.l1_set"):
+                patch("agents.role_mapping_agent.hybrid_retrieve", return_value=[doc]), \
+                patch("agents.role_mapping_agent.generate_hypothetical_doc", return_value="hypo"), \
+                patch("agents.role_mapping_agent.crag_retrieve", return_value=([doc], 0.7, "dense")), \
+                patch("agents.role_mapping_agent.check_faithfulness", return_value=(0.5, False, "low")), \
+                patch("agents.role_mapping_agent.l1_get", return_value=None), \
+                patch("agents.role_mapping_agent.l1_set"):
             MockCPT.from_messages.return_value = tpl
             with pytest.raises((json.JSONDecodeError, ValueError, Exception)):
                 map_role(SAMPLE_PROFILE, "Senior Python Developer", vs, llm)
@@ -280,7 +280,7 @@ class TestPlanningAgent:
 
         with patch("agents.planning_agent.resource_location_for", return_value="internal://test"):
             plan = asyncio.get_event_loop().run_until_complete(
-                generate_plan("Senior Python Developer", ["Kubernetes"], ["Python"], llm, num_days=3)
+                generate_plan("Senior Python Developer", ["Kubernetes"], llm, num_days=3)
             )
 
         assert "plan" in plan
@@ -315,7 +315,7 @@ class TestPlanningAgent:
 
         with patch("agents.planning_agent.resource_location_for", return_value="internal://test"):
             plan = asyncio.get_event_loop().run_until_complete(
-                generate_plan("Senior Python Developer", [], ["Python"], llm, num_days=3)
+                generate_plan("Senior Python Developer", [], llm, num_days=3)
             )
 
         assert "plan" in plan

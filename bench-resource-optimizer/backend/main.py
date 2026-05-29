@@ -29,19 +29,19 @@ import time
 import uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import AsyncGenerator, List, Optional
+from typing import Annotated, AsyncGenerator, List, Optional
 
 import aiosqlite
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import StreamingResponse
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
 
 # ── Internal imports ──────────────────────────────────────────────────────────
 from auth import LoginRequest, TokenResponse, get_current_user, login, require_admin
-from infra.redis_client import redis_get, redis_ping, redis_set
+from infra.redis_client import redis_ping
 from infra.kafka_producer import kafka_ping, publish as kafka_publish
 from agents.cv_parser_agent import parse_cv
 from agents.planning_agent import generate_plan
@@ -67,7 +67,7 @@ from middleware.rate_limit import RateLimitMiddleware
 from middleware.security_headers import SecurityHeadersMiddleware
 from metrics.ragas_eval import evaluate as ragas_evaluate, get_ragas_store
 from rag.advanced_retrieval import init_bm25_from_roles, get_bm25_index
-from rag.knowledge_base import build_vector_store, get_all_roles, get_all_roles_async, get_embeddings
+from rag.knowledge_base import build_vector_store, get_all_roles, get_all_roles_async, get_embeddings  # noqa: F401
 from utils.file_parser import extract_text_from_pdf
 from utils.guardrails import (
     GuardrailError, check_pdf_size, check_resume_content,
@@ -75,7 +75,7 @@ from utils.guardrails import (
 )
 from utils.prompts import ACTIVE_VERSIONS, list_prompts
 from utils.retry import breaker_status, with_retry
-from utils.security import SecurityError, audit_llm_call, check_injection
+from utils.security import SecurityError, check_injection
 from utils.token_tracker import get_tracker, reset_tracker
 from guardrails.production import (
     rate_limiter,
@@ -91,7 +91,7 @@ from guardrails.production import (
 
 load_dotenv()
 
-_llm          = None
+_llm = None
 _vector_store = None
 
 
@@ -103,9 +103,9 @@ async def lifespan(app: FastAPI):
 
     configure_logging(os.getenv("LOG_LEVEL", "INFO"))
 
-    api_key  = os.getenv("DEEPSEEK_API_KEY")
+    api_key = os.getenv("DEEPSEEK_API_KEY")
     base_url = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
-    model    = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
+    model = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
 
     if not api_key:
         raise RuntimeError("DEEPSEEK_API_KEY not set in .env")
@@ -145,7 +145,7 @@ async def lifespan(app: FastAPI):
         print("✅ Roles already in SQLite — skipping seed.")
 
     print("⏳ Loading embeddings + building vector stores...")
-    embeddings    = get_embeddings()
+    embeddings = get_embeddings()
     _vector_store = build_vector_store(embeddings)
 
     # Phase 3: BM25 index now uses SQLite as source of truth
@@ -186,6 +186,12 @@ app.add_middleware(
     allow_headers=["*"],
     expose_headers=["X-Request-Id"],
 )
+
+
+# ── Route path constants ──────────────────────────────────────────────────────
+_UPLOAD_CV_PATH = "/upload-cv"
+_MAP_ROLE_PATH = "/map-role"
+_GEN_PLAN_PATH = "/generate-plan"
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -229,10 +235,10 @@ def _ragas_background(
             return
 
         record = ragas_evaluate(
-            request_id       = request_id,
-            query            = query,
-            answer           = answer,
-            retrieved_chunks = raw_chunks,
+            request_id=request_id,
+            query=query,
+            answer=answer,
+            retrieved_chunks=raw_chunks,
         )
         get_ragas_store().add(record)
     except Exception as exc:
@@ -252,101 +258,110 @@ def _record(
     error: Optional[str] = None,
 ) -> None:
     total = prompt_tokens + completion_tokens
-    cost  = (prompt_tokens * 0.14 + completion_tokens * 0.28) / 1_000_000
+    cost = (prompt_tokens * 0.14 + completion_tokens * 0.28) / 1_000_000
     get_collector().record(RequestRecord(
-        request_id        = _req_id(request),
-        endpoint          = endpoint,
-        started_at        = t_start,
-        ended_at          = time.time(),
-        latency_ms        = (time.time() - t_start) * 1000,
-        status_code       = status,
-        prompt_tokens     = prompt_tokens,
-        completion_tokens = completion_tokens,
-        total_tokens      = total,
-        cost_usd          = cost,
-        match_percentage  = match_pct,
-        cache_hit         = cache_hit,
-        error             = error,
+        request_id=_req_id(request),
+        endpoint=endpoint,
+        started_at=t_start,
+        ended_at=time.time(),
+        latency_ms=(time.time() - t_start) * 1000,
+        status_code=status,
+        prompt_tokens=prompt_tokens,
+        completion_tokens=completion_tokens,
+        total_tokens=total,
+        cost_usd=cost,
+        match_percentage=match_pct,
+        cache_hit=cache_hit,
+        error=error,
     ))
 
 
 # ── Request schemas ───────────────────────────────────────────────────────────
 
 class MapRoleRequest(BaseModel):
-    user_id:     str
+    user_id: str
     target_role: str
 
+
 class GeneratePlanRequest(BaseModel):
-    user_id:        str
-    target_role:    str
+    user_id: str
+    target_role: str
     missing_skills: List[str]
-    num_days:       int = 7
+    num_days: int = 7
+
 
 class UpdateProgressRequest(BaseModel):
-    user_id:            str
+    user_id: str
     completed_task_ids: List[str]
 
+
 class EvaluateRequest(BaseModel):
-    user_id:    str
-    question:   str
-    context:    str
-    output:     str
+    user_id: str
+    question: str
+    context: str
+    output: str
+
 
 class CreateRoleRequest(BaseModel):
-    id:               str
-    title:            str
-    description:      str = ""
-    required_skills:  List[str] = []
+    id: str
+    title: str
+    description: str = ""
+    required_skills: List[str] = []
     preferred_skills: List[str] = []
     experience_years: int = 0
-    internal_notes:   str = ""
+    internal_notes: str = ""
+
 
 class UpdateRoleRequest(BaseModel):
-    title:            Optional[str] = None
-    description:      Optional[str] = None
-    required_skills:  Optional[List[str]] = None
+    title: Optional[str] = None
+    description: Optional[str] = None
+    required_skills: Optional[List[str]] = None
     preferred_skills: Optional[List[str]] = None
     experience_years: Optional[int] = None
-    internal_notes:   Optional[str] = None
+    internal_notes: Optional[str] = None
 
 
 # ── Response models (Phase 6 — OpenAPI docs completeness) ────────────────────
 
 class HealthReadyResponse(BaseModel):
-    status:           str
-    llm:              str
-    vector_store:     str
-    bm25_index:       str
-    sqlite:           str
+    status: str
+    llm: str
+    vector_store: str
+    bm25_index: str
+    sqlite: str
     hybrid_retrieval: str
     circuit_breakers: dict
-    active_prompts:   dict
-    redis:            str = "not_configured"
-    kafka:            str = "not_configured"
+    active_prompts: dict
+    redis: str = "not_configured"
+    kafka: str = "not_configured"
+
 
 class UploadCvResponse(BaseModel):
     user_id: str
     profile: dict
 
+
 class RoleSummary(BaseModel):
-    id:          str
-    title:       str
+    id: str
+    title: str
     description: str
 
+
 class ReadinessResponse(BaseModel):
-    readiness_score:     float
-    status:              str
-    message:             str
-    completed_count:     int
-    total_count:         int
-    covered_skills:      List[str]
-    pending_skills:      List[str]
+    readiness_score: float
+    status: str
+    message: str
+    completed_count: int
+    total_count: int
+    covered_skills: List[str]
+    pending_skills: List[str]
     next_suggested_task: str
+
 
 class ProgressHistoryResponse(BaseModel):
     user_id: str
     history: List[dict]
-    count:   int
+    count: int
 
 
 # ── Health probes ─────────────────────────────────────────────────────────────
@@ -357,7 +372,8 @@ def health_live():
     return {"status": "alive"}
 
 
-@app.get("/health/ready", tags=["Health"], response_model=HealthReadyResponse)
+@app.get("/health/ready", tags=["Health"], response_model=HealthReadyResponse,
+         responses={503: {"description": "Service Unavailable"}})
 async def health_ready():
     """
     Kubernetes readiness probe — checks ALL dependencies.
@@ -377,29 +393,27 @@ async def health_ready():
         failures.append("bm25_index")
 
     # SQLite: lightweight SELECT to confirm DB file is accessible and schema exists
-    sqlite_ok = True
     try:
         from db import DB_PATH
         async with aiosqlite.connect(DB_PATH) as db:
             await db.execute("SELECT 1 FROM users LIMIT 1")
     except Exception:
-        sqlite_ok = False
         failures.append("sqlite")
 
     if failures:
         raise HTTPException(503, f"Not ready — failing checks: {', '.join(failures)}")
 
     return {
-        "status":           "ready",
-        "llm":              "deepseek-chat",
-        "vector_store":     "FAISS",
-        "bm25_index":       f"{len(bm25._docs)} docs",
-        "sqlite":           "ok",
+        "status": "ready",
+        "llm": "deepseek-chat",
+        "vector_store": "FAISS",
+        "bm25_index": f"{len(bm25._docs)} docs",
+        "sqlite": "ok",
         "hybrid_retrieval": "FAISS+BM25+RRF",
         "circuit_breakers": breaker_status(),
-        "active_prompts":   ACTIVE_VERSIONS,
-        "redis":            "ok" if redis_ping() else "unavailable",
-        "kafka":            "ok" if kafka_ping() else "unavailable",
+        "active_prompts": ACTIVE_VERSIONS,
+        "redis": "ok" if redis_ping() else "unavailable",
+        "kafka": "ok" if kafka_ping() else "unavailable",
     }
 
 
@@ -410,7 +424,8 @@ def health():
 
 # ── Authentication ────────────────────────────────────────────────────────────
 
-@app.post("/auth/login", tags=["Auth"], response_model=TokenResponse)
+@app.post("/auth/login", tags=["Auth"], response_model=TokenResponse,
+          responses={401: {"description": "Unauthorized"}})
 def auth_login(req: LoginRequest):
     """
     Authenticate with user_id + password. Returns a JWT access token (24h expiry by default).
@@ -422,7 +437,7 @@ def auth_login(req: LoginRequest):
 
 
 @app.get("/auth/me", tags=["Auth"])
-def auth_me(claims=Depends(get_current_user)):
+def auth_me(claims: Annotated[object, Depends(get_current_user)]):
     """Return the current authenticated user's claims."""
     return {"user_id": claims.sub, "role": claims.role, "exp": claims.exp}
 
@@ -433,15 +448,15 @@ def auth_me(claims=Depends(get_current_user)):
 def get_metrics():
     """Production KPI dashboard — includes guardrail stats."""
     dashboard = get_collector().dashboard()
-    dashboard["cache_stats"]  = cache_stats()
+    dashboard["cache_stats"] = cache_stats()
     dashboard["memory_stats"] = memory_stats()
-    dashboard["prompts"]      = list_prompts()
-    dashboard["ragas"]        = get_ragas_store().dashboard()
-    dashboard["guardrails"]   = all_guardrail_stats()
-    dashboard["thresholds"]   = {
-        "error_rate_warn_pct":   5,     # KPI card turns red above this
+    dashboard["prompts"] = list_prompts()
+    dashboard["ragas"] = get_ragas_store().dashboard()
+    dashboard["guardrails"] = all_guardrail_stats()
+    dashboard["thresholds"] = {
+        "error_rate_warn_pct": 5,     # KPI card turns red above this
         "cache_hit_rate_good_pct": 30,  # KPI card turns green at or above this
-        "latency_slow_ms":       5000,  # p95 bar flagged slow above this
+        "latency_slow_ms": 5000,  # p95 bar flagged slow above this
     }
     return dashboard
 
@@ -490,8 +505,8 @@ async def list_roles(request: Request):
     """
     from fastapi.responses import JSONResponse
     roles = await get_all_roles_db()
-    data  = [{"id": r["id"], "title": r["title"], "description": r["description"]}
-             for r in roles]
+    data = [{"id": r["id"], "title": r["title"], "description": r["description"]}
+            for r in roles]
     return JSONResponse(
         content=data,
         headers={"Cache-Control": "public, max-age=3600"},
@@ -508,8 +523,9 @@ async def _rebuild_indexes() -> int:
     return len(roles)
 
 
-@app.post("/admin/roles", tags=["Admin"], status_code=201)
-async def admin_create_role(req: CreateRoleRequest, _claims=Depends(require_admin)):
+@app.post("/admin/roles", tags=["Admin"], status_code=201,
+          responses={400: {"description": "Bad Request"}, 409: {"description": "Conflict"}})
+async def admin_create_role(req: CreateRoleRequest, _claims: Annotated[object, Depends(require_admin)]):
     """
     Create a new role in SQLite. Triggers async FAISS + BM25 rebuild.
     Returns 409 if role_id already exists.
@@ -524,8 +540,9 @@ async def admin_create_role(req: CreateRoleRequest, _claims=Depends(require_admi
     return created
 
 
-@app.get("/admin/roles/{role_id}", tags=["Admin"])
-async def admin_get_role(role_id: str, _claims=Depends(require_admin)):
+@app.get("/admin/roles/{role_id}", tags=["Admin"],
+         responses={404: {"description": "Not Found"}})
+async def admin_get_role(role_id: str, _claims: Annotated[object, Depends(require_admin)]):
     """Return a single role by ID."""
     role = await get_role_db(role_id)
     if not role:
@@ -533,8 +550,9 @@ async def admin_get_role(role_id: str, _claims=Depends(require_admin)):
     return role
 
 
-@app.put("/admin/roles/{role_id}", tags=["Admin"])
-async def admin_update_role(role_id: str, req: UpdateRoleRequest, _claims=Depends(require_admin)):
+@app.put("/admin/roles/{role_id}", tags=["Admin"],
+         responses={404: {"description": "Not Found"}})
+async def admin_update_role(role_id: str, req: UpdateRoleRequest, _claims: Annotated[object, Depends(require_admin)]):
     """
     Partially update a role. Only supplied fields are changed.
     Triggers async FAISS + BM25 rebuild.
@@ -547,8 +565,9 @@ async def admin_update_role(role_id: str, req: UpdateRoleRequest, _claims=Depend
     return updated
 
 
-@app.delete("/admin/roles/{role_id}", tags=["Admin"])
-async def admin_delete_role(role_id: str, _claims=Depends(require_admin)):
+@app.delete("/admin/roles/{role_id}", tags=["Admin"],
+            responses={404: {"description": "Not Found"}})
+async def admin_delete_role(role_id: str, _claims: Annotated[object, Depends(require_admin)]):
     """
     Delete a role by ID. Triggers async FAISS + BM25 rebuild.
     Returns 404 if not found.
@@ -562,8 +581,11 @@ async def admin_delete_role(role_id: str, _claims=Depends(require_admin)):
 
 # ── CV Upload ─────────────────────────────────────────────────────────────────
 
-@app.post("/upload-cv", tags=["CV"], response_model=UploadCvResponse)
-async def upload_cv(request: Request, file: UploadFile = File(...), _claims=Depends(get_current_user)):
+@app.post("/upload-cv", tags=["CV"], response_model=UploadCvResponse,
+          responses={400: {"description": "Bad Request"}, 429: {"description": "Too Many Requests"},
+                     503: {"description": "Service Unavailable"}, 500: {"description": "Internal Server Error"}})
+async def upload_cv(request: Request, _claims: Annotated[object, Depends(get_current_user)],
+                    file: Annotated[UploadFile, File(...)]):
     """
     Upload PDF → inject detection → extract text → LLM parse (prompt v2) →
     validate → save to SQLite.
@@ -572,7 +594,7 @@ async def upload_cv(request: Request, file: UploadFile = File(...), _claims=Depe
     Prompt: hardened v2 system prompt resists embedded instructions in CVs.
     """
     t_start = time.time()
-    rid     = _req_id(request)
+    rid = _req_id(request)
     reset_tracker()
 
     try:
@@ -613,7 +635,7 @@ async def upload_cv(request: Request, file: UploadFile = File(...), _claims=Depe
         degradation_tracker.record_run(rid, {"cv_parser": {"status": "full", "note": "parsed ok"}})
 
         usage = get_tracker().get_usage()
-        _record(request, "/upload-cv", t_start, 200,
+        _record(request, _UPLOAD_CV_PATH, t_start, 200,
                 prompt_tokens=usage["prompt_tokens"],
                 completion_tokens=usage["completion_tokens"])
 
@@ -629,27 +651,31 @@ async def upload_cv(request: Request, file: UploadFile = File(...), _claims=Depe
         return {"user_id": user_id, "profile": parsed}
 
     except (GuardrailError, SecurityError) as e:
-        _record(request, "/upload-cv", t_start, 400, error=str(e))
+        _record(request, _UPLOAD_CV_PATH, t_start, 400, error=str(e))
         raise HTTPException(400, str(e))
     except RuntimeError as e:
-        _record(request, "/upload-cv", t_start, 503, error=str(e))
+        _record(request, _UPLOAD_CV_PATH, t_start, 503, error=str(e))
         raise HTTPException(503, str(e))
     except Exception as e:
-        _record(request, "/upload-cv", t_start, 500, error=str(e))
+        _record(request, _UPLOAD_CV_PATH, t_start, 500, error=str(e))
         raise HTTPException(500, f"CV parsing failed: {e}")
 
 
 # ── Role Mapping ──────────────────────────────────────────────────────────────
 
-@app.post("/map-role", tags=["Role Mapping"])
-async def map_role_endpoint(request: Request, req: MapRoleRequest, _claims=Depends(get_current_user)):
+@app.post("/map-role", tags=["Role Mapping"],
+          responses={429: {"description": "Too Many Requests"}, 404: {"description": "Not Found"},
+                     400: {"description": "Bad Request"}, 503: {"description": "Service Unavailable"},
+                     500: {"description": "Internal Server Error"}})
+async def map_role_endpoint(request: Request, req: MapRoleRequest,
+                            _claims: Annotated[object, Depends(get_current_user)] = None):
     """
     RAG role mapping pipeline (full production stack):
       HyDE → Hybrid retrieval (BM25+FAISS+RRF) → Cross-encoder rerank →
       CRAG quality score → LLM (prompt v2) → Faithfulness check → L1 cache.
     """
     t_start = time.time()
-    rid     = _req_id(request)
+    rid = _req_id(request)
     reset_tracker()
 
     try:
@@ -666,7 +692,7 @@ async def map_role_endpoint(request: Request, req: MapRoleRequest, _claims=Depen
         check_injection(req.target_role, source="role_name")
 
         # Module 4: load session memory context
-        memory_ctx = build_memory_context(req.user_id)
+        build_memory_context(req.user_id)
 
         result = await with_retry(
             map_role,
@@ -681,19 +707,19 @@ async def map_role_endpoint(request: Request, req: MapRoleRequest, _claims=Depen
 
         # Module 4: write session summary to episodic memory
         write_session_summary(req.user_id, {
-            "role_explored":   req.target_role,
+            "role_explored": req.target_role,
             "match_percentage": result.get("match_percentage", 0),
-            "missing_skills":  result.get("missing_skills", []),
+            "missing_skills": result.get("missing_skills", []),
         })
 
         # Module 3: RAGAS evaluation — does not block response
         _ragas_background(
-            request_id     = rid,
-            query          = req.target_role,
-            answer         = result.get("recommendation", ""),
-            retrieved_context = result.pop("_retrieved_context", ""),
-            matched_skills = result.get("matched_skills", []),
-            missing_skills = result.get("missing_skills", []),
+            request_id=rid,
+            query=req.target_role,
+            answer=result.get("recommendation", ""),
+            retrieved_context=result.pop("_retrieved_context", ""),
+            matched_skills=result.get("matched_skills", []),
+            missing_skills=result.get("missing_skills", []),
         )
 
         # G4: scrub PII from recommendation before returning to client
@@ -705,7 +731,7 @@ async def map_role_endpoint(request: Request, req: MapRoleRequest, _claims=Depen
         degradation_tracker.record_run(rid, {
             "role_mapper": {
                 "status": "partial" if cache_hit else "full",
-                "note":   "cache_hit" if cache_hit else "llm_call",
+                "note": "cache_hit" if cache_hit else "llm_call",
             },
             "retrieval": {"status": "full", "note": result.get("retrieval_method", "")},
         })
@@ -723,23 +749,26 @@ async def map_role_endpoint(request: Request, req: MapRoleRequest, _claims=Depen
     except HTTPException:
         raise
     except (SecurityError, GuardrailError) as e:
-        _record(request, "/map-role", t_start, 400, error=str(e))
+        _record(request, _MAP_ROLE_PATH, t_start, 400, error=str(e))
         degradation_tracker.record_run(rid, {"role_mapper": {"status": "failed", "note": str(e)[:80]}})
         raise HTTPException(400, str(e))
     except RuntimeError as e:
-        _record(request, "/map-role", t_start, 503, error=str(e))
+        _record(request, _MAP_ROLE_PATH, t_start, 503, error=str(e))
         degradation_tracker.record_run(rid, {"role_mapper": {"status": "fallback", "note": str(e)[:80]}})
         raise HTTPException(503, str(e))
     except Exception as e:
-        _record(request, "/map-role", t_start, 500, error=str(e))
+        _record(request, _MAP_ROLE_PATH, t_start, 500, error=str(e))
         degradation_tracker.record_run(rid, {"role_mapper": {"status": "failed", "note": str(e)[:80]}})
         raise HTTPException(500, f"Role mapping failed: {e}")
 
 
 # ── Plan Generation ───────────────────────────────────────────────────────────
 
-@app.post("/generate-plan", tags=["Planning"])
-async def generate_plan_endpoint(request: Request, req: GeneratePlanRequest, _claims=Depends(get_current_user)):
+@app.post("/generate-plan", tags=["Planning"],
+          responses={429: {"description": "Too Many Requests"}, 404: {"description": "Not Found"},
+                     503: {"description": "Service Unavailable"}, 500: {"description": "Internal Server Error"}})
+async def generate_plan_endpoint(request: Request, req: GeneratePlanRequest,
+                                 _claims: Annotated[object, Depends(get_current_user)] = None):
     """Async two-phase plan generation with in-memory cache."""
     t_start = time.time()
     reset_tracker()
@@ -754,13 +783,12 @@ async def generate_plan_endpoint(request: Request, req: GeneratePlanRequest, _cl
         if not user:
             raise HTTPException(404, f"User '{req.user_id}' not found.")
 
-        current_skills = user["profile"].get("skills", [])
-        cache_before   = time.time()
+        cache_before = time.time()
 
         # G2: wrap plan generation with named planner circuit breaker
         plan = await with_retry(
             generate_plan,
-            req.target_role, req.missing_skills, current_skills, _llm, req.num_days,
+            req.target_role, req.missing_skills, _llm, req.num_days,
             breaker_name="planner",
         )
         is_cache_hit = (time.time() - cache_before) < 0.05
@@ -774,12 +802,12 @@ async def generate_plan_endpoint(request: Request, req: GeneratePlanRequest, _cl
         degradation_tracker.record_run(req.user_id, {
             "planner": {
                 "status": "partial" if is_cache_hit else "full",
-                "note":   "cache_hit" if is_cache_hit else "llm_call",
+                "note": "cache_hit" if is_cache_hit else "llm_call",
             }
         })
 
         usage = get_tracker().get_usage()
-        _record(request, "/generate-plan", t_start, 200,
+        _record(request, _GEN_PLAN_PATH, t_start, 200,
                 prompt_tokens=usage["prompt_tokens"],
                 completion_tokens=usage["completion_tokens"],
                 cache_hit=is_cache_hit)
@@ -797,19 +825,21 @@ async def generate_plan_endpoint(request: Request, req: GeneratePlanRequest, _cl
     except HTTPException:
         raise
     except RuntimeError as e:
-        _record(request, "/generate-plan", t_start, 503, error=str(e))
+        _record(request, _GEN_PLAN_PATH, t_start, 503, error=str(e))
         degradation_tracker.record_run(req.user_id, {"planner": {"status": "fallback", "note": str(e)[:80]}})
         raise HTTPException(503, str(e))
     except Exception as e:
-        _record(request, "/generate-plan", t_start, 500, error=str(e))
+        _record(request, _GEN_PLAN_PATH, t_start, 500, error=str(e))
         degradation_tracker.record_run(req.user_id, {"planner": {"status": "failed", "note": str(e)[:80]}})
         raise HTTPException(500, f"Plan generation failed: {e}")
 
 
 # ── SSE Streaming Plan Generation (Module 5/7) ────────────────────────────────
 
-@app.post("/generate-plan/stream", tags=["Planning"])
-async def generate_plan_stream(request: Request, req: GeneratePlanRequest, _claims=Depends(get_current_user)):
+@app.post("/generate-plan/stream", tags=["Planning"],
+          responses={429: {"description": "Too Many Requests"}, 404: {"description": "Not Found"}})
+async def generate_plan_stream(request: Request, req: GeneratePlanRequest,
+                               _claims: Annotated[object, Depends(get_current_user)] = None):
     """
     SSE streaming version of plan generation.
     Emits day-by-day results as they complete (parallel generation).
@@ -827,8 +857,6 @@ async def generate_plan_stream(request: Request, req: GeneratePlanRequest, _clai
     if not user:
         raise HTTPException(404, f"User '{req.user_id}' not found.")
 
-    current_skills = user["profile"].get("skills", [])
-
     async def event_generator() -> AsyncGenerator[str, None]:
         try:
             yield f"data: {json.dumps({'event': 'start', 'role': req.target_role, 'total_days': req.num_days})}\n\n"
@@ -836,7 +864,7 @@ async def generate_plan_stream(request: Request, req: GeneratePlanRequest, _clai
             # G2: planner circuit breaker on SSE path too
             plan = await with_retry(
                 generate_plan,
-                req.target_role, req.missing_skills, current_skills, _llm, req.num_days,
+                req.target_role, req.missing_skills, _llm, req.num_days,
                 breaker_name="planner",
             )
 
@@ -857,7 +885,7 @@ async def generate_plan_stream(request: Request, req: GeneratePlanRequest, _clai
         event_generator(),
         media_type="text/event-stream",
         headers={
-            "Cache-Control":    "no-cache",
+            "Cache-Control": "no-cache",
             "X-Accel-Buffering": "no",   # disable Nginx buffering (Module 5)
         },
     )
@@ -865,8 +893,10 @@ async def generate_plan_stream(request: Request, req: GeneratePlanRequest, _clai
 
 # ── Progress ──────────────────────────────────────────────────────────────────
 
-@app.post("/update-progress", tags=["Progress"], response_model=ReadinessResponse)
-async def update_progress(request: Request, req: UpdateProgressRequest, _claims=Depends(get_current_user)):
+@app.post("/update-progress", tags=["Progress"], response_model=ReadinessResponse,
+          responses={404: {"description": "Not Found"}, 500: {"description": "Internal Server Error"}})
+async def update_progress(request: Request, req: UpdateProgressRequest,
+                          _claims: Annotated[object, Depends(get_current_user)] = None):
     """Pure Python — no LLM call. Returns instantly."""
     t_start = time.time()
     try:
@@ -879,21 +909,20 @@ async def update_progress(request: Request, req: UpdateProgressRequest, _claims=
             raise HTTPException(404, "Progress record not found.")
 
         result = calculate_readiness(
-            progress["role"],
             progress["plan"],
             req.completed_task_ids,
         )
 
         # Module 4: update user facts + episodic memory on progress save
         covered = result.get("covered_skills", [])
-        score   = result.get("readiness_score", 0)
+        score = result.get("readiness_score", 0)
         update_user_facts(req.user_id, {"covered_skills": covered})
         if score >= 85:
             write_session_summary(req.user_id, {
-                "role_explored":    progress["role"],
-                "readiness_score":  score,
-                "skills_covered":   covered,
-                "milestone":        "almost_ready",
+                "role_explored": progress["role"],
+                "readiness_score": score,
+                "skills_covered": covered,
+                "milestone": "almost_ready",
             })
 
         # Phase 4: persist readiness score as a time-series data point
@@ -909,9 +938,11 @@ async def update_progress(request: Request, req: UpdateProgressRequest, _claims=
         raise HTTPException(500, f"Progress update failed: {e}")
 
 
-@app.get("/progress/{user_id}", tags=["Progress"])
-async def get_progress_endpoint(request: Request, user_id: str, _claims=Depends(get_current_user)):
-    t_start  = time.time()
+@app.get("/progress/{user_id}", tags=["Progress"],
+         responses={404: {"description": "Not Found"}})
+async def get_progress_endpoint(request: Request, user_id: str,
+                                _claims: Annotated[object, Depends(get_current_user)] = None):
+    t_start = time.time()
     progress = await get_progress(user_id)
     if not progress:
         _record(request, "/progress", t_start, 404)
@@ -919,13 +950,14 @@ async def get_progress_endpoint(request: Request, user_id: str, _claims=Depends(
 
     # Enrich with memory context
     progress["_memory_context"] = build_memory_context(user_id)
-    progress["_user_facts"]     = get_user_facts(user_id)
+    progress["_user_facts"] = get_user_facts(user_id)
     _record(request, "/progress", t_start, 200)
     return progress
 
 
 @app.get("/progress/{user_id}/history", tags=["Progress"], response_model=ProgressHistoryResponse)
-async def get_progress_history(request: Request, user_id: str, limit: int = 30, _claims=Depends(get_current_user)):
+async def get_progress_history(request: Request, user_id: str, limit: int = 30,
+                               _claims: Annotated[object, Depends(get_current_user)] = None):
     """
     Phase 4: Return the readiness score time-series for a user.
     Sorted oldest-first so frontend can render a sparkline/trend chart directly.
@@ -941,7 +973,8 @@ async def get_progress_history(request: Request, user_id: str, limit: int = 30, 
 # ── Memory inspection (Module 4) ─────────────────────────────────────────────
 
 @app.get("/memory/{user_id}", tags=["Memory"])
-async def get_memory_endpoint(request: Request, user_id: str, _claims=Depends(get_current_user)):
+async def get_memory_endpoint(request: Request, user_id: str,
+                              _claims: Annotated[object, Depends(get_current_user)] = None):
     """
     Return full memory profile for a user: episodic sessions + long-term facts
     + rendered context string used in LLM prompts.
@@ -949,22 +982,23 @@ async def get_memory_endpoint(request: Request, user_id: str, _claims=Depends(ge
     """
     t_start = time.time()
     sessions = get_recent_sessions(user_id, n=10)
-    facts    = get_user_facts(user_id)
-    context  = build_memory_context(user_id)
+    facts = get_user_facts(user_id)
+    context = build_memory_context(user_id)
     _record(request, "/memory", t_start, 200)
     return {
-        "user_id":         user_id,
+        "user_id": user_id,
         "episodic_sessions": sessions,
-        "long_term_facts":   facts,
-        "memory_context":    context,
-        "session_count":     len(sessions),
-        "has_facts":         bool(facts),
+        "long_term_facts": facts,
+        "memory_context": context,
+        "session_count": len(sessions),
+        "has_facts": bool(facts),
     }
 
 
 # ── LLM-as-Judge evaluation (Module 1) ───────────────────────────────────────
 
-@app.post("/evaluate", tags=["Evaluation"])
+@app.post("/evaluate", tags=["Evaluation"],
+          responses={500: {"description": "Internal Server Error"}})
 async def evaluate_output(request: Request, req: EvaluateRequest):
     """
     LLM-as-Judge endpoint — Module 1 (evaluation when no ground truth).
@@ -972,7 +1006,7 @@ async def evaluate_output(request: Request, req: EvaluateRequest):
     Use: QA pipeline, regression testing, production quality monitoring.
     """
     t_start = time.time()
-    rid     = _req_id(request)
+    rid = _req_id(request)
     reset_tracker()
     try:
         scores = await asyncio.get_event_loop().run_in_executor(
@@ -1013,13 +1047,14 @@ async def evaluate_output(request: Request, req: EvaluateRequest):
 #   - Only chunk text (not raw bytes) enters the FAISS index — nothing external.
 #   - LLM never receives raw document content; only retrieved chunk text.
 
-@app.post("/admin/upload-resource", tags=["Admin"])
+@app.post("/admin/upload-resource", tags=["Admin"],
+          responses={400: {"description": "Bad Request"}})
 async def admin_upload_resource(
     request: Request,
-    file: UploadFile = File(...),
+    file: Annotated[UploadFile, File(...)],
     skill_tags: str = "",
     classification: str = "internal",
-    _claims=Depends(require_admin),
+    _claims: Annotated[object, Depends(require_admin)] = None,
 ):
     """
     Upload a company-internal training document (PDF or .txt).
@@ -1040,13 +1075,12 @@ async def admin_upload_resource(
     from rag.document_store import index_internal_document, load_internal_store
 
     t_start = time.time()
-    rid     = _req_id(request)
 
     if not file.filename:
         raise HTTPException(400, "No file provided.")
 
     fname = file.filename.lower()
-    if not (fname.endswith(".pdf") or fname.endswith(".txt")):
+    if not (fname.endswith((".pdf", ".txt"))):
         raise HTTPException(400, "Only PDF and .txt files are accepted for internal resources.")
 
     raw_bytes = await file.read()
@@ -1065,52 +1099,51 @@ async def admin_upload_resource(
     # Parse skill_tags
     tags = [t.strip() for t in skill_tags.split(",") if t.strip()] if skill_tags else []
     doc_id = file.filename.rsplit(".", 1)[0].lower().replace(" ", "_")
-    title  = file.filename.rsplit(".", 1)[0].replace("_", " ").replace("-", " ").title()
+    title = file.filename.rsplit(".", 1)[0].replace("_", " ").replace("-", " ").title()
 
     # Get the embeddings model (already initialised at startup)
     from rag.knowledge_base import get_embeddings
     embeddings = get_embeddings()
 
     # Load or create internal doc store
-    from rag.document_store import load_internal_store
     internal_store = load_internal_store(embeddings)
 
-    store, chunk_count = index_internal_document(
-        doc_id         = doc_id,
-        title          = title,
-        text           = text,
-        skill_tags     = tags,
-        classification = classification,
-        embeddings     = embeddings,
-        existing_store = internal_store,
+    _store, chunk_count = index_internal_document(
+        doc_id=doc_id,
+        title=title,
+        text=text,
+        skill_tags=tags,
+        classification=classification,
+        embeddings=embeddings,
+        existing_store=internal_store,
     )
 
     _record(request, "/admin/upload-resource", t_start, 200)
     return {
-        "doc_id":           doc_id,
-        "title":            title,
-        "skill_tags":       tags,
-        "classification":   classification,
-        "chunks_indexed":   chunk_count,
-        "chunk_strategy":   "paragraph-boundary",
-        "source":           "company-internal",
-        "message":          "Document indexed successfully into internal knowledge base.",
+        "doc_id": doc_id,
+        "title": title,
+        "skill_tags": tags,
+        "classification": classification,
+        "chunks_indexed": chunk_count,
+        "chunk_strategy": "paragraph-boundary",
+        "source": "company-internal",
+        "message": "Document indexed successfully into internal knowledge base.",
     }
 
 
 @app.get("/admin/resources", tags=["Admin"])
-async def list_internal_resources(_claims=Depends(require_admin)):
+async def list_internal_resources(_claims: Annotated[object, Depends(require_admin)] = None):
     """
     List all indexed internal documents and the internal resource registry.
     Returns metadata only — no document content or chunk text.
     """
     from rag.document_store import list_indexed_documents, _resource_registry
     return {
-        "indexed_documents":   list_indexed_documents(),
-        "resource_registry":   list(_resource_registry.keys()),
+        "indexed_documents": list_indexed_documents(),
+        "resource_registry": list(_resource_registry.keys()),
         "total_skill_mappings": len(_resource_registry),
-        "source":              "company-internal",
-        "note":                "All resources are internal. No public internet links.",
+        "source": "company-internal",
+        "note": "All resources are internal. No public internet links.",
     }
 
 
@@ -1121,34 +1154,34 @@ def root():
     return {
         "service": "Bench Resource Optimization API — Enterprise",
         "version": "3.0.0",
-        "docs":    "/docs",
+        "docs": "/docs",
         "endpoints": {
-            "roles":           "GET  /roles",
-            "upload_cv":       "POST /upload-cv",
-            "map_role":        "POST /map-role",
-            "generate_plan":   "POST /generate-plan",
+            "roles": "GET  /roles",
+            "upload_cv": "POST /upload-cv",
+            "map_role": "POST /map-role",
+            "generate_plan": "POST /generate-plan",
             "generate_stream": "POST /generate-plan/stream  (SSE)",
             "update_progress": "POST /update-progress",
-            "get_progress":    "GET  /progress/{user_id}",
-            "evaluate":        "POST /evaluate  (LLM-as-judge)",
-            "metrics":         "GET  /metrics",
-            "health_live":     "GET  /health/live",
-            "health_ready":    "GET  /health/ready",
+            "get_progress": "GET  /progress/{user_id}",
+            "evaluate": "POST /evaluate  (LLM-as-judge)",
+            "metrics": "GET  /metrics",
+            "health_live": "GET  /health/live",
+            "health_ready": "GET  /health/ready",
         },
         "senior_ai_modules_applied": {
-            "module_1_eval":       "MetricsCollector, LLM-as-judge /evaluate, faithfulness scoring",
+            "module_1_eval": "MetricsCollector, LLM-as-judge /evaluate, faithfulness scoring",
             "module_1_hallucination": "Faithfulness proxy on every role mapping",
-            "module_1_tokens":     "LangChain callback tracker → real DeepSeek token counts",
-            "module_2_prompts":    "Prompt versioning registry (v1/v2 per operation)",
-            "module_2_security":   "Injection detection on CV text + role name, audit log",
-            "module_3_rag":        "Hybrid search: BM25+FAISS+RRF, HyDE, CRAG quality scoring",
-            "module_3_advanced":   "Cross-encoder reranker, retrieval quality gate",
-            "module_4_agents":     "Retry+backoff, circuit breaker, fallback messages",
-            "module_4_memory":     "Short-term episodic + long-term user facts per session",
-            "module_5_caching":    "L1 exact hash + L2 semantic similarity cache",
-            "module_5_streaming":  "SSE /generate-plan/stream, X-Accel-Buffering: no",
-            "module_5_gateway":    "Rate limiting 60/min/IP, health probes, CORS",
-            "module_6_mlops":      "Async SQLite WAL (PostgreSQL-ready), prompt versioning",
-            "module_7_realtime":   "Async throughout, asyncio.gather for parallel agents",
+            "module_1_tokens": "LangChain callback tracker → real DeepSeek token counts",
+            "module_2_prompts": "Prompt versioning registry (v1/v2 per operation)",
+            "module_2_security": "Injection detection on CV text + role name, audit log",
+            "module_3_rag": "Hybrid search: BM25+FAISS+RRF, HyDE, CRAG quality scoring",
+            "module_3_advanced": "Cross-encoder reranker, retrieval quality gate",
+            "module_4_agents": "Retry+backoff, circuit breaker, fallback messages",
+            "module_4_memory": "Short-term episodic + long-term user facts per session",
+            "module_5_caching": "L1 exact hash + L2 semantic similarity cache",
+            "module_5_streaming": "SSE /generate-plan/stream, X-Accel-Buffering: no",
+            "module_5_gateway": "Rate limiting 60/min/IP, health probes, CORS",
+            "module_6_mlops": "Async SQLite WAL (PostgreSQL-ready), prompt versioning",
+            "module_7_realtime": "Async throughout, asyncio.gather for parallel agents",
         },
     }

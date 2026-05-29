@@ -24,12 +24,13 @@ import aiosqlite
 DB_PATH = Path(__file__).parent / "data" / "bench.db"
 
 _PRAGMAS = "PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;"
+_WAL_PRAGMA = "PRAGMA journal_mode=WAL"
 
 
 async def init_db() -> None:
     """Create tables if they don't exist. Called once at startup."""
     async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute("PRAGMA journal_mode=WAL")
+        await db.execute(_WAL_PRAGMA)
         await db.execute("PRAGMA synchronous=NORMAL")
         await db.execute("""
             CREATE TABLE IF NOT EXISTS users (
@@ -110,7 +111,7 @@ async def init_db() -> None:
 
 async def save_user(user_id: str, profile: dict, resume_snippet: str = "") -> None:
     async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute("PRAGMA journal_mode=WAL")
+        await db.execute(_WAL_PRAGMA)
         await db.execute(
             """
             INSERT INTO users (user_id, profile_json, resume_snippet, created_at)
@@ -135,8 +136,8 @@ async def get_user(user_id: str) -> Optional[dict]:
     if not row:
         return None
     return {
-        "profile":         json.loads(row["profile_json"]),
-        "resume_snippet":  row["resume_snippet"],
+        "profile": json.loads(row["profile_json"]),
+        "resume_snippet": row["resume_snippet"],
     }
 
 
@@ -144,7 +145,7 @@ async def get_user(user_id: str) -> Optional[dict]:
 
 async def save_progress(user_id: str, role: str, plan: dict, completed_task_ids: list) -> None:
     async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute("PRAGMA journal_mode=WAL")
+        await db.execute(_WAL_PRAGMA)
         await db.execute(
             """
             INSERT INTO progress (user_id, role, plan_json, completed_task_ids, updated_at)
@@ -171,8 +172,8 @@ async def get_progress(user_id: str) -> Optional[dict]:
     if not row:
         return None
     return {
-        "role":               row["role"],
-        "plan":               json.loads(row["plan_json"]),
+        "role": row["role"],
+        "plan": json.loads(row["plan_json"]),
         "completed_task_ids": json.loads(row["completed_task_ids"]),
     }
 
@@ -180,7 +181,7 @@ async def get_progress(user_id: str) -> Optional[dict]:
 async def update_completed_tasks(user_id: str, completed_task_ids: list) -> bool:
     """Update only the completed task list. Returns False if user has no plan."""
     async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute("PRAGMA journal_mode=WAL")
+        await db.execute(_WAL_PRAGMA)
         cur = await db.execute(
             """
             UPDATE progress
@@ -202,7 +203,7 @@ async def save_memory_session(user_id: str, summary: dict, ts: float) -> None:
     """Persist one episodic session summary. Write-through from session_store."""
     expires_at = ts + _7_DAYS
     async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute("PRAGMA journal_mode=WAL")
+        await db.execute(_WAL_PRAGMA)
         await db.execute(
             "INSERT INTO memory_sessions (user_id, summary, ts, expires_at) VALUES (?, ?, ?, ?)",
             (user_id, json.dumps(summary), ts, expires_at),
@@ -231,7 +232,7 @@ async def sweep_expired_sessions() -> int:
     """Delete sessions older than 7 days. Returns count deleted. Call at startup."""
     now = time.time()
     async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute("PRAGMA journal_mode=WAL")
+        await db.execute(_WAL_PRAGMA)
         cur = await db.execute(
             "DELETE FROM memory_sessions WHERE expires_at <= ?", (now,)
         )
@@ -255,7 +256,7 @@ async def load_all_memory_user_ids() -> list:
 async def save_ragas_result(record_dict: dict) -> None:
     """Persist one RAGAS evaluation record."""
     async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute("PRAGMA journal_mode=WAL")
+        await db.execute(_WAL_PRAGMA)
         await db.execute(
             """
             INSERT INTO ragas_results
@@ -295,15 +296,15 @@ async def load_ragas_results(limit: int = 200) -> list:
 
 def _row_to_role(row: dict) -> dict:
     return {
-        "id":               row["role_id"],
-        "title":            row["title"],
-        "description":      row["description"],
-        "required_skills":  json.loads(row["required_skills"]),
+        "id": row["role_id"],
+        "title": row["title"],
+        "description": row["description"],
+        "required_skills": json.loads(row["required_skills"]),
         "preferred_skills": json.loads(row["preferred_skills"]),
         "experience_years": row["experience_years"],
-        "internal_notes":   row["internal_notes"],
-        "created_at":       row["created_at"],
-        "updated_at":       row["updated_at"],
+        "internal_notes": row["internal_notes"],
+        "created_at": row["created_at"],
+        "updated_at": row["updated_at"],
     }
 
 
@@ -334,7 +335,7 @@ async def create_role_db(role: dict) -> dict:
     now = time.time()
     role_id = role["id"].strip().lower().replace(" ", "-")
     async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute("PRAGMA journal_mode=WAL")
+        await db.execute(_WAL_PRAGMA)
         try:
             await db.execute(
                 """
@@ -373,15 +374,15 @@ async def update_role_db(role_id: str, updates: dict) -> Optional[dict]:
 
     now = time.time()
     merged = {
-        "title":            updates.get("title",            existing["title"]),
-        "description":      updates.get("description",      existing["description"]),
-        "required_skills":  updates.get("required_skills",  existing["required_skills"]),
+        "title": updates.get("title", existing["title"]),
+        "description": updates.get("description", existing["description"]),
+        "required_skills": updates.get("required_skills", existing["required_skills"]),
         "preferred_skills": updates.get("preferred_skills", existing["preferred_skills"]),
         "experience_years": updates.get("experience_years", existing["experience_years"]),
-        "internal_notes":   updates.get("internal_notes",   existing["internal_notes"]),
+        "internal_notes": updates.get("internal_notes", existing["internal_notes"]),
     }
     async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute("PRAGMA journal_mode=WAL")
+        await db.execute(_WAL_PRAGMA)
         await db.execute(
             """
             UPDATE roles SET
@@ -412,7 +413,7 @@ async def update_role_db(role_id: str, updates: dict) -> Optional[dict]:
 async def delete_role_db(role_id: str) -> bool:
     """Delete a role. Returns True if deleted, False if not found."""
     async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute("PRAGMA journal_mode=WAL")
+        await db.execute(_WAL_PRAGMA)
         cur = await db.execute("DELETE FROM roles WHERE role_id = ?", (role_id,))
         await db.commit()
         return cur.rowcount > 0
@@ -427,8 +428,10 @@ async def seed_roles_from_json(roles_json_path: Path) -> int:
     if not roles_json_path.exists():
         return 0
 
-    with open(roles_json_path) as f:
-        data = json.load(f)
+    import aiofiles
+    async with aiofiles.open(roles_json_path) as f:
+        content = await f.read()
+    data = json.loads(content)
 
     roles = data.get("roles", [])
     inserted = 0
@@ -449,7 +452,7 @@ async def seed_roles_from_json(roles_json_path: Path) -> int:
 async def save_readiness_score(user_id: str, role: str, score: float) -> None:
     """Append one readiness score snapshot. Called on every /update-progress."""
     async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute("PRAGMA journal_mode=WAL")
+        await db.execute(_WAL_PRAGMA)
         await db.execute(
             "INSERT INTO readiness_history (user_id, role, score, ts) VALUES (?, ?, ?, ?)",
             (user_id, role, score, time.time()),

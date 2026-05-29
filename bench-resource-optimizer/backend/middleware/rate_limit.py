@@ -22,8 +22,8 @@ from fastapi import Request, Response
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
-_LIMIT  = int(os.getenv("RATE_LIMIT_REQUESTS", "60"))
-_WINDOW = int(os.getenv("RATE_LIMIT_WINDOW",   "60"))
+_LIMIT = int(os.getenv("RATE_LIMIT_REQUESTS", "60"))
+_WINDOW = int(os.getenv("RATE_LIMIT_WINDOW", "60"))
 
 # ip → deque of request timestamps (monotonic seconds)
 _store: DefaultDict[str, Deque[float]] = defaultdict(deque)
@@ -45,9 +45,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         if request.url.path in ("/health/live", "/health/ready", "/metrics"):
             return await call_next(request)
 
-        ip  = _client_ip(request)
+        ip = _client_ip(request)
         now = time.monotonic()
-        q   = _store[ip]
+        q = _store[ip]
 
         # Evict timestamps outside the window
         while q and now - q[0] > _WINDOW:

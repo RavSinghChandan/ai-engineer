@@ -33,14 +33,14 @@ def parse_cv(resume_text: str, llm: ChatOpenAI, request_id: str = "") -> dict:
     trimmed = resume_text[:1200]
 
     prompt_def = get_active("cv_parser")
-    tracker    = get_tracker()
+    tracker = get_tracker()
 
     prompt = ChatPromptTemplate.from_messages([
         ("system", prompt_def.system),
-        ("human",  prompt_def.user),
+        ("human", prompt_def.user),
     ])
     bounded = llm.bind(max_tokens=420)
-    chain   = prompt | bounded
+    chain = prompt | bounded
 
     result = chain.invoke(
         {"resume_text": trimmed},
@@ -48,16 +48,16 @@ def parse_cv(resume_text: str, llm: ChatOpenAI, request_id: str = "") -> dict:
     )
 
     latency_ms = (time.time() - t0) * 1000
-    usage      = tracker.get_usage()
+    usage = tracker.get_usage()
 
     audit_llm_call(
-        request_id     = request_id,
-        operation      = f"cv_parser@{prompt_def.version}",
-        input_snippet  = trimmed[:80],
-        output_snippet = result.content[:120],
-        latency_ms     = latency_ms,
-        tokens         = usage["total_tokens"],
-        cost_usd       = usage["cost_usd"],
+        request_id=request_id,
+        operation=f"cv_parser@{prompt_def.version}",
+        input_snippet=trimmed[:80],
+        output_snippet=result.content[:120],
+        latency_ms=latency_ms,
+        tokens=usage["total_tokens"],
+        cost_usd=usage["cost_usd"],
     )
 
     parsed = parse_llm_json(result.content)

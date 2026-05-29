@@ -221,21 +221,21 @@ class TestAdminGuard:
             "experience_years": 1, "internal_notes": "",
         }
         with patch("main.create_role_db", new_callable=AsyncMock), \
-             patch("main._rebuild_indexes", new_callable=AsyncMock):
+                patch("main._rebuild_indexes", new_callable=AsyncMock):
             resp = client.post("/admin/roles", json=payload,
                                headers={"Authorization": f"Bearer {_user_token()}"})
         assert resp.status_code == 403
 
     def test_negative_user_cannot_delete_role(self, client):
         with patch("main.delete_role_db", new_callable=AsyncMock, return_value=True), \
-             patch("main._rebuild_indexes", new_callable=AsyncMock):
+                patch("main._rebuild_indexes", new_callable=AsyncMock):
             resp = client.delete("/admin/roles/some-role",
                                  headers={"Authorization": f"Bearer {_user_token()}"})
         assert resp.status_code == 403
 
     def test_positive_admin_can_delete_role(self, client):
         with patch("main.delete_role_db", new_callable=AsyncMock, return_value=True), \
-             patch("main._rebuild_indexes", new_callable=AsyncMock):
+                patch("main._rebuild_indexes", new_callable=AsyncMock):
             resp = client.delete("/admin/roles/some-role",
                                  headers={"Authorization": f"Bearer {_admin_token()}"})
         assert resp.status_code == 200

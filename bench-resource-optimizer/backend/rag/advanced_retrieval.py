@@ -37,6 +37,7 @@ from langchain_community.vectorstores import FAISS
 
 logger = logging.getLogger("bench.rag")
 
+_NON_WORD_RE = re.compile(r"[^\w\s]")
 
 # ── 1. HyDE — Hypothetical Document Embeddings ───────────────────────────────
 # System prompt is now version-controlled via prompts/v1/hyde.txt (Module 6 — prompt versioning).
@@ -61,11 +62,11 @@ def generate_hypothetical_doc(role_title: str, llm) -> str:
     hyde_system = load_system_prompt("hyde")
     prompt = ChatPromptTemplate.from_messages([
         ("system", hyde_system),
-        ("human",  _HYDE_USER_TEMPLATE),
+        ("human", _HYDE_USER_TEMPLATE),
     ])
     bounded = llm.bind(max_tokens=120)
-    chain   = prompt | bounded
-    result  = chain.invoke({"role_title": role_title})
+    chain = prompt | bounded
+    result = chain.invoke({"role_title": role_title})
     return result.content.strip()
 
 
@@ -79,8 +80,8 @@ def score_retrieval_relevance(query: str, retrieved_doc: str) -> float:
     Returns: 0.0 (totally irrelevant) to 1.0 (exact match).
     Threshold: > 0.4 = acceptable, < 0.4 = CRAG fallback needed.
     """
-    query_tokens  = set(re.sub(r"[^\w\s]", "", query.lower()).split())
-    doc_tokens    = set(re.sub(r"[^\w\s]", "", retrieved_doc.lower()).split())
+    query_tokens = set(_NON_WORD_RE.sub("", query.lower()).split())
+    doc_tokens = set(_NON_WORD_RE.sub("", retrieved_doc.lower()).split())
     if not query_tokens or not doc_tokens:
         return 0.0
     overlap = query_tokens & doc_tokens
@@ -142,15 +143,15 @@ class BM25Index:
 
     def __init__(self, k1: float = 1.5, b: float = 0.75) -> None:
         self.k1 = k1
-        self.b  = b
-        self._docs:     List[str]            = []
+        self.b = b
+        self._docs: List[str] = []
         self._metadata: List[Dict[str, Any]] = []
-        self._tf:       List[Dict[str, int]] = []
-        self._df:       Dict[str, int]       = {}
-        self._avgdl:    float                = 0.0
+        self._tf: List[Dict[str, int]] = []
+        self._df: Dict[str, int] = {}
+        self._avgdl: float = 0.0
 
     def _tokenize(self, text: str) -> List[str]:
-        return re.sub(r"[^\w\s]", "", text.lower()).split()
+        return _NON_WORD_RE.sub("", text.lower()).split()
 
     def add_documents(self, docs: List[Document]) -> None:
         for doc in docs:
@@ -164,7 +165,7 @@ class BM25Index:
             for t in tf:
                 self._df[t] = self._df.get(t, 0) + 1
 
-        total_len  = sum(len(self._tokenize(d)) for d in self._docs)
+        total_len = sum(len(self._tokenize(d)) for d in self._docs)
         self._avgdl = total_len / max(len(self._docs), 1)
 
     def search(self, query: str, k: int = 5) -> List[Tuple[int, float]]:
@@ -183,7 +184,7 @@ class BM25Index:
                 if term not in tf:
                     continue
                 df_t = self._df.get(term, 0)
-                idf  = math.log((n - df_t + 0.5) / (df_t + 0.5) + 1)
+                idf = math.log((n - df_t + 0.5) / (df_t + 0.5) + 1)
                 tf_t = tf[term]
                 tf_norm = (tf_t * (self.k1 + 1)) / (
                     tf_t + self.k1 * (1 - self.b + self.b * dl / self._avgdl)
@@ -220,7 +221,7 @@ def reciprocal_rank_fusion(
     of whether FAISS scores are 0.95 and BM25 scores are 12.3.
     """
     rrf_scores: Dict[str, float] = {}
-    doc_map:    Dict[str, Document] = {}
+    doc_map: Dict[str, Document] = {}
 
     # Dense results
     for rank, doc in enumerate(dense_results):
@@ -289,11 +290,11 @@ class CrossEncoderReranker:
 
         try:
             model = self._get_model()
-            pairs  = [(query, doc.page_content) for doc in docs]
+            pairs = [(query, doc.page_content) for doc in docs]
             scores = model.predict(pairs)
 
             ranked = sorted(zip(scores, docs), key=lambda x: x[0], reverse=True)
-            top    = [doc for _, doc in ranked[:top_n]]
+            top = [doc for _, doc in ranked[:top_n]]
 
             logger.debug(
                 '{"event":"cross_encoder_reranked","candidates":%d,"selected":%d,'
@@ -305,11 +306,11 @@ class CrossEncoderReranker:
         except Exception as exc:
             logger.warning('{"event":"cross_encoder_fallback","err":"%s"}', str(exc)[:80])
             # Fallback: keyword overlap (original heuristic)
-            query_terms = set(re.sub(r"[^\w\s]", "", query.lower()).split())
+            query_terms = set(_NON_WORD_RE.sub("", query.lower()).split())
             scored: List[Tuple[float, Document]] = []
             for doc in docs:
-                tokens = re.sub(r"[^\w\s]", "", doc.page_content.lower()).split()
-                hits   = sum(1 for t in tokens if t in query_terms)
+                tokens = _NON_WORD_RE.sub("", doc.page_content.lower()).split()
+                hits = sum(1 for t in tokens if t in query_terms)
                 scored.append((hits / max(len(query_terms), 1), doc))
             scored.sort(key=lambda x: x[0], reverse=True)
             return [doc for _, doc in scored[:top_n]]
@@ -350,15 +351,15 @@ def mmr_filter(
         return docs
 
     # Normalise all embeddings once
-    q_norm     = query_embedding / (np.linalg.norm(query_embedding) + 1e-8)
-    d_norms    = np.linalg.norm(doc_embeddings, axis=1, keepdims=True)
-    d_normed   = doc_embeddings / (d_norms + 1e-8)
+    q_norm = query_embedding / (np.linalg.norm(query_embedding) + 1e-8)
+    d_norms = np.linalg.norm(doc_embeddings, axis=1, keepdims=True)
+    d_normed = doc_embeddings / (d_norms + 1e-8)
 
     # Relevance of each doc to query
     query_sims = (d_normed @ q_norm).tolist()
 
     selected_indices: List[int] = []
-    remaining        = list(range(len(docs)))
+    remaining = list(range(len(docs)))
 
     while len(selected_indices) < top_n and remaining:
         if not selected_indices:
@@ -369,9 +370,9 @@ def mmr_filter(
             sel_embeds = d_normed[selected_indices]
             best, best_score = -1, float("-inf")
             for i in remaining:
-                relevance  = query_sims[i]
+                relevance = query_sims[i]
                 redundancy = float(np.max(d_normed[i] @ sel_embeds.T))
-                score      = lambda_param * relevance - (1 - lambda_param) * redundancy
+                score = lambda_param * relevance - (1 - lambda_param) * redundancy
                 if score > best_score:
                     best_score, best = score, i
         selected_indices.append(best)
@@ -386,9 +387,9 @@ def mmr_filter(
 
 # ── Global instances ──────────────────────────────────────────────────────────
 
-_bm25_index:  Optional[BM25Index]           = None
-_reranker:    Optional[CrossEncoderReranker] = None
-_bi_encoder   = None   # shared sentence-transformers model for MMR embeddings
+_bm25_index: Optional[BM25Index] = None
+_reranker: Optional[CrossEncoderReranker] = None
+_bi_encoder = None   # shared sentence-transformers model for MMR embeddings
 
 
 def _get_bi_encoder():
@@ -475,11 +476,11 @@ def hybrid_retrieve(
         try:
             # Use the shared bi-encoder singleton (already loaded for FAISS — no extra cost)
             embed_model = _get_bi_encoder()
-            texts           = [doc.page_content for doc in candidates]
-            all_texts       = [query] + texts
-            all_embeddings  = embed_model.encode(all_texts, convert_to_numpy=True, show_progress_bar=False)
+            texts = [doc.page_content for doc in candidates]
+            all_texts = [query] + texts
+            all_embeddings = embed_model.encode(all_texts, convert_to_numpy=True, show_progress_bar=False)
             query_embedding = all_embeddings[0].astype(np.float32)
-            doc_embeddings  = all_embeddings[1:].astype(np.float32)
+            doc_embeddings = all_embeddings[1:].astype(np.float32)
             candidates = mmr_filter(query_embedding, candidates, doc_embeddings, top_n=top_n, lambda_param=mmr_lambda)
         except Exception as exc:
             logger.warning('{"event":"mmr_skipped","err":"%s"}', str(exc)[:80])

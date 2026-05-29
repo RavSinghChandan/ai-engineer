@@ -4,9 +4,6 @@ No LLM calls — pure in-memory cache logic.
 """
 from __future__ import annotations
 
-import time
-import pytest
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # L1 exact-hash cache

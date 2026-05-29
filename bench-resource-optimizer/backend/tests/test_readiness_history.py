@@ -7,7 +7,6 @@ Positive + negative cases for:
 """
 from __future__ import annotations
 
-import time
 from unittest.mock import patch
 
 import pytest
@@ -42,7 +41,6 @@ async def test_positive_save_and_load_history(tmp_db):
 async def test_positive_multiple_scores_ordered_oldest_first(tmp_db):
     from db import init_db, save_readiness_score, get_readiness_history
     await init_db()
-    t0 = time.time()
     await save_readiness_score("usr2", "Role A", 20.0)
     await save_readiness_score("usr2", "Role A", 40.0)
     await save_readiness_score("usr2", "Role A", 60.0)

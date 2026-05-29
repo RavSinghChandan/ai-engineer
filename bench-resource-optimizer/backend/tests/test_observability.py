@@ -30,7 +30,7 @@ def client():
         sys.path.insert(0, str(backend_dir))
 
     mock_llm = MagicMock()
-    mock_vs  = MagicMock()
+    mock_vs = MagicMock()
 
     patches = [
         patch("main._llm", mock_llm),
@@ -87,9 +87,9 @@ class TestHealthReady:
         mock_bm25._docs = ["Python Dev role document"]
 
         with patch("main._llm", MagicMock()), \
-             patch("main._vector_store", MagicMock()), \
-             patch("main.get_bm25_index", return_value=mock_bm25), \
-             patch("main.aiosqlite") as mock_sq:
+                patch("main._vector_store", MagicMock()), \
+                patch("main.get_bm25_index", return_value=mock_bm25), \
+                patch("main.aiosqlite") as mock_sq:
             mock_sq.connect.return_value.__aenter__ = AsyncMock(
                 return_value=MagicMock(execute=AsyncMock())
             )
@@ -109,9 +109,9 @@ class TestHealthReady:
         mock_bm25._docs = ["doc"]
 
         with patch("main._llm", None), \
-             patch("main._vector_store", MagicMock()), \
-             patch("main.get_bm25_index", return_value=mock_bm25), \
-             patch("main.aiosqlite") as mock_sq:
+                patch("main._vector_store", MagicMock()), \
+                patch("main.get_bm25_index", return_value=mock_bm25), \
+                patch("main.aiosqlite") as mock_sq:
             mock_sq.connect.return_value.__aenter__ = AsyncMock(
                 return_value=MagicMock(execute=AsyncMock())
             )
@@ -126,9 +126,9 @@ class TestHealthReady:
         mock_bm25._docs = []  # empty index
 
         with patch("main._llm", MagicMock()), \
-             patch("main._vector_store", MagicMock()), \
-             patch("main.get_bm25_index", return_value=mock_bm25), \
-             patch("main.aiosqlite") as mock_sq:
+                patch("main._vector_store", MagicMock()), \
+                patch("main.get_bm25_index", return_value=mock_bm25), \
+                patch("main.aiosqlite") as mock_sq:
             mock_sq.connect.return_value.__aenter__ = AsyncMock(
                 return_value=MagicMock(execute=AsyncMock())
             )
@@ -144,9 +144,9 @@ class TestHealthReady:
         mock_bm25._docs = ["doc"]
 
         with patch("main._llm", MagicMock()), \
-             patch("main._vector_store", MagicMock()), \
-             patch("main.get_bm25_index", return_value=mock_bm25), \
-             patch("main.aiosqlite") as mock_sq:
+                patch("main._vector_store", MagicMock()), \
+                patch("main.get_bm25_index", return_value=mock_bm25), \
+                patch("main.aiosqlite") as mock_sq:
             mock_sq.connect.side_effect = Exception("DB file not found")
             resp = client.get("/health/ready")
 
@@ -159,9 +159,9 @@ class TestHealthReady:
         mock_bm25._docs = ["role doc"]
 
         with patch("main._llm", MagicMock()), \
-             patch("main._vector_store", MagicMock()), \
-             patch("main.get_bm25_index", return_value=mock_bm25), \
-             patch("main.aiosqlite") as mock_sq:
+                patch("main._vector_store", MagicMock()), \
+                patch("main.get_bm25_index", return_value=mock_bm25), \
+                patch("main.aiosqlite") as mock_sq:
             mock_sq.connect.return_value.__aenter__ = AsyncMock(
                 return_value=MagicMock(execute=AsyncMock())
             )

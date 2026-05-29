@@ -17,7 +17,7 @@ from typing import Any
 
 logger = logging.getLogger("bench.guardrails")
 
-MAX_PDF_BYTES   = 10 * 1024 * 1024   # 10 MB
+MAX_PDF_BYTES = 10 * 1024 * 1024   # 10 MB
 MIN_RESUME_CHARS = 100               # fewer chars = image-only PDF
 
 
@@ -87,6 +87,7 @@ def heal_json(raw: str) -> Any:
 # ── LLM output length gate ────────────────────────────────────────────────────
 
 MIN_PROFILE_KEYS = {"name", "skills"}   # must have at least these
+
 
 def validate_parsed_profile(profile: dict) -> dict:
     """Ensure the CV parser returned a usable profile. Fill defaults if partial."""

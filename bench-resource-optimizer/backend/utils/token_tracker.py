@@ -22,13 +22,12 @@ DeepSeek pricing (same as AstroIntel):
 from __future__ import annotations
 
 import threading
-from typing import Any, Dict, List, Optional
-from uuid import UUID
+from typing import Any, Dict
 
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain_core.outputs import LLMResult
 
-_INPUT_COST_PER_M  = 0.14
+_INPUT_COST_PER_M = 0.14
 _OUTPUT_COST_PER_M = 0.28
 
 
@@ -44,9 +43,9 @@ class TokenTracker(BaseCallbackHandler):
 
     def reset(self) -> None:
         with self._lock:
-            self._prompt_tokens     = 0
+            self._prompt_tokens = 0
             self._completion_tokens = 0
-            self._calls             = 0
+            self._calls = 0
 
     def on_llm_end(self, response: LLMResult, **kwargs: Any) -> None:
         """Called after every LLM call with the response including token usage."""
@@ -59,7 +58,7 @@ class TokenTracker(BaseCallbackHandler):
                     meta = gen.message.usage_metadata
                     if meta:
                         usage = {
-                            "prompt_tokens":     meta.get("input_tokens", 0),
+                            "prompt_tokens": meta.get("input_tokens", 0),
                             "completion_tokens": meta.get("output_tokens", 0),
                         }
                         break
@@ -68,14 +67,14 @@ class TokenTracker(BaseCallbackHandler):
         if not usage and response.llm_output:
             raw = response.llm_output.get("token_usage", {})
             usage = {
-                "prompt_tokens":     raw.get("prompt_tokens", 0),
+                "prompt_tokens": raw.get("prompt_tokens", 0),
                 "completion_tokens": raw.get("completion_tokens", 0),
             }
 
         with self._lock:
-            self._prompt_tokens     += usage.get("prompt_tokens", 0)
+            self._prompt_tokens += usage.get("prompt_tokens", 0)
             self._completion_tokens += usage.get("completion_tokens", 0)
-            self._calls             += 1
+            self._calls += 1
 
     def get_usage(self) -> Dict[str, Any]:
         with self._lock:
@@ -83,11 +82,11 @@ class TokenTracker(BaseCallbackHandler):
             ct = self._completion_tokens
             cost = (pt * _INPUT_COST_PER_M + ct * _OUTPUT_COST_PER_M) / 1_000_000
             return {
-                "prompt_tokens":     pt,
+                "prompt_tokens": pt,
                 "completion_tokens": ct,
-                "total_tokens":      pt + ct,
-                "calls":             self._calls,
-                "cost_usd":          round(cost, 8),
+                "total_tokens": pt + ct,
+                "calls": self._calls,
+                "cost_usd": round(cost, 8),
             }
 
 

@@ -43,7 +43,7 @@ import re
 import time
 from collections import defaultdict, deque
 from threading import Lock
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 logger = logging.getLogger("bench.guardrails.production")
 
@@ -55,6 +55,7 @@ _flush_counter = 0
 # ══════════════════════════════════════════════════════════════════════════════
 # G1 — Per-user sliding-window rate limiter
 # ══════════════════════════════════════════════════════════════════════════════
+
 
 class UserRateLimiter:
     """
@@ -68,12 +69,12 @@ class UserRateLimiter:
     """
 
     def __init__(self, max_requests: int = 20, window_seconds: int = 60) -> None:
-        self.max_requests    = max_requests
-        self.window_seconds  = window_seconds
+        self.max_requests = max_requests
+        self.window_seconds = window_seconds
         self._windows: Dict[str, deque] = defaultdict(deque)
-        self._lock           = Lock()
-        self._total_allowed  = 0
-        self._total_blocked  = 0
+        self._lock = Lock()
+        self._total_allowed = 0
+        self._total_blocked = 0
 
     def load_from_db(self, saved: Dict[str, int]) -> None:
         """Seed lifetime counters from persisted values at startup."""
@@ -113,11 +114,11 @@ class UserRateLimiter:
                 if cnt > 0:
                     active[uid] = cnt
             return {
-                "tracked_users":  len(active),
-                "max_requests":   self.max_requests,
+                "tracked_users": len(active),
+                "max_requests": self.max_requests,
                 "window_seconds": self.window_seconds,
-                "total_allowed":  self._total_allowed,
-                "total_blocked":  self._total_blocked,
+                "total_allowed": self._total_allowed,
+                "total_blocked": self._total_blocked,
                 "current_counts": active,
             }
 
@@ -138,21 +139,18 @@ def all_breaker_stats() -> Dict[str, Any]:
     We monkey-patch persistent counters onto each CircuitBreaker the first
     time this is called — the original class is unchanged.
     """
-    from utils.retry import _breakers, _State
+    from utils.retry import _breakers
 
     result: Dict[str, Any] = {}
     for name, cb in _breakers.items():
         # Inject persistent counters if not present (idempotent)
         if not hasattr(cb, "_total_failures"):
-            cb._total_failures  = 0
+            cb._total_failures = 0
             cb._total_successes = 0
-            cb._total_rejected  = 0
+            cb._total_rejected = 0
 
         # Wrap record_failure / record_success to increment counters
         if not getattr(cb, "_stats_patched", False):
-            _orig_fail = cb.record_failure.__func__ if hasattr(cb.record_failure, "__func__") else None
-            _orig_succ = cb.record_success.__func__ if hasattr(cb.record_success, "__func__") else None
-
             def _patched_fail(self=cb):
                 self._total_failures += 1
                 if self.is_open():
@@ -169,13 +167,13 @@ def all_breaker_stats() -> Dict[str, Any]:
 
         s = cb.state  # triggers OPEN→HALF_OPEN transition if timeout elapsed
         result[name] = {
-            "state":             s.value,
-            "failures":          cb._failures,
+            "state": s.value,
+            "failures": cb._failures,
             "failure_threshold": cb.failure_threshold,
-            "reset_timeout_s":   cb.reset_timeout,
-            "total_failures":    cb._total_failures,
-            "total_successes":   cb._total_successes,
-            "total_rejected":    cb._total_rejected,
+            "reset_timeout_s": cb.reset_timeout,
+            "total_failures": cb._total_failures,
+            "total_successes": cb._total_successes,
+            "total_rejected": cb._total_rejected,
         }
     return result
 
@@ -186,9 +184,9 @@ def reset_breaker(name: str) -> Dict[str, Any]:
     if name not in _breakers:
         return {"error": f"No circuit breaker named '{name}'"}
     cb = _breakers[name]
-    cb._failures   = 0
-    cb._state      = _State.CLOSED
-    cb._opened_at  = None
+    cb._failures = 0
+    cb._state = _State.CLOSED
+    cb._opened_at = None
     logger.info('{"event":"cb_reset","name":"%s"}', name)
     return {"status": "reset", "name": name, "state": "closed"}
 
@@ -197,8 +195,8 @@ def reset_all_breakers() -> Dict[str, Any]:
     """Admin reset: force ALL circuit breakers to CLOSED."""
     from utils.retry import _breakers, _State
     for name, cb in _breakers.items():
-        cb._failures  = 0
-        cb._state     = _State.CLOSED
+        cb._failures = 0
+        cb._state = _State.CLOSED
         cb._opened_at = None
     logger.info('{"event":"all_cb_reset","count":%d}', len(_breakers))
     return {"status": "reset", "count": len(_breakers), "state": "closed"}
@@ -210,22 +208,23 @@ def reset_all_breakers() -> Dict[str, Any]:
 
 class _JsonRepairStats:
     def __init__(self) -> None:
-        self.total_calls    = 0
-        self.direct_parse   = 0
-        self.fence_strip    = 0
-        self.regex_extract  = 0
-        self.llm_repair     = 0   # Level 4 — LLM fixed it
-        self.fallback_used  = 0   # Level 4 — LLM also failed, used fallback
+        self.total_calls = 0
+        self.direct_parse = 0
+        self.fence_strip = 0
+        self.regex_extract = 0
+        self.llm_repair = 0   # Level 4 — LLM fixed it
+        self.fallback_used = 0   # Level 4 — LLM also failed, used fallback
         self.total_failures = 0   # All 4 levels exhausted, no fallback
 
     def load_from_db(self, saved: Dict[str, int]) -> None:
-        self.total_calls    = saved.get("g3_total_calls",    0)
-        self.direct_parse   = saved.get("g3_direct_parse",   0)
-        self.fence_strip    = saved.get("g3_fence_strip",    0)
-        self.regex_extract  = saved.get("g3_regex_extract",  0)
-        self.llm_repair     = saved.get("g3_llm_repair",     0)
-        self.fallback_used  = saved.get("g3_fallback_used",  0)
+        self.total_calls = saved.get("g3_total_calls", 0)
+        self.direct_parse = saved.get("g3_direct_parse", 0)
+        self.fence_strip = saved.get("g3_fence_strip", 0)
+        self.regex_extract = saved.get("g3_regex_extract", 0)
+        self.llm_repair = saved.get("g3_llm_repair", 0)
+        self.fallback_used = saved.get("g3_fallback_used", 0)
         self.total_failures = saved.get("g3_total_failures", 0)
+
 
 _json_stats = _JsonRepairStats()
 
@@ -272,6 +271,21 @@ def _try_llm_repair(broken: str) -> Optional[Any]:
         return None
 
 
+def _regex_extract_json(stripped: str) -> Optional[Any]:
+    """Level 3: try to extract the first JSON object or array from stripped text."""
+    for ch, end_ch in [('{', '}'), ('[', ']')]:
+        idx = stripped.find(ch)
+        if idx >= 0:
+            candidate = stripped[idx:]
+            for end in [candidate.rfind(end_ch) + 1, len(candidate)]:
+                try:
+                    v = json.loads(candidate[:end])
+                    return v
+                except json.JSONDecodeError:
+                    continue
+    return None
+
+
 def repair_json(
     raw: str,
     fallback: Optional[Any] = None,
@@ -312,18 +326,11 @@ def repair_json(
         pass
 
     # Level 3 — regex extract first JSON object or array
-    for ch, end_ch in [('{', '}'), ('[', ']')]:
-        idx = stripped.find(ch)
-        if idx >= 0:
-            candidate = stripped[idx:]
-            for end in [candidate.rfind(end_ch) + 1, len(candidate)]:
-                try:
-                    v = json.loads(candidate[:end])
-                    _json_stats.regex_extract += 1
-                    logger.debug('{"event":"json_repair","level":"regex_extract"}')
-                    return v, "regex"
-                except json.JSONDecodeError:
-                    continue
+    v = _regex_extract_json(stripped)
+    if v is not None:
+        _json_stats.regex_extract += 1
+        logger.debug('{"event":"json_repair","level":"regex_extract"}')
+        return v, "regex"
 
     # Level 4 — LLM repair call
     llm_result = _try_llm_repair(stripped or text)
@@ -347,18 +354,18 @@ def json_repair_stats() -> Dict[str, Any]:
     s = _json_stats
     total = max(s.total_calls, 1)
     return {
-        "total_calls":    s.total_calls,
-        "direct_pct":     round(s.direct_parse  / total * 100, 1),
-        "fence_pct":      round(s.fence_strip   / total * 100, 1),
-        "regex_pct":      round(s.regex_extract / total * 100, 1),
-        "llm_repair_pct": round(s.llm_repair    / total * 100, 1),
-        "fallback_pct":   round(s.fallback_used / total * 100, 1),
-        "failure_pct":    round(s.total_failures / total * 100, 1),
-        "total_failures":  s.total_failures,
+        "total_calls": s.total_calls,
+        "direct_pct": round(s.direct_parse / total * 100, 1),
+        "fence_pct": round(s.fence_strip / total * 100, 1),
+        "regex_pct": round(s.regex_extract / total * 100, 1),
+        "llm_repair_pct": round(s.llm_repair / total * 100, 1),
+        "fallback_pct": round(s.fallback_used / total * 100, 1),
+        "failure_pct": round(s.total_failures / total * 100, 1),
+        "total_failures": s.total_failures,
         # raw counts for frontend delta detection in event log
-        "fence_strip":    s.fence_strip,
-        "regex_extract":  s.regex_extract,
-        "llm_repair":     s.llm_repair,
+        "fence_strip": s.fence_strip,
+        "regex_extract": s.regex_extract,
+        "llm_repair": s.llm_repair,
         "llm_repair_available": _repair_llm is not None,
     }
 
@@ -374,18 +381,18 @@ _PII_FIELDS = {"email", "phone", "dob", "date_of_birth", "national_id",
 # Regex patterns for common PII forms
 _PII_PATTERNS = [
     (re.compile(r'\b[\w.+-]+@[\w-]+\.[a-z]{2,}\b', re.IGNORECASE), "[EMAIL REDACTED]"),
-    (re.compile(r'\b(\+?\d[\d\s\-().]{7,14}\d)\b'),                "[PHONE REDACTED]"),
-    (re.compile(r'\b\d{4}[-/]\d{2}[-/]\d{2}\b'),                  "[DATE REDACTED]"),
-    (re.compile(r'\b\d{2}[-/]\d{2}[-/]\d{4}\b'),                  "[DATE REDACTED]"),
+    (re.compile(r'\b(\+?\d[\d\s\-().]{7,14}\d)\b'), "[PHONE REDACTED]"),
+    (re.compile(r'\b\d{4}[-/]\d{2}[-/]\d{2}\b'), "[DATE REDACTED]"),
+    (re.compile(r'\b\d{2}[-/]\d{2}[-/]\d{4}\b'), "[DATE REDACTED]"),
 ]
 
 _pii_filter_stats = {"total_checked": 0, "total_scrubbed": 0, "fields_scrubbed": 0}
 
 
 def _load_pii_stats_from_db(saved: Dict[str, int]) -> None:
-    _pii_filter_stats["total_checked"]  = saved.get("g4_total_checked",  0)
+    _pii_filter_stats["total_checked"] = saved.get("g4_total_checked", 0)
     _pii_filter_stats["total_scrubbed"] = saved.get("g4_total_scrubbed", 0)
-    _pii_filter_stats["fields_scrubbed"]= saved.get("g4_fields_scrubbed",0)
+    _pii_filter_stats["fields_scrubbed"] = saved.get("g4_fields_scrubbed", 0)
 
 
 def filter_pii_from_output(text: str, user_profile: Optional[Dict] = None) -> Tuple[str, int]:
@@ -441,8 +448,8 @@ def filter_pii_from_mapping(mapping: Dict, user_profile: Optional[Dict] = None) 
 def pii_filter_stats() -> Dict[str, Any]:
     return {
         "total_outputs_checked": _pii_filter_stats["total_checked"],
-        "outputs_with_pii":      _pii_filter_stats["total_scrubbed"],
-        "fields_scrubbed":       _pii_filter_stats["fields_scrubbed"],
+        "outputs_with_pii": _pii_filter_stats["total_scrubbed"],
+        "fields_scrubbed": _pii_filter_stats["fields_scrubbed"],
     }
 
 
@@ -500,18 +507,18 @@ class GracefulDegradationTracker:
         ts = time.time()
         run: Dict[str, Any] = {
             "request_id": request_id,
-            "ts":         ts,
-            "agents":     {},
+            "ts": ts,
+            "agents": {},
         }
 
         overall = "full"
         with self._lock:
             for agent in _AGENTS:
                 outcome = agent_outcomes.get(agent, {"status": "skipped", "note": ""})
-                status  = outcome.get("status", "skipped")
+                status = outcome.get("status", "skipped")
                 run["agents"][agent] = {
                     "status": status,
-                    "note":   outcome.get("note", ""),
+                    "note": outcome.get("note", ""),
                 }
                 self._lifetime[agent][status] = self._lifetime[agent].get(status, 0) + 1
 
@@ -546,9 +553,9 @@ class GracefulDegradationTracker:
             for r in list(reversed(runs))[:5]:
                 recent.append({
                     "request_id": r["request_id"][:8] + "…",
-                    "ts":         r["ts"],
-                    "overall":    r["overall"],
-                    "agents":     r["agents"],
+                    "ts": r["ts"],
+                    "overall": r["overall"],
+                    "agents": r["agents"],
                 })
 
             # Overall counts across all runs
@@ -559,11 +566,11 @@ class GracefulDegradationTracker:
                     overall_counts[key] += 1
 
             return {
-                "total_runs":        total_runs,
-                "overall_counts":    overall_counts,
+                "total_runs": total_runs,
+                "overall_counts": overall_counts,
                 "agent_availability": agent_avail,
-                "agent_health":      agent_health,
-                "recent_runs":       recent,
+                "agent_health": agent_health,
+                "recent_runs": recent,
             }
 
 
@@ -586,10 +593,10 @@ def all_guardrail_stats() -> Dict[str, Any]:
         _flush_counter = 0
         _flush_to_db()
     return {
-        "g1_rate_limiter":         rate_limiter.stats(),
-        "g2_circuit_breakers":     all_breaker_stats(),
-        "g3_json_repair":          json_repair_stats(),
-        "g4_pii_filter":           pii_filter_stats(),
+        "g1_rate_limiter": rate_limiter.stats(),
+        "g2_circuit_breakers": all_breaker_stats(),
+        "g3_json_repair": json_repair_stats(),
+        "g4_pii_filter": pii_filter_stats(),
         "g5_graceful_degradation": degradation_tracker.stats(),
     }
 
@@ -598,24 +605,24 @@ def _build_counters_dict() -> Dict[str, int]:
     """Collect all persistable counters into a flat key→value dict."""
     s = _json_stats
     pii = _pii_filter_stats
-    lt  = degradation_tracker._lifetime
+    lt = degradation_tracker._lifetime
 
     counters: Dict[str, int] = {
         # G1
-        "g1_total_allowed":  rate_limiter._total_allowed,
-        "g1_total_blocked":  rate_limiter._total_blocked,
+        "g1_total_allowed": rate_limiter._total_allowed,
+        "g1_total_blocked": rate_limiter._total_blocked,
         # G3
-        "g3_total_calls":    s.total_calls,
-        "g3_direct_parse":   s.direct_parse,
-        "g3_fence_strip":    s.fence_strip,
-        "g3_regex_extract":  s.regex_extract,
-        "g3_llm_repair":     s.llm_repair,
-        "g3_fallback_used":  s.fallback_used,
+        "g3_total_calls": s.total_calls,
+        "g3_direct_parse": s.direct_parse,
+        "g3_fence_strip": s.fence_strip,
+        "g3_regex_extract": s.regex_extract,
+        "g3_llm_repair": s.llm_repair,
+        "g3_fallback_used": s.fallback_used,
         "g3_total_failures": s.total_failures,
         # G4
-        "g4_total_checked":  pii["total_checked"],
+        "g4_total_checked": pii["total_checked"],
         "g4_total_scrubbed": pii["total_scrubbed"],
-        "g4_fields_scrubbed":pii["fields_scrubbed"],
+        "g4_fields_scrubbed": pii["fields_scrubbed"],
     }
     # G5 — per-agent per-status
     for agent in _AGENTS:

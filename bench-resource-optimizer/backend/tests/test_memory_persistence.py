@@ -11,13 +11,10 @@ Uses a temp SQLite DB — never touches bench.db.
 """
 from __future__ import annotations
 
-import asyncio
 import time
 from unittest.mock import patch
 
 import pytest
-
-from tests.conftest import SAMPLE_PLAN, SAMPLE_PROFILE
 
 
 # ── DB fixture ────────────────────────────────────────────────────────────────
@@ -59,7 +56,7 @@ async def test_positive_multiple_sessions_ordered_newest_first(tmp_db):
 
 @pytest.mark.asyncio
 async def test_negative_expired_sessions_not_loaded(tmp_db):
-    from db import init_db, save_memory_session, load_memory_sessions
+    from db import init_db, load_memory_sessions
     await init_db()
     # Save session with ts far in the past (expired 7+ days ago)
     old_ts = time.time() - (8 * 24 * 3600)
@@ -141,9 +138,9 @@ async def test_positive_preload_restores_from_db(tmp_db):
 @pytest.mark.asyncio
 async def test_positive_in_memory_hot_cache_no_db_hit(tmp_db):
     """Second get_recent_sessions() must not re-query DB (already in deque)."""
-    from db import init_db, save_memory_session
+    from db import init_db
     await init_db()
-    from memory.session_store import write_session_summary, get_recent_sessions
+    from memory.session_store import get_recent_sessions
     import memory.session_store as ms
     ms._episodic.clear()
     ms._preloaded.clear()

@@ -23,11 +23,10 @@ Module 4:
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import time
 from collections import defaultdict, deque
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 logger = logging.getLogger("bench.memory")
 
@@ -89,7 +88,7 @@ def get_recent_sessions(user_id: str, n: int = 3) -> List[Dict[str, Any]]:
     if user_id not in _preloaded:
         _preloaded.add(user_id)
         try:
-            loop = asyncio.get_running_loop()
+            asyncio.get_running_loop()
             # We're inside an async context — schedule but can't await here (sync call)
             # Return empty for now; caller can await get_recent_sessions_async() instead
         except RuntimeError:
@@ -153,9 +152,9 @@ def build_memory_context(user_id: str) -> str:
     lines = ["User's recent activity (for context):"]
     for s in sessions:
         age_days = (time.time() - s.get("ts", 0)) / 86400
-        role     = s.get("role_explored", "unknown role")
-        score    = s.get("readiness_score", 0)
-        skills   = ", ".join(s.get("skills_covered", [])[:5]) or "none"
+        role = s.get("role_explored", "unknown role")
+        score = s.get("readiness_score", 0)
+        skills = ", ".join(s.get("skills_covered", [])[:5]) or "none"
         lines.append(
             f"  - {age_days:.0f}d ago: explored {role}, readiness {score}%, "
             f"covered skills: {skills}"
@@ -191,6 +190,6 @@ def memory_stats() -> Dict[str, Any]:
     return {
         "users_with_episodic_memory": len(_episodic),
         "users_with_long_term_facts": len(_user_facts),
-        "total_session_records":      sum(len(q) for q in _episodic.values()),
-        "preloaded_users":            len(_preloaded),
+        "total_session_records": sum(len(q) for q in _episodic.values()),
+        "preloaded_users": len(_preloaded),
     }

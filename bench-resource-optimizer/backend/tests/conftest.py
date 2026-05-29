@@ -8,10 +8,7 @@ import json
 import sys
 import os
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock
-
-import pytest
-import pytest_asyncio
+from unittest.mock import MagicMock
 
 # ── Test env vars — must be set before any module-level imports of jwt_handler ──
 os.environ.setdefault("JWT_SECRET", "test-secret-for-ci-only")
@@ -26,6 +23,7 @@ if str(BACKEND) not in sys.path:
 
 # ── Auth helpers ──────────────────────────────────────────────────────────────
 
+
 def make_auth_headers(user_id: str = "test_user", role: str = "user") -> dict:
     """Generate a real JWT for test requests. Uses the CI test secret."""
     from auth.jwt_handler import create_token
@@ -38,6 +36,7 @@ def make_admin_headers(user_id: str = "admin") -> dict:
 
 # ── Reusable test data ────────────────────────────────────────────────────────
 
+
 SAMPLE_PROFILE = {
     "name": "Ravi Singh",
     "email": "ravi@example.com",
@@ -49,35 +48,47 @@ SAMPLE_PROFILE = {
     "education": "B.Tech Computer Science",
 }
 
-SAMPLE_PLAN = {
-    "role": "Senior Python Developer",
-    "total_days": 3,
-    "plan": [
-        {
-            "day": 1,
-            "theme": "FastAPI Deep Dive",
-            "tasks": [
-                {"id": "d1t1", "title": "Build REST API with FastAPI", "skill": "FastAPI", "duration_min": 90, "resource": "internal://python/fastapi"},
-                {"id": "d1t2", "title": "Implement dependency injection", "skill": "FastAPI", "duration_min": 60, "resource": "internal://python/di"},
-            ],
-        },
-        {
-            "day": 2,
-            "theme": "Docker & Containers",
-            "tasks": [
-                {"id": "d2t1", "title": "Dockerfile for Python apps", "skill": "Docker", "duration_min": 60, "resource": "internal://devops/docker"},
-                {"id": "d2t2", "title": "docker-compose multi-service setup", "skill": "Docker", "duration_min": 75, "resource": "internal://devops/compose"},
-            ],
-        },
-        {
-            "day": 3,
-            "theme": "PostgreSQL & SQLAlchemy",
-            "tasks": [
-                {"id": "d3t1", "title": "Schema design + migrations", "skill": "PostgreSQL", "duration_min": 90, "resource": "internal://db/postgres"},
-            ],
-        },
-    ],
-}
+SAMPLE_PLAN = {"role": "Senior Python Developer",
+               "total_days": 3,
+               "plan": [{"day": 1,
+                         "theme": "FastAPI Deep Dive",
+                         "tasks": [{"id": "d1t1",
+                                    "title": "Build REST API with FastAPI",
+                                    "skill": "FastAPI",
+                                    "duration_min": 90,
+                                    "resource": "internal://python/fastapi"},
+                                   {"id": "d1t2",
+                                    "title": "Implement dependency injection",
+                                    "skill": "FastAPI",
+                                    "duration_min": 60,
+                                    "resource": "internal://python/di"},
+                                   ],
+                         },
+                        {"day": 2,
+                         "theme": "Docker & Containers",
+                         "tasks": [{"id": "d2t1",
+                                    "title": "Dockerfile for Python apps",
+                                    "skill": "Docker",
+                                    "duration_min": 60,
+                                    "resource": "internal://devops/docker"},
+                                   {"id": "d2t2",
+                                    "title": "docker-compose multi-service setup",
+                                    "skill": "Docker",
+                                    "duration_min": 75,
+                                    "resource": "internal://devops/compose"},
+                                   ],
+                         },
+                        {"day": 3,
+                         "theme": "PostgreSQL & SQLAlchemy",
+                         "tasks": [{"id": "d3t1",
+                                    "title": "Schema design + migrations",
+                                    "skill": "PostgreSQL",
+                                    "duration_min": 90,
+                                    "resource": "internal://db/postgres"},
+                                   ],
+                         },
+                        ],
+               }
 
 SAMPLE_ROLE_MAPPING = {
     "match_percentage": 72,
@@ -107,6 +118,7 @@ B.Tech Computer Science — IIT Delhi (2019)
 """
 
 # ── Mock LLM factory ──────────────────────────────────────────────────────────
+
 
 def make_mock_llm(response_content: str = None) -> MagicMock:
     """

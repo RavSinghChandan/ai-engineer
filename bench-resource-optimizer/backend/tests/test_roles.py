@@ -10,8 +10,6 @@ to reuse its already-wired TestClient fixture with full mocking.
 from __future__ import annotations
 
 import json
-import time
-from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -43,7 +41,7 @@ SAMPLE_ROLE = {
 
 @pytest.mark.asyncio
 async def test_positive_create_role(tmp_db):
-    from db import init_db, create_role_db, get_role_db
+    from db import init_db, create_role_db
     await init_db()
     created = await create_role_db(SAMPLE_ROLE)
     assert created["id"] == "test-python-dev"
@@ -211,7 +209,7 @@ async def test_positive_seed_is_idempotent(tmp_db, tmp_path):
             "description": "", "internal_notes": "",
         }]
     }))
-    first  = await seed_roles_from_json(roles_file)
+    first = await seed_roles_from_json(roles_file)
     second = await seed_roles_from_json(roles_file)
     assert first == 1
     assert second == 0  # already exists — skipped

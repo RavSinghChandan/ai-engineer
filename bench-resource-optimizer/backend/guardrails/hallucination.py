@@ -25,7 +25,7 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Tuple
 
 logger = logging.getLogger("bench.hallucination")
 
@@ -44,7 +44,7 @@ def _extract_skills(text: str) -> set:
         r'fastapi|langchain|pytorch|tensorflow|scikit)\b',
         text.lower()
     )
-    return set(t.lower() for t in tokens) | set(lower_tokens)
+    return {t.lower() for t in tokens} | set(lower_tokens)
 
 
 def check_faithfulness(
@@ -63,14 +63,14 @@ def check_faithfulness(
     - is_faithful: True if score >= threshold
     - reason: explanation string for audit log
     """
-    output_skills  = _extract_skills(llm_output)
+    output_skills = _extract_skills(llm_output)
     context_skills = _extract_skills(retrieved_context)
 
     if not output_skills:
         return 1.0, True, "no_skill_claims_in_output"
 
     grounded = output_skills & context_skills
-    score    = len(grounded) / len(output_skills)
+    score = len(grounded) / len(output_skills)
 
     is_faithful = score >= threshold
     reason = (
@@ -128,13 +128,13 @@ def run_llm_judge(
         ("human", prompt_def.user),
     ])
     bounded = llm.bind(max_tokens=120)
-    chain   = prompt | bounded
+    chain = prompt | bounded
 
     try:
         result = chain.invoke({
             "question": question[:200],
-            "context":  context[:400],
-            "output":   output[:400],
+            "context": context[:400],
+            "output": output[:400],
         })
         scores = parse_llm_json(result.content)
         avg = round(
@@ -142,7 +142,7 @@ def run_llm_judge(
              scores.get("accuracy", 3) + scores.get("actionability", 3)) / 4, 2
         )
         scores["avg_score"] = avg
-        scores["passed"]    = avg >= 3.5
+        scores["passed"] = avg >= 3.5
         scores["request_id"] = request_id
 
         if not scores["passed"]:

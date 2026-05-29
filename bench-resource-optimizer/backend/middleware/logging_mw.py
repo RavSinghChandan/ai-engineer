@@ -43,19 +43,19 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
 
         latency_ms = (time.time() - request.state.started_at) * 1000
-        client_ip  = request.headers.get("x-forwarded-for", "")
+        client_ip = request.headers.get("x-forwarded-for", "")
         if not client_ip and request.client:
             client_ip = request.client.host
 
         log_record = {
-            "ts":          time.time(),
-            "request_id":  request_id,
-            "method":      request.method,
-            "path":        request.url.path,
-            "status":      response.status_code,
-            "latency_ms":  round(latency_ms, 2),
-            "client_ip":   client_ip,
-            "user_agent":  request.headers.get("user-agent", "")[:80],
+            "ts": time.time(),
+            "request_id": request_id,
+            "method": request.method,
+            "path": request.url.path,
+            "status": response.status_code,
+            "latency_ms": round(latency_ms, 2),
+            "client_ip": client_ip,
+            "user_agent": request.headers.get("user-agent", "")[:80],
         }
         logger.info(json.dumps(log_record))
 

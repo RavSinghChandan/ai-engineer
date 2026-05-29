@@ -38,9 +38,9 @@ from langchain_community.vectorstores import FAISS
 
 logger = logging.getLogger("bench.docstore")
 
-DATA_DIR        = Path(__file__).parent.parent / "data"
-RESOURCES_PATH  = DATA_DIR / "internal_resources.json"
-INTERNAL_INDEX  = Path(__file__).parent / "internal_docs_index"
+DATA_DIR = Path(__file__).parent.parent / "data"
+RESOURCES_PATH = DATA_DIR / "internal_resources.json"
+INTERNAL_INDEX = Path(__file__).parent / "internal_docs_index"
 
 # In-memory registry of uploaded admin documents
 # { doc_id: { title, skill_tags, classification, uploaded_at, chunk_count } }
@@ -57,6 +57,7 @@ def _load_resource_registry() -> dict:
     except Exception as e:
         logger.error('{"event":"resource_registry_load_failed","error":"%s"}', str(e)[:80])
         return {}
+
 
 _resource_registry: dict = _load_resource_registry()
 
@@ -169,12 +170,12 @@ def index_internal_document(
         Document(
             page_content=chunk,
             metadata={
-                "doc_id":         doc_id,
-                "title":          title,
-                "skill_tags":     skill_tags,
+                "doc_id": doc_id,
+                "title": title,
+                "skill_tags": skill_tags,
                 "classification": classification,
-                "chunk_index":    i,
-                "source":         "company-internal",
+                "chunk_index": i,
+                "source": "company-internal",
                 "chunk_strategy": "paragraph-boundary",
             }
         )
@@ -192,11 +193,11 @@ def index_internal_document(
 
     # Register metadata (no raw text stored in registry)
     _doc_registry[doc_id] = {
-        "title":          title,
-        "skill_tags":     skill_tags,
+        "title": title,
+        "skill_tags": skill_tags,
         "classification": classification,
-        "chunk_count":    len(chunks),
-        "uploaded_at":    time.time(),
+        "chunk_count": len(chunks),
+        "uploaded_at": time.time(),
     }
 
     logger.info(

@@ -29,7 +29,7 @@ if not JWT_SECRET:
 if JWT_SECRET in _INSECURE_DEFAULTS:
     raise RuntimeError("JWT_SECRET is set to a known-insecure default. Set a strong random secret before starting.")
 
-JWT_ALGO   = "HS256"
+JWT_ALGO = "HS256"
 JWT_EXPIRY = int(os.getenv("JWT_EXPIRY_SECONDS", "86400"))
 
 
@@ -57,7 +57,7 @@ class LoginRequest(BaseModel):
 # Passwords loaded exclusively from environment variables — no fallback defaults.
 
 _admin_password = os.getenv("ADMIN_PASSWORD", "")
-_user_password  = os.getenv("DEFAULT_USER_PASSWORD", "")
+_user_password = os.getenv("DEFAULT_USER_PASSWORD", "")
 
 if not _admin_password:
     raise RuntimeError("ADMIN_PASSWORD environment variable is not set.")

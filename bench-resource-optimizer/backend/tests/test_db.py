@@ -4,14 +4,9 @@ Uses a fresh in-memory/temp DB for each test — does not touch bench.db.
 """
 from __future__ import annotations
 
-import json
-import os
-import tempfile
-from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-import pytest_asyncio
 
 from tests.conftest import SAMPLE_PLAN, SAMPLE_PROFILE
 

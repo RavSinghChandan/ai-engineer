@@ -14,7 +14,7 @@ def parse_llm_json(text: str):
     # Use G3 repair cascade so every call is tracked in guardrail stats
     try:
         from guardrails.production import repair_json
-        parsed, level = repair_json(text, fallback=None)
+        parsed, _level = repair_json(text, fallback=None)
         if parsed is not None:
             return parsed
         # If repair_json failed, fall through to original logic for error

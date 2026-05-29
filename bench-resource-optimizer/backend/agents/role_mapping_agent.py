@@ -11,10 +11,8 @@ Role Mapping Agent — upgraded with:
 """
 from __future__ import annotations
 
-import json
 import time
 import logging
-from typing import Optional
 
 from langchain_community.vectorstores import FAISS
 from langchain.prompts import ChatPromptTemplate
@@ -25,7 +23,7 @@ from utils.prompts import get_active
 from utils.token_tracker import get_tracker
 from utils.security import audit_llm_call
 from utils.guardrails import validate_role_mapping
-from guardrails.hallucination import check_faithfulness, FAITHFULNESS_FALLBACK
+from guardrails.hallucination import check_faithfulness
 from rag.advanced_retrieval import (
     hybrid_retrieve,
     crag_retrieve,
@@ -34,6 +32,35 @@ from rag.advanced_retrieval import (
 from cache.semantic_cache import l1_get, l1_set
 
 logger = logging.getLogger("bench.role_mapper")
+
+
+def _build_retrieval_query(target_role: str, llm: ChatOpenAI, use_hyde: bool, request_id: str) -> str:
+    """Return the query to use for retrieval — HyDE hypothetical doc or raw role title."""
+    if not use_hyde:
+        return target_role
+    try:
+        hypothetical = generate_hypothetical_doc(target_role, llm)
+        logger.debug('{"event":"hyde_generated","request_id":"%s"}', request_id)
+        return hypothetical
+    except Exception as e:
+        logger.warning('{"event":"hyde_failed","error":"%s"}', str(e)[:80])
+        return target_role
+
+
+def _retrieve_context(retrieval_query: str, target_role: str, vector_store: FAISS, use_hybrid: bool):
+    """Run hybrid or CRAG retrieval. Returns (role_context, role_metadata)."""
+    if use_hybrid:
+        docs = hybrid_retrieve(retrieval_query, vector_store, top_n=2)
+        role_context = "\n\n".join(d.page_content for d in docs) if docs else ""
+        role_metadata = docs[0].metadata if docs else {}
+    else:
+        docs, _crag_score, _crag_quality = crag_retrieve(retrieval_query, vector_store, k=1)
+        role_context = docs[0].page_content if docs else ""
+        role_metadata = docs[0].metadata if docs else {}
+
+    if not role_context:
+        role_context = f"Role: {target_role}\nRequired skills: Not found in knowledge base."
+    return role_context, role_metadata
 
 
 def map_role(
@@ -64,50 +91,30 @@ def map_role(
         logger.debug('{"event":"cache_hit","op":"map_role","request_id":"%s"}', request_id)
         return {**cached, "_cache_hit": True}
 
-    candidate_skills  = ", ".join(parsed_cv.get("skills", []))
-    experience_years  = parsed_cv.get("experience_years", 0)
+    candidate_skills = ", ".join(parsed_cv.get("skills", []))
+    experience_years = parsed_cv.get("experience_years", 0)
 
-    # ── HyDE: generate hypothetical doc for better retrieval ─────────────────
-    retrieval_query = target_role
-    if use_hyde:
-        try:
-            hypothetical = generate_hypothetical_doc(target_role, llm)
-            retrieval_query = hypothetical
-            logger.debug('{"event":"hyde_generated","request_id":"%s"}', request_id)
-        except Exception as e:
-            logger.warning('{"event":"hyde_failed","error":"%s"}', str(e)[:80])
-            retrieval_query = target_role
-
-    # ── Hybrid retrieval + CRAG ───────────────────────────────────────────────
-    if use_hybrid:
-        docs = hybrid_retrieve(retrieval_query, vector_store, top_n=2)
-        role_context = "\n\n".join(d.page_content for d in docs) if docs else ""
-        role_metadata = docs[0].metadata if docs else {}
-    else:
-        docs, crag_score, crag_quality = crag_retrieve(retrieval_query, vector_store, k=1)
-        role_context  = docs[0].page_content if docs else ""
-        role_metadata = docs[0].metadata     if docs else {}
-
-    if not role_context:
-        role_context = f"Role: {target_role}\nRequired skills: Not found in knowledge base."
+    # ── HyDE + retrieval ──────────────────────────────────────────────────────
+    retrieval_query = _build_retrieval_query(target_role, llm, use_hyde, request_id)
+    role_context, role_metadata = _retrieve_context(retrieval_query, target_role, vector_store, use_hybrid)
 
     # ── LLM call with prompt versioning + token tracking ─────────────────────
     prompt_def = get_active("role_mapper")
-    tracker    = get_tracker()
+    tracker = get_tracker()
 
     prompt = ChatPromptTemplate.from_messages([
         ("system", prompt_def.system),
-        ("human",  prompt_def.user),
+        ("human", prompt_def.user),
     ])
     bounded = llm.bind(max_tokens=280)
-    chain   = prompt | bounded
+    chain = prompt | bounded
 
     result = chain.invoke(
         {
             "candidate_skills": candidate_skills,
             "experience_years": experience_years,
-            "role_title":       target_role,
-            "role_context":     role_context[:600],
+            "role_title": target_role,
+            "role_context": role_context[:600],
         },
         config={"callbacks": [tracker]},
     )
@@ -126,10 +133,10 @@ def map_role(
     # ── Parse + validate ──────────────────────────────────────────────────────
     mapping = parse_llm_json(result.content)
     mapping = validate_role_mapping(mapping)
-    mapping["role_metadata"]      = role_metadata
+    mapping["role_metadata"] = role_metadata
     mapping["faithfulness_score"] = round(faith_score, 3)
-    mapping["prompt_version"]     = f"{prompt_def.name}@{prompt_def.version}"
-    mapping["retrieval_method"]   = "hybrid+rerank" if use_hybrid else "crag"
+    mapping["prompt_version"] = f"{prompt_def.name}@{prompt_def.version}"
+    mapping["retrieval_method"] = "hybrid+rerank" if use_hybrid else "crag"
     mapping["_retrieved_context"] = role_context  # used by RAGAS evaluator in main.py
 
     if not is_faithful:
@@ -138,13 +145,13 @@ def map_role(
     # ── Audit log ─────────────────────────────────────────────────────────────
     usage = tracker.get_usage()
     audit_llm_call(
-        request_id  = request_id,
-        operation   = f"role_mapper@{prompt_def.version}",
-        input_snippet  = f"{target_role}|{candidate_skills[:80]}",
-        output_snippet = result.content[:120],
-        latency_ms  = latency_ms,
-        tokens      = usage["total_tokens"],
-        cost_usd    = usage["cost_usd"],
+        request_id=request_id,
+        operation=f"role_mapper@{prompt_def.version}",
+        input_snippet=f"{target_role}|{candidate_skills[:80]}",
+        output_snippet=result.content[:120],
+        latency_ms=latency_ms,
+        tokens=usage["total_tokens"],
+        cost_usd=usage["cost_usd"],
     )
 
     # ── Cache write ───────────────────────────────────────────────────────────

@@ -26,9 +26,10 @@ F = TypeVar("F", bound=Callable[..., Any])
 
 # ── Circuit Breaker ──────────────────────────────────────────────────────────
 
+
 class _State(Enum):
-    CLOSED    = "closed"
-    OPEN      = "open"
+    CLOSED = "closed"
+    OPEN = "open"
     HALF_OPEN = "half_open"
 
 
@@ -39,11 +40,11 @@ class CircuitBreaker:
         failure_threshold: int = 5,
         reset_timeout: float = 30.0,
     ) -> None:
-        self.name             = name
+        self.name = name
         self.failure_threshold = failure_threshold
-        self.reset_timeout    = reset_timeout
-        self._state           = _State.CLOSED
-        self._failures        = 0
+        self.reset_timeout = reset_timeout
+        self._state = _State.CLOSED
+        self._failures = 0
         self._opened_at: Optional[float] = None
 
     @property
@@ -55,13 +56,13 @@ class CircuitBreaker:
 
     def record_success(self) -> None:
         self._failures = 0
-        self._state    = _State.CLOSED
+        self._state = _State.CLOSED
         self._opened_at = None
 
     def record_failure(self) -> None:
         self._failures += 1
         if self._failures >= self.failure_threshold:
-            self._state     = _State.OPEN
+            self._state = _State.OPEN
             self._opened_at = time.monotonic()
             logger.warning(
                 "circuit_breaker=%s state=OPEN failures=%d",

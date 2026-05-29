@@ -1,0 +1,6 @@
+projectKey=bench-resource-optimizer
+serverUrl=http://localhost:9000
+serverVersion=26.5.0.122743
+dashboardUrl=http://localhost:9000/dashboard?id=bench-resource-optimizer
+ceTaskId=f723200c-e320-4800-9ea7-4bf8654fa3e4
+ceTaskUrl=http://localhost:9000/api/ce/task?id=f723200c-e320-4800-9ea7-4bf8654fa3e4

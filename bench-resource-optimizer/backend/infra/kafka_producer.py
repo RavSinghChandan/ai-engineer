@@ -29,7 +29,7 @@ import logging
 import os
 import time
 import uuid
-from typing import Any, Optional
+from typing import Optional
 
 logger = logging.getLogger("bench.kafka")
 
@@ -45,7 +45,6 @@ def _get_producer():
 
     try:
         from kafka import KafkaProducer
-        from kafka.errors import NoBrokersAvailable
 
         servers = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
         _producer = KafkaProducer(

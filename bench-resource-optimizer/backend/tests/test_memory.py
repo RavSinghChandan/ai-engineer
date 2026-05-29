@@ -7,7 +7,6 @@ All in-memory — no DB, no LLM.
 from __future__ import annotations
 
 import time
-import pytest
 
 
 class TestEpisodicMemory:

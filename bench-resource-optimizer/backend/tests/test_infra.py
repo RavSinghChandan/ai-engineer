@@ -11,7 +11,7 @@ needed. Tests verify:
 from __future__ import annotations
 
 import json
-from unittest.mock import AsyncMock, MagicMock, patch, call
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -160,8 +160,8 @@ class TestKafkaProducer:
         mock_producer.send.return_value = future
 
         with patch("infra.kafka_producer._get_producer", return_value=mock_producer), \
-             patch("infra.kafka_producer._send_to_dlq") as mock_dlq, \
-             patch("infra.kafka_producer.time.sleep"):
+                patch("infra.kafka_producer._send_to_dlq") as mock_dlq, \
+                patch("infra.kafka_producer.time.sleep"):
             from infra.kafka_producer import publish
             result = publish("KAFKA_CV_TOPIC", "cv.parsed", {}, max_retries=3)
 
@@ -238,11 +238,11 @@ class TestHealthRedisKafka:
         mock_bm25 = MagicMock()
         mock_bm25._docs = ["doc"]
         with patch("main._llm", MagicMock()), \
-             patch("main._vector_store", MagicMock()), \
-             patch("main.get_bm25_index", return_value=mock_bm25), \
-             patch("main.redis_ping", return_value=True), \
-             patch("main.kafka_ping", return_value=False), \
-             patch("main.aiosqlite") as mock_sq:
+                patch("main._vector_store", MagicMock()), \
+                patch("main.get_bm25_index", return_value=mock_bm25), \
+                patch("main.redis_ping", return_value=True), \
+                patch("main.kafka_ping", return_value=False), \
+                patch("main.aiosqlite") as mock_sq:
             mock_sq.connect.return_value.__aenter__ = AsyncMock(return_value=MagicMock(execute=AsyncMock()))
             mock_sq.connect.return_value.__aexit__ = AsyncMock(return_value=False)
             resp = client.get("/health/ready")
@@ -258,11 +258,11 @@ class TestHealthRedisKafka:
         mock_bm25 = MagicMock()
         mock_bm25._docs = ["doc"]
         with patch("main._llm", MagicMock()), \
-             patch("main._vector_store", MagicMock()), \
-             patch("main.get_bm25_index", return_value=mock_bm25), \
-             patch("main.redis_ping", return_value=True), \
-             patch("main.kafka_ping", return_value=True), \
-             patch("main.aiosqlite") as mock_sq:
+                patch("main._vector_store", MagicMock()), \
+                patch("main.get_bm25_index", return_value=mock_bm25), \
+                patch("main.redis_ping", return_value=True), \
+                patch("main.kafka_ping", return_value=True), \
+                patch("main.aiosqlite") as mock_sq:
             mock_sq.connect.return_value.__aenter__ = AsyncMock(return_value=MagicMock(execute=AsyncMock()))
             mock_sq.connect.return_value.__aexit__ = AsyncMock(return_value=False)
             resp = client.get("/health/ready")
@@ -280,13 +280,13 @@ class TestKafkaPublishIntegration:
 
         mock_profile = SAMPLE_PROFILE
         with patch("main.extract_text_from_pdf", return_value="Ravi Singh Python Developer"), \
-             patch("main.check_pdf_size"), \
-             patch("main.check_resume_content"), \
-             patch("main.check_injection"), \
-             patch("main.parse_cv", new=AsyncMock(return_value=mock_profile)), \
-             patch("main.validate_parsed_profile", return_value=mock_profile), \
-             patch("main.save_user", new=AsyncMock()), \
-             patch("main.kafka_publish") as mock_kafka:
+                patch("main.check_pdf_size"), \
+                patch("main.check_resume_content"), \
+                patch("main.check_injection"), \
+                patch("main.parse_cv", new=AsyncMock(return_value=mock_profile)), \
+                patch("main.validate_parsed_profile", return_value=mock_profile), \
+                patch("main.save_user", new=AsyncMock()), \
+                patch("main.kafka_publish") as mock_kafka:
             data = {"file": ("cv.pdf", io.BytesIO(b"%PDF " + b"A" * 200), "application/pdf")}
             resp = client.post("/upload-cv", files=data, headers=make_auth_headers())
 
@@ -302,13 +302,13 @@ class TestKafkaPublishIntegration:
         from tests.conftest import SAMPLE_PROFILE, make_auth_headers
 
         with patch("main.extract_text_from_pdf", return_value="Ravi Singh Python Developer"), \
-             patch("main.check_pdf_size"), \
-             patch("main.check_resume_content"), \
-             patch("main.check_injection"), \
-             patch("main.parse_cv", new=AsyncMock(return_value=SAMPLE_PROFILE)), \
-             patch("main.validate_parsed_profile", return_value=SAMPLE_PROFILE), \
-             patch("main.save_user", new=AsyncMock()), \
-             patch("main.kafka_publish", return_value=False):  # Kafka fails
+                patch("main.check_pdf_size"), \
+                patch("main.check_resume_content"), \
+                patch("main.check_injection"), \
+                patch("main.parse_cv", new=AsyncMock(return_value=SAMPLE_PROFILE)), \
+                patch("main.validate_parsed_profile", return_value=SAMPLE_PROFILE), \
+                patch("main.save_user", new=AsyncMock()), \
+                patch("main.kafka_publish", return_value=False):  # Kafka fails
             data = {"file": ("cv.pdf", io.BytesIO(b"%PDF " + b"A" * 200), "application/pdf")}
             resp = client.post("/upload-cv", files=data, headers=make_auth_headers())
 

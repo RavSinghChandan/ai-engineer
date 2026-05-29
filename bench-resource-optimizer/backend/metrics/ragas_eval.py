@@ -54,6 +54,7 @@ logger = logging.getLogger("bench.ragas")
 
 _embed_model = None
 
+
 def _get_model():
     """Load all-MiniLM-L6-v2 once; reuse on every subsequent call."""
     global _embed_model
@@ -109,8 +110,8 @@ _TECH_MULTI = re.compile(
 def _tech_tokens(text: str) -> set:
     """Return a set of lower-cased tech/skill tokens found in text."""
     single = {m.lower() for m in _TECH_KNOWN.findall(text)}
-    multi  = {m.lower() for m in _TECH_MULTI.findall(text)}
-    versioned = set(re.findall(r'\b[a-z]{2,10}[0-9]+(?:\.[0-9]+)?\b', text.lower()))
+    multi = {m.lower() for m in _TECH_MULTI.findall(text)}
+    versioned = set(re.findall(r'\b[a-z]{2,10}\d+(?:\.\d+)?\b', text.lower()))
     return single | multi | versioned
 
 
@@ -132,25 +133,25 @@ def _blend(sem: float, tok: float, sem_weight: float = 0.7) -> float:
 
 @dataclass
 class RagasRecord:
-    request_id:        str
-    query:             str
-    timestamp:         float
-    faithfulness:      float   # 0–1
+    request_id: str
+    query: str
+    timestamp: float
+    faithfulness: float   # 0–1
     context_precision: float   # 0–1
-    context_recall:    float   # 0–1
-    answer_relevancy:  float   # 0–1
-    precision_at_k:    float   # 0–1
-    mrr:               float   # 0–1
-    passed:            bool
-    num_chunks:        int
+    context_recall: float   # 0–1
+    answer_relevancy: float   # 0–1
+    precision_at_k: float   # 0–1
+    mrr: float   # 0–1
+    passed: bool
+    num_chunks: int
 
 
 # Thresholds — semantic cosine space: ≥0.40 = clearly related
 THRESHOLDS = {
-    "faithfulness":      0.40,
+    "faithfulness": 0.40,
     "context_precision": 0.40,
-    "context_recall":    0.40,
-    "answer_relevancy":  0.40,
+    "context_recall": 0.40,
+    "answer_relevancy": 0.40,
 }
 
 
@@ -171,9 +172,9 @@ def compute_faithfulness(answer: str, retrieved_chunks: List[str]) -> float:
         return 1.0
 
     try:
-        texts  = [answer] + retrieved_chunks
+        texts = [answer] + retrieved_chunks
         embeds = _embed(texts)
-        ans_e  = embeds[0]
+        ans_e = embeds[0]
         chunk_e = embeds[1:]
 
         # Semantic: max cosine similarity to any retrieved chunk
@@ -181,7 +182,7 @@ def compute_faithfulness(answer: str, retrieved_chunks: List[str]) -> float:
         sem_score = float(np.max(sims)) if sims else 0.0
 
         # Token: fraction of answer tech tokens present in combined context
-        answer_tech  = _tech_tokens(answer)
+        answer_tech = _tech_tokens(answer)
         context_tech = _tech_tokens(" ".join(retrieved_chunks))
         tok_score = _token_overlap(answer_tech, context_tech) if answer_tech else sem_score
 
@@ -195,7 +196,7 @@ def compute_faithfulness(answer: str, retrieved_chunks: List[str]) -> float:
     except Exception as exc:
         logger.warning('{"event":"faithfulness_error","err":"%s"}', str(exc)[:80])
         # Fallback to token-only
-        answer_tech  = _tech_tokens(answer)
+        answer_tech = _tech_tokens(answer)
         context_tech = _tech_tokens(" ".join(retrieved_chunks))
         return round(_token_overlap(answer_tech, context_tech), 4) if answer_tech else 1.0
 
@@ -214,9 +215,9 @@ def compute_context_precision(answer: str, retrieved_chunks: List[str]) -> float
         return 1.0
 
     try:
-        texts  = [answer] + retrieved_chunks
+        texts = [answer] + retrieved_chunks
         embeds = _embed(texts)
-        ans_e  = embeds[0]
+        ans_e = embeds[0]
         chunk_e = embeds[1:]
 
         answer_tokens = _tech_tokens(answer)
@@ -257,15 +258,15 @@ def compute_context_recall(answer: str, retrieved_chunks: List[str]) -> float:
         return 1.0
 
     try:
-        texts  = [answer] + retrieved_chunks
+        texts = [answer] + retrieved_chunks
         embeds = _embed(texts)
-        ans_e  = embeds[0]
+        ans_e = embeds[0]
         chunk_e = embeds[1:]
 
         sims = [_cosine(ans_e, ce) for ce in chunk_e]
         sem_score = float(np.max(sims)) if sims else 0.0
 
-        answer_tech  = _tech_tokens(answer)
+        answer_tech = _tech_tokens(answer)
         context_tech = _tech_tokens(" ".join(retrieved_chunks))
         tok_score = _token_overlap(answer_tech, context_tech) if answer_tech else sem_score
 
@@ -273,7 +274,7 @@ def compute_context_recall(answer: str, retrieved_chunks: List[str]) -> float:
 
     except Exception as exc:
         logger.warning('{"event":"context_recall_error","err":"%s"}', str(exc)[:80])
-        answer_tech  = _tech_tokens(answer)
+        answer_tech = _tech_tokens(answer)
         context_tech = _tech_tokens(" ".join(retrieved_chunks))
         return round(_token_overlap(answer_tech, context_tech), 4) if answer_tech else 1.0
 
@@ -299,14 +300,13 @@ def compute_answer_relevancy(query: str, answer: str) -> float:
         return 1.0
 
     try:
-        embeds    = _embed([query, answer])
+        embeds = _embed([query, answer])
         sem_score = _cosine(embeds[0], embeds[1])
 
-        query_tech  = _tech_tokens(query)
+        query_tech = _tech_tokens(query)
         answer_tech = _tech_tokens(answer)
-        tok_score   = _token_overlap(query_tech, answer_tech) if query_tech else (
-            0.5 if answer_tech else 0.0
-        )
+        _no_query_fallback = 0.5 if answer_tech else 0.0
+        tok_score = _token_overlap(query_tech, answer_tech) if query_tech else _no_query_fallback
 
         skill_kws = [
             "train", "training", "skill", "match", "missing", "experience",
@@ -314,7 +314,7 @@ def compute_answer_relevancy(query: str, answer: str) -> float:
             "proficient", "require", "hands-on", "project",
         ]
         has_skill_language = any(kw in answer.lower() for kw in skill_kws)
-        has_tech_content   = len(answer_tech) >= 1
+        has_tech_content = len(answer_tech) >= 1
         bonus = 0.10 if has_skill_language else 0.0
 
         score = min(_blend(sem_score, tok_score) + bonus, 1.0)
@@ -349,9 +349,9 @@ def compute_precision_at_k(
         return 0.0
 
     try:
-        texts  = [query] + top_k
+        texts = [query] + top_k
         embeds = _embed(texts)
-        q_e    = embeds[0]
+        q_e = embeds[0]
         chunk_e = embeds[1:]
 
         query_tokens = _tech_tokens(query)
@@ -380,9 +380,9 @@ def compute_mrr(retrieved_chunks: List[str], query: str) -> float:
         return 0.0
 
     try:
-        texts  = [query] + retrieved_chunks
+        texts = [query] + retrieved_chunks
         embeds = _embed(texts)
-        q_e    = embeds[0]
+        q_e = embeds[0]
         chunk_e = embeds[1:]
 
         query_tokens = _tech_tokens(query)
@@ -415,32 +415,32 @@ def evaluate(
     Batches all embeddings in a single forward pass for efficiency.
     Returns a RagasRecord with all scores and a pass/fail flag.
     """
-    faithfulness      = compute_faithfulness(answer, retrieved_chunks)
+    faithfulness = compute_faithfulness(answer, retrieved_chunks)
     context_precision = compute_context_precision(answer, retrieved_chunks)
-    context_recall    = compute_context_recall(answer, retrieved_chunks)
-    answer_relevancy  = compute_answer_relevancy(query, answer)
-    precision_k       = compute_precision_at_k(retrieved_chunks, query, k=k)
-    mrr               = compute_mrr(retrieved_chunks, query)
+    context_recall = compute_context_recall(answer, retrieved_chunks)
+    answer_relevancy = compute_answer_relevancy(query, answer)
+    precision_k = compute_precision_at_k(retrieved_chunks, query, k=k)
+    mrr = compute_mrr(retrieved_chunks, query)
 
     passed = (
-        faithfulness      >= THRESHOLDS["faithfulness"]      and
+        faithfulness >= THRESHOLDS["faithfulness"] and
         context_precision >= THRESHOLDS["context_precision"] and
-        context_recall    >= THRESHOLDS["context_recall"]    and
-        answer_relevancy  >= THRESHOLDS["answer_relevancy"]
+        context_recall >= THRESHOLDS["context_recall"] and
+        answer_relevancy >= THRESHOLDS["answer_relevancy"]
     )
 
     record = RagasRecord(
-        request_id        = request_id,
-        query             = query[:100],
-        timestamp         = time.time(),
-        faithfulness      = faithfulness,
-        context_precision = context_precision,
-        context_recall    = context_recall,
-        answer_relevancy  = answer_relevancy,
-        precision_at_k    = precision_k,
-        mrr               = mrr,
-        passed            = passed,
-        num_chunks        = len(retrieved_chunks),
+        request_id=request_id,
+        query=query[:100],
+        timestamp=time.time(),
+        faithfulness=faithfulness,
+        context_precision=context_precision,
+        context_recall=context_recall,
+        answer_relevancy=answer_relevancy,
+        precision_at_k=precision_k,
+        mrr=mrr,
+        passed=passed,
+        num_chunks=len(retrieved_chunks),
     )
 
     if not passed:
@@ -485,17 +485,17 @@ class RagasStore:
         try:
             from db import save_ragas_result
             await save_ragas_result({
-                "request_id":        record.request_id,
-                "query":             record.query,
-                "timestamp":         record.timestamp,
-                "faithfulness":      record.faithfulness,
+                "request_id": record.request_id,
+                "query": record.query,
+                "timestamp": record.timestamp,
+                "faithfulness": record.faithfulness,
                 "context_precision": record.context_precision,
-                "context_recall":    record.context_recall,
-                "answer_relevancy":  record.answer_relevancy,
-                "precision_at_k":    record.precision_at_k,
-                "mrr":               record.mrr,
-                "passed":            record.passed,
-                "num_chunks":        record.num_chunks,
+                "context_recall": record.context_recall,
+                "answer_relevancy": record.answer_relevancy,
+                "precision_at_k": record.precision_at_k,
+                "mrr": record.mrr,
+                "passed": record.passed,
+                "num_chunks": record.num_chunks,
             })
         except Exception as exc:
             logger.warning('{"event":"ragas_persist_failed","error":"%s"}', str(exc)[:80])
@@ -510,17 +510,17 @@ class RagasStore:
             rows = await load_ragas_results(limit=200)
             for r in rows:
                 record = RagasRecord(
-                    request_id        = r["request_id"],
-                    query             = r["query"],
-                    timestamp         = r["timestamp"],
-                    faithfulness      = r["faithfulness"],
-                    context_precision = r["context_precision"],
-                    context_recall    = r["context_recall"],
-                    answer_relevancy  = r["answer_relevancy"],
-                    precision_at_k    = r["precision_at_k"],
-                    mrr               = r["mrr"],
-                    passed            = bool(r["passed"]),
-                    num_chunks        = r["num_chunks"],
+                    request_id=r["request_id"],
+                    query=r["query"],
+                    timestamp=r["timestamp"],
+                    faithfulness=r["faithfulness"],
+                    context_precision=r["context_precision"],
+                    context_recall=r["context_recall"],
+                    answer_relevancy=r["answer_relevancy"],
+                    precision_at_k=r["precision_at_k"],
+                    mrr=r["mrr"],
+                    passed=bool(r["passed"]),
+                    num_chunks=r["num_chunks"],
                 )
                 self._records.append(record)
             logger.info('{"event":"ragas_restored","count":%d}', len(rows))
@@ -547,12 +547,12 @@ class RagasStore:
         fail_rate = round(100 - pass_rate, 1)
 
         metrics = {
-            "faithfulness":      avg("faithfulness"),
+            "faithfulness": avg("faithfulness"),
             "context_precision": avg("context_precision"),
-            "context_recall":    avg("context_recall"),
-            "answer_relevancy":  avg("answer_relevancy"),
-            "precision_at_k":   avg("precision_at_k"),
-            "mrr":               avg("mrr"),
+            "context_recall": avg("context_recall"),
+            "answer_relevancy": avg("answer_relevancy"),
+            "precision_at_k": avg("precision_at_k"),
+            "mrr": avg("mrr"),
         }
 
         alerts = [
@@ -562,32 +562,32 @@ class RagasStore:
         ]
 
         return {
-            "evaluated":          n,
-            "pass_rate_pct":      pass_rate,
-            "fail_rate_pct":      fail_rate,
-            "metrics":            metrics,
-            "thresholds":         THRESHOLDS,
-            "alerts":             alerts,
-            "engine":             "semantic (all-MiniLM-L6-v2) + token-overlap blend",
+            "evaluated": n,
+            "pass_rate_pct": pass_rate,
+            "fail_rate_pct": fail_rate,
+            "metrics": metrics,
+            "thresholds": THRESHOLDS,
+            "alerts": alerts,
+            "engine": "semantic (all-MiniLM-L6-v2) + token-overlap blend",
             "interpretation": {
-                "faithfulness":      "LLM answer grounded in retrieved role context. < 0.40 = hallucinated skill gaps.",
+                "faithfulness": "LLM answer grounded in retrieved role context. < 0.40 = hallucinated skill gaps.",
                 "context_precision": "Retrieved chunks that contributed to answer. < 0.40 = noisy retrieval.",
-                "context_recall":    "Answer facts found in retrieved context. < 0.40 = key chunks missed.",
-                "answer_relevancy":  "Answer addresses the role query. < 0.40 = answer drift.",
-                "precision_at_k":   "Precision@3: relevant chunks in top-3 retrieved.",
-                "mrr":               "Mean Reciprocal Rank: how early first relevant chunk appears.",
+                "context_recall": "Answer facts found in retrieved context. < 0.40 = key chunks missed.",
+                "answer_relevancy": "Answer addresses the role query. < 0.40 = answer drift.",
+                "precision_at_k": "Precision@3: relevant chunks in top-3 retrieved.",
+                "mrr": "Mean Reciprocal Rank: how early first relevant chunk appears.",
             },
             "recent": [
                 {
-                    "request_id":        r.request_id[:8] + "…",
-                    "query":             r.query,
-                    "faithfulness":      r.faithfulness,
+                    "request_id": r.request_id[:8] + "…",
+                    "query": r.query,
+                    "faithfulness": r.faithfulness,
                     "context_precision": r.context_precision,
-                    "context_recall":    r.context_recall,
-                    "answer_relevancy":  r.answer_relevancy,
-                    "mrr":               r.mrr,
-                    "passed":            r.passed,
-                    "chunks":            r.num_chunks,
+                    "context_recall": r.context_recall,
+                    "answer_relevancy": r.answer_relevancy,
+                    "mrr": r.mrr,
+                    "passed": r.passed,
+                    "chunks": r.num_chunks,
                 }
                 for r in list(records)[-10:]
             ],
