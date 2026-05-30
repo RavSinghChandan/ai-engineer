@@ -560,8 +560,22 @@
              class="demo-img" />
       </div>
 
-      <!-- Caption -->
-      <div class="demo-caption">{{ demoProject()!.slides[demoSlide()].caption }}</div>
+      <!-- Guide character + caption row -->
+      @if (demoProject()!.slides[demoSlide()].guide) {
+        <div class="demo-guide-row">
+          <div class="demo-guide-char">
+            <img [src]="demoProject()!.slides[demoSlide()].guide"
+                 alt="Chandan guide character"
+                 class="demo-guide-img" />
+          </div>
+          <div class="demo-guide-bubble">
+            <div class="demo-guide-speech">{{ demoProject()!.slides[demoSlide()].speech }}</div>
+            <div class="demo-caption">{{ demoProject()!.slides[demoSlide()].caption }}</div>
+          </div>
+        </div>
+      } @else {
+        <div class="demo-caption">{{ demoProject()!.slides[demoSlide()].caption }}</div>
+      }
 
       <!-- Nav row -->
       <div class="demo-nav">

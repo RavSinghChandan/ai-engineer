@@ -211,15 +211,60 @@ export class App implements OnInit, AfterViewInit {
   demoSlide  = signal(0);
   demoProject = signal<null | {
     num: string; title: string; accent: string;
-    slides: { img: string; caption: string; label: string }[];
+    slides: { img: string; caption: string; label: string; guide?: string; speech?: string }[];
   }>(null);
 
-  readonly demoData: Record<string, { img: string; caption: string; label: string }[]> = {
+  readonly demoData: Record<string, { img: string; caption: string; label: string; guide?: string; speech?: string }[]> = {
     '01': [
-      { img: 'project-aura.png',   label: 'Birth Profile Input',   caption: 'User enters birth details — name, date, time, place — powering all 18+ AI agents.' },
-      { img: 'aura-s1.png',        label: 'LangGraph Pipeline',    caption: 'LangGraph visualizer shows the full execution flow across 10 nodes — Classify → LLM → Agent → Memory.' },
-      { img: 'aura-s2.png',        label: 'Agent Execution Graph', caption: 'Real-time step-by-step graph execution with auto-play — watch each agent node fire sequentially.' },
-      { img: 'aura-s3.png',        label: 'Pipeline Debugger',     caption: 'Full graph structure with API endpoint selection — run any route and inspect the LangGraph execution live.' },
+      {
+        img: 'aura-step1-login.png',
+        label: '🔐 Step 1 — Login Page',
+        caption: 'The AURA with Rav platform — 360° Astro-Spiritual Intelligence. Secure JWT login with Sign In, Create Account, and OTP tab.',
+        guide: 'guide-chandan.svg',
+        speech: 'Welcome! 👋 This is the AURA platform I built. Let me show you the whole journey!',
+      },
+      {
+        img: 'aura-step2-credentials.png',
+        label: '✏️ Step 2 — Enter Credentials',
+        caption: 'Admin credentials entered — email admin@aura.local and password filled. Single Sign In click launches the full authenticated session.',
+        guide: 'guide-chandan.svg',
+        speech: 'See? I\'m typing in the credentials right now. Email + Password → Sign In! Easy! 😄',
+      },
+      {
+        img: 'aura-step3-form-empty.png',
+        label: '📋 Step 3 — Birth Profile Form',
+        caption: 'After login, the AI intake form loads. Fill Name, Date of Birth, Place of Birth, and your question for the Astrologer across 5 analysis modules.',
+        guide: 'guide-chandan-thinking.svg',
+        speech: 'Hmm... now let me fill in my birth details. This powers ALL 18+ agents! 🔮',
+      },
+      {
+        img: 'aura-step4-form-filled.png',
+        label: '✅ Step 4 — Form Filled',
+        caption: 'Chandan Kumar · 15/08/1990 · Patna, Bihar, India. Question: "Will my career in AI engineering grow in 2026?" — Laser Sharp report style selected.',
+        guide: 'guide-chandan-happy.svg',
+        speech: 'Done! All fields filled. Numerology selected. Laser Sharp mode. Let\'s GO! 🚀',
+      },
+      {
+        img: 'aura-step5-reading-started.png',
+        label: '🤖 Step 5 — AI Review (Findings)',
+        caption: 'Agents complete the analysis. Admin Review panel shows AI findings with HIGH/MEDIUM priority tags. "Growth-oriented and positive period" — Numerology confidence.',
+        guide: 'guide-chandan-wow.svg',
+        speech: 'WOW! The AI agents found insights! Life Path 33, Destiny 33 — this is REAL AI! 🤩',
+      },
+      {
+        img: 'aura-step7-review.png',
+        label: '📊 Step 6 — Review & Approve',
+        caption: 'Admin Review workspace with Approve All, Generate Report buttons. Agent Log, Raw JSON, Astrology, Translations tabs for full transparency.',
+        guide: 'guide-chandan-thinking.svg',
+        speech: 'Now reviewing agent findings before generating the PDF report. Quality gate! 🎯',
+      },
+      {
+        img: 'aura-step8-pipeline.png',
+        label: '🔬 Step 7 — Agent Pipeline Graph',
+        caption: 'Live AGENT PIPELINE · DYNAMIC GRAPH — 16 nodes including User Profile, Questions, Prompt Style, Tenant Persona Injection. 3/7 Features Active.',
+        guide: 'guide-chandan-wow.svg',
+        speech: 'This is my LangGraph pipeline! Every node is an AI agent working together! 🧠⚡',
+      },
     ],
     '02': [
       { img: 'project-bench.png',  label: 'Preparation Dashboard', caption: '18-day AI roadmap with 36 tasks, readiness score, skill coverage bars and next-up task highlighted.' },
