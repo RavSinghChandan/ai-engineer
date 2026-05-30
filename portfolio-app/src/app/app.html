@@ -137,10 +137,10 @@
       @for (skill of skills; track skill.title) {
         <div class="skill-card fade-up" #fadeEl>
           <img [src]="getSkillIconUrl(skill.items)" [alt]="skill.title" class="skill-logos"/>
-          <div class="skill-title" [class]="'color-' + skill.color">{{ skill.title }}</div>
+          <div class="skill-title" [ngClass]="'color-' + skill.color">{{ skill.title }}</div>
           <div class="skill-items">
             @for (item of skill.labels; track item) {
-              <span class="skill-item tag" [class]="'tag-' + skill.color">{{ item }}</span>
+              <span class="skill-item tag" [ngClass]="'tag-' + skill.color">{{ item }}</span>
             }
           </div>
         </div>
@@ -157,17 +157,19 @@
     <p class="section-sub">Not demos. Not tutorials. Systems built, tested, and hardened for production.</p>
 
     @for (project of projects; track project.num) {
-      <div class="project-card fade-up" #fadeEl [class]="'accent-' + project.accent">
+      <div class="project-card fade-up" #fadeEl [ngClass]="'accent-' + project.accent">
         <div class="project-top">
           <div class="project-left">
-            <div class="project-num" [class]="'num-' + project.accent">✦ Project {{ project.num }}</div>
+            <div class="project-num" [ngClass]="'num-' + project.accent">✦ Project {{ project.num }}</div>
             <h3 class="project-title">{{ project.title }}</h3>
             <div class="project-subtitle">{{ project.subtitle }}</div>
             <p class="project-desc">{{ project.desc }}</p>
           </div>
           <div class="project-actions">
             @if (project.liveUrl) {
-              <a [href]="project.liveUrl" target="_blank" class="project-live-btn" [class]="'live-btn--' + project.accent">
+              <a [href]="project.liveUrl" target="_blank"
+                 class="project-live-btn"
+                 [ngClass]="'live-btn--' + project.accent">
                 <span class="live-dot"></span>
                 Live Demo
               </a>
@@ -240,7 +242,7 @@
     <div class="timeline">
       @for (job of experience; track job.company) {
         <div class="tl-item fade-up" #fadeEl>
-          <div class="tl-dot" [class]="'dot-' + job.color"></div>
+          <div class="tl-dot" [ngClass]="'dot-' + job.color"></div>
           <div class="tl-body">
             <div class="tl-head">
               <div class="tl-company-info">
