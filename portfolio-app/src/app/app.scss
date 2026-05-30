@@ -610,6 +610,32 @@ footer { border-top: 1px solid var(--border); padding: 2rem 0; }
 .fg-from-top-right .fg-card,
 .fg-from-bottom-right .fg-card { flex-direction: row-reverse; }
 
+/* Avatar column: avatar + name tag stacked */
+.fg-avatar-col { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; flex-shrink: 0; }
+
+/* "✦ Aarav" name tag below avatar */
+.fg-name-tag {
+  font-size: 0.6rem; font-weight: 800; letter-spacing: 0.08em;
+  color: var(--purple-lt);
+  background: rgba(124,58,237,0.15);
+  border: 1px solid rgba(124,58,237,0.35);
+  border-radius: 20px; padding: 0.1rem 0.45rem;
+  white-space: nowrap; font-family: 'Fira Code', monospace;
+  animation: fg-name-pulse 2.5s ease-in-out infinite;
+  @media (max-width: 600px) { font-size: 0.52rem; padding: 0.08rem 0.35rem; }
+}
+@keyframes fg-name-pulse {
+  0%,100% { opacity: 1; }
+  50%     { opacity: 0.65; }
+}
+
+/* Intro slide gets a slightly warmer glow */
+.fg-bubble--intro {
+  background: linear-gradient(135deg, rgba(124,58,237,0.28) 0%, var(--card) 60%);
+  border-color: rgba(124,58,237,0.6);
+  box-shadow: 0 0 24px rgba(124,58,237,0.3), 0 8px 28px rgba(0,0,0,0.35);
+}
+
 /* Avatar */
 .fg-avatar {
   width: var(--fg-avatar); height: calc(var(--fg-avatar) * 1.33);

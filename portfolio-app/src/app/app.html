@@ -531,11 +531,14 @@
   </div>
 </section>
 
-<!-- FLOATING GUIDE CHARACTER -->
+<!-- FLOATING GUIDE CHARACTER — AARAV -->
 <div class="fg-wrap" [class.fg-visible]="fgVisible()" [class]="'fg-wrap fg-' + fgEntry()">
   <div class="fg-card">
-    <img [src]="fgImg()" class="fg-avatar" alt="Chandan guide"/>
-    <div class="fg-bubble">
+    <div class="fg-avatar-col">
+      <img [src]="fgImg()" class="fg-avatar" alt="Aarav guide"/>
+      <span class="fg-name-tag">✦ Aarav</span>
+    </div>
+    <div class="fg-bubble" [class.fg-bubble--intro]="fgIntro()">
       <p class="fg-quote">{{ fgQuote() }}</p>
       <span class="fg-sub">{{ fgSub() }}</span>
     </div>

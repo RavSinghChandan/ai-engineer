@@ -206,12 +206,13 @@ export class App implements OnInit, AfterViewInit {
     },
   ];
 
-  // ── FLOATING GUIDE CHARACTER ─────────────────────────────────────
+  // ── FLOATING GUIDE CHARACTER — AARAV ────────────────────────────
   fgVisible = signal(false);
+  fgIntro   = signal(false);   // true only during the intro slide
   fgImg     = signal('guide-chandan-happy.svg');
   fgQuote   = signal('');
   fgSub     = signal('');
-  fgEntry   = signal('from-left'); // CSS class controlling entry direction
+  fgEntry   = signal('from-bottom-left');
 
   private _fgTimer: any = null;
   private _fgSection = '';
@@ -232,6 +233,35 @@ export class App implements OnInit, AfterViewInit {
   initFloatingGuide() {
     if (!isPlatformBrowser(this.platformId)) return;
 
+    // ── INTRO: Aarav introduces himself 1.2s after page load ──────
+    this._fgTimer = setTimeout(() => {
+      this.fgIntro.set(true);
+      this.fgImg.set('guide-chandan-happy.svg');
+      this.fgQuote.set("Namaste! 🙏 I'm Aarav");
+      this.fgSub.set("Chandan's AI guide. Let's go!");
+      this.fgEntry.set('from-bottom-left');
+      this.fgVisible.set(true);
+      this._fgSection = 'intro'; // block section observer briefly
+
+      // After 3.5s switch to hero script
+      this._fgTimer = setTimeout(() => {
+        this.fgIntro.set(false);
+        this.fgVisible.set(false);
+        this._fgTimer = setTimeout(() => {
+          const hero = (this._fgScript as any)['hero'];
+          this.fgImg.set(hero.img);
+          this.fgQuote.set(hero.quote);
+          this.fgSub.set(hero.sub);
+          this.fgEntry.set('from-left');
+          this.fgVisible.set(true);
+          this._fgSection = 'hero';
+          this._fgDirIdx = 1; // start cycling from next direction
+          this._fgTimer = setTimeout(() => this.fgVisible.set(false), 5000);
+        }, 300);
+      }, 3500);
+    }, 1200);
+
+    // ── Section observer: fires on scroll ─────────────────────────
     const obs = new IntersectionObserver((entries) => {
       for (const e of entries) {
         if (!e.isIntersecting) continue;
@@ -241,22 +271,19 @@ export class App implements OnInit, AfterViewInit {
         const item = (this._fgScript as any)[sec];
         if (!item) continue;
 
-        // Pick next entry direction
         const dir = this._fgDirs[this._fgDirIdx % this._fgDirs.length];
         this._fgDirIdx++;
 
-        // Hide first, then fly in from new direction after a tick
         this.fgVisible.set(false);
         clearTimeout(this._fgTimer);
         this._fgTimer = setTimeout(() => {
+          this.fgIntro.set(false);
           this.fgImg.set(item.img);
           this.fgQuote.set(item.quote);
           this.fgSub.set(item.sub);
           this.fgEntry.set(dir);
           this.fgVisible.set(true);
-
-          // Auto-hide after 6 seconds
-          this._fgTimer = setTimeout(() => this.fgVisible.set(false), 6000);
+          this._fgTimer = setTimeout(() => this.fgVisible.set(false), 5500);
         }, 200);
       }
     }, { threshold: 0.25 });
