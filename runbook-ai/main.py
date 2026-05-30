@@ -4,6 +4,7 @@ from database.db import init_db
 from routers.ingest_router import router as ingest_router
 from routers.runbooks_router import router as runbooks_router
 from routers.graph_router import router as graph_router
+from routers.query_router import router as query_router
 
 app = FastAPI(
     title="RunbookAI",
@@ -27,6 +28,7 @@ app.add_middleware(
 app.include_router(ingest_router)
 app.include_router(runbooks_router)
 app.include_router(graph_router)
+app.include_router(query_router)
 
 
 @app.on_event("startup")
@@ -40,6 +42,6 @@ def health():
         "status": "ok",
         "service": "RunbookAI",
         "version": "1.0.0",
-        "phase": 2,
-        "description": "PDF ingestion + structured extraction + dependency graph",
+        "phase": 3,
+        "description": "PDF ingestion + structured extraction + dependency graph + incident query engine",
     }
