@@ -566,70 +566,89 @@ footer { border-top: 1px solid var(--border); padding: 2rem 0; }
 .footer-heart { font-size: 1.4rem; vertical-align: middle; line-height: 1; }
 .footer-stack { font-size: 0.72rem; color: var(--text3); font-family: 'Fira Code', monospace; }
 
-/* ── PORTFOLIO GUIDE ─────────────────────────────────────────── */
-.pg-wrap {
-  position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 900;
-  display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;
-  animation: pg-enter 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
-  @media (max-width: 480px) { bottom: 1rem; right: 0.75rem; }
-}
-@keyframes pg-enter {
-  from { opacity: 0; transform: translateY(24px) scale(0.85); }
-  to   { opacity: 1; transform: translateY(0)    scale(1); }
+/* ── INLINE GUIDE BANNERS ────────────────────────────────────── */
+
+/* Between-section banners */
+.gb-banner {
+  max-width: 1060px; margin: 0 auto; padding: 0 1.5rem;
+  display: flex; align-items: center; gap: 1.5rem;
+  /* scroll-driven reveal */
+  opacity: 0; transform: translateY(32px);
+  transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
+  &.visible { opacity: 1; transform: translateY(0); }
+  &.gb-right { flex-direction: row-reverse; }
+  @media (max-width: 640px) { gap: 1rem; padding: 0 1rem;
+    &.gb-right { flex-direction: row; }
+  }
 }
 
-/* Speech bubble */
-.pg-bubble {
-  background: var(--card);
-  border: 1px solid var(--border2);
-  border-radius: 16px 16px 4px 16px;
-  padding: 0.75rem 1rem;
-  max-width: 240px; min-width: 160px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.25), 0 0 0 1px var(--border);
-  cursor: pointer; position: relative;
-  transition: box-shadow 0.2s, transform 0.2s;
-  &:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,0,0,0.3); }
-  @media (max-width: 480px) { max-width: 200px; padding: 0.6rem 0.85rem; }
+.gb-char {
+  width: 90px; height: 120px; object-fit: contain; flex-shrink: 0;
+  filter: drop-shadow(0 6px 18px rgba(124,58,237,0.35));
+  animation: gb-bob 2.8s ease-in-out infinite;
+  @media (max-width: 640px) { width: 64px; height: 86px; }
 }
-.pg-text {
-  display: block; font-size: 0.82rem; font-weight: 600; color: var(--text);
-  line-height: 1.5; min-height: 2.4em;
-  @media (max-width: 480px) { font-size: 0.75rem; }
-}
-.pg-tap-hint {
-  display: block; font-size: 0.66rem; color: var(--purple-lt);
-  margin-top: 0.35rem; font-family: 'Fira Code', monospace;
-  letter-spacing: 0.04em; opacity: 0.8;
+@keyframes gb-bob {
+  0%,100% { transform: translateY(0) rotate(0deg); }
+  40%      { transform: translateY(-10px) rotate(-3deg); }
+  70%      { transform: translateY(-5px) rotate(2deg); }
 }
 
-/* Typing cursor blink */
-.pg-talking .pg-text::after {
-  content: '|'; color: var(--purple); animation: pg-blink 0.7s step-end infinite;
-}
-@keyframes pg-blink { 0%,100%{opacity:1} 50%{opacity:0} }
+/* Banner for left-entry: char walks from left */
+.gb-left .gb-char  { animation: gb-bob 2.8s ease-in-out infinite, gb-walk-l 0.7s var(--ease) both; }
+.gb-right .gb-char { animation: gb-bob 2.8s ease-in-out infinite, gb-walk-r 0.7s var(--ease) both; }
+@keyframes gb-walk-l { from { transform: translateX(-60px) rotate(-8deg); opacity: 0; } to { opacity: 1; } }
+@keyframes gb-walk-r { from { transform: translateX(60px) rotate(8deg);  opacity: 0; } to { opacity: 1; } }
 
-/* Avatar row */
-.pg-avatar-wrap {
-  position: relative; align-self: flex-end;
+.gb-bubble {
+  background: var(--card); border: 1px solid var(--border2);
+  border-radius: 18px; padding: 1.25rem 1.5rem;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+  flex: 1; min-width: 0; position: relative;
+  @media (max-width: 640px) { padding: 1rem; border-radius: 14px; }
 }
-.pg-avatar {
-  width: 72px; height: 96px; object-fit: contain; cursor: pointer;
-  filter: drop-shadow(0 4px 12px rgba(124,58,237,0.3));
-  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
-  animation: pg-bob 3s ease-in-out infinite;
-  &:hover { transform: scale(1.1) rotate(-8deg); }
-  @media (max-width: 480px) { width: 56px; height: 75px; }
+.gb-bubble--accent {
+  border-color: rgba(124,58,237,0.4);
+  background: linear-gradient(135deg, rgba(124,58,237,0.08) 0%, var(--card) 60%);
+  box-shadow: 0 8px 40px rgba(124,58,237,0.15);
 }
-@keyframes pg-bob {
-  0%,100% { transform: translateY(0); }
-  50%      { transform: translateY(-6px); }
+.gb-quote {
+  margin: 0 0 0.4rem; font-size: 1.05rem; font-weight: 700; line-height: 1.45;
+  color: var(--text);
+  em { color: var(--purple-lt); font-style: normal; }
+  @media (max-width: 640px) { font-size: 0.9rem; }
 }
-.pg-dismiss {
-  position: absolute; top: -6px; left: -6px;
-  width: 20px; height: 20px; border-radius: 50%;
-  background: var(--surface); border: 1px solid var(--border2);
-  color: var(--text3); font-size: 0.85rem; line-height: 1;
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-  transition: all 0.15s; padding: 0;
-  &:hover { background: var(--red); color: #fff; border-color: var(--red); }
+.gb-sub {
+  font-size: 0.75rem; color: var(--text3); font-family: 'Fira Code', monospace;
+  letter-spacing: 0.03em;
+  @media (max-width: 640px) { font-size: 0.68rem; }
+}
+
+/* Spacer so banners have breathing room */
+.gb-closer { padding: 3rem 1.5rem; }
+
+/* ── INLINE PROJECT BANNERS (inside each project card) ───────── */
+.gb-inline {
+  display: flex; align-items: center; gap: 1rem;
+  margin-top: 1.5rem; padding: 1rem 1.25rem;
+  background: rgba(124,58,237,0.05); border: 1px solid rgba(124,58,237,0.15);
+  border-radius: 12px;
+  opacity: 0; transform: translateX(-24px);
+  transition: opacity 0.5s var(--ease), transform 0.5s var(--ease);
+  &.visible { opacity: 1; transform: translateX(0); }
+  &.gb-inline--right { flex-direction: row-reverse; transform: translateX(24px);
+    &.visible { transform: translateX(0); }
+  }
+  @media (max-width: 640px) { flex-direction: row !important; gap: 0.75rem; }
+}
+.gb-inline-char {
+  width: 56px; height: 74px; object-fit: contain; flex-shrink: 0;
+  filter: drop-shadow(0 3px 8px rgba(124,58,237,0.3));
+  animation: gb-bob 3s ease-in-out infinite;
+}
+.gb-inline-text {
+  display: flex; flex-direction: column; gap: 0.25rem;
+  strong { font-size: 0.82rem; color: var(--text); font-weight: 700; }
+  span   { font-size: 0.75rem; color: var(--text2); line-height: 1.4; }
+  @media (max-width: 480px) { strong { font-size: 0.75rem; } span { font-size: 0.7rem; } }
 }

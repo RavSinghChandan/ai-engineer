@@ -206,147 +206,76 @@ export class App implements OnInit, AfterViewInit {
     },
   ];
 
-  // ── PORTFOLIO GUIDE ─────────────────────────────────────────────
-  guideVisible  = signal(false);
-  guideDismissed = signal(false);
-  guideSection  = signal('hero');
-  guideMood     = signal<'pointing'|'happy'|'thinking'|'wow'>('pointing');
-  guideTyping   = signal(false);
-  guideText     = signal('');
-  private _guideTimer: any = null;
-  private _guideObserver: IntersectionObserver | null = null;
+  // ── INLINE GUIDE BANNERS (appear between sections) ──────────────
+  // Each guide banner is always in the DOM inside its section; CSS
+  // handles the walk-in animation when the element enters the viewport.
+  // No signals needed — pure CSS scroll-driven animations.
 
-  readonly guideImg = {
-    pointing: 'guide-chandan.svg',
-    happy:    'guide-chandan-happy.svg',
-    thinking: 'guide-chandan-thinking.svg',
-    wow:      'guide-chandan-wow.svg',
-  };
-
-  readonly guideScript: Record<string, { mood: 'pointing'|'happy'|'thinking'|'wow'; lines: string[] }> = {
-    hero: {
-      mood: 'happy',
-      lines: [
-        "Hey there! 👋 I'm Chandan — your guide today.",
-        "I build AI systems that actually ship to production.",
-        "Let me walk you through what I've built. Shall we? 🚀",
-      ],
+  readonly guideBanners = [
+    {
+      id: 'gb-hero',
+      img: 'guide-chandan-happy.svg',
+      dir: 'left',       // character walks in from left, points right at h1
+      quote: "This is the right person. 👈 Senior AI Engineer who actually ships.",
+      sub:   "4+ years · 637 tests · Zero shortcuts",
     },
-    skills: {
-      mood: 'pointing',
-      lines: [
-        "These aren't buzzwords — every skill here is battle-tested. 💪",
-        "LangGraph, FAISS, Kafka, Redis — I've built prod systems with all of these.",
-        "Scroll down to see the actual systems I shipped! 👇",
-      ],
+    {
+      id: 'gb-skills',
+      img: 'guide-chandan.svg',
+      dir: 'right',      // walks in from right, points left at skill cards
+      quote: "Every single skill here? Battle-tested in production. No fluff. 💪",
+      sub:   "LangGraph · FAISS · Kafka · Redis · Angular · FastAPI",
     },
-    projects: {
-      mood: 'wow',
-      lines: [
-        "Here's where things get exciting! 🔥",
-        "4 production AI systems — click 'Live Demo' on any of them!",
-        "I'll personally guide you through each one with real screenshots. 😄",
-      ],
+    {
+      id: 'gb-p01',
+      img: 'guide-chandan-wow.svg',
+      dir: 'left',
+      quote: "18+ AI agents, 23 languages, 415 tests. Spiritual intelligence — real engineering. 🔮",
+      sub:   "Project 01 · Aura with Rav",
     },
-    experience: {
-      mood: 'thinking',
-      lines: [
-        "4+ years of real engineering — not side projects, real companies. 🏢",
-        "Every role pushed me deeper into AI and distributed systems.",
-        "The story of how I got here is just below... 👇",
-      ],
+    {
+      id: 'gb-p02',
+      img: 'guide-chandan-thinking.svg',
+      dir: 'right',
+      quote: "Hybrid RAG + circuit breaker + episodic memory. Enterprise HR AI done right. ⚡",
+      sub:   "Project 02 · Bench Resource Optimizer",
     },
-    story: {
-      mood: 'happy',
-      lines: [
-        "This is my 'why' — why I chose AI engineering. ✨",
-        "I believe AI should solve real problems, not just impress demo audiences.",
-        "If that resonates, let's talk! Head to Contact 👇",
-      ],
+    {
+      id: 'gb-p03',
+      img: 'guide-chandan-happy.svg',
+      dir: 'left',
+      quote: "5 agents collaborate on marketing workflows. Auto-learning improves every run. 🚀",
+      sub:   "Project 03 · Agentic Growth OS",
     },
-    contact: {
-      mood: 'wow',
-      lines: [
-        "You made it to the end — you're clearly serious! 🎉",
-        "If you're building real AI products, I'd love to be part of the journey.",
-        "Drop me a message — I respond fast. Let's build something great together! 🚀",
-      ],
+    {
+      id: 'gb-p04',
+      img: 'guide-chandan.svg',
+      dir: 'right',
+      quote: "RAGless SQL + dependency graph. 22 runbooks, conflict detection, zero vectors. 🧠",
+      sub:   "Project 04 · RunbookAI",
     },
-  };
-
-  private _guideLineIdx = 0;
-
-  initGuide() {
-    if (this.guideDismissed()) return;
-    setTimeout(() => {
-      this.guideVisible.set(true);
-      this._showGuideLine('hero', 0);
-    }, 2000);
-
-    this._guideObserver = new IntersectionObserver((entries) => {
-      for (const e of entries) {
-        if (e.isIntersecting && e.intersectionRatio > 0.3) {
-          const sec = (e.target as HTMLElement).dataset['guide'] || e.target.id;
-          if (sec && sec !== this.guideSection()) {
-            this.guideSection.set(sec);
-            this._guideLineIdx = 0;
-            const script = this.guideScript[sec];
-            if (script) {
-              this.guideMood.set(script.mood);
-              this._typeGuideText(script.lines[0]);
-            }
-          }
-        }
-      }
-    }, { threshold: 0.3 });
-
-    const secs = document.querySelectorAll('section[id], section[data-guide]');
-    secs.forEach(s => this._guideObserver!.observe(s));
-  }
-
-  private _typeGuideText(text: string) {
-    clearTimeout(this._guideTimer);
-    this.guideTyping.set(true);
-    this.guideText.set('');
-    let i = 0;
-    const tick = () => {
-      if (i <= text.length) {
-        this.guideText.set(text.slice(0, i));
-        i++;
-        this._guideTimer = setTimeout(tick, 22);
-      } else {
-        this.guideTyping.set(false);
-      }
-    };
-    tick();
-  }
-
-  private _showGuideLine(section: string, idx: number) {
-    const script = this.guideScript[section];
-    if (!script) return;
-    this.guideMood.set(script.mood);
-    this._typeGuideText(script.lines[idx] ?? script.lines[0]);
-    this._guideLineIdx = idx;
-  }
-
-  guideTap() {
-    const sec = this.guideSection();
-    const lines = this.guideScript[sec]?.lines ?? [];
-    const next = this._guideLineIdx + 1;
-    if (next < lines.length) {
-      this._showGuideLine(sec, next);
-    } else {
-      // cycle back
-      this._showGuideLine(sec, 0);
-    }
-  }
-
-  dismissGuide() {
-    this.guideDismissed.set(true);
-    this.guideVisible.set(false);
-    this._guideObserver?.disconnect();
-    clearTimeout(this._guideTimer);
-  }
+    {
+      id: 'gb-exp',
+      img: 'guide-chandan-thinking.svg',
+      dir: 'left',
+      quote: "IIT Roorkee → 4 companies → production AI. Every role levelled up the craft. 🏆",
+      sub:   "From college to Senior AI Engineer — the real journey",
+    },
+    {
+      id: 'gb-story',
+      img: 'guide-chandan-happy.svg',
+      dir: 'right',
+      quote: "From 'you can't spell console' to shipping AI systems at scale. That's the story. ✨",
+      sub:   "The person behind the code",
+    },
+    {
+      id: 'gb-contact',
+      img: 'guide-chandan-wow.svg',
+      dir: 'left',
+      quote: "You're here. That means you're serious. So is Chandan. Let's build together. 🤝",
+      sub:   "The best AI products are built by people who care — hire one.",
+    },
+  ];
 
   // ── DEMO MODAL ──────────────────────────────────────────────────
   demoOpen   = signal(false);
@@ -645,7 +574,11 @@ export class App implements OnInit, AfterViewInit {
       statsObs.observe(heroEl);
     }
 
-    this.initGuide();
+    // Reveal guide banners on scroll
+    const bannerObs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('.gb-banner, .gb-inline').forEach(el => bannerObs.observe(el));
   }
 
   private animateCount(sig: ReturnType<typeof signal<number>>, target: number, duration: number) {
