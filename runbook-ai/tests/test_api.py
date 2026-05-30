@@ -24,7 +24,7 @@ def test_health():
     data = resp.json()
     assert data["status"] == "ok"
     assert data["service"] == "RunbookAI"
-    assert data["phase"] == 1
+    assert data["phase"] == 2
 
 
 def test_get_runbooks_empty():

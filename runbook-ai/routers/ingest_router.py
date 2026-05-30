@@ -5,6 +5,7 @@ from graph.pipeline import extraction_pipeline
 from database.runbooks_store import (
     save_runbook, create_ingest_job, update_ingest_job, get_ingest_job
 )
+from database.graph_store import build_and_save_graph
 from database.db import init_db
 
 router = APIRouter(prefix="/ingest", tags=["ingest"])
@@ -72,6 +73,14 @@ def _process_pdf(job_id: int, filename: str, content: bytes) -> None:
             return
 
         runbook_id = save_runbook(state, filename, doc.total_pages)
+
+        # Step 4: Build dependency graph automatically
+        try:
+            build_and_save_graph(runbook_id)
+            state["agent_log"] = state.get("agent_log", []) + ["graph_builder: dependency graph built"]
+        except Exception as graph_exc:
+            state["agent_log"] = state.get("agent_log", []) + [f"graph_builder: warning — {graph_exc}"]
+
         update_ingest_job(
             job_id,
             status="completed",
