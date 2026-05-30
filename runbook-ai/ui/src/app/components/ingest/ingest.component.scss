@@ -1,0 +1,80 @@
+.ingest-layout {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: 1fr 1fr;
+
+  @media (max-width: 768px) { grid-template-columns: 1fr; }
+}
+
+.selected-file {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: var(--color-surface-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  &__icon { font-size: 1.5rem; }
+  &__info { flex: 1; }
+  &__name { font-weight: 500; font-size: 0.9rem; }
+  &__size { font-size: 0.8rem; color: var(--color-text-secondary); }
+}
+
+.job-status-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+
+  &.job-status--pending { background: #e8f1fb; color: #004fa3; }
+  &.job-status--processing { background: #fff5e6; color: #7a4500; }
+  &.job-status--completed { background: #e9faf0; color: #145a2a; }
+  &.job-status--failed { background: #fff0ef; color: #c0281e; }
+}
+
+.job-detail {
+  display: flex;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.9rem;
+
+  &:last-of-type { border-bottom: none; }
+  &__label { width: 100px; font-weight: 500; color: var(--color-text-secondary); flex-shrink: 0; }
+  &__value { color: var(--color-text-primary); }
+}
+
+.pipeline-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+
+  @media (max-width: 768px) { grid-template-columns: 1fr; }
+}
+
+.pipeline-step {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+
+  &__num {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--color-accent-light);
+    color: var(--color-accent);
+    font-weight: 700; font-size: 0.8rem;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  &__title { font-weight: 600; font-size: 0.875rem; margin-bottom: 4px; }
+  &__desc { font-size: 0.8rem; color: var(--color-text-secondary); line-height: 1.5; }
+}
+
+@keyframes progress-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

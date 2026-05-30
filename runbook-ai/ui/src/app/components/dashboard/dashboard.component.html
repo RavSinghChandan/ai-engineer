@@ -1,0 +1,118 @@
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-subtitle">RunbookAI — RAGless enterprise IT incident response</p>
+  </div>
+
+  @if (loading) {
+    <div class="loading"><div class="spinner"></div><span>Connecting to backend…</span></div>
+  } @else if (error) {
+    <div class="alert alert--error">{{ error }}</div>
+  } @else {
+    <!-- Health Banner -->
+    <div class="health-banner">
+      <div class="health-banner__dot"></div>
+      <span>{{ health?.service }} v{{ health?.version }} · Phase {{ health?.phase }} · {{ health?.status?.toUpperCase() }}</span>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid--4" style="margin-bottom: 24px">
+      <div class="stat-card">
+        <div class="stat-card__label">Total Runbooks</div>
+        <div class="stat-card__value">{{ stats?.total_runbooks ?? 0 }}</div>
+        <div class="stat-card__sub">Ingested PDFs</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__label">Categories</div>
+        <div class="stat-card__value">{{ categoryEntries.length }}</div>
+        <div class="stat-card__sub">Distinct domains</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__label">Severities</div>
+        <div class="stat-card__value">{{ severityEntries.length }}</div>
+        <div class="stat-card__sub">P1 → P4</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__label">Architecture</div>
+        <div class="stat-card__value">RAGless</div>
+        <div class="stat-card__sub">Zero vectors · SQL + Graph</div>
+      </div>
+    </div>
+
+    <div class="grid grid--2">
+      <!-- By Category -->
+      <div class="card">
+        <div class="card__header">
+          <h3>Runbooks by Category</h3>
+          <a routerLink="/runbooks" class="btn btn--ghost btn--sm">View all →</a>
+        </div>
+        <div class="card__body">
+          @if (categoryEntries.length === 0) {
+            <div class="empty">
+              <div class="empty__icon">📂</div>
+              <div class="empty__title">No runbooks yet</div>
+              <div class="empty__desc">Upload a PDF to get started</div>
+            </div>
+          } @else {
+            @for (entry of categoryEntries; track entry[0]) {
+              <div class="cat-row">
+                <span class="cat-row__name">{{ entry[0] }}</span>
+                <div class="cat-row__bar-wrap">
+                  <div class="cat-row__bar" [style.width.%]="(entry[1] / (stats?.total_runbooks || 1)) * 100"></div>
+                </div>
+                <span class="cat-row__count">{{ entry[1] }}</span>
+              </div>
+            }
+          }
+        </div>
+      </div>
+
+      <!-- By Severity -->
+      <div class="card">
+        <div class="card__header">
+          <h3>Runbooks by Severity</h3>
+        </div>
+        <div class="card__body">
+          @if (severityEntries.length === 0) {
+            <div class="empty">
+              <div class="empty__icon">🎯</div>
+              <div class="empty__title">No data yet</div>
+            </div>
+          } @else {
+            @for (entry of severityEntries; track entry[0]) {
+              <div class="sev-row">
+                <span class="badge" [ngClass]="severityBadge(entry[0])">{{ entry[0] }}</span>
+                <div class="sev-row__bar-wrap">
+                  <div class="sev-row__bar" [class]="'sev-bar--' + entry[0].toLowerCase()" [style.width.%]="(entry[1] / (stats?.total_runbooks || 1)) * 100"></div>
+                </div>
+                <span class="sev-row__count">{{ entry[1] }}</span>
+              </div>
+            }
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <h3>Quick Actions</h3>
+      <div class="grid grid--3" style="margin-top:16px">
+        <a routerLink="/ingest" class="action-card">
+          <div class="action-card__icon">📄</div>
+          <div class="action-card__title">Upload PDF</div>
+          <div class="action-card__desc">Ingest a new runbook PDF for structured extraction</div>
+        </a>
+        <a routerLink="/query" class="action-card">
+          <div class="action-card__icon">🔍</div>
+          <div class="action-card__title">Query Incident</div>
+          <div class="action-card__desc">Describe an incident and get the right runbook steps</div>
+        </a>
+        <a routerLink="/multi" class="action-card">
+          <div class="action-card__icon">🔀</div>
+          <div class="action-card__title">Multi-Runbook</div>
+          <div class="action-card__desc">Merge runbooks, detect conflicts, handle compound incidents</div>
+        </a>
+      </div>
+    </div>
+  }
+</div>

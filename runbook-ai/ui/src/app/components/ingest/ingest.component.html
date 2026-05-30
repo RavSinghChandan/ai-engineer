@@ -1,0 +1,112 @@
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title">Ingest PDF</h1>
+    <p class="page-subtitle">Upload a runbook PDF for structured extraction — no chunking, no embeddings</p>
+  </div>
+
+  <div class="ingest-layout">
+    <!-- Upload card -->
+    <div class="card">
+      <div class="card__header"><h3>Upload Runbook PDF</h3></div>
+      <div class="card__body">
+        @if (!selectedFile && !job) {
+          <div class="drop-zone" [class.active]="dragOver"
+            (dragover)="onDragOver($event)" (dragleave)="onDragLeave()" (drop)="onDrop($event)"
+            (click)="fileInput.click()">
+            <div class="drop-zone__icon">📄</div>
+            <div class="drop-zone__title">Drop your PDF here</div>
+            <div class="drop-zone__sub">or click to browse · PDF only</div>
+          </div>
+          <input #fileInput type="file" accept=".pdf" style="display:none" (change)="onFileInput($event)">
+        }
+
+        @if (selectedFile && !job) {
+          <div class="selected-file">
+            <span class="selected-file__icon">📄</span>
+            <div class="selected-file__info">
+              <div class="selected-file__name">{{ selectedFile.name }}</div>
+              <div class="selected-file__size">{{ (selectedFile.size / 1024).toFixed(1) }} KB</div>
+            </div>
+            <button class="btn btn--secondary btn--sm" (click)="reset()">✕</button>
+          </div>
+          <div style="margin-top:16px;display:flex;gap:12px">
+            <button class="btn btn--primary" (click)="upload()" [disabled]="uploading">
+              @if (uploading) { <span class="spinner" style="width:16px;height:16px;border-width:2px"></span> }
+              {{ uploading ? 'Uploading…' : 'Start Extraction' }}
+            </button>
+            <button class="btn btn--secondary" (click)="reset()" [disabled]="uploading">Cancel</button>
+          </div>
+        }
+
+        @if (error) {
+          <div class="alert alert--error" style="margin-top:12px">{{ error }}</div>
+        }
+      </div>
+    </div>
+
+    <!-- Job status card -->
+    @if (job) {
+      <div class="card">
+        <div class="card__header">
+          <h3>Extraction Job #{{ job.job_id }}</h3>
+          <span class="job-status-badge" [class]="'job-status--' + job.status">{{ job.status }}</span>
+        </div>
+        <div class="card__body">
+          <div class="job-detail">
+            <span class="job-detail__label">File</span>
+            <span class="job-detail__value">{{ job.filename }}</span>
+          </div>
+          <div class="job-detail">
+            <span class="job-detail__label">Status</span>
+            <span class="job-detail__value">{{ job.status }}</span>
+          </div>
+          @if (job.runbook_id) {
+            <div class="job-detail">
+              <span class="job-detail__label">Runbook ID</span>
+              <span class="job-detail__value">#{{ job.runbook_id }}</span>
+            </div>
+          }
+          @if (job.error) {
+            <div class="alert alert--error" style="margin-top:12px">{{ job.error }}</div>
+          }
+
+          @if (job.status === 'pending' || job.status === 'processing') {
+            <div style="margin-top:20px">
+              <div style="font-size:0.85rem;color:var(--color-text-secondary);margin-bottom:8px">Extracting structure from PDF…</div>
+              <div class="progress"><div class="progress__bar" style="width:60%;animation:progress-pulse 1.5s ease-in-out infinite"></div></div>
+            </div>
+          }
+
+          @if (job.status === 'completed') {
+            <div style="margin-top:20px;display:flex;gap:12px">
+              <button class="btn btn--primary" (click)="viewRunbook()">View Runbook →</button>
+              <button class="btn btn--secondary" (click)="reset()">Upload Another</button>
+            </div>
+          }
+
+          @if (job.status === 'failed') {
+            <button class="btn btn--secondary" style="margin-top:16px" (click)="reset()">Try Again</button>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- How it works -->
+  <div class="card" style="margin-top:24px">
+    <div class="card__header"><h3>How RAGless Extraction Works</h3></div>
+    <div class="card__body">
+      <div class="pipeline-steps">
+        @for (step of pipelineSteps; track step.n) {
+          <div class="pipeline-step">
+            <div class="pipeline-step__num">{{ step.n }}</div>
+            <div>
+              <div class="pipeline-step__title">{{ step.title }}</div>
+              <div class="pipeline-step__desc">{{ step.desc }}</div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

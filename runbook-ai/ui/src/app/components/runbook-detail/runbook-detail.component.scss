@@ -1,0 +1,53 @@
+.graph-summary {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.graph-stat {
+  flex: 1;
+  min-width: 120px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+
+  &__val {
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--color-text-primary);
+  }
+
+  &__label {
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+    text-align: center;
+  }
+}
+
+.text-danger { color: #c0281e; }
+
+.step-item {
+  &--critical .step-item__number {
+    background: #fff0ef;
+    color: #c0281e;
+  }
+  &--bottleneck .step-item__number {
+    background: #fff5e6;
+    color: #7a4500;
+  }
+
+  &__meta {
+    font-size: 0.75rem;
+    color: var(--color-text-tertiary);
+    flex-shrink: 0;
+    align-self: flex-start;
+    padding-top: 4px;
+  }
+}

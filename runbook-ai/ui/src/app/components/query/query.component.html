@@ -1,0 +1,123 @@
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title">Query Incident</h1>
+    <p class="page-subtitle">Describe the incident — get the right runbook steps instantly (RAGless SQL + graph)</p>
+  </div>
+
+  <!-- Query input -->
+  <div class="card" style="margin-bottom:24px">
+    <div class="card__body">
+      <div class="form-group" style="margin-bottom:16px">
+        <label for="incident-input">Describe the incident</label>
+        <textarea id="incident-input" class="textarea" rows="3" placeholder="e.g. Kubernetes pods are crashlooping after a deployment…"
+          [(ngModel)]="incident" (keydown.control.enter)="query()"></textarea>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <button class="btn btn--primary" (click)="query()" [disabled]="loading || !incident.trim()">
+          @if (loading) { <span class="spinner" style="width:16px;height:16px;border-width:2px"></span> }
+          {{ loading ? 'Querying…' : 'Find Runbook' }}
+        </button>
+        <span style="font-size:0.8rem;color:var(--color-text-tertiary)">Ctrl+Enter to submit</span>
+      </div>
+
+      <!-- Examples -->
+      <div style="margin-top:16px">
+        <div style="font-size:0.75rem;font-weight:600;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Examples</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          @for (ex of examples; track ex) {
+            <button class="example-chip" (click)="useExample(ex)">{{ ex }}</button>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (error) { <div class="alert alert--error" style="margin-bottom:16px">{{ error }}</div> }
+
+  @if (result) {
+    <!-- Result header -->
+    <div class="result-header">
+      <div class="result-header__left">
+        <h2 style="margin-bottom:6px">{{ result.runbook_title }}</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+          <span class="badge badge--blue">{{ result.category }}</span>
+          <span class="badge" [ngClass]="severityBadge(result.severity)">{{ result.severity }}</span>
+          <span class="badge" [ngClass]="confidenceBadge(result.match_confidence)">{{ result.match_confidence }} match</span>
+          <span class="badge badge--gray">~{{ result.estimated_duration_minutes }}m</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn--ghost btn--sm" (click)="viewRunbook()">View full runbook →</button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab" [class.active]="activeTab==='response'" (click)="activeTab='response'">Triage Summary</button>
+      <button class="tab" [class.active]="activeTab==='steps'" (click)="activeTab='steps'">Steps ({{ result.steps.length }})</button>
+      <button class="tab" [class.active]="activeTab==='graph'" (click)="activeTab='graph'">Execution Graph</button>
+    </div>
+
+    @if (activeTab === 'response') {
+      <div class="card">
+        <div class="card__body">
+          <div class="triage-summary">{{ result.triage_summary }}</div>
+          <div class="source-badge">
+            <span>🔒 Commands source: {{ result.commands_source }}</span>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (activeTab === 'steps') {
+      <div class="card">
+        <div class="card__body">
+          @for (step of result.steps; track step.step_number) {
+            <div class="step-item" [class.step-item--critical]="result.critical_path.includes(step.step_number)">
+              <div class="step-item__number">{{ step.step_number }}</div>
+              <div class="step-item__body">
+                <div class="step-item__title">
+                  {{ step.title }}
+                  @if (result.critical_path.includes(step.step_number)) {
+                    <span class="badge badge--red" style="margin-left:8px">Critical</span>
+                  }
+                </div>
+                @if (step.description) { <div class="step-item__desc">{{ step.description }}</div> }
+                @for (cmd of step.commands; track cmd) { <code class="cmd">{{ cmd }}</code> }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (activeTab === 'graph') {
+      <div class="grid grid--2">
+        <div class="card">
+          <div class="card__header"><h3>Execution Order</h3></div>
+          <div class="card__body">
+            <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+              @for (n of result.execution_order; track n; let last = $last) {
+                <span class="badge" [class]="result.critical_path.includes(n) ? 'badge--red' : 'badge--blue'">Step {{ n }}</span>
+                @if (!last) { <span style="color:var(--color-text-tertiary)">→</span> }
+              }
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card__header"><h3>Parallel Groups</h3></div>
+          <div class="card__body">
+            @for (wave of result.parallel_groups; track $index) {
+              <div style="margin-bottom:10px">
+                <div style="font-size:0.75rem;font-weight:600;color:var(--color-text-tertiary);text-transform:uppercase;margin-bottom:6px">Wave {{ $index + 1 }}</div>
+                <div style="display:flex;flex-wrap:wrap;gap:6px">
+                  @for (s of wave; track s) { <span class="badge badge--blue">Step {{ s }}</span> }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+  }
+</div>

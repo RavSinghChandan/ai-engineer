@@ -1,0 +1,94 @@
+<div class="page">
+  <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between">
+    <div>
+      <h1 class="page-title">Runbooks</h1>
+      <p class="page-subtitle">{{ total }} runbook{{ total !== 1 ? 's' : '' }} in the knowledge base</p>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters card" style="margin-bottom:24px">
+    <div class="card__body" style="padding:16px 24px">
+      <div class="filters__row">
+        <div class="form-group" style="flex:1">
+          <label for="filter-category">Category</label>
+          <select id="filter-category" class="select" [(ngModel)]="category" (change)="applyFilters()">
+            <option value="">All categories</option>
+            @for (c of categories; track c) {
+              <option [value]="c">{{ c }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group" style="flex:1">
+          <label for="filter-severity">Severity</label>
+          <select id="filter-severity" class="select" [(ngModel)]="severity" (change)="applyFilters()">
+            <option value="">All severities</option>
+            @for (s of severities; track s) {
+              <option [value]="s">{{ s }}</option>
+            }
+          </select>
+        </div>
+        <div style="align-self:flex-end">
+          <button class="btn btn--secondary btn--sm" (click)="clearFilters()">Clear</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (loading) {
+    <div class="loading"><div class="spinner"></div><span>Loading runbooks…</span></div>
+  } @else if (error) {
+    <div class="alert alert--error">{{ error }}</div>
+  } @else if (runbooks.length === 0) {
+    <div class="empty">
+      <div class="empty__icon">📋</div>
+      <div class="empty__title">No runbooks found</div>
+      <div class="empty__desc">Upload a PDF to ingest your first runbook, or clear the filters.</div>
+    </div>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Severity</th>
+            <th>Steps</th>
+            <th>Duration</th>
+            <th>Tags</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (rb of runbooks; track rb.id) {
+            <tr (click)="openRunbook(rb.id)" (keydown.enter)="openRunbook(rb.id)" tabindex="0">
+              <td>
+                <div class="rb-title">{{ rb.title }}</div>
+                <div class="rb-desc">{{ (rb.description || '') | slice:0:80 }}{{ (rb.description || '').length > 80 ? '…' : '' }}</div>
+              </td>
+              <td><span class="badge badge--blue">{{ rb.category }}</span></td>
+              <td><span class="badge" [ngClass]="severityBadge(rb.severity)">{{ rb.severity }}</span></td>
+              <td>{{ rb.step_count }}</td>
+              <td>{{ rb.estimated_duration_minutes }}m</td>
+              <td>
+                <div class="tag-list">
+                  @for (tag of rb.tags.slice(0,3); track tag) {
+                    <span class="tag">{{ tag }}</span>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages > 1) {
+      <div class="pagination">
+        <button class="btn btn--secondary btn--sm" (click)="prevPage()" [disabled]="offset === 0">← Prev</button>
+        <span class="pagination__info">Page {{ currentPage }} of {{ totalPages }}</span>
+        <button class="btn btn--secondary btn--sm" (click)="nextPage()" [disabled]="offset + limit >= total">Next →</button>
+      </div>
+    }
+  }
+</div>

@@ -1,0 +1,156 @@
+<div class="page">
+  @if (loading) {
+    <div class="loading"><div class="spinner"></div><span>Loading runbook…</span></div>
+  } @else if (error) {
+    <div class="alert alert--error" style="margin-bottom:16px">{{ error }}</div>
+    <button class="btn btn--secondary" (click)="back()">← Back to Runbooks</button>
+  } @else if (runbook) {
+    <!-- Header -->
+    <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:28px">
+      <button class="btn btn--secondary btn--sm" (click)="back()">←</button>
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+          <h1 class="page-title" style="margin-bottom:0">{{ runbook.title }}</h1>
+          <span class="badge badge--blue">{{ runbook.category }}</span>
+          <span class="badge" [ngClass]="severityBadge(runbook.severity)">{{ runbook.severity }}</span>
+        </div>
+        <p style="margin-bottom:8px">{{ runbook.description }}</p>
+        <div style="display:flex;gap:20px;font-size:0.85rem;color:var(--color-text-secondary)">
+          <span>⏱ ~{{ runbook.estimated_duration_minutes }} min</span>
+          <span>📋 {{ runbook.step_count }} steps</span>
+          <span>📄 {{ runbook.source_pdf }}</span>
+        </div>
+        @if (runbook.tags.length) {
+          <div class="tag-list" style="margin-top:10px">
+            @for (tag of runbook.tags; track tag) { <span class="tag">{{ tag }}</span> }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Graph Summary -->
+    @if (graph) {
+      <div class="graph-summary">
+        <div class="graph-stat">
+          <span class="graph-stat__val">{{ graph.critical_path.length }}</span>
+          <span class="graph-stat__label">Critical path steps</span>
+        </div>
+        <div class="graph-stat">
+          <span class="graph-stat__val">{{ graph.parallel_groups.length }}</span>
+          <span class="graph-stat__label">Parallel waves</span>
+        </div>
+        <div class="graph-stat">
+          <span class="graph-stat__val">{{ graph.estimated_parallel_duration_minutes }}m</span>
+          <span class="graph-stat__label">Parallel est.</span>
+        </div>
+        <div class="graph-stat">
+          <span class="graph-stat__val" [class.text-danger]="graph.has_cycle">{{ graph.has_cycle ? '⚠ Cycle' : '✓ DAG' }}</span>
+          <span class="graph-stat__label">Graph validity</span>
+        </div>
+      </div>
+    }
+
+    <!-- Prerequisites -->
+    @if (runbook.prerequisites.length) {
+      <div class="card" style="margin-bottom:20px">
+        <div class="card__header"><h3>Prerequisites</h3></div>
+        <div class="card__body">
+          <ul style="padding-left:20px;display:flex;flex-direction:column;gap:6px">
+            @for (pre of runbook.prerequisites; track pre) {
+              <li style="font-size:0.9rem;color:var(--color-text-secondary)">{{ pre }}</li>
+            }
+          </ul>
+        </div>
+      </div>
+    }
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab" [class.active]="activeTab==='steps'" (click)="activeTab='steps'">Execution Steps</button>
+      <button class="tab" [class.active]="activeTab==='graph'" (click)="activeTab='graph'">Dependency Graph</button>
+      <button class="tab" [class.active]="activeTab==='rollback'" (click)="activeTab='rollback'">Rollback</button>
+    </div>
+
+    <!-- Steps Tab -->
+    @if (activeTab === 'steps') {
+      <div class="card">
+        <div class="card__body">
+          @for (step of runbook.steps; track step.step_number) {
+            <div class="step-item" [class.step-item--critical]="isCritical(step.step_number)" [class.step-item--bottleneck]="isBottleneck(step.step_number)">
+              <div class="step-item__number">{{ step.step_number }}</div>
+              <div class="step-item__body">
+                <div class="step-item__title">
+                  {{ step.title }}
+                  @if (isCritical(step.step_number)) { <span class="badge badge--red" style="margin-left:8px">Critical Path</span> }
+                  @if (isBottleneck(step.step_number)) { <span class="badge badge--yellow" style="margin-left:4px">Bottleneck</span> }
+                  @if (step.is_optional) { <span class="badge badge--gray" style="margin-left:4px">Optional</span> }
+                </div>
+                @if (step.description) { <div class="step-item__desc">{{ step.description }}</div> }
+                @for (cmd of step.commands; track cmd) { <code class="cmd">{{ cmd }}</code> }
+                @if (step.expected_output) {
+                  <div style="font-size:0.8rem;color:var(--color-text-tertiary);margin-top:6px">Expected: {{ step.expected_output }}</div>
+                }
+                @if (step.depends_on.length) {
+                  <div style="font-size:0.8rem;color:var(--color-text-tertiary);margin-top:4px">Depends on: step{{ step.depends_on.length > 1 ? 's' : '' }} {{ step.depends_on.join(', ') }}</div>
+                }
+              </div>
+              <div class="step-item__meta">⏱ {{ step.timeout_seconds }}s</div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Graph Tab -->
+    @if (activeTab === 'graph' && graph) {
+      <div class="grid grid--2">
+        <div class="card">
+          <div class="card__header"><h3>Critical Path</h3></div>
+          <div class="card__body">
+            <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+              @for (n of graph.critical_path; track n; let last = $last) {
+                <span class="badge badge--red">Step {{ n }}</span>
+                @if (!last) { <span style="color:var(--color-text-tertiary)">→</span> }
+              }
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card__header"><h3>Parallel Waves</h3></div>
+          <div class="card__body">
+            @for (wave of graph.parallel_groups; track $index) {
+              <div style="margin-bottom:10px">
+                <div style="font-size:0.75rem;font-weight:600;color:var(--color-text-tertiary);text-transform:uppercase;margin-bottom:6px">Wave {{ $index + 1 }}</div>
+                <div style="display:flex;flex-wrap:wrap;gap:6px">
+                  @for (s of wave; track s) { <span class="badge badge--blue">Step {{ s }}</span> }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Rollback Tab -->
+    @if (activeTab === 'rollback') {
+      <div class="card">
+        <div class="card__header"><h3>Rollback Steps</h3></div>
+        <div class="card__body">
+          @if (!(runbook.rollback_steps ?? []).length) {
+            <div class="empty"><div class="empty__icon">↩</div><div class="empty__title">No rollback steps defined</div></div>
+          } @else {
+            @for (step of (runbook.rollback_steps ?? []); track step.step_number) {
+              <div class="step-item">
+                <div class="step-item__number" style="background:#fff0ef;color:#c0281e">{{ step.step_number }}</div>
+                <div class="step-item__body">
+                  <div class="step-item__title">{{ step.title }}</div>
+                  @for (cmd of step.commands; track cmd) { <code class="cmd">{{ cmd }}</code> }
+                </div>
+              </div>
+            }
+          }
+        </div>
+      </div>
+    }
+  }
+</div>

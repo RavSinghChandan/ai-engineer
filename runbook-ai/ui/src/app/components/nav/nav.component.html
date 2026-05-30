@@ -1,0 +1,17 @@
+<nav class="nav">
+  <div class="nav__inner">
+    <a class="nav__brand" routerLink="/">
+      <span class="nav__logo">📋</span>
+      <span class="nav__name">RunbookAI</span>
+      <span class="nav__phase">Phase 5</span>
+    </a>
+    <ul class="nav__links">
+      <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Dashboard</a></li>
+      <li><a routerLink="/runbooks" routerLinkActive="active">Runbooks</a></li>
+      <li><a routerLink="/ingest" routerLinkActive="active">Ingest</a></li>
+      <li><a routerLink="/query" routerLinkActive="active">Query</a></li>
+      <li><a routerLink="/multi" routerLinkActive="active">Multi-Runbook</a></li>
+    </ul>
+    <a routerLink="/ingest" class="btn btn--primary btn--sm">+ Upload PDF</a>
+  </div>
+</nav>
