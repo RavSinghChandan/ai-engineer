@@ -38,6 +38,7 @@ export class App implements OnInit, AfterViewInit {
   projects = [
     {
       num: '01', accent: 'purple',
+      liveUrl: '',
       title: 'Aura with Rav',
       subtitle: 'AI Spiritual Intelligence Platform',
       desc: '18+ AI agents coordinate dynamically to generate personalized intelligence reports across Vedic Astrology, Numerology, Palmistry, Tarot & Vastu Shastra — in 23 Indian languages.',
@@ -60,6 +61,7 @@ export class App implements OnInit, AfterViewInit {
     },
     {
       num: '02', accent: 'amber',
+      liveUrl: '',
       title: 'Bench Resource Optimizer',
       subtitle: 'Enterprise AI HR Platform',
       desc: 'Maps bench employees to open roles using Hybrid RAG, surfaces skill gaps, and generates 7-day preparation roadmaps — production hardened with 222 tests and zero shortcuts.',
@@ -85,6 +87,7 @@ export class App implements OnInit, AfterViewInit {
     },
     {
       num: '03', accent: 'cyan',
+      liveUrl: '',
       title: 'Agentic Growth OS',
       subtitle: 'Autonomous AI Marketing Platform',
       desc: 'Visual drag-and-drop AI agent platform for autonomous marketing workflow execution. Learns from every campaign run and improves ROI 40–80% via a built-in learning engine.',
@@ -105,6 +108,7 @@ export class App implements OnInit, AfterViewInit {
     },
     {
       num: '04', accent: 'green',
+      liveUrl: 'https://portfolio-quyi2c8kj-ravsinghchandans-projects.vercel.app',
       title: 'RunbookAI',
       subtitle: 'Enterprise IT Incident Response — RAGless + Multi-Source',
       desc: 'RAGless incident response engine: zero vectors, zero hallucinated commands. Every kubectl command pulled verbatim from SQLite. Three ranked panels per query — Internal (green), Combined (purple), Official (blue) — with automated conflict detection between your runbooks and kubernetes.io docs.',
@@ -201,6 +205,13 @@ export class App implements OnInit, AfterViewInit {
     },
   ];
 
+  // Animated stat counters
+  statTests  = signal(0);
+  statAgents = signal(0);
+  statProjects = signal(0);
+  statYears  = signal(0);
+  private statsAnimated = false;
+
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
 
   ngOnInit() {
@@ -220,6 +231,33 @@ export class App implements OnInit, AfterViewInit {
     this.fadeEls.changes.subscribe((list: QueryList<ElementRef>) => {
       list.forEach(el => observer.observe(el.nativeElement));
     });
+
+    // Animate stat counters when hero scrolls into view
+    const heroEl = document.querySelector('.hero-stats');
+    if (heroEl) {
+      const statsObs = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting && !this.statsAnimated) {
+          this.statsAnimated = true;
+          this.animateCount(this.statTests,    637, 1400);
+          this.animateCount(this.statAgents,    18,  900);
+          this.animateCount(this.statProjects,   4,  600);
+          this.animateCount(this.statYears,       4,  600);
+        }
+      }, { threshold: 0.5 });
+      statsObs.observe(heroEl);
+    }
+  }
+
+  private animateCount(sig: ReturnType<typeof signal<number>>, target: number, duration: number) {
+    const steps = 40;
+    const interval = duration / steps;
+    let current = 0;
+    const step = () => {
+      current++;
+      sig.set(Math.round((target * current) / steps));
+      if (current < steps) setTimeout(step, interval);
+    };
+    setTimeout(step, interval);
   }
 
   toggleTheme() {
