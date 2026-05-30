@@ -325,10 +325,48 @@ export class App implements OnInit, AfterViewInit {
       },
     ],
     '03': [
-      { img: 'project-agentic.png', label: 'Workflow Builder',     caption: 'Drag-and-drop canvas with 5 AI agents as nodes — Audience, Ad Copy, Budget Optimizer, Campaign, Performance.' },
-      { img: 'agentic-s1.png',     label: 'Campaign Config',       caption: 'Campaign configuration panel — name, type, brand, budget, target audience and platform selection.' },
-      { img: 'agentic-s2.png',     label: 'Campaign Dashboard',    caption: 'Campaign dashboard showing past runs, ROI metrics and learning engine improvement history.' },
-      { img: 'agentic-s3.png',     label: 'Learning Insights',     caption: 'Learning insights panel — the system surfaces which rules improved ROI and applies them automatically.' },
+      {
+        img: 'agentic-step1-workflow.png',
+        label: '🎨 Step 1 — Workflow Builder Canvas',
+        caption: 'Drag-and-drop LangGraph canvas — 5 AI agent nodes ready: Audience Agent, Ad Copy Agent, Budget Optimizer, Campaign Agent. LangGraph Powered + Auto-Learning ON badges live.',
+        guide: 'guide-chandan.svg',
+        speech: 'Welcome to Agentic Growth OS! This drag-and-drop canvas lets you build autonomous marketing workflows! 🚀',
+      },
+      {
+        img: 'agentic-step2-demo-loaded.png',
+        label: '⚡ Step 2 — Demo Campaign Loaded',
+        caption: 'One click loads a real estate campaign: "Premium Residences Launch" — Real Estate type, Skyline Heights brand, ₹50,000 budget, Google Ads platform. All agents show ✓ Completed.',
+        guide: 'guide-chandan-happy.svg',
+        speech: 'Quick Load Demo Campaign — BOOM! Real campaign data filled automatically. All 5 agents ready to fire! 🎯',
+      },
+      {
+        img: 'agentic-step3-executing.png',
+        label: '🤖 Step 3 — Agents Executing',
+        caption: 'LangGraph orchestrates all 5 agents in sequence — each node fires, processes, completes. Audience → Ad Copy → Budget Optimizer → Campaign Agent — all showing ✓ Completed status.',
+        guide: 'guide-chandan-wow.svg',
+        speech: 'WOW! Watch the agents fire one by one — each node completes before passing to the next! Pure LangGraph! ⚡',
+      },
+      {
+        img: 'agentic-step4-dashboard.png',
+        label: '📊 Step 4 — Campaign Dashboard',
+        caption: 'Campaign Dashboard with real-time metrics from the last workflow execution. Google Ads + Meta Ads simulated platforms. LangGraph Engine Active — 5 agent nodes ready, Auto-learning ON.',
+        guide: 'guide-chandan-thinking.svg',
+        speech: 'The dashboard shows ROI from every run. Run it again — the learning engine kicks in! 🧠',
+      },
+      {
+        img: 'agentic-step5-learning.png',
+        label: '🧠 Step 5 — Auto-Learning Engine',
+        caption: 'HOW AUTO-LEARNING WORKS: Collect → Compare → Analyze → Improve. Each run stores campaign inputs + agent decisions. Similarity matching finds related past campaigns. Rule engine applies optimizations automatically.',
+        guide: 'guide-chandan-wow.svg',
+        speech: 'This is the magic! The system LEARNS from every campaign run and improves the next one automatically! 🤩',
+      },
+      {
+        img: 'agentic-step6-config.png',
+        label: '⚙️ Step 6 — Agent Config + LangGraph Flow',
+        caption: 'Campaign Config panel alongside the live agent graph — name, type, brand, budget, target audience, platform. Toggle Auto-Learning ON/OFF. Execute LangGraph Workflow to trigger all agents.',
+        guide: 'guide-chandan-happy.svg',
+        speech: 'Configure any campaign here, hit Execute — and watch all 5 AI agents do the work for you! 40–80% ROI lift! 🎊',
+      },
     ],
     '04': [
       {

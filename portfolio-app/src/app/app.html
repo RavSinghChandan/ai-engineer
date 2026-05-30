@@ -170,8 +170,11 @@
               <button class="project-live-btn"
                       [ngClass]="'live-btn--' + project.accent"
                       (click)="openDemo(project)">
-                <span class="live-dot"></span>
-                Live Demo
+                <span class="live-btn-guide">
+                  <img src="guide-chandan.svg" alt="" class="live-btn-avatar" />
+                  <span class="live-btn-bubble">Come &amp; see! 👀</span>
+                </span>
+                <span class="live-btn-label">Live Demo</span>
               </button>
             }
             <a [href]="project.github" target="_blank" class="project-gh-btn">
