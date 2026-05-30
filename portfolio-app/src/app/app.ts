@@ -221,37 +221,13 @@ export class App implements OnInit, AfterViewInit {
   private _fgDirIdx = 0;
 
   private readonly _fgScript: Record<string, { img: string; quote: string; sub: string }[]> = {
-    hero: [
-      { img: 'guide-chandan-happy.svg',
-        quote: "Hey! 👋 This is the right person — Chandan Kumar. Senior AI Engineer who actually ships.",
-        sub: '4+ years · 637 tests · Zero shortcuts' },
-    ],
-    skills: [
-      { img: 'guide-chandan.svg',
-        quote: "Every skill here is battle-tested in production. No tutorials. No fluff. 💪",
-        sub: 'LangGraph · FAISS · Kafka · Redis · Angular · FastAPI — all in real systems' },
-    ],
-    projects: [
-      { img: 'guide-chandan-wow.svg',
-        quote: "4 production AI systems shipped! Click Live Demo — I'll walk you through each one. 🔥",
-        sub: '18+ agents · 637 tests · real companies · zero shortcuts' },
-    ],
-    experience: [
-      { img: 'guide-chandan-thinking.svg',
-        quote: "B.Tech CS from Future Institute, Kolkata · Masai School bootcamp · then 4 companies, each one bigger. 🏆",
-        sub: 'Mechanical Engineering → CS → AI Engineer — self-made, step by step' },
-    ],
-    story: [
-      { img: 'guide-chandan-happy.svg',
-        quote: "From 'you can't even spell console' — to shipping AI at scale. That's his story. ✨",
-        sub: 'A bootcamp, a laptop, and a choice to outwork everyone — quietly' },
-    ],
-    contact: [
-      { img: 'guide-chandan-wow.svg',
-        quote: "You've seen the systems. You've read the story. Now let's build something great together. 🤝",
-        sub: 'The best AI products are built by people who care — hire one.' },
-    ],
-  };
+    hero:       { img: 'guide-chandan-happy.svg',   quote: 'Right person! 😄',    sub: 'Ships. For real.' },
+    skills:     { img: 'guide-chandan.svg',          quote: 'All in prod. 💪',     sub: 'Zero tutorials.' },
+    projects:   { img: 'guide-chandan-wow.svg',      quote: '4 systems! 🤩',       sub: 'Click Live Demo ↗' },
+    experience: { img: 'guide-chandan-thinking.svg', quote: 'Self-made. 🎯',       sub: '4 companies. Real.' },
+    story:      { img: 'guide-chandan-happy.svg',    quote: 'His why. ✨',         sub: 'Read this one.' },
+    contact:    { img: 'guide-chandan-wow.svg',      quote: "Let's build! 🚀",     sub: 'Reach out now.' },
+  } as any;
 
   initFloatingGuide() {
     if (!isPlatformBrowser(this.platformId)) return;
@@ -262,9 +238,8 @@ export class App implements OnInit, AfterViewInit {
         const sec = (e.target as HTMLElement).dataset['guide'];
         if (!sec || sec === this._fgSection) continue;
         this._fgSection = sec;
-        const script = this._fgScript[sec];
-        if (!script) continue;
-        const item = script[0];
+        const item = (this._fgScript as any)[sec];
+        if (!item) continue;
 
         // Pick next entry direction
         const dir = this._fgDirs[this._fgDirIdx % this._fgDirs.length];
