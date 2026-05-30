@@ -206,6 +206,89 @@ export class App implements OnInit, AfterViewInit {
     },
   ];
 
+  // ── FLOATING GUIDE CHARACTER ─────────────────────────────────────
+  fgVisible = signal(false);
+  fgImg     = signal('guide-chandan-happy.svg');
+  fgQuote   = signal('');
+  fgSub     = signal('');
+  fgEntry   = signal('from-left'); // CSS class controlling entry direction
+
+  private _fgTimer: any = null;
+  private _fgSection = '';
+
+  // Entry directions cycle per section so character always comes from a new corner
+  private _fgDirs = ['from-left','from-right','from-top-left','from-top-right','from-bottom-left','from-bottom-right'];
+  private _fgDirIdx = 0;
+
+  private readonly _fgScript: Record<string, { img: string; quote: string; sub: string }[]> = {
+    hero: [
+      { img: 'guide-chandan-happy.svg',
+        quote: "Hey! 👋 This is the right person — Chandan Kumar. Senior AI Engineer who actually ships.",
+        sub: '4+ years · 637 tests · Zero shortcuts' },
+    ],
+    skills: [
+      { img: 'guide-chandan.svg',
+        quote: "Every skill here is battle-tested in production. No tutorials. No fluff. 💪",
+        sub: 'LangGraph · FAISS · Kafka · Redis · Angular · FastAPI — all in real systems' },
+    ],
+    projects: [
+      { img: 'guide-chandan-wow.svg',
+        quote: "4 production AI systems shipped! Click Live Demo — I'll walk you through each one. 🔥",
+        sub: '18+ agents · 637 tests · real companies · zero shortcuts' },
+    ],
+    experience: [
+      { img: 'guide-chandan-thinking.svg',
+        quote: "B.Tech CS from Future Institute, Kolkata · Masai School bootcamp · then 4 companies, each one bigger. 🏆",
+        sub: 'Mechanical Engineering → CS → AI Engineer — self-made, step by step' },
+    ],
+    story: [
+      { img: 'guide-chandan-happy.svg',
+        quote: "From 'you can't even spell console' — to shipping AI at scale. That's his story. ✨",
+        sub: 'A bootcamp, a laptop, and a choice to outwork everyone — quietly' },
+    ],
+    contact: [
+      { img: 'guide-chandan-wow.svg',
+        quote: "You've seen the systems. You've read the story. Now let's build something great together. 🤝",
+        sub: 'The best AI products are built by people who care — hire one.' },
+    ],
+  };
+
+  initFloatingGuide() {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const obs = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (!e.isIntersecting) continue;
+        const sec = (e.target as HTMLElement).dataset['guide'];
+        if (!sec || sec === this._fgSection) continue;
+        this._fgSection = sec;
+        const script = this._fgScript[sec];
+        if (!script) continue;
+        const item = script[0];
+
+        // Pick next entry direction
+        const dir = this._fgDirs[this._fgDirIdx % this._fgDirs.length];
+        this._fgDirIdx++;
+
+        // Hide first, then fly in from new direction after a tick
+        this.fgVisible.set(false);
+        clearTimeout(this._fgTimer);
+        this._fgTimer = setTimeout(() => {
+          this.fgImg.set(item.img);
+          this.fgQuote.set(item.quote);
+          this.fgSub.set(item.sub);
+          this.fgEntry.set(dir);
+          this.fgVisible.set(true);
+
+          // Auto-hide after 6 seconds
+          this._fgTimer = setTimeout(() => this.fgVisible.set(false), 6000);
+        }, 200);
+      }
+    }, { threshold: 0.25 });
+
+    document.querySelectorAll('section[data-guide]').forEach(s => obs.observe(s));
+  }
+
   // ── INLINE GUIDE BANNERS (appear between sections) ──────────────
   // Each guide banner is always in the DOM inside its section; CSS
   // handles the walk-in animation when the element enters the viewport.
@@ -574,11 +657,7 @@ export class App implements OnInit, AfterViewInit {
       statsObs.observe(heroEl);
     }
 
-    // Reveal guide banners on scroll
-    const bannerObs = new IntersectionObserver(entries => {
-      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-    }, { threshold: 0.15 });
-    document.querySelectorAll('.gb-banner, .gb-inline').forEach(el => bannerObs.observe(el));
+    this.initFloatingGuide();
   }
 
   private animateCount(sig: ReturnType<typeof signal<number>>, target: number, duration: number) {

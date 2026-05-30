@@ -566,89 +566,69 @@ footer { border-top: 1px solid var(--border); padding: 2rem 0; }
 .footer-heart { font-size: 1.4rem; vertical-align: middle; line-height: 1; }
 .footer-stack { font-size: 0.72rem; color: var(--text3); font-family: 'Fira Code', monospace; }
 
-/* ── INLINE GUIDE BANNERS ────────────────────────────────────── */
+/* ── FLOATING GUIDE CHARACTER ────────────────────────────────── */
 
-/* Between-section banners */
-.gb-banner {
-  max-width: 1060px; margin: 0 auto; padding: 0 1.5rem;
-  display: flex; align-items: center; gap: 1.5rem;
-  /* scroll-driven reveal */
-  opacity: 0; transform: translateY(32px);
-  transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
-  &.visible { opacity: 1; transform: translateY(0); }
-  &.gb-right { flex-direction: row-reverse; }
-  @media (max-width: 640px) { gap: 1rem; padding: 0 1rem;
-    &.gb-right { flex-direction: row; }
-  }
+/* Base — fixed, hidden by default */
+.fg-wrap {
+  position: fixed; z-index: 800; pointer-events: none;
+  display: flex; align-items: flex-end; gap: 0.75rem;
+  opacity: 0;
+  transition: opacity 0.4s var(--ease), transform 0.55s cubic-bezier(0.34,1.56,0.64,1);
+  bottom: 5rem; left: 2rem;
+  &.fg-visible { opacity: 1; pointer-events: auto; transform: translate(0,0) !important; }
 }
 
-.gb-char {
-  width: 90px; height: 120px; object-fit: contain; flex-shrink: 0;
-  filter: drop-shadow(0 6px 18px rgba(124,58,237,0.35));
-  animation: gb-bob 2.8s ease-in-out infinite;
-  @media (max-width: 640px) { width: 64px; height: 86px; }
+/* ── Entry directions: fly in from 6 corners ── */
+.fg-from-left         { bottom: 40%; left: 0;     flex-direction: row;         transform: translateX(-120%); }
+.fg-from-right        { bottom: 40%; right: 0; left: auto; flex-direction: row-reverse; transform: translateX(120%); }
+.fg-from-top-left     { top: 6rem;   left: 2rem;  bottom: auto; flex-direction: row;         transform: translateY(-120%); }
+.fg-from-top-right    { top: 6rem;   right: 2rem; bottom: auto; left: auto; flex-direction: row-reverse; transform: translateY(-120%); }
+.fg-from-bottom-left  { bottom: 2rem;left: 2rem;  flex-direction: row;         transform: translateY(120%); }
+.fg-from-bottom-right { bottom: 2rem;right: 2rem; left: auto; flex-direction: row-reverse; transform: translateY(120%); }
+
+/* Avatar */
+.fg-avatar {
+  width: 80px; height: 106px; object-fit: contain; flex-shrink: 0;
+  filter: drop-shadow(0 6px 20px rgba(124,58,237,0.4));
+  animation: fg-bob 2.6s ease-in-out infinite;
+  @media (max-width: 600px) { width: 60px; height: 80px; }
 }
-@keyframes gb-bob {
-  0%,100% { transform: translateY(0) rotate(0deg); }
-  40%      { transform: translateY(-10px) rotate(-3deg); }
-  70%      { transform: translateY(-5px) rotate(2deg); }
+@keyframes fg-bob {
+  0%,100% { transform: translateY(0) rotate(0deg);  }
+  40%     { transform: translateY(-10px) rotate(-4deg); }
+  70%     { transform: translateY(-4px) rotate(3deg); }
 }
 
-/* Banner for left-entry: char walks from left */
-.gb-left .gb-char  { animation: gb-bob 2.8s ease-in-out infinite, gb-walk-l 0.7s var(--ease) both; }
-.gb-right .gb-char { animation: gb-bob 2.8s ease-in-out infinite, gb-walk-r 0.7s var(--ease) both; }
-@keyframes gb-walk-l { from { transform: translateX(-60px) rotate(-8deg); opacity: 0; } to { opacity: 1; } }
-@keyframes gb-walk-r { from { transform: translateX(60px) rotate(8deg);  opacity: 0; } to { opacity: 1; } }
+/* Card containing avatar + bubble */
+.fg-card {
+  display: flex; align-items: flex-end; gap: 0.6rem;
+}
+.fg-from-right .fg-card,
+.fg-from-top-right .fg-card,
+.fg-from-bottom-right .fg-card { flex-direction: row-reverse; }
 
-.gb-bubble {
-  background: var(--card); border: 1px solid var(--border2);
-  border-radius: 18px; padding: 1.25rem 1.5rem;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.18);
-  flex: 1; min-width: 0; position: relative;
-  @media (max-width: 640px) { padding: 1rem; border-radius: 14px; }
+/* Speech bubble */
+.fg-bubble {
+  background: var(--card);
+  border: 1px solid rgba(124,58,237,0.35);
+  border-radius: 16px 16px 16px 4px;
+  padding: 0.85rem 1.1rem;
+  max-width: 240px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(124,58,237,0.12);
+  @media (max-width: 600px) { max-width: 180px; padding: 0.65rem 0.85rem; }
 }
-.gb-bubble--accent {
-  border-color: rgba(124,58,237,0.4);
-  background: linear-gradient(135deg, rgba(124,58,237,0.08) 0%, var(--card) 60%);
-  box-shadow: 0 8px 40px rgba(124,58,237,0.15);
-}
-.gb-quote {
-  margin: 0 0 0.4rem; font-size: 1.05rem; font-weight: 700; line-height: 1.45;
-  color: var(--text);
-  em { color: var(--purple-lt); font-style: normal; }
-  @media (max-width: 640px) { font-size: 0.9rem; }
-}
-.gb-sub {
-  font-size: 0.75rem; color: var(--text3); font-family: 'Fira Code', monospace;
-  letter-spacing: 0.03em;
-  @media (max-width: 640px) { font-size: 0.68rem; }
-}
+.fg-from-right .fg-bubble,
+.fg-from-top-right .fg-bubble,
+.fg-from-bottom-right .fg-bubble { border-radius: 16px 16px 4px 16px; }
 
-/* Spacer so banners have breathing room */
-.gb-closer { padding: 3rem 1.5rem; }
-
-/* ── INLINE PROJECT BANNERS (inside each project card) ───────── */
-.gb-inline {
-  display: flex; align-items: center; gap: 1rem;
-  margin-top: 1.5rem; padding: 1rem 1.25rem;
-  background: rgba(124,58,237,0.05); border: 1px solid rgba(124,58,237,0.15);
-  border-radius: 12px;
-  opacity: 0; transform: translateX(-24px);
-  transition: opacity 0.5s var(--ease), transform 0.5s var(--ease);
-  &.visible { opacity: 1; transform: translateX(0); }
-  &.gb-inline--right { flex-direction: row-reverse; transform: translateX(24px);
-    &.visible { transform: translateX(0); }
-  }
-  @media (max-width: 640px) { flex-direction: row !important; gap: 0.75rem; }
+.fg-quote {
+  margin: 0 0 0.3rem; font-size: 0.82rem; font-weight: 700;
+  line-height: 1.45; color: var(--text);
+  @media (max-width: 600px) { font-size: 0.74rem; }
 }
-.gb-inline-char {
-  width: 56px; height: 74px; object-fit: contain; flex-shrink: 0;
-  filter: drop-shadow(0 3px 8px rgba(124,58,237,0.3));
-  animation: gb-bob 3s ease-in-out infinite;
-}
-.gb-inline-text {
-  display: flex; flex-direction: column; gap: 0.25rem;
-  strong { font-size: 0.82rem; color: var(--text); font-weight: 700; }
-  span   { font-size: 0.75rem; color: var(--text2); line-height: 1.4; }
-  @media (max-width: 480px) { strong { font-size: 0.75rem; } span { font-size: 0.7rem; } }
+.fg-sub {
+  font-size: 0.68rem; color: var(--purple-lt);
+  font-family: 'Fira Code', monospace; letter-spacing: 0.02em;
+  line-height: 1.4;
+  @media (max-width: 600px) { font-size: 0.62rem; }
 }

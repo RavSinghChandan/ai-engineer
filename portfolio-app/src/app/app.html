@@ -126,15 +126,6 @@
   </div>
 </section>
 
-<!-- GUIDE: Hero → Skills transition -->
-<div class="gb-banner gb-left">
-  <img src="guide-chandan-happy.svg" class="gb-char" alt="Chandan guide"/>
-  <div class="gb-bubble">
-    <p class="gb-quote">This is the right person. Senior AI Engineer who actually <em>ships</em>. 👈</p>
-    <span class="gb-sub">4+ years · 637 tests · Zero shortcuts</span>
-  </div>
-</div>
-
 <!-- SKILLS -->
 <section id="skills" class="skills-section" data-guide="skills">
   <div class="container">
@@ -157,15 +148,6 @@
     </div>
   </div>
 </section>
-
-<!-- GUIDE: Skills → Projects transition -->
-<div class="gb-banner gb-right">
-  <div class="gb-bubble">
-    <p class="gb-quote">Every single skill here? Battle-tested in production. No fluff. 💪</p>
-    <span class="gb-sub">LangGraph · FAISS · Kafka · Redis · Angular · FastAPI — all in prod</span>
-  </div>
-  <img src="guide-chandan.svg" class="gb-char" alt="Chandan guide"/>
-</div>
 
 <!-- PROJECTS -->
 <section id="projects" data-guide="projects">
@@ -249,57 +231,10 @@
               onerror="this.parentElement.style.display='none'"/>
           </div>
         }
-
-        <!-- Inline guide banner after each project card -->
-        @if (project.num === '01') {
-          <div class="gb-inline gb-inline--left">
-            <img src="guide-chandan-wow.svg" class="gb-inline-char" alt=""/>
-            <div class="gb-inline-text">
-              <strong>18+ AI agents · 415 tests · 23 languages</strong>
-              <span>Spiritual intelligence — real production engineering. 🔮</span>
-            </div>
-          </div>
-        }
-        @if (project.num === '02') {
-          <div class="gb-inline gb-inline--right">
-            <div class="gb-inline-text">
-              <strong>Hybrid RAG · Circuit Breaker · Episodic Memory</strong>
-              <span>Enterprise HR AI — built for real companies. ⚡</span>
-            </div>
-            <img src="guide-chandan-thinking.svg" class="gb-inline-char" alt=""/>
-          </div>
-        }
-        @if (project.num === '03') {
-          <div class="gb-inline gb-inline--left">
-            <img src="guide-chandan-happy.svg" class="gb-inline-char" alt=""/>
-            <div class="gb-inline-text">
-              <strong>5 Agents · LangGraph · Auto-Learning Engine</strong>
-              <span>Every campaign run makes the next one smarter. 🚀</span>
-            </div>
-          </div>
-        }
-        @if (project.num === '04') {
-          <div class="gb-inline gb-inline--right">
-            <div class="gb-inline-text">
-              <strong>RAGless · SQL + Graph · Conflict Detection</strong>
-              <span>22 runbooks, zero vectors. The future of incident response. 🧠</span>
-            </div>
-            <img src="guide-chandan.svg" class="gb-inline-char" alt=""/>
-          </div>
-        }
       </div>
     }
   </div>
 </section>
-
-<!-- GUIDE: Projects → Experience transition -->
-<div class="gb-banner gb-left">
-  <img src="guide-chandan-thinking.svg" class="gb-char" alt=""/>
-  <div class="gb-bubble">
-    <p class="gb-quote">IIT Roorkee roots. 4 companies. Every role pushed the craft deeper. 🏆</p>
-    <span class="gb-sub">This is what 4 years of real engineering looks like — not tutorials</span>
-  </div>
-</div>
 
 <!-- EXPERIENCE -->
 <section id="experience" class="exp-section" data-guide="experience">
@@ -507,15 +442,6 @@
   </div>
 </section>
 
-<!-- GUIDE: Experience → Story transition -->
-<div class="gb-banner gb-right">
-  <div class="gb-bubble">
-    <p class="gb-quote">From "you can't even spell console" to shipping AI at scale. That's the story. ✨</p>
-    <span class="gb-sub">The person behind the code — read this one</span>
-  </div>
-  <img src="guide-chandan-happy.svg" class="gb-char" alt=""/>
-</div>
-
 <!-- STORY -->
 <section id="story" class="story-section" data-guide="story">
   <div class="container">
@@ -547,15 +473,6 @@
     </div>
   </div>
 </section>
-
-<!-- GUIDE: Story → Contact closer -->
-<div class="gb-banner gb-left gb-closer">
-  <img src="guide-chandan-wow.svg" class="gb-char" alt=""/>
-  <div class="gb-bubble gb-bubble--accent">
-    <p class="gb-quote">You've seen the systems. You've read the story. Now let's build something great together. 🤝</p>
-    <span class="gb-sub">The best AI products are built by people who care — hire one.</span>
-  </div>
-</div>
 
 <!-- CONTACT -->
 <section id="contact" class="contact-section" data-guide="contact">
@@ -613,6 +530,17 @@
     </div>
   </div>
 </section>
+
+<!-- FLOATING GUIDE CHARACTER -->
+<div class="fg-wrap" [class.fg-visible]="fgVisible()" [class]="'fg-wrap fg-' + fgEntry()">
+  <div class="fg-card">
+    <img [src]="fgImg()" class="fg-avatar" alt="Chandan guide"/>
+    <div class="fg-bubble">
+      <p class="fg-quote">{{ fgQuote() }}</p>
+      <span class="fg-sub">{{ fgSub() }}</span>
+    </div>
+  </div>
+</div>
 
 <!-- DEMO MODAL -->
 @if (demoOpen()) {
