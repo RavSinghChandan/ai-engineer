@@ -34,7 +34,7 @@
 </nav>
 
 <!-- HERO -->
-<section class="hero">
+<section class="hero" data-guide="hero">
   <div class="container hero-inner">
 
     <div class="hero-text">
@@ -127,7 +127,7 @@
 </section>
 
 <!-- SKILLS -->
-<section id="skills" class="skills-section">
+<section id="skills" class="skills-section" data-guide="skills">
   <div class="container">
     <div class="eyebrow">Technical Depth</div>
     <h2>What I Engineer</h2>
@@ -150,7 +150,7 @@
 </section>
 
 <!-- PROJECTS -->
-<section id="projects">
+<section id="projects" data-guide="projects">
   <div class="container">
     <div class="eyebrow">Engineering Evidence</div>
     <h2>Production AI Systems</h2>
@@ -237,7 +237,7 @@
 </section>
 
 <!-- EXPERIENCE -->
-<section id="experience" class="exp-section">
+<section id="experience" class="exp-section" data-guide="experience">
   <div class="container">
     <div class="eyebrow">Career Timeline</div>
     <h2>Professional Experience</h2>
@@ -443,7 +443,7 @@
 </section>
 
 <!-- STORY -->
-<section id="story" class="story-section">
+<section id="story" class="story-section" data-guide="story">
   <div class="container">
     <div class="story-inner fade-up" #fadeEl>
       <div class="story-photo-col">
@@ -475,7 +475,7 @@
 </section>
 
 <!-- CONTACT -->
-<section id="contact" class="contact-section">
+<section id="contact" class="contact-section" data-guide="contact">
   <div class="container">
     <div class="eyebrow">Get In Touch</div>
     <h2>Let's Build Something Real</h2>
@@ -598,6 +598,30 @@
       </div>
 
     </dialog>
+  </div>
+}
+
+<!-- PORTFOLIO GUIDE -->
+@if (guideVisible() && !guideDismissed()) {
+  <div class="pg-wrap" [class.pg-talking]="guideTyping()">
+
+    <!-- speech bubble -->
+    <div class="pg-bubble" (click)="guideTap()">
+      <span class="pg-text">{{ guideText() }}</span>
+      @if (!guideTyping()) {
+        <span class="pg-tap-hint">tap for more ›</span>
+      }
+    </div>
+
+    <!-- avatar -->
+    <div class="pg-avatar-wrap">
+      <img [src]="guideImg[guideMood()]"
+           alt="Chandan guide"
+           class="pg-avatar"
+           (click)="guideTap()" />
+      <button class="pg-dismiss" (click)="dismissGuide()" title="Dismiss guide">×</button>
+    </div>
+
   </div>
 }
 

@@ -206,6 +206,148 @@ export class App implements OnInit, AfterViewInit {
     },
   ];
 
+  // ── PORTFOLIO GUIDE ─────────────────────────────────────────────
+  guideVisible  = signal(false);
+  guideDismissed = signal(false);
+  guideSection  = signal('hero');
+  guideMood     = signal<'pointing'|'happy'|'thinking'|'wow'>('pointing');
+  guideTyping   = signal(false);
+  guideText     = signal('');
+  private _guideTimer: any = null;
+  private _guideObserver: IntersectionObserver | null = null;
+
+  readonly guideImg = {
+    pointing: 'guide-chandan.svg',
+    happy:    'guide-chandan-happy.svg',
+    thinking: 'guide-chandan-thinking.svg',
+    wow:      'guide-chandan-wow.svg',
+  };
+
+  readonly guideScript: Record<string, { mood: 'pointing'|'happy'|'thinking'|'wow'; lines: string[] }> = {
+    hero: {
+      mood: 'happy',
+      lines: [
+        "Hey there! 👋 I'm Chandan — your guide today.",
+        "I build AI systems that actually ship to production.",
+        "Let me walk you through what I've built. Shall we? 🚀",
+      ],
+    },
+    skills: {
+      mood: 'pointing',
+      lines: [
+        "These aren't buzzwords — every skill here is battle-tested. 💪",
+        "LangGraph, FAISS, Kafka, Redis — I've built prod systems with all of these.",
+        "Scroll down to see the actual systems I shipped! 👇",
+      ],
+    },
+    projects: {
+      mood: 'wow',
+      lines: [
+        "Here's where things get exciting! 🔥",
+        "4 production AI systems — click 'Live Demo' on any of them!",
+        "I'll personally guide you through each one with real screenshots. 😄",
+      ],
+    },
+    experience: {
+      mood: 'thinking',
+      lines: [
+        "4+ years of real engineering — not side projects, real companies. 🏢",
+        "Every role pushed me deeper into AI and distributed systems.",
+        "The story of how I got here is just below... 👇",
+      ],
+    },
+    story: {
+      mood: 'happy',
+      lines: [
+        "This is my 'why' — why I chose AI engineering. ✨",
+        "I believe AI should solve real problems, not just impress demo audiences.",
+        "If that resonates, let's talk! Head to Contact 👇",
+      ],
+    },
+    contact: {
+      mood: 'wow',
+      lines: [
+        "You made it to the end — you're clearly serious! 🎉",
+        "If you're building real AI products, I'd love to be part of the journey.",
+        "Drop me a message — I respond fast. Let's build something great together! 🚀",
+      ],
+    },
+  };
+
+  private _guideLineIdx = 0;
+
+  initGuide() {
+    if (this.guideDismissed()) return;
+    setTimeout(() => {
+      this.guideVisible.set(true);
+      this._showGuideLine('hero', 0);
+    }, 2000);
+
+    this._guideObserver = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting && e.intersectionRatio > 0.3) {
+          const sec = (e.target as HTMLElement).dataset['guide'] || e.target.id;
+          if (sec && sec !== this.guideSection()) {
+            this.guideSection.set(sec);
+            this._guideLineIdx = 0;
+            const script = this.guideScript[sec];
+            if (script) {
+              this.guideMood.set(script.mood);
+              this._typeGuideText(script.lines[0]);
+            }
+          }
+        }
+      }
+    }, { threshold: 0.3 });
+
+    const secs = document.querySelectorAll('section[id], section[data-guide]');
+    secs.forEach(s => this._guideObserver!.observe(s));
+  }
+
+  private _typeGuideText(text: string) {
+    clearTimeout(this._guideTimer);
+    this.guideTyping.set(true);
+    this.guideText.set('');
+    let i = 0;
+    const tick = () => {
+      if (i <= text.length) {
+        this.guideText.set(text.slice(0, i));
+        i++;
+        this._guideTimer = setTimeout(tick, 22);
+      } else {
+        this.guideTyping.set(false);
+      }
+    };
+    tick();
+  }
+
+  private _showGuideLine(section: string, idx: number) {
+    const script = this.guideScript[section];
+    if (!script) return;
+    this.guideMood.set(script.mood);
+    this._typeGuideText(script.lines[idx] ?? script.lines[0]);
+    this._guideLineIdx = idx;
+  }
+
+  guideTap() {
+    const sec = this.guideSection();
+    const lines = this.guideScript[sec]?.lines ?? [];
+    const next = this._guideLineIdx + 1;
+    if (next < lines.length) {
+      this._showGuideLine(sec, next);
+    } else {
+      // cycle back
+      this._showGuideLine(sec, 0);
+    }
+  }
+
+  dismissGuide() {
+    this.guideDismissed.set(true);
+    this.guideVisible.set(false);
+    this._guideObserver?.disconnect();
+    clearTimeout(this._guideTimer);
+  }
+
   // ── DEMO MODAL ──────────────────────────────────────────────────
   demoOpen   = signal(false);
   demoSlide  = signal(0);
@@ -502,6 +644,8 @@ export class App implements OnInit, AfterViewInit {
       }, { threshold: 0.5 });
       statsObs.observe(heroEl);
     }
+
+    this.initGuide();
   }
 
   private animateCount(sig: ReturnType<typeof signal<number>>, target: number, duration: number) {
