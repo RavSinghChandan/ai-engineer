@@ -793,64 +793,109 @@ export class App implements OnInit, AfterViewInit {
     if (this._guards.nonsense.test(q.trim()))
       return `Hmm, I didn't quite catch that! Try asking something like "What projects has Chandan built?" or "Is he available to hire?" 😄`;
 
-    // ── Intents — ordered from most-specific to most-general ─────────
+    // ── Intents — ordered most-specific → most-general ───────────────
 
-    // Self-identity (check BEFORE who_is so "who are you" doesn't hit who_is)
-    if (/\b(aarav|who are you|what are you|you a bot|chatbot|ai assistant)\b/i.test(t))
-      return `Namaste! 🙏 I'm <strong>Aarav</strong> — Chandan's AI assistant, built into this portfolio.<br><br>I know everything about his projects, skills, experience, and story. Ask me anything professional! 😄`;
+    // 1. Self-identity
+    if (/\b(aarav|who are you|what are you|you a bot|are you (a |an )?(bot|ai|chatbot|assistant))\b/i.test(t))
+      return `Namaste! 🙏 I'm <strong>Aarav</strong> — Chandan's AI assistant, built into this portfolio.<br>I know everything about his projects, skills, experience, and story. Ask me anything! 😄`;
 
-    // Greetings (before who_is)
-    if (/^(hello|hi|hey|namaste|good\s*(morning|afternoon|evening)|how are you|sup|hola)[!?,.\s]*$/i.test(t))
-      return `Namaste! 👋 I'm <strong>Aarav</strong>, Chandan's AI guide!<br><br>Ask me about:<br>• His <strong>skills & tech stack</strong><br>• His <strong>4 production AI projects</strong><br>• His <strong>career & experience</strong><br>• Whether he's <strong>available to hire</strong><br>• How to <strong>contact</strong> him<br><br>What would you like to know? 😊`;
+    // 2. Greetings
+    if (/^(hello|hi|hey|hi there|namaste|good\s*(morning|afternoon|evening)|how are you|sup|hola|greetings|howdy)[!?,.\s]*$/i.test(t)
+        || /^(hi|hey|hello)\b/i.test(t))
+      return `Namaste! 👋 I'm <strong>Aarav</strong>, Chandan's AI guide!<br><br>You can ask me about:<br>• His <strong>skills & tech stack</strong><br>• His <strong>4 production AI projects</strong><br>• His <strong>career & experience</strong><br>• Whether he's <strong>available to hire</strong><br>• His <strong>social profiles</strong> & contact<br><br>What would you like to know? 😊`;
 
-    // Appreciation (before projects which catches "work")
-    if (/\b(thank|great work|awesome|nice|amazing|good job|well done|impressive)\b/i.test(t))
-      return `Thank you! 😊 That means a lot. If you'd like to know more — or are thinking of hiring Chandan — I'm right here!<br><br><a href="mailto:ravchandan15@gmail.com" style="color:var(--purple-lt)">Drop him a message ↗</a>`;
+    // 3. Appreciation
+    if (/\b(thank(s| you)?|great (work|answer|job)|awesome|well done|impressive|perfect|excellent|brilliant)\b/i.test(t))
+      return `Thank you so much! 😊 It means a lot. If you're thinking of hiring Chandan or want to know more — I'm right here!<br><br><a href="mailto:ravchandan15@gmail.com" style="color:var(--purple-lt)">Drop him a message ↗</a>`;
 
-    // Contact (specific — before tell_me/who_is)
-    if (/\b(contact|email|phone|mobile|linkedin|github|youtube|reach out|social media|how to (reach|connect|get in touch))\b/i.test(t))
+    // 4. Social media & contact profiles (very specific — check before generic contact)
+    if (/\b(github|git\s*hub|open[\s-]source|code repo|repository|repositories)\b/i.test(t))
+      return `🐙 <strong>GitHub: <a href="https://github.com/RavSinghChandan" target="_blank" style="color:var(--purple-lt)">github.com/RavSinghChandan ↗</a></strong><br><br>Find all 4 production AI projects here — Aura with Rav, Bench Resource Optimizer, Agentic Growth OS, and RunbookAI. All open source.`;
+
+    if (/\b(linkedin|linked in|professional\s*profile|connect on)\b/i.test(t))
+      return `💼 <strong>LinkedIn: <a href="https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/" target="_blank" style="color:var(--purple-lt)">Rav Chandan Kumar Singh ↗</a></strong><br><br>4+ years of AI engineering, Infosys/Bank of America, production AI systems. Connect with him there!`;
+
+    if (/\b(youtube|you\s*tube|videos?|channel|content|watch)\b/i.test(t))
+      return `▶️ <strong>YouTube: <a href="https://www.youtube.com/@aiwithrav" target="_blank" style="color:var(--purple-lt)">@aiwithrav ↗</a></strong><br><br>Chandan shares AI engineering content, project walkthroughs, and learning journeys on his channel.`;
+
+    if (/\b(social\s*media|social\s*profiles?|online\s*presence|find him online|profiles?)\b/i.test(t))
+      return `Chandan's online presence:<br><br>🐙 <a href="https://github.com/RavSinghChandan" target="_blank" style="color:var(--purple-lt)"><strong>GitHub — RavSinghChandan ↗</strong></a><br>💼 <a href="https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/" target="_blank" style="color:var(--purple-lt)"><strong>LinkedIn — Rav Chandan Kumar Singh ↗</strong></a><br>▶️ <a href="https://www.youtube.com/@aiwithrav" target="_blank" style="color:var(--purple-lt)"><strong>YouTube — @aiwithrav ↗</strong></a><br>📧 ravchandan15@gmail.com<br>📞 +91 62909 09518`;
+
+    // 5. Contact details
+    if (/\b(contact|email|phone|mobile|reach|connect|get in touch|message him|call him|write to)\b/i.test(t))
       return `Here's how to reach Chandan:<br><br>📧 <a href="mailto:ravchandan15@gmail.com" style="color:var(--purple-lt)">ravchandan15@gmail.com</a><br>📞 <a href="tel:+916290909518" style="color:var(--purple-lt)">+91 62909 09518</a><br>💼 <a href="https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/" target="_blank" style="color:var(--purple-lt)">LinkedIn ↗</a><br>🐙 <a href="https://github.com/RavSinghChandan" target="_blank" style="color:var(--purple-lt)">GitHub ↗</a><br>▶️ <a href="https://www.youtube.com/@aiwithrav" target="_blank" style="color:var(--purple-lt)">YouTube ↗</a><br><br>He responds fast — usually within hours! 🚀`;
 
-    // Hiring
-    if (/\b(hire|available|open to work|recruit|interview|position|opportunit|salary|ctc|notice period|join)\b/i.test(t))
-      return `✅ <strong>Chandan is open to Senior AI Engineer roles!</strong><br><br>Best ways to reach him:<br><br>📧 <a href="mailto:ravchandan15@gmail.com" style="color:var(--purple-lt)">ravchandan15@gmail.com</a><br>💼 <a href="https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/" target="_blank" style="color:var(--purple-lt)">LinkedIn ↗</a><br>📞 +91 62909 09518<br><br><a href="AI_Engineer_Chandan_Kumar_4_Yrs.pdf" target="_blank" style="color:var(--purple-lt)">Download his resume ↗</a> 📄`;
+    // 6. Hiring (salary/ctc are NOT known — honest redirect to contact)
+    if (/\b(salary|ctc|compensation|pay|package|remuneration|lpa)\b/i.test(t))
+      return `I don't have details on Chandan's salary expectations — that's best discussed directly with him. 🙏<br><br>📧 <a href="mailto:ravchandan15@gmail.com" style="color:var(--purple-lt)">ravchandan15@gmail.com</a><br>📞 +91 62909 09518<br><br>He's open to Senior AI Engineer roles and responds fast!`;
 
-    // Resume
-    if (/\b(resume|cv|download|pdf)\b/i.test(t))
+    if (/\b(hire|available|open to work|recruit|interview|position|opportunit|notice period|join|remote|relocat|freelanc)\b/i.test(t))
+      return `✅ <strong>Chandan is open to Senior AI Engineer roles!</strong><br><br>He's available for remote and on-site positions. Best ways to reach him:<br><br>📧 <a href="mailto:ravchandan15@gmail.com" style="color:var(--purple-lt)">ravchandan15@gmail.com</a><br>💼 <a href="https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/" target="_blank" style="color:var(--purple-lt)">LinkedIn ↗</a><br>📞 +91 62909 09518<br><br><a href="AI_Engineer_Chandan_Kumar_4_Yrs.pdf" target="_blank" style="color:var(--purple-lt)">Download his resume ↗</a> 📄`;
+
+    // 7. Resume
+    if (/\b(resume|cv|download|pdf|curriculum)\b/i.test(t))
       return `📄 <a href="AI_Engineer_Chandan_Kumar_4_Yrs.pdf" target="_blank" style="color:var(--purple-lt)"><strong>Download Chandan's Resume →</strong></a><br><br>4 years of AI engineering. 637 tests. Zero shortcuts. All in one PDF.`;
 
-    // Who is Chandan (general intro)
-    if (/\b(who is|introduce|about chandan|tell me about him|chandan kumar)\b/i.test(t))
-      return `<strong>Chandan Kumar</strong> (also known as <em>Rav</em>) is a <strong>Senior AI Engineer</strong> with 4+ years building LLM-powered, agent-based systems and scalable backend architectures.<br><br>He specialises in multi-agent orchestration, RAG pipelines, and production AI — <strong>637 tests passing, zero shortcuts.</strong><br><br>Currently at <strong>Infosys (Bank of America)</strong>. 🚀`;
+    // 8. NOT-KNOWN (before broad identity to prevent hallucination)
+    if (/\b(age|born|\bhow old\b|birth(day|date)?|married|family|hobbies|religion|caste|height|weight|masters?\s*degree|mba|phd|react\b|vue\b|flutter\b|swift\b|ios\b|android\b|google\b|amazon\b|microsoft\b|meta\b|facebook\b|apple\b|uber\b|flipkart\b|ola\b)\b/i.test(t))
+      return `I don't have that information about Chandan — I only share what's verified. 🙏<br><br>For detailed discussions, reach him directly:<br>📧 <a href="mailto:ravchandan15@gmail.com" style="color:var(--purple-lt)">ravchandan15@gmail.com</a><br>💼 <a href="https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/" target="_blank" style="color:var(--purple-lt)">LinkedIn ↗</a>`;
 
-    // Skills & tech
-    if (/\b(skill|tech stack|stack|language|framework|tool|technology|expertise)\b/i.test(t))
-      return `Chandan's production tech stack:<br><br>🐍 <strong>Python · FastAPI · LangGraph · LangChain</strong><br>🔍 <strong>FAISS · BM25 · HyDE · CRAG (Hybrid RAG)</strong><br>📡 <strong>Kafka · Redis · SSE Streaming</strong><br>🅰️ <strong>Angular 17 · TypeScript</strong><br>☕ <strong>Java · Spring Boot</strong><br>🐳 <strong>Docker · AWS · GitHub Actions</strong><br><br>All battle-tested in production. No tutorials. 💪`;
+    // 9. Specific tech keywords (before broad "what is" catch)
+    if (/\b(java\b|python\b|javascript\b|typescript\b|\bsql\b|langchain\b|langgraph\b|faiss\b|kafka\b|redis\b|angular\b|spring\s*boot|docker\b|kubernetes\b|\baws\b|fastapi\b|flask\b|openai\b|numpy\b|pandas\b|\bnlp\b|prompt\s*engineer|frontend|backend|database|databases)\b/i.test(t))
+      return `Yes! Chandan works with this in production. His full stack:<br><br>🐍 <strong>Python · FastAPI · LangGraph · LangChain</strong><br>☕ <strong>Java · Spring Boot · Hibernate · JPA</strong><br>🔍 <strong>FAISS · BM25 · HyDE · CRAG (Hybrid RAG)</strong><br>📡 <strong>Kafka · Redis · SSE Streaming</strong><br>🅰️ <strong>Angular 17 · TypeScript</strong><br>🐳 <strong>Docker · Kubernetes · AWS · CI/CD</strong><br>🗄️ <strong>PostgreSQL · MongoDB · MySQL · Vector DBs</strong><br><br>All battle-tested in production. 💪`;
 
-    // Projects
-    if (/\b(projects?|aura|bench|agentic|runbook|portfolio|shipped?|built?|systems?)\b/i.test(t)) {
+    // 10. Skills & tech (general)
+    if (/\b(skills?|tech\s*stack|stack|languages?|frameworks?|tools?|technologies?|expertise|proficien|speciali[sz]|ai\s*tools?|ai\s*frameworks?)\b/i.test(t))
+      return `Chandan's production tech stack:<br><br>🐍 <strong>Python · FastAPI · LangGraph · LangChain</strong><br>☕ <strong>Java · Spring Boot</strong><br>🔍 <strong>FAISS · BM25 · HyDE · CRAG (Hybrid RAG)</strong><br>📡 <strong>Kafka · Redis · SSE Streaming</strong><br>🅰️ <strong>Angular 17 · TypeScript</strong><br>🐳 <strong>Docker · Kubernetes · AWS</strong><br>🗄️ <strong>PostgreSQL · MongoDB · Vector DBs</strong><br><br>All in production. No tutorials. 💪`;
+
+    // 11. RunbookAI specific
+    if (/\b(runbook|incident|it\s*ops|sre|k8s|conflict\s*detect)\b/i.test(t))
+      return `<strong>RunbookAI</strong> — Chandan's 4th production AI system.<br><br>🧠 RAGless architecture: SQL + dependency graph, zero vector embeddings<br>📚 22 runbooks (internal + official Kubernetes docs)<br>🔀 Conflict detection between internal & official K8s steps<br>🎯 3-panel incident response: Internal → Combined → Official<br><br>Click <em>Live Demo</em> on Project 04 to see the real app! 🤩`;
+
+    // 12. RAG / AI architecture specific
+    if (/\b(rag\b|retrieval|vector\s*(db|search|embed)|faiss|bm25|hyde|crag|rerank|langgraph|multi.?agent|agent\s*(orchestrat|pipelin|system|framework))\b/i.test(t))
+      return `Chandan is a specialist in production RAG & multi-agent systems:<br><br>🔍 <strong>Hybrid RAG</strong>: FAISS + BM25 + HyDE + CRAG + cross-encoder reranker<br>🤖 <strong>Multi-agent</strong>: LangGraph stateful orchestration (18+ agents in Aura)<br>🛡️ <strong>Guardrails G1–G5</strong>: rate limit · injection · PII · faithfulness · output<br>📊 <strong>637 tests</strong> with mock LLM — no flakiness in CI<br><br>This is his core expertise. 💪`;
+
+    // 13. Projects (general — includes "production AI systems")
+    if (/\b(projects?|portfolio|built?\b|shipped?\b|developed|created\b|aura\b|bench\b|agentic\b|growth\s*os|runbookai|production\s*ai)\b/i.test(t)) {
       const proj = this._kb.projects.map(p => `• <strong>${p.name}</strong> — ${p.desc}`).join('<br>');
-      return `Chandan has shipped <strong>4 production AI systems</strong>:<br><br>${proj}<br><br>Click any <em>Live Demo</em> button above to see real screenshots! 🤩`;
+      return `Chandan has shipped <strong>4 production AI systems</strong>:<br><br>${proj}<br><br>Click any <em>Live Demo</em> above to see real screenshots! 🤩`;
     }
 
-    // Experience / career
-    if (/\b(experience|career|company|job|worked|infosys|nexsys|texala|flyboard|year|timeline)\b/i.test(t))
-      return `Chandan's career timeline:<br><br>🟣 <strong>Infosys / Bank of America</strong> — Senior SWE (Nov 2025–Present)<br>LLM-integrated banking automation, Kafka pipelines, AI microservices<br><br>🔵 <strong>Nexsys / Accelya</strong> — SWE (Dec 2023–Nov 2025)<br>Aviation systems · 500K+ daily transactions<br><br>🟢 <strong>Texala</strong> — SWE (Jul–Nov 2023)<br>Java/Spring Boot microservices<br><br>🟡 <strong>Flyboard Ventures</strong> — SWE (Aug 2022–Jul 2023)<br>Mobile, healthcare, e-learning with AI<br><br>4 companies. 4+ years. Real engineering. 🎯`;
+    // 14. Testing / quality
+    if (/\b(tests?\b|testing\b|guardrails?\b|quality\b|\bci\b|coverage\b|reliable\b|637\b|tdd\b)\b/i.test(t))
+      return `Chandan's philosophy: <strong>test everything, shortcut nothing.</strong><br><br>📊 <strong>637 tests</strong> across all 4 AI systems · <strong>3.6s</strong> full suite runtime<br>🛡️ <strong>G1–G5 Guardrails</strong> on every LLM call:<br>• G1: Rate limiting · G2: Injection detection<br>• G3: PII filter · G4: Faithfulness gate · G5: Output validation<br><br>If it's in prod, it's tested. Period. 💪`;
 
-    // Education
-    if (/\b(education|college|university|degree|study|b\.?tech|masai|future institute|cgpa|kolkata)\b/i.test(t))
-      return `📚 <strong>B.Tech Computer Science</strong><br>Future Institute of Engineering & Management, Kolkata (2014–2018) · CGPA: <strong>8.7</strong><br><br>🚀 <strong>Masai School</strong> Full-Stack Bootcamp<br>Where the AI journey truly began — built to outwork everyone, quietly.<br><br>Started as a mechanical engineer. Today ships production AI. Self-made. ✨`;
+    // 15. Education (specific keywords — includes "when did he graduate")
+    if (/\b(graduat|when\s*did\b|2018|2014|b\.?tech\b|bachelor\b|cgpa\b|gpa\b|future\s*institute|kolkata\b|masai\b|bootcamp\b|degree\b|qualif)\b/i.test(t))
+      return `📚 <strong>B.Tech Computer Science & Engineering</strong><br>Future Institute of Engineering & Management, Kolkata<br>2014–2018 · CGPA: <strong>8.7</strong><br><br>🚀 <strong>Masai School</strong> Full-Stack & AI Bootcamp (Post-graduation)<br>Where the AI engineering journey truly began.<br><br>Started as a mechanical engineer → CS bootcamp → 4 companies → Senior AI Engineer. Self-made. ✨`;
 
-    // Story / origin
-    if (/\b(story|journey|background|start|begin|origin|mechanical|console|bootcamp)\b/i.test(t))
-      return `A friend once said: <em>"You can't even spell console."</em><br><br>That taunt became fuel. Chandan joined Masai School, outworked everyone — quietly — and never stopped.<br><br>Today: <strong>637 tests · 4 AI systems · 0 shortcuts.</strong><br><br><a href="https://www.masaischool.com/blog/from-mechanical-engineer-to-full-stack-developer-chandans-success-story/" target="_blank" style="color:var(--purple-lt)">Read the Masai blog ↗</a> ✨`;
+    // 16. Education (general)
+    if (/\b(education\b|college\b|university\b|study\b|studied\b|school\b)\b/i.test(t))
+      return `📚 <strong>B.Tech Computer Science</strong><br>Future Institute of Engineering & Management, Kolkata (2014–2018) · CGPA: <strong>8.7</strong><br><br>🚀 <strong>Masai School</strong> Full-Stack Bootcamp<br>Turned a taunting challenge into a career in AI. Self-made. ✨`;
 
-    // Testing / guardrails
-    if (/\b(tests?|guardrails?|quality|ci|coverage|reliable|637)\b/i.test(t))
-      return `Chandan's philosophy: <strong>test everything, shortcut nothing.</strong><br><br>📊 <strong>637 tests</strong> across all 4 AI systems<br>⚡ <strong>3.6s</strong> full suite runtime<br>🛡️ <strong>G1–G5 Guardrails</strong> on every LLM call<br>• G1: Rate limiting · G2: Injection detection<br>• G3: PII filter · G4: Faithfulness gate · G5: Output validation<br><br>If it's in prod, it's tested. Period. 💪`;
+    // 17. Story / motivation / how he started
+    if (/\b(?:story|journey|motivat|inspir|how (?:did|he)|why (?:did|he)|started?|began?|origin|background|mechanical|console|fuel|become|became|what drove)/i.test(t))
+      return `A friend once said: <em>"You can't even spell console."</em><br><br>That taunt became the fuel. Chandan — then a mechanical engineering graduate with no job offers — joined Masai School, chose to outwork everyone quietly, and never stopped.<br><br>Today: <strong>637 tests · 4 AI systems · 0 shortcuts taken.</strong><br><br><a href="https://www.masaischool.com/blog/from-mechanical-engineer-to-full-stack-developer-chandans-success-story/" target="_blank" style="color:var(--purple-lt)">Read the Masai origin story ↗</a> ✨`;
+
+    // 18. Current role
+    if (/\b(current(ly)?\b|present\b|today\b|now\s*(work|at)\b|where\s*(does|is)\s*he\s*work|senior\s*(engineer|developer|swe)\b)\b/i.test(t))
+      return `Currently, Chandan is a <strong>Senior Software Engineer at Infosys</strong>, working on the Bank of America project (Nov 2025–Present, Pune).<br><br>He's designing LLM-integrated backend systems, Kafka-based AI pipelines, and event-driven microservices — improving banking workflow efficiency by 40%. 🚀`;
+
+    // 19. Experience & career (general — includes "banking", "role at X", "work at X")
+    if (/\b(experience\b|career\b|companies\b|jobs?\b|work(ed)?\s*(at|on|for)\b|timeline\b|accelya\b|nexsys\b|texala\b|flyboard\b|infosys\b|bank(ing)?\b|aviation\b|years?\s*of\b|role\s*at\b)\b/i.test(t))
+      return `Chandan's career (4+ years):<br><br>🟣 <strong>Infosys / Bank of America</strong> — Senior SWE (Nov 2025–Present, Pune)<br>LLM banking automation, Kafka, AI microservices, 40% efficiency gain<br><br>🔵 <strong>Nexsys / Accelya</strong> — SWE (Dec 2023–Nov 2025, Mumbai)<br>Aviation · 500K+ daily transactions · AI-ready architecture<br><br>🟢 <strong>Texala</strong> — SWE (Jul–Nov 2023, Pune)<br>Java/Spring Boot microservices<br><br>🟡 <strong>Flyboard Ventures</strong> — SWE (Aug 2022–Jul 2023, Chandigarh)<br>Mobile, healthcare, e-learning with AI/ML<br><br>4 companies. Real engineering. 🎯`;
+
+    // 20. Broad identity
+    if (/\b(who is\s*(chandan|rav|he)\b|introduce\s*(chandan|him)\b|about\s*(chandan|rav)\b|chandan\s*kumar\b|what\s*does\s*(chandan|he)\s*(do|work)\b|is\s*(he|chandan)\s*an?\s*(ai|senior|software|engineer|developer)\b)\b/i.test(t))
+      return `<strong>Chandan Kumar</strong> (alias <em>Rav</em>) is a <strong>Senior AI Engineer</strong> with 4+ years building LLM-powered, agent-based systems.<br><br>He specialises in multi-agent orchestration, RAG pipelines, and production AI — <strong>637 tests passing, zero shortcuts.</strong><br><br>Currently at <strong>Infosys (Bank of America)</strong>. 🚀`;
+
+    // 21. Off-topic / unknown (anything not matched above)
+    if (/\b(cricket|sport|movie|song|music|travel|food|weather|capital|country|president|actor|celebrity|meaning\s*of\s*life|universe|space|planet|god|philosophy)\b/i.test(t))
+      return `Ha! That's outside my area of expertise. 😄 I only know about Chandan Kumar — his work, projects, and how to reach him. Try asking me something about him!`;
 
     // Default — honest fallback
-    return `Hmm, I'm not sure about that one! 🤔<br><br>I'm best at answering questions about Chandan's <strong>skills, projects, experience, and contact info</strong>. Try:<br>• "What projects has he built?"<br>• "Is he available to hire?"<br>• "What is his tech stack?"<br>• "How to contact him?"`;
+    return `Hmm, I'm not sure about that one! 🤔<br><br>I'm best at questions about Chandan's <strong>skills, projects, experience, and contact</strong>. Try:<br>• "What projects has he built?"<br>• "Is he available to hire?"<br>• "What is his tech stack?"<br>• "How to contact him?"<br>• "Tell me his story"`;
   }
 
   cbToggle() {
