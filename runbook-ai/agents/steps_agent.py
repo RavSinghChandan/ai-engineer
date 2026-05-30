@@ -4,8 +4,15 @@ RAGless: LLM → strict JSON schema — no chunking, no similarity search.
 Exact commands preserved character-for-character.
 """
 import json
+import re
 from graph.state import ExtractionState
 from utils.llm import call_llm
+
+
+def _strip_fences(text: str) -> str:
+    text = text.strip()
+    m = re.search(r"```(?:json)?\s*([\s\S]+?)\s*```", text)
+    return m.group(1).strip() if m else text
 
 SYSTEM = """You are an expert IT runbook parser. Extract ALL steps from the runbook text.
 
@@ -54,7 +61,7 @@ def steps_agent(state: ExtractionState) -> ExtractionState:
 
     try:
         response = call_llm(SYSTEM, prompt, max_tokens=4096)
-        parsed = json.loads(response)
+        parsed = json.loads(_strip_fences(response))
 
         steps = parsed.get("steps", [])
         rollback = parsed.get("rollback_steps", [])

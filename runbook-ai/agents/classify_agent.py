@@ -3,8 +3,15 @@ Classifies the runbook category and severity from raw text.
 RAGless: pure LLM structured extraction — no vectors.
 """
 import json
+import re
 from graph.state import ExtractionState
 from utils.llm import call_llm
+
+
+def _strip_fences(text: str) -> str:
+    text = text.strip()
+    m = re.search(r"```(?:json)?\s*([\s\S]+?)\s*```", text)
+    return m.group(1).strip() if m else text
 
 SYSTEM = """You are an IT runbook classifier. Given raw text from a runbook PDF,
 extract the classification metadata.
@@ -32,7 +39,7 @@ def classify_agent(state: ExtractionState) -> ExtractionState:
 
     try:
         response = call_llm(SYSTEM, prompt, max_tokens=512)
-        parsed = json.loads(response)
+        parsed = json.loads(_strip_fences(response))
         state["title"] = parsed.get("title", state.get("filename", "Unknown"))
         state["description"] = parsed.get("description", "")
         state["category"] = parsed.get("category", "other")

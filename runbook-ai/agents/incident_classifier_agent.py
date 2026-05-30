@@ -4,7 +4,14 @@ Extracts structured fields from a free-text incident description.
 No embeddings — LLM produces JSON, we query SQL with exact fields.
 """
 import json
+import re
 from utils.llm import call_llm
+
+
+def _strip_fences(text: str) -> str:
+    text = text.strip()
+    m = re.search(r"```(?:json)?\s*([\s\S]+?)\s*```", text)
+    return m.group(1).strip() if m else text
 
 SYSTEM = """You are an IT incident classifier. Given a free-text incident description,
 extract structured fields to help find the right runbook.
@@ -30,7 +37,7 @@ def classify_incident(incident_text: str) -> dict:
     """Extract structured fields from incident description."""
     try:
         response = call_llm(SYSTEM, f"Incident: {incident_text}", max_tokens=512)
-        parsed = json.loads(response)
+        parsed = json.loads(_strip_fences(response))
         return {
             "keywords": parsed.get("keywords", []),
             "category": parsed.get("category", "other"),

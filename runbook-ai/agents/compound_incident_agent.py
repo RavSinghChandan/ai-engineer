@@ -5,7 +5,14 @@ this agent decomposes the incident into sub-problems and maps each to
 the right runbook category — using structured reasoning, not similarity.
 """
 import json
+import re
 from typing import List
+
+
+def _strip_fences(text: str) -> str:
+    text = text.strip()
+    m = re.search(r"```(?:json)?\s*([\s\S]+?)\s*```", text)
+    return m.group(1).strip() if m else text
 from utils.llm import call_llm
 
 SYSTEM = """You are an expert SRE decomposing a complex incident into sub-problems.
@@ -38,7 +45,7 @@ def analyze_compound_incident(incident_text: str) -> dict:
     """Decompose a complex incident into ordered sub-problems."""
     try:
         response = call_llm(SYSTEM, f"Incident: {incident_text}", max_tokens=1024)
-        parsed = json.loads(response)
+        parsed = json.loads(_strip_fences(response))
 
         sub_incidents = sorted(
             parsed.get("sub_incidents", []),
@@ -52,7 +59,7 @@ def analyze_compound_incident(incident_text: str) -> dict:
             "total_domains": len(sub_incidents),
         }
 
-    except (json.JSONDecodeError, Exception):
+    except Exception:
         # Fallback: treat as single incident
         return {
             "is_compound": False,
