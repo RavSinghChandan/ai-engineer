@@ -5,7 +5,8 @@ from database.db import get_conn
 from graph.state import ExtractionState
 
 
-def save_runbook(state: ExtractionState, filename: str, total_pages: int) -> int:
+def save_runbook(state: ExtractionState, filename: str, total_pages: int,
+                 tenant_id: Optional[int] = None) -> int:
     """Persist a fully extracted runbook and its steps. Returns runbook_id."""
     now = time.time()
     with get_conn() as conn:
@@ -13,8 +14,8 @@ def save_runbook(state: ExtractionState, filename: str, total_pages: int) -> int
             """INSERT INTO runbooks
                (filename, title, description, category, severity, tags,
                 prerequisites, estimated_duration_minutes, total_pages,
-                status, created_at, updated_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?)""",
+                status, tenant_id, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?)""",
             (
                 filename,
                 state.get("title", filename),
@@ -25,6 +26,7 @@ def save_runbook(state: ExtractionState, filename: str, total_pages: int) -> int
                 json.dumps(state.get("prerequisites", [])),
                 state.get("estimated_duration_minutes", 15),
                 total_pages,
+                tenant_id,
                 now, now,
             ),
         )
@@ -89,14 +91,38 @@ def get_runbook(runbook_id: int) -> Optional[dict]:
         return rb
 
 
+def count_runbooks(
+    category: Optional[str] = None,
+    severity: Optional[str] = None,
+    tenant_id: Optional[int] = None,
+) -> int:
+    query = "SELECT COUNT(*) FROM runbooks WHERE status='active'"
+    params: list = []
+    if tenant_id is not None:
+        query += " AND tenant_id=?"
+        params.append(tenant_id)
+    if category:
+        query += " AND category=?"
+        params.append(category)
+    if severity:
+        query += " AND severity=?"
+        params.append(severity)
+    with get_conn() as conn:
+        return conn.execute(query, params).fetchone()[0]
+
+
 def list_runbooks(
     category: Optional[str] = None,
     severity: Optional[str] = None,
     limit: int = 50,
     offset: int = 0,
+    tenant_id: Optional[int] = None,
 ) -> list[dict]:
     query = "SELECT * FROM runbooks WHERE status='active'"
     params: list = []
+    if tenant_id is not None:
+        query += " AND tenant_id=?"
+        params.append(tenant_id)
     if category:
         query += " AND category=?"
         params.append(category)
@@ -137,12 +163,12 @@ def _get_steps(conn, runbook_id: int, is_rollback: bool) -> list[dict]:
     return steps
 
 
-def create_ingest_job(filename: str) -> int:
+def create_ingest_job(filename: str, tenant_id: Optional[int] = None) -> int:
     now = time.time()
     with get_conn() as conn:
         cur = conn.execute(
-            "INSERT INTO ingest_jobs (filename, status, created_at, updated_at) VALUES (?, 'pending', ?, ?)",
-            (filename, now, now),
+            "INSERT INTO ingest_jobs (filename, status, tenant_id, created_at, updated_at) VALUES (?, 'pending', ?, ?, ?)",
+            (filename, tenant_id, now, now),
         )
         conn.commit()
         return cur.lastrowid

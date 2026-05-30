@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS runbooks (
     estimated_duration_minutes  INTEGER NOT NULL DEFAULT 15,
     total_pages                 INTEGER NOT NULL DEFAULT 0,
     status                      TEXT    NOT NULL DEFAULT 'active',
+    tenant_id                   INTEGER REFERENCES tenants(id) ON DELETE CASCADE,
     created_at                  REAL    NOT NULL,
     updated_at                  REAL    NOT NULL
 );
@@ -40,9 +41,56 @@ CREATE TABLE IF NOT EXISTS ingest_jobs (
     runbook_id   INTEGER,
     error        TEXT    NOT NULL DEFAULT '',
     agent_log    TEXT    NOT NULL DEFAULT '[]',
+    tenant_id    INTEGER REFERENCES tenants(id) ON DELETE SET NULL,
     created_at   REAL    NOT NULL,
     updated_at   REAL    NOT NULL
 );
 """
 
-ALL_TABLES = [CREATE_RUNBOOKS, CREATE_STEPS, CREATE_INGEST_JOBS]
+CREATE_TENANTS = """
+CREATE TABLE IF NOT EXISTS tenants (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    name        TEXT    NOT NULL UNIQUE,
+    slug        TEXT    NOT NULL UNIQUE,
+    plan        TEXT    NOT NULL DEFAULT 'free',
+    is_active   INTEGER NOT NULL DEFAULT 1,
+    created_at  REAL    NOT NULL
+);
+"""
+
+CREATE_USERS = """
+CREATE TABLE IF NOT EXISTS users (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    email           TEXT    NOT NULL UNIQUE,
+    hashed_password TEXT    NOT NULL,
+    full_name       TEXT    NOT NULL DEFAULT '',
+    role            TEXT    NOT NULL DEFAULT 'viewer',
+    tenant_id       INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    is_active       INTEGER NOT NULL DEFAULT 1,
+    created_at      REAL    NOT NULL,
+    updated_at      REAL    NOT NULL
+);
+"""
+
+CREATE_GRAPH_CACHE = """
+CREATE TABLE IF NOT EXISTS graph_cache (
+    runbook_id      INTEGER PRIMARY KEY REFERENCES runbooks(id) ON DELETE CASCADE,
+    graph_json      TEXT    NOT NULL,
+    critical_path   TEXT    NOT NULL DEFAULT '[]',
+    parallel_groups TEXT    NOT NULL DEFAULT '[]',
+    bottleneck_steps TEXT   NOT NULL DEFAULT '[]',
+    has_cycle       INTEGER NOT NULL DEFAULT 0,
+    estimated_parallel_duration_minutes INTEGER NOT NULL DEFAULT 0,
+    updated_at      REAL    NOT NULL
+);
+"""
+
+# Tables ordered so FK dependencies are created first
+ALL_TABLES = [
+    CREATE_TENANTS,
+    CREATE_USERS,
+    CREATE_RUNBOOKS,
+    CREATE_STEPS,
+    CREATE_INGEST_JOBS,
+    CREATE_GRAPH_CACHE,
+]

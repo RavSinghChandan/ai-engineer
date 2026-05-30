@@ -44,6 +44,36 @@
     border-radius: 999px;
   }
 
+  &__user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  &__tenant {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  &__tenant-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__role {
+    font-size: 0.7rem;
+    color: var(--color-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
   &__links {
     display: flex;
     align-items: center;

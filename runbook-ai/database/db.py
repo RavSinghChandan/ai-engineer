@@ -6,6 +6,12 @@ from database.models import ALL_TABLES
 
 DB_PATH = os.getenv("DATABASE_PATH", str(Path(__file__).parent.parent / "runbookai.db"))
 
+# Columns added in Phase 6 that must be migrated into existing DBs
+_MIGRATIONS = [
+    "ALTER TABLE runbooks ADD COLUMN tenant_id INTEGER REFERENCES tenants(id) ON DELETE CASCADE",
+    "ALTER TABLE ingest_jobs ADD COLUMN tenant_id INTEGER REFERENCES tenants(id) ON DELETE SET NULL",
+]
+
 
 def _connect() -> sqlite3.Connection:
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
@@ -19,7 +25,17 @@ def init_db() -> None:
     with get_conn() as conn:
         for ddl in ALL_TABLES:
             conn.execute(ddl)
+        _run_migrations(conn)
         conn.commit()
+
+
+def _run_migrations(conn: sqlite3.Connection) -> None:
+    for sql in _MIGRATIONS:
+        try:
+            conn.execute(sql)
+        except sqlite3.OperationalError:
+            # Column already exists — safe to skip
+            pass
 
 
 @contextmanager

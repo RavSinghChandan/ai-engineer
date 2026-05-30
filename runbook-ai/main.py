@@ -6,6 +6,8 @@ from routers.runbooks_router import router as runbooks_router
 from routers.graph_router import router as graph_router
 from routers.query_router import router as query_router
 from routers.multi_runbook_router import router as multi_router
+from routers.auth_router import router as auth_router
+from routers.tenant_router import router as tenant_router
 
 app = FastAPI(
     title="RunbookAI",
@@ -26,6 +28,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth_router)
+app.include_router(tenant_router)
 app.include_router(ingest_router)
 app.include_router(runbooks_router)
 app.include_router(graph_router)
@@ -44,6 +48,6 @@ def health():
         "status": "ok",
         "service": "RunbookAI",
         "version": "1.0.0",
-        "phase": 4,
-        "description": "PDF ingestion + structured extraction + dependency graph + incident query + multi-runbook reasoning",
+        "phase": 6,
+        "description": "PDF ingestion + structured extraction + dependency graph + incident query + multi-runbook reasoning + JWT auth + multi-tenant RBAC",
     }

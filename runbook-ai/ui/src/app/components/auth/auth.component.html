@@ -1,0 +1,86 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <!-- Brand -->
+    <div class="auth-card__brand">
+      <span class="auth-card__logo">📋</span>
+      <h1 class="auth-card__title">RunbookAI</h1>
+      <p class="auth-card__sub">Enterprise IT Incident Response</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="auth-tabs">
+      <button class="auth-tab" [class.active]="tab==='login'" (click)="tab='login'; error=''">Sign in</button>
+      <button class="auth-tab" [class.active]="tab==='register'" (click)="tab='register'; error=''">Create account</button>
+    </div>
+
+    @if (error) {
+      <div class="alert alert--error" style="margin-bottom:16px">{{ error }}</div>
+    }
+
+    <!-- Login form -->
+    @if (tab === 'login') {
+      <form (ngSubmit)="login()">
+        <div class="form-group" style="margin-bottom:14px">
+          <label for="login-email">Email</label>
+          <input id="login-email" class="input" type="email" placeholder="you@company.com"
+            [(ngModel)]="loginEmail" name="loginEmail" autocomplete="email" required>
+        </div>
+        <div class="form-group" style="margin-bottom:20px">
+          <label for="login-password">Password</label>
+          <input id="login-password" class="input" type="password" placeholder="••••••••"
+            [(ngModel)]="loginPassword" name="loginPassword" autocomplete="current-password" required>
+        </div>
+        <button type="submit" class="btn btn--primary" style="width:100%" [disabled]="loading">
+          @if (loading) { <span class="spinner" style="width:16px;height:16px;border-width:2px"></span> }
+          {{ loading ? 'Signing in…' : 'Sign in' }}
+        </button>
+      </form>
+    }
+
+    <!-- Register form -->
+    @if (tab === 'register') {
+      <form (ngSubmit)="register()">
+        <div class="form-group" style="margin-bottom:14px">
+          <label for="reg-name">Full name</label>
+          <input id="reg-name" class="input" type="text" placeholder="Jane Smith"
+            [(ngModel)]="regFullName" name="regFullName" autocomplete="name">
+        </div>
+        <div class="form-group" style="margin-bottom:14px">
+          <label for="reg-email">Work email</label>
+          <input id="reg-email" class="input" type="email" placeholder="jane@company.com"
+            [(ngModel)]="regEmail" name="regEmail" autocomplete="email" required>
+        </div>
+        <div class="form-group" style="margin-bottom:14px">
+          <label for="reg-pw">Password <span class="field-hint">(min 8 chars)</span></label>
+          <input id="reg-pw" class="input" type="password" placeholder="••••••••"
+            [(ngModel)]="regPassword" name="regPassword" autocomplete="new-password" required>
+        </div>
+        <div class="form-divider">Workspace</div>
+        <div class="form-group" style="margin-bottom:14px">
+          <label for="reg-tenant">Company / Team name</label>
+          <input id="reg-tenant" class="input" type="text" placeholder="Acme Corp"
+            [(ngModel)]="tenantName" name="tenantName" (input)="autoSlug()" required>
+        </div>
+        <div class="form-group" style="margin-bottom:20px">
+          <label for="reg-slug">Workspace slug <span class="field-hint">(letters, numbers, hyphens)</span></label>
+          <div class="slug-input">
+            <span class="slug-input__prefix">runbookai.io/</span>
+            <input id="reg-slug" class="input" type="text" placeholder="acme-corp"
+              [(ngModel)]="tenantSlug" name="tenantSlug" pattern="[a-z0-9\-]{2,40}" required>
+          </div>
+        </div>
+        <button type="submit" class="btn btn--primary" style="width:100%" [disabled]="loading">
+          @if (loading) { <span class="spinner" style="width:16px;height:16px;border-width:2px"></span> }
+          {{ loading ? 'Creating account…' : 'Create account' }}
+        </button>
+      </form>
+    }
+
+    <p class="auth-card__footer">
+      {{ tab === 'login' ? 'No account?' : 'Already have one?' }}
+      <button class="btn btn--ghost btn--sm" (click)="tab = tab === 'login' ? 'register' : 'login'; error=''">
+        {{ tab === 'login' ? 'Create one' : 'Sign in' }}
+      </button>
+    </p>
+  </div>
+</div>

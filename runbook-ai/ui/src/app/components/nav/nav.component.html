@@ -3,15 +3,28 @@
     <a class="nav__brand" routerLink="/">
       <span class="nav__logo">📋</span>
       <span class="nav__name">RunbookAI</span>
-      <span class="nav__phase">Phase 5</span>
+      <span class="nav__phase">Phase 6</span>
     </a>
-    <ul class="nav__links">
-      <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Dashboard</a></li>
-      <li><a routerLink="/runbooks" routerLinkActive="active">Runbooks</a></li>
-      <li><a routerLink="/ingest" routerLinkActive="active">Ingest</a></li>
-      <li><a routerLink="/query" routerLinkActive="active">Query</a></li>
-      <li><a routerLink="/multi" routerLinkActive="active">Multi-Runbook</a></li>
-    </ul>
-    <a routerLink="/ingest" class="btn btn--primary btn--sm">+ Upload PDF</a>
+
+    @if (auth.isLoggedIn) {
+      <ul class="nav__links">
+        <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Dashboard</a></li>
+        <li><a routerLink="/runbooks" routerLinkActive="active">Runbooks</a></li>
+        <li><a routerLink="/ingest" routerLinkActive="active">Ingest</a></li>
+        <li><a routerLink="/query" routerLinkActive="active">Query</a></li>
+        <li><a routerLink="/multi" routerLinkActive="active">Multi-Runbook</a></li>
+      </ul>
+
+      <div class="nav__user">
+        <div class="nav__tenant">
+          <span class="nav__tenant-name">{{ auth.user()?.tenant_name }}</span>
+          <span class="nav__role">{{ auth.user()?.role }}</span>
+        </div>
+        <button class="btn btn--secondary btn--sm" (click)="logout()">Sign out</button>
+      </div>
+    } @else {
+      <div style="flex:1"></div>
+      <a routerLink="/login" class="btn btn--primary btn--sm">Sign in</a>
+    }
   </div>
 </nav>
