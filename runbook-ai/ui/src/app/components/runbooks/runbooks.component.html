@@ -51,6 +51,7 @@
         <thead>
           <tr>
             <th>Title</th>
+            <th>Source</th>
             <th>Category</th>
             <th>Severity</th>
             <th>Steps</th>
@@ -65,6 +66,7 @@
                 <div class="rb-title">{{ rb.title }}</div>
                 <div class="rb-desc">{{ (rb.description || '') | slice:0:80 }}{{ (rb.description || '').length > 80 ? '…' : '' }}</div>
               </td>
+              <td><span class="badge" [ngClass]="sourceTypeBadge(rb.source_type)">{{ sourceTypeLabel(rb.source_type) }}</span></td>
               <td><span class="badge badge--blue">{{ rb.category }}</span></td>
               <td><span class="badge" [ngClass]="severityBadge(rb.severity)">{{ rb.severity }}</span></td>
               <td>{{ rb.step_count }}</td>

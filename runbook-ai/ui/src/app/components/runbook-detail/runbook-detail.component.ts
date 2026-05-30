@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from '../../services/api.service';
@@ -18,7 +18,12 @@ export class RunbookDetailComponent implements OnInit {
   error = '';
   activeTab: 'steps' | 'graph' | 'rollback' = 'steps';
 
-  constructor(private route: ActivatedRoute, private router: Router, private api: ApiService) {}
+  constructor(
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly api: ApiService,
+    private readonly cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
     const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -26,11 +31,11 @@ export class RunbookDetailComponent implements OnInit {
       next: rb => {
         this.runbook = rb;
         this.api.getGraph(id).subscribe({
-          next: g => { this.graph = g; this.loading = false; },
-          error: () => { this.loading = false; },
+          next: g => { this.graph = g; this.loading = false; this.cdr.markForCheck(); },
+          error: () => { this.loading = false; this.cdr.markForCheck(); },
         });
       },
-      error: () => { this.error = 'Runbook not found.'; this.loading = false; },
+      error: () => { this.error = 'Runbook not found.'; this.loading = false; this.cdr.markForCheck(); },
     });
   }
 

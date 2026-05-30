@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
@@ -31,12 +31,12 @@ export class MultiComponent implements OnInit {
   compoundResult: CompoundResult | null = null;
   compoundError = '';
 
-  constructor(private api: ApiService) {}
+  constructor(private readonly api: ApiService, private readonly cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.api.getRunbooks({ limit: 50 }).subscribe({
-      next: r => { this.runbooks = r.runbooks; this.runbooksLoading = false; },
-      error: () => { this.runbooksLoading = false; },
+      next: r => { this.runbooks = r.runbooks; this.runbooksLoading = false; this.cdr.markForCheck(); },
+      error: () => { this.runbooksLoading = false; this.cdr.markForCheck(); },
     });
   }
 
@@ -57,8 +57,8 @@ export class MultiComponent implements OnInit {
     this.mergeResult = null;
     this.mergeError = '';
     this.api.mergeRunbooks(this.selectedArray).subscribe({
-      next: r => { this.mergeResult = r; this.merging = false; },
-      error: e => { this.mergeError = e?.error?.detail ?? 'Merge failed.'; this.merging = false; },
+      next: r => { this.mergeResult = r; this.merging = false; this.cdr.markForCheck(); },
+      error: e => { this.mergeError = e?.error?.detail ?? 'Merge failed.'; this.merging = false; this.cdr.markForCheck(); },
     });
   }
 
@@ -68,8 +68,8 @@ export class MultiComponent implements OnInit {
     this.conflictResult = null;
     this.mergeError = '';
     this.api.checkConflicts(this.selectedArray).subscribe({
-      next: r => { this.conflictResult = r; this.merging = false; },
-      error: e => { this.mergeError = e?.error?.detail ?? 'Conflict check failed.'; this.merging = false; },
+      next: r => { this.conflictResult = r; this.merging = false; this.cdr.markForCheck(); },
+      error: e => { this.mergeError = e?.error?.detail ?? 'Conflict check failed.'; this.merging = false; this.cdr.markForCheck(); },
     });
   }
 
@@ -79,8 +79,8 @@ export class MultiComponent implements OnInit {
     this.compoundResult = null;
     this.compoundError = '';
     this.api.analyzeCompound(this.compoundIncident.trim()).subscribe({
-      next: r => { this.compoundResult = r; this.compoundLoading = false; },
-      error: e => { this.compoundError = e?.error?.detail ?? 'Analysis failed.'; this.compoundLoading = false; },
+      next: r => { this.compoundResult = r; this.compoundLoading = false; this.cdr.markForCheck(); },
+      error: e => { this.compoundError = e?.error?.detail ?? 'Analysis failed.'; this.compoundLoading = false; this.cdr.markForCheck(); },
     });
   }
 

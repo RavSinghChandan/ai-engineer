@@ -45,6 +45,7 @@
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
+            "polyfills": ["zone.js"],
             "assets": [
               {
                 "glob": "**/*",
@@ -86,7 +87,8 @@
               "buildTarget": "ui:build:production"
             },
             "development": {
-              "buildTarget": "ui:build:development"
+              "buildTarget": "ui:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"

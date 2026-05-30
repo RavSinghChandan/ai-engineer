@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -29,7 +29,7 @@ export class RunbooksComponent implements OnInit {
   readonly categories = CATEGORIES;
   readonly severities = SEVERITIES;
 
-  constructor(private api: ApiService, private router: Router) {}
+  constructor(private readonly api: ApiService, private readonly router: Router, private readonly cdr: ChangeDetectorRef) {}
 
   ngOnInit() { this.load(); }
 
@@ -40,8 +40,8 @@ export class RunbooksComponent implements OnInit {
     if (this.category) params['category'] = this.category;
     if (this.severity) params['severity'] = this.severity;
     this.api.getRunbooks(params as any).subscribe({
-      next: r => { this.runbooks = r.runbooks; this.total = r.total; this.loading = false; },
-      error: () => { this.error = 'Failed to load runbooks.'; this.loading = false; },
+      next: r => { this.runbooks = r.runbooks; this.total = r.total; this.loading = false; this.cdr.markForCheck(); },
+      error: () => { this.error = 'Failed to load runbooks.'; this.loading = false; this.cdr.markForCheck(); },
     });
   }
 
@@ -57,4 +57,12 @@ export class RunbooksComponent implements OnInit {
   get totalPages() { return Math.ceil(this.total / this.limit); }
 
   severityBadge(sev: string) { return `badge--${sev.toLowerCase()}`; }
+
+  sourceTypeBadge(src: string | undefined) {
+    return { internal: 'badge--green', official: 'badge--blue', combined: 'badge--purple' }[src ?? ''] ?? 'badge--gray';
+  }
+
+  sourceTypeLabel(src: string | undefined) {
+    return { internal: 'Internal', official: 'Official', combined: 'Combined' }[src ?? ''] ?? 'Unknown';
+  }
 }

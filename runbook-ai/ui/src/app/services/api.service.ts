@@ -7,7 +7,7 @@ import {
   CompoundResult, SimilarRunbooks
 } from '../models/runbook.model';
 
-const API = 'http://localhost:8000';
+const API = '/api';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {

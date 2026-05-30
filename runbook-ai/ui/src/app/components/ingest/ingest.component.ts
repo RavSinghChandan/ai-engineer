@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ApiService } from '../../services/api.service';
@@ -19,7 +19,7 @@ export class IngestComponent {
   error = '';
   pollInterval: ReturnType<typeof setInterval> | null = null;
 
-  constructor(private api: ApiService, private router: Router) {}
+  constructor(private readonly api: ApiService, private readonly router: Router, private readonly cdr: ChangeDetectorRef) {}
 
   onDragOver(e: DragEvent) { e.preventDefault(); this.dragOver = true; }
   onDragLeave() { this.dragOver = false; }
@@ -50,20 +50,23 @@ export class IngestComponent {
     this.api.uploadPdf(this.selectedFile).subscribe({
       next: r => {
         this.uploading = false;
+        this.cdr.markForCheck();
         this.pollJob(r.job_id);
       },
       error: e => {
         this.uploading = false;
         this.error = e?.error?.detail ?? 'Upload failed.';
+        this.cdr.markForCheck();
       },
     });
   }
 
   private pollJob(jobId: number) {
-    const fetch = () => {
+    const tick = () => {
       this.api.getJobStatus(jobId).subscribe({
         next: j => {
           this.job = j;
+          this.cdr.markForCheck();
           if (j.status === 'completed' || j.status === 'failed') {
             if (this.pollInterval) clearInterval(this.pollInterval);
           }
@@ -71,8 +74,8 @@ export class IngestComponent {
         error: () => { if (this.pollInterval) clearInterval(this.pollInterval); },
       });
     };
-    fetch();
-    this.pollInterval = setInterval(fetch, 2000);
+    tick();
+    this.pollInterval = setInterval(tick, 2000);
   }
 
   viewRunbook() {

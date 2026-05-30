@@ -20,6 +20,9 @@ export interface Runbook {
   estimated_duration_minutes: number;
   step_count: number;
   source_pdf: string;
+  source_type?: string;
+  source_name?: string;
+  source_url?: string;
   created_at: string;
   steps?: RunbookStep[];
   rollback_steps?: RunbookStep[];
@@ -59,20 +62,71 @@ export interface GraphAnalysis {
   estimated_parallel_duration_minutes: number;
 }
 
-export interface QueryResult {
-  incident: string;
+export interface QueryResponse {
   runbook_id: number;
   runbook_title: string;
   category: string;
   severity: string;
-  match_confidence: string;
+  estimated_duration_minutes: number;
   triage_summary: string;
   execution_order: number[];
   steps: RunbookStep[];
+  rollback_steps: RunbookStep[];
   critical_path: number[];
   parallel_groups: number[][];
-  estimated_duration_minutes: number;
+  total_steps: number;
   commands_source: string;
+  source: string;
+}
+
+export interface PanelConflict {
+  conflict_type: string;
+  severity: string;
+  description: string;
+  recommendation: string;
+  step_a: number | null;
+  step_b: number | null;
+}
+
+export interface SourcePanel {
+  source_type: string;
+  source_name: string;
+  source_url: string;
+  label: string;
+  color: string;
+  priority: number;
+  steps: RunbookStep[];
+  rollback_steps: RunbookStep[];
+  total_steps: number;
+  recommendation: string;
+}
+
+export interface MultiSourcePanels {
+  runbook_id: number;
+  runbook_title: string;
+  category: string;
+  severity: string;
+  estimated_duration_minutes: number;
+  tags: string[];
+  internal: SourcePanel;
+  combined: SourcePanel;
+  official: SourcePanel;
+  conflicts: PanelConflict[];
+  has_conflicts: boolean;
+  conflict_count: number;
+  triage_summary: string;
+  commands_source: string;
+  source: string;
+}
+
+export interface QueryResult {
+  incident: string;
+  match_strategy: string;
+  match_confidence: string;
+  selected_runbook_id: number;
+  response: QueryResponse;
+  panels?: MultiSourcePanels;
+  agent_log: string[];
 }
 
 export interface ConflictResult {

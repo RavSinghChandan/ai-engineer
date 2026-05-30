@@ -14,8 +14,15 @@ from graph.query_pipeline import query_pipeline
 from agents.runbook_matcher_agent import match_runbooks
 from agents.incident_classifier_agent import classify_incident
 from agents.response_composer_agent import compose_response
+from agents.multi_source_composer import build_multi_source_response
+from routers.deps import optional_auth
+from typing import Annotated
+from fastapi import Depends
 
 router = APIRouter(prefix="/query", tags=["query"])
+
+
+OptionalUser = Annotated[Optional[any], Depends(optional_auth)]
 
 
 class IncidentRequest(BaseModel):
@@ -44,7 +51,7 @@ class QuickMatchRequest(BaseModel):
         404: {"description": "Pinned runbook ID not found"},
     },
 )
-def query_incident(req: IncidentRequest):
+def query_incident(req: IncidentRequest, current_user: OptionalUser = None):
     """
     Main endpoint: describe an incident → get ordered runbook steps.
 
@@ -101,6 +108,17 @@ def query_incident(req: IncidentRequest):
             },
         }
 
+    selected_id = result.get("selected_runbook_id")
+    tenant_id = current_user.tenant_id if current_user else 1
+
+    # Build multi-source panels (internal / combined / official)
+    multi = {}
+    if selected_id:
+        try:
+            multi = build_multi_source_response(selected_id, tenant_id)
+        except Exception:
+            multi = {}
+
     return {
         "incident": req.incident,
         "match_strategy": "full_pipeline",
@@ -111,9 +129,10 @@ def query_incident(req: IncidentRequest):
             "search_terms": result.get("search_terms", []),
         },
         "matched_runbooks": result.get("matched_runbooks", [])[:req.max_runbooks],
-        "selected_runbook_id": result.get("selected_runbook_id"),
+        "selected_runbook_id": selected_id,
         "match_confidence": result.get("match_confidence"),
         "response": result.get("response", {}),
+        "panels": multi,
         "agent_log": result.get("agent_log", []),
     }
 

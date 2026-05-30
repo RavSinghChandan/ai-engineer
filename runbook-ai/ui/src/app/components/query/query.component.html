@@ -34,16 +34,19 @@
 
   @if (error) { <div class="alert alert--error" style="margin-bottom:16px">{{ error }}</div> }
 
-  @if (result) {
+  @if (result && r) {
     <!-- Result header -->
     <div class="result-header">
       <div class="result-header__left">
-        <h2 style="margin-bottom:6px">{{ result.runbook_title }}</h2>
+        <h2 style="margin-bottom:6px">{{ r.runbook_title }}</h2>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-          <span class="badge badge--blue">{{ result.category }}</span>
-          <span class="badge" [ngClass]="severityBadge(result.severity)">{{ result.severity }}</span>
+          <span class="badge badge--blue">{{ r.category }}</span>
+          <span class="badge" [ngClass]="severityBadge(r.severity)">{{ r.severity }}</span>
           <span class="badge" [ngClass]="confidenceBadge(result.match_confidence)">{{ result.match_confidence }} match</span>
-          <span class="badge badge--gray">~{{ result.estimated_duration_minutes }}m</span>
+          <span class="badge badge--gray">~{{ r.estimated_duration_minutes }}m</span>
+          @if (panels?.has_conflicts) {
+            <span class="badge badge--red">⚠ {{ panels!.conflict_count }} conflict{{ panels!.conflict_count !== 1 ? 's' : '' }}</span>
+          }
         </div>
       </div>
       <div style="display:flex;gap:8px">
@@ -54,16 +57,22 @@
     <!-- Tabs -->
     <div class="tabs">
       <button class="tab" [class.active]="activeTab==='response'" (click)="activeTab='response'">Triage Summary</button>
-      <button class="tab" [class.active]="activeTab==='steps'" (click)="activeTab='steps'">Steps ({{ result.steps.length }})</button>
+      <button class="tab" [class.active]="activeTab==='steps'" (click)="activeTab='steps'">Steps ({{ r.steps.length }})</button>
       <button class="tab" [class.active]="activeTab==='graph'" (click)="activeTab='graph'">Execution Graph</button>
+      @if (panels) {
+        <button class="tab tab--panels" [class.active]="activeTab==='panels'" (click)="activeTab='panels'">
+          Multi-Source
+          @if (panels.has_conflicts) { <span class="tab-dot tab-dot--red"></span> }
+        </button>
+      }
     </div>
 
     @if (activeTab === 'response') {
       <div class="card">
         <div class="card__body">
-          <div class="triage-summary">{{ result.triage_summary }}</div>
+          <div class="triage-summary">{{ r.triage_summary }}</div>
           <div class="source-badge">
-            <span>🔒 Commands source: {{ result.commands_source }}</span>
+            <span>Commands source: {{ r.commands_source }}</span>
           </div>
         </div>
       </div>
@@ -72,13 +81,13 @@
     @if (activeTab === 'steps') {
       <div class="card">
         <div class="card__body">
-          @for (step of result.steps; track step.step_number) {
-            <div class="step-item" [class.step-item--critical]="result.critical_path.includes(step.step_number)">
+          @for (step of r.steps; track step.step_number) {
+            <div class="step-item" [class.step-item--critical]="r.critical_path.includes(step.step_number)">
               <div class="step-item__number">{{ step.step_number }}</div>
               <div class="step-item__body">
                 <div class="step-item__title">
                   {{ step.title }}
-                  @if (result.critical_path.includes(step.step_number)) {
+                  @if (r.critical_path.includes(step.step_number)) {
                     <span class="badge badge--red" style="margin-left:8px">Critical</span>
                   }
                 </div>
@@ -97,8 +106,8 @@
           <div class="card__header"><h3>Execution Order</h3></div>
           <div class="card__body">
             <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
-              @for (n of result.execution_order; track n; let last = $last) {
-                <span class="badge" [class]="result.critical_path.includes(n) ? 'badge--red' : 'badge--blue'">Step {{ n }}</span>
+              @for (n of r.execution_order; track n; let last = $last) {
+                <span class="badge" [class]="r.critical_path.includes(n) ? 'badge--red' : 'badge--blue'">Step {{ n }}</span>
                 @if (!last) { <span style="color:var(--color-text-tertiary)">→</span> }
               }
             </div>
@@ -107,7 +116,7 @@
         <div class="card">
           <div class="card__header"><h3>Parallel Groups</h3></div>
           <div class="card__body">
-            @for (wave of result.parallel_groups; track $index) {
+            @for (wave of r.parallel_groups; track $index) {
               <div style="margin-bottom:10px">
                 <div style="font-size:0.75rem;font-weight:600;color:var(--color-text-tertiary);text-transform:uppercase;margin-bottom:6px">Wave {{ $index + 1 }}</div>
                 <div style="display:flex;flex-wrap:wrap;gap:6px">
@@ -118,6 +127,124 @@
           </div>
         </div>
       </div>
+    }
+
+    @if (activeTab === 'panels' && panels) {
+      <!-- Multi-Source Panel Layout -->
+
+      <!-- Conflict banner -->
+      @if (panels.has_conflicts) {
+        <div class="conflict-banner">
+          <span class="conflict-banner__icon">⚠</span>
+          <div>
+            <strong>{{ panels.conflict_count }} conflict{{ panels.conflict_count !== 1 ? 's' : '' }} detected</strong> between internal and official runbooks.
+            Review before executing — follow internal steps for infrastructure-specific values.
+          </div>
+        </div>
+      }
+
+      <!-- Panel tabs -->
+      <div class="panel-tabs">
+        <button class="panel-tab panel-tab--green" [class.active]="activePanelTab==='internal'" (click)="activePanelTab='internal'">
+          <span class="panel-tab__dot panel-tab__dot--green"></span>
+          Internal
+          <span class="panel-tab__count">{{ panels.internal.total_steps }} steps</span>
+          <span class="panel-tab__priority">Priority 1</span>
+        </button>
+        <button class="panel-tab panel-tab--purple" [class.active]="activePanelTab==='combined'" (click)="activePanelTab='combined'">
+          <span class="panel-tab__dot panel-tab__dot--purple"></span>
+          Combined
+          <span class="panel-tab__count">{{ panels.combined.total_steps }} steps</span>
+          <span class="panel-tab__priority">Priority 2</span>
+        </button>
+        <button class="panel-tab panel-tab--blue" [class.active]="activePanelTab==='official'" (click)="activePanelTab='official'">
+          <span class="panel-tab__dot panel-tab__dot--blue"></span>
+          Official
+          <span class="panel-tab__count">{{ panels.official.total_steps }} steps</span>
+          <span class="panel-tab__priority">Priority 3</span>
+        </button>
+      </div>
+
+      @if (activePanel) {
+        <!-- Panel header -->
+        <div class="panel-card" [attr.data-color]="activePanel.color">
+          <div class="panel-card__header" [class]="'panel-header--' + activePanel.color">
+            <div class="panel-card__meta">
+              <span class="panel-source-badge" [class]="'source-badge--' + activePanel.color">{{ activePanel.label }}</span>
+              <span class="panel-source-name">{{ activePanel.source_name }}</span>
+              @if (activePanel.source_url) {
+                <a [href]="activePanel.source_url" target="_blank" class="panel-source-link">↗ Source</a>
+              }
+            </div>
+            <div class="panel-recommendation" [class]="'recommendation--' + activePanel.color">
+              {{ activePanel.recommendation }}
+            </div>
+          </div>
+
+          <div class="panel-card__body">
+            @if (activePanel.steps.length === 0) {
+              <div class="empty-panel">No steps available for this source.</div>
+            } @else {
+              @for (step of activePanel.steps; track step.step_number) {
+                <div class="panel-step" [class]="'panel-step--' + activePanel.color">
+                  <div class="panel-step__num" [class]="'step-num--' + activePanel.color">{{ step.step_number }}</div>
+                  <div class="panel-step__body">
+                    <div class="panel-step__title">
+                      {{ step.title }}
+                      @if (step.is_optional) { <span class="badge badge--gray" style="margin-left:6px;font-size:0.65rem">optional</span> }
+                    </div>
+                    @if (step.description) { <div class="panel-step__desc">{{ step.description }}</div> }
+                    @for (cmd of step.commands; track cmd) {
+                      <code class="cmd cmd--panel">{{ cmd }}</code>
+                    }
+                    @if (step.expected_output) {
+                      <div class="panel-step__expected">Expected: {{ step.expected_output }}</div>
+                    }
+                  </div>
+                </div>
+              }
+            }
+
+            @if (activePanel.rollback_steps.length > 0) {
+              <div class="rollback-section">
+                <div class="rollback-section__title">Rollback Steps</div>
+                @for (step of activePanel.rollback_steps; track step.step_number) {
+                  <div class="panel-step panel-step--rollback">
+                    <div class="panel-step__num step-num--gray">{{ step.step_number }}</div>
+                    <div class="panel-step__body">
+                      <div class="panel-step__title">{{ step.title }}</div>
+                      @for (cmd of step.commands; track cmd) { <code class="cmd">{{ cmd }}</code> }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Conflicts section -->
+      @if (panels.has_conflicts) {
+        <div class="card" style="margin-top:16px">
+          <div class="card__header">
+            <h3>Conflicts Between Internal &amp; Official</h3>
+          </div>
+          <div class="card__body">
+            @for (conflict of panels.conflicts; track $index) {
+              <div class="conflict-item" [ngClass]="conflictSeverityClass(conflict.severity)">
+                <div class="conflict-item__header">
+                  <span class="conflict-type-badge">{{ conflict.conflict_type }}</span>
+                  <span class="conflict-severity" [class]="'severity--' + conflict.severity.toLowerCase()">{{ conflict.severity }}</span>
+                </div>
+                <div class="conflict-item__desc">{{ conflict.description }}</div>
+                <div class="conflict-item__rec">
+                  <strong>Recommendation:</strong> {{ conflict.recommendation }}
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
     }
   }
 </div>

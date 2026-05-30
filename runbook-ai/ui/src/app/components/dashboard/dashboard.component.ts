@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ApiService } from '../../services/api.service';
@@ -17,19 +17,19 @@ export class DashboardComponent implements OnInit {
   loading = true;
   error = '';
 
-  constructor(private api: ApiService) {}
+  constructor(private readonly api: ApiService, private readonly cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.api.health().subscribe({
       next: h => { this.health = h; this.loadStats(); },
-      error: () => { this.error = 'Cannot connect to RunbookAI backend (localhost:8000). Start the server first.'; this.loading = false; },
+      error: () => { this.error = 'Cannot connect to RunbookAI backend. Start the server first.'; this.loading = false; this.cdr.markForCheck(); },
     });
   }
 
   private loadStats() {
     this.api.getRunbookStats().subscribe({
-      next: s => { this.stats = s; this.loading = false; },
-      error: () => { this.loading = false; },
+      next: s => { this.stats = s; this.loading = false; this.cdr.markForCheck(); },
+      error: () => { this.loading = false; this.cdr.markForCheck(); },
     });
   }
 

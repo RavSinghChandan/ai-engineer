@@ -1,9 +1,9 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ApiService } from '../../services/api.service';
-import { QueryResult } from '../../models/runbook.model';
+import { QueryResult, SourcePanel } from '../../models/runbook.model';
 
 @Component({
   selector: 'app-query',
@@ -17,7 +17,8 @@ export class QueryComponent {
   loading = false;
   result: QueryResult | null = null;
   error = '';
-  activeTab: 'response' | 'steps' | 'graph' = 'response';
+  activeTab: 'response' | 'steps' | 'graph' | 'panels' = 'response';
+  activePanelTab: 'internal' | 'combined' | 'official' = 'internal';
 
   readonly examples = [
     'Kubernetes pods are crashlooping after a deployment — need to rollback',
@@ -26,7 +27,7 @@ export class QueryComponent {
     'CI/CD pipeline is stuck — deployments not running',
   ];
 
-  constructor(private api: ApiService, private router: Router) {}
+  constructor(private readonly api: ApiService, private readonly router: Router, private readonly cdr: ChangeDetectorRef) {}
 
   query() {
     if (!this.incident.trim()) return;
@@ -34,16 +35,24 @@ export class QueryComponent {
     this.error = '';
     this.result = null;
     this.activeTab = 'response';
+    this.activePanelTab = 'internal';
     this.api.queryIncident(this.incident.trim()).subscribe({
-      next: r => { this.result = r; this.loading = false; },
-      error: e => { this.error = e?.error?.detail ?? 'Query failed. Make sure the backend is running.'; this.loading = false; },
+      next: r => { this.result = r; this.loading = false; this.cdr.markForCheck(); },
+      error: e => { this.error = e?.error?.detail ?? 'Query failed. Make sure the backend is running.'; this.loading = false; this.cdr.markForCheck(); },
     });
   }
 
   useExample(ex: string) { this.incident = ex; }
 
+  get r() { return this.result?.response ?? null; }
+  get panels() { return this.result?.panels ?? null; }
+  get activePanel(): SourcePanel | null {
+    if (!this.panels) return null;
+    return this.panels[this.activePanelTab] ?? null;
+  }
+
   viewRunbook() {
-    if (this.result?.runbook_id) this.router.navigate(['/runbooks', this.result.runbook_id]);
+    if (this.result?.selected_runbook_id) this.router.navigate(['/runbooks', this.result.selected_runbook_id]);
   }
 
   confidenceBadge(c: string) {
@@ -51,4 +60,8 @@ export class QueryComponent {
   }
 
   severityBadge(sev: string) { return `badge--${sev?.toLowerCase()}`; }
+
+  conflictSeverityClass(sev: string) {
+    return { HIGH: 'conflict--high', MEDIUM: 'conflict--medium', LOW: 'conflict--low' }[sev] ?? 'conflict--low';
+  }
 }
