@@ -167,12 +167,12 @@
           </div>
           <div class="project-actions">
             @if (project.liveUrl) {
-              <a [href]="project.liveUrl" target="_blank"
-                 class="project-live-btn"
-                 [ngClass]="'live-btn--' + project.accent">
+              <button class="project-live-btn"
+                      [ngClass]="'live-btn--' + project.accent"
+                      (click)="openDemo(project)">
                 <span class="live-dot"></span>
                 Live Demo
-              </a>
+              </button>
             }
             <a [href]="project.github" target="_blank" class="project-gh-btn">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
@@ -527,6 +527,62 @@
     </div>
   </div>
 </section>
+
+<!-- DEMO MODAL -->
+@if (demoOpen()) {
+  <div class="demo-overlay"
+       (click)="closeDemo()"
+       (keydown.escape)="closeDemo()">
+    <dialog class="demo-modal" open
+            (click)="$event.stopPropagation()"
+            (keydown.arrowRight)="demoNext()"
+            (keydown.arrowLeft)="demoPrev()">
+
+      <!-- Header -->
+      <div class="demo-header" [ngClass]="'demo-header--' + demoProject()!.accent">
+        <div class="demo-header-left">
+          <span class="demo-live-dot"></span>
+          <span class="demo-title">{{ demoProject()!.title }}</span>
+          <span class="demo-slide-label">{{ demoProject()!.slides[demoSlide()].label }}</span>
+        </div>
+        <div class="demo-header-right">
+          <span class="demo-counter">{{ demoSlide() + 1 }} / {{ demoProject()!.slides.length }}</span>
+          <button class="demo-close" (click)="closeDemo()" aria-label="Close">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Screenshot -->
+      <div class="demo-screen">
+        <img [src]="demoProject()!.slides[demoSlide()].img"
+             [alt]="demoProject()!.slides[demoSlide()].label"
+             class="demo-img" />
+      </div>
+
+      <!-- Caption -->
+      <div class="demo-caption">{{ demoProject()!.slides[demoSlide()].caption }}</div>
+
+      <!-- Nav row -->
+      <div class="demo-nav">
+        <button class="demo-nav-btn" (click)="demoPrev()" aria-label="Previous">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          Prev
+        </button>
+        <div class="demo-dots">
+          @for (slide of demoProject()!.slides; track $index) {
+            <button class="demo-dot" [class.active]="$index === demoSlide()" (click)="demoSlide.set($index)" [attr.aria-label]="'Slide ' + ($index + 1)"></button>
+          }
+        </div>
+        <button class="demo-nav-btn demo-nav-btn--next" (click)="demoNext()" aria-label="Next">
+          Next
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+
+    </dialog>
+  </div>
+}
 
 <footer>
   <div class="container footer-inner">

@@ -2,6 +2,7 @@ import { Component, OnInit, signal, HostListener, ElementRef, QueryList, ViewChi
 import { isPlatformBrowser } from '@angular/common';
 import { CommonModule } from '@angular/common';
 
+
 @Component({
   selector: 'app-root',
   imports: [CommonModule],
@@ -38,7 +39,7 @@ export class App implements OnInit, AfterViewInit {
   projects = [
     {
       num: '01', accent: 'purple',
-      liveUrl: '',
+      liveUrl: 'demo',
       title: 'Aura with Rav',
       subtitle: 'AI Spiritual Intelligence Platform',
       desc: '18+ AI agents coordinate dynamically to generate personalized intelligence reports across Vedic Astrology, Numerology, Palmistry, Tarot & Vastu Shastra — in 23 Indian languages.',
@@ -61,7 +62,7 @@ export class App implements OnInit, AfterViewInit {
     },
     {
       num: '02', accent: 'amber',
-      liveUrl: '',
+      liveUrl: 'demo',
       title: 'Bench Resource Optimizer',
       subtitle: 'Enterprise AI HR Platform',
       desc: 'Maps bench employees to open roles using Hybrid RAG, surfaces skill gaps, and generates 7-day preparation roadmaps — production hardened with 222 tests and zero shortcuts.',
@@ -87,7 +88,7 @@ export class App implements OnInit, AfterViewInit {
     },
     {
       num: '03', accent: 'cyan',
-      liveUrl: '',
+      liveUrl: 'demo',
       title: 'Agentic Growth OS',
       subtitle: 'Autonomous AI Marketing Platform',
       desc: 'Visual drag-and-drop AI agent platform for autonomous marketing workflow execution. Learns from every campaign run and improves ROI 40–80% via a built-in learning engine.',
@@ -205,7 +206,75 @@ export class App implements OnInit, AfterViewInit {
     },
   ];
 
-  // Animated stat counters
+  // ── DEMO MODAL ──────────────────────────────────────────────────
+  demoOpen   = signal(false);
+  demoSlide  = signal(0);
+  demoProject = signal<null | {
+    num: string; title: string; accent: string;
+    slides: { img: string; caption: string; label: string }[];
+  }>(null);
+
+  readonly demoData: Record<string, { img: string; caption: string; label: string }[]> = {
+    '01': [
+      { img: 'project-aura.png',   label: 'Birth Profile Input',   caption: 'User enters birth details — name, date, time, place — powering all 18+ AI agents.' },
+      { img: 'aura-s1.png',        label: 'LangGraph Pipeline',    caption: 'LangGraph visualizer shows the full execution flow across 10 nodes — Classify → LLM → Agent → Memory.' },
+      { img: 'aura-s2.png',        label: 'Agent Execution Graph', caption: 'Real-time step-by-step graph execution with auto-play — watch each agent node fire sequentially.' },
+      { img: 'aura-s3.png',        label: 'Pipeline Debugger',     caption: 'Full graph structure with API endpoint selection — run any route and inspect the LangGraph execution live.' },
+    ],
+    '02': [
+      { img: 'project-bench.png',  label: 'Preparation Dashboard', caption: '18-day AI roadmap with 36 tasks, readiness score, skill coverage bars and next-up task highlighted.' },
+      { img: 'bench-s1.png',       label: 'Platform Login',        caption: 'Enterprise login with role-based access — USER, ADMIN, SUPERADMIN with JWT dual-auth.' },
+      { img: 'bench-s2.png',       label: 'Dashboard View',        caption: 'Dashboard showing bench employee tasks, completion progress and skill coverage across tech stack.' },
+      { img: 'bench-s3.png',       label: 'Metrics Panel',         caption: 'Live metrics tracking preparation velocity, completed tasks, and remaining roadmap days.' },
+    ],
+    '03': [
+      { img: 'project-agentic.png', label: 'Workflow Builder',     caption: 'Drag-and-drop canvas with 5 AI agents as nodes — Audience, Ad Copy, Budget Optimizer, Campaign, Performance.' },
+      { img: 'agentic-s1.png',     label: 'Campaign Config',       caption: 'Campaign configuration panel — name, type, brand, budget, target audience and platform selection.' },
+      { img: 'agentic-s2.png',     label: 'Campaign Dashboard',    caption: 'Campaign dashboard showing past runs, ROI metrics and learning engine improvement history.' },
+      { img: 'agentic-s3.png',     label: 'Learning Insights',     caption: 'Learning insights panel — the system surfaces which rules improved ROI and applies them automatically.' },
+    ],
+    '04': [
+      { img: 'project-runbookai.png', label: 'Dashboard',          caption: '22 runbooks (12 internal + 10 official K8s), 3 severities, RAGless architecture — zero vectors.' },
+      { img: 'runbook-s1.png',     label: 'Runbook Dashboard',     caption: 'Live stats: total runbooks, categories, severity spread P1→P3, and quick action shortcuts.' },
+      { img: 'runbook-s2.png',     label: 'Runbooks List',         caption: 'Source-tagged runbook list — Official K8s docs alongside internal runbooks, filterable by category and severity.' },
+      { img: 'runbook-s3.png',     label: 'Incident Query',        caption: 'Describe an incident in plain English — get 3 ranked panels: Internal → Combined → Official, with conflict flags.' },
+    ],
+  };
+
+  openDemo(project: { num: string; title: string; accent: string }) {
+    this.demoProject.set({ ...project, slides: this.demoData[project.num] || [] });
+    this.demoSlide.set(0);
+    this.demoOpen.set(true);
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeDemo() {
+    this.demoOpen.set(false);
+    this.demoProject.set(null);
+    document.body.style.overflow = '';
+  }
+
+  demoNext() {
+    const proj = this.demoProject();
+    if (!proj) return;
+    this.demoSlide.set((this.demoSlide() + 1) % proj.slides.length);
+  }
+
+  demoPrev() {
+    const proj = this.demoProject();
+    if (!proj) return;
+    this.demoSlide.set((this.demoSlide() - 1 + proj.slides.length) % proj.slides.length);
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  onKeyDown(e: KeyboardEvent) {
+    if (!this.demoOpen()) return;
+    if (e.key === 'Escape')     this.closeDemo();
+    if (e.key === 'ArrowRight') this.demoNext();
+    if (e.key === 'ArrowLeft')  this.demoPrev();
+  }
+
+  // ── ANIMATED STAT COUNTERS ───────────────────────────────────────
   statTests  = signal(0);
   statAgents = signal(0);
   statProjects = signal(0);
