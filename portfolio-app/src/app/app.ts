@@ -1,11 +1,11 @@
-import { Component, OnInit, signal, HostListener, ElementRef, QueryList, ViewChildren, AfterViewInit, PLATFORM_ID, Inject } from '@angular/core';
+import { Component, OnInit, signal, HostListener, ElementRef, QueryList, ViewChildren, AfterViewInit, PLATFORM_ID, Inject, ViewChild } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { CommonModule } from '@angular/common';
-
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
@@ -712,5 +712,183 @@ export class App implements OnInit, AfterViewInit {
 
   getSkillIconUrl(icons: string[]): string {
     return `https://skillicons.dev/icons?i=${icons.join(',')}`;
+  }
+
+  // ── AARAV CHATBOT ─────────────────────────────────────────────────
+  @ViewChild('cbScroll') cbScrollEl!: ElementRef;
+
+  cbOpen    = signal(false);
+  cbTyping  = signal(false);
+  cbUnread  = signal(0);
+  cbDraft   = '';
+  cbMessages = signal<{ role: 'bot'|'user'; html: string }[]>([]);
+
+  readonly cbQuickPrompts = [
+    '👋 Who is Chandan?',
+    '🚀 What projects did he build?',
+    '💼 Can I hire him?',
+    '📞 How to contact?',
+  ];
+
+  // ── Knowledge base ─────────────────────────────────────────────────
+  private readonly _kb = {
+    name:       'Chandan Kumar',
+    alias:      'Rav',
+    role:       'Senior AI Engineer',
+    experience: '4+ years',
+    location:   'India',
+    email:      'ravchandan15@gmail.com',
+    phone:      '+91 62909 09518',
+    linkedin:   'https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/',
+    github:     'https://github.com/RavSinghChandan',
+    youtube:    'https://www.youtube.com/@aiwithrav',
+    resume:     'AI_Engineer_Chandan_Kumar_4_Yrs.pdf',
+    education:  'B.Tech Computer Science, Future Institute of Engineering & Management, Kolkata (2014–2018, CGPA 8.7). Masai School full-stack bootcamp.',
+    story:      'Started as a mechanical engineer with no job offers. A friend\'s taunt — "you can\'t even spell console" — became the fuel. Joined Masai School bootcamp, outworked everyone, and self-built into a Senior AI Engineer. 637 tests. 4 production AI systems. Zero shortcuts.',
+    skills:     'Python, FastAPI, LangChain, LangGraph, Multi-Agent Orchestration, RAG (FAISS+BM25+HyDE+CRAG), Kafka, Redis, Angular 17, TypeScript, Java, Spring Boot, Docker, AWS, JWT Auth, SQLite WAL, Guardrails G1–G5',
+    currentJob: 'Senior Software Engineer at Infosys (Bank of America project) — Nov 2025 to Present. Designing LLM-integrated banking automation, Kafka pipelines, AI microservices.',
+    companies:  'Infosys/Bank of America (current, Senior SWE), Nexsys/Accelya (2023–2025, SWE aviation), Texala (2023, SWE), Flyboard Ventures (2022–2023, SWE)',
+    projects: [
+      { name: 'Aura with Rav', desc: '360° Astro-Spiritual AI platform. 18+ agents, LangGraph, 23 Indian languages, 415 tests, G1–G5 guardrails, JWT multi-tenant.' },
+      { name: 'Bench Resource Optimizer', desc: 'Enterprise HR AI — maps bench employees to open roles using Hybrid RAG (FAISS+BM25+HyDE+CRAG), circuit breaker, episodic memory, 222 tests.' },
+      { name: 'Agentic Growth OS', desc: 'Autonomous marketing platform — 5 LangGraph agents, drag-and-drop canvas, auto-learning engine improves ROI 40–80% per run.' },
+      { name: 'RunbookAI', desc: 'RAGless IT incident response — 22 runbooks, SQL+dependency graph, conflict detection between internal & official K8s docs, zero vectors.' },
+    ],
+    availability: 'Open to Senior AI Engineer roles. Responds fast. Reach out via email or LinkedIn.',
+    testCount:  637,
+    openToWork: true,
+  };
+
+  // ── Guardrail patterns (G1–G5) ────────────────────────────────────
+  private readonly _guards = {
+    // Word-bounded so "Chandan" doesn't match "DAN", "contact" doesn't match "act as"
+    injection:  /\bignore\b.{0,30}\b(instructions?|prompt|system)\b|\bjailbreak\b|\bact\s+as\b|\bpretend\s+(you\s+are|to\s+be)\b|\bDAN\b|\bdo\s+anything\s+now\b|\boverride\b|\broleplay\s+as\b/i,
+    harmful:    /\b(kill|hack|attack|exploit|bomb|violence|drug|weapon|suicide|self.harm|password|credentials)\b/i,
+    pii:        /\b(ssn|aadhar|pan\s+card|credit\s+card|bank\s+account|\d{12}|\d{16})\b/i,
+    offTopic:   /\b(politics|religion|sex|nude|porn|adult\s+content|racism|bitcoin|crypto\s+currency|stock\s+market|investment\s+advice)\b/i,
+    nonsense:   /^(.)\1{9,}$|^[^a-zA-Z0-9\s?!.,'-]{5,}$/,
+  };
+
+  // ── Intent matching ───────────────────────────────────────────────
+  private _match(q: string): string {
+    const t = q.toLowerCase();
+
+    // Injection / jailbreak guard
+    if (this._guards.injection.test(q))
+      return `Namaste! 🙏 I'm Aarav, Chandan's professional assistant. I can only answer questions about Chandan Kumar's professional profile. How can I help you?`;
+
+    // Harmful content guard
+    if (this._guards.harmful.test(q))
+      return `I appreciate you reaching out! I'm here to share Chandan's professional story. Could I tell you about his work in AI engineering instead? 😊`;
+
+    // Off-topic guard
+    if (this._guards.offTopic.test(q))
+      return `Great question, but that's outside my area! I'm best at talking about Chandan — his skills, projects, and experience. What would you like to know? 🤔`;
+
+    // PII guard
+    if (this._guards.pii.test(q))
+      return `I'm not able to process personal identification details. I can share Chandan's professional contact info though — would that help?`;
+
+    // Nonsense guard
+    if (this._guards.nonsense.test(q.trim()))
+      return `Hmm, I didn't quite catch that! Try asking something like "What projects has Chandan built?" or "Is he available to hire?" 😄`;
+
+    // ── Intents — ordered from most-specific to most-general ─────────
+
+    // Self-identity (check BEFORE who_is so "who are you" doesn't hit who_is)
+    if (/\b(aarav|who are you|what are you|you a bot|chatbot|ai assistant)\b/i.test(t))
+      return `Namaste! 🙏 I'm <strong>Aarav</strong> — Chandan's AI assistant, built into this portfolio.<br><br>I know everything about his projects, skills, experience, and story. Ask me anything professional! 😄`;
+
+    // Greetings (before who_is)
+    if (/^(hello|hi|hey|namaste|good\s*(morning|afternoon|evening)|how are you|sup|hola)[!?,.\s]*$/i.test(t))
+      return `Namaste! 👋 I'm <strong>Aarav</strong>, Chandan's AI guide!<br><br>Ask me about:<br>• His <strong>skills & tech stack</strong><br>• His <strong>4 production AI projects</strong><br>• His <strong>career & experience</strong><br>• Whether he's <strong>available to hire</strong><br>• How to <strong>contact</strong> him<br><br>What would you like to know? 😊`;
+
+    // Appreciation (before projects which catches "work")
+    if (/\b(thank|great work|awesome|nice|amazing|good job|well done|impressive)\b/i.test(t))
+      return `Thank you! 😊 That means a lot. If you'd like to know more — or are thinking of hiring Chandan — I'm right here!<br><br><a href="mailto:ravchandan15@gmail.com" style="color:var(--purple-lt)">Drop him a message ↗</a>`;
+
+    // Contact (specific — before tell_me/who_is)
+    if (/\b(contact|email|phone|mobile|linkedin|github|youtube|reach out|social media|how to (reach|connect|get in touch))\b/i.test(t))
+      return `Here's how to reach Chandan:<br><br>📧 <a href="mailto:ravchandan15@gmail.com" style="color:var(--purple-lt)">ravchandan15@gmail.com</a><br>📞 <a href="tel:+916290909518" style="color:var(--purple-lt)">+91 62909 09518</a><br>💼 <a href="https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/" target="_blank" style="color:var(--purple-lt)">LinkedIn ↗</a><br>🐙 <a href="https://github.com/RavSinghChandan" target="_blank" style="color:var(--purple-lt)">GitHub ↗</a><br>▶️ <a href="https://www.youtube.com/@aiwithrav" target="_blank" style="color:var(--purple-lt)">YouTube ↗</a><br><br>He responds fast — usually within hours! 🚀`;
+
+    // Hiring
+    if (/\b(hire|available|open to work|recruit|interview|position|opportunit|salary|ctc|notice period|join)\b/i.test(t))
+      return `✅ <strong>Chandan is open to Senior AI Engineer roles!</strong><br><br>Best ways to reach him:<br><br>📧 <a href="mailto:ravchandan15@gmail.com" style="color:var(--purple-lt)">ravchandan15@gmail.com</a><br>💼 <a href="https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/" target="_blank" style="color:var(--purple-lt)">LinkedIn ↗</a><br>📞 +91 62909 09518<br><br><a href="AI_Engineer_Chandan_Kumar_4_Yrs.pdf" target="_blank" style="color:var(--purple-lt)">Download his resume ↗</a> 📄`;
+
+    // Resume
+    if (/\b(resume|cv|download|pdf)\b/i.test(t))
+      return `📄 <a href="AI_Engineer_Chandan_Kumar_4_Yrs.pdf" target="_blank" style="color:var(--purple-lt)"><strong>Download Chandan's Resume →</strong></a><br><br>4 years of AI engineering. 637 tests. Zero shortcuts. All in one PDF.`;
+
+    // Who is Chandan (general intro)
+    if (/\b(who is|introduce|about chandan|tell me about him|chandan kumar)\b/i.test(t))
+      return `<strong>Chandan Kumar</strong> (also known as <em>Rav</em>) is a <strong>Senior AI Engineer</strong> with 4+ years building LLM-powered, agent-based systems and scalable backend architectures.<br><br>He specialises in multi-agent orchestration, RAG pipelines, and production AI — <strong>637 tests passing, zero shortcuts.</strong><br><br>Currently at <strong>Infosys (Bank of America)</strong>. 🚀`;
+
+    // Skills & tech
+    if (/\b(skill|tech stack|stack|language|framework|tool|technology|expertise)\b/i.test(t))
+      return `Chandan's production tech stack:<br><br>🐍 <strong>Python · FastAPI · LangGraph · LangChain</strong><br>🔍 <strong>FAISS · BM25 · HyDE · CRAG (Hybrid RAG)</strong><br>📡 <strong>Kafka · Redis · SSE Streaming</strong><br>🅰️ <strong>Angular 17 · TypeScript</strong><br>☕ <strong>Java · Spring Boot</strong><br>🐳 <strong>Docker · AWS · GitHub Actions</strong><br><br>All battle-tested in production. No tutorials. 💪`;
+
+    // Projects
+    if (/\b(projects?|aura|bench|agentic|runbook|portfolio|shipped?|built?|systems?)\b/i.test(t)) {
+      const proj = this._kb.projects.map(p => `• <strong>${p.name}</strong> — ${p.desc}`).join('<br>');
+      return `Chandan has shipped <strong>4 production AI systems</strong>:<br><br>${proj}<br><br>Click any <em>Live Demo</em> button above to see real screenshots! 🤩`;
+    }
+
+    // Experience / career
+    if (/\b(experience|career|company|job|worked|infosys|nexsys|texala|flyboard|year|timeline)\b/i.test(t))
+      return `Chandan's career timeline:<br><br>🟣 <strong>Infosys / Bank of America</strong> — Senior SWE (Nov 2025–Present)<br>LLM-integrated banking automation, Kafka pipelines, AI microservices<br><br>🔵 <strong>Nexsys / Accelya</strong> — SWE (Dec 2023–Nov 2025)<br>Aviation systems · 500K+ daily transactions<br><br>🟢 <strong>Texala</strong> — SWE (Jul–Nov 2023)<br>Java/Spring Boot microservices<br><br>🟡 <strong>Flyboard Ventures</strong> — SWE (Aug 2022–Jul 2023)<br>Mobile, healthcare, e-learning with AI<br><br>4 companies. 4+ years. Real engineering. 🎯`;
+
+    // Education
+    if (/\b(education|college|university|degree|study|b\.?tech|masai|future institute|cgpa|kolkata)\b/i.test(t))
+      return `📚 <strong>B.Tech Computer Science</strong><br>Future Institute of Engineering & Management, Kolkata (2014–2018) · CGPA: <strong>8.7</strong><br><br>🚀 <strong>Masai School</strong> Full-Stack Bootcamp<br>Where the AI journey truly began — built to outwork everyone, quietly.<br><br>Started as a mechanical engineer. Today ships production AI. Self-made. ✨`;
+
+    // Story / origin
+    if (/\b(story|journey|background|start|begin|origin|mechanical|console|bootcamp)\b/i.test(t))
+      return `A friend once said: <em>"You can't even spell console."</em><br><br>That taunt became fuel. Chandan joined Masai School, outworked everyone — quietly — and never stopped.<br><br>Today: <strong>637 tests · 4 AI systems · 0 shortcuts.</strong><br><br><a href="https://www.masaischool.com/blog/from-mechanical-engineer-to-full-stack-developer-chandans-success-story/" target="_blank" style="color:var(--purple-lt)">Read the Masai blog ↗</a> ✨`;
+
+    // Testing / guardrails
+    if (/\b(tests?|guardrails?|quality|ci|coverage|reliable|637)\b/i.test(t))
+      return `Chandan's philosophy: <strong>test everything, shortcut nothing.</strong><br><br>📊 <strong>637 tests</strong> across all 4 AI systems<br>⚡ <strong>3.6s</strong> full suite runtime<br>🛡️ <strong>G1–G5 Guardrails</strong> on every LLM call<br>• G1: Rate limiting · G2: Injection detection<br>• G3: PII filter · G4: Faithfulness gate · G5: Output validation<br><br>If it's in prod, it's tested. Period. 💪`;
+
+    // Default — honest fallback
+    return `Hmm, I'm not sure about that one! 🤔<br><br>I'm best at answering questions about Chandan's <strong>skills, projects, experience, and contact info</strong>. Try:<br>• "What projects has he built?"<br>• "Is he available to hire?"<br>• "What is his tech stack?"<br>• "How to contact him?"`;
+  }
+
+  cbToggle() {
+    this.cbOpen.update(v => !v);
+    if (this.cbOpen()) {
+      this.cbUnread.set(0);
+      if (this.cbMessages().length === 0) {
+        this.cbMessages.set([{ role: 'bot', html: `Namaste! 🙏 I'm <strong>Aarav</strong> — Chandan's AI assistant.<br>Ask me anything about his skills, projects, experience, or how to hire him!` }]);
+      }
+      setTimeout(() => this._scrollChat(), 50);
+    }
+  }
+
+  cbSend(text: string) {
+    const q = (text || '').trim();
+    if (!q) return;
+    this.cbDraft = '';
+
+    // Add user message
+    this.cbMessages.update(m => [...m, { role: 'user', html: q }]);
+    this.cbTyping.set(true);
+    setTimeout(() => this._scrollChat(), 30);
+
+    // Simulate thinking delay (400-900ms feels natural)
+    const delay = 400 + Math.random() * 500;
+    setTimeout(() => {
+      const reply = this._match(q);
+      this.cbTyping.set(false);
+      this.cbMessages.update(m => [...m, { role: 'bot', html: reply }]);
+      if (!this.cbOpen()) this.cbUnread.update(n => n + 1);
+      setTimeout(() => this._scrollChat(), 50);
+    }, delay);
+  }
+
+  private _scrollChat() {
+    if (this.cbScrollEl?.nativeElement) {
+      const el = this.cbScrollEl.nativeElement;
+      el.scrollTop = el.scrollHeight;
+    }
   }
 }
