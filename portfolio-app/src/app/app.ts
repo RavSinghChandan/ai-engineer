@@ -103,6 +103,29 @@ export class App implements OnInit, AfterViewInit {
       ],
       imgSrc: 'project-agentic.png',
     },
+    {
+      num: '04', accent: 'green',
+      title: 'RunbookAI',
+      subtitle: 'Enterprise IT Incident Response — RAGless + Multi-Source',
+      desc: 'RAGless incident response engine: zero vectors, zero hallucinated commands. Every kubectl command pulled verbatim from SQLite. Three ranked panels per query — Internal (green), Combined (purple), Official (blue) — with automated conflict detection between your runbooks and kubernetes.io docs.',
+      github: 'https://github.com/RavSinghChandan/ai-engineer',
+      tags: [
+        { label: 'Python', cls: 'tag-green' }, { label: 'FastAPI', cls: 'tag-green' },
+        { label: 'LangGraph', cls: 'tag-green' }, { label: 'NetworkX DAG', cls: 'tag-green' },
+        { label: 'SQLite WAL', cls: 'tag-cyan' }, { label: 'Angular 21', cls: 'tag-cyan' },
+        { label: 'K8s Docs Scraper', cls: 'tag-purple' }, { label: 'Conflict Detection', cls: 'tag-amber' },
+        { label: 'RAGless', cls: 'tag-red' }, { label: '137 Tests', cls: 'tag-amber' },
+      ],
+      challenges: [
+        { p: 'LLM hallucinating kubectl commands under incident pressure', s: 'RAGless architecture: LLM extracts commands once at ingest, SQL returns them verbatim at query time — commands_source: "database" on every response' },
+        { p: 'Step ordering lost when documents are chunked for RAG', s: 'NetworkX DiGraph built from depends_on links — topological sort guarantees safe execution order every time' },
+        { p: 'Engineer doesn\'t know whether to follow company runbook or official K8s docs', s: 'Three-panel response: Internal (Priority 1) → Combined agreed steps (Priority 2) → Official fallback (Priority 3) — ranked, colour-coded, conflict-flagged' },
+        { p: 'Numeric parameter conflicts between internal and official docs undetected', s: 'Conflict detector scans VALUE_CONFLICT, ORDER_CONFLICT, MISSING_STEP, EXTRA_STEP via regex — populates runbook_conflicts table, surfaced in UI with severity + recommendation' },
+        { p: 'Official Kubernetes docs knowledge locked outside the system', s: 'K8s docs scraper pulls 10 pages from kubernetes/website GitHub raw markdown, LLM extracts steps, stored as source_type=official — 22 total runbooks' },
+        { p: 'Parallel steps not identified — engineers run sequentially wasting time', s: 'NetworkX parallel_groups calculation — Steps 4 and 5 can run simultaneously is shown in the Execution Graph tab' },
+      ],
+      imgSrc: 'project-runbookai.png',
+    },
   ];
 
   skills = [
