@@ -572,7 +572,7 @@
           <img src="guide-chandan-happy.svg" class="cb-msg-avatar" alt="Aarav"/>
         }
         <div class="cb-msg-col">
-          <div class="cb-msg-bubble" [innerHTML]="msg.html"></div>
+          <div class="cb-msg-bubble" [innerHTML]="msg.role==='bot' ? msg.safeHtml : msg.html"></div>
           <!-- Follow-up chips — only on last bot message -->
           @if (msg.role === 'bot' && msg.followups && $index === cbMessages().length - 1) {
             <div class="cb-followups">

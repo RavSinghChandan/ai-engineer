@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, HostListener, ElementRef, QueryList, ViewChildren, AfterViewInit, PLATFORM_ID, Inject, ViewChild } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
-import { CommonModule } from '@angular/common';
+import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-root',
@@ -624,7 +624,10 @@ export class App implements OnInit, AfterViewInit {
   statYears  = signal(0);
   private statsAnimated = false;
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
+  constructor(
+    @Inject(PLATFORM_ID) private platformId: Object,
+    private sanitizer: DomSanitizer
+  ) {}
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
@@ -720,7 +723,7 @@ export class App implements OnInit, AfterViewInit {
   cbTyping  = signal(false);
   cbUnread  = signal(0);
   cbDraft   = '';
-  cbMessages = signal<{ role: 'bot'|'user'; html: string; followups?: string[] }[]>([]);
+  cbMessages = signal<{ role: 'bot'|'user'; html: string; safeHtml?: SafeHtml; followups?: string[] }[]>([]);
 
   // Panel resize
   cbPanelW  = signal(380);
@@ -858,13 +861,7 @@ export class App implements OnInit, AfterViewInit {
 
     // 0a. Demo intent — checked before everything
     if (/\b(demo|live\s*demo|see\s*(it|the|a)\s*(demo|app|live|project)|watch|preview|screenshot|show\s*(me\s*)?(the\s*)?(app|demo|live|project|screen))\b/i.test(t))
-      return `<span class="cb-section cb-section--purple">▶️ Live Demos — 4 Projects</span>
-<div class="cb-row"><span class="cb-badge cb-badge--purple">01</span><span class="cb-key"><a href="#project-01" style="color:#c4b5fd">Aura with Rav ↗</a></span><span class="cb-val">→ click <strong>Live Demo</strong> to open walkthrough</span></div>
-<div class="cb-row"><span class="cb-badge cb-badge--amber">02</span><span class="cb-key"><a href="#project-02" style="color:#fde68a">Bench Resource Optimizer ↗</a></span><span class="cb-val">→ click <strong>Live Demo</strong></span></div>
-<div class="cb-row"><span class="cb-badge cb-badge--cyan">03</span><span class="cb-key"><a href="#project-03" style="color:#67e8f9">Agentic Growth OS ↗</a></span><span class="cb-val">→ click <strong>Live Demo</strong></span></div>
-<div class="cb-row"><span class="cb-badge cb-badge--green">04</span><span class="cb-key"><a href="https://portfolio-quyi2c8kj-ravsinghchandans-projects.vercel.app" target="_blank" style="color:#86efac;font-weight:700">RunbookAI — Open Live App ↗</a></span></div>
-<hr class="cb-divider"/>
-<span class="cb-muted">Projects 01–03: click the project name above to jump there, then hit Live Demo. RunbookAI opens directly! 🚀</span>`;
+      return `<div style="margin:0.9rem 0 0.5rem;padding:0.22rem 0.7rem;border-left:3px solid #c4b5fd;background:rgba(124,58,237,0.1);border-radius:0 5px 5px 0;font-size:0.7rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#c4b5fd">▶️ Live Demos — 4 Projects</div><div style="display:grid;grid-template-columns:1.5rem 1fr;gap:0.2rem 0.5rem;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05)"><span style="font-size:0.95rem;line-height:1.5">🔮</span><span style="font-weight:600;color:#e2e8f0;font-size:0.82rem"><a href="#project-01" style="color:#c4b5fd;text-decoration:none;font-weight:700">Aura with Rav ↗</a></span><span style="grid-column:2;color:#94a3b8;font-size:0.74rem;font-style:italic;line-height:1.45;margin-top:0.05rem">Jump to Project 01 → click the <strong style="color:#e2e8f0">Live Demo</strong> button</span></div><div style="display:grid;grid-template-columns:1.5rem 1fr;gap:0.2rem 0.5rem;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05)"><span style="font-size:0.95rem;line-height:1.5">🏢</span><span style="font-weight:600;color:#e2e8f0;font-size:0.82rem"><a href="#project-02" style="color:#fde68a;text-decoration:none;font-weight:700">Bench Resource Optimizer ↗</a></span><span style="grid-column:2;color:#94a3b8;font-size:0.74rem;font-style:italic;line-height:1.45;margin-top:0.05rem">Jump to Project 02 → click the <strong style="color:#e2e8f0">Live Demo</strong> button</span></div><div style="display:grid;grid-template-columns:1.5rem 1fr;gap:0.2rem 0.5rem;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05)"><span style="font-size:0.95rem;line-height:1.5">📈</span><span style="font-weight:600;color:#e2e8f0;font-size:0.82rem"><a href="#project-03" style="color:#67e8f9;text-decoration:none;font-weight:700">Agentic Growth OS ↗</a></span><span style="grid-column:2;color:#94a3b8;font-size:0.74rem;font-style:italic;line-height:1.45;margin-top:0.05rem">Jump to Project 03 → click the <strong style="color:#e2e8f0">Live Demo</strong> button</span></div><div style="display:grid;grid-template-columns:1.5rem 1fr;gap:0.2rem 0.5rem;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05)"><span style="font-size:0.95rem;line-height:1.5">📖</span><span style="font-weight:600;color:#e2e8f0;font-size:0.82rem"><a href="https://portfolio-quyi2c8kj-ravsinghchandans-projects.vercel.app" target="_blank" style="color:#86efac;text-decoration:none;font-weight:700">RunbookAI — Open Live App ↗</a></span><span style="grid-column:2;color:#94a3b8;font-size:0.74rem;font-style:italic;line-height:1.45;margin-top:0.05rem">Live deployed app — opens directly in new tab! 🚀</span></div><div style="border-top:1px solid rgba(255,255,255,0.07);margin:0.7rem 0"></div><div style="color:#64748b;font-size:0.73rem;font-style:italic;margin-top:0.3rem">Projects 01–03: each shows step-by-step screenshots with Aarav guiding you. 🎬</div>`;
 
     // 0. Code / repo deep-dives — checked FIRST before any other intent
     const isCodeQ = /\b(code|how\s*(does|do|it|the)|work|architect|folder|file|struct|run|api|endpoint|explain|implement|backend|frontend|repo|detail|show\s*me)\b/i.test(t);
@@ -912,30 +909,14 @@ export class App implements OnInit, AfterViewInit {
 
     // 5. Contact details
     if (/\b(contact|email|phone|mobile|reach|connect|get in touch|message him|call him|write to)\b/i.test(t))
-      return `<span class="cb-section cb-section--cyan">📬 Reach Chandan</span>
-<div class="cb-row">📧 <span class="cb-key"><a href="mailto:ravchandan15@gmail.com" style="color:#67e8f9">ravchandan15@gmail.com</a></span></div>
-<div class="cb-row">📞 <span class="cb-key"><a href="tel:+916290909518" style="color:#67e8f9">+91 62909 09518</a></span></div>
-<div class="cb-row">💼 <span class="cb-key"><a href="https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/" target="_blank" style="color:#67e8f9">LinkedIn ↗</a></span></div>
-<div class="cb-row">🐙 <span class="cb-key"><a href="https://github.com/RavSinghChandan" target="_blank" style="color:#67e8f9">GitHub ↗</a></span></div>
-<div class="cb-row">▶️ <span class="cb-key"><a href="https://www.youtube.com/@aiwithrav" target="_blank" style="color:#67e8f9">YouTube ↗</a></span></div>
-<hr class="cb-divider"/>
-<span class="cb-muted">Responds fast — usually within hours! 🚀</span>`;
+      return `<div style="margin:0 0 0.5rem;padding:0.22rem 0.7rem;border-left:3px solid #67e8f9;background:rgba(6,182,212,0.1);border-radius:0 5px 5px 0;font-size:0.7rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#67e8f9">📬 Reach Chandan</div><div style="display:grid;grid-template-columns:1.5rem 1fr;gap:0.2rem 0.5rem;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05)"><span style="font-size:0.95rem;line-height:1.5">📧</span><span style="font-weight:600;color:#e2e8f0;font-size:0.82rem"><a href="mailto:ravchandan15@gmail.com" style="color:#67e8f9;text-decoration:none">ravchandan15@gmail.com</a></span></div><div style="display:grid;grid-template-columns:1.5rem 1fr;gap:0.2rem 0.5rem;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05)"><span style="font-size:0.95rem;line-height:1.5">📞</span><span style="font-weight:600;color:#e2e8f0;font-size:0.82rem"><a href="tel:+916290909518" style="color:#67e8f9;text-decoration:none">+91 62909 09518</a></span></div><div style="display:grid;grid-template-columns:1.5rem 1fr;gap:0.2rem 0.5rem;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05)"><span style="font-size:0.95rem;line-height:1.5">💼</span><span style="font-weight:600;color:#e2e8f0;font-size:0.82rem"><a href="https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/" target="_blank" style="color:#67e8f9;text-decoration:none">LinkedIn — Rav Chandan Kumar Singh ↗</a></span></div><div style="display:grid;grid-template-columns:1.5rem 1fr;gap:0.2rem 0.5rem;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05)"><span style="font-size:0.95rem;line-height:1.5">🐙</span><span style="font-weight:600;color:#e2e8f0;font-size:0.82rem"><a href="https://github.com/RavSinghChandan" target="_blank" style="color:#67e8f9;text-decoration:none">GitHub — RavSinghChandan ↗</a></span></div><div style="display:grid;grid-template-columns:1.5rem 1fr;gap:0.2rem 0.5rem;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05)"><span style="font-size:0.95rem;line-height:1.5">▶️</span><span style="font-weight:600;color:#e2e8f0;font-size:0.82rem"><a href="https://www.youtube.com/@aiwithrav" target="_blank" style="color:#67e8f9;text-decoration:none">YouTube — @aiwithrav ↗</a></span></div><div style="border-top:1px solid rgba(255,255,255,0.07);margin:0.7rem 0"></div><div style="color:#64748b;font-size:0.73rem;font-style:italic">Responds fast — usually within hours! ⚡</div><a href="#contact" style="display:inline-block;font-size:0.74rem;font-weight:700;padding:0.24rem 0.7rem;border-radius:6px;background:rgba(6,182,212,0.1);color:#67e8f9;border:1px solid rgba(6,182,212,0.3);margin:0.2rem 0 0;text-decoration:none">↗ Go to Contact Section</a>`;
 
     // 6. Hiring (salary/ctc are NOT known — honest redirect to contact)
     if (/\b(salary|ctc|compensation|pay|package|remuneration|lpa)\b/i.test(t))
       return `I don't have details on Chandan's salary expectations — that's best discussed directly with him. 🙏<br><br>📧 <a href="mailto:ravchandan15@gmail.com" style="color:var(--purple-lt)">ravchandan15@gmail.com</a><br>📞 +91 62909 09518<br><br>He's open to Senior AI Engineer roles and responds fast!`;
 
     if (/\b(hire|available|open to work|recruit|interview|position|opportunit|notice period|join|remote|relocat|freelanc)\b/i.test(t))
-      return `<span class="cb-badge cb-badge--green">✅ OPEN TO WORK</span> <strong>Senior AI Engineer roles</strong>
-<span class="cb-section cb-section--green">Availability</span>
-<div class="cb-row">🌍 <span class="cb-val">Remote &amp; on-site positions</span></div>
-<div class="cb-row">⚡ <span class="cb-val">Responds within hours</span></div>
-<span class="cb-section cb-section--cyan">Contact</span>
-<div class="cb-row">📧 <a href="mailto:ravchandan15@gmail.com" style="color:#67e8f9">ravchandan15@gmail.com</a></div>
-<div class="cb-row">💼 <a href="https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/" target="_blank" style="color:#67e8f9">LinkedIn ↗</a></div>
-<div class="cb-row">📞 +91 62909 09518</div>
-<hr class="cb-divider"/>
-<a href="AI_Engineer_Chandan_Kumar_4_Yrs.pdf" target="_blank" style="color:#a78bfa;font-weight:700">📄 Download Resume →</a>`;
+      return `<div style="margin:0.9rem 0 0.5rem;padding:0.22rem 0.7rem;border-left:3px solid #86efac;background:rgba(16,185,129,0.1);border-radius:0 5px 5px 0;font-size:0.7rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#86efac">✅ Open to Senior AI Engineer Roles</div><div style="display:grid;grid-template-columns:1.5rem 1fr;gap:0.2rem 0.5rem;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05)"><span style="font-size:0.95rem;line-height:1.5">🌍</span><span style="font-weight:600;color:#e2e8f0;font-size:0.82rem">Availability</span><span style="grid-column:2;color:#94a3b8;font-size:0.74rem;font-style:italic;line-height:1.45;margin-top:0.05rem">Remote and on-site · responds within hours</span></div><div style="display:grid;grid-template-columns:1.5rem 1fr;gap:0.2rem 0.5rem;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05)"><span style="font-size:0.95rem;line-height:1.5">📧</span><span style="font-weight:600;color:#e2e8f0;font-size:0.82rem"><a href="mailto:ravchandan15@gmail.com" style="color:#86efac">ravchandan15@gmail.com</a></span></div><div style="display:grid;grid-template-columns:1.5rem 1fr;gap:0.2rem 0.5rem;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05)"><span style="font-size:0.95rem;line-height:1.5">💼</span><span style="font-weight:600;color:#e2e8f0;font-size:0.82rem"><a href="https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/" target="_blank" style="color:#86efac">LinkedIn ↗</a></span></div><div style="display:grid;grid-template-columns:1.5rem 1fr;gap:0.2rem 0.5rem;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05)"><span style="font-size:0.95rem;line-height:1.5">📞</span><span style="font-weight:600;color:#e2e8f0;font-size:0.82rem">+91 62909 09518</span></div><div style="border-top:1px solid rgba(255,255,255,0.07);margin:0.7rem 0"></div><a href="AI_Engineer_Chandan_Kumar_4_Yrs.pdf" target="_blank" style="display:inline-block;font-size:0.74rem;font-weight:700;padding:0.24rem 0.7rem;border-radius:6px;background:rgba(124,58,237,0.1);color:#c4b5fd;border:1px solid rgba(124,58,237,0.35);margin:0.2rem 0.2rem 0 0;text-decoration:none">📄 Download Resume</a><a href="#contact"  style="display:inline-block;font-size:0.74rem;font-weight:700;padding:0.24rem 0.7rem;border-radius:6px;background:rgba(6,182,212,0.1);color:#67e8f9;border:1px solid rgba(6,182,212,0.3);margin:0.2rem 0.2rem 0 0;text-decoration:none">↗ Contact Section</a>`;
 
     // 7. Resume
     if (/\b(resume|cv|download|pdf|curriculum)\b/i.test(t))
@@ -947,29 +928,11 @@ export class App implements OnInit, AfterViewInit {
 
     // 9. Specific tech keywords (before broad "what is" catch)
     if (/\b(java\b|python\b|javascript\b|typescript\b|\bsql\b|langchain\b|langgraph\b|faiss\b|kafka\b|redis\b|angular\b|spring\s*boot|docker\b|kubernetes\b|\baws\b|fastapi\b|flask\b|openai\b|numpy\b|pandas\b|\bnlp\b|prompt\s*engineer|frontend|backend|database|databases)\b/i.test(t))
-      return `<span class="cb-badge cb-badge--green">✅ Production</span> Chandan uses this in real systems.
-<span class="cb-section cb-section--purple">🤖 AI / LLM</span>
-<span class="cb-badge cb-badge--purple">Python</span><span class="cb-badge cb-badge--purple">FastAPI</span><span class="cb-badge cb-badge--purple">LangGraph</span><span class="cb-badge cb-badge--purple">LangChain</span>
-<span class="cb-section cb-section--amber">☕ Backend</span>
-<span class="cb-badge cb-badge--amber">Java</span><span class="cb-badge cb-badge--amber">Spring Boot</span><span class="cb-badge cb-badge--amber">Hibernate</span>
-<span class="cb-section cb-section--cyan">🔍 Retrieval</span>
-<span class="cb-badge cb-badge--cyan">FAISS</span><span class="cb-badge cb-badge--cyan">BM25</span><span class="cb-badge cb-badge--cyan">HyDE</span><span class="cb-badge cb-badge--cyan">CRAG</span>
-<span class="cb-section cb-section--green">🅰️ Frontend &amp; Infra</span>
-<span class="cb-badge cb-badge--green">Angular 17</span><span class="cb-badge cb-badge--green">TypeScript</span><span class="cb-badge cb-badge--green">Docker</span><span class="cb-badge cb-badge--green">AWS</span>`;
+      return `<div style="margin:0.9rem 0 0.5rem;padding:0.22rem 0.7rem;border-left:3px solid #c4b5fd;background:rgba(124,58,237,0.1);border-radius:0 5px 5px 0;font-size:0.7rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#c4b5fd">🤖 AI &amp; LLM Engineering</div><div style="margin:0.3rem 0 0.6rem"><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(124,58,237,0.1);color:#c4b5fd;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">Python</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(124,58,237,0.1);color:#c4b5fd;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">FastAPI</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(124,58,237,0.1);color:#c4b5fd;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">LangGraph</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(124,58,237,0.1);color:#c4b5fd;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">LangChain</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(124,58,237,0.1);color:#c4b5fd;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">OpenAI API</span></div><div style="margin:0.9rem 0 0.5rem;padding:0.22rem 0.7rem;border-left:3px solid #67e8f9;background:rgba(6,182,212,0.1);border-radius:0 5px 5px 0;font-size:0.7rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#67e8f9">🔍 Retrieval &amp; RAG</div><div style="margin:0.3rem 0 0.6rem"><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(6,182,212,0.1);color:#67e8f9;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">FAISS</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(6,182,212,0.1);color:#67e8f9;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">BM25</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(6,182,212,0.1);color:#67e8f9;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">HyDE</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(6,182,212,0.1);color:#67e8f9;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">CRAG</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(6,182,212,0.1);color:#67e8f9;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">Cross-Encoder</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(6,182,212,0.1);color:#67e8f9;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">Semantic Cache</span></div><div style="margin:0.9rem 0 0.5rem;padding:0.22rem 0.7rem;border-left:3px solid #fde68a;background:rgba(245,158,11,0.1);border-radius:0 5px 5px 0;font-size:0.7rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#fde68a">☕ Backend</div><div style="margin:0.3rem 0 0.6rem"><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(245,158,11,0.1);color:#fde68a;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">Java</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(245,158,11,0.1);color:#fde68a;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">Spring Boot</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(245,158,11,0.1);color:#fde68a;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">Kafka</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(245,158,11,0.1);color:#fde68a;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">Redis</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(245,158,11,0.1);color:#fde68a;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">SSE Streaming</span></div><div style="margin:0.9rem 0 0.5rem;padding:0.22rem 0.7rem;border-left:3px solid #86efac;background:rgba(16,185,129,0.1);border-radius:0 5px 5px 0;font-size:0.7rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#86efac">🅰️ Frontend &amp; Infra</div><div style="margin:0.3rem 0 0.6rem"><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(16,185,129,0.1);color:#86efac;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">Angular 17</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(16,185,129,0.1);color:#86efac;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">TypeScript</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(16,185,129,0.1);color:#86efac;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">Docker</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(16,185,129,0.1);color:#86efac;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">AWS</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(16,185,129,0.1);color:#86efac;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">Kubernetes</span></div><div style="border-top:1px solid rgba(255,255,255,0.07);margin:0.7rem 0"></div><div style="color:#64748b;font-size:0.73rem;font-style:italic;margin-top:0.3rem">All battle-tested in production. 637 tests. Zero shortcuts. 💪</div><a href="#skills"  style="display:inline-block;font-size:0.74rem;font-weight:700;padding:0.24rem 0.7rem;border-radius:6px;background:rgba(124,58,237,0.1);color:#c4b5fd;border:1px solid rgba(124,58,237,0.35);margin:0.2rem 0.2rem 0 0;text-decoration:none">↗ See Skills Section</a>`;
 
     // 10. Skills & tech (general)
     if (/\b(skills?|tech\s*stack|stack|languages?|frameworks?|tools?|technologies?|expertise|proficien|speciali[sz]|ai\s*tools?|ai\s*frameworks?)\b/i.test(t))
-      return `<span class="r-head r-head--purple">🤖 AI &amp; LLM Engineering</span>
-<span class="r-tag r-tag--purple">Python</span><span class="r-tag r-tag--purple">FastAPI</span><span class="r-tag r-tag--purple">LangGraph</span><span class="r-tag r-tag--purple">LangChain</span><span class="r-tag r-tag--purple">OpenAI API</span>
-<span class="r-head r-head--cyan">🔍 Retrieval &amp; RAG</span>
-<span class="r-tag r-tag--cyan">FAISS</span><span class="r-tag r-tag--cyan">BM25</span><span class="r-tag r-tag--cyan">HyDE</span><span class="r-tag r-tag--cyan">CRAG</span><span class="r-tag r-tag--cyan">Cross-Encoder</span><span class="r-tag r-tag--cyan">Semantic Cache</span>
-<span class="r-head r-head--amber">☕ Backend</span>
-<span class="r-tag r-tag--amber">Java</span><span class="r-tag r-tag--amber">Spring Boot</span><span class="r-tag r-tag--amber">Kafka</span><span class="r-tag r-tag--amber">Redis</span><span class="r-tag r-tag--amber">SSE Streaming</span>
-<span class="r-head r-head--green">🅰️ Frontend &amp; Infra</span>
-<span class="r-tag r-tag--green">Angular 17</span><span class="r-tag r-tag--green">TypeScript</span><span class="r-tag r-tag--green">Docker</span><span class="r-tag r-tag--green">AWS</span><span class="r-tag r-tag--green">Kubernetes</span><span class="r-tag r-tag--green">GitHub Actions</span>
-<hr class="r-div"/>
-<span class="r-foot">All battle-tested in production. 637 tests. Zero shortcuts. 💪</span>
-<a href="#skills" class="r-link">↗ See Skills Section</a>`;
+      return `<div style="margin:0.9rem 0 0.5rem;padding:0.22rem 0.7rem;border-left:3px solid #c4b5fd;background:rgba(124,58,237,0.1);border-radius:0 5px 5px 0;font-size:0.7rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#c4b5fd">🤖 AI &amp; LLM Engineering</div><div style="margin:0.3rem 0 0.6rem"><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(124,58,237,0.1);color:#c4b5fd;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">Python</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(124,58,237,0.1);color:#c4b5fd;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">FastAPI</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(124,58,237,0.1);color:#c4b5fd;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">LangGraph</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(124,58,237,0.1);color:#c4b5fd;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">LangChain</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(124,58,237,0.1);color:#c4b5fd;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">OpenAI API</span></div><div style="margin:0.9rem 0 0.5rem;padding:0.22rem 0.7rem;border-left:3px solid #67e8f9;background:rgba(6,182,212,0.1);border-radius:0 5px 5px 0;font-size:0.7rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#67e8f9">🔍 Retrieval &amp; RAG</div><div style="margin:0.3rem 0 0.6rem"><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(6,182,212,0.1);color:#67e8f9;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">FAISS</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(6,182,212,0.1);color:#67e8f9;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">BM25</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(6,182,212,0.1);color:#67e8f9;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">HyDE</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(6,182,212,0.1);color:#67e8f9;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">CRAG</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(6,182,212,0.1);color:#67e8f9;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">Cross-Encoder</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(6,182,212,0.1);color:#67e8f9;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">Semantic Cache</span></div><div style="margin:0.9rem 0 0.5rem;padding:0.22rem 0.7rem;border-left:3px solid #fde68a;background:rgba(245,158,11,0.1);border-radius:0 5px 5px 0;font-size:0.7rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#fde68a">☕ Backend</div><div style="margin:0.3rem 0 0.6rem"><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(245,158,11,0.1);color:#fde68a;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">Java</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(245,158,11,0.1);color:#fde68a;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">Spring Boot</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(245,158,11,0.1);color:#fde68a;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">Kafka</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(245,158,11,0.1);color:#fde68a;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">Redis</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(245,158,11,0.1);color:#fde68a;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">SSE Streaming</span></div><div style="margin:0.9rem 0 0.5rem;padding:0.22rem 0.7rem;border-left:3px solid #86efac;background:rgba(16,185,129,0.1);border-radius:0 5px 5px 0;font-size:0.7rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#86efac">🅰️ Frontend &amp; Infra</div><div style="margin:0.3rem 0 0.6rem"><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(16,185,129,0.1);color:#86efac;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">Angular 17</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(16,185,129,0.1);color:#86efac;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">TypeScript</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(16,185,129,0.1);color:#86efac;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">Docker</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(16,185,129,0.1);color:#86efac;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">AWS</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(16,185,129,0.1);color:#86efac;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">Kubernetes</span></div><div style="border-top:1px solid rgba(255,255,255,0.07);margin:0.7rem 0"></div><div style="color:#64748b;font-size:0.73rem;font-style:italic;margin-top:0.3rem">All battle-tested in production. 637 tests. Zero shortcuts. 💪</div><a href="#skills"  style="display:inline-block;font-size:0.74rem;font-weight:700;padding:0.24rem 0.7rem;border-radius:6px;background:rgba(124,58,237,0.1);color:#c4b5fd;border:1px solid rgba(124,58,237,0.35);margin:0.2rem 0.2rem 0 0;text-decoration:none">↗ See Skills Section</a>`;
 
     // 11. RunbookAI specific
     // RunbookAI code deep-dive (must be before general runbook catch)
@@ -987,17 +950,7 @@ export class App implements OnInit, AfterViewInit {
 
     // 12. RAG / AI architecture specific
     if (/\b(rag\b|retrieval|vector\s*(db|search|embed)|faiss|bm25|hyde|crag|rerank|langgraph|multi.?agent|agent\s*(orchestrat|pipelin|system|framework))\b/i.test(t))
-      return `<span class="cb-section cb-section--purple">🧠 Hybrid RAG Stack</span>
-<div class="cb-row"><span class="cb-key">Retrieval</span><span class="cb-val">FAISS + BM25 + RRF fusion</span></div>
-<div class="cb-row"><span class="cb-key">Expansion</span><span class="cb-val">HyDE + CRAG</span></div>
-<div class="cb-row"><span class="cb-key">Reranking</span><span class="cb-val">Cross-encoder</span></div>
-<span class="cb-section cb-section--cyan">🤖 Multi-Agent</span>
-<div class="cb-row"><span class="cb-key">Framework</span><span class="cb-val">LangGraph StateGraph</span></div>
-<div class="cb-row"><span class="cb-key">Agents</span><span class="cb-val">18+ in Aura, 5 in Bench, 5 in Agentic</span></div>
-<span class="cb-section cb-section--red">🛡️ Guardrails G1–G5</span>
-<span class="cb-badge cb-badge--red">G1 Rate limit</span><span class="cb-badge cb-badge--red">G2 Injection</span><span class="cb-badge cb-badge--red">G3 PII</span><span class="cb-badge cb-badge--red">G4 Faithfulness</span><span class="cb-badge cb-badge--red">G5 Output</span>
-<hr class="cb-divider"/>
-<span class="cb-badge cb-badge--green">637 tests</span> <span class="cb-muted">mock LLM · zero flakiness · 3.6s runtime</span>`;
+      return `<div style="margin:0.9rem 0 0.5rem;padding:0.22rem 0.7rem;border-left:3px solid #67e8f9;background:rgba(6,182,212,0.1);border-radius:0 5px 5px 0;font-size:0.7rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#67e8f9">🔍 Hybrid RAG Stack</div><div style="display:grid;grid-template-columns:1.5rem 1fr;gap:0.2rem 0.5rem;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05)"><span style="font-size:0.95rem;line-height:1.5">📥</span><span style="font-weight:600;color:#e2e8f0;font-size:0.82rem">Retrieval</span><span style="grid-column:2;color:#94a3b8;font-size:0.74rem;font-style:italic;line-height:1.45;margin-top:0.05rem">FAISS (semantic) + BM25 (keyword) + RRF fusion</span></div><div style="display:grid;grid-template-columns:1.5rem 1fr;gap:0.2rem 0.5rem;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05)"><span style="font-size:0.95rem;line-height:1.5">💡</span><span style="font-weight:600;color:#e2e8f0;font-size:0.82rem">Query Expansion</span><span style="grid-column:2;color:#94a3b8;font-size:0.74rem;font-style:italic;line-height:1.45;margin-top:0.05rem">HyDE + CRAG + multi-query reformulation</span></div><div style="display:grid;grid-template-columns:1.5rem 1fr;gap:0.2rem 0.5rem;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05)"><span style="font-size:0.95rem;line-height:1.5">🎯</span><span style="font-weight:600;color:#e2e8f0;font-size:0.82rem">Reranking</span><span style="grid-column:2;color:#94a3b8;font-size:0.74rem;font-style:italic;line-height:1.45;margin-top:0.05rem">Cross-encoder — final precision pass before LLM</span></div><div style="margin:0.9rem 0 0.5rem;padding:0.22rem 0.7rem;border-left:3px solid #c4b5fd;background:rgba(124,58,237,0.1);border-radius:0 5px 5px 0;font-size:0.7rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#c4b5fd">🤖 Multi-Agent Orchestration</div><div style="display:grid;grid-template-columns:1.5rem 1fr;gap:0.2rem 0.5rem;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05)"><span style="font-size:0.95rem;line-height:1.5">🔗</span><span style="font-weight:600;color:#e2e8f0;font-size:0.82rem">Framework: LangGraph StateGraph</span><span style="grid-column:2;color:#94a3b8;font-size:0.74rem;font-style:italic;line-height:1.45;margin-top:0.05rem">Immutable state · conditional edges · parallel Send()</span></div><div style="display:grid;grid-template-columns:1.5rem 1fr;gap:0.2rem 0.5rem;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05)"><span style="font-size:0.95rem;line-height:1.5">⚡</span><span style="font-weight:600;color:#e2e8f0;font-size:0.82rem">Scale</span><span style="grid-column:2;color:#94a3b8;font-size:0.74rem;font-style:italic;line-height:1.45;margin-top:0.05rem">18+ agents in Aura · 5 agents in Bench &amp; Agentic</span></div><div style="margin:0.9rem 0 0.5rem;padding:0.22rem 0.7rem;border-left:3px solid #fca5a5;background:rgba(239,68,68,0.1);border-radius:0 5px 5px 0;font-size:0.7rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#fca5a5">🛡️ Guardrails G1–G5</div><div style="margin:0.3rem 0"><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(239,68,68,0.1);color:#fca5a5;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">G1 Rate Limit</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(239,68,68,0.1);color:#fca5a5;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">G2 Injection</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(239,68,68,0.1);color:#fca5a5;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">G3 PII Filter</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(239,68,68,0.1);color:#fca5a5;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">G4 Faithfulness</span><span style="display:inline-block;font-size:0.62rem;font-weight:700;padding:0.07rem 0.45rem;border-radius:999px;background:rgba(239,68,68,0.1);color:#fca5a5;margin:0.07rem 0.1rem;white-space:nowrap;vertical-align:middle">G5 Output</span></div><div style="border-top:1px solid rgba(255,255,255,0.07);margin:0.7rem 0"></div><div style="color:#64748b;font-size:0.73rem;font-style:italic;margin-top:0.3rem"><strong style="color:#e2e8f0">637 tests</strong> · mock LLM · 3.6s runtime · zero flakiness</div>`;
 
     // 13a. Code / architecture deep-dives — MUST be before general projects catch
 
@@ -1039,96 +992,69 @@ export class App implements OnInit, AfterViewInit {
 
     // 13. Projects (general — includes "production AI systems")
     if (/\b(projects?|portfolio|built?\b|shipped?\b|developed|created\b|aura\b|bench\b|agentic\b|growth\s*os|runbookai|production\s*ai)\b/i.test(t))
-      return `<span class="r-head r-head--purple">🚀 4 Production AI Systems</span>
-<div class="r-row">
-  <span class="r-icon">🔮</span>
-  <span class="r-label"><a href="#project-01" class="r-link">Aura with Rav ↗</a></span>
-  <span class="r-note">18+ agents · 23 Indian languages · 415 tests · G1-G5 guardrails</span>
-</div>
-<div class="r-row">
-  <span class="r-icon">🏢</span>
-  <span class="r-label"><a href="#project-02" class="r-link r-link--amber">Bench Resource Optimizer ↗</a></span>
-  <span class="r-note">Hybrid RAG · circuit breaker · episodic memory · 222 tests</span>
-</div>
-<div class="r-row">
-  <span class="r-icon">📈</span>
-  <span class="r-label"><a href="#project-03" class="r-link r-link--cyan">Agentic Growth OS ↗</a></span>
-  <span class="r-note">5 LangGraph agents · auto-learning · ROI lift 40–80%</span>
-</div>
-<div class="r-row">
-  <span class="r-icon">📖</span>
-  <span class="r-label"><a href="https://portfolio-quyi2c8kj-ravsinghchandans-projects.vercel.app" target="_blank" class="r-link r-link--green">RunbookAI — Open Live App ↗</a></span>
-  <span class="r-note">RAGless · 22 runbooks · conflict detection · zero vectors</span>
-</div>
-<hr class="r-div"/>
-<span class="r-foot">Click any project name to jump there. RunbookAI opens a live deployed app! 🤩</span>`;
+      return `<div style="margin:0.9rem 0 0.5rem;padding:0.22rem 0.7rem;border-left:3px solid #c4b5fd;background:rgba(124,58,237,0.1);border-radius:0 5px 5px 0;font-size:0.7rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#c4b5fd">🚀 4 Production AI Systems</div><div style="display:grid;grid-template-columns:1.5rem 1fr;gap:0.2rem 0.5rem;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05)"><span style="font-size:0.95rem;line-height:1.5">🔮</span><span style="font-weight:600;color:#e2e8f0;font-size:0.82rem"><a href="#project-01" style="color:#c4b5fd;text-decoration:none;font-weight:700">Aura with Rav ↗</a></span><span style="grid-column:2;color:#94a3b8;font-size:0.74rem;font-style:italic;line-height:1.45;margin-top:0.05rem">18+ agents · 23 Indian languages · 415 tests · G1-G5 guardrails</span></div><div style="display:grid;grid-template-columns:1.5rem 1fr;gap:0.2rem 0.5rem;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05)"><span style="font-size:0.95rem;line-height:1.5">🏢</span><span style="font-weight:600;color:#e2e8f0;font-size:0.82rem"><a href="#project-02" style="color:#fde68a;text-decoration:none;font-weight:700">Bench Resource Optimizer ↗</a></span><span style="grid-column:2;color:#94a3b8;font-size:0.74rem;font-style:italic;line-height:1.45;margin-top:0.05rem">Hybrid RAG · circuit breaker · episodic memory · 222 tests</span></div><div style="display:grid;grid-template-columns:1.5rem 1fr;gap:0.2rem 0.5rem;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05)"><span style="font-size:0.95rem;line-height:1.5">📈</span><span style="font-weight:600;color:#e2e8f0;font-size:0.82rem"><a href="#project-03" style="color:#67e8f9;text-decoration:none;font-weight:700">Agentic Growth OS ↗</a></span><span style="grid-column:2;color:#94a3b8;font-size:0.74rem;font-style:italic;line-height:1.45;margin-top:0.05rem">5 LangGraph agents · auto-learning engine · ROI lift 40–80%</span></div><div style="display:grid;grid-template-columns:1.5rem 1fr;gap:0.2rem 0.5rem;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05)"><span style="font-size:0.95rem;line-height:1.5">📖</span><span style="font-weight:600;color:#e2e8f0;font-size:0.82rem"><a href="https://portfolio-quyi2c8kj-ravsinghchandans-projects.vercel.app" target="_blank" style="color:#86efac;text-decoration:none;font-weight:700">RunbookAI — Live App ↗</a></span><span style="grid-column:2;color:#94a3b8;font-size:0.74rem;font-style:italic;line-height:1.45;margin-top:0.05rem">RAGless · 22 runbooks · conflict detection · zero vectors</span></div><div style="border-top:1px solid rgba(255,255,255,0.07);margin:0.7rem 0"></div><div style="color:#64748b;font-size:0.73rem;font-style:italic;margin-top:0.3rem">Click any project name above to jump to it or open the live app! 🤩</div>`;
 
     // 14. Testing / quality
     if (/\b(tests?\b|testing\b|guardrails?\b|quality\b|\bci\b|coverage\b|reliable\b|637\b|tdd\b)\b/i.test(t))
-      return `<span class="r-head r-head--green">📊 Test Coverage</span>
-<div class="r-row">
-  <span class="r-icon">✅</span>
-  <span class="r-label">Total</span>
-  <span class="r-note"><strong>637 tests</strong> across all 4 AI systems</span>
-</div>
-<div class="r-row">
-  <span class="r-icon">⚡</span>
-  <span class="r-label">Runtime</span>
-  <span class="r-note">3.6s full suite · zero external dependencies in CI</span>
-</div>
-<div class="r-row">
-  <span class="r-icon">🤖</span>
-  <span class="r-label">Strategy</span>
-  <span class="r-note">Mock LLM — tests pass without API keys</span>
-</div>
-<span class="r-head r-head--red">🛡️ Production Guardrails</span>
-<div class="r-row">
-  <span class="r-icon">🔴</span>
-  <span class="r-label"><span class="r-tag r-tag--red">G1</span> Rate Limiting</span>
-  <span class="r-note">Per IP/user — blocks abuse before LLM is touched</span>
-</div>
-<div class="r-row">
-  <span class="r-icon">🔴</span>
-  <span class="r-label"><span class="r-tag r-tag--red">G2</span> Injection Detection</span>
-  <span class="r-note">Scans every input — jailbreak patterns blocked</span>
-</div>
-<div class="r-row">
-  <span class="r-icon">🔴</span>
-  <span class="r-label"><span class="r-tag r-tag--red">G3</span> PII Filter</span>
-  <span class="r-note">No personal data ever reaches the LLM</span>
-</div>
-<div class="r-row">
-  <span class="r-icon">🔴</span>
-  <span class="r-label"><span class="r-tag r-tag--red">G4</span> Faithfulness Gate</span>
-  <span class="r-note">Output must be grounded in retrieved context</span>
-</div>
-<div class="r-row">
-  <span class="r-icon">🔴</span>
-  <span class="r-label"><span class="r-tag r-tag--red">G5</span> Output Validation</span>
-  <span class="r-note">Final check before response is returned</span>
-</div>
-<hr class="r-div"/>
-<span class="r-foot">Philosophy: test everything, shortcut nothing. 💪</span>`;
+      return `<h3 class="h-green">📊 Test Coverage</h3>
+<ul>
+  <li>
+    <span class="li-icon">✅</span>
+    <span class="li-main"><strong>637 tests</strong> across all 4 AI systems</span>
+    <span class="li-sub">3.6s full suite · zero external dependencies in CI</span>
+  </li>
+  <li>
+    <span class="li-icon">🤖</span>
+    <span class="li-main">Mock LLM strategy</span>
+    <span class="li-sub">Tests pass without API keys — no flakiness</span>
+  </li>
+</ul>
+<h3 class="h-red">🛡️ Production Guardrails</h3>
+<ul>
+  <li><span class="li-icon">🔴</span><span class="li-main"><span class="ct ct-r">G1</span> Rate Limiting</span><span class="li-sub">Per IP/user — blocks abuse before LLM is touched</span></li>
+  <li><span class="li-icon">🔴</span><span class="li-main"><span class="ct ct-r">G2</span> Injection Detection</span><span class="li-sub">Scans every input — jailbreak patterns blocked</span></li>
+  <li><span class="li-icon">🔴</span><span class="li-main"><span class="ct ct-r">G3</span> PII Filter</span><span class="li-sub">No personal data ever reaches the LLM</span></li>
+  <li><span class="li-icon">🔴</span><span class="li-main"><span class="ct ct-r">G4</span> Faithfulness Gate</span><span class="li-sub">Output must be grounded in retrieved context</span></li>
+  <li><span class="li-icon">🔴</span><span class="li-main"><span class="ct ct-r">G5</span> Output Validation</span><span class="li-sub">Final check before response is returned to user</span></li>
+</ul>
+<hr/>
+<span class="fn"><em>Philosophy: test everything, shortcut nothing. 💪</em></span>`;
 
     // 15. Education (specific keywords — includes "when did he graduate")
     if (/\b(graduat|when\s*did\b|2018|2014|b\.?tech\b|bachelor\b|cgpa\b|gpa\b|future\s*institute|kolkata\b|masai\b|bootcamp\b|degree\b|qualif)\b/i.test(t))
-      return `📚 <strong>B.Tech Computer Science & Engineering</strong><br>Future Institute of Engineering & Management, Kolkata<br>2014–2018 · CGPA: <strong>8.7</strong><br><br>🚀 <strong>Masai School</strong> Full-Stack & AI Bootcamp (Post-graduation)<br>Where the AI engineering journey truly began.<br><br>Started as a mechanical engineer → CS bootcamp → 4 companies → Senior AI Engineer. Self-made. ✨`;
+      return `<h3 class="h-amber">🎓 Education</h3>
+<ul>
+  <li>
+    <span class="li-icon">🏛️</span>
+    <span class="li-main">B.Tech — Computer Science &amp; Engineering</span>
+    <span class="li-sub"><em>Future Institute of Engineering &amp; Management, Kolkata</em><br>2014–2018 · <strong>CGPA: 8.7</strong></span>
+  </li>
+  <li>
+    <span class="li-icon">🚀</span>
+    <span class="li-main">Masai School</span>
+    <span class="li-sub"><em>Full-Stack &amp; AI Bootcamp</em> — where the AI journey truly began</span>
+  </li>
+</ul>
+<hr/>
+<span class="fn">Mechanical engineer → CS bootcamp → 4 companies → Senior AI Engineer. <em>Self-made. ✨</em></span>`;
 
     // 16. Education (general)
     if (/\b(education\b|college\b|university\b|study\b|studied\b|school\b)\b/i.test(t))
-      return `<span class="r-head r-head--amber">🎓 Education</span>
-<div class="r-row">
-  <span class="r-icon">🏛️</span>
-  <span class="r-label">B.Tech — Computer Science &amp; Engineering</span>
-  <span class="r-note">Future Institute of Engineering &amp; Management, Kolkata<br>2014–2018 · <strong>CGPA: 8.7</strong></span>
-</div>
-<div class="r-row">
-  <span class="r-icon">🚀</span>
-  <span class="r-label">Masai School</span>
-  <span class="r-note">Full-Stack &amp; AI Bootcamp — where the AI journey truly began</span>
-</div>
-<hr class="r-div"/>
-<span class="r-foot">Mechanical engineer → CS bootcamp → 4 companies → Senior AI Engineer. Self-made. ✨</span>`;
+      return `<h3 class="h-amber">🎓 Education</h3>
+<ul>
+  <li>
+    <span class="li-icon">🏛️</span>
+    <span class="li-main">B.Tech — Computer Science &amp; Engineering</span>
+    <span class="li-sub"><em>Future Institute of Engineering &amp; Management, Kolkata</em><br>2014–2018 · <strong>CGPA: 8.7</strong></span>
+  </li>
+  <li>
+    <span class="li-icon">🚀</span>
+    <span class="li-main">Masai School</span>
+    <span class="li-sub"><em>Full-Stack &amp; AI Bootcamp</em> — where the AI journey truly began</span>
+  </li>
+</ul>
+<hr/>
+<span class="fn">Mechanical engineer → CS bootcamp → 4 companies → Senior AI Engineer. <em>Self-made. ✨</em></span>`;
 
     // 17. Story / motivation / how he started
     if (/\b(?:story|journey|motivat|inspir|how (?:did|he)|why (?:did|he)|started?|began?|origin|background|mechanical|console|fuel|become|became|what drove)/i.test(t))
@@ -1140,46 +1066,20 @@ export class App implements OnInit, AfterViewInit {
 
     // 19. Experience & career (general — includes "banking", "role at X", "work at X")
     if (/\b(experience\b|career\b|companies\b|jobs?\b|work(ed)?\s*(at|on|for)\b|timeline\b|accelya\b|nexsys\b|texala\b|flyboard\b|infosys\b|bank(ing)?\b|aviation\b|years?\s*of\b|role\s*at\b)\b/i.test(t))
-      return `<span class="cb-section cb-section--purple">💼 Career Timeline — 4+ Years</span>
-<div class="cb-row"><span class="cb-badge cb-badge--purple">Current</span><span class="cb-key">Infosys / Bank of America</span></div>
-<div class="cb-row"><span class="cb-val" style="padding-left:0.5rem">Senior SWE · Nov 2025–Present · Pune</span></div>
-<div class="cb-row"><span class="cb-val" style="padding-left:0.5rem">LLM banking automation · Kafka · 40% efficiency gain</span></div>
-<hr class="cb-divider"/>
-<div class="cb-row"><span class="cb-badge cb-badge--cyan">2023–25</span><span class="cb-key">Nexsys / Accelya</span></div>
-<div class="cb-row"><span class="cb-val" style="padding-left:0.5rem">SWE · Mumbai · Aviation · 500K+ daily transactions</span></div>
-<hr class="cb-divider"/>
-<div class="cb-row"><span class="cb-badge cb-badge--green">2023</span><span class="cb-key">Texala</span></div>
-<div class="cb-row"><span class="cb-val" style="padding-left:0.5rem">SWE · Pune · Java / Spring Boot microservices</span></div>
-<hr class="cb-divider"/>
-<div class="cb-row"><span class="cb-badge cb-badge--amber">2022–23</span><span class="cb-key">Flyboard Ventures</span></div>
-<div class="cb-row"><span class="cb-val" style="padding-left:0.5rem">SWE · Chandigarh · Mobile · Healthcare · AI/ML</span></div>`;
+      return `<div style="margin:0.9rem 0 0.5rem;padding:0.22rem 0.7rem;border-left:3px solid #c4b5fd;background:rgba(124,58,237,0.1);border-radius:0 5px 5px 0;font-size:0.7rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#c4b5fd">💼 Career Timeline — 4+ Years</div><div style="display:grid;grid-template-columns:1.5rem 1fr;gap:0.2rem 0.5rem;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05)"><span style="font-size:0.95rem;line-height:1.5">🟣</span><span style="font-weight:600;color:#e2e8f0;font-size:0.82rem">Infosys / Bank of America &nbsp;<span style="font-size:0.62rem;padding:0.05rem 0.4rem;border-radius:999px;background:rgba(16,185,129,0.15);color:#86efac">Current</span></span><span style="grid-column:2;color:#94a3b8;font-size:0.74rem;font-style:italic;line-height:1.45;margin-top:0.05rem"><em>Senior SWE · Nov 2025–Present · Pune</em><br>LLM banking automation · Kafka pipelines · <strong style="color:#e2e8f0">40% efficiency gain</strong></span></div><div style="display:grid;grid-template-columns:1.5rem 1fr;gap:0.2rem 0.5rem;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05)"><span style="font-size:0.95rem;line-height:1.5">🔵</span><span style="font-weight:600;color:#e2e8f0;font-size:0.82rem">Nexsys / Accelya</span><span style="grid-column:2;color:#94a3b8;font-size:0.74rem;font-style:italic;line-height:1.45;margin-top:0.05rem"><em>SWE · Dec 2023–Nov 2025 · Mumbai</em><br>Aviation · 500K+ daily transactions · AI-ready architecture</span></div><div style="display:grid;grid-template-columns:1.5rem 1fr;gap:0.2rem 0.5rem;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05)"><span style="font-size:0.95rem;line-height:1.5">🟢</span><span style="font-weight:600;color:#e2e8f0;font-size:0.82rem">Texala</span><span style="grid-column:2;color:#94a3b8;font-size:0.74rem;font-style:italic;line-height:1.45;margin-top:0.05rem"><em>SWE · Jul–Nov 2023 · Pune</em><br>Java / Spring Boot microservices</span></div><div style="display:grid;grid-template-columns:1.5rem 1fr;gap:0.2rem 0.5rem;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05)"><span style="font-size:0.95rem;line-height:1.5">🟡</span><span style="font-weight:600;color:#e2e8f0;font-size:0.82rem">Flyboard Ventures</span><span style="grid-column:2;color:#94a3b8;font-size:0.74rem;font-style:italic;line-height:1.45;margin-top:0.05rem"><em>SWE · Aug 2022–Jul 2023 · Chandigarh</em><br>Mobile app · healthcare · e-learning with AI/ML</span></div><div style="border-top:1px solid rgba(255,255,255,0.07);margin:0.7rem 0"></div><a href="#experience"  style="display:inline-block;font-size:0.74rem;font-weight:700;padding:0.24rem 0.7rem;border-radius:6px;background:rgba(245,158,11,0.1);color:#fde68a;border:1px solid rgba(245,158,11,0.3);margin:0.2rem 0.2rem 0 0;text-decoration:none">↗ See Full Timeline</a>`;
 
     // 20. Broad identity
     if (/\b(who is\s*(chandan|rav|he)\b|introduce\s*(chandan|him)\b|about\s*(chandan|rav)\b|chandan\s*kumar\b|what\s*does\s*(chandan|he)\s*(do|work)\b|is\s*(he|chandan)\s*an?\s*(ai|senior|software|engineer|developer)\b)\b/i.test(t))
-      return `<span class="r-head r-head--purple">👤 Chandan Kumar <em style="font-weight:400;color:#94a3b8">alias Rav</em></span>
-<div class="r-row">
-  <span class="r-icon">💼</span>
-  <span class="r-label">Role</span>
-  <span class="r-note">Senior AI Engineer · 4+ years</span>
-</div>
-<div class="r-row">
-  <span class="r-icon">🏢</span>
-  <span class="r-label">Currently</span>
-  <span class="r-note">Infosys — Bank of America project · Pune</span>
-</div>
-<div class="r-row">
-  <span class="r-icon">🧠</span>
-  <span class="r-label">Speciality</span>
-  <span class="r-note">Multi-agent orchestration · RAG pipelines · Production AI</span>
-</div>
-<div class="r-row">
-  <span class="r-icon">📊</span>
-  <span class="r-label">Track record</span>
-  <span class="r-note"><strong>637 tests · 4 AI systems · zero shortcuts</strong></span>
-</div>
-<hr class="r-div"/>
-<a href="#projects" class="r-link">↗ See His Projects</a>
-<a href="#experience" class="r-link r-link--amber">↗ Career Timeline</a>`;
+      return `<h3 class="h-purple">👤 Chandan Kumar <em style="font-weight:400;color:#94a3b8;font-size:0.75rem">alias Rav</em></h3>
+<ul>
+  <li><span class="li-icon">💼</span><span class="li-main">Role</span><span class="li-sub">Senior AI Engineer · 4+ years</span></li>
+  <li><span class="li-icon">🏢</span><span class="li-main">Currently</span><span class="li-sub">Infosys — Bank of America project · Pune</span></li>
+  <li><span class="li-icon">🧠</span><span class="li-main">Speciality</span><span class="li-sub">Multi-agent orchestration · RAG pipelines · Production AI</span></li>
+  <li><span class="li-icon">📊</span><span class="li-main">Track record</span><span class="li-sub"><strong>637 tests · 4 AI systems · zero shortcuts</strong></span></li>
+</ul>
+<hr/>
+<a href="#projects" class="ca ca-p">↗ See His Projects</a>
+<a href="#experience" class="ca ca-a">↗ Career Timeline</a>`;
 
     // 21a. Aura with Rav — code deep-dive (from github.com/RavSinghChandan/ai-engineer)
     if (/\b(aura\b|aura\s*with\s*rav|astro.?intel|spiritual|vedic|numerolog|palmist|tarot|vastu|astrology|18\s*agent|23\s*language)\b/i.test(t))
@@ -1306,7 +1206,8 @@ export class App implements OnInit, AfterViewInit {
     if (this.cbOpen()) {
       this.cbUnread.set(0);
       // Always reset to fresh session on open
-      this.cbMessages.set([{ role: 'bot', html: `Namaste! 🙏 I'm <strong>Aarav</strong> — Chandan's AI assistant.<br>Ask me anything about his skills, projects, experience, or how to hire him!` }]);
+      const greet = `Namaste! 🙏 I'm <strong>Aarav</strong> — Chandan's AI assistant.<br>Ask me anything about his skills, projects, experience, or how to hire him!`;
+      this.cbMessages.set([{ role: 'bot', html: greet, safeHtml: this.sanitizer.bypassSecurityTrustHtml(greet) }]);
       setTimeout(() => this._scrollChat(), 50);
     }
   }
@@ -1327,7 +1228,7 @@ export class App implements OnInit, AfterViewInit {
       const reply = this._match(q);
       const followups = this._followups(this._normalize(q));
       this.cbTyping.set(false);
-      this.cbMessages.update(m => [...m, { role: 'bot', html: reply, followups }]);
+      this.cbMessages.update(m => [...m, { role: 'bot', html: reply, safeHtml: this.sanitizer.bypassSecurityTrustHtml(reply), followups }]);
       if (!this.cbOpen()) this.cbUnread.update(n => n + 1);
       setTimeout(() => this._scrollChat(), 50);
     }, delay);
