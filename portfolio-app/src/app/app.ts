@@ -684,11 +684,15 @@ export class App implements OnInit, AfterViewInit {
 
   private applyTheme(t: 'dark' | 'light') {
     this.theme.set(t);
-    // Set on BOTH html and body so CSS selectors always match
     document.documentElement.setAttribute('data-theme', t);
     document.body.setAttribute('data-theme', t);
     document.body.style.background = t === 'dark' ? '#09090b' : '#ffffff';
     document.body.style.color = t === 'dark' ? '#fafafa' : '#09090b';
+    // Force chat panel to repaint with new CSS vars if open
+    if (this.cbOpen()) {
+      this.cbOpen.set(false);
+      setTimeout(() => this.cbOpen.set(true), 10);
+    }
   }
 
   @HostListener('window:scroll')
@@ -732,6 +736,28 @@ export class App implements OnInit, AfterViewInit {
 
   // Session ID for log grouping
   private readonly _cbSession = Math.random().toString(36).slice(2, 10);
+
+  // Track asked topics to detect rephrasing abuse
+  private _cbAskedTopics = new Set<string>();
+
+  private _cbGetTopic(q: string): string {
+    const t = q.toLowerCase();
+    if (/\b(aura|astro|spiritual)\b/.test(t)) return 'aura';
+    if (/\b(bench|hr.?ai|upload.?cv)\b/.test(t)) return 'bench';
+    if (/\b(agentic|growth.?os|campaign)\b/.test(t)) return 'agentic';
+    if (/\b(runbook|incident|ragless)\b/.test(t)) return 'runbook';
+    if (/\b(project|built|shipped|portfolio|production\s*ai|ai\s*system|what.*(he|chandan).*(build|make|create|develop))\b/.test(t)) return 'projects';
+    if (/\b(skill|tech|stack|language|framework)\b/.test(t)) return 'skills';
+    if (/\b(experience|career|company|worked)\b/.test(t)) return 'career';
+    if (/\b(hire|available|recruit|contact|email|phone)\b/.test(t)) return 'hire';
+    if (/\b(story|origin|mechanical|console)\b/.test(t)) return 'story';
+    if (/\b(education|college|degree|masai)\b/.test(t)) return 'education';
+    if (/\b(demo|live|screenshot)\b/.test(t)) return 'demo';
+    if (/\b(github|repo|code|folder)\b/.test(t)) return 'github';
+    if (/\b(rag|langgraph|faiss|multi.?agent)\b/.test(t)) return 'architecture';
+    if (/\b(test|guardrail|637)\b/.test(t)) return 'testing';
+    return q.slice(0, 30).toLowerCase().replace(/\s+/g, '_');
+  }
 
   // Log webhook — replace with your Google Apps Script deployment URL
   private readonly _logUrl = 'https://script.google.com/macros/s/AKfycbzXfq_SmxwgQm-6z2TZBCky5UkGGWwERDGCw64uyWkpBIWAjg35Cef4UaeY09iaoYBuwA/exec';
@@ -1239,7 +1265,9 @@ export class App implements OnInit, AfterViewInit {
       // Reset session on every open
       this.cbQCount.set(0);
       this.cbLimited.set(false);
-      const greet = `Namaste! 🙏 I'm <strong>Aarav</strong> — Chandan's AI assistant.<br>Ask me anything about his skills, projects, experience, or how to hire him!`;
+      this._cbAskedTopics.clear();
+      const greet = `Namaste! 👋 I'm <strong>Aarav</strong> — Chandan's AI guide.<br><br>` +
+        `You have <strong style="color:var(--cb-head-color)">10 free questions</strong> this session. Ask anything about his skills, projects, career, or how to hire him!`;
       this.cbMessages.set([{ role: 'bot', html: greet, safeHtml: this.sanitizer.bypassSecurityTrustHtml(greet) }]);
       setTimeout(() => this._scrollChat(), 50);
     }
@@ -1250,21 +1278,26 @@ export class App implements OnInit, AfterViewInit {
     if (!q || this.cbLimited()) return;
     this.cbDraft = '';
 
-    // Check rate limit
-    const newCount = this.cbQCount() + 1;
-    this.cbQCount.set(newCount);
+    // Topic-aware rate limit — rephrase of same topic doesn't cost extra question
+    const topic = this._cbGetTopic(q);
+    const isRephrase = this._cbAskedTopics.has(topic);
+    if (!isRephrase) this._cbAskedTopics.add(topic);
+
+    // Only count NEW topics against the limit
+    const newCount = isRephrase ? this.cbQCount() : this.cbQCount() + 1;
+    if (!isRephrase) this.cbQCount.set(newCount);
 
     if (newCount > this.CB_LIMIT) {
       this.cbLimited.set(true);
       this._cbLog(q, 'RATE_LIMIT_HIT', true);
       const limitHtml = `<div style="text-align:center;padding:0.5rem 0">
 <div style="font-size:1.4rem;margin-bottom:0.5rem">🔒</div>
-<div style="font-weight:800;color:#f1f5f9;font-size:0.9rem;margin-bottom:0.35rem">Session limit reached</div>
-<div style="color:#94a3b8;font-size:0.78rem;margin-bottom:0.8rem">You've used all <strong style="color:var(--cb-head-color)">10 free questions</strong> for this session.</div>
-<div style="color:#94a3b8;font-size:0.78rem;margin-bottom:0.9rem">Want to know more about Chandan? Reach him directly:</div>
-<a href="mailto:ravchandan15@gmail.com" style="display:inline-block;margin:0.2rem;padding:0.3rem 0.9rem;border-radius:6px;background:var(--cb-chip-bg);color:var(--cb-chip-color);font-size:0.75rem;font-weight:700;text-decoration:none">📧 Email Chandan</a>
-<a href="https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/" target="_blank" style="display:inline-block;margin:0.2rem;padding:0.3rem 0.9rem;border-radius:6px;background:var(--cb-chip-bg);color:var(--cb-chip-color);font-size:0.75rem;font-weight:700;text-decoration:none">💼 LinkedIn</a>
-<div style="margin-top:0.75rem;color:#64748b;font-size:0.7rem;font-style:italic">Close &amp; reopen chat to start a new session</div>
+<div style="font-weight:800;color:var(--cb-text);font-size:0.9rem;margin-bottom:0.35rem">Session limit reached</div>
+<div style="color:var(--cb-text2);font-size:0.78rem;margin-bottom:0.8rem">You've used all <strong style="color:var(--cb-head-color)">10 free questions</strong> this session.</div>
+<div style="color:var(--cb-text2);font-size:0.78rem;margin-bottom:0.9rem">Want to know more? Reach Chandan directly:</div>
+<a href="mailto:ravchandan15@gmail.com" style="display:inline-block;margin:0.2rem;padding:0.3rem 0.9rem;border-radius:6px;background:var(--cb-btn-bg);color:var(--cb-btn-color);font-size:0.75rem;font-weight:700;text-decoration:none;border:1px solid var(--cb-btn-border)">📧 Email Chandan</a>
+<a href="https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/" target="_blank" style="display:inline-block;margin:0.2rem;padding:0.3rem 0.9rem;border-radius:6px;background:var(--cb-btn-bg);color:var(--cb-btn-color);font-size:0.75rem;font-weight:700;text-decoration:none;border:1px solid var(--cb-btn-border)">💼 LinkedIn</a>
+<div style="margin-top:0.75rem;color:var(--cb-text3);font-size:0.7rem;font-style:italic">Close &amp; reopen chat to start a new session</div>
 </div>`;
       this.cbMessages.update(m => [...m, { role: 'user', html: q }, { role: 'bot', html: limitHtml, safeHtml: this.sanitizer.bypassSecurityTrustHtml(limitHtml) }]);
       setTimeout(() => this._scrollChat(), 50);
@@ -1284,9 +1317,9 @@ export class App implements OnInit, AfterViewInit {
       // Warn on question 8 — 2 left
       const remaining = this.CB_LIMIT - this.cbQCount();
       const warningHtml = remaining === 2
-        ? `${reply}<div style="margin-top:0.6rem;padding:0.3rem 0.6rem;border-radius:6px;background:rgba(245,158,11,0.12);border-left:3px solid #d97706;color:#fde68a;font-size:0.72rem;font-style:italic">⚠️ <strong style="color:#fde68a">2 questions remaining</strong> in this session</div>`
+        ? `${reply}<div style="margin-top:0.6rem;padding:0.3rem 0.6rem;border-radius:6px;background:var(--cb-head-bg);border-left:3px solid #d97706;color:var(--cb-text);font-size:0.72rem;font-style:italic">⚠️ <strong style="color:var(--cb-head-color)">2 questions remaining</strong> in this session</div>`
         : remaining === 1
-        ? `${reply}<div style="margin-top:0.6rem;padding:0.3rem 0.6rem;border-radius:6px;background:rgba(239,68,68,0.12);border-left:3px solid #dc2626;color:#fca5a5;font-size:0.72rem;font-style:italic">🔴 <strong style="color:#fca5a5">Last question</strong> in this session</div>`
+        ? `${reply}<div style="margin-top:0.6rem;padding:0.3rem 0.6rem;border-radius:6px;background:var(--cb-head-bg);border-left:3px solid #dc2626;color:var(--cb-text);font-size:0.72rem;font-style:italic">🔴 <strong style="color:var(--cb-head-color)">Last question</strong> in this session — make it count!</div>`
         : reply;
       const finalHtml = warningHtml;
       this.cbTyping.set(false);
