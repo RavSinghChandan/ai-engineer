@@ -157,7 +157,7 @@
     <p class="section-sub">Not demos. Not tutorials. Systems built, tested, and hardened for production.</p>
 
     @for (project of projects; track project.num) {
-      <div class="project-card fade-up" #fadeEl [ngClass]="'accent-' + project.accent">
+      <div class="project-card fade-up" #fadeEl [ngClass]="'accent-' + project.accent" [id]="'project-' + project.num">
         <div class="project-top">
           <div class="project-left">
             <div class="project-num" [ngClass]="'num-' + project.accent">✦ Project {{ project.num }}</div>
