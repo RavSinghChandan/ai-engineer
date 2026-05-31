@@ -550,7 +550,10 @@
 </div>
 
 @if (cbOpen()) {
-<div class="cb-panel" role="dialog" aria-label="Aarav chatbot">
+<div class="cb-panel" role="dialog" aria-label="Aarav chatbot" #cbPanel
+     [style.width.px]="cbPanelW()" [style.height.px]="cbPanelH()">
+  <!-- Resize handle (top-left corner) -->
+  <div class="cb-resize-handle" (mousedown)="cbResizeStart($event)" title="Drag to resize">⤡</div>
   <!-- Header -->
   <div class="cb-header">
     <img src="guide-chandan-happy.svg" class="cb-header-avatar" alt="Aarav"/>

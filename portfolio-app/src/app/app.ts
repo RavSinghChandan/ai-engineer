@@ -722,6 +722,38 @@ export class App implements OnInit, AfterViewInit {
   cbDraft   = '';
   cbMessages = signal<{ role: 'bot'|'user'; html: string; followups?: string[] }[]>([]);
 
+  // Panel resize
+  cbPanelW  = signal(380);
+  cbPanelH  = signal(560);
+  private _cbResizing = false;
+  private _cbResizeStartX = 0;
+  private _cbResizeStartY = 0;
+  private _cbResizeStartW = 380;
+  private _cbResizeStartH = 560;
+
+  cbResizeStart(e: MouseEvent) {
+    this._cbResizing = true;
+    this._cbResizeStartX = e.clientX;
+    this._cbResizeStartY = e.clientY;
+    this._cbResizeStartW = this.cbPanelW();
+    this._cbResizeStartH = this.cbPanelH();
+    e.preventDefault();
+    const onMove = (ev: MouseEvent) => {
+      if (!this._cbResizing) return;
+      const dw = this._cbResizeStartX - ev.clientX;
+      const dh = this._cbResizeStartY - ev.clientY;
+      this.cbPanelW.set(Math.max(300, Math.min(700, this._cbResizeStartW + dw)));
+      this.cbPanelH.set(Math.max(360, Math.min(900, this._cbResizeStartH + dh)));
+    };
+    const onUp = () => {
+      this._cbResizing = false;
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  }
+
   readonly cbQuickPrompts = [
     '👋 Who is Chandan?',
     '🚀 What projects did he build?',
@@ -870,14 +902,30 @@ export class App implements OnInit, AfterViewInit {
 
     // 5. Contact details
     if (/\b(contact|email|phone|mobile|reach|connect|get in touch|message him|call him|write to)\b/i.test(t))
-      return `Here's how to reach Chandan:<br><br>📧 <a href="mailto:ravchandan15@gmail.com" style="color:var(--purple-lt)">ravchandan15@gmail.com</a><br>📞 <a href="tel:+916290909518" style="color:var(--purple-lt)">+91 62909 09518</a><br>💼 <a href="https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/" target="_blank" style="color:var(--purple-lt)">LinkedIn ↗</a><br>🐙 <a href="https://github.com/RavSinghChandan" target="_blank" style="color:var(--purple-lt)">GitHub ↗</a><br>▶️ <a href="https://www.youtube.com/@aiwithrav" target="_blank" style="color:var(--purple-lt)">YouTube ↗</a><br><br>He responds fast — usually within hours! 🚀`;
+      return `<span class="cb-section cb-section--cyan">📬 Reach Chandan</span>
+<div class="cb-row">📧 <span class="cb-key"><a href="mailto:ravchandan15@gmail.com" style="color:#67e8f9">ravchandan15@gmail.com</a></span></div>
+<div class="cb-row">📞 <span class="cb-key"><a href="tel:+916290909518" style="color:#67e8f9">+91 62909 09518</a></span></div>
+<div class="cb-row">💼 <span class="cb-key"><a href="https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/" target="_blank" style="color:#67e8f9">LinkedIn ↗</a></span></div>
+<div class="cb-row">🐙 <span class="cb-key"><a href="https://github.com/RavSinghChandan" target="_blank" style="color:#67e8f9">GitHub ↗</a></span></div>
+<div class="cb-row">▶️ <span class="cb-key"><a href="https://www.youtube.com/@aiwithrav" target="_blank" style="color:#67e8f9">YouTube ↗</a></span></div>
+<hr class="cb-divider"/>
+<span class="cb-muted">Responds fast — usually within hours! 🚀</span>`;
 
     // 6. Hiring (salary/ctc are NOT known — honest redirect to contact)
     if (/\b(salary|ctc|compensation|pay|package|remuneration|lpa)\b/i.test(t))
       return `I don't have details on Chandan's salary expectations — that's best discussed directly with him. 🙏<br><br>📧 <a href="mailto:ravchandan15@gmail.com" style="color:var(--purple-lt)">ravchandan15@gmail.com</a><br>📞 +91 62909 09518<br><br>He's open to Senior AI Engineer roles and responds fast!`;
 
     if (/\b(hire|available|open to work|recruit|interview|position|opportunit|notice period|join|remote|relocat|freelanc)\b/i.test(t))
-      return `✅ <strong>Chandan is open to Senior AI Engineer roles!</strong><br><br>He's available for remote and on-site positions. Best ways to reach him:<br><br>📧 <a href="mailto:ravchandan15@gmail.com" style="color:var(--purple-lt)">ravchandan15@gmail.com</a><br>💼 <a href="https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/" target="_blank" style="color:var(--purple-lt)">LinkedIn ↗</a><br>📞 +91 62909 09518<br><br><a href="AI_Engineer_Chandan_Kumar_4_Yrs.pdf" target="_blank" style="color:var(--purple-lt)">Download his resume ↗</a> 📄`;
+      return `<span class="cb-badge cb-badge--green">✅ OPEN TO WORK</span> <strong>Senior AI Engineer roles</strong>
+<span class="cb-section cb-section--green">Availability</span>
+<div class="cb-row">🌍 <span class="cb-val">Remote &amp; on-site positions</span></div>
+<div class="cb-row">⚡ <span class="cb-val">Responds within hours</span></div>
+<span class="cb-section cb-section--cyan">Contact</span>
+<div class="cb-row">📧 <a href="mailto:ravchandan15@gmail.com" style="color:#67e8f9">ravchandan15@gmail.com</a></div>
+<div class="cb-row">💼 <a href="https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/" target="_blank" style="color:#67e8f9">LinkedIn ↗</a></div>
+<div class="cb-row">📞 +91 62909 09518</div>
+<hr class="cb-divider"/>
+<a href="AI_Engineer_Chandan_Kumar_4_Yrs.pdf" target="_blank" style="color:#a78bfa;font-weight:700">📄 Download Resume →</a>`;
 
     // 7. Resume
     if (/\b(resume|cv|download|pdf|curriculum)\b/i.test(t))
@@ -889,11 +937,28 @@ export class App implements OnInit, AfterViewInit {
 
     // 9. Specific tech keywords (before broad "what is" catch)
     if (/\b(java\b|python\b|javascript\b|typescript\b|\bsql\b|langchain\b|langgraph\b|faiss\b|kafka\b|redis\b|angular\b|spring\s*boot|docker\b|kubernetes\b|\baws\b|fastapi\b|flask\b|openai\b|numpy\b|pandas\b|\bnlp\b|prompt\s*engineer|frontend|backend|database|databases)\b/i.test(t))
-      return `Yes! Chandan works with this in production. His full stack:<br><br>🐍 <strong>Python · FastAPI · LangGraph · LangChain</strong><br>☕ <strong>Java · Spring Boot · Hibernate · JPA</strong><br>🔍 <strong>FAISS · BM25 · HyDE · CRAG (Hybrid RAG)</strong><br>📡 <strong>Kafka · Redis · SSE Streaming</strong><br>🅰️ <strong>Angular 17 · TypeScript</strong><br>🐳 <strong>Docker · Kubernetes · AWS · CI/CD</strong><br>🗄️ <strong>PostgreSQL · MongoDB · MySQL · Vector DBs</strong><br><br>All battle-tested in production. 💪`;
+      return `<span class="cb-badge cb-badge--green">✅ Production</span> Chandan uses this in real systems.
+<span class="cb-section cb-section--purple">🤖 AI / LLM</span>
+<span class="cb-badge cb-badge--purple">Python</span><span class="cb-badge cb-badge--purple">FastAPI</span><span class="cb-badge cb-badge--purple">LangGraph</span><span class="cb-badge cb-badge--purple">LangChain</span>
+<span class="cb-section cb-section--amber">☕ Backend</span>
+<span class="cb-badge cb-badge--amber">Java</span><span class="cb-badge cb-badge--amber">Spring Boot</span><span class="cb-badge cb-badge--amber">Hibernate</span>
+<span class="cb-section cb-section--cyan">🔍 Retrieval</span>
+<span class="cb-badge cb-badge--cyan">FAISS</span><span class="cb-badge cb-badge--cyan">BM25</span><span class="cb-badge cb-badge--cyan">HyDE</span><span class="cb-badge cb-badge--cyan">CRAG</span>
+<span class="cb-section cb-section--green">🅰️ Frontend &amp; Infra</span>
+<span class="cb-badge cb-badge--green">Angular 17</span><span class="cb-badge cb-badge--green">TypeScript</span><span class="cb-badge cb-badge--green">Docker</span><span class="cb-badge cb-badge--green">AWS</span>`;
 
     // 10. Skills & tech (general)
     if (/\b(skills?|tech\s*stack|stack|languages?|frameworks?|tools?|technologies?|expertise|proficien|speciali[sz]|ai\s*tools?|ai\s*frameworks?)\b/i.test(t))
-      return `Chandan's production tech stack:<br><br>🐍 <strong>Python · FastAPI · LangGraph · LangChain</strong><br>☕ <strong>Java · Spring Boot</strong><br>🔍 <strong>FAISS · BM25 · HyDE · CRAG (Hybrid RAG)</strong><br>📡 <strong>Kafka · Redis · SSE Streaming</strong><br>🅰️ <strong>Angular 17 · TypeScript</strong><br>🐳 <strong>Docker · Kubernetes · AWS</strong><br>🗄️ <strong>PostgreSQL · MongoDB · Vector DBs</strong><br><br>All in production. No tutorials. 💪`;
+      return `<span class="cb-section cb-section--purple">🤖 AI &amp; LLM</span>
+<span class="cb-badge cb-badge--purple">Python</span><span class="cb-badge cb-badge--purple">FastAPI</span><span class="cb-badge cb-badge--purple">LangGraph</span><span class="cb-badge cb-badge--purple">LangChain</span>
+<span class="cb-section cb-section--cyan">🔍 Retrieval</span>
+<span class="cb-badge cb-badge--cyan">FAISS</span><span class="cb-badge cb-badge--cyan">BM25</span><span class="cb-badge cb-badge--cyan">HyDE</span><span class="cb-badge cb-badge--cyan">CRAG</span><span class="cb-badge cb-badge--cyan">Cross-Encoder</span>
+<span class="cb-section cb-section--amber">☕ Backend</span>
+<span class="cb-badge cb-badge--amber">Java</span><span class="cb-badge cb-badge--amber">Spring Boot</span><span class="cb-badge cb-badge--amber">Kafka</span><span class="cb-badge cb-badge--amber">Redis</span>
+<span class="cb-section cb-section--green">🅰️ Frontend &amp; Infra</span>
+<span class="cb-badge cb-badge--green">Angular 17</span><span class="cb-badge cb-badge--green">TypeScript</span><span class="cb-badge cb-badge--green">Docker</span><span class="cb-badge cb-badge--green">AWS</span><span class="cb-badge cb-badge--green">Kubernetes</span>
+<hr class="cb-divider"/>
+<span class="cb-badge cb-badge--red">637 tests</span> All in production. No tutorials. 💪`;
 
     // 11. RunbookAI specific
     // RunbookAI code deep-dive (must be before general runbook catch)
@@ -911,7 +976,17 @@ export class App implements OnInit, AfterViewInit {
 
     // 12. RAG / AI architecture specific
     if (/\b(rag\b|retrieval|vector\s*(db|search|embed)|faiss|bm25|hyde|crag|rerank|langgraph|multi.?agent|agent\s*(orchestrat|pipelin|system|framework))\b/i.test(t))
-      return `Chandan is a specialist in production RAG & multi-agent systems:<br><br>🔍 <strong>Hybrid RAG</strong>: FAISS + BM25 + HyDE + CRAG + cross-encoder reranker<br>🤖 <strong>Multi-agent</strong>: LangGraph stateful orchestration (18+ agents in Aura)<br>🛡️ <strong>Guardrails G1–G5</strong>: rate limit · injection · PII · faithfulness · output<br>📊 <strong>637 tests</strong> with mock LLM — no flakiness in CI<br><br>This is his core expertise. 💪`;
+      return `<span class="cb-section cb-section--purple">🧠 Hybrid RAG Stack</span>
+<div class="cb-row"><span class="cb-key">Retrieval</span><span class="cb-val">FAISS + BM25 + RRF fusion</span></div>
+<div class="cb-row"><span class="cb-key">Expansion</span><span class="cb-val">HyDE + CRAG</span></div>
+<div class="cb-row"><span class="cb-key">Reranking</span><span class="cb-val">Cross-encoder</span></div>
+<span class="cb-section cb-section--cyan">🤖 Multi-Agent</span>
+<div class="cb-row"><span class="cb-key">Framework</span><span class="cb-val">LangGraph StateGraph</span></div>
+<div class="cb-row"><span class="cb-key">Agents</span><span class="cb-val">18+ in Aura, 5 in Bench, 5 in Agentic</span></div>
+<span class="cb-section cb-section--red">🛡️ Guardrails G1–G5</span>
+<span class="cb-badge cb-badge--red">G1 Rate limit</span><span class="cb-badge cb-badge--red">G2 Injection</span><span class="cb-badge cb-badge--red">G3 PII</span><span class="cb-badge cb-badge--red">G4 Faithfulness</span><span class="cb-badge cb-badge--red">G5 Output</span>
+<hr class="cb-divider"/>
+<span class="cb-badge cb-badge--green">637 tests</span> <span class="cb-muted">mock LLM · zero flakiness · 3.6s runtime</span>`;
 
     // 13a. Code / architecture deep-dives — MUST be before general projects catch
 
@@ -952,14 +1027,29 @@ export class App implements OnInit, AfterViewInit {
       return `All code is public on GitHub:<br><br>🐙 <a href="https://github.com/RavSinghChandan/ai-engineer" target="_blank" style="color:var(--purple-lt)"><strong>github.com/RavSinghChandan/ai-engineer ↗</strong></a><br><br>📁 <strong>Repo layout</strong>:<br>• <code>astro-intel/</code> + <code>astro-intel-backend/</code> — Aura with Rav<br>• <code>bench-resource-optimizer/</code> — HR AI platform<br>• <code>agentic-growth-os/</code> — autonomous marketing<br>• <code>runbook-ai/</code> — IT incident response<br>• <code>senior-ai-engineer/</code> — 12 interview prep modules<br>• <code>langchain_project/</code> + <code>langraph_project/</code> — RAG + agent demos<br>• <code>.github/workflows/</code> — CI/CD test → build → deploy to AWS ECS<br>• <code>docker-compose.yml</code> — one-command full stack<br><br>61 total repos. Each has <code>README.md</code> · <code>tests/</code> · <code>requirements.txt</code> · <code>.env.example</code>.`;
 
     // 13. Projects (general — includes "production AI systems")
-    if (/\b(projects?|portfolio|built?\b|shipped?\b|developed|created\b|aura\b|bench\b|agentic\b|growth\s*os|runbookai|production\s*ai)\b/i.test(t)) {
-      const proj = this._kb.projects.map(p => `• <strong>${p.name}</strong> — ${p.desc}`).join('<br>');
-      return `Chandan has shipped <strong>4 production AI systems</strong>:<br><br>${proj}<br><br>Click any <em>Live Demo</em> above to see real screenshots! 🤩`;
-    }
+    if (/\b(projects?|portfolio|built?\b|shipped?\b|developed|created\b|aura\b|bench\b|agentic\b|growth\s*os|runbookai|production\s*ai)\b/i.test(t))
+      return `<span class="cb-section cb-section--purple">🚀 4 Production AI Systems</span>
+<div class="cb-row"><span class="cb-badge cb-badge--purple">01</span><span class="cb-key">Aura with Rav</span><span class="cb-val">18+ agents · 23 languages · 415 tests</span></div>
+<div class="cb-row"><span class="cb-badge cb-badge--amber">02</span><span class="cb-key">Bench Resource Optimizer</span><span class="cb-val">Hybrid RAG · circuit breaker · 222 tests</span></div>
+<div class="cb-row"><span class="cb-badge cb-badge--cyan">03</span><span class="cb-key">Agentic Growth OS</span><span class="cb-val">5 agents · auto-learning · ROI lift 40-80%</span></div>
+<div class="cb-row"><span class="cb-badge cb-badge--green">04</span><span class="cb-key">RunbookAI</span><span class="cb-val">RAGless · 22 runbooks · conflict detect</span></div>
+<hr class="cb-divider"/>
+<span class="cb-muted">Click any Live Demo above to see real screenshots! 🤩</span>`;
 
     // 14. Testing / quality
     if (/\b(tests?\b|testing\b|guardrails?\b|quality\b|\bci\b|coverage\b|reliable\b|637\b|tdd\b)\b/i.test(t))
-      return `Chandan's philosophy: <strong>test everything, shortcut nothing.</strong><br><br>📊 <strong>637 tests</strong> across all 4 AI systems · <strong>3.6s</strong> full suite runtime<br>🛡️ <strong>G1–G5 Guardrails</strong> on every LLM call:<br>• G1: Rate limiting · G2: Injection detection<br>• G3: PII filter · G4: Faithfulness gate · G5: Output validation<br><br>If it's in prod, it's tested. Period. 💪`;
+      return `<span class="cb-section cb-section--green">📊 Test Coverage</span>
+<div class="cb-row"><span class="cb-key">Total</span><span class="cb-badge cb-badge--green">637 tests</span></div>
+<div class="cb-row"><span class="cb-key">Runtime</span><span class="cb-val">3.6s full suite · zero flakiness</span></div>
+<div class="cb-row"><span class="cb-key">Strategy</span><span class="cb-val">Mock LLM · no external deps in CI</span></div>
+<span class="cb-section cb-section--red">🛡️ Guardrails G1–G5</span>
+<div class="cb-row"><span class="cb-badge cb-badge--red">G1</span><span class="cb-val">Rate limiting per IP/user</span></div>
+<div class="cb-row"><span class="cb-badge cb-badge--red">G2</span><span class="cb-val">Injection detection on every input</span></div>
+<div class="cb-row"><span class="cb-badge cb-badge--red">G3</span><span class="cb-val">PII filter — no personal data to LLM</span></div>
+<div class="cb-row"><span class="cb-badge cb-badge--red">G4</span><span class="cb-val">Faithfulness gate on output</span></div>
+<div class="cb-row"><span class="cb-badge cb-badge--red">G5</span><span class="cb-val">Output validation before response</span></div>
+<hr class="cb-divider"/>
+<span class="cb-muted">Philosophy: test everything, shortcut nothing. 💪</span>`;
 
     // 15. Education (specific keywords — includes "when did he graduate")
     if (/\b(graduat|when\s*did\b|2018|2014|b\.?tech\b|bachelor\b|cgpa\b|gpa\b|future\s*institute|kolkata\b|masai\b|bootcamp\b|degree\b|qualif)\b/i.test(t))
@@ -979,7 +1069,19 @@ export class App implements OnInit, AfterViewInit {
 
     // 19. Experience & career (general — includes "banking", "role at X", "work at X")
     if (/\b(experience\b|career\b|companies\b|jobs?\b|work(ed)?\s*(at|on|for)\b|timeline\b|accelya\b|nexsys\b|texala\b|flyboard\b|infosys\b|bank(ing)?\b|aviation\b|years?\s*of\b|role\s*at\b)\b/i.test(t))
-      return `Chandan's career (4+ years):<br><br>🟣 <strong>Infosys / Bank of America</strong> — Senior SWE (Nov 2025–Present, Pune)<br>LLM banking automation, Kafka, AI microservices, 40% efficiency gain<br><br>🔵 <strong>Nexsys / Accelya</strong> — SWE (Dec 2023–Nov 2025, Mumbai)<br>Aviation · 500K+ daily transactions · AI-ready architecture<br><br>🟢 <strong>Texala</strong> — SWE (Jul–Nov 2023, Pune)<br>Java/Spring Boot microservices<br><br>🟡 <strong>Flyboard Ventures</strong> — SWE (Aug 2022–Jul 2023, Chandigarh)<br>Mobile, healthcare, e-learning with AI/ML<br><br>4 companies. Real engineering. 🎯`;
+      return `<span class="cb-section cb-section--purple">💼 Career Timeline — 4+ Years</span>
+<div class="cb-row"><span class="cb-badge cb-badge--purple">Current</span><span class="cb-key">Infosys / Bank of America</span></div>
+<div class="cb-row"><span class="cb-val" style="padding-left:0.5rem">Senior SWE · Nov 2025–Present · Pune</span></div>
+<div class="cb-row"><span class="cb-val" style="padding-left:0.5rem">LLM banking automation · Kafka · 40% efficiency gain</span></div>
+<hr class="cb-divider"/>
+<div class="cb-row"><span class="cb-badge cb-badge--cyan">2023–25</span><span class="cb-key">Nexsys / Accelya</span></div>
+<div class="cb-row"><span class="cb-val" style="padding-left:0.5rem">SWE · Mumbai · Aviation · 500K+ daily transactions</span></div>
+<hr class="cb-divider"/>
+<div class="cb-row"><span class="cb-badge cb-badge--green">2023</span><span class="cb-key">Texala</span></div>
+<div class="cb-row"><span class="cb-val" style="padding-left:0.5rem">SWE · Pune · Java / Spring Boot microservices</span></div>
+<hr class="cb-divider"/>
+<div class="cb-row"><span class="cb-badge cb-badge--amber">2022–23</span><span class="cb-key">Flyboard Ventures</span></div>
+<div class="cb-row"><span class="cb-val" style="padding-left:0.5rem">SWE · Chandigarh · Mobile · Healthcare · AI/ML</span></div>`;
 
     // 20. Broad identity
     if (/\b(who is\s*(chandan|rav|he)\b|introduce\s*(chandan|him)\b|about\s*(chandan|rav)\b|chandan\s*kumar\b|what\s*does\s*(chandan|he)\s*(do|work)\b|is\s*(he|chandan)\s*an?\s*(ai|senior|software|engineer|developer)\b)\b/i.test(t))
