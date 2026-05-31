@@ -631,8 +631,7 @@ export class App implements OnInit, AfterViewInit {
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
-      const saved = (localStorage.getItem('ck-theme') as 'dark' | 'light') || 'dark';
-      this.applyTheme(saved);
+      this.applyTheme('dark');
       this.startTyping();
     }
   }
@@ -679,7 +678,6 @@ export class App implements OnInit, AfterViewInit {
   toggleTheme() {
     const next = this.theme() === 'dark' ? 'light' : 'dark';
     this.applyTheme(next);
-    if (isPlatformBrowser(this.platformId)) localStorage.setItem('ck-theme', next);
   }
 
   private applyTheme(t: 'dark' | 'light') {
