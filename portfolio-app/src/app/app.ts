@@ -959,16 +959,17 @@ export class App implements OnInit, AfterViewInit {
 
     // 10. Skills & tech (general)
     if (/\b(skills?|tech\s*stack|stack|languages?|frameworks?|tools?|technologies?|expertise|proficien|speciali[sz]|ai\s*tools?|ai\s*frameworks?)\b/i.test(t))
-      return `<span class="cb-section cb-section--purple">🤖 AI &amp; LLM</span>
-<span class="cb-badge cb-badge--purple">Python</span><span class="cb-badge cb-badge--purple">FastAPI</span><span class="cb-badge cb-badge--purple">LangGraph</span><span class="cb-badge cb-badge--purple">LangChain</span>
-<span class="cb-section cb-section--cyan">🔍 Retrieval</span>
-<span class="cb-badge cb-badge--cyan">FAISS</span><span class="cb-badge cb-badge--cyan">BM25</span><span class="cb-badge cb-badge--cyan">HyDE</span><span class="cb-badge cb-badge--cyan">CRAG</span><span class="cb-badge cb-badge--cyan">Cross-Encoder</span>
-<span class="cb-section cb-section--amber">☕ Backend</span>
-<span class="cb-badge cb-badge--amber">Java</span><span class="cb-badge cb-badge--amber">Spring Boot</span><span class="cb-badge cb-badge--amber">Kafka</span><span class="cb-badge cb-badge--amber">Redis</span>
-<span class="cb-section cb-section--green">🅰️ Frontend &amp; Infra</span>
-<span class="cb-badge cb-badge--green">Angular 17</span><span class="cb-badge cb-badge--green">TypeScript</span><span class="cb-badge cb-badge--green">Docker</span><span class="cb-badge cb-badge--green">AWS</span><span class="cb-badge cb-badge--green">Kubernetes</span>
-<hr class="cb-divider"/>
-<span class="cb-badge cb-badge--red">637 tests</span> All in production. No tutorials. 💪<hr class="cb-divider"/><a href="#skills" style="color:#a78bfa;font-weight:700">↗ See skills section on portfolio</a>`;
+      return `<span class="r-head r-head--purple">🤖 AI &amp; LLM Engineering</span>
+<span class="r-tag r-tag--purple">Python</span><span class="r-tag r-tag--purple">FastAPI</span><span class="r-tag r-tag--purple">LangGraph</span><span class="r-tag r-tag--purple">LangChain</span><span class="r-tag r-tag--purple">OpenAI API</span>
+<span class="r-head r-head--cyan">🔍 Retrieval &amp; RAG</span>
+<span class="r-tag r-tag--cyan">FAISS</span><span class="r-tag r-tag--cyan">BM25</span><span class="r-tag r-tag--cyan">HyDE</span><span class="r-tag r-tag--cyan">CRAG</span><span class="r-tag r-tag--cyan">Cross-Encoder</span><span class="r-tag r-tag--cyan">Semantic Cache</span>
+<span class="r-head r-head--amber">☕ Backend</span>
+<span class="r-tag r-tag--amber">Java</span><span class="r-tag r-tag--amber">Spring Boot</span><span class="r-tag r-tag--amber">Kafka</span><span class="r-tag r-tag--amber">Redis</span><span class="r-tag r-tag--amber">SSE Streaming</span>
+<span class="r-head r-head--green">🅰️ Frontend &amp; Infra</span>
+<span class="r-tag r-tag--green">Angular 17</span><span class="r-tag r-tag--green">TypeScript</span><span class="r-tag r-tag--green">Docker</span><span class="r-tag r-tag--green">AWS</span><span class="r-tag r-tag--green">Kubernetes</span><span class="r-tag r-tag--green">GitHub Actions</span>
+<hr class="r-div"/>
+<span class="r-foot">All battle-tested in production. 637 tests. Zero shortcuts. 💪</span>
+<a href="#skills" class="r-link">↗ See Skills Section</a>`;
 
     // 11. RunbookAI specific
     // RunbookAI code deep-dive (must be before general runbook catch)
@@ -1038,28 +1039,76 @@ export class App implements OnInit, AfterViewInit {
 
     // 13. Projects (general — includes "production AI systems")
     if (/\b(projects?|portfolio|built?\b|shipped?\b|developed|created\b|aura\b|bench\b|agentic\b|growth\s*os|runbookai|production\s*ai)\b/i.test(t))
-      return `<span class="cb-section cb-section--purple">🚀 4 Production AI Systems</span>
-<div class="cb-row"><span class="cb-badge cb-badge--purple">01</span><span class="cb-key"><a href="#project-01" style="color:#c4b5fd">Aura with Rav ↗</a></span><span class="cb-val">18+ agents · 23 languages · 415 tests</span></div>
-<div class="cb-row"><span class="cb-badge cb-badge--amber">02</span><span class="cb-key"><a href="#project-02" style="color:#fde68a">Bench Resource Optimizer ↗</a></span><span class="cb-val">Hybrid RAG · circuit breaker · 222 tests</span></div>
-<div class="cb-row"><span class="cb-badge cb-badge--cyan">03</span><span class="cb-key"><a href="#project-03" style="color:#67e8f9">Agentic Growth OS ↗</a></span><span class="cb-val">5 agents · auto-learning · ROI lift 40-80%</span></div>
-<div class="cb-row"><span class="cb-badge cb-badge--green">04</span><span class="cb-key"><a href="https://portfolio-quyi2c8kj-ravsinghchandans-projects.vercel.app" target="_blank" style="color:#86efac">RunbookAI — Live App ↗</a></span><span class="cb-val">RAGless · 22 runbooks · conflict detect</span></div>
-<hr class="cb-divider"/>
-<span class="cb-muted">Click any project name above to jump straight to it! 🤩</span>`;
+      return `<span class="r-head r-head--purple">🚀 4 Production AI Systems</span>
+<div class="r-row">
+  <span class="r-icon">🔮</span>
+  <span class="r-label"><a href="#project-01" class="r-link">Aura with Rav ↗</a></span>
+  <span class="r-note">18+ agents · 23 Indian languages · 415 tests · G1-G5 guardrails</span>
+</div>
+<div class="r-row">
+  <span class="r-icon">🏢</span>
+  <span class="r-label"><a href="#project-02" class="r-link r-link--amber">Bench Resource Optimizer ↗</a></span>
+  <span class="r-note">Hybrid RAG · circuit breaker · episodic memory · 222 tests</span>
+</div>
+<div class="r-row">
+  <span class="r-icon">📈</span>
+  <span class="r-label"><a href="#project-03" class="r-link r-link--cyan">Agentic Growth OS ↗</a></span>
+  <span class="r-note">5 LangGraph agents · auto-learning · ROI lift 40–80%</span>
+</div>
+<div class="r-row">
+  <span class="r-icon">📖</span>
+  <span class="r-label"><a href="https://portfolio-quyi2c8kj-ravsinghchandans-projects.vercel.app" target="_blank" class="r-link r-link--green">RunbookAI — Open Live App ↗</a></span>
+  <span class="r-note">RAGless · 22 runbooks · conflict detection · zero vectors</span>
+</div>
+<hr class="r-div"/>
+<span class="r-foot">Click any project name to jump there. RunbookAI opens a live deployed app! 🤩</span>`;
 
     // 14. Testing / quality
     if (/\b(tests?\b|testing\b|guardrails?\b|quality\b|\bci\b|coverage\b|reliable\b|637\b|tdd\b)\b/i.test(t))
-      return `<span class="cb-section cb-section--green">📊 Test Coverage</span>
-<div class="cb-row"><span class="cb-key">Total</span><span class="cb-badge cb-badge--green">637 tests</span></div>
-<div class="cb-row"><span class="cb-key">Runtime</span><span class="cb-val">3.6s full suite · zero flakiness</span></div>
-<div class="cb-row"><span class="cb-key">Strategy</span><span class="cb-val">Mock LLM · no external deps in CI</span></div>
-<span class="cb-section cb-section--red">🛡️ Guardrails G1–G5</span>
-<div class="cb-row"><span class="cb-badge cb-badge--red">G1</span><span class="cb-val">Rate limiting per IP/user</span></div>
-<div class="cb-row"><span class="cb-badge cb-badge--red">G2</span><span class="cb-val">Injection detection on every input</span></div>
-<div class="cb-row"><span class="cb-badge cb-badge--red">G3</span><span class="cb-val">PII filter — no personal data to LLM</span></div>
-<div class="cb-row"><span class="cb-badge cb-badge--red">G4</span><span class="cb-val">Faithfulness gate on output</span></div>
-<div class="cb-row"><span class="cb-badge cb-badge--red">G5</span><span class="cb-val">Output validation before response</span></div>
-<hr class="cb-divider"/>
-<span class="cb-muted">Philosophy: test everything, shortcut nothing. 💪</span>`;
+      return `<span class="r-head r-head--green">📊 Test Coverage</span>
+<div class="r-row">
+  <span class="r-icon">✅</span>
+  <span class="r-label">Total</span>
+  <span class="r-note"><strong>637 tests</strong> across all 4 AI systems</span>
+</div>
+<div class="r-row">
+  <span class="r-icon">⚡</span>
+  <span class="r-label">Runtime</span>
+  <span class="r-note">3.6s full suite · zero external dependencies in CI</span>
+</div>
+<div class="r-row">
+  <span class="r-icon">🤖</span>
+  <span class="r-label">Strategy</span>
+  <span class="r-note">Mock LLM — tests pass without API keys</span>
+</div>
+<span class="r-head r-head--red">🛡️ Production Guardrails</span>
+<div class="r-row">
+  <span class="r-icon">🔴</span>
+  <span class="r-label"><span class="r-tag r-tag--red">G1</span> Rate Limiting</span>
+  <span class="r-note">Per IP/user — blocks abuse before LLM is touched</span>
+</div>
+<div class="r-row">
+  <span class="r-icon">🔴</span>
+  <span class="r-label"><span class="r-tag r-tag--red">G2</span> Injection Detection</span>
+  <span class="r-note">Scans every input — jailbreak patterns blocked</span>
+</div>
+<div class="r-row">
+  <span class="r-icon">🔴</span>
+  <span class="r-label"><span class="r-tag r-tag--red">G3</span> PII Filter</span>
+  <span class="r-note">No personal data ever reaches the LLM</span>
+</div>
+<div class="r-row">
+  <span class="r-icon">🔴</span>
+  <span class="r-label"><span class="r-tag r-tag--red">G4</span> Faithfulness Gate</span>
+  <span class="r-note">Output must be grounded in retrieved context</span>
+</div>
+<div class="r-row">
+  <span class="r-icon">🔴</span>
+  <span class="r-label"><span class="r-tag r-tag--red">G5</span> Output Validation</span>
+  <span class="r-note">Final check before response is returned</span>
+</div>
+<hr class="r-div"/>
+<span class="r-foot">Philosophy: test everything, shortcut nothing. 💪</span>`;
 
     // 15. Education (specific keywords — includes "when did he graduate")
     if (/\b(graduat|when\s*did\b|2018|2014|b\.?tech\b|bachelor\b|cgpa\b|gpa\b|future\s*institute|kolkata\b|masai\b|bootcamp\b|degree\b|qualif)\b/i.test(t))
@@ -1067,7 +1116,19 @@ export class App implements OnInit, AfterViewInit {
 
     // 16. Education (general)
     if (/\b(education\b|college\b|university\b|study\b|studied\b|school\b)\b/i.test(t))
-      return `📚 <strong>B.Tech Computer Science</strong><br>Future Institute of Engineering & Management, Kolkata (2014–2018) · CGPA: <strong>8.7</strong><br><br>🚀 <strong>Masai School</strong> Full-Stack Bootcamp<br>Turned a taunting challenge into a career in AI. Self-made. ✨`;
+      return `<span class="r-head r-head--amber">🎓 Education</span>
+<div class="r-row">
+  <span class="r-icon">🏛️</span>
+  <span class="r-label">B.Tech — Computer Science &amp; Engineering</span>
+  <span class="r-note">Future Institute of Engineering &amp; Management, Kolkata<br>2014–2018 · <strong>CGPA: 8.7</strong></span>
+</div>
+<div class="r-row">
+  <span class="r-icon">🚀</span>
+  <span class="r-label">Masai School</span>
+  <span class="r-note">Full-Stack &amp; AI Bootcamp — where the AI journey truly began</span>
+</div>
+<hr class="r-div"/>
+<span class="r-foot">Mechanical engineer → CS bootcamp → 4 companies → Senior AI Engineer. Self-made. ✨</span>`;
 
     // 17. Story / motivation / how he started
     if (/\b(?:story|journey|motivat|inspir|how (?:did|he)|why (?:did|he)|started?|began?|origin|background|mechanical|console|fuel|become|became|what drove)/i.test(t))
@@ -1095,7 +1156,30 @@ export class App implements OnInit, AfterViewInit {
 
     // 20. Broad identity
     if (/\b(who is\s*(chandan|rav|he)\b|introduce\s*(chandan|him)\b|about\s*(chandan|rav)\b|chandan\s*kumar\b|what\s*does\s*(chandan|he)\s*(do|work)\b|is\s*(he|chandan)\s*an?\s*(ai|senior|software|engineer|developer)\b)\b/i.test(t))
-      return `<strong>Chandan Kumar</strong> (alias <em>Rav</em>) is a <strong>Senior AI Engineer</strong> with 4+ years building LLM-powered, agent-based systems.<br><br>He specialises in multi-agent orchestration, RAG pipelines, and production AI — <strong>637 tests passing, zero shortcuts.</strong><br><br>Currently at <strong>Infosys (Bank of America)</strong>. 🚀`;
+      return `<span class="r-head r-head--purple">👤 Chandan Kumar <em style="font-weight:400;color:#94a3b8">alias Rav</em></span>
+<div class="r-row">
+  <span class="r-icon">💼</span>
+  <span class="r-label">Role</span>
+  <span class="r-note">Senior AI Engineer · 4+ years</span>
+</div>
+<div class="r-row">
+  <span class="r-icon">🏢</span>
+  <span class="r-label">Currently</span>
+  <span class="r-note">Infosys — Bank of America project · Pune</span>
+</div>
+<div class="r-row">
+  <span class="r-icon">🧠</span>
+  <span class="r-label">Speciality</span>
+  <span class="r-note">Multi-agent orchestration · RAG pipelines · Production AI</span>
+</div>
+<div class="r-row">
+  <span class="r-icon">📊</span>
+  <span class="r-label">Track record</span>
+  <span class="r-note"><strong>637 tests · 4 AI systems · zero shortcuts</strong></span>
+</div>
+<hr class="r-div"/>
+<a href="#projects" class="r-link">↗ See His Projects</a>
+<a href="#experience" class="r-link r-link--amber">↗ Career Timeline</a>`;
 
     // 21a. Aura with Rav — code deep-dive (from github.com/RavSinghChandan/ai-engineer)
     if (/\b(aura\b|aura\s*with\s*rav|astro.?intel|spiritual|vedic|numerolog|palmist|tarot|vastu|astrology|18\s*agent|23\s*language)\b/i.test(t))
