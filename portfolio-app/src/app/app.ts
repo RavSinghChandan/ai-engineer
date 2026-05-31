@@ -734,7 +734,7 @@ export class App implements OnInit, AfterViewInit {
   private readonly _cbSession = Math.random().toString(36).slice(2, 10);
 
   // Log webhook — replace with your Google Apps Script deployment URL
-  private readonly _logUrl = 'PASTE_YOUR_APPS_SCRIPT_URL_HERE';
+  private readonly _logUrl = 'https://script.google.com/macros/s/AKfycbzXfq_SmxwgQm-6z2TZBCky5UkGGWwERDGCw64uyWkpBIWAjg35Cef4UaeY09iaoYBuwA/exec';
 
   private _cbLog(question: string, answer: string, limitHit = false) {
     if (!isPlatformBrowser(this.platformId)) return;
