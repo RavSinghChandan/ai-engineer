@@ -730,6 +730,32 @@ export class App implements OnInit, AfterViewInit {
   cbQCount  = signal(0);
   cbLimited = signal(false);
 
+  // Session ID for log grouping
+  private readonly _cbSession = Math.random().toString(36).slice(2, 10);
+
+  // Log webhook — replace with your Google Apps Script deployment URL
+  private readonly _logUrl = 'PASTE_YOUR_APPS_SCRIPT_URL_HERE';
+
+  private _cbLog(question: string, answer: string, limitHit = false) {
+    if (!isPlatformBrowser(this.platformId)) return;
+    if (!this._logUrl || this._logUrl.includes('PASTE_YOUR')) return;
+    const payload = {
+      session:  this._cbSession,
+      qNum:     this.cbQCount(),
+      question: question.slice(0, 500),
+      answer:   answer.replace(/<[^>]+>/g, ' ').slice(0, 300),
+      limitHit,
+      ua:       navigator.userAgent.slice(0, 120),
+    };
+    // fire-and-forget, no await — never block the UI
+    fetch(this._logUrl, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      headers: { 'Content-Type': 'application/json' },
+      mode: 'no-cors',   // Google Apps Script doesn't need CORS preflight
+    }).catch(() => {});  // silently ignore any network errors
+  }
+
   // Panel resize
   cbPanelW  = signal(380);
   cbPanelH  = signal(560);
@@ -1230,6 +1256,7 @@ export class App implements OnInit, AfterViewInit {
 
     if (newCount > this.CB_LIMIT) {
       this.cbLimited.set(true);
+      this._cbLog(q, 'RATE_LIMIT_HIT', true);
       const limitHtml = `<div style="text-align:center;padding:0.5rem 0">
 <div style="font-size:1.4rem;margin-bottom:0.5rem">🔒</div>
 <div style="font-weight:800;color:#f1f5f9;font-size:0.9rem;margin-bottom:0.35rem">Session limit reached</div>
@@ -1264,6 +1291,7 @@ export class App implements OnInit, AfterViewInit {
       const finalHtml = warningHtml;
       this.cbTyping.set(false);
       this.cbMessages.update(m => [...m, { role: 'bot', html: finalHtml, safeHtml: this.sanitizer.bypassSecurityTrustHtml(finalHtml), followups }]);
+      this._cbLog(q, reply);
       if (!this.cbOpen()) this.cbUnread.update(n => n + 1);
       setTimeout(() => this._scrollChat(), 50);
     }, delay);
