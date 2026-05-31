@@ -531,24 +531,13 @@
   </div>
 </section>
 
-<!-- FLOATING GUIDE CHARACTER — AARAV -->
-<div class="fg-wrap" [class.fg-visible]="fgVisible()" [class]="'fg-wrap fg-' + fgEntry()">
-  <div class="fg-card">
-    <div class="fg-avatar-col">
-      <img [src]="fgImg()" class="fg-avatar" alt="Aarav guide"/>
-      <span class="fg-name-tag">✦ Aarav</span>
-    </div>
-    <div class="fg-bubble" [class.fg-bubble--intro]="fgIntro()">
-      <p class="fg-quote">{{ fgQuote() }}</p>
-      <span class="fg-sub">{{ fgSub() }}</span>
-    </div>
-  </div>
-</div>
-
-<!-- AARAV CHATBOT -->
+<!-- AARAV CHATBOT FAB — left-center, dynamic character -->
 <div class="cb-fab" (click)="cbToggle()" [class.cb-fab--open]="cbOpen()" title="Chat with Aarav">
   <img src="guide-chandan-happy.svg" class="cb-fab-avatar" alt="Aarav"/>
-  <span class="cb-fab-label">Ask Aarav</span>
+  <div class="cb-fab-speech">
+    <span class="cb-fab-speech-line1">Come ask! 👋</span>
+    <span class="cb-fab-speech-line2">I know Chandan</span>
+  </div>
   @if (cbUnread()) { <span class="cb-fab-badge">{{ cbUnread() }}</span> }
 </div>
 

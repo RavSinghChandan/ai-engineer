@@ -300,65 +300,65 @@ export class App implements OnInit, AfterViewInit {
     {
       id: 'gb-hero',
       img: 'guide-chandan-happy.svg',
-      dir: 'left',       // character walks in from left, points right at h1
-      quote: "This is the right person. 👈 Senior AI Engineer who actually ships.",
+      dir: 'left',
+      quote: "Right person! 👋 Senior AI Engineer who actually ships.",
       sub:   "4+ years · 637 tests · Zero shortcuts",
     },
     {
       id: 'gb-skills',
       img: 'guide-chandan.svg',
-      dir: 'right',      // walks in from right, points left at skill cards
-      quote: "Every single skill here? Battle-tested in production. No fluff. 💪",
+      dir: 'right',
+      quote: "Every skill here? Battle-tested in production. No fluff. 💪",
       sub:   "LangGraph · FAISS · Kafka · Redis · Angular · FastAPI",
     },
     {
       id: 'gb-p01',
       img: 'guide-chandan-wow.svg',
       dir: 'left',
-      quote: "18+ AI agents, 23 languages, 415 tests. Spiritual intelligence — real engineering. 🔮",
+      quote: "18+ AI agents, 23 languages, 415 tests. Real engineering. 🔮",
       sub:   "Project 01 · Aura with Rav",
     },
     {
       id: 'gb-p02',
       img: 'guide-chandan-thinking.svg',
       dir: 'right',
-      quote: "Hybrid RAG + circuit breaker + episodic memory. Enterprise HR AI done right. ⚡",
+      quote: "Hybrid RAG + circuit breaker + episodic memory. Done right. ⚡",
       sub:   "Project 02 · Bench Resource Optimizer",
     },
     {
       id: 'gb-p03',
       img: 'guide-chandan-happy.svg',
       dir: 'left',
-      quote: "5 agents collaborate on marketing workflows. Auto-learning improves every run. 🚀",
+      quote: "5 agents. Auto-learning. ROI improves every run. 🚀",
       sub:   "Project 03 · Agentic Growth OS",
     },
     {
       id: 'gb-p04',
       img: 'guide-chandan.svg',
       dir: 'right',
-      quote: "RAGless SQL + dependency graph. 22 runbooks, conflict detection, zero vectors. 🧠",
+      quote: "RAGless SQL + dependency graph. Zero vectors. Zero hallucinations. 🧠",
       sub:   "Project 04 · RunbookAI",
     },
     {
       id: 'gb-exp',
       img: 'guide-chandan-thinking.svg',
       dir: 'left',
-      quote: "IIT Roorkee → 4 companies → production AI. Every role levelled up the craft. 🏆",
-      sub:   "From college to Senior AI Engineer — the real journey",
+      quote: "Kolkata → Masai bootcamp → 4 companies → production AI. 🏆",
+      sub:   "Self-made. Every role levelled up the craft.",
     },
     {
       id: 'gb-story',
       img: 'guide-chandan-happy.svg',
       dir: 'right',
-      quote: "From 'you can't spell console' to shipping AI systems at scale. That's the story. ✨",
+      quote: "From 'you can't spell console' to AI systems at scale. ✨",
       sub:   "The person behind the code",
     },
     {
       id: 'gb-contact',
       img: 'guide-chandan-wow.svg',
       dir: 'left',
-      quote: "You're here. That means you're serious. So is Chandan. Let's build together. 🤝",
-      sub:   "The best AI products are built by people who care — hire one.",
+      quote: "You're here. That means you're serious. So is Chandan. 🤝",
+      sub:   "Let's build something real together.",
     },
   ];
 
@@ -659,7 +659,6 @@ export class App implements OnInit, AfterViewInit {
       statsObs.observe(heroEl);
     }
 
-    this.initFloatingGuide();
   }
 
   private animateCount(sig: ReturnType<typeof signal<number>>, target: number, duration: number) {
@@ -726,7 +725,7 @@ export class App implements OnInit, AfterViewInit {
   readonly cbQuickPrompts = [
     '👋 Who is Chandan?',
     '🚀 What projects did he build?',
-    '💼 Can I hire him?',
+    '🧠 How does LangGraph work here?',
     '📞 How to contact?',
   ];
 
@@ -795,6 +794,24 @@ export class App implements OnInit, AfterViewInit {
 
     // ── Intents — ordered most-specific → most-general ───────────────
 
+    // 0. Code / repo deep-dives — checked FIRST before any other intent
+    const isCodeQ = /\b(code|how\s*(does|do|it|the)|work|architect|folder|file|struct|run|api|endpoint|explain|implement|backend|frontend|repo|detail|show\s*me)\b/i.test(t);
+
+    if (isCodeQ && /\b(aura|aura\s*with\s*rav|astro.?intel|spiritual|vedic|numerolog|palmist|tarot|vastu|astrology)\b/i.test(t))
+      return `<strong>Aura with Rav</strong> — real code from <a href="https://github.com/RavSinghChandan/ai-engineer" target="_blank" style="color:var(--purple-lt)">GitHub ↗</a>:<br><br>📁 <strong>astro-intel-backend/</strong><br>• <code>main.py</code> — FastAPI, JWT + Kafka consumer on startup<br>• <code>POST /api/v1/analysis/run</code> — trigger 18-agent LangGraph pipeline<br>• <code>POST /api/v1/analysis/submit</code> — async via Kafka<br>• <code>GET /api/v1/stream/{session_id}</code> — SSE live updates<br>• <code>GET /health</code> · <code>GET /metrics</code> · <code>GET /guardrails/stats</code><br>• LangGraph: normalize → 5 parallel domain agents → meta_consensus → remedy → admin_review<br><br>📁 <strong>astro-intel/</strong> (Angular 17)<br>• <code>pages/intake/</code> — 3-panel form · <code>components/agent-flow/</code> — live SVG neural graph<br>• <code>services/orchestrator.service.ts</code> — SSE + reactive signals<br><br>🔑 StateGraph, immutable state, conditional edges, <code>interrupt_before=["approve"]</code>.`;
+
+    if (isCodeQ && /\b(bench|bench\s*resource|bench\s*optim|hr\s*ai|upload.?cv|map.?role|generate.?plan)\b/i.test(t))
+      return `<strong>Bench Resource Optimizer</strong> — real code from <a href="https://github.com/RavSinghChandan/ai-engineer" target="_blank" style="color:var(--purple-lt)">GitHub ↗</a>:<br><br>📁 <strong>bench-resource-optimizer/backend/</strong><br>• <code>POST /upload-cv</code> — parse PDF, extract skills<br>• <code>POST /map-role</code> — FAISS + BM25 + RRF + HyDE + CRAG + cross-encoder hybrid RAG<br>• <code>POST /generate-plan/stream</code> — SSE streaming plan, TTFT &lt;1.5s<br>• <code>GET /memory/{user_id}</code> — episodic sessions + long-term facts (SQLite WAL)<br>• <code>GET /metrics</code> · <code>GET /ragas</code> · <code>GET /guardrails/stats</code><br>• <code>GET /health/ready</code> — checks LLM + FAISS + BM25 + SQLite<br><br>📁 <strong>bench-resource-optimizer/frontend/</strong> (Angular 17 + AG Grid)<br><br>🔑 Semantic cache L1 (exact &lt;1ms) → L2 (cosine ≥0.92) → LLM. 222 tests.`;
+
+    if (isCodeQ && /\b(agentic|agentic\s*growth|growth\s*os|campaign\s*(agent|node|state)|audience\s*node|ad\s*copy|budget\s*node)\b/i.test(t))
+      return `<strong>Agentic Growth OS</strong> — real code from <a href="https://github.com/RavSinghChandan/ai-engineer" target="_blank" style="color:var(--purple-lt)">GitHub ↗</a>:<br><br>📁 <strong>agentic-growth-os/backend/</strong><br>• <code>graph/state.py</code> — <code>CampaignState</code> TypedDict<br>• <code>graph/workflow.py</code> — LangGraph StateGraph definition<br>• <code>graph/nodes/</code> — audience → ad_copy → budget → campaign → performance<br>• <code>memory/campaign_memory.py</code> — keyword similarity match past campaigns<br>• <code>memory/campaign_store.json</code> — persistent run history<br>• <code>start.sh</code> — one-click startup<br><br>📁 <strong>agentic-growth-os/frontend/</strong> (Angular 17 + Tailwind)<br>• SVG drag-and-drop canvas, Dashboard, Learning Insights tabs<br><br>🔑 Each run stores decisions. Re-run retrieves closest campaign → applies improvements → logs ROI delta.`;
+
+    if (isCodeQ && /\b(runbook|runbookai|ragless|networkx|dependency\s*graph|conflict\s*detect|kubectl|incident\s*response)\b/i.test(t))
+      return `<strong>RunbookAI</strong> — real code from <a href="https://github.com/RavSinghChandan/ai-engineer" target="_blank" style="color:var(--purple-lt)">GitHub ↗</a>:<br><br>📁 <strong>runbook-ai/</strong><br>• <code>agents/</code> — classification, step extraction, validation, response composition<br>• <code>connectors/</code> — K8s docs scraper + conflict detector<br>• <code>database/</code> — SQLite: runbooks + steps with <code>depends_on</code> edges<br>• <code>graph/</code> — NetworkX DiGraph: topological sort → safe execution order<br>• <code>routers/</code> — <code>POST /api/query</code> · <code>POST /api/ingest</code> · <code>GET /api/runbooks</code><br><br>📁 <strong>runbook-ai/ui/</strong> (Angular 21) — 3-panel response + Execution Graph tab<br><br>🔑 RAGless — LLM runs ONCE at ingest. Query = pure SQL + graph. Zero hallucinated commands.`;
+
+    if (isCodeQ && /\b(langgraph|stategraph|agent\s*(pipeline|flow|orchestrat)|campaign\s*state)\b/i.test(t))
+      return `LangGraph pattern from the actual repo code:<br><br><pre style="font-size:0.72rem;color:var(--cyan);line-height:1.5">graph = StateGraph(CampaignState)\ngraph.add_node("audience",    audience_node)\ngraph.add_node("ad_copy",     ad_copy_node)\ngraph.add_node("budget",      budget_node)\ngraph.add_node("campaign",    campaign_node)\ngraph.add_node("performance", performance_node)\ngraph.add_edge(START, "audience")\napp = graph.compile()</pre><br>🔑 <code>CampaignState</code> TypedDict — immutable state merges per node<br>🔑 Conditional edges — <code>route_fn</code> reads state to pick next node<br>🔑 Parallel branches — <code>Send()</code> for simultaneous agents (Aura)<br>🔑 Human-in-the-loop — <code>interrupt_before=["approve"]</code><br><br>See <a href="https://github.com/RavSinghChandan/ai-engineer/tree/main/agentic-growth-os/backend/graph" target="_blank" style="color:var(--purple-lt)">agentic-growth-os/backend/graph/ ↗</a>`;
+
     // 1. Self-identity
     if (/\b(aarav|who are you|what are you|you a bot|are you (a |an )?(bot|ai|chatbot|assistant))\b/i.test(t))
       return `Namaste! 🙏 I'm <strong>Aarav</strong> — Chandan's AI assistant, built into this portfolio.<br>I know everything about his projects, skills, experience, and story. Ask me anything! 😄`;
@@ -849,12 +866,60 @@ export class App implements OnInit, AfterViewInit {
       return `Chandan's production tech stack:<br><br>🐍 <strong>Python · FastAPI · LangGraph · LangChain</strong><br>☕ <strong>Java · Spring Boot</strong><br>🔍 <strong>FAISS · BM25 · HyDE · CRAG (Hybrid RAG)</strong><br>📡 <strong>Kafka · Redis · SSE Streaming</strong><br>🅰️ <strong>Angular 17 · TypeScript</strong><br>🐳 <strong>Docker · Kubernetes · AWS</strong><br>🗄️ <strong>PostgreSQL · MongoDB · Vector DBs</strong><br><br>All in production. No tutorials. 💪`;
 
     // 11. RunbookAI specific
+    // RunbookAI code deep-dive (must be before general runbook catch)
+    if (/\b(runbook|ragless|networkx|dag\b|depend(ency)?\s*graph|conflict\s*detect|kubectl|k8s\s*scraper|topological|incident\s*response)\b/i.test(t)
+        && /\b(code|how|work|architect|folder|file|struct|run|api|endpoint|explain|implement|backend|frontend|repo|detail)\b/i.test(t))
+      return `<strong>RunbookAI</strong> — real code from <a href="https://github.com/RavSinghChandan/ai-engineer" target="_blank" style="color:var(--purple-lt)">GitHub ↗</a>:<br><br>📁 <strong>runbook-ai/</strong><br>• <code>agents/</code> — classification, step extraction, validation, response composition<br>• <code>connectors/</code> — K8s docs scraper + conflict detector<br>• <code>database/</code> — SQLite: runbooks + steps with <code>depends_on</code> edges<br>• <code>graph/</code> — NetworkX DiGraph: topological sort → safe execution order<br>• <code>routers/</code> — <code>POST /api/query</code> · <code>POST /api/ingest</code> · <code>GET /api/runbooks</code><br><br>📁 <strong>runbook-ai/ui/</strong> (Angular 21)<br>• 3-panel: Internal (green) · Combined (purple) · Official (blue)<br>• Execution Graph tab — parallel steps visualised<br><br>🔑 RAGless — LLM runs ONCE at ingest. Query = pure SQL + graph. Zero hallucinated commands.`;
+
     if (/\b(runbook|incident|it\s*ops|sre|k8s|conflict\s*detect)\b/i.test(t))
       return `<strong>RunbookAI</strong> — Chandan's 4th production AI system.<br><br>🧠 RAGless architecture: SQL + dependency graph, zero vector embeddings<br>📚 22 runbooks (internal + official Kubernetes docs)<br>🔀 Conflict detection between internal & official K8s steps<br>🎯 3-panel incident response: Internal → Combined → Official<br><br>Click <em>Live Demo</em> on Project 04 to see the real app! 🤩`;
+
+    // LangGraph implementation deep-dive (must be before general RAG/agent catch)
+    if (/\b(langgraph|agent\s*(orchestrat|pipelin|system|framework))\b/i.test(t)
+        && /\b(how\s*(does|do)|implement(ation)?|code|work|explain|detail|pattern|example)\b/i.test(t))
+      return `LangGraph pattern from the actual repo code:<br><br><pre style="font-size:0.72rem;color:var(--cyan);line-height:1.5">graph = StateGraph(CampaignState)\ngraph.add_node("audience",    audience_node)\ngraph.add_node("ad_copy",     ad_copy_node)\ngraph.add_node("budget",      budget_node)\ngraph.add_node("campaign",    campaign_node)\ngraph.add_node("performance", performance_node)\ngraph.add_edge(START, "audience")\napp = graph.compile()</pre><br>🔑 <code>CampaignState</code> TypedDict — immutable state merges per node<br>🔑 Conditional edges — <code>route_fn</code> reads state to pick next node<br>🔑 Parallel branches — <code>Send()</code> for simultaneous agents (Aura)<br>🔑 Human-in-the-loop — <code>interrupt_before=["approve"]</code><br><br>See <a href="https://github.com/RavSinghChandan/ai-engineer/tree/main/agentic-growth-os/backend/graph" target="_blank" style="color:var(--purple-lt)">agentic-growth-os/backend/graph/ ↗</a>`;
 
     // 12. RAG / AI architecture specific
     if (/\b(rag\b|retrieval|vector\s*(db|search|embed)|faiss|bm25|hyde|crag|rerank|langgraph|multi.?agent|agent\s*(orchestrat|pipelin|system|framework))\b/i.test(t))
       return `Chandan is a specialist in production RAG & multi-agent systems:<br><br>🔍 <strong>Hybrid RAG</strong>: FAISS + BM25 + HyDE + CRAG + cross-encoder reranker<br>🤖 <strong>Multi-agent</strong>: LangGraph stateful orchestration (18+ agents in Aura)<br>🛡️ <strong>Guardrails G1–G5</strong>: rate limit · injection · PII · faithfulness · output<br>📊 <strong>637 tests</strong> with mock LLM — no flakiness in CI<br><br>This is his core expertise. 💪`;
+
+    // 13a. Code / architecture deep-dives — MUST be before general projects catch
+
+    // Aura with Rav code
+    if (/\b(aura\b|aura\s*with\s*rav|astro.?intel|spiritual|vedic|numerolog|palmist|tarot|vastu|astrology|18\s*agent|23\s*language)\b/i.test(t)
+        && /\b(code|how|work|architect|folder|file|struct|run|api|endpoint|explain|implement|backend|frontend|repo|detail)\b/i.test(t))
+      return `<strong>Aura with Rav</strong> — real code from <a href="https://github.com/RavSinghChandan/ai-engineer" target="_blank" style="color:var(--purple-lt)">GitHub ↗</a>:<br><br>📁 <strong>astro-intel-backend/</strong><br>• <code>main.py</code> — FastAPI, CORS for aurawithrav.com, JWT + Kafka consumer on startup<br>• <code>POST /api/v1/analysis/run</code> — trigger 18-agent LangGraph pipeline<br>• <code>POST /api/v1/analysis/submit</code> — async via Kafka<br>• <code>GET /api/v1/stream/{session_id}</code> — SSE live updates<br>• <code>GET /health</code> · <code>GET /metrics</code> · <code>GET /guardrails/stats</code><br>• LangGraph: normalize → 5 parallel domain agents → meta_consensus → remedy → admin_review<br><br>📁 <strong>astro-intel/</strong> (Angular 17)<br>• <code>pages/intake/</code> — 3-panel form · <code>components/agent-flow/</code> — live SVG neural graph<br>• <code>services/orchestrator.service.ts</code> — SSE + reactive signals<br><br>🔑 StateGraph, immutable state, conditional edges, <code>interrupt_before=["approve"]</code> for human review.`;
+
+    // Bench Resource Optimizer code
+    if (/\b(bench\s*resource|bench\s*optim|hr\s*ai|upload.?cv|map.?role|generate.?plan|episodic\s*mem|circuit\s*break)\b/i.test(t)
+        && /\b(code|how|work|architect|folder|file|struct|run|api|endpoint|explain|implement|backend|frontend|repo|detail)\b/i.test(t))
+      return `<strong>Bench Resource Optimizer</strong> — real code from <a href="https://github.com/RavSinghChandan/ai-engineer" target="_blank" style="color:var(--purple-lt)">GitHub ↗</a>:<br><br>📁 <strong>bench-resource-optimizer/backend/</strong><br>• <code>POST /upload-cv</code> — parse PDF, extract skills<br>• <code>POST /map-role</code> — FAISS + BM25 + RRF + HyDE + CRAG + cross-encoder hybrid RAG<br>• <code>POST /generate-plan/stream</code> — SSE streaming plan, TTFT &lt;1.5s<br>• <code>GET /memory/{user_id}</code> — episodic sessions + long-term facts (SQLite WAL)<br>• <code>GET /metrics</code> · <code>GET /ragas</code> · <code>GET /guardrails/stats</code><br>• <code>GET /health/ready</code> — checks LLM + FAISS + BM25 + SQLite<br><br>📁 <strong>bench-resource-optimizer/frontend/</strong> (Angular 17)<br>• AG Grid role tables, SSE EventSource for live streaming<br><br>🔑 Semantic cache L1 (exact &lt;1ms) → L2 (cosine ≥0.92) → LLM. 222 tests.`;
+
+    // Agentic Growth OS code
+    if (/\b(agentic\s*growth|growth\s*os|campaign\s*(agent|node|state)|audience\s*node|ad\s*copy|budget\s*node|performance\s*node)\b/i.test(t)
+        && /\b(code|how|work|architect|folder|file|struct|run|api|endpoint|explain|implement|backend|frontend|repo|detail)\b/i.test(t))
+      return `<strong>Agentic Growth OS</strong> — real code from <a href="https://github.com/RavSinghChandan/ai-engineer" target="_blank" style="color:var(--purple-lt)">GitHub ↗</a>:<br><br>📁 <strong>agentic-growth-os/backend/</strong><br>• <code>graph/state.py</code> — <code>CampaignState</code> TypedDict<br>• <code>graph/workflow.py</code> — LangGraph StateGraph<br>• <code>graph/nodes/</code> — audience_node → ad_copy_node → budget_node → campaign_node → performance_node<br>• <code>memory/campaign_memory.py</code> — keyword similarity match past campaigns<br>• <code>memory/campaign_store.json</code> — persistent run history<br>• <code>start.sh</code> — one-click startup<br><br>📁 <strong>agentic-growth-os/frontend/</strong> (Angular 17 + Tailwind)<br>• SVG drag-and-drop canvas, Dashboard tab, Learning Insights tab<br><br>🔑 Each run stores decisions. Re-run retrieves closest past campaign → applies improvements → logs ROI delta.`;
+
+    // RunbookAI code
+    if (/\b(runbook|ragless|networkx|dag\b|depend(ency)?\s*graph|conflict\s*detect|kubectl|k8s\s*scraper|topological|incident\s*response)\b/i.test(t)
+        && /\b(code|how|work|architect|folder|file|struct|run|api|endpoint|explain|implement|backend|frontend|repo|detail)\b/i.test(t))
+      return `<strong>RunbookAI</strong> — real code from <a href="https://github.com/RavSinghChandan/ai-engineer" target="_blank" style="color:var(--purple-lt)">GitHub ↗</a>:<br><br>📁 <strong>runbook-ai/</strong><br>• <code>agents/</code> — classification, step extraction, validation, response composition<br>• <code>connectors/</code> — K8s docs scraper + conflict detector<br>• <code>database/</code> — SQLite: runbooks + steps with <code>depends_on</code> edges<br>• <code>graph/</code> — NetworkX DiGraph: topological sort → safe execution order<br>• <code>routers/</code> — <code>POST /api/query</code> · <code>POST /api/ingest</code> · <code>GET /api/runbooks</code><br><br>📁 <strong>runbook-ai/ui/</strong> (Angular 21)<br>• 3-panel: Internal (green) · Combined (purple) · Official (blue)<br>• Execution Graph tab — parallel steps visualised<br><br>🔑 RAGless — LLM runs ONCE at ingest. Query = pure SQL + graph. Zero hallucinated commands.`;
+
+    // How to run any project
+    if (/\b(how\s*to\s*run|how\s*to\s*start|setup|install|clone|locally|get\s*it\s*running|run\s*(the\s*)?(project|server|app|backend|frontend)|which\s*port)\b/i.test(t))
+      return `How to run Chandan's projects (from the repo):<br><br>🐳 <strong>One command (Docker)</strong><br><code>git clone https://github.com/RavSinghChandan/ai-engineer</code><br><code>docker-compose up --build</code><br><br>🔧 <strong>Backend (FastAPI)</strong><br><code>pip install -r requirements.txt</code><br><code>uvicorn main:app --reload --port 8080</code><br><br>🅰️ <strong>Frontend (Angular)</strong><br><code>npm install &amp;&amp; ng serve --port 4200</code><br><br>🧪 <strong>Tests</strong>: <code>pytest tests/ -v --tb=short</code><br><br>Every project has <code>README.md</code> + <code>.env.example</code> + <code>docker-compose.yml</code>.<br><a href="https://github.com/RavSinghChandan/ai-engineer" target="_blank" style="color:var(--purple-lt)">github.com/RavSinghChandan/ai-engineer ↗</a>`;
+
+    // API endpoints
+    if (/\b(api\s*(endpoint|route)|which\s*(api|route|endpoint)|what\s*(api|endpoint|route)|swagger|openapi)\b/i.test(t))
+      return `Real API endpoints from the GitHub repo:<br><br>🔮 <strong>Aura with Rav</strong><br>• <code>POST /api/v1/analysis/run</code> — 18-agent pipeline<br>• <code>POST /api/v1/analysis/submit</code> — async via Kafka<br>• <code>GET /api/v1/stream/{session_id}</code> — SSE<br>• <code>GET /health</code> · <code>GET /metrics</code> · <code>GET /guardrails/stats</code><br><br>🏢 <strong>Bench Resource Optimizer</strong><br>• <code>POST /upload-cv</code> · <code>POST /map-role</code> · <code>POST /generate-plan/stream</code><br>• <code>GET /memory/{user_id}</code> · <code>GET /metrics</code> · <code>GET /ragas</code><br><br>📖 <strong>RunbookAI</strong><br>• <code>POST /api/query</code> · <code>POST /api/ingest</code> · <code>GET /api/runbooks</code><br><br>All FastAPI auto-docs at <code>/docs</code> when running locally.`;
+
+    // LangGraph implementation
+    if (/\b(how\s*(does|do)\s*(the\s*)?(langgraph|agent|pipeline|graph|flow)|implement(ation)?\s*(of\s*)?(langgraph|rag|guardrail|cache|circuit|memory|stream))\b/i.test(t))
+      return `LangGraph pattern from the actual repo code:<br><br><pre style="font-size:0.72rem;color:var(--cyan);line-height:1.5">graph = StateGraph(CampaignState)\ngraph.add_node("audience",    audience_node)\ngraph.add_node("ad_copy",     ad_copy_node)\ngraph.add_node("budget",      budget_node)\ngraph.add_node("campaign",    campaign_node)\ngraph.add_node("performance", performance_node)\ngraph.add_edge(START, "audience")\napp = graph.compile()</pre><br>🔑 <code>CampaignState</code> TypedDict — immutable state merges per node<br>🔑 Conditional edges — <code>route_fn</code> reads state to pick next node<br>🔑 Parallel branches — <code>Send()</code> for simultaneous agents (Aura)<br>🔑 Human-in-the-loop — <code>interrupt_before=["approve"]</code><br><br>See <a href="https://github.com/RavSinghChandan/ai-engineer/tree/main/agentic-growth-os/backend/graph" target="_blank" style="color:var(--purple-lt)">agentic-growth-os/backend/graph/ ↗</a>`;
+
+    // GitHub repo structure
+    if (/\b(repo(sitory)?|source\s*code|where\s*is\s*(the\s*)?(code|repo)|codebase|open\s*source|show\s*(me\s*)?(the\s*)?code|folder\s*struct|file\s*struct)\b/i.test(t))
+      return `All code is public on GitHub:<br><br>🐙 <a href="https://github.com/RavSinghChandan/ai-engineer" target="_blank" style="color:var(--purple-lt)"><strong>github.com/RavSinghChandan/ai-engineer ↗</strong></a><br><br>📁 <strong>Repo layout</strong>:<br>• <code>astro-intel/</code> + <code>astro-intel-backend/</code> — Aura with Rav<br>• <code>bench-resource-optimizer/</code> — HR AI platform<br>• <code>agentic-growth-os/</code> — autonomous marketing<br>• <code>runbook-ai/</code> — IT incident response<br>• <code>senior-ai-engineer/</code> — 12 interview prep modules<br>• <code>langchain_project/</code> + <code>langraph_project/</code> — RAG + agent demos<br>• <code>.github/workflows/</code> — CI/CD test → build → deploy to AWS ECS<br>• <code>docker-compose.yml</code> — one-command full stack<br><br>61 total repos. Each has <code>README.md</code> · <code>tests/</code> · <code>requirements.txt</code> · <code>.env.example</code>.`;
 
     // 13. Projects (general — includes "production AI systems")
     if (/\b(projects?|portfolio|built?\b|shipped?\b|developed|created\b|aura\b|bench\b|agentic\b|growth\s*os|runbookai|production\s*ai)\b/i.test(t)) {
@@ -890,9 +955,41 @@ export class App implements OnInit, AfterViewInit {
     if (/\b(who is\s*(chandan|rav|he)\b|introduce\s*(chandan|him)\b|about\s*(chandan|rav)\b|chandan\s*kumar\b|what\s*does\s*(chandan|he)\s*(do|work)\b|is\s*(he|chandan)\s*an?\s*(ai|senior|software|engineer|developer)\b)\b/i.test(t))
       return `<strong>Chandan Kumar</strong> (alias <em>Rav</em>) is a <strong>Senior AI Engineer</strong> with 4+ years building LLM-powered, agent-based systems.<br><br>He specialises in multi-agent orchestration, RAG pipelines, and production AI — <strong>637 tests passing, zero shortcuts.</strong><br><br>Currently at <strong>Infosys (Bank of America)</strong>. 🚀`;
 
+    // 21a. Aura with Rav — code deep-dive (from github.com/RavSinghChandan/ai-engineer)
+    if (/\b(aura\b|aura\s*with\s*rav|astro.?intel|spiritual|vedic|numerolog|palmist|tarot|vastu|astrology|18\s*agent|23\s*language)\b/i.test(t))
+      return `<strong>Aura with Rav</strong> — real code from <a href="https://github.com/RavSinghChandan/ai-engineer" target="_blank" style="color:var(--purple-lt)">GitHub ↗</a>:<br><br>📁 <strong>astro-intel-backend/</strong><br>• <code>main.py</code> — FastAPI, CORS for aurawithrav.com, JWT + X-API-Key auth, Kafka consumer on startup<br>• <code>routers/</code> — <code>POST /api/v1/analysis/run</code> · <code>POST /api/v1/analysis/submit</code> (Kafka async) · <code>GET /api/v1/stream/{session_id}</code> (SSE)<br>• <code>routers/</code> — <code>GET /health</code> (Kafka+Redis status) · <code>GET /guardrails/stats</code> · <code>POST /guardrails/circuit-breaker/reset</code><br>• LangGraph pipeline: normalize → 5 parallel domain agents → meta_consensus → remedy → admin_review<br>• <code>GET /cache/stats</code> · <code>DELETE /cache/clear</code> · <code>GET /metrics</code> (admin only)<br><br>📁 <strong>astro-intel/</strong> (Angular 17)<br>• <code>pages/intake/</code> — 3-panel: birth profile + modules + live agent graph<br>• <code>components/agent-flow/</code> — SVG neural graph, 11 nodes, animated edges<br>• <code>services/orchestrator.service.ts</code> — SSE stream + reactive signals<br><br>🔑 <strong>Key pattern</strong>: LangGraph StateGraph — immutable state, conditional edges, parallel Send(). Human-in-the-loop via <code>interrupt_before=["approve"]</code>.`;
+
+    // 21b. Bench Resource Optimizer — code deep-dive
+    if (/\b(bench\s*resource|bench\s*optim|hr\s*ai|skill\s*(gap|match)|preparation\s*plan|circuit\s*break|episodic\s*mem|upload.?cv|map.?role|generate.?plan)\b/i.test(t))
+      return `<strong>Bench Resource Optimizer</strong> — real code from <a href="https://github.com/RavSinghChandan/ai-engineer" target="_blank" style="color:var(--purple-lt)">GitHub ↗</a>:<br><br>📁 <strong>bench-resource-optimizer/backend/</strong><br>• <code>POST /upload-cv</code> — parse PDF, extract skills, store user profile<br>• <code>POST /map-role</code> — FAISS + BM25 + RRF + HyDE + CRAG + cross-encoder hybrid RAG<br>• <code>POST /generate-plan/stream</code> — SSE day-by-day plan, TTFT &lt;1.5s<br>• <code>POST /update-progress</code> — mark tasks, compute readiness score<br>• <code>GET /memory/{user_id}</code> — episodic sessions + long-term facts (SQLite WAL)<br>• <code>GET /metrics</code> — cache hit %, latency, token cost, RAGAS scores<br>• <code>GET /guardrails/stats</code> — live G1–G5 counters<br>• <code>GET /health/ready</code> — checks LLM + FAISS + BM25 + SQLite all live<br><br>📁 <strong>bench-resource-optimizer/frontend/</strong> (Angular 17)<br>• AG Grid role tables, SSE EventSource for streaming plan<br>• <code>FLOW.md</code> — full 3-step documented flow<br><br>🔑 <strong>Key pattern</strong>: Semantic cache L1 (exact, &lt;1ms) → L2 (cosine ≥0.92) → LLM. 222 tests, zero shortcuts.`;
+
+    // 21c. Agentic Growth OS — code deep-dive
+    if (/\b(agentic\s*growth|growth\s*os|marketing\s*(agent|workflow)|learning\s*engine|roi\s*(lift|improve)|campaign\s*(agent|node|state)|audience\s*node|ad\s*copy)\b/i.test(t))
+      return `<strong>Agentic Growth OS</strong> — real code from <a href="https://github.com/RavSinghChandan/ai-engineer" target="_blank" style="color:var(--purple-lt)">GitHub ↗</a>:<br><br>📁 <strong>agentic-growth-os/backend/</strong><br>• <code>graph/state.py</code> — <code>CampaignState</code> TypedDict (shared state across all nodes)<br>• <code>graph/workflow.py</code> — LangGraph StateGraph definition<br>• <code>graph/nodes/audience_node.py</code> → <code>ad_copy_node.py</code> → <code>budget_node.py</code> → <code>campaign_node.py</code> → <code>performance_node.py</code><br>• <code>memory/campaign_memory.py</code> — keyword similarity match past campaigns<br>• <code>memory/campaign_store.json</code> — persistent run history<br>• <code>start.sh</code> — one-click startup for backend + frontend<br><br>📁 <strong>agentic-growth-os/frontend/</strong> (Angular 17 + Tailwind)<br>• SVG drag-and-drop canvas — nodes as circles, animated edges<br>• Dashboard tab — ROI metrics per run<br>• Learning Insights tab — auto-improvement log<br><br>🔑 <strong>Key pattern</strong>: Each run stores inputs + decisions. Re-run retrieves closest past campaign → applies rule-based improvements → logs ROI delta. Lifts 40–80% over baseline.`;
+
+    // 21d. RunbookAI — code deep-dive
+    if (/\b(runbook|ragless|networkx|dag\b|depend(ency|encies)\s*graph|conflict\s*detect|kubectl|k8s\s*scraper|topological|parallel\s*(group|step)|incident\s*response)\b/i.test(t))
+      return `<strong>RunbookAI</strong> — real code from <a href="https://github.com/RavSinghChandan/ai-engineer" target="_blank" style="color:var(--purple-lt)">GitHub ↗</a>:<br><br>📁 <strong>runbook-ai/</strong><br>• <code>agents/</code> — LLM agents: classification, step extraction, validation, response composition<br>• <code>connectors/</code> — K8s docs scraper (kubernetes/website GitHub raw markdown) + conflict detector<br>• <code>database/</code> — SQLite: runbooks table + steps table with <code>depends_on</code> edges<br>• <code>graph/</code> — NetworkX DiGraph: topological sort → safe execution order, parallel_groups calc<br>• <code>routers/</code> — <code>POST /api/query</code> (incident → 3-panel) · <code>POST /api/ingest</code> (PDF upload) · <code>GET /api/runbooks</code><br>• <code>utils/</code> — helper functions<br><br>📁 <strong>runbook-ai/ui/</strong> (Angular 21)<br>• 3-panel: Internal (green) · Combined (purple) · Official (blue)<br>• Execution Graph tab — parallel steps visualised<br>• Conflict flags with severity + recommendation<br><br>🔑 <strong>Key pattern</strong>: RAGless — LLM runs ONCE at ingest time. Query time = pure SQL + graph traversal. Zero hallucinated commands.`;
+
+    // 21e. How to run / setup
+    if (/\b(how\s*to\s*run|how\s*to\s*start|setup|install|clone|locally|get\s*it\s*running|run\s*(the\s*)?(project|server|app|backend|frontend)|localhost|which\s*port)\b/i.test(t))
+      return `How to run Chandan's projects (from the repo):<br><br>🐳 <strong>One command (Docker)</strong><br><code>git clone https://github.com/RavSinghChandan/ai-engineer</code><br><code>docker-compose up --build</code><br><br>🔧 <strong>Backend (FastAPI)</strong><br><code>pip install -r requirements.txt</code><br><code>uvicorn main:app --reload --port 8080</code><br><br>🅰️ <strong>Frontend (Angular)</strong><br><code>npm install && ng serve --port 4200</code><br><br>🧪 <strong>Tests</strong><br><code>pytest tests/ -v --tb=short</code><br><br>📄 Every project has a <code>README.md</code> and <code>.env.example</code>.<br>Full repo: <a href="https://github.com/RavSinghChandan/ai-engineer" target="_blank" style="color:var(--purple-lt)">github.com/RavSinghChandan/ai-engineer ↗</a>`;
+
+    // 21f. API endpoints
+    if (/\b(api\s*(endpoint|route)|endpoint|rest\s*api|swagger|openapi|which\s*(api|route)|what\s*(api|endpoint|route))\b/i.test(t))
+      return `Real API endpoints from the GitHub repo:<br><br>🔮 <strong>Aura with Rav</strong> (<code>astro-intel-backend/</code>)<br>• <code>POST /api/v1/analysis/run</code> — trigger 18-agent pipeline<br>• <code>POST /api/v1/analysis/submit</code> — async via Kafka<br>• <code>GET  /api/v1/stream/{session_id}</code> — SSE live updates<br>• <code>GET  /health</code> · <code>GET /metrics</code> · <code>GET /guardrails/stats</code><br><br>🏢 <strong>Bench Resource Optimizer</strong><br>• <code>POST /upload-cv</code> · <code>POST /map-role</code> · <code>POST /generate-plan/stream</code><br>• <code>POST /update-progress</code> · <code>GET /memory/{user_id}</code><br>• <code>GET /metrics</code> · <code>GET /ragas</code> · <code>GET /guardrails/stats</code><br><br>📖 <strong>RunbookAI</strong><br>• <code>POST /api/query</code> · <code>POST /api/ingest</code> · <code>GET /api/runbooks</code><br><br>All FastAPI auto-docs at <code>/docs</code> when running locally.`;
+
+    // 21g. LangGraph / implementation details
+    if (/\b(how\s*(does|do)\s*(the\s*)?(langgraph|agent|pipeline|graph|flow)|implement(ation)?\s*(of\s*)?(langgraph|rag|guardrail|cache|kafka|stream|circuit|memory))\b/i.test(t))
+      return `LangGraph pattern used across Chandan's projects (exact code from repo):<br><br><pre style="font-size:0.72rem;color:var(--cyan);line-height:1.5">graph = StateGraph(CampaignState)\ngraph.add_node("audience",   audience_node)\ngraph.add_node("ad_copy",    ad_copy_node)\ngraph.add_node("budget",     budget_node)\ngraph.add_node("campaign",   campaign_node)\ngraph.add_node("performance",performance_node)\ngraph.add_edge(START, "audience")\n# ... conditional edges\napp = graph.compile()</pre><br>🔑 <code>CampaignState</code> / <code>AgentState</code> — TypedDict, immutable merges<br>🔑 Conditional edges — <code>route_fn</code> reads state to pick next node<br>🔑 Parallel branches — <code>Send()</code> for simultaneous domain agents<br>🔑 Human-in-the-loop — <code>interrupt_before=["approve"]</code> in Aura<br><br>See <a href="https://github.com/RavSinghChandan/ai-engineer/tree/main/agentic-growth-os/backend/graph" target="_blank" style="color:var(--purple-lt)">agentic-growth-os/backend/graph/ ↗</a>`;
+
+    // 21h. GitHub / repo structure
+    if (/\b(repo(sitory)?|source\s*code|where\s*is\s*(the\s*)?(code|repo)|codebase|open\s*source|show\s*(me\s*)?(the\s*)?code|folder\s*struct|file\s*struct|director)\b/i.test(t))
+      return `All code is public on GitHub:<br><br>🐙 <a href="https://github.com/RavSinghChandan/ai-engineer" target="_blank" style="color:var(--purple-lt)"><strong>github.com/RavSinghChandan/ai-engineer ↗</strong></a><br><br>📁 <strong>Repo layout</strong> (61 total repos):<br>• <code>astro-intel/</code> + <code>astro-intel-backend/</code> — Aura with Rav<br>• <code>bench-resource-optimizer/</code> — HR AI platform<br>• <code>agentic-growth-os/</code> — autonomous marketing<br>• <code>runbook-ai/</code> — IT incident response<br>• <code>senior-ai-engineer/</code> — 12 interview prep modules<br>• <code>langchain_project/</code> + <code>langraph_project/</code> — RAG + agent demos<br>• <code>.github/workflows/</code> — CI/CD (test → build → deploy to AWS ECS)<br>• <code>docker-compose.yml</code> — one-command full stack<br><br>Each project: <code>README.md</code> · <code>tests/</code> · <code>requirements.txt</code> · <code>.env.example</code>`;
+
     // 21. Off-topic / unknown (anything not matched above)
     if (/\b(cricket|sport|movie|song|music|travel|food|weather|capital|country|president|actor|celebrity|meaning\s*of\s*life|universe|space|planet|god|philosophy)\b/i.test(t))
-      return `Ha! That's outside my area of expertise. 😄 I only know about Chandan Kumar — his work, projects, and how to reach him. Try asking me something about him!`;
+      return `Ha! I'm not sure about that — it's outside my area. 😄 I only know about Chandan Kumar — his work, projects, and how to reach him. Try asking me something about him!`;
 
     // Default — honest fallback
     return `Hmm, I'm not sure about that one! 🤔<br><br>I'm best at questions about Chandan's <strong>skills, projects, experience, and contact</strong>. Try:<br>• "What projects has he built?"<br>• "Is he available to hire?"<br>• "What is his tech stack?"<br>• "How to contact him?"<br>• "Tell me his story"`;
@@ -902,9 +999,8 @@ export class App implements OnInit, AfterViewInit {
     this.cbOpen.update(v => !v);
     if (this.cbOpen()) {
       this.cbUnread.set(0);
-      if (this.cbMessages().length === 0) {
-        this.cbMessages.set([{ role: 'bot', html: `Namaste! 🙏 I'm <strong>Aarav</strong> — Chandan's AI assistant.<br>Ask me anything about his skills, projects, experience, or how to hire him!` }]);
-      }
+      // Always reset to fresh session on open
+      this.cbMessages.set([{ role: 'bot', html: `Namaste! 🙏 I'm <strong>Aarav</strong> — Chandan's AI assistant.<br>Ask me anything about his skills, projects, experience, or how to hire him!` }]);
       setTimeout(() => this._scrollChat(), 50);
     }
   }
