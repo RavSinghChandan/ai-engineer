@@ -856,6 +856,16 @@ export class App implements OnInit, AfterViewInit {
 
     // ── Intents — ordered most-specific → most-general ───────────────
 
+    // 0a. Demo intent — checked before everything
+    if (/\b(demo|live\s*demo|see\s*(it|the|a)\s*(demo|app|live|project)|watch|preview|screenshot|show\s*(me\s*)?(the\s*)?(app|demo|live|project|screen))\b/i.test(t))
+      return `<span class="cb-section cb-section--purple">▶️ Live Demos — All 4 Projects</span>
+<div class="cb-row"><span class="cb-badge cb-badge--purple">01</span><span class="cb-key">Aura with Rav</span><span class="cb-val">Click <strong>Live Demo</strong> on Project 01 ↑</span></div>
+<div class="cb-row"><span class="cb-badge cb-badge--amber">02</span><span class="cb-key">Bench Resource Optimizer</span><span class="cb-val">Click <strong>Live Demo</strong> on Project 02 ↑</span></div>
+<div class="cb-row"><span class="cb-badge cb-badge--cyan">03</span><span class="cb-key">Agentic Growth OS</span><span class="cb-val">Click <strong>Live Demo</strong> on Project 03 ↑</span></div>
+<div class="cb-row"><span class="cb-badge cb-badge--green">04</span><span class="cb-key">RunbookAI</span><span class="cb-val">Click <strong>Live Demo</strong> on Project 04 ↑</span></div>
+<hr class="cb-divider"/>
+<span class="cb-muted">Each demo shows real screenshots of the running app — step by step with Aarav guiding you through it! 🤩</span>`;
+
     // 0. Code / repo deep-dives — checked FIRST before any other intent
     const isCodeQ = /\b(code|how\s*(does|do|it|the)|work|architect|folder|file|struct|run|api|endpoint|explain|implement|backend|frontend|repo|detail|show\s*me)\b/i.test(t);
 
@@ -1130,6 +1140,10 @@ export class App implements OnInit, AfterViewInit {
   // ── Follow-up suggestions — contextual to the answer just given ──────
   private _followups(q: string): string[] {
     const t = q.toLowerCase();
+
+    // Demo
+    if (/\b(demo|live\s*demo|see\s*(it|the|a)\s*(demo|app|live)|screenshot|preview)\b/i.test(t))
+      return ['🔮 How does Aura with Rav work?', '🏢 Explain Bench Optimizer code', '📖 How does RunbookAI work?', '🚀 What projects has he built?'];
 
     // Identity / who is Chandan
     if (/\b(who is|about chandan|introduce|chandan kumar|what does he do)\b/i.test(t))
