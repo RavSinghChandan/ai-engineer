@@ -768,9 +768,38 @@ export class App implements OnInit, AfterViewInit {
     nonsense:   /^(.)\1{9,}$|^[^a-zA-Z0-9\s?!.,'-]{5,}$/,
   };
 
+  // ── Fuzzy normalizer — corrects common typos before intent matching ──
+  private _normalize(raw: string): string {
+    return raw
+      .toLowerCase()
+      // Project name typos
+      .replace(/\bbnch\b|\bbench\s*resourc\w*/g, 'bench resource optimizer')
+      .replace(/\baur[ae]\b|\baura\s*rav\b|\bauraa\b/g, 'aura with rav')
+      .replace(/\bagen?ti[ck]\b|\bagentic\s*grwoth\b|\bagentic\s*groth\b/g, 'agentic growth os')
+      .replace(/\brunboo?k\b|\brunbok\b|\brun\s*book\b/g, 'runbook')
+      // Tech typos
+      .replace(/\blang\s*gra?ph\b|\blanggraph?\b|\blanggrph\b/g, 'langgraph')
+      .replace(/\blang\s*chain\b|\blangchin\b/g, 'langchain')
+      .replace(/\bfas\s*tapi\b|\bfasapi\b|\bfast\s*api\b/g, 'fastapi')
+      .replace(/\bangul[ae]r\b/g, 'angular')
+      .replace(/\bkafk[ae]\b/g, 'kafka')
+      .replace(/\brai[ds]\b|\breddis\b/g, 'redis')
+      .replace(/\bdoker\b|\bdokcer\b/g, 'docker')
+      .replace(/\bkubernets\b|\bk8\b(?!s)/g, 'kubernetes')
+      .replace(/\bpython\s*3?\b|\bpyhton\b|\bpytohn\b/g, 'python')
+      // Common question typos
+      .replace(/\bhwo\b|\bhw\b/g, 'how')
+      .replace(/\bwaht\b|\bwath\b/g, 'what')
+      .replace(/\bproejct\b|\bproect\b|\bporject\b/g, 'project')
+      .replace(/\bimplment\b|\bimplmnt\b|\bimpelemnt\b/g, 'implement')
+      .replace(/\bexplian\b|\bexplain\s*me\b/g, 'explain')
+      .replace(/\barchitechture\b|\barchitecture\b/g, 'architecture')
+      .replace(/\brepsoitory\b|\brepoisitory\b|\brepo\s*sitory\b/g, 'repository');
+  }
+
   // ── Intent matching ───────────────────────────────────────────────
   private _match(q: string): string {
-    const t = q.toLowerCase();
+    const t = this._normalize(q);
 
     // Injection / jailbreak guard
     if (this._guards.injection.test(q))
