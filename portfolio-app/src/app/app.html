@@ -531,14 +531,22 @@
   </div>
 </section>
 
-<!-- AARAV CHATBOT FAB — left-center, dynamic character -->
+<!-- AARAV CHATBOT FAB -->
 <div class="cb-fab" (click)="cbToggle()" [class.cb-fab--open]="cbOpen()" title="Chat with Aarav">
-  <img src="guide-chandan-happy.svg" class="cb-fab-avatar" alt="Aarav"/>
-  <div class="cb-fab-speech">
-    <span class="cb-fab-speech-line1">Come ask! 👋</span>
-    <span class="cb-fab-speech-line2">I know Chandan</span>
+  <!-- Spinning aura ring + avatar -->
+  <div class="cb-fab-ring-wrap">
+    <div class="cb-fab-ring"></div>
+    <div class="cb-fab-ring cb-fab-ring--outer"></div>
+    <img src="guide-chandan-happy.svg" class="cb-fab-avatar" alt="Aarav"/>
+    @if (cbUnread()) { <span class="cb-fab-badge">{{ cbUnread() }}</span> }
   </div>
-  @if (cbUnread()) { <span class="cb-fab-badge">{{ cbUnread() }}</span> }
+  <!-- Speech bubble -->
+  <div class="cb-fab-speech">
+    <span class="cb-fab-speech-line1">Ask me! 👋</span>
+    <span class="cb-fab-speech-line2">AI Guide · Always on</span>
+  </div>
+  <!-- Agent tag -->
+  <div class="cb-fab-tag">✦ Aarav AI</div>
 </div>
 
 @if (cbOpen()) {
