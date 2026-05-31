@@ -926,18 +926,46 @@ footer { border-top: 1px solid var(--border); padding: 2rem 0; }
   &::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 }
 .cb-msg {
-  display: flex; align-items: flex-end; gap: 0.45rem;
+  display: flex; align-items: flex-start; gap: 0.45rem;
   &--user { flex-direction: row-reverse; }
 }
-.cb-msg-avatar { width: 26px; height: 34px; object-fit: contain; flex-shrink: 0; }
+.cb-msg-col {
+  display: flex; flex-direction: column; gap: 0.45rem;
+  max-width: 85%;
+  .cb-msg--user & { align-items: flex-end; }
+}
+.cb-msg-avatar { width: 26px; height: 34px; object-fit: contain; flex-shrink: 0; margin-top: 4px; }
 .cb-msg-bubble {
-  max-width: 82%; padding: 0.6rem 0.85rem; border-radius: 14px 14px 14px 4px;
+  padding: 0.6rem 0.85rem; border-radius: 14px 14px 14px 4px;
   font-size: 0.82rem; line-height: 1.55; color: var(--text);
   background: var(--surface); border: 1px solid var(--border);
   a { color: var(--purple-lt); text-decoration: underline; }
   .cb-msg--user & {
     background: linear-gradient(135deg, var(--purple) 0%, #4f46e5 100%);
     color: #fff; border-radius: 14px 14px 4px 14px; border: none;
+  }
+}
+
+/* Follow-up suggestion chips */
+.cb-followups {
+  display: flex; flex-wrap: wrap; gap: 0.35rem;
+  animation: fu-appear 0.35s ease both;
+}
+@keyframes fu-appear {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.cb-followup-btn {
+  font-size: 0.7rem; font-family: inherit; cursor: pointer;
+  padding: 0.28rem 0.65rem; border-radius: 999px;
+  border: 1.5px solid rgba(124,58,237,0.45);
+  background: rgba(124,58,237,0.07);
+  color: var(--purple-lt); font-weight: 600;
+  transition: all 0.15s; white-space: nowrap;
+  &:hover {
+    background: rgba(124,58,237,0.18);
+    border-color: var(--purple);
+    transform: translateY(-1px);
   }
 }
 

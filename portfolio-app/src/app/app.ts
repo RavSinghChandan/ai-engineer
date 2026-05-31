@@ -720,7 +720,7 @@ export class App implements OnInit, AfterViewInit {
   cbTyping  = signal(false);
   cbUnread  = signal(0);
   cbDraft   = '';
-  cbMessages = signal<{ role: 'bot'|'user'; html: string }[]>([]);
+  cbMessages = signal<{ role: 'bot'|'user'; html: string; followups?: string[] }[]>([]);
 
   readonly cbQuickPrompts = [
     '👋 Who is Chandan?',
@@ -776,6 +776,7 @@ export class App implements OnInit, AfterViewInit {
       .replace(/\bbnch\b|\bbench\s*resourc\w*/g, 'bench resource optimizer')
       .replace(/\baur[ae]\b|\baura\s*rav\b|\bauraa\b/g, 'aura with rav')
       .replace(/\bagen?ti[ck]\b|\bagentic\s*grwoth\b|\bagentic\s*groth\b/g, 'agentic growth os')
+      .replace(/\brunboo?k\s*ai\b|\brunbookai\b/g, 'runbook ai')
       .replace(/\brunboo?k\b|\brunbok\b|\brun\s*book\b/g, 'runbook')
       // Tech typos
       .replace(/\blang\s*gra?ph\b|\blanggraph?\b|\blanggrph\b/g, 'langgraph')
@@ -1024,6 +1025,82 @@ export class App implements OnInit, AfterViewInit {
     return `Hmm, I'm not sure about that one! 🤔<br><br>I'm best at questions about Chandan's <strong>skills, projects, experience, and contact</strong>. Try:<br>• "What projects has he built?"<br>• "Is he available to hire?"<br>• "What is his tech stack?"<br>• "How to contact him?"<br>• "Tell me his story"`;
   }
 
+  // ── Follow-up suggestions — contextual to the answer just given ──────
+  private _followups(q: string): string[] {
+    const t = q.toLowerCase();
+
+    // Identity / who is Chandan
+    if (/\b(who is|about chandan|introduce|chandan kumar|what does he do)\b/i.test(t))
+      return ['🚀 What projects has he built?', '💼 What companies has he worked at?', '🧠 What is his tech stack?', '📞 How can I hire him?'];
+
+    // Skills / tech stack
+    if (/\b(skill|tech stack|stack|language|framework|expertise)\b/i.test(t))
+      return ['🔮 Show me a project using these skills', '🧠 How does LangGraph work in his code?', '🔍 What is his RAG implementation?', '📊 How many tests does he have?'];
+
+    // Projects general
+    if (/\b(project|portfolio|built|shipped|systems)\b/i.test(t))
+      return ['🔮 How does Aura with Rav work?', '🏢 Explain the Bench Resource Optimizer', '📖 How does RunbookAI work?', '🚀 How does Agentic Growth OS work?'];
+
+    // Aura with Rav
+    if (/\b(aura|astro.?intel|spiritual|vedic|18\s*agent)\b/i.test(t))
+      return ['🔑 What API endpoints does Aura have?', '🧠 How does LangGraph work in this?', '🛡️ What are the G1-G5 guardrails?', '▶️ Can I see a demo?'];
+
+    // Bench Resource Optimizer
+    if (/\b(bench|hr\s*ai|upload.?cv|map.?role|skill\s*gap)\b/i.test(t))
+      return ['🔍 How does the hybrid RAG work?', '💾 How does episodic memory work?', '📡 How does SSE streaming work?', '🛡️ How is the circuit breaker implemented?'];
+
+    // Agentic Growth OS
+    if (/\b(agentic|growth\s*os|campaign|marketing|learning\s*engine)\b/i.test(t))
+      return ['🔑 How does the learning engine improve ROI?', '🗂️ What is the folder structure?', '🧠 How is LangGraph used here?', '▶️ Can I see the demo?'];
+
+    // RunbookAI
+    if (/\b(runbook|runbook\s*ai|ragless|networkx|incident|conflict\s*detect|k8s)\b/i.test(t))
+      return ['🔑 What APIs does RunbookAI expose?', '🗂️ Show me the folder structure', '🧠 How does the dependency graph work?', '▶️ Can I see the demo?'];
+
+    // LangGraph / RAG / architecture
+    if (/\b(langgraph|rag|retrieval|faiss|multi.?agent|stategraph)\b/i.test(t))
+      return ['🔮 Show me Aura\'s LangGraph pipeline', '🏢 How is RAG used in Bench Optimizer?', '🛡️ How do guardrails work?', '📊 How many tests validate this?'];
+
+    // API endpoints
+    if (/\b(api|endpoint|route)\b/i.test(t))
+      return ['🔮 Show me Aura\'s backend code', '🏢 Show me Bench Optimizer backend', '🐳 How do I run these APIs locally?', '📄 Where is the full repo?'];
+
+    // How to run / setup
+    if (/\b(run|setup|install|clone|docker|local)\b/i.test(t))
+      return ['🐙 Where is the GitHub repo?', '🔮 What is the Aura project?', '🏢 What is Bench Resource Optimizer?', '📄 Can I download his resume?'];
+
+    // GitHub / repo
+    if (/\b(github|repo|source\s*code|folder|struct)\b/i.test(t))
+      return ['🔮 How does Aura with Rav work?', '🏢 Explain Bench Optimizer code', '📖 How does RunbookAI work?', '🔑 What API endpoints exist?'];
+
+    // Experience / career
+    if (/\b(experience|career|company|infosys|nexsys|texala|flyboard|worked)\b/i.test(t))
+      return ['💼 What is his current role?', '🎓 Where did he study?', '✨ What is his origin story?', '🚀 What AI projects did he build?'];
+
+    // Current role
+    if (/\b(current|present|infosys|bank\s*of\s*america)\b/i.test(t))
+      return ['💼 What companies has he worked at?', '🚀 What projects has he built?', '📞 How can I hire him?', '📄 Download his resume'];
+
+    // Education
+    if (/\b(education|college|degree|masai|b\.?tech|cgpa)\b/i.test(t))
+      return ['✨ What is his origin story?', '💼 Where does he work now?', '🧠 What is his tech stack?', '🚀 What projects did he build?'];
+
+    // Story / motivation
+    if (/\b(story|journey|motivat|mechanical|console|fuel|origin)\b/i.test(t))
+      return ['💼 Where does he work now?', '🚀 What AI systems did he build?', '🎓 What is his educational background?', '📞 How to reach him?'];
+
+    // Contact / hire
+    if (/\b(contact|email|hire|available|recruit|linkedin|github|youtube|resume)\b/i.test(t))
+      return ['🚀 What projects has he built?', '💼 What is his current role?', '🧠 What is his tech stack?', '✨ What is his story?'];
+
+    // Testing / guardrails
+    if (/\b(test|guardrail|637|quality|ci)\b/i.test(t))
+      return ['🛡️ How do G1-G5 guardrails work?', '📊 How is RAG quality measured?', '🏢 Show me Bench Optimizer tests', '🔮 Show me Aura test suite'];
+
+    // Default fallback suggestions
+    return ['🚀 What projects has he built?', '🧠 What is his tech stack?', '💼 Is he available to hire?', '✨ What is his story?'];
+  }
+
   cbToggle() {
     this.cbOpen.update(v => !v);
     if (this.cbOpen()) {
@@ -1048,8 +1125,9 @@ export class App implements OnInit, AfterViewInit {
     const delay = 400 + Math.random() * 500;
     setTimeout(() => {
       const reply = this._match(q);
+      const followups = this._followups(this._normalize(q));
       this.cbTyping.set(false);
-      this.cbMessages.update(m => [...m, { role: 'bot', html: reply }]);
+      this.cbMessages.update(m => [...m, { role: 'bot', html: reply, followups }]);
       if (!this.cbOpen()) this.cbUnread.update(n => n + 1);
       setTimeout(() => this._scrollChat(), 50);
     }, delay);

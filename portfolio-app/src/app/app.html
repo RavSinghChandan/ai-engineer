@@ -568,7 +568,17 @@
         @if (msg.role === 'bot') {
           <img src="guide-chandan-happy.svg" class="cb-msg-avatar" alt="Aarav"/>
         }
-        <div class="cb-msg-bubble" [innerHTML]="msg.html"></div>
+        <div class="cb-msg-col">
+          <div class="cb-msg-bubble" [innerHTML]="msg.html"></div>
+          <!-- Follow-up chips — only on last bot message -->
+          @if (msg.role === 'bot' && msg.followups && $index === cbMessages().length - 1) {
+            <div class="cb-followups">
+              @for (fu of msg.followups; track fu) {
+                <button class="cb-followup-btn" (click)="cbSend(fu)">{{ fu }}</button>
+              }
+            </div>
+          }
+        </div>
       </div>
     }
     @if (cbTyping()) {
