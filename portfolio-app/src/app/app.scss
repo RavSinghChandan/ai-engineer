@@ -941,7 +941,7 @@ footer { border-top: 1px solid var(--border); padding: 2rem 0; }
   border-radius: 4px 14px 14px 14px;
   font-size: 0.84rem; line-height: 1.6; color: var(--cb-text);
   /* Always dark — content is designed for dark background */
-  background: var(--cb-bg); border: 1px solid #27272a;
+  background: var(--cb-bg); border: 1px solid var(--cb-border);
   word-break: break-word; overflow-wrap: break-word;
   min-width: 0; max-width: 100%; overflow: hidden;
 
@@ -1104,13 +1104,14 @@ footer { border-top: 1px solid var(--border); padding: 2rem 0; }
 .cb-followup-btn {
   font-size: 0.7rem; font-family: inherit; cursor: pointer;
   padding: 0.28rem 0.65rem; border-radius: 999px;
-  border: 1.5px solid var(--cb-btn-border);
-  background: var(--cb-head-bg);
-  color: var(--cb-btn-color); font-weight: 600;
+  border: 1.5px solid var(--cb-chip-ol-border);
+  background: var(--cb-chip-ol-bg);
+  color: var(--cb-chip-ol-color); font-weight: 600;
   transition: all 0.15s; white-space: nowrap;
   &:hover {
     background: var(--cb-btn-bg);
     border-color: var(--cb-btn-border);
+    color: var(--cb-btn-color);
     transform: translateY(-1px); opacity: 0.9;
   }
 }
@@ -1134,10 +1135,13 @@ footer { border-top: 1px solid var(--border); padding: 2rem 0; }
 }
 .cb-prompt-btn {
   font-size: 0.72rem; padding: 0.3rem 0.65rem; border-radius: 999px;
-  border: 1px solid var(--cb-border); background: #1a1a2e;
-  color: var(--cb-text2); cursor: pointer; font-family: inherit;
+  border: 1.5px solid var(--cb-chip-ol-border); background: var(--cb-chip-ol-bg);
+  color: var(--cb-chip-ol-color); font-weight: 600; cursor: pointer; font-family: inherit;
   transition: all 0.15s;
-  &:hover { border-color: var(--cb-head-border); color: var(--cb-head-color); background: var(--cb-head-bg); }
+  &:hover {
+    background: var(--cb-btn-bg); border-color: var(--cb-btn-border);
+    color: var(--cb-btn-color); opacity: 0.9; transform: translateY(-1px);
+  }
 }
 
 /* Input row — always dark */
@@ -1165,4 +1169,12 @@ footer { border-top: 1px solid var(--border); padding: 2rem 0; }
 .cb-limited-bar {
   flex: 1; text-align: center; font-size: 0.74rem; font-weight: 600;
   color: var(--cb-text2); font-style: italic; padding: 0.4rem 0;
+}
+.cb-new-session-btn {
+  flex: 1; text-align: center; font-size: 0.8rem; font-weight: 700;
+  padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer;
+  background: var(--cb-btn-bg); color: var(--cb-btn-color);
+  border: 1px solid var(--cb-btn-border); font-family: inherit;
+  transition: opacity 0.15s;
+  &:hover { opacity: 0.85; }
 }

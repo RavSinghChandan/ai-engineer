@@ -766,20 +766,21 @@ export class App implements OnInit, AfterViewInit {
     if (!isPlatformBrowser(this.platformId)) return;
     if (!this._logUrl || this._logUrl.includes('PASTE_YOUR')) return;
     const payload = {
-      session:  this._cbSession,
-      qNum:     this.cbQCount(),
-      question: question.slice(0, 500),
-      answer:   answer.replace(/<[^>]+>/g, ' ').slice(0, 300),
+      session:   this._cbSession,
+      qNum:      this.cbQCount(),
+      question:  question.slice(0, 500),
+      answer:    answer.replace(/<[^>]+>/g, ' ').slice(0, 300),
       limitHit,
-      ua:       navigator.userAgent.slice(0, 120),
+      theme:     this.theme(),
+      timestamp: new Date().toISOString(),
+      ua:        navigator.userAgent.slice(0, 120),
     };
-    // fire-and-forget, no await — never block the UI
-    fetch(this._logUrl, {
-      method: 'POST',
-      body: JSON.stringify(payload),
-      headers: { 'Content-Type': 'application/json' },
-      mode: 'no-cors',   // Google Apps Script doesn't need CORS preflight
-    }).catch(() => {});  // silently ignore any network errors
+    const body = JSON.stringify(payload);
+    const send = (attempt: number) => {
+      fetch(this._logUrl, { method: 'POST', body, headers: { 'Content-Type': 'application/json' }, mode: 'no-cors' })
+        .catch(() => { if (attempt < 2) setTimeout(() => send(attempt + 1), 1500 * attempt); });
+    };
+    send(1);
   }
 
   // Panel resize
@@ -1262,15 +1263,23 @@ export class App implements OnInit, AfterViewInit {
     this.cbOpen.update(v => !v);
     if (this.cbOpen()) {
       this.cbUnread.set(0);
-      // Reset session on every open
-      this.cbQCount.set(0);
-      this.cbLimited.set(false);
-      this._cbAskedTopics.clear();
-      const greet = `Namaste! 👋 I'm <strong style="color:var(--cb-head-color)">Aarav</strong> — Chandan's AI guide.<br><br>` +
-        `You have <strong style="color:var(--cb-head-color)">10 free questions</strong> this session. Ask anything about his skills, projects, career, or how to hire him!`;
-      this.cbMessages.set([{ role: 'bot', html: greet, safeHtml: this.sanitizer.bypassSecurityTrustHtml(greet) }]);
-      setTimeout(() => this._scrollChat(), 50);
+      this._cbResetSession();
     }
+  }
+
+  cbNewSession() {
+    this._cbResetSession();
+    setTimeout(() => this._scrollChat(), 50);
+  }
+
+  private _cbResetSession() {
+    this.cbQCount.set(0);
+    this.cbLimited.set(false);
+    this._cbAskedTopics.clear();
+    const greet = `Namaste! 👋 I'm <strong style="color:var(--cb-head-color)">Aarav</strong> — Chandan's AI guide.<br><br>` +
+      `You have <strong style="color:var(--cb-head-color)">10 free questions</strong> this session. Ask anything about his skills, projects, career, or how to hire him!`;
+    this.cbMessages.set([{ role: 'bot', html: greet, safeHtml: this.sanitizer.bypassSecurityTrustHtml(greet) }]);
+    setTimeout(() => this._scrollChat(), 50);
   }
 
   cbSend(text: string) {
@@ -1297,7 +1306,6 @@ export class App implements OnInit, AfterViewInit {
 <div style="color:var(--cb-text2);font-size:0.78rem;margin-bottom:0.9rem">Want to know more? Reach Chandan directly:</div>
 <a href="mailto:ravchandan15@gmail.com" style="display:inline-block;margin:0.2rem;padding:0.3rem 0.9rem;border-radius:6px;background:var(--cb-btn-bg);color:var(--cb-btn-color);font-size:0.75rem;font-weight:700;text-decoration:none;border:1px solid var(--cb-btn-border)">📧 Email Chandan</a>
 <a href="https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/" target="_blank" style="display:inline-block;margin:0.2rem;padding:0.3rem 0.9rem;border-radius:6px;background:var(--cb-btn-bg);color:var(--cb-btn-color);font-size:0.75rem;font-weight:700;text-decoration:none;border:1px solid var(--cb-btn-border)">💼 LinkedIn</a>
-<div style="margin-top:0.75rem;color:var(--cb-text3);font-size:0.7rem;font-style:italic">Close &amp; reopen chat to start a new session</div>
 </div>`;
       this.cbMessages.update(m => [...m, { role: 'user', html: q }, { role: 'bot', html: limitHtml, safeHtml: this.sanitizer.bypassSecurityTrustHtml(limitHtml) }]);
       setTimeout(() => this._scrollChat(), 50);

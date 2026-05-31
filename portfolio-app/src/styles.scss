@@ -214,46 +214,54 @@ h2 {
 /* ── Chat panel theme tokens ─────────────────────────────────────── */
 /* Dark mode (default) */
 :root, html[data-theme="dark"] {
-  --cb-bg:          #0f0f1a;
-  --cb-bg2:         #1a1a2e;
-  --cb-border:      #2d2d3d;
-  --cb-text:        #f1f5f9;
-  --cb-text2:       #94a3b8;
-  --cb-text3:       #64748b;
-  --cb-head-bg:     #1e1b4b;
-  --cb-head-color:  #a78bfa;
-  --cb-head-border: #7c3aed;
-  --cb-chip-bg:     #312e81;
-  --cb-chip-color:  #c7d2fe;
-  --cb-btn-bg:      #312e81;
-  --cb-btn-color:   #c7d2fe;
-  --cb-btn-border:  #4338ca;
-  --cb-link:        #a78bfa;
-  --cb-divider:     rgba(255,255,255,0.1);
-  --cb-input-bg:    #1a1a2e;
-  --cb-input-color: #f1f5f9;
-  --cb-ph:          #4b5563;
+  --cb-bg:           #0f0f1a;
+  --cb-bg2:          #1a1a2e;
+  --cb-border:       #2d2d3d;
+  --cb-text:         #f1f5f9;
+  --cb-text2:        #94a3b8;
+  --cb-text3:        #64748b;
+  --cb-head-bg:      #1e1b4b;
+  --cb-head-color:   #a78bfa;
+  --cb-head-border:  #7c3aed;
+  --cb-chip-bg:      #312e81;
+  --cb-chip-color:   #c7d2fe;
+  --cb-btn-bg:       #312e81;
+  --cb-btn-color:    #c7d2fe;
+  --cb-btn-border:   #4338ca;
+  /* outline chips — same as btn in dark mode */
+  --cb-chip-ol-bg:      #1e1b4b;
+  --cb-chip-ol-color:   #c4b5fd;
+  --cb-chip-ol-border:  #4338ca;
+  --cb-link:         #a78bfa;
+  --cb-divider:      rgba(255,255,255,0.1);
+  --cb-input-bg:     #1a1a2e;
+  --cb-input-color:  #f1f5f9;
+  --cb-ph:           #4b5563;
 }
 
 /* Light mode overrides */
 html[data-theme="light"] {
-  --cb-bg:          #ffffff;
-  --cb-bg2:         #f8fafc;
-  --cb-border:      #e2e8f0;
-  --cb-text:        #0f172a;
-  --cb-text2:       #475569;
-  --cb-text3:       #94a3b8;
-  --cb-head-bg:     #ede9fe;
-  --cb-head-color:  #4c1d95;
-  --cb-head-border: #7c3aed;
-  --cb-chip-bg:     #ddd6fe;
-  --cb-chip-color:  #3730a3;
-  --cb-btn-bg:      #ede9fe;
-  --cb-btn-color:   #4c1d95;
-  --cb-btn-border:  #7c3aed;
-  --cb-link:        #5b21b6;
-  --cb-divider:     #e2e8f0;
-  --cb-input-bg:    #f8fafc;
-  --cb-input-color: #0f172a;
-  --cb-ph:          #9ca3af;
+  --cb-bg:           #ffffff;
+  --cb-bg2:          #f8fafc;
+  --cb-border:       #e2e8f0;
+  --cb-text:         #0f172a;
+  --cb-text2:        #475569;
+  --cb-text3:        #94a3b8;
+  --cb-head-bg:      #ede9fe;
+  --cb-head-color:   #4c1d95;
+  --cb-head-border:  #7c3aed;
+  --cb-chip-bg:      #7c3aed;
+  --cb-chip-color:   #ffffff;
+  --cb-btn-bg:       #7c3aed;
+  --cb-btn-color:    #ffffff;
+  --cb-btn-border:   #6d28d9;
+  /* outline chips (followup + quick prompt) — dark text on tinted bg */
+  --cb-chip-ol-bg:      #ede9fe;
+  --cb-chip-ol-color:   #4c1d95;
+  --cb-chip-ol-border:  #c4b5fd;
+  --cb-link:         #5b21b6;
+  --cb-divider:      #e2e8f0;
+  --cb-input-bg:     #f8fafc;
+  --cb-input-color:  #0f172a;
+  --cb-ph:           #9ca3af;
 }

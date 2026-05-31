@@ -88,3 +88,25 @@ Thumbs.db
 # JSON data stores — runtime artifacts, never commit (auth_keys.json already covered above)
 leads.json
 users.json
+
+# Angular build cache — all projects
+**/.angular/cache/
+
+# Vercel deployment metadata
+.vercel/
+**/.vercel/
+
+# Debug/capture scripts and screenshots at repo root level
+portfolio-app/*.png
+portfolio-app/*.js
+!portfolio-app/src/
+portfolio-app/public/agentic-probe-*.png
+portfolio-app/public/agentic-step1-*.png
+portfolio-app/public/bench-step3-*.png
+portfolio-app/public/bench-step4-*.png
+portfolio-app/public/bench-step5-*.png
+portfolio-app/public/bench-step6-*.png
+portfolio-app/public/slide-portfolio.png
+
+# Salesflow telegram platform artifacts
+salesflow-ai/platforms/telegram/
