@@ -725,6 +725,11 @@ export class App implements OnInit, AfterViewInit {
   cbDraft   = '';
   cbMessages = signal<{ role: 'bot'|'user'; html: string; safeHtml?: SafeHtml; followups?: string[] }[]>([]);
 
+  // Rate limit — 10 questions per session
+  private readonly CB_LIMIT = 10;
+  cbQCount  = signal(0);
+  cbLimited = signal(false);
+
   // Panel resize
   cbPanelW  = signal(380);
   cbPanelH  = signal(560);
@@ -1205,7 +1210,9 @@ export class App implements OnInit, AfterViewInit {
     this.cbOpen.update(v => !v);
     if (this.cbOpen()) {
       this.cbUnread.set(0);
-      // Always reset to fresh session on open
+      // Reset session on every open
+      this.cbQCount.set(0);
+      this.cbLimited.set(false);
       const greet = `Namaste! 🙏 I'm <strong>Aarav</strong> — Chandan's AI assistant.<br>Ask me anything about his skills, projects, experience, or how to hire him!`;
       this.cbMessages.set([{ role: 'bot', html: greet, safeHtml: this.sanitizer.bypassSecurityTrustHtml(greet) }]);
       setTimeout(() => this._scrollChat(), 50);
@@ -1214,21 +1221,49 @@ export class App implements OnInit, AfterViewInit {
 
   cbSend(text: string) {
     const q = (text || '').trim();
-    if (!q) return;
+    if (!q || this.cbLimited()) return;
     this.cbDraft = '';
+
+    // Check rate limit
+    const newCount = this.cbQCount() + 1;
+    this.cbQCount.set(newCount);
+
+    if (newCount > this.CB_LIMIT) {
+      this.cbLimited.set(true);
+      const limitHtml = `<div style="text-align:center;padding:0.5rem 0">
+<div style="font-size:1.4rem;margin-bottom:0.5rem">🔒</div>
+<div style="font-weight:800;color:#f1f5f9;font-size:0.9rem;margin-bottom:0.35rem">Session limit reached</div>
+<div style="color:#94a3b8;font-size:0.78rem;margin-bottom:0.8rem">You've used all <strong style="color:#a78bfa">10 free questions</strong> for this session.</div>
+<div style="color:#94a3b8;font-size:0.78rem;margin-bottom:0.9rem">Want to know more about Chandan? Reach him directly:</div>
+<a href="mailto:ravchandan15@gmail.com" style="display:inline-block;margin:0.2rem;padding:0.3rem 0.9rem;border-radius:6px;background:#312e81;color:#c7d2fe;font-size:0.75rem;font-weight:700;text-decoration:none">📧 Email Chandan</a>
+<a href="https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/" target="_blank" style="display:inline-block;margin:0.2rem;padding:0.3rem 0.9rem;border-radius:6px;background:#312e81;color:#c7d2fe;font-size:0.75rem;font-weight:700;text-decoration:none">💼 LinkedIn</a>
+<div style="margin-top:0.75rem;color:#64748b;font-size:0.7rem;font-style:italic">Close &amp; reopen chat to start a new session</div>
+</div>`;
+      this.cbMessages.update(m => [...m, { role: 'user', html: q }, { role: 'bot', html: limitHtml, safeHtml: this.sanitizer.bypassSecurityTrustHtml(limitHtml) }]);
+      setTimeout(() => this._scrollChat(), 50);
+      return;
+    }
 
     // Add user message
     this.cbMessages.update(m => [...m, { role: 'user', html: q }]);
     this.cbTyping.set(true);
     setTimeout(() => this._scrollChat(), 30);
 
-    // Simulate thinking delay (400-900ms feels natural)
+    // Simulate thinking delay
     const delay = 400 + Math.random() * 500;
     setTimeout(() => {
       const reply = this._match(q);
-      const followups = this._followups(this._normalize(q));
+      const followups = this.cbQCount() < this.CB_LIMIT ? this._followups(this._normalize(q)) : [];
+      // Warn on question 8 — 2 left
+      const remaining = this.CB_LIMIT - this.cbQCount();
+      const warningHtml = remaining === 2
+        ? `${reply}<div style="margin-top:0.6rem;padding:0.3rem 0.6rem;border-radius:6px;background:rgba(245,158,11,0.12);border-left:3px solid #d97706;color:#fde68a;font-size:0.72rem;font-style:italic">⚠️ <strong style="color:#fde68a">2 questions remaining</strong> in this session</div>`
+        : remaining === 1
+        ? `${reply}<div style="margin-top:0.6rem;padding:0.3rem 0.6rem;border-radius:6px;background:rgba(239,68,68,0.12);border-left:3px solid #dc2626;color:#fca5a5;font-size:0.72rem;font-style:italic">🔴 <strong style="color:#fca5a5">Last question</strong> in this session</div>`
+        : reply;
+      const finalHtml = warningHtml;
       this.cbTyping.set(false);
-      this.cbMessages.update(m => [...m, { role: 'bot', html: reply, safeHtml: this.sanitizer.bypassSecurityTrustHtml(reply), followups }]);
+      this.cbMessages.update(m => [...m, { role: 'bot', html: finalHtml, safeHtml: this.sanitizer.bypassSecurityTrustHtml(finalHtml), followups }]);
       if (!this.cbOpen()) this.cbUnread.update(n => n + 1);
       setTimeout(() => this._scrollChat(), 50);
     }, delay);
