@@ -884,10 +884,10 @@ footer { border-top: 1px solid var(--border); padding: 2rem 0; }
     max-height: 65dvh;
     border-radius: 18px;
   }
-  /* Mobile portrait — floating panel */
+  /* Mobile portrait — floating panel, anchored both sides */
   @media (max-width: 480px) {
-    right: 0.75rem; bottom: 6.5rem;
-    width: calc(100vw - 1.5rem); max-width: 380px;
+    left: 0.75rem !important; right: 0.75rem !important; bottom: 6.5rem;
+    width: auto !important; max-width: none;
     max-height: 60dvh;
     border-radius: 16px;
   }
