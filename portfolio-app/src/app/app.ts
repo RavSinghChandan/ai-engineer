@@ -215,7 +215,7 @@ export class App implements OnInit, AfterViewInit {
   fgSub     = signal('');
   fgEntry   = signal('from-bottom-left');
 
-  private _fgTimer: any = null;
+  private _fgTimer: ReturnType<typeof setTimeout> | undefined;
   private _fgSection = '';
 
   // Entry directions cycle per section so character always comes from a new corner
