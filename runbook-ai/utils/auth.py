@@ -1,6 +1,6 @@
 """
 JWT signing/verification and password hashing utilities.
-Secret is read from JWT_SECRET env var; falls back to a dev-only default.
+JWT_SECRET env var is REQUIRED in production — startup will fail if not set.
 """
 from __future__ import annotations
 import os
@@ -9,7 +9,17 @@ from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
-SECRET_KEY = os.getenv("JWT_SECRET", "runbookai-dev-secret-change-in-production")
+_raw_secret = os.getenv("JWT_SECRET")
+if not _raw_secret:
+    _env = os.getenv("APP_ENV", "production")
+    if _env != "test":
+        raise RuntimeError(
+            "JWT_SECRET environment variable is not set. "
+            "Generate one with: python -c \"import secrets; print(secrets.token_hex(32))\""
+        )
+    _raw_secret = "test-only-secret-not-for-production"  # safe for test env only
+
+SECRET_KEY: str = _raw_secret
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_SECONDS = int(os.getenv("ACCESS_TOKEN_EXPIRE_SECONDS", "86400"))  # 24 h
 
