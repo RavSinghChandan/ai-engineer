@@ -141,6 +141,8 @@ export class App implements OnInit, AfterViewInit {
       title: 'Tests. 3.6 seconds.',
       sub:   'Every line of production code is tested. No shortcuts, no flakiness.',
       askQuestion: 'How does Chandan achieve 637 tests in 3.6 seconds?',
+      aaravImg: 'guide-chandan-wow.svg',
+      aaravSay: '637 tests, zero flakes! 🤩',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect x="6" y="10" width="36" height="28" rx="4" stroke="currentColor" stroke-width="2"/>
         <path d="M14 22l4 4 8-8" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -154,6 +156,8 @@ export class App implements OnInit, AfterViewInit {
       title: 'Latency reduced 95%.',
       sub:   'Measured, optimised, and shipped — 3-tier cache + parallel agents.',
       askQuestion: 'How did Chandan reduce latency from 78 seconds to 4 seconds?',
+      aaravImg: 'guide-chandan-thinking.svg',
+      aaravSay: '78s → 4s. Ask me how! ⚡',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="24" cy="24" r="16" stroke="currentColor" stroke-width="2" opacity="0.3"/>
         <path d="M24 12v12l7 4" stroke="#a78bfa" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -168,6 +172,8 @@ export class App implements OnInit, AfterViewInit {
       title: 'AI agents coordinated.',
       sub:   'LangGraph StateGraph — parallel domain agents, conditional edges, human-in-loop.',
       askQuestion: 'How does Chandan coordinate 18+ AI agents without conflicts?',
+      aaravImg: 'guide-chandan.svg',
+      aaravSay: '18 agents, zero conflicts! 🤖',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="24" cy="10" r="5" stroke="#a78bfa" stroke-width="2"/>
         <circle cx="10" cy="34" r="5" stroke="#06b6d4" stroke-width="2"/>
@@ -182,6 +188,8 @@ export class App implements OnInit, AfterViewInit {
       title: 'Per AI analysis.',
       sub:   'DeepSeek + semantic cache. 500× cheaper than GPT-4o. Tracked and proven.',
       askQuestion: 'How did Chandan achieve $0.000137 per AI analysis cost?',
+      aaravImg: 'guide-chandan-happy.svg',
+      aaravSay: '500× cheaper than GPT-4o! 💰',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M24 6 L28 18 L40 18 L30 26 L34 38 L24 30 L14 38 L18 26 L8 18 L20 18 Z" stroke="#f59e0b" stroke-width="2" stroke-linejoin="round" fill="rgba(245,158,11,0.1)"/>
         <path d="M24 13 L26 19 L32 19 L28 23 L29 29 L24 25 L19 29 L20 23 L16 19 L22 19 Z" fill="#f59e0b" opacity="0.4"/>
@@ -193,6 +201,8 @@ export class App implements OnInit, AfterViewInit {
       title: 'Hallucinated commands.',
       sub:   'RunbookAI: RAGless architecture. Every kubectl command pulled from SQL, verbatim.',
       askQuestion: 'How does RunbookAI achieve zero hallucinated commands?',
+      aaravImg: 'guide-chandan-wow.svg',
+      aaravSay: 'Zero hallucinations. Real. 🎯',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="24" cy="24" r="16" stroke="#10b981" stroke-width="2"/>
         <path d="M17 24l5 5 9-10" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -206,6 +216,8 @@ export class App implements OnInit, AfterViewInit {
       title: 'Production guardrails.',
       sub:   'Rate limit · injection detection · PII filter · faithfulness gate · output validation.',
       askQuestion: 'What are the G1 to G5 production guardrails Chandan built?',
+      aaravImg: 'guide-chandan-thinking.svg',
+      aaravSay: 'G1–G5 means battle-tested! 🛡️',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M24 4 L38 10 L38 24 C38 32 32 39 24 42 C16 39 10 32 10 24 L10 10 Z" stroke="#ef4444" stroke-width="2" stroke-linejoin="round" fill="rgba(239,68,68,0.08)"/>
         <path d="M18 24l4 4 8-8" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>

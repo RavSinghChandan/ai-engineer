@@ -145,16 +145,14 @@
           <div class="proof-title">{{ p.title }}</div>
           <div class="proof-sub">{{ p.sub }}</div>
 
-          <!-- Animated arrow + Ask Aarav CTA -->
-          <div class="proof-ask">
-            <svg class="proof-arrow" viewBox="0 0 40 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M0 8 Q10 8 20 8" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"/>
-              <path d="M26 8 L32 8 M28 4 L33 8 L28 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <button class="proof-ask-btn" (click)="askAarav(p.askQuestion)" title="Ask Aarav about this">
-              Ask Aarav ↗
-            </button>
-          </div>
+          <!-- Aarav character CTA — click to ask -->
+          <button class="proof-aarav" (click)="askAarav(p.askQuestion)" [title]="p.askQuestion">
+            <img [src]="p.aaravImg" class="proof-aarav-avatar" alt="Aarav"/>
+            <div class="proof-aarav-bubble">
+              <span class="proof-aarav-text">{{ p.aaravSay }}</span>
+              <span class="proof-aarav-cta">Tap to ask me! ↗</span>
+            </div>
+          </button>
 
         </div>
       }
