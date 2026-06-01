@@ -126,26 +126,20 @@
   </div>
 </section>
 
-<!-- PROOF-OF-WORK TICKER -->
-<div class="ticker-wrap" aria-label="Engineering proof of work">
-  <div class="ticker-track">
-    @for (item of tickerItems; track item.stat) {
-      <span class="ticker-item">
-        <span class="ticker-stat">{{ item.stat }}</span>
-        <span class="ticker-label">{{ item.label }}</span>
-      </span>
-      <span class="ticker-sep" aria-hidden="true">✦</span>
-    }
-    <!-- Duplicate for seamless loop -->
-    @for (item of tickerItems; track item.stat + '_dup') {
-      <span class="ticker-item">
-        <span class="ticker-stat">{{ item.stat }}</span>
-        <span class="ticker-label">{{ item.label }}</span>
-      </span>
-      <span class="ticker-sep" aria-hidden="true">✦</span>
-    }
+<!-- PROOF PANEL — 6 verifiable stats, readable in 5 seconds -->
+<section class="proof-panel">
+  <div class="container">
+    <div class="proof-grid">
+      @for (p of proofStats; track p.stat) {
+        <div class="proof-card">
+          <div class="proof-num">{{ p.stat }}</div>
+          <div class="proof-title">{{ p.title }}</div>
+          <div class="proof-sub">{{ p.sub }}</div>
+        </div>
+      }
+    </div>
   </div>
-</div>
+</section>
 
 <!-- SKILLS -->
 <section id="skills" class="skills-section" data-guide="skills">

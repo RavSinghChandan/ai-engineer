@@ -134,28 +134,38 @@ export class App implements OnInit, AfterViewInit {
     },
   ];
 
-  // ── Proof-of-work ticker — every stat is real and verifiable in GitHub ──
-  readonly tickerItems = [
-    { stat: '637',          label: 'tests passing'             },
-    { stat: '3.6s',         label: 'full test suite runtime'   },
-    { stat: '18+',          label: 'AI agents coordinated'     },
-    { stat: 'G1–G5',        label: 'production guardrails'     },
-    { stat: '$0.000137',    label: 'per AI analysis'           },
-    { stat: '78s → 4s',     label: 'latency journey'           },
-    { stat: '23',           label: 'Indian languages'          },
-    { stat: 'RAGless',      label: 'zero vectors, zero hallucinations' },
-    { stat: 'FAISS+BM25',   label: '+HyDE+CRAG+cross-encoder'  },
-    { stat: 'Kafka acks=all', label: '+DLQ+gzip+retry'         },
-    { stat: '141',          label: 'RunbookAI tests · 5s'      },
-    { stat: '222',          label: 'Bench tests passing'       },
-    { stat: '415',          label: 'Aura tests passing'        },
-    { stat: '4',            label: 'production AI systems'     },
-    { stat: 'JWT+RBAC',     label: '3-role multi-tenant auth'  },
-    { stat: 'L1+L2+L3',     label: '3-tier semantic cache'     },
-    { stat: 'SSE',          label: 'streaming TTFT < 1.5s'     },
-    { stat: '22',           label: 'K8s runbooks indexed'      },
-    { stat: 'NetworkX DAG', label: 'topological step ordering' },
-    { stat: '4+',           label: 'years · 4 companies'       },
+  // ── 6 proof cards — each one a gut-punch stat readable in 2 seconds ──
+  readonly proofStats = [
+    {
+      stat:  '637',
+      title: 'Tests. 3.6 seconds.',
+      sub:   'Every line of production code is tested. No shortcuts, no flakiness.',
+    },
+    {
+      stat:  '78s → 4s',
+      title: 'Latency reduced 95%.',
+      sub:   'Measured, optimised, and shipped — 3-tier cache + parallel agents.',
+    },
+    {
+      stat:  '18+',
+      title: 'AI agents coordinated.',
+      sub:   'LangGraph StateGraph — parallel domain agents, conditional edges, human-in-loop.',
+    },
+    {
+      stat:  '$0.000137',
+      title: 'Per AI analysis.',
+      sub:   'DeepSeek + semantic cache. 500× cheaper than GPT-4o. Tracked and proven.',
+    },
+    {
+      stat:  '0',
+      title: 'Hallucinated commands.',
+      sub:   'RunbookAI: RAGless architecture. Every kubectl command pulled from SQL, verbatim.',
+    },
+    {
+      stat:  'G1–G5',
+      title: 'Production guardrails.',
+      sub:   'Rate limit · injection detection · PII filter · faithfulness gate · output validation.',
+    },
   ];
 
   skills = [

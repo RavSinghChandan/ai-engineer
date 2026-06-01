@@ -150,85 +150,76 @@ h1 {
 .hc-footer { display: flex; gap: 1rem; padding-top: 0.85rem; border-top: 1px solid var(--border); flex-wrap: wrap; }
 .hc-stat { font-family: 'Fira Code', monospace; font-size: 0.72rem; &.green { color: var(--green); } &.amber { color: var(--amber); } }
 
-/* ── PROOF-OF-WORK TICKER ── */
-.ticker-wrap {
-  width: 100%;
-  overflow: hidden;
-  background: linear-gradient(90deg, rgba(124,58,237,0.08) 0%, rgba(6,182,212,0.06) 50%, rgba(124,58,237,0.08) 100%);
-  border-top: 1px solid rgba(124,58,237,0.2);
-  border-bottom: 1px solid rgba(124,58,237,0.2);
-  padding: 0;
-  position: relative;
+/* ── PROOF PANEL — 6 verifiable stats, Apple-style ── */
+.proof-panel {
+  padding: 4rem 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
 
-  /* Fade edges — Apple ticker effect */
-  &::before, &::after {
+.proof-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+
+  @media (max-width: 900px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 540px) { grid-template-columns: 1fr; gap: 1rem; }
+}
+
+.proof-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.75rem 1.75rem 1.5rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
+
+  /* Subtle left accent glow */
+  &::before {
     content: '';
     position: absolute;
-    top: 0; bottom: 0;
-    width: 80px;
-    z-index: 2;
-    pointer-events: none;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--purple) 0%, var(--cyan) 100%);
+    border-radius: 3px 0 0 3px;
+    opacity: 0;
+    transition: opacity 0.2s;
   }
-  &::before { left: 0;  background: linear-gradient(90deg, var(--bg), transparent); }
-  &::after  { right: 0; background: linear-gradient(-90deg, var(--bg), transparent); }
+  &:hover {
+    border-color: rgba(124,58,237,0.4);
+    box-shadow: 0 4px 24px rgba(124,58,237,0.1);
+    &::before { opacity: 1; }
+  }
 }
 
-.ticker-track {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  white-space: nowrap;
-  animation: ticker-scroll 55s linear infinite;
-  will-change: transform;
-
-  &:hover { animation-play-state: paused; }
-}
-
-@keyframes ticker-scroll {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
-}
-
-.ticker-item {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.35rem;
-  padding: 0.6rem 1.25rem;
-  flex-shrink: 0;
-}
-
-.ticker-stat {
+.proof-num {
   font-family: 'Fira Code', monospace;
-  font-size: 0.82rem;
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  margin-bottom: 0.65rem;
+  /* Gradient number — the instant eye-catcher */
+  background: linear-gradient(135deg, var(--purple-lt) 0%, var(--cyan) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.proof-title {
+  font-size: 0.95rem;
   font-weight: 700;
-  color: var(--purple-lt);
+  color: var(--text);
+  margin-bottom: 0.4rem;
   letter-spacing: -0.01em;
 }
 
-.ticker-sep {
-  color: rgba(124,58,237,0.35);
-  font-size: 0.6rem;
-  padding: 0 0.1rem;
-  flex-shrink: 0;
-}
-
-.ticker-label {
-  font-size: 0.72rem;
-  font-weight: 500;
+.proof-sub {
+  font-size: 0.78rem;
   color: var(--text2);
-  letter-spacing: 0.01em;
-}
-
-/* Light mode adjustments */
-html[data-theme="light"] {
-  .ticker-wrap {
-    background: linear-gradient(90deg, rgba(124,58,237,0.04) 0%, rgba(6,182,212,0.03) 50%, rgba(124,58,237,0.04) 100%);
-    border-top-color: rgba(124,58,237,0.15);
-    border-bottom-color: rgba(124,58,237,0.15);
-  }
-  .ticker-stat { color: #5b21b6; }
-  .ticker-label { color: var(--text2); }
-  .ticker-sep { color: rgba(124,58,237,0.25); }
+  line-height: 1.55;
 }
 
 /* ── SHARED ── */
