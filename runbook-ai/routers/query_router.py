@@ -7,22 +7,20 @@ RAGless: classify → SQL match → graph traversal → structured response.
 Zero vectors. Every command pulled from database verbatim.
 """
 from __future__ import annotations
-from typing import Optional
-from fastapi import APIRouter, HTTPException
+from typing import Annotated, Optional
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 from graph.query_pipeline import query_pipeline
 from agents.runbook_matcher_agent import match_runbooks
 from agents.incident_classifier_agent import classify_incident
 from agents.response_composer_agent import compose_response
 from agents.multi_source_composer import build_multi_source_response
-from routers.deps import optional_auth
-from typing import Annotated
-from fastapi import Depends
+from routers.deps import optional_auth, CurrentUser
+from utils.rate_limit import query_limiter, client_key
 
 router = APIRouter(prefix="/query", tags=["query"])
 
-
-OptionalUser = Annotated[Optional[any], Depends(optional_auth)]
+OptionalUser = Annotated[Optional[CurrentUser], Depends(optional_auth)]
 
 
 class IncidentRequest(BaseModel):
@@ -49,9 +47,10 @@ class QuickMatchRequest(BaseModel):
     responses={
         400: {"description": "Incident description is empty or too short"},
         404: {"description": "Pinned runbook ID not found"},
+        429: {"description": "Rate limit exceeded — 20 queries/minute per IP"},
     },
 )
-def query_incident(req: IncidentRequest, current_user: OptionalUser = None):
+def query_incident(request: Request, req: IncidentRequest, current_user: OptionalUser = None):
     """
     Main endpoint: describe an incident → get ordered runbook steps.
 
@@ -68,6 +67,8 @@ def query_incident(req: IncidentRequest, current_user: OptionalUser = None):
     - Triage summary (LLM-generated prose — clearly labelled)
     - All commands pulled verbatim from DB — source: 'database'
     """
+    query_limiter.check(client_key(request), "Query rate limit: 20 requests/minute per IP")
+
     if not req.incident.strip():
         raise HTTPException(status_code=400, detail="Incident description cannot be empty")
 

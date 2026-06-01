@@ -2,7 +2,7 @@ import os
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
-from database.models import ALL_TABLES
+from database.models import ALL_TABLES, CREATE_INDEXES
 
 DB_PATH = os.getenv("DATABASE_PATH", str(Path(__file__).parent.parent / "runbookai.db"))
 
@@ -26,6 +26,11 @@ def init_db() -> None:
         for ddl in ALL_TABLES:
             conn.execute(ddl)
         _run_migrations(conn)
+        # Create indexes after tables exist; each is IF NOT EXISTS — safe to re-run
+        for stmt in CREATE_INDEXES.strip().splitlines():
+            stmt = stmt.strip()
+            if stmt:
+                conn.execute(stmt)
         conn.commit()
 
 

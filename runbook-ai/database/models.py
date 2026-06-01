@@ -85,6 +85,16 @@ CREATE TABLE IF NOT EXISTS graph_cache (
 );
 """
 
+# Indexes — applied after table creation; IF NOT EXISTS makes them idempotent
+CREATE_INDEXES = """
+CREATE INDEX IF NOT EXISTS idx_runbooks_tenant_status    ON runbooks(tenant_id, status);
+CREATE INDEX IF NOT EXISTS idx_runbooks_category_status  ON runbooks(category, status);
+CREATE INDEX IF NOT EXISTS idx_runbooks_severity_status  ON runbooks(severity, status);
+CREATE INDEX IF NOT EXISTS idx_steps_runbook_rollback    ON steps(runbook_id, is_rollback);
+CREATE INDEX IF NOT EXISTS idx_ingest_jobs_tenant        ON ingest_jobs(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_users_tenant              ON users(tenant_id);
+"""
+
 # Tables ordered so FK dependencies are created first
 ALL_TABLES = [
     CREATE_TENANTS,
