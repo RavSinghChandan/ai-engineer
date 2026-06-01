@@ -1,8 +1,22 @@
 import json
+import logging
 import time
 from typing import Optional
 from database.db import get_conn
 from graph.state import ExtractionState
+
+logger = logging.getLogger(__name__)
+
+
+def _safe_json(value: Optional[str], default):
+    """Parse JSON from DB — returns default on corrupt/null data instead of crashing."""
+    if not value:
+        return default
+    try:
+        return json.loads(value)
+    except (json.JSONDecodeError, TypeError):
+        logger.warning("Corrupt JSON in DB field, using default. Value: %.60r", value)
+        return default
 
 
 def save_runbook(state: ExtractionState, filename: str, total_pages: int,
@@ -84,8 +98,8 @@ def get_runbook(runbook_id: int) -> Optional[dict]:
         if not row:
             return None
         rb = dict(row)
-        rb["tags"] = json.loads(rb["tags"])
-        rb["prerequisites"] = json.loads(rb["prerequisites"])
+        rb["tags"] = _safe_json(rb.get("tags"), [])
+        rb["prerequisites"] = _safe_json(rb.get("prerequisites"), [])
         rb["steps"] = _get_steps(conn, runbook_id, is_rollback=False)
         rb["rollback_steps"] = _get_steps(conn, runbook_id, is_rollback=True)
         return rb
@@ -132,17 +146,19 @@ def list_runbooks(
     query += " ORDER BY created_at DESC LIMIT ? OFFSET ?"
     params += [limit, offset]
 
+    # Embed step_count as a subquery — eliminates the N+1 pattern
+    query = query.replace(
+        "SELECT * FROM runbooks",
+        "SELECT *, (SELECT COUNT(*) FROM steps WHERE runbook_id=runbooks.id AND is_rollback=0) AS step_count FROM runbooks",
+        1,
+    )
     with get_conn() as conn:
         rows = conn.execute(query, params).fetchall()
         result = []
         for row in rows:
             rb = dict(row)
-            rb["tags"] = json.loads(rb["tags"])
-            rb["prerequisites"] = json.loads(rb["prerequisites"])
-            rb["step_count"] = conn.execute(
-                "SELECT COUNT(*) FROM steps WHERE runbook_id=? AND is_rollback=0",
-                (rb["id"],)
-            ).fetchone()[0]
+            rb["tags"] = _safe_json(rb.get("tags"), [])
+            rb["prerequisites"] = _safe_json(rb.get("prerequisites"), [])
             result.append(rb)
         return result
 
@@ -155,8 +171,8 @@ def _get_steps(conn, runbook_id: int, is_rollback: bool) -> list[dict]:
     steps = []
     for row in rows:
         s = dict(row)
-        s["commands"] = json.loads(s["commands"])
-        s["depends_on"] = json.loads(s["depends_on"])
+        s["commands"] = _safe_json(s.get("commands"), [])
+        s["depends_on"] = _safe_json(s.get("depends_on"), [])
         s["is_optional"] = bool(s["is_optional"])
         s["is_rollback"] = bool(s["is_rollback"])
         steps.append(s)
@@ -192,5 +208,5 @@ def get_ingest_job(job_id: int) -> Optional[dict]:
         if not row:
             return None
         j = dict(row)
-        j["agent_log"] = json.loads(j["agent_log"])
+        j["agent_log"] = _safe_json(j.get("agent_log"), [])
         return j
