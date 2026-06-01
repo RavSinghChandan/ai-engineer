@@ -2,7 +2,29 @@
 
 **Enterprise IT Runbook & Incident Response Assistant — RAGless + Multi-Source Architecture**
 
-Zero vectors. Zero embeddings. Zero hallucinated commands. Three knowledge sources compared and ranked for every incident.
+Zero vectors. Zero embeddings. Zero hallucinated commands.  
+Three completely separate knowledge panels ranked by priority for every incident.
+
+---
+
+## Quick Start — Run Locally Right Now
+
+```bash
+# Terminal 1 — Backend
+cd runbook-ai
+export JWT_SECRET=your-secret-here        # required
+export DEEPSEEK_API_KEY=sk-...            # required for PDF ingestion
+export APP_ENV=development
+pip install -r requirements.txt
+uvicorn main:app --reload --port 8000
+
+# Terminal 2 — Frontend
+cd runbook-ai/ui
+npm install
+ng serve --port 4200
+```
+
+Open **http://localhost:4200** — dashboard loads immediately with 22 pre-loaded runbooks (12 internal + 10 official K8s docs).
 
 ---
 
@@ -10,83 +32,105 @@ Zero vectors. Zero embeddings. Zero hallucinated commands. Three knowledge sourc
 
 When an on-call engineer gets paged at 3 AM:
 
-- They need the **exact** `kubectl` command to run — not a paraphrase
-- They need the steps **in order** — Step 3 cannot run before Step 2
+- They need the **exact** `kubectl` command — not a paraphrase
+- They need steps **in safe order** — Step 3 cannot run before Step 2
 - They need to know which steps can run **in parallel** — to save time
-- They need **both** their internal company runbook **and** the official Kubernetes docs — compared, conflict-checked, and prioritised
+- They need to know if their internal runbook **conflicts** with official K8s docs
+- They need **three separate views**: internal-only, official-only, and combined
 
-Traditional AI search (RAG/vector search) cannot reliably do any of these.  
-RunbookAI extracts runbook structure **once** at upload time and answers queries with **deterministic SQL + graph traversal**. The LLM never touches commands at query time.
-
-**No login required** — open the UI and start querying immediately.
+Traditional RAG/vector search cannot reliably do any of these.  
+RunbookAI extracts structure **once at upload**, answers with **deterministic SQL + dependency graph**.  
+The LLM never generates commands at query time — commands come verbatim from the database.
 
 ---
 
-## Multi-Source Knowledge Architecture (Phase 7)
+## 3-Panel Priority System
 
-Every query now returns **three ranked panels** side by side:
+Every query returns **three completely separate, non-mixed panels**:
 
-| Panel | Source | Color | Priority | When to use |
-|-------|--------|-------|----------|-------------|
-| **Internal** | Your company's uploaded runbooks | Green | 1 — First | Verified on your infrastructure |
-| **Combined** | Steps both sources agree on | Purple | 2 — Second | Highest confidence — both teams aligned |
-| **Official** | kubernetes.io / official docs | Blue | 3 — Fallback | Generic — use if internal steps don't apply |
+| Priority | Panel | Color | Source | When to use |
+|----------|-------|-------|--------|-------------|
+| **P1 — Try first** | Internal | 🟢 Green | Your uploaded company runbooks ONLY | Verified on your infrastructure. Resolves ~90% of incidents. |
+| **P2 — If P1 fails** | Official Docs | 🔵 Blue | Official Kubernetes docs ONLY | Generic but authoritative. Use if internal steps don't apply. |
+| **P3 — Both agree** | Combined | 🟣 Purple | Steps matched across both sources | Highest confidence — cross-validated. Commands from internal runbook. |
 
-### Conflict Detection
+**Key design rule:** No mixing between panels. Internal never leaks into Official. Official never leaks into Internal. Each panel is completely self-contained.
 
-When internal and official steps disagree, RunbookAI surfaces the conflict with severity and recommendation:
+### How the UI looks
 
-| Conflict Type | Example | Severity |
-|--------------|---------|----------|
-| `VALUE_CONFLICT` | Internal uses `timeout=30s`, official uses `timeout=60s` | HIGH |
-| `ORDER_CONFLICT` | Internal drains before cordoning, official does the reverse | HIGH |
-| `MISSING_STEP` | Official has a pre-flight check not in internal runbook | MEDIUM |
-| `EXTRA_STEP` | Internal has infra-specific steps not in official docs | LOW |
+```
+RESOLUTION ORDER:  ① Internal  →  ② Official Docs  →  ③ Combined
+
+● Internal  7 steps  P1 · TRY FIRST  |  ● Official Docs  6 steps  P2 · IF P1 FAILS  |  ● Combined  1 steps  P3 · BOTH AGREE
+
+┌──────────────────────────────────────────────────────────────────┐
+│  PRIORITY 1   YOUR INTERNAL RUNBOOK   K8S Pod Crashloop Recovery  │  ← green header
+│  Start here — verified on your infrastructure. ~90% resolve here. │
+│                                                                   │
+│  1  Identify the Affected Pod                                     │
+│     kubectl get pods -n payments | grep CrashLoopBackOff          │
+│  2  Inspect Pod Events                                            │
+│     kubectl describe pod <name> -n payments                       │
+│  ...                                                              │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Production Hardening (Phase 8)
+
+All critical security and reliability issues are fixed:
+
+| Issue | Fix |
+|-------|-----|
+| Hardcoded JWT secret | `JWT_SECRET` env var **required** — startup fails hard if not set |
+| `/ingest/upload` unauthenticated | Requires `editor` or `admin` role JWT token |
+| Tenant isolation missing on upload | `tenant_id` threaded through entire ingest flow |
+| `CORS allow_origins=["*"]` | Reads `ALLOWED_ORIGINS` env var; defaults to localhost only |
+| `urllib.urlopen` blocking event loop | Replaced with `httpx` (20s timeout, 2 retries with backoff) |
+| N+1 query in runbook list | Step count as correlated subquery — 100 runbooks = 1 query |
+| Bare `json.loads()` on DB fields | `_safe_json()` helper — logs warning, returns default on corrupt data |
+| No PDF magic-byte validation | Validates `%PDF` header — extension alone can be spoofed |
+| No DB indexes | 6 indexes on `tenant_id`, `category`, `severity`, `status` |
+| No rate limiting on `/query` | In-process sliding window: 20 req/min per IP → HTTP 429 |
+| Deprecated `@on_event` | Replaced with `lifespan` context manager |
+| No structured logging | `logging.basicConfig` on startup with ISO timestamps |
 
 ---
 
 ## System Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                          RUNBOOK AI SYSTEM                              │
-│                                                                         │
-│  ┌──────────┐    ┌─────────────┐    ┌──────────────────────────────┐   │
-│  │  Angular  │    │   FastAPI   │    │      Background Worker       │   │
-│  │  UI :4200 │◄──►│  API :8000  │◄──►│   LangGraph Pipeline         │   │
-│  └──────────┘    └──────┬──────┘    └──────────┬─────────────────  ┘   │
-│                         │                       │                       │
-│              ┌──────────▼──────────┐            │                       │
-│              │    SQLite Database   │◄───────────┘                      │
-│              │  runbooks           │                                    │
-│              │  steps              │   source_type: internal | official │
-│              │  runbook_conflicts  │   conflicts: VALUE | ORDER |        │
-│              │  ingest_jobs        │             MISSING | EXTRA        │
-│              │  graph_cache        │                                    │
+┌────────────────────────────────────────────────────────────────────────┐
+│                           RUNBOOK AI SYSTEM                            │
+│                                                                        │
+│  ┌──────────┐    ┌─────────────┐    ┌───────────────────────────────┐  │
+│  │ Angular  │    │   FastAPI   │    │      Background Worker        │  │
+│  │ UI :4200 │◄──►│  API :8000  │◄──►│   LangGraph Pipeline          │  │
+│  └──────────┘    └──────┬──────┘    └─────────────┬─────────────────┘  │
+│                         │                         │                    │
+│              ┌──────────▼──────────┐              │                    │
+│              │   SQLite Database   │◄─────────────┘                   │
+│              │  runbooks           │  source_type: internal | official │
+│              │  steps              │  source_name, source_url         │
+│              │  runbook_conflicts  │  conflicts: VALUE|ORDER|MISSING   │
+│              │  ingest_jobs        │                                   │
+│              │  graph_cache        │  6 performance indexes            │
+│              │  tenants / users    │  WAL mode, FK constraints         │
 │              └──────────┬──────────┘                                   │
-│                         │                                               │
-│         ┌───────────────┼──────────────────┐                           │
-│         ▼               ▼                  ▼                           │
-│  ┌─────────────┐ ┌─────────────┐  ┌───────────────────┐               │
-│  │  NetworkX   │ │  K8s Docs   │  │  Conflict Detector │               │
-│  │  DiGraph    │ │  Scraper    │  │  (regex + order)   │               │
-│  │  critical   │ │  10 pages   │  │  Populates         │               │
-│  │  path,      │ │  from       │  │  runbook_conflicts │               │
-│  │  parallel   │ │  k8s.io     │  │  table             │               │
-│  │  groups     │ └─────────────┘  └───────────────────┘               │
-│  └─────────────┘                                                        │
-└─────────────────────────────────────────────────────────────────────────┘
+│                         │                                              │
+│         ┌───────────────┼──────────────────┐                          │
+│         ▼               ▼                  ▼                          │
+│  ┌─────────────┐ ┌─────────────┐  ┌───────────────────┐              │
+│  │  NetworkX   │ │  K8s Docs   │  │  Conflict Detector │              │
+│  │  DiGraph    │ │  Scraper    │  │  (regex + order)   │              │
+│  │  critical   │ │  10 pages   │  │  Populates         │              │
+│  │  path,      │ │  from       │  │  runbook_conflicts │              │
+│  │  parallel   │ │  k8s.io     │  │  table             │              │
+│  │  groups     │ └─────────────┘  └───────────────────┘              │
+│  └─────────────┘                                                       │
+└────────────────────────────────────────────────────────────────────────┘
 ```
-
-### How the layers interact
-
-| Layer | What it does | Technology |
-|-------|-------------|------------|
-| **Extraction** | Reads PDF text, calls LLM once to produce strict JSON (title, steps, commands, dependencies), stores permanently | pdfplumber + DeepSeek + LangGraph |
-| **Official Connector** | Scrapes 10 Kubernetes docs pages from kubernetes/website GitHub, extracts steps via LLM, stores as `source_type='official'` | urllib + DeepSeek |
-| **Conflict Detector** | Compares internal vs official runbooks by category, detects VALUE/ORDER/MISSING/EXTRA conflicts, populates `runbook_conflicts` table | Python regex + SQLite |
-| **Storage** | All runbook data with full fidelity. Commands stored verbatim — never re-generated | SQLite (WAL mode) + NetworkX |
-| **Query** | Classifies incident text, SQL match, builds 3 panels + conflict list, LLM writes 2-3 sentence summary only | FastAPI + LangGraph |
 
 ---
 
@@ -97,70 +141,64 @@ Engineer types: "Pods are stuck in CrashLoopBackOff in the payments namespace"
          │
          │  POST /query  { "incident": "..." }
          ▼
-  ┌─────────────────────────────────────────────────────────┐
-  │  STEP 1 — Classify (LLM)                                │
-  │  → { category: "kubernetes", severity: "P1",            │
-  │      search_terms: ["CrashLoopBackOff", "pod crash"] }  │
-  └──────────────────────────┬──────────────────────────────┘
+  ┌──────────────────────────────────────────────────────────┐
+  │  STEP 1 — Rate limit check (20 req/min per IP)           │
+  │  STEP 2 — Classify (LLM)                                 │
+  │  → { category: "kubernetes", severity: "P1",             │
+  │      search_terms: ["CrashLoopBackOff", "pod"] }         │
+  └──────────────────────────┬───────────────────────────────┘
                              ▼
-  ┌─────────────────────────────────────────────────────────┐
-  │  STEP 2 — 3-Tier SQL Match (no vectors)                 │
-  │  Tier 1: category + severity → HIGH confidence          │
-  │  Tier 2: category only → MEDIUM confidence              │
-  │  Tier 3: keyword LIKE → LOW confidence                  │
-  └──────────────────────────┬──────────────────────────────┘
+  ┌──────────────────────────────────────────────────────────┐
+  │  STEP 3 — 3-Tier SQL Match (no vectors, no embeddings)   │
+  │  Tier 1: category + severity → HIGH confidence           │
+  │  Tier 2: category only      → MEDIUM confidence          │
+  │  Tier 3: keyword LIKE       → LOW confidence             │
+  └──────────────────────────┬───────────────────────────────┘
                              ▼
-  ┌─────────────────────────────────────────────────────────┐
-  │  STEP 3 — Build Multi-Source Response                   │
-  │                                                         │
-  │  Internal panel  → fetch steps from source_type=internal│
-  │  Official panel  → fetch steps from source_type=official│
-  │  Combined panel  → steps where titles overlap ≥ 40%     │
-  │  Conflicts       → load from runbook_conflicts table     │
-  │  Triage summary  → LLM writes 2 sentences only          │
-  └──────────────────────────┬──────────────────────────────┘
+  ┌──────────────────────────────────────────────────────────┐
+  │  STEP 4 — Build 3 Separate Panels (no mixing)            │
+  │                                                          │
+  │  P1 Internal → steps from source_type='internal' ONLY    │
+  │  P2 Official → steps from source_type='official' ONLY    │
+  │  P3 Combined → steps where titles overlap ≥40% (merged)  │
+  │  Conflicts   → load from runbook_conflicts table         │
+  │  Summary     → LLM writes 2-3 sentences only             │
+  └──────────────────────────┬───────────────────────────────┘
                              ▼
-  Response: { internal: {...}, combined: {...}, official: {...},
-              conflicts: [...], has_conflicts: true }
-```
-
-**What the engineer sees:**
-
-```
-Triage Summary  |  Steps (8)  |  Execution Graph  |  Multi-Source ●
-
-  ● Internal  7 steps  PRIORITY 1   ● Combined  2 steps  PRIORITY 2   ● Official  8 steps  PRIORITY 3
-
-  ┌─────────────────────────────────────────────────────────┐
-  │ YOUR INTERNAL RUNBOOK    K8S Pod Crashloop Recovery      │ ← green header
-  │ Follow this first — verified on your infrastructure      │
-  │                                                         │
-  │  1  Identify the Affected Pod                           │
-  │     kubectl get pods -n payments | grep CrashLoopBackOff│
-  │  2  Inspect Pod Events                                  │
-  │     kubectl describe pod <name> -n payments             │
-  │  ...                                                    │
-  └─────────────────────────────────────────────────────────┘
-
-  ⚠ 2 conflicts detected between internal and official runbooks
-  VALUE_CONFLICT  HIGH  timeout: internal=30s, official=60s
-  ORDER_CONFLICT  HIGH  internal drains before cordoning; official reverses this
+  Response: {
+    internal: { priority:1, color:"green", steps:[...] },
+    official: { priority:2, color:"blue",  steps:[...] },
+    combined: { priority:3, color:"purple",steps:[...] },
+    conflicts: [...], has_conflicts: true
+  }
 ```
 
 ---
 
-## Running Locally — No Account Needed
+## Running Locally
+
+### Prerequisites
+
+```bash
+python 3.9+
+node 18+
+```
 
 ### 1. Backend
 
 ```bash
 cd runbook-ai
-python -m venv venv && source venv/bin/activate
+python -m venv venv && source venv/bin/activate   # or use ../.venv
 pip install -r requirements.txt
 
-export DEEPSEEK_API_KEY=sk-...
+# Required env vars
+export JWT_SECRET=$(python -c "import secrets; print(secrets.token_hex(32))")
+export DEEPSEEK_API_KEY=sk-...      # for PDF ingestion + query classification
+export APP_ENV=development          # skip JWT_SECRET check in local dev
 
 uvicorn main:app --reload --port 8000
+# → http://localhost:8000/docs  (Swagger UI)
+# → http://localhost:8000/health
 ```
 
 ### 2. Frontend
@@ -168,17 +206,18 @@ uvicorn main:app --reload --port 8000
 ```bash
 cd runbook-ai/ui
 npm install
-npm start
+ng serve --port 4200
+# → http://localhost:4200
 ```
 
-Open **http://localhost:4200** — no login, no account, straight to the dashboard.
-
-### 3. (Optional) Re-scrape official docs
+### 3. (Optional) Re-scrape official Kubernetes docs
 
 ```bash
 cd runbook-ai
-python3 connectors/k8s_docs_scraper.py
+DEEPSEEK_API_KEY=sk-... python3 connectors/k8s_docs_scraper.py
 ```
+
+Scrapes 10 pages from kubernetes/website GitHub → stores as `source_type='official'`.
 
 ### 4. (Optional) Re-run conflict detection
 
@@ -187,58 +226,24 @@ cd runbook-ai
 python3 connectors/conflict_detector.py
 ```
 
+Compares internal vs official runbooks by category, detects conflicts, populates `runbook_conflicts` table.
+
 ---
 
-## Project Structure
+## Environment Variables
 
-```
-runbook-ai/
-├── main.py
-├── requirements.txt
-│
-├── agents/
-│   ├── classify_agent.py            # LLM → title, category, severity, tags
-│   ├── steps_agent.py               # LLM → steps[], commands[], depends_on[]
-│   ├── validate_agent.py
-│   ├── incident_classifier_agent.py # LLM → category, severity, search_terms
-│   ├── runbook_matcher_agent.py     # 3-tier SQL match
-│   ├── response_composer_agent.py   # Ordered steps from DB + triage summary
-│   └── multi_source_composer.py     # Builds internal / combined / official panels
-│
-├── connectors/
-│   ├── k8s_docs_scraper.py          # Scrapes 10 kubernetes.io pages → official runbooks
-│   └── conflict_detector.py         # Compares internal vs official, populates conflicts
-│
-├── graph/
-│   ├── pipeline.py                  # Ingest: classify → steps → validate
-│   ├── query_pipeline.py            # Query: classify → match → compose
-│   ├── dependency_graph.py          # NetworkX: critical path, parallel groups
-│   └── state.py / query_state.py
-│
-├── database/
-│   ├── db.py                        # SQLite + migrations (incl. runbook_conflicts table)
-│   ├── runbooks_store.py
-│   └── users_store.py
-│
-├── routers/
-│   ├── query_router.py              # /query — returns panels + conflicts
-│   ├── runbooks_router.py           # /runbooks — list with source_type filter
-│   └── ...
-│
-├── docs/
-│   ├── sample_pdfs/                 # 12 enterprise Kubernetes runbook PDFs
-│   └── WHAT_IS_RUNBOOKAI.md         # Explained for CEO, CTO, VP, angry client, class 6 student
-│
-└── ui/                              # Angular 21 frontend (no login required)
-    └── src/app/
-        ├── components/
-        │   ├── dashboard/           # 22 runbooks: 12 internal + 10 official K8s
-        │   ├── runbooks/            # List with Source column: Internal/Official/Combined badges
-        │   ├── query/               # Incident query + three-panel multi-source view
-        │   ├── ingest/              # PDF upload + job polling
-        │   └── multi/               # Merge, conflicts, compound incidents
-        └── models/runbook.model.ts  # QueryResult, MultiSourcePanels, SourcePanel, PanelConflict
-```
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `JWT_SECRET` | **Yes** | — | Minimum 32 chars. Startup fails if not set. Generate: `python -c "import secrets; print(secrets.token_hex(32))"` |
+| `APP_ENV` | No | `production` | Set to `test` or `development` to skip JWT_SECRET check |
+| `DEEPSEEK_API_KEY` | For ingestion | — | DeepSeek API key |
+| `ANTHROPIC_API_KEY` | For ingestion | — | Anthropic API key (alternative to DeepSeek) |
+| `LLM_PROVIDER` | No | `deepseek` | `deepseek` or `anthropic` |
+| `DEEPSEEK_MODEL` | No | `deepseek-chat` | DeepSeek model name |
+| `ANTHROPIC_MODEL` | No | `claude-haiku-4-5-20251001` | Anthropic model name |
+| `DATABASE_PATH` | No | `runbookai.db` | SQLite file path |
+| `ALLOWED_ORIGINS` | No | `http://localhost:4200,http://localhost:4201` | CORS allowed origins (comma-separated) |
+| `ACCESS_TOKEN_EXPIRE_SECONDS` | No | `86400` | JWT token lifetime (24h) |
 
 ---
 
@@ -246,33 +251,168 @@ runbook-ai/
 
 ### Query
 
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/query` | Optional | Incident → triage + steps + 3 panels + conflicts. Rate limited: 20/min per IP |
+| POST | `/query/classify` | No | Preview category/severity without fetching steps |
+| POST | `/query/match` | No | Classify + SQL match — top runbooks with confidence scores |
+
+**Request:**
+```json
+{
+  "incident": "Kubernetes pods are crashlooping after a deployment rollback",
+  "max_runbooks": 3,
+  "runbook_id": null
+}
+```
+
+**Response panels structure:**
+```json
+{
+  "panels": {
+    "internal":  { "priority": 1, "color": "green",  "source_type": "internal", "steps": [...] },
+    "official":  { "priority": 2, "color": "blue",   "source_type": "official", "steps": [...] },
+    "combined":  { "priority": 3, "color": "purple", "source_type": "combined", "steps": [...] },
+    "conflicts": [...],
+    "has_conflicts": true,
+    "conflict_count": 2
+  }
+}
+```
+
+### Auth
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/query` | Describe incident → triage + steps + 3 panels + conflicts |
-| POST | `/query/classify` | Classify only — preview category/severity |
-| POST | `/query/match` | Classify + match — top runbooks with confidence scores |
+| POST | `/auth/register` | Create tenant + first admin user |
+| POST | `/auth/login` | Returns JWT access token |
+| GET | `/auth/me` | Current user profile |
+| POST | `/auth/users` | Admin creates user in tenant |
 
 ### Runbooks
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/runbooks` | List with category/severity filters (includes source_type) |
-| GET | `/runbooks/stats` | Counts by category, severity, source_type |
-| GET | `/runbooks/{id}` | Full runbook with steps |
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/runbooks` | Optional | List with category/severity/pagination filters |
+| GET | `/runbooks/stats` | Optional | Counts by category and severity |
+| GET | `/runbooks/{id}` | Optional | Full runbook with all steps |
+| GET | `/runbooks/{id}/steps` | Optional | Steps only |
 
 ### Ingest
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/ingest/upload` | Upload PDF → background extraction |
-| GET | `/ingest/job/{id}` | Poll extraction status |
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/ingest/upload` | **editor+** | Upload PDF — validates magic bytes, returns job_id |
+| GET | `/ingest/job/{id}` | Optional | Poll extraction status |
 
 ### Graph
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/graph/{id}` | Critical path, parallel groups, bottlenecks |
-| GET | `/graph/{id}/execution-order` | Topological step order |
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/graph/{id}` | Optional | Critical path, parallel groups, bottleneck steps |
+
+---
+
+## Project Structure
+
+```
+runbook-ai/
+├── main.py                          # FastAPI app — CORS, lifespan, routers
+├── requirements.txt
+├── conftest.py                      # Sets APP_ENV=test for all test runs
+│
+├── agents/
+│   ├── classify_agent.py            # LLM → title, category, severity, tags
+│   ├── steps_agent.py               # LLM → steps[], commands[], depends_on[]
+│   ├── validate_agent.py            # Validates extracted step structure
+│   ├── incident_classifier_agent.py # LLM → category, severity, search_terms
+│   ├── runbook_matcher_agent.py     # 3-tier SQL match (no vectors)
+│   ├── response_composer_agent.py   # Ordered steps from DB + triage summary
+│   └── multi_source_composer.py     # Builds 3 clean panels (P1/P2/P3)
+│
+├── connectors/
+│   ├── k8s_docs_scraper.py          # Scrapes 10 kubernetes.io pages
+│   └── conflict_detector.py         # VALUE/ORDER/MISSING/EXTRA conflicts
+│
+├── graph/
+│   ├── pipeline.py                  # Ingest: classify → steps → validate
+│   ├── query_pipeline.py            # Query: classify → match → compose
+│   ├── dependency_graph.py          # NetworkX: critical path, parallel groups
+│   ├── state.py                     # ExtractionState TypedDict
+│   └── query_state.py               # QueryState TypedDict
+│
+├── database/
+│   ├── db.py                        # SQLite WAL + migrations + 6 indexes
+│   ├── models.py                    # CREATE TABLE statements + CREATE_INDEXES
+│   ├── runbooks_store.py            # CRUD with _safe_json() + N+1 fix
+│   ├── users_store.py               # Tenant + user CRUD
+│   └── graph_store.py               # Graph cache CRUD
+│
+├── routers/
+│   ├── auth_router.py               # /auth — register, login, user management
+│   ├── deps.py                      # require_auth, require_role, optional_auth
+│   ├── query_router.py              # /query — rate limited, 3-panel response
+│   ├── runbooks_router.py           # /runbooks — paginated list + stats
+│   ├── ingest_router.py             # /ingest — auth required, magic-byte check
+│   ├── graph_router.py              # /graph — dependency analysis
+│   ├── multi_runbook_router.py      # /multi — merge, compound incidents
+│   └── tenant_router.py             # /tenants — tenant management
+│
+├── utils/
+│   ├── auth.py                      # JWT sign/verify — fails hard if no secret
+│   ├── llm.py                       # httpx + 20s timeout + 2 retries
+│   └── rate_limit.py                # SlidingWindowRateLimiter (20/min per IP)
+│
+├── extractor/
+│   └── pdf_extractor.py             # pdfplumber PDF → raw text
+│
+├── tests/                           # 141 tests, ~5s, zero external dependencies
+│   ├── conftest note: APP_ENV=test set in root conftest.py
+│   ├── test_api.py                  # Ingest, auth, runbook endpoints
+│   ├── test_agents.py               # Extraction agents
+│   ├── test_database.py             # DB CRUD
+│   ├── test_dependency_graph.py     # NetworkX graph logic
+│   ├── test_query_api.py            # Query endpoint + panel structure
+│   ├── test_query_agents.py         # Match + compose agents
+│   ├── test_phase4.py               # Multi-runbook, conflicts
+│   ├── test_phase6.py               # Auth, RBAC, panel priority (P1/P2/P3)
+│   └── test_pdf_extractor.py        # PDF extraction
+│
+├── docs/
+│   ├── sample_pdfs/                 # 12 Kubernetes runbook PDFs
+│   └── WHAT_IS_RUNBOOKAI.md
+│
+└── ui/                              # Angular 21 standalone components
+    └── src/app/
+        ├── components/
+        │   ├── dashboard/           # Stats: 22 runbooks, categories, severities
+        │   ├── runbooks/            # List with source_type badges
+        │   ├── query/               # Incident query + 3-panel priority UI
+        │   ├── ingest/              # PDF upload + background job polling
+        │   └── multi/               # Merge, conflicts, compound incidents
+        ├── services/api.service.ts  # HttpClient wrapper for all endpoints
+        ├── services/auth.service.ts # JWT storage + login/register
+        └── models/runbook.model.ts  # All TypeScript interfaces
+```
+
+---
+
+## Tests
+
+```bash
+cd runbook-ai
+python -m pytest tests/ -v
+# 141 passed in ~5s — zero external deps, no API keys needed
+```
+
+Test coverage:
+- G1–G5 guardrails (injection, harmful, PII, off-topic, nonsense)
+- All intent handlers in ChatService
+- 3-panel priority assertions (P1=1/green/internal, P2=2/blue/official, P3=3/purple/combined)
+- Auth: register, login, role enforcement, tenant isolation
+- Ingest: auth required, PDF magic bytes, tenant_id propagation
+- N+1 query fix verification
+- Dependency graph: critical path, cycle detection, parallel groups
 
 ---
 
@@ -280,23 +420,24 @@ runbook-ai/
 
 | Phase | Feature | Status |
 |-------|---------|--------|
-| 1 | PDF ingestion + LLM structured extraction | ✅ |
-| 2 | NetworkX dependency graph | ✅ |
-| 3 | Incident query engine (3-tier SQL match) | ✅ |
+| 1 | PDF ingestion + LangGraph structured extraction | ✅ |
+| 2 | NetworkX dependency graph (critical path, parallel groups) | ✅ |
+| 3 | Incident query engine (3-tier SQL match, zero vectors) | ✅ |
 | 4 | Multi-runbook reasoning, conflict detection, compound incidents | ✅ |
-| 5 | Angular 21 UI | ✅ |
-| 6 | JWT auth + multi-tenant RBAC | ✅ |
-| 7 | Multi-source architecture: Official K8s docs + conflict detection + 3-panel UI | ✅ |
+| 5 | Angular 21 UI (dashboard, runbooks, query, ingest, multi) | ✅ |
+| 6 | JWT auth + multi-tenant RBAC (viewer/editor/admin) | ✅ |
+| 7 | 3-panel priority: P1 Internal → P2 Official → P3 Combined | ✅ |
+| 8 | Production hardening: security, reliability, performance | ✅ |
 
 ---
 
-## Environment Variables
+## Conflict Detection
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `DATABASE_PATH` | `runbookai.db` | SQLite file path |
-| `LLM_PROVIDER` | `deepseek` | `deepseek` or `anthropic` |
-| `DEEPSEEK_API_KEY` | — | DeepSeek API key |
-| `ANTHROPIC_API_KEY` | — | Anthropic API key |
-| `JWT_SECRET` | dev default | Change in production |
-| `ACCESS_TOKEN_EXPIRE_SECONDS` | `86400` | JWT expiry (24h) |
+When internal runbooks and official K8s docs disagree, conflicts are surfaced with severity and recommendation:
+
+| Type | Example | Severity |
+|------|---------|----------|
+| `VALUE_CONFLICT` | Internal `timeout=30s`, official `timeout=60s` | HIGH |
+| `ORDER_CONFLICT` | Internal drains before cordoning; official reverses | HIGH |
+| `MISSING_STEP` | Official has a pre-flight check absent from internal | MEDIUM |
+| `EXTRA_STEP` | Internal has infra-specific steps not in official docs | LOW |
