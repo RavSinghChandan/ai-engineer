@@ -220,6 +220,82 @@ h1 {
   font-size: 0.78rem;
   color: var(--text2);
   line-height: 1.55;
+  margin-bottom: 1.1rem;
+}
+
+/* SVG icon — top-right corner of each card */
+.proof-icon {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  width: 42px;
+  height: 42px;
+  opacity: 0.65;
+  transition: opacity 0.2s, transform 0.2s;
+  color: var(--text3);
+
+  svg { width: 100%; height: 100%; }
+  .proof-card:hover & { opacity: 1; transform: scale(1.1); }
+}
+
+/* Animated arrow + Ask Aarav row */
+.proof-ask {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border);
+}
+
+/* Animated dashed arrow pointing right */
+.proof-arrow {
+  width: 40px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--purple-lt);
+  opacity: 0.7;
+
+  /* Animate the dashed line drawing */
+  path:first-child {
+    stroke-dasharray: 3 2;
+    animation: arrow-dash 1.2s linear infinite;
+  }
+  .proof-card:hover & { opacity: 1; }
+}
+
+@keyframes arrow-dash {
+  from { stroke-dashoffset: 10; }
+  to   { stroke-dashoffset: 0; }
+}
+
+/* Ask Aarav CTA button */
+.proof-ask-btn {
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: inherit;
+  padding: 0.28rem 0.75rem;
+  border-radius: 999px;
+  border: 1.5px solid rgba(124,58,237,0.4);
+  background: rgba(124,58,237,0.07);
+  color: var(--purple-lt);
+  cursor: pointer;
+  transition: all 0.18s var(--ease);
+  white-space: nowrap;
+
+  &:hover {
+    background: rgba(124,58,237,0.18);
+    border-color: var(--purple);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 12px rgba(124,58,237,0.25);
+  }
+
+  html[data-theme="light"] & {
+    color: #5b21b6;
+    border-color: rgba(124,58,237,0.3);
+    background: rgba(124,58,237,0.06);
+    &:hover { background: rgba(124,58,237,0.13); }
+  }
 }
 
 /* ── SHARED ── */

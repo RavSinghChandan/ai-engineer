@@ -140,33 +140,93 @@ export class App implements OnInit, AfterViewInit {
       stat:  '637',
       title: 'Tests. 3.6 seconds.',
       sub:   'Every line of production code is tested. No shortcuts, no flakiness.',
+      askQuestion: 'How does Chandan achieve 637 tests in 3.6 seconds?',
+      svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="6" y="10" width="36" height="28" rx="4" stroke="currentColor" stroke-width="2"/>
+        <path d="M14 22l4 4 8-8" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M30 20h6M30 24h4M30 28h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+        <circle cx="38" cy="36" r="7" fill="#09090b" stroke="#10b981" stroke-width="2"/>
+        <path d="M35 36l2 2 4-4" stroke="#10b981" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>`,
     },
     {
       stat:  '78s → 4s',
       title: 'Latency reduced 95%.',
       sub:   'Measured, optimised, and shipped — 3-tier cache + parallel agents.',
+      askQuestion: 'How did Chandan reduce latency from 78 seconds to 4 seconds?',
+      svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="24" cy="24" r="16" stroke="currentColor" stroke-width="2" opacity="0.3"/>
+        <path d="M24 12v12l7 4" stroke="#a78bfa" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M8 24h4M36 24h4M24 8v4M24 40v-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+        <path d="M10 38 L20 28" stroke="#ef4444" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+        <path d="M38 10 L28 20" stroke="#10b981" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+        <circle cx="24" cy="24" r="3" fill="#a78bfa"/>
+      </svg>`,
     },
     {
       stat:  '18+',
       title: 'AI agents coordinated.',
       sub:   'LangGraph StateGraph — parallel domain agents, conditional edges, human-in-loop.',
+      askQuestion: 'How does Chandan coordinate 18+ AI agents without conflicts?',
+      svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="24" cy="10" r="5" stroke="#a78bfa" stroke-width="2"/>
+        <circle cx="10" cy="34" r="5" stroke="#06b6d4" stroke-width="2"/>
+        <circle cx="38" cy="34" r="5" stroke="#10b981" stroke-width="2"/>
+        <circle cx="24" cy="34" r="5" stroke="#f59e0b" stroke-width="2"/>
+        <path d="M24 15 L10 29M24 15 L38 29M24 15 L24 29" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2" opacity="0.5"/>
+        <path d="M15 34 L19 34M29 34 L33 34" stroke="currentColor" stroke-width="1.5" opacity="0.4"/>
+      </svg>`,
     },
     {
       stat:  '$0.000137',
       title: 'Per AI analysis.',
       sub:   'DeepSeek + semantic cache. 500× cheaper than GPT-4o. Tracked and proven.',
+      askQuestion: 'How did Chandan achieve $0.000137 per AI analysis cost?',
+      svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M24 6 L28 18 L40 18 L30 26 L34 38 L24 30 L14 38 L18 26 L8 18 L20 18 Z" stroke="#f59e0b" stroke-width="2" stroke-linejoin="round" fill="rgba(245,158,11,0.1)"/>
+        <path d="M24 13 L26 19 L32 19 L28 23 L29 29 L24 25 L19 29 L20 23 L16 19 L22 19 Z" fill="#f59e0b" opacity="0.4"/>
+        <text x="24" y="44" text-anchor="middle" font-size="7" font-weight="700" fill="#f59e0b" font-family="monospace">COST</text>
+      </svg>`,
     },
     {
       stat:  '0',
       title: 'Hallucinated commands.',
       sub:   'RunbookAI: RAGless architecture. Every kubectl command pulled from SQL, verbatim.',
+      askQuestion: 'How does RunbookAI achieve zero hallucinated commands?',
+      svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="24" cy="24" r="16" stroke="#10b981" stroke-width="2"/>
+        <path d="M17 24l5 5 9-10" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M10 10 L38 38" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round" opacity="0.3" stroke-dasharray="3 2"/>
+        <rect x="13" y="20" width="10" height="3" rx="1" stroke="currentColor" stroke-width="1" opacity="0.25"/>
+        <rect x="13" y="25" width="7" height="3" rx="1" stroke="currentColor" stroke-width="1" opacity="0.25"/>
+      </svg>`,
     },
     {
       stat:  'G1–G5',
       title: 'Production guardrails.',
       sub:   'Rate limit · injection detection · PII filter · faithfulness gate · output validation.',
+      askQuestion: 'What are the G1 to G5 production guardrails Chandan built?',
+      svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M24 4 L38 10 L38 24 C38 32 32 39 24 42 C16 39 10 32 10 24 L10 10 Z" stroke="#ef4444" stroke-width="2" stroke-linejoin="round" fill="rgba(239,68,68,0.08)"/>
+        <path d="M18 24l4 4 8-8" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M17 18h14M17 22h10M17 26h12" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.3"/>
+      </svg>`,
     },
   ];
+
+  /** Opens chatbot and sends a pre-filled question about the clicked stat */
+  askAarav(question: string): void {
+    if (!this.cbOpen()) {
+      this.cbToggle();
+    }
+    // Small delay so panel opens first, then send
+    setTimeout(() => this.cbSend(question), 350);
+  }
+
+  // Safe: svgIcon strings are hardcoded in this component — never user input
+  safeIcon(svg: string): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(svg);
+  }
 
   skills = [
     { icon: 'python', type: 'skillicon', title: 'AI & LLM Engineering', color: 'purple', items: ['python','pytorch','tensorflow','fastapi'], labels: ['LangChain','LangGraph','OpenAI API','Prompt Engineering','RAG Pipelines','Agentic AI'] },

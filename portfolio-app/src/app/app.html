@@ -6,6 +6,7 @@
       <a href="#story" (click)="closeMobileNav()">Story</a>
       <a href="#skills" (click)="closeMobileNav()">Skills</a>
       <a href="#projects" (click)="closeMobileNav()">Projects</a>
+      <a href="#by-numbers" (click)="closeMobileNav()">By The Numbers</a>
       <a href="#experience" (click)="closeMobileNav()">Experience</a>
       <a href="#contact" (click)="closeMobileNav()">Contact</a>
     </div>
@@ -126,15 +127,35 @@
   </div>
 </section>
 
-<!-- PROOF PANEL — 6 verifiable stats, readable in 5 seconds -->
-<section class="proof-panel">
+<!-- BY THE NUMBERS — 6 verifiable stats with SVG icons + chat CTA -->
+<section class="proof-panel" id="by-numbers">
   <div class="container">
+    <div class="eyebrow">Proof of Work</div>
+    <h2>By The Numbers</h2>
+    <p class="section-sub">Every number below is real, verifiable in GitHub, and backed by production code — not slides.</p>
+
     <div class="proof-grid">
       @for (p of proofStats; track p.stat) {
         <div class="proof-card">
+
+          <!-- SVG icon top-right — hardcoded, safe to bypass sanitizer -->
+          <div class="proof-icon" [innerHTML]="safeIcon(p.svgIcon)"></div>
+
           <div class="proof-num">{{ p.stat }}</div>
           <div class="proof-title">{{ p.title }}</div>
           <div class="proof-sub">{{ p.sub }}</div>
+
+          <!-- Animated arrow + Ask Aarav CTA -->
+          <div class="proof-ask">
+            <svg class="proof-arrow" viewBox="0 0 40 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M0 8 Q10 8 20 8" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"/>
+              <path d="M26 8 L32 8 M28 4 L33 8 L28 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <button class="proof-ask-btn" (click)="askAarav(p.askQuestion)" title="Ask Aarav about this">
+              Ask Aarav ↗
+            </button>
+          </div>
+
         </div>
       }
     </div>
