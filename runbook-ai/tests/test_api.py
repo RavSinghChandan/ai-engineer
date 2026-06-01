@@ -3,6 +3,7 @@ import os
 import json
 import tempfile
 import pytest
+from typing import Optional
 from unittest.mock import patch
 
 _tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
@@ -16,6 +17,31 @@ from fastapi.testclient import TestClient
 from main import app
 
 client = TestClient(app)
+
+# ── Test auth helpers ─────────────────────────────────────────────────────────
+
+_EDITOR_TOKEN: Optional[str] = None
+
+
+def _get_editor_token() -> str:
+    """Register a test tenant+admin (editor-capable) and return the JWT."""
+    global _EDITOR_TOKEN
+    if _EDITOR_TOKEN:
+        return _EDITOR_TOKEN
+    resp = client.post("/auth/register", json={
+        "tenant_name": "Test Tenant",
+        "tenant_slug": "test-tenant",
+        "email": "admin@test.example",
+        "password": "TestPassword1!",
+        "full_name": "Test Admin",
+    })
+    assert resp.status_code == 201, resp.text
+    _EDITOR_TOKEN = resp.json()["access_token"]
+    return _EDITOR_TOKEN
+
+
+def _auth_headers() -> dict:
+    return {"Authorization": f"Bearer {_get_editor_token()}"}
 
 
 def test_health():
@@ -57,13 +83,34 @@ def test_get_runbooks_invalid_severity():
     assert resp.status_code == 400
 
 
+def test_upload_requires_auth():
+    """Upload without token must return 401."""
+    resp = client.post(
+        "/ingest/upload",
+        files={"file": ("test.pdf", b"%PDF-1.4", "application/pdf")},
+    )
+    assert resp.status_code == 401
+
+
 def test_upload_non_pdf_rejected():
     resp = client.post(
         "/ingest/upload",
+        headers=_auth_headers(),
         files={"file": ("test.txt", b"hello world", "text/plain")},
     )
     assert resp.status_code == 400
     assert "PDF" in resp.json()["detail"]
+
+
+def test_upload_fake_pdf_rejected():
+    """File with .pdf extension but wrong magic bytes must be rejected."""
+    resp = client.post(
+        "/ingest/upload",
+        headers=_auth_headers(),
+        files={"file": ("evil.pdf", b"not a real pdf content here", "application/pdf")},
+    )
+    assert resp.status_code == 400
+    assert "valid PDF" in resp.json()["detail"]
 
 
 def test_upload_pdf_returns_job_id():
@@ -84,17 +131,17 @@ def test_upload_pdf_returns_job_id():
         "rollback_steps": [],
     })
 
-    # Minimal valid PDF bytes
     minimal_pdf = b"%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\nxref\n0 1\n0000000000 65535 f\ntrailer\n<< /Size 1 /Root 1 0 R >>\nstartxref\n9\n%%EOF"
 
     with patch("agents.classify_agent.call_llm", return_value=mock_classify):
         with patch("agents.steps_agent.call_llm", return_value=mock_steps):
             resp = client.post(
                 "/ingest/upload",
+                headers=_auth_headers(),
                 files={"file": ("runbook.pdf", minimal_pdf, "application/pdf")},
             )
 
-    assert resp.status_code == 200
+    assert resp.status_code == 202
     data = resp.json()
     assert "job_id" in data
     assert data["status"] == "pending"
