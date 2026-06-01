@@ -1,0 +1,29 @@
+Application: My App
+Version: 1.0
+
+Features:
+- Task management with projects, deadlines, and priorities
+- Team collaboration with shared workspaces
+- Time tracking per task
+- Reports and analytics dashboard
+- Integration with Slack, GitHub, and Jira
+
+Pricing:
+- Free tier: 1 user, 10 projects, 100 tasks
+- Pro tier: $9/user/month — unlimited projects, unlimited tasks, priority support
+- Enterprise: Custom pricing, SSO, advanced security, dedicated support
+
+Support:
+- Email: help@myapp.com
+- Response time: Free tier 48h, Pro 24h, Enterprise 4h
+- Documentation: docs.myapp.com
+
+FAQ:
+Q: Can I export my data?
+A: Yes, all tiers support CSV and JSON export from Settings > Export.
+
+Q: Is there a mobile app?
+A: iOS and Android apps are available. Search "My App" in the app store.
+
+Q: How do I invite team members?
+A: Go to Settings > Team > Invite Member and enter their email address.

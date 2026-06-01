@@ -1,0 +1,21 @@
+version: "3.9"
+
+services:
+  universal-agent:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - LOG_LEVEL=INFO
+    volumes:
+      # Mount your knowledge docs at runtime — no rebuild needed
+      - ./knowledge:/app/knowledge:ro
+      # Mount your config at runtime — no rebuild needed
+      - ./config/agent.config.yaml:/app/config/agent.config.yaml:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/agent/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

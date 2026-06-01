@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Universal Agent — Demo</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; color: #1e293b; }
+  .hero { max-width: 700px; margin: 80px auto; text-align: center; padding: 0 24px; }
+  h1 { font-size: 2.4rem; font-weight: 800; color: #0f172a; margin-bottom: 12px; }
+  h1 span { color: #2563eb; }
+  p { font-size: 1.1rem; color: #475569; line-height: 1.7; margin-bottom: 24px; }
+  .badge { display: inline-block; background: #dbeafe; color: #1d4ed8; border-radius: 6px; padding: 4px 12px; font-size: 13px; font-weight: 600; margin: 4px; }
+  .code-block { background: #1e293b; color: #e2e8f0; border-radius: 10px; padding: 20px 24px; text-align: left; margin: 32px 0; font-size: 13px; line-height: 1.8; }
+  .code-block .comment { color: #64748b; }
+  .code-block .keyword { color: #7dd3fc; }
+  .code-block .string { color: #86efac; }
+  .arrow { font-size: 2rem; color: #2563eb; margin: 8px 0; display: block; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>Universal <span>AI Agent</span></h1>
+  <p>One agent. Any domain. Any application. Configure once, plug in anywhere.</p>
+
+  <span class="badge">FastAPI</span>
+  <span class="badge">Angular</span>
+  <span class="badge">React</span>
+  <span class="badge">Plain HTML</span>
+  <span class="badge">Any Python App</span>
+
+  <div class="code-block">
+    <div class="comment"># Integrate into any FastAPI app — 3 lines</div>
+    <div><span class="keyword">from</span> universal_agent.adapters.fastapi_adapter <span class="keyword">import</span> mount_agent</div>
+    <div>mount_agent(app)</div>
+    <div>&nbsp;</div>
+    <div class="comment"># That's it. Your app now has /agent/chat</div>
+  </div>
+
+  <span class="arrow">↓</span>
+  <p>The chat widget is live in the bottom-right corner. Try it now.</p>
+
+  <div class="code-block">
+    <div class="comment">&lt;!-- Embed in any HTML page — 1 script tag --&gt;</div>
+    <div><span class="keyword">&lt;script</span></div>
+    <div>&nbsp;&nbsp;src=<span class="string">"universal-agent.js"</span></div>
+    <div>&nbsp;&nbsp;data-agent-url=<span class="string">"http://localhost:8000"</span></div>
+    <div>&nbsp;&nbsp;data-agent-name=<span class="string">"Assistant"</span></div>
+    <div>&nbsp;&nbsp;data-color=<span class="string">"#2563eb"</span></div>
+    <div><span class="keyword">&gt;&lt;/script&gt;</span></div>
+  </div>
+</div>
+
+<!-- The widget itself — loaded from the running server -->
+<script
+  src="/sdk/universal-agent.js"
+  data-agent-url="http://localhost:8000"
+  data-agent-name="Universal Agent"
+  data-color="#2563eb"
+  data-position="bottom-right"
+></script>
+
+</body>
+</html>

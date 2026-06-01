@@ -1,0 +1,96 @@
+# ============================================================
+# UNIVERSAL AGENT — Configuration File
+# This is the ONLY file you need to touch to integrate the agent
+# into your application. No code changes required.
+# ============================================================
+
+agent:
+  name: "Assistant"                        # Display name shown in the chat
+  persona: |
+    You are a helpful assistant for this application.
+    You answer questions, help users navigate features,
+    and provide support based on the context provided.
+  language: "en"                           # Response language (en, hi, es, fr, de, ...)
+  fallback_message: "I'm not sure about that. Can you rephrase or ask something else?"
+
+# --- LLM Provider ---
+llm:
+  provider: "anthropic"                    # anthropic | openai | gemini | ollama
+  model: "claude-sonnet-4-6"              # Model ID — any provider model works
+  temperature: 0.7
+  max_tokens: 1024
+  # API key — set via environment variable (recommended) or here (not for production)
+  api_key_env: "ANTHROPIC_API_KEY"         # Name of the env var holding the key
+
+# --- Memory ---
+memory:
+  enabled: true
+  type: "buffer"                           # buffer | summary | vector
+  max_history: 20                          # Max turns to keep in context
+  session_ttl_seconds: 3600               # Session expires after 1 hour of inactivity
+
+# --- Knowledge Base (optional — leave empty to skip RAG) ---
+knowledge_base:
+  enabled: false
+  type: "faiss"                            # faiss | chroma | pinecone | none
+  source_dir: "./knowledge"               # Drop .txt/.pdf/.md files here
+  chunk_size: 500
+  chunk_overlap: 50
+  top_k: 3                                 # How many chunks to retrieve per query
+
+# --- Tools (optional — enable what you need) ---
+tools:
+  web_search:
+    enabled: false
+    provider: "tavily"                     # tavily | serper | duckduckgo
+    api_key_env: "TAVILY_API_KEY"
+
+  calculator:
+    enabled: true                          # Safe math evaluation — always safe to enable
+
+  datetime:
+    enabled: true                          # Returns current date/time — always safe
+
+  custom_tools:
+    enabled: false
+    # Path to a Python file exposing a list[BaseTool] named `TOOLS`
+    module_path: "./tools/custom_tools.py"
+
+# --- Context Injection (inject static facts about your app) ---
+context:
+  app_name: "My Application"
+  app_description: "A web application that helps users manage tasks."
+  # Add any static context your agent should always know
+  extra_facts:
+    - "The app supports English and Hindi languages."
+    - "Free tier allows 100 tasks. Pro tier is unlimited."
+  # Path to a markdown/text file with deeper domain knowledge
+  knowledge_file: ""                       # e.g., "./context/product_docs.md"
+
+# --- API Server (when running as standalone service) ---
+server:
+  host: "0.0.0.0"
+  port: 8000
+  cors_origins:
+    - "*"                                  # Restrict to your domain in production
+  rate_limit:
+    enabled: true
+    requests_per_minute: 60
+
+# --- Widget (frontend embed) ---
+widget:
+  theme:
+    primary_color: "#2563eb"              # Button and header color
+    background_color: "#ffffff"
+    text_color: "#1f2937"
+    border_radius: "12px"
+  position: "bottom-right"               # bottom-right | bottom-left
+  trigger_text: "Ask me anything"
+  placeholder_text: "Type your question..."
+  show_branding: false                    # Set true to show "Powered by Universal Agent"
+
+# --- Logging & Observability ---
+logging:
+  level: "INFO"                           # DEBUG | INFO | WARNING | ERROR
+  log_to_file: false
+  log_file: "./logs/agent.log"
