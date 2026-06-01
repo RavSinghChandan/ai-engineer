@@ -832,6 +832,7 @@ export class App implements OnInit, AfterViewInit {
     this._cbAskedTopics.clear();
     const greet = `Namaste! 👋 I'm <strong style="color:var(--cb-head-color)">Aarav</strong> — Chandan's AI guide.<br><br>` +
       `You have <strong style="color:var(--cb-head-color)">10 free questions</strong> this session. Ask anything about his skills, projects, career, or how to hire him!`;
+    // Safe: greet is a hardcoded string — no user input involved
     this.cbMessages.set([{ role: 'bot', html: greet, safeHtml: this.sanitizer.bypassSecurityTrustHtml(greet) }]);
     setTimeout(() => this._scrollChat(), 50);
   }
@@ -861,6 +862,7 @@ export class App implements OnInit, AfterViewInit {
 <a href="mailto:ravchandan15@gmail.com" style="display:inline-block;margin:0.2rem;padding:0.3rem 0.9rem;border-radius:6px;background:var(--cb-btn-bg);color:var(--cb-btn-color);font-size:0.75rem;font-weight:700;text-decoration:none;border:1px solid var(--cb-btn-border)">📧 Email Chandan</a>
 <a href="https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/" target="_blank" style="display:inline-block;margin:0.2rem;padding:0.3rem 0.9rem;border-radius:6px;background:var(--cb-btn-bg);color:var(--cb-btn-color);font-size:0.75rem;font-weight:700;text-decoration:none;border:1px solid var(--cb-btn-border)">💼 LinkedIn</a>
 </div>`;
+      // Safe: limitHtml is a hardcoded template — q is only displayed as plain text in user bubble
       this.cbMessages.update(m => [...m, { role: 'user', html: q }, { role: 'bot', html: limitHtml, safeHtml: this.sanitizer.bypassSecurityTrustHtml(limitHtml) }]);
       setTimeout(() => this._scrollChat(), 50);
       return;
@@ -885,6 +887,7 @@ export class App implements OnInit, AfterViewInit {
         : reply;
       const finalHtml = warningHtml;
       this.cbTyping.set(false);
+      // Safe: finalHtml comes from ChatService hardcoded responses, never from raw user input
       this.cbMessages.update(m => [...m, { role: 'bot', html: finalHtml, safeHtml: this.sanitizer.bypassSecurityTrustHtml(finalHtml), followups }]);
       this._cbLog(q, reply);
       if (!this.cbOpen()) this.cbUnread.update(n => n + 1);
