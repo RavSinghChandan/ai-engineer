@@ -331,7 +331,7 @@ h1 {
   display: block; overflow: visible;
 }
 .city-svg-edu {
-  display: block !important; /* override the display:none from .city-svg on mobile */
+  display: block;
   height: 90px; color: var(--purple-lt); opacity: 0.85; width: 100%; max-width: 100%; overflow: visible;
   @media (max-width: 600px) { height: 80px; opacity: 0.9; }
 }
@@ -579,7 +579,8 @@ footer { border-top: 1px solid var(--border); padding: 2rem 0; }
   --fg-fsub: 0.65rem;
   --fg-pad: 0.7rem 1rem 0.9rem;
 
-  &.fg-visible { opacity: 1; pointer-events: auto; transform: translate(0,0) !important; }
+  &.fg-visible { opacity: 1; pointer-events: auto; }
+
 
   /* Tablet */
   @media (max-width: 900px) {
@@ -603,6 +604,14 @@ footer { border-top: 1px solid var(--border); padding: 2rem 0; }
 .fg-from-top-right    { top: 5rem;   right: 1.5rem;bottom: auto; left: auto; flex-direction: row-reverse; transform: translateY(-130%); }
 .fg-from-bottom-left  { bottom: 1.5rem; left: 1.5rem; flex-direction: row;         transform: translateY(130%); }
 .fg-from-bottom-right { bottom: 1.5rem; right: 1.5rem; left: auto; flex-direction: row-reverse; transform: translateY(130%); }
+
+/* When visible, all entry directions reset transform — higher specificity than the from-* rules */
+.fg-from-left.fg-visible,
+.fg-from-right.fg-visible,
+.fg-from-top-left.fg-visible,
+.fg-from-top-right.fg-visible,
+.fg-from-bottom-left.fg-visible,
+.fg-from-bottom-right.fg-visible { transform: translate(0,0); }
 
 /* Card row */
 .fg-card { display: flex; align-items: flex-end; gap: 0.5rem; }
@@ -869,13 +878,17 @@ footer { border-top: 1px solid var(--border); padding: 2rem 0; }
   position: fixed;
   bottom: 10rem; right: 1.5rem;
   z-index: 850;
-  width: 370px; max-height: 540px;
+  /* width set per breakpoint below; max-height for desktop default */
+  max-height: 540px;
   display: flex; flex-direction: column;
   background: var(--cb-bg); border: 1px solid var(--cb-border);
   border-radius: 18px;
   box-shadow: 0 16px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(124,58,237,0.15);
   animation: cb-slide-up 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
   overflow: hidden;
+
+  /* Desktop — fixed width */
+  @media (min-width: 769px) { width: 370px; }
 
   /* Tablet portrait — floating panel, not full screen */
   @media (max-width: 768px) and (orientation: portrait) {
@@ -884,10 +897,10 @@ footer { border-top: 1px solid var(--border); padding: 2rem 0; }
     max-height: 65dvh;
     border-radius: 18px;
   }
-  /* Mobile portrait — floating panel, anchored both sides */
+  /* Mobile portrait — floating panel, anchored both sides, no fixed width */
   @media (max-width: 480px) {
-    left: 0.75rem !important; right: 0.75rem !important; bottom: 6.5rem;
-    width: auto !important; max-width: none;
+    left: 0.75rem; right: 0.75rem; bottom: 6.5rem;
+    width: auto; max-width: none;
     max-height: 60dvh;
     border-radius: 16px;
   }

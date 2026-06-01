@@ -65,9 +65,10 @@ body {
 
 a { text-decoration: none; color: inherit; }
 
-/* Light mode nav — global override since nav is a fixed element */
-html[data-theme="light"] nav, body[data-theme="light"] nav {
-  background: rgba(255,255,255,0.9) !important;
+/* Light mode nav — higher specificity beats the dark .scrolled rule */
+html[data-theme="light"] nav,
+html[data-theme="light"] nav.scrolled {
+  background: rgba(255,255,255,0.9);
   backdrop-filter: blur(16px);
 }
 
