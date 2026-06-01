@@ -150,6 +150,87 @@ h1 {
 .hc-footer { display: flex; gap: 1rem; padding-top: 0.85rem; border-top: 1px solid var(--border); flex-wrap: wrap; }
 .hc-stat { font-family: 'Fira Code', monospace; font-size: 0.72rem; &.green { color: var(--green); } &.amber { color: var(--amber); } }
 
+/* ── PROOF-OF-WORK TICKER ── */
+.ticker-wrap {
+  width: 100%;
+  overflow: hidden;
+  background: linear-gradient(90deg, rgba(124,58,237,0.08) 0%, rgba(6,182,212,0.06) 50%, rgba(124,58,237,0.08) 100%);
+  border-top: 1px solid rgba(124,58,237,0.2);
+  border-bottom: 1px solid rgba(124,58,237,0.2);
+  padding: 0;
+  position: relative;
+
+  /* Fade edges — Apple ticker effect */
+  &::before, &::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 80px;
+    z-index: 2;
+    pointer-events: none;
+  }
+  &::before { left: 0;  background: linear-gradient(90deg, var(--bg), transparent); }
+  &::after  { right: 0; background: linear-gradient(-90deg, var(--bg), transparent); }
+}
+
+.ticker-track {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  white-space: nowrap;
+  animation: ticker-scroll 55s linear infinite;
+  will-change: transform;
+
+  &:hover { animation-play-state: paused; }
+}
+
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.ticker-item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  padding: 0.6rem 1.25rem;
+  flex-shrink: 0;
+}
+
+.ticker-stat {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--purple-lt);
+  letter-spacing: -0.01em;
+}
+
+.ticker-sep {
+  color: rgba(124,58,237,0.35);
+  font-size: 0.6rem;
+  padding: 0 0.1rem;
+  flex-shrink: 0;
+}
+
+.ticker-label {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text2);
+  letter-spacing: 0.01em;
+}
+
+/* Light mode adjustments */
+html[data-theme="light"] {
+  .ticker-wrap {
+    background: linear-gradient(90deg, rgba(124,58,237,0.04) 0%, rgba(6,182,212,0.03) 50%, rgba(124,58,237,0.04) 100%);
+    border-top-color: rgba(124,58,237,0.15);
+    border-bottom-color: rgba(124,58,237,0.15);
+  }
+  .ticker-stat { color: #5b21b6; }
+  .ticker-label { color: var(--text2); }
+  .ticker-sep { color: rgba(124,58,237,0.25); }
+}
+
 /* ── SHARED ── */
 .section-sub { color: var(--text2); max-width: 520px; margin: 0.5rem 0 2.5rem; font-size: 0.95rem; }
 
