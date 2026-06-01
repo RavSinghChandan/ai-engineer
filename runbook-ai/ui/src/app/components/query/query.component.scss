@@ -73,6 +73,41 @@
   &__icon { font-size: 1.2rem; flex-shrink: 0; }
 }
 
+/* ── Priority guide strip ── */
+.priority-guide {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--color-surface-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 14px;
+  font-size: 0.78rem;
+  flex-wrap: wrap;
+
+  &__label {
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.7rem;
+  }
+
+  &__arrow { color: var(--color-text-tertiary); font-weight: 600; }
+
+  &__step {
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+
+    &--green  { background: #dcfce7; color: #15803d; }
+    &--blue   { background: #dbeafe; color: #1d4ed8; }
+    &--purple { background: #ede9fe; color: #6d28d9; }
+  }
+}
+
 /* ── Panel tabs ── */
 .panel-tabs {
   display: flex;
@@ -106,6 +141,8 @@
     &--blue   { background: #2563eb; }
   }
 
+  &__name { font-weight: 700; }
+
   &__count {
     font-size: 0.75rem;
     font-weight: 500;
@@ -117,18 +154,35 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    padding: 2px 6px;
+    padding: 2px 7px;
     border-radius: 999px;
-    background: rgba(0,0,0,0.06);
+
+    &--green  { background: #dcfce7; color: #15803d; }
+    &--blue   { background: #dbeafe; color: #1d4ed8; }
+    &--purple { background: #ede9fe; color: #6d28d9; }
   }
 
   &--green.active  { border-color: #16a34a; background: #f0fdf4; color: #15803d; }
-  &--purple.active { border-color: #7c3aed; background: #faf5ff; color: #6d28d9; }
   &--blue.active   { border-color: #2563eb; background: #eff6ff; color: #1d4ed8; }
+  &--purple.active { border-color: #7c3aed; background: #faf5ff; color: #6d28d9; }
 
   &--green:hover:not(.active)  { border-color: #86efac; background: #f0fdf4; }
-  &--purple:hover:not(.active) { border-color: #c4b5fd; background: #faf5ff; }
   &--blue:hover:not(.active)   { border-color: #93c5fd; background: #eff6ff; }
+  &--purple:hover:not(.active) { border-color: #c4b5fd; background: #faf5ff; }
+}
+
+/* ── Priority badge inside panel header ── */
+.panel-priority-badge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 3px 9px;
+  border-radius: 999px;
+
+  &.priority-badge--green  { background: #166534; color: #fff; }
+  &.priority-badge--blue   { background: #1e40af; color: #fff; }
+  &.priority-badge--purple { background: #5b21b6; color: #fff; }
 }
 
 /* ── Panel card ── */

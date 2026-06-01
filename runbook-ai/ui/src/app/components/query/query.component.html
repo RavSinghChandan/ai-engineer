@@ -143,25 +143,35 @@
         </div>
       }
 
-      <!-- Panel tabs -->
+      <!-- Priority guide -->
+      <div class="priority-guide">
+        <span class="priority-guide__label">Resolution order:</span>
+        <span class="priority-guide__step priority-guide__step--green">① Internal</span>
+        <span class="priority-guide__arrow">→</span>
+        <span class="priority-guide__step priority-guide__step--blue">② Official Docs</span>
+        <span class="priority-guide__arrow">→</span>
+        <span class="priority-guide__step priority-guide__step--purple">③ Combined</span>
+      </div>
+
+      <!-- Panel tabs — Priority 1 Internal, Priority 2 Official, Priority 3 Combined -->
       <div class="panel-tabs">
         <button class="panel-tab panel-tab--green" [class.active]="activePanelTab==='internal'" (click)="activePanelTab='internal'">
           <span class="panel-tab__dot panel-tab__dot--green"></span>
-          Internal
+          <span class="panel-tab__name">Internal</span>
           <span class="panel-tab__count">{{ panels.internal.total_steps }} steps</span>
-          <span class="panel-tab__priority">Priority 1</span>
-        </button>
-        <button class="panel-tab panel-tab--purple" [class.active]="activePanelTab==='combined'" (click)="activePanelTab='combined'">
-          <span class="panel-tab__dot panel-tab__dot--purple"></span>
-          Combined
-          <span class="panel-tab__count">{{ panels.combined.total_steps }} steps</span>
-          <span class="panel-tab__priority">Priority 2</span>
+          <span class="panel-tab__priority panel-tab__priority--green">P1 · Try first</span>
         </button>
         <button class="panel-tab panel-tab--blue" [class.active]="activePanelTab==='official'" (click)="activePanelTab='official'">
           <span class="panel-tab__dot panel-tab__dot--blue"></span>
-          Official
+          <span class="panel-tab__name">Official Docs</span>
           <span class="panel-tab__count">{{ panels.official.total_steps }} steps</span>
-          <span class="panel-tab__priority">Priority 3</span>
+          <span class="panel-tab__priority panel-tab__priority--blue">P2 · If P1 fails</span>
+        </button>
+        <button class="panel-tab panel-tab--purple" [class.active]="activePanelTab==='combined'" (click)="activePanelTab='combined'">
+          <span class="panel-tab__dot panel-tab__dot--purple"></span>
+          <span class="panel-tab__name">Combined</span>
+          <span class="panel-tab__count">{{ panels.combined.total_steps }} steps</span>
+          <span class="panel-tab__priority panel-tab__priority--purple">P3 · Both agree</span>
         </button>
       </div>
 
@@ -170,6 +180,9 @@
         <div class="panel-card" [attr.data-color]="activePanel.color">
           <div class="panel-card__header" [class]="'panel-header--' + activePanel.color">
             <div class="panel-card__meta">
+              <span class="panel-priority-badge" [class]="'priority-badge--' + activePanel.color">
+                Priority {{ activePanel.priority }}
+              </span>
               <span class="panel-source-badge" [class]="'source-badge--' + activePanel.color">{{ activePanel.label }}</span>
               <span class="panel-source-name">{{ activePanel.source_name }}</span>
               @if (activePanel.source_url) {
@@ -192,6 +205,7 @@
                     <div class="panel-step__title">
                       {{ step.title }}
                       @if (step.is_optional) { <span class="badge badge--gray" style="margin-left:6px;font-size:0.65rem">optional</span> }
+                      @if (step['agreed_with_official']) { <span class="badge badge--purple" style="margin-left:6px;font-size:0.65rem">✓ both sources</span> }
                     </div>
                     @if (step.description) { <div class="panel-step__desc">{{ step.description }}</div> }
                     @for (cmd of step.commands; track cmd) {

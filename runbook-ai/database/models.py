@@ -11,6 +11,9 @@ CREATE TABLE IF NOT EXISTS runbooks (
     estimated_duration_minutes  INTEGER NOT NULL DEFAULT 15,
     total_pages                 INTEGER NOT NULL DEFAULT 0,
     status                      TEXT    NOT NULL DEFAULT 'active',
+    source_type                 TEXT    NOT NULL DEFAULT 'internal',
+    source_name                 TEXT    NOT NULL DEFAULT 'Internal Runbook',
+    source_url                  TEXT    NOT NULL DEFAULT '',
     tenant_id                   INTEGER REFERENCES tenants(id) ON DELETE CASCADE,
     created_at                  REAL    NOT NULL,
     updated_at                  REAL    NOT NULL

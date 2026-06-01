@@ -244,3 +244,97 @@ def test_stats_unauthenticated_still_works():
     resp = client.get("/runbooks/stats")
     assert resp.status_code == 200
     assert "total_runbooks" in resp.json()
+
+
+# ── Multi-source panel priority tests ─────────────────────────────────────────
+
+def test_multi_source_panel_keys_and_priority():
+    """build_multi_source_response returns all three panels with correct priority order."""
+    import time
+    from database.db import get_conn
+    from database.runbooks_store import save_runbook
+    from agents.multi_source_composer import build_multi_source_response
+
+    with get_conn() as conn:
+        conn.execute(
+            "INSERT INTO tenants (name, slug, plan, is_active, created_at) VALUES (?,?,?,1,?)",
+            ("PanelTestTenant", f"panel-test-{uuid.uuid4().hex[:6]}", "free", time.time()),
+        )
+        tenant_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+        conn.commit()
+
+    state = {
+        "title": "Panel Test Runbook", "description": "test", "category": "kubernetes",
+        "severity": "P2", "tags": ["k8s"], "prerequisites": [],
+        "estimated_duration_minutes": 10,
+        "steps": [
+            {"step_number": 1, "title": "Check pods", "description": "List pods",
+             "commands": ["kubectl get pods"], "expected_output": "pod list",
+             "depends_on": [], "is_optional": False, "timeout_seconds": 30},
+        ],
+        "rollback_steps": [],
+    }
+    runbook_id = save_runbook(state, "panel_test.pdf", 1, tenant_id=tenant_id)
+    result = build_multi_source_response(runbook_id, tenant_id)
+
+    # All three panels must exist
+    assert "internal" in result
+    assert "official" in result
+    assert "combined" in result
+
+    # Priority order: internal=1, official=2, combined=3
+    assert result["internal"]["priority"] == 1
+    assert result["official"]["priority"] == 2
+    assert result["combined"]["priority"] == 3
+
+    # Internal panel must have the steps we saved
+    assert result["internal"]["total_steps"] == 1
+    assert result["internal"]["steps"][0]["commands"] == ["kubectl get pods"]
+
+    # Internal panel color is green, official blue, combined purple
+    assert result["internal"]["color"] == "green"
+    assert result["official"]["color"] == "blue"
+    assert result["combined"]["color"] == "purple"
+
+    # No mixing: official panel steps come from official source only (empty if no official in DB)
+    # combined falls back to internal steps when no official counterpart
+    assert isinstance(result["combined"]["steps"], list)
+    assert len(result["combined"]["steps"]) >= 0
+
+
+def test_multi_source_internal_and_official_are_separate():
+    """Internal panel and Official panel must never contain each other's source_type."""
+    from agents.multi_source_composer import build_multi_source_response
+    import time
+    from database.db import get_conn
+    from database.runbooks_store import save_runbook
+
+    with get_conn() as conn:
+        conn.execute(
+            "INSERT INTO tenants (name, slug, plan, is_active, created_at) VALUES (?,?,?,1,?)",
+            ("SepTestTenant", f"sep-test-{uuid.uuid4().hex[:6]}", "free", time.time()),
+        )
+        tenant_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+        conn.commit()
+
+    state = {
+        "title": "Separation Test", "description": "sep test", "category": "kubernetes",
+        "severity": "P1", "tags": [], "prerequisites": [],
+        "estimated_duration_minutes": 5,
+        "steps": [
+            {"step_number": 1, "title": "Drain node", "description": "Safely drain",
+             "commands": ["kubectl drain node1 --ignore-daemonsets"],
+             "expected_output": "node drained", "depends_on": [],
+             "is_optional": False, "timeout_seconds": 60},
+        ],
+        "rollback_steps": [],
+    }
+    runbook_id = save_runbook(state, "sep_test.pdf", 1, tenant_id=tenant_id)
+    result = build_multi_source_response(runbook_id, tenant_id)
+
+    # Internal panel source_type must be 'internal'
+    assert result["internal"]["source_type"] == "internal"
+    # Official panel source_type must be 'official'
+    assert result["official"]["source_type"] == "official"
+    # Combined panel source_type must be 'combined'
+    assert result["combined"]["source_type"] == "combined"

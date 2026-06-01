@@ -18,7 +18,8 @@ export class QueryComponent {
   result: QueryResult | null = null;
   error = '';
   activeTab: 'response' | 'steps' | 'graph' | 'panels' = 'response';
-  activePanelTab: 'internal' | 'combined' | 'official' = 'internal';
+  // Priority order: internal (P1) → official (P2) → combined (P3)
+  activePanelTab: 'internal' | 'official' | 'combined' = 'internal';
 
   readonly examples = [
     'Kubernetes pods are crashlooping after a deployment — need to rollback',

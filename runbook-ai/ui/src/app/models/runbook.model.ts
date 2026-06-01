@@ -7,6 +7,10 @@ export interface RunbookStep {
   depends_on: number[];
   is_optional: boolean;
   timeout_seconds: number;
+  // Combined panel only — step was matched and verified in both internal and official sources
+  agreed_with_official?: boolean;
+  official_step_title?: string;
+  official_description?: string;
 }
 
 export interface Runbook {

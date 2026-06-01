@@ -6,10 +6,15 @@ from database.models import ALL_TABLES, CREATE_INDEXES
 
 DB_PATH = os.getenv("DATABASE_PATH", str(Path(__file__).parent.parent / "runbookai.db"))
 
-# Columns added in Phase 6 that must be migrated into existing DBs
+# Columns added progressively — safe to re-run (OperationalError = already exists)
 _MIGRATIONS = [
+    # Phase 6 — tenant isolation
     "ALTER TABLE runbooks ADD COLUMN tenant_id INTEGER REFERENCES tenants(id) ON DELETE CASCADE",
     "ALTER TABLE ingest_jobs ADD COLUMN tenant_id INTEGER REFERENCES tenants(id) ON DELETE SET NULL",
+    # Multi-source — source provenance columns
+    "ALTER TABLE runbooks ADD COLUMN source_type TEXT NOT NULL DEFAULT 'internal'",
+    "ALTER TABLE runbooks ADD COLUMN source_name TEXT NOT NULL DEFAULT 'Internal Runbook'",
+    "ALTER TABLE runbooks ADD COLUMN source_url  TEXT NOT NULL DEFAULT ''",
 ]
 
 
