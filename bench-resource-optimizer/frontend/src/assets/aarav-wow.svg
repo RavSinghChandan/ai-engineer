@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160" width="120" height="160">
+  <!-- WOW: SAME saffron robes, wide eyes, open mouth, sparkles -->
+  <rect x="28" y="90" width="64" height="55" rx="10" fill="#e07b2a"/>
+  <polygon points="50,90 60,108 70,90" fill="#f5a623"/>
+  <line x1="50" y1="90" x2="44" y2="145" stroke="#c96a18" stroke-width="1.2" opacity="0.4"/>
+  <line x1="70" y1="90" x2="76" y2="145" stroke="#c96a18" stroke-width="1.2" opacity="0.4"/>
+  <!-- Arms wide open in awe -->
+  <rect x="8"  y="74" width="24" height="11" rx="5" fill="#e07b2a" transform="rotate(-40 20 79)"/>
+  <rect x="88" y="74" width="24" height="11" rx="5" fill="#e07b2a" transform="rotate(40 100 79)"/>
+  <ellipse cx="5"  cy="63" rx="7" ry="7" fill="#c8956c"/>
+  <ellipse cx="115" cy="63" rx="7" ry="7" fill="#c8956c"/>
+  <!-- Sparkles everywhere -->
+  <text x="96" y="42" font-size="12" fill="#f59e0b">★</text>
+  <text x="10" y="44" font-size="11" fill="#a78bfa">✦</text>
+  <text x="50" y="18" font-size="10" fill="#f59e0b">✨</text>
+  <text x="68" y="24" font-size="9"  fill="#a78bfa">♒</text>
+  <text x="34" y="26" font-size="9"  fill="#f59e0b">♓</text>
+  <!-- Neck -->
+  <rect x="51" y="77" width="18" height="16" rx="4" fill="#c8956c"/>
+  <!-- Head -->
+  <ellipse cx="60" cy="57" rx="26" ry="28" fill="#c8956c"/>
+  <ellipse cx="60" cy="34" rx="26" ry="14" fill="#1a0a00"/>
+  <ellipse cx="38" cy="40" rx="10" ry="9"  fill="#1a0a00"/>
+  <ellipse cx="82" cy="40" rx="10" ry="9"  fill="#1a0a00"/>
+  <ellipse cx="60" cy="23" rx="9"  ry="7"  fill="#1a0a00"/>
+  <ellipse cx="34" cy="57" rx="5" ry="6" fill="#c8956c"/>
+  <ellipse cx="86" cy="57" rx="5" ry="6" fill="#c8956c"/>
+  <circle cx="34" cy="61" r="2.5" fill="#f5a623" stroke="#c96a18" stroke-width="0.5"/>
+  <circle cx="86" cy="61" r="2.5" fill="#f5a623" stroke="#c96a18" stroke-width="0.5"/>
+  <ellipse cx="60" cy="40" rx="2.5" ry="5" fill="#e74c3c"/>
+  <ellipse cx="60" cy="38" rx="1"   ry="2" fill="#fff" opacity="0.7"/>
+  <!-- Wide open amazed eyes -->
+  <ellipse cx="48" cy="54" rx="6.5" ry="7"   fill="white"/>
+  <ellipse cx="72" cy="54" rx="6.5" ry="7"   fill="white"/>
+  <ellipse cx="49" cy="55" rx="4"   ry="4.5" fill="#3d1c02"/>
+  <ellipse cx="73" cy="55" rx="4"   ry="4.5" fill="#3d1c02"/>
+  <circle cx="50" cy="53" r="1.2" fill="white"/>
+  <circle cx="74" cy="53" r="1.2" fill="white"/>
+  <!-- Eyebrows raised high -->
+  <path d="M40 44 Q48 39 56 44" stroke="#1a0a00" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M64 44 Q72 39 80 44" stroke="#1a0a00" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M57 61 Q55 67 60 68 Q65 67 63 61" stroke="#a0704a" stroke-width="1" fill="none"/>
+  <!-- O-shaped amazed mouth -->
+  <ellipse cx="60" cy="73" rx="7" ry="5" fill="#8b4513" opacity="0.9"/>
+  <ellipse cx="60" cy="73" rx="5" ry="3.5" fill="#1a0a00"/>
+  <path d="M40 92 Q60 100 80 92" stroke="#6b3a1f" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-dasharray="3 2"/>
+</svg>

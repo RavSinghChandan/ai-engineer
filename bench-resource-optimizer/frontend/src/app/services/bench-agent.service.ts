@@ -26,12 +26,12 @@ export class BenchAgentService {
   readonly hasMessages = computed(() => this.messages().length > 0);
 
   readonly quickPrompts = [
-    '📊 What does my match score mean?',
-    '🔍 How does Hybrid RAG work here?',
-    '🧠 Why does the agent remember me?',
-    '⚡ How fast is the semantic cache?',
-    '🛡️ How is my CV protected?',
-    '📅 How is the 7-day plan generated?',
+    { label: '📊 Match score',        text: 'What does my match score mean?' },
+    { label: '🔍 Hybrid RAG',         text: 'How does Hybrid RAG work in Bench?' },
+    { label: '🧠 Agent memory',       text: 'Why does the agent remember my past sessions?' },
+    { label: '⚡ Semantic cache',     text: 'How fast is the semantic cache?' },
+    { label: '🛡️ CV security',       text: 'How is my CV protected from injection?' },
+    { label: '📅 7-day plan',         text: 'How is the 7-day preparation plan generated?' },
   ];
 
   private sessionId: string | null = null;

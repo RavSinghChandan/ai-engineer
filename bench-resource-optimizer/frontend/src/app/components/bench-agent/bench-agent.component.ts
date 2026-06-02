@@ -26,7 +26,7 @@ function md(text: string): string {
       <!-- FAB — blue theme matching Bench -->
       <button class="b-fab" (click)="agent.toggle()" [class.open]="agent.isOpen()" aria-label="Ask Aria">
         <div class="fab-wrap">
-          <img src="aarav-happy.svg" class="fab-av" alt="Aria"/>
+          <img src="assets/aarav-happy.svg" class="fab-av" alt="Aria"/>
           <span class="fab-dot"></span>
         </div>
         <div class="fab-txt">
@@ -42,7 +42,7 @@ function md(text: string): string {
 
           <!-- Header -->
           <div class="b-header">
-            <img src="aarav-happy.svg" class="h-av" alt="Aria"/>
+            <img src="assets/aarav-happy.svg" class="h-av" alt="Aria"/>
             <div class="h-info">
               <strong>Aria</strong>
               <span>Bench Resource Optimizer · HR AI</span>
@@ -57,12 +57,12 @@ function md(text: string): string {
           <div class="b-msgs" #scrollRef>
             @if (!agent.hasMessages()) {
               <div class="welcome">
-                <img src="aarav-happy.svg" class="w-av" alt="Aria"/>
+                <img src="assets/aarav-happy.svg" class="w-av" alt="Aria"/>
                 <p class="w-title">Hi! I'm Aria 👋</p>
                 <p class="w-sub">Your HR AI guide for Bench Resource Optimizer. Ask me about match scores, skill gaps, the hybrid RAG pipeline, or how the platform works.</p>
                 <div class="q-grid">
-                  @for (p of agent.quickPrompts; track p) {
-                    <button class="q-btn" (click)="send(p)">{{ p }}</button>
+                  @for (p of agent.quickPrompts; track p.label) {
+                    <button class="q-btn" (click)="send(p.text)">{{ p.label }}</button>
                   }
                 </div>
               </div>
@@ -85,7 +85,7 @@ function md(text: string): string {
 
             @if (agent.isLoading()) {
               <div class="msg ma">
-                <img src="aarav-thinking.svg" class="m-av" alt="Aria"/>
+                <img src="assets/aarav-thinking.svg" class="m-av" alt="Aria"/>
                 <div class="bubble ba typing"><span></span><span></span><span></span></div>
               </div>
             }
@@ -138,7 +138,7 @@ function md(text: string): string {
     .b-fab.open  { background: #eff6ff; border-color: #3b82f6; }
 
     .fab-wrap { position: relative; width: 40px; height: 40px; flex-shrink: 0; }
-    .fab-av   { width: 40px; height: 40px; border-radius: 50%; object-fit: contain; background: #eff6ff; padding: 2px; }
+    .fab-av   { width: 40px; height: 40px; border-radius: 50%; object-fit: contain; background: #eff6ff; padding: 3px; display: block; }
     .fab-dot  {
       position: absolute; bottom: 0; right: 0;
       width: 11px; height: 11px; border-radius: 50%;
@@ -188,7 +188,7 @@ function md(text: string): string {
       border-bottom: 1px solid rgba(59,130,246,.15);
       flex-shrink: 0;
     }
-    .h-av { width: 36px; height: 36px; border-radius: 50%; background: #eff6ff; flex-shrink: 0; border: 2px solid rgba(59,130,246,.25); }
+    .h-av { width: 36px; height: 36px; border-radius: 50%; background: #eff6ff; flex-shrink: 0; border: 2px solid rgba(59,130,246,.25); object-fit: contain; padding: 2px; display: block; }
     .h-info { flex: 1; }
     .h-info strong { display: block; color: #1e293b; font-size: 13px; font-weight: 800; }
     .h-info span   { color: #3b82f6; font-size: 10px; }
@@ -331,7 +331,7 @@ export class BenchAgentComponent implements AfterViewChecked, OnDestroy {
 
   @ViewChild('scrollRef') private readonly scrollRef!: ElementRef<HTMLDivElement>;
 
-  av(i: number) { return ['aarav-happy.svg','aarav.svg','aarav-thinking.svg','aarav-wow.svg'][i % 4]; }
+  av(i: number) { return ['assets/aarav-happy.svg','assets/aarav.svg','assets/aarav-thinking.svg','assets/aarav-wow.svg'][i % 4]; }
 
   safe(t: string): SafeHtml { return this.sanitizer.bypassSecurityTrustHtml(md(t)); } // NOSONAR
 
