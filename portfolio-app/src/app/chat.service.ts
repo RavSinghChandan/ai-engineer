@@ -76,6 +76,7 @@ export class ChatService {
 
     // Delegate to focused intent handlers
     return this._matchDemo(t)
+        ?? this._matchProofStat(t)
         ?? this._matchCodeDeepDive(t)
         ?? this._matchIdentity(t)
         ?? this._matchGreeting(t)
@@ -129,6 +130,120 @@ export class ChatService {
   }
 
   // ── Private intent handlers ─────────────────────────────────────────────
+
+  // ── Proof-card stat questions (By The Numbers section) ────────────────────
+  private _matchProofStat(t: string): string | null {
+
+    // 637 tests / 3.6 seconds
+    if (/\b(637|3\.6\s*s(ec)?|tests?\s*in\s*3|achieve\s*637|3\.6\s*second)\b/i.test(t))
+      return `<div style="margin:0.9rem 0 0.5rem;padding:0.22rem 0.7rem;border-left:3px solid #10b981;background:rgba(16,185,129,0.07);border-radius:0 5px 5px 0;font-size:0.7rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#10b981">✅ 637 Tests — 3.6 Seconds</div>
+<div style="color:var(--cb-text);font-size:0.82rem;line-height:1.6">
+Chandan runs <strong>637 automated tests</strong> across all 4 AI systems and the full suite completes in <strong>3.6 seconds</strong> — without any API keys or external services.<br><br>
+<strong>How it's done:</strong><br>
+• <strong>Mock LLM strategy</strong> — LLM calls are replaced with deterministic mocks in test mode, so no network latency<br>
+• <strong>Isolated unit tests</strong> — each guardrail, cache layer, and agent node is tested independently<br>
+• <strong>FAISS + SQLite in-memory</strong> — no disk I/O in tests, pure RAM<br>
+• <strong>Pytest async fixtures</strong> — all async FastAPI routes tested end-to-end with <code>httpx.AsyncClient</code><br>
+• <strong>Zero flakiness</strong> — no sleep/retry hacks, every test is deterministic<br><br>
+<em>Projects covered: Aura with Rav (415 tests), Bench Resource Optimizer (222 tests). 🎯</em>
+</div>
+<a href="#projects" style="display:inline-block;margin-top:0.6rem;font-size:0.74rem;font-weight:700;padding:0.24rem 0.7rem;border-radius:6px;background:var(--cb-chip-bg);color:var(--cb-chip-color);border:1px solid #10b981;text-decoration:none">↗ See Projects</a>`;
+
+    // 78s → 4s latency
+    if (/\b(78\s*s(ec)?|78\s*second|latency|4\s*second|95\s*%|reduce\s*latency|78s|4s\b)\b/i.test(t))
+      return `<div style="margin:0.9rem 0 0.5rem;padding:0.22rem 0.7rem;border-left:3px solid #a78bfa;background:rgba(167,139,250,0.07);border-radius:0 5px 5px 0;font-size:0.7rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#a78bfa">⚡ 78s → 4s — 95% Latency Reduction</div>
+<div style="color:var(--cb-text);font-size:0.82rem;line-height:1.6">
+Aura with Rav originally took <strong>78 seconds</strong> per analysis. Chandan brought it down to <strong>4 seconds</strong> through three measured optimisations:<br><br>
+<strong>Step 1 — Parallel agents (78s → 15s)</strong><br>
+• 5 domain agents (Astrology, Numerology, Palmistry, Tarot, Vastu) ran <em>sequentially</em><br>
+• Converted to <strong>LangGraph parallel branches using <code>Send()</code></strong> — all 5 fire simultaneously<br><br>
+<strong>Step 2 — 3-tier semantic cache (15s → 4s)</strong><br>
+• <strong>L1 exact match</strong> — Redis hash lookup, &lt;1ms<br>
+• <strong>L2 semantic match</strong> — cosine similarity ≥ 0.92 via FAISS, ~10ms<br>
+• <strong>L3 partial cache</strong> — reuse individual agent outputs when only one module changes<br><br>
+<strong>Step 3 — DeepSeek LLM</strong><br>
+• Switched from GPT-4o to DeepSeek — 500× cheaper and 3× faster on spiritual domain prompts<br><br>
+<em>All latency figures are measured, not estimated. ⏱️</em>
+</div>
+<a href="#project-01" style="display:inline-block;margin-top:0.6rem;font-size:0.74rem;font-weight:700;padding:0.24rem 0.7rem;border-radius:6px;background:var(--cb-chip-bg);color:var(--cb-chip-color);border:1px solid #a78bfa;text-decoration:none">↗ See Aura with Rav</a>`;
+
+    // 18+ agents coordinated
+    if (/\b(18\+?\s*agent|18\s*ai\s*agent|coordinat.*agent|agent.*coordinat|without\s*conflict)\b/i.test(t) || /coordinate\s+18/i.test(t))
+      return `<div style="margin:0.9rem 0 0.5rem;padding:0.22rem 0.7rem;border-left:3px solid #a78bfa;background:rgba(167,139,250,0.07);border-radius:0 5px 5px 0;font-size:0.7rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#a78bfa">🤖 18+ AI Agents — Zero Conflicts</div>
+<div style="color:var(--cb-text);font-size:0.82rem;line-height:1.6">
+Aura with Rav coordinates <strong>18+ AI agents</strong> across 5 spiritual domains using <strong>LangGraph StateGraph</strong>:<br><br>
+<strong>Architecture:</strong><br>
+• <strong>Node 1</strong> — Question Normalization Agent (parses intent, detects sub-intent)<br>
+• <strong>Nodes 2–6 (parallel)</strong> — Astrology · Numerology · Palmistry · Tarot · Vastu — each with 3 sub-agents (e.g. Vedic/KP/Western for Astrology)<br>
+• <strong>Node 7</strong> — Meta Consensus Agent (3+ domains = HIGH, 2 = MEDIUM, 1 = LOW confidence)<br>
+• <strong>Node 8</strong> — Remedy Agent (habits, mantras, colours)<br>
+• <strong>Node 9</strong> — Admin Review (human-in-the-loop, <code>interrupt_before=["approve"]</code>)<br><br>
+<strong>Why no conflicts?</strong><br>
+• <strong>Immutable state</strong> — each node returns a state delta, never mutates shared state<br>
+• <strong>Conditional edges</strong> — routing logic is explicit, not implicit<br>
+• <strong>Typed state</strong> — <code>TypedDict</code> enforces schema at every node boundary<br><br>
+<em>415 tests verify every agent path — including failure modes. 🛡️</em>
+</div>
+<a href="#project-01" style="display:inline-block;margin-top:0.6rem;font-size:0.74rem;font-weight:700;padding:0.24rem 0.7rem;border-radius:6px;background:var(--cb-chip-bg);color:var(--cb-chip-color);border:1px solid #a78bfa;text-decoration:none">↗ See Aura with Rav</a>`;
+
+    // $0.000137 cost per analysis
+    if (/\b(0\.000137|\$0\.000|\bcost\s*(per|of)\s*(analysis|ai)|500.?times?\s*cheaper|deepseek\s*cost|per\s*ai\s*analysis)\b/i.test(t))
+      return `<div style="margin:0.9rem 0 0.5rem;padding:0.22rem 0.7rem;border-left:3px solid #f59e0b;background:rgba(245,158,11,0.07);border-radius:0 5px 5px 0;font-size:0.7rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#f59e0b">💰 $0.000137 Per AI Analysis — 500× Cheaper Than GPT-4o</div>
+<div style="color:var(--cb-text);font-size:0.82rem;line-height:1.6">
+Each full 18-agent Aura analysis — covering Astrology, Numerology, Palmistry, Tarot and Vastu — costs just <strong>$0.000137</strong>. Here's how:<br><br>
+<strong>1. DeepSeek LLM instead of GPT-4o</strong><br>
+• GPT-4o: ~$0.005 per 1K input tokens · DeepSeek: ~$0.00001 per 1K tokens<br>
+• Same output quality on spiritual/analytical domain prompts — verified by Chandan's own A/B testing<br><br>
+<strong>2. Semantic cache kills repeat LLM calls</strong><br>
+• <strong>L1 exact match</strong> — Redis, &lt;1ms, zero LLM cost<br>
+• <strong>L2 semantic match (cosine ≥ 0.92)</strong> — FAISS, ~10ms, zero LLM cost<br>
+• Cache hit rate &gt;60% in production — majority of analyses never reach the LLM<br><br>
+<strong>3. Short, precision-engineered prompts</strong><br>
+• Domain-specific prompt templates keep token counts minimal<br>
+• No padding, no few-shot examples in production paths<br><br>
+<em>Cost tracked and verified per-session in production metrics. 📊</em>
+</div>
+<a href="#project-01" style="display:inline-block;margin-top:0.6rem;font-size:0.74rem;font-weight:700;padding:0.24rem 0.7rem;border-radius:6px;background:var(--cb-chip-bg);color:var(--cb-chip-color);border:1px solid #f59e0b;text-decoration:none">↗ See Aura with Rav</a>`;
+
+    // 0 hallucinated commands / RunbookAI
+    if (/\b(zero\s*hallucinat|0\s*hallucinat|hallucinat.*command|runbook.*hallucinat|ragless.*command|zero.*kubectl|verbatim)\b/i.test(t) || /achieve\s+zero\s+hallucin/i.test(t))
+      return `<div style="margin:0.9rem 0 0.5rem;padding:0.22rem 0.7rem;border-left:3px solid #10b981;background:rgba(16,185,129,0.07);border-radius:0 5px 5px 0;font-size:0.7rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#10b981">🎯 Zero Hallucinated Commands — RunbookAI</div>
+<div style="color:var(--cb-text);font-size:0.82rem;line-height:1.6">
+RunbookAI is a <strong>RAGless architecture</strong> — the LLM is used once at <em>ingest time</em>, never at <em>query time</em>.<br><br>
+<strong>How it eliminates hallucination:</strong><br>
+• <strong>Ingest</strong> — LLM reads a runbook PDF and extracts structured steps + exact CLI commands once<br>
+• <strong>Storage</strong> — commands stored verbatim in SQLite with <code>commands_source: "database"</code> flag<br>
+• <strong>Query</strong> — no LLM involved at all; pure SQL + NetworkX graph traversal returns the stored commands<br><br>
+<strong>Why RAG would fail here:</strong><br>
+• RAG generates commands by having an LLM "recall" from context — risky under incident pressure<br>
+• A wrong <code>kubectl delete</code> in a P1 incident can take down production<br>
+• SQL returns the exact command an expert wrote — no synthesis, no drift<br><br>
+<strong>Dependency graph (NetworkX DiGraph):</strong><br>
+• Steps linked by <code>depends_on</code> — topological sort guarantees safe execution order<br>
+• Parallel steps identified automatically — shown in the Execution Graph tab<br><br>
+<em>22 runbooks · 137 tests · conflict detection between internal and official K8s docs. 🔗</em>
+</div>
+<a href="#project-04" style="display:inline-block;margin-top:0.6rem;font-size:0.74rem;font-weight:700;padding:0.24rem 0.7rem;border-radius:6px;background:var(--cb-chip-bg);color:var(--cb-chip-color);border:1px solid #10b981;text-decoration:none">↗ See RunbookAI</a>`;
+
+    // G1–G5 guardrails
+    if (/\b(g1.{0,4}g5|g[1-5]\s*(guard|to\s*g)|production\s*guardrail|guardrail.*built|rate\s*limit.*pii|pii.*inject|injection.*faithful)\b/i.test(t))
+      return `<div style="margin:0.9rem 0 0.5rem;padding:0.22rem 0.7rem;border-left:3px solid #ef4444;background:rgba(239,68,68,0.07);border-radius:0 5px 5px 0;font-size:0.7rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#ef4444">🛡️ G1–G5 Production Guardrails</div>
+<div style="color:var(--cb-text);font-size:0.82rem;line-height:1.6">
+Chandan built <strong>5 defence layers</strong> that wrap every LLM call in production:<br><br>
+<div style="display:grid;grid-template-columns:2.5rem 1fr;gap:0.25rem 0.5rem;margin:0.4rem 0">
+  <span style="font-weight:800;color:#ef4444">G1</span><span><strong>Rate Limiting</strong> — per IP/user, blocks abuse before the LLM is ever touched</span>
+  <span style="font-weight:800;color:#ef4444">G2</span><span><strong>Injection Detection</strong> — regex + pattern scanning catches jailbreak / prompt injection in every input (CV text, user queries)</span>
+  <span style="font-weight:800;color:#ef4444">G3</span><span><strong>PII Filter</strong> — strips Aadhaar, PAN, credit card numbers, SSNs — no personal data reaches the LLM</span>
+  <span style="font-weight:800;color:#ef4444">G4</span><span><strong>Faithfulness Gate</strong> — LLM output must be grounded in retrieved context; hallucinated claims are rejected</span>
+  <span style="font-weight:800;color:#ef4444">G5</span><span><strong>Output Validation</strong> — final schema + safety check before the response is returned to the client</span>
+</div><br>
+<strong>Coverage:</strong> G1–G5 implemented in Aura with Rav and Bench Resource Optimizer. G2 specifically scans CV text before any LLM sees it — critical for an HR platform handling sensitive data.<br><br>
+<em>57 dedicated guardrail tests. Every guard has its own test class. 🔒</em>
+</div>
+<a href="#project-01" style="display:inline-block;margin-top:0.4rem;font-size:0.74rem;font-weight:700;padding:0.24rem 0.7rem;border-radius:6px;background:var(--cb-chip-bg);color:var(--cb-chip-color);border:1px solid #ef4444;text-decoration:none;margin-right:0.4rem">↗ Aura with Rav</a><a href="#project-02" style="display:inline-block;margin-top:0.4rem;font-size:0.74rem;font-weight:700;padding:0.24rem 0.7rem;border-radius:6px;background:var(--cb-chip-bg);color:var(--cb-chip-color);border:1px solid #f59e0b;text-decoration:none">↗ Bench Optimizer</a>`;
+
+    return null;
+  }
 
   private _matchDemo(t: string): string | null {
     if (!/\b(demo|live\s*demo|see\s*(it|the|a)\s*(demo|app|live|project)|watch|preview|screenshot|show\s*(me\s*)?(the\s*)?(app|demo|live|project|screen))\b/i.test(t)) return null;
