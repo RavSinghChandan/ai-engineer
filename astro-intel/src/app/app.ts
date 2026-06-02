@@ -1,14 +1,16 @@
 import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { AuthService } from './services/auth.service';
+import { AstroAgentComponent } from './components/astro-agent/astro-agent.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, AstroAgentComponent],
   template: `
     <div class="gw" aria-hidden="true"></div>
     <router-outlet />
+    <app-astro-agent />
   `,
   styles: [`
     :host { display: block; }

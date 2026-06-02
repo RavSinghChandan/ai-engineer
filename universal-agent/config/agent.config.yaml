@@ -1,96 +1,92 @@
 # ============================================================
-# UNIVERSAL AGENT — Configuration File
-# This is the ONLY file you need to touch to integrate the agent
-# into your application. No code changes required.
+# UNIVERSAL AGENT — Active Config
+# Stack: FastAPI + DeepSeek + Angular
 # ============================================================
 
 agent:
-  name: "Assistant"                        # Display name shown in the chat
+  name: "Aarav"
+  mode: "react"
   persona: |
-    You are a helpful assistant for this application.
-    You answer questions, help users navigate features,
-    and provide support based on the context provided.
-  language: "en"                           # Response language (en, hi, es, fr, de, ...)
-  fallback_message: "I'm not sure about that. Can you rephrase or ask something else?"
+    You are Aarav, a senior AI assistant.
+    You help users with their questions clearly and concisely.
+    You are honest, direct, and professional.
+    You know about the application you are embedded in and can help users navigate it.
+  language: "en"
+  fallback_message: "I'm not sure about that — could you rephrase or give me more context?"
 
-# --- LLM Provider ---
+# --- LLM: DeepSeek (OpenAI-compatible, 500x cheaper than GPT-4o) ---
 llm:
-  provider: "anthropic"                    # anthropic | openai | gemini | ollama
-  model: "claude-sonnet-4-6"              # Model ID — any provider model works
+  provider: "deepseek"
+  model: "deepseek-chat"
   temperature: 0.7
   max_tokens: 1024
-  # API key — set via environment variable (recommended) or here (not for production)
-  api_key_env: "ANTHROPIC_API_KEY"         # Name of the env var holding the key
+  api_key_env: "DEEPSEEK_API_KEY"
 
 # --- Memory ---
 memory:
-  enabled: true
-  type: "buffer"                           # buffer | summary | vector
-  max_history: 20                          # Max turns to keep in context
-  session_ttl_seconds: 3600               # Session expires after 1 hour of inactivity
+  backend: "in_process"
+  max_history: 20
+  session_ttl_seconds: 3600
 
-# --- Knowledge Base (optional — leave empty to skip RAG) ---
+# --- Knowledge Base (disabled — enable when you have docs to add) ---
 knowledge_base:
   enabled: false
-  type: "faiss"                            # faiss | chroma | pinecone | none
-  source_dir: "./knowledge"               # Drop .txt/.pdf/.md files here
+  type: "faiss"
+  source_dir: "./knowledge"
+  embedding_provider: "openai"
+  embedding_model: "text-embedding-3-small"
   chunk_size: 500
   chunk_overlap: 50
-  top_k: 3                                 # How many chunks to retrieve per query
+  top_k: 3
 
-# --- Tools (optional — enable what you need) ---
+# --- Tools ---
 tools:
+  calculator:
+    enabled: true
+  datetime:
+    enabled: true
   web_search:
     enabled: false
-    provider: "tavily"                     # tavily | serper | duckduckgo
+    provider: "tavily"
     api_key_env: "TAVILY_API_KEY"
-
-  calculator:
-    enabled: true                          # Safe math evaluation — always safe to enable
-
-  datetime:
-    enabled: true                          # Returns current date/time — always safe
-
   custom_tools:
     enabled: false
-    # Path to a Python file exposing a list[BaseTool] named `TOOLS`
     module_path: "./tools/custom_tools.py"
 
-# --- Context Injection (inject static facts about your app) ---
+# --- Context: what the agent knows about your app ---
 context:
   app_name: "My Application"
-  app_description: "A web application that helps users manage tasks."
-  # Add any static context your agent should always know
+  app_description: "An AI-powered application. Ask me anything about it."
   extra_facts:
-    - "The app supports English and Hindi languages."
-    - "Free tier allows 100 tasks. Pro tier is unlimited."
-  # Path to a markdown/text file with deeper domain knowledge
-  knowledge_file: ""                       # e.g., "./context/product_docs.md"
+    - "Built with FastAPI backend and Angular frontend."
+    - "Powered by DeepSeek AI."
 
-# --- API Server (when running as standalone service) ---
+# --- Server ---
 server:
   host: "0.0.0.0"
   port: 8000
   cors_origins:
-    - "*"                                  # Restrict to your domain in production
+    - "http://localhost:4200"
+    - "http://localhost:4300"
+    - "http://127.0.0.1:4200"
   rate_limit:
-    enabled: true
+    enabled: false
     requests_per_minute: 60
 
-# --- Widget (frontend embed) ---
+# --- Widget ---
 widget:
   theme:
-    primary_color: "#2563eb"              # Button and header color
+    primary_color: "#6366f1"
     background_color: "#ffffff"
     text_color: "#1f2937"
     border_radius: "12px"
-  position: "bottom-right"               # bottom-right | bottom-left
-  trigger_text: "Ask me anything"
-  placeholder_text: "Type your question..."
-  show_branding: false                    # Set true to show "Powered by Universal Agent"
+  position: "bottom-right"
+  trigger_text: "Ask Aarav"
+  placeholder_text: "Ask me anything..."
+  show_branding: false
 
-# --- Logging & Observability ---
+# --- Logging ---
 logging:
-  level: "INFO"                           # DEBUG | INFO | WARNING | ERROR
+  level: "INFO"
   log_to_file: false
   log_file: "./logs/agent.log"

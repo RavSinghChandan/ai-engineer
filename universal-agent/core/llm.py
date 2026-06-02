@@ -38,7 +38,35 @@ def build_llm(cfg: LLMConfig) -> BaseChatModel:
         from langchain_ollama import ChatOllama
         return ChatOllama(model=cfg.model, temperature=cfg.temperature)
 
+    if provider == "deepseek":
+        # DeepSeek is OpenAI-compatible
+        from langchain_openai import ChatOpenAI
+        return ChatOpenAI(
+            model=cfg.model,
+            temperature=cfg.temperature,
+            max_tokens=cfg.max_tokens,
+            openai_api_key=cfg.api_key,
+            base_url="https://api.deepseek.com/v1",
+        )
+
+    if provider == "grok":
+        from langchain_openai import ChatOpenAI
+        return ChatOpenAI(
+            model=cfg.model,
+            temperature=cfg.temperature,
+            max_tokens=cfg.max_tokens,
+            openai_api_key=cfg.api_key,
+            base_url="https://api.x.ai/v1",
+        )
+
+    if provider == "bedrock":
+        from langchain_aws import ChatBedrock
+        return ChatBedrock(
+            model_id=cfg.model,
+            model_kwargs={"temperature": cfg.temperature, "max_tokens": cfg.max_tokens},
+        )
+
     raise ValueError(
         f"Unsupported LLM provider: '{provider}'. "
-        "Choose from: anthropic, openai, gemini, ollama"
+        "Choose from: anthropic, openai, gemini, ollama, deepseek, grok, bedrock"
     )

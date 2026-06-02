@@ -1,19 +1,29 @@
 /**
  * Universal Agent — Angular Adapter
- * Drop this service into any Angular app and inject it wherever needed.
+ * Works with Angular 15+ (standalone components, signals).
  *
- * Setup:
- *   1. Copy this file to your Angular project: src/app/services/universal-agent.service.ts
- *   2. Set AGENT_URL to your running agent server
- *   3. Inject UniversalAgentService in any component
+ * SETUP (3 steps):
+ *   1. Copy this file into your Angular project:
+ *        cp adapters/angular_adapter.ts src/app/services/universal-agent.service.ts
+ *
+ *   2. Set the agent URL in your environment file:
+ *        // src/environments/environment.ts
+ *        export const environment = { agentUrl: 'http://localhost:8000' };
+ *
+ *   3. Inject in any component:
+ *        constructor(public agent: UniversalAgentService) {}
  */
-import { Injectable, signal } from '@angular/core';
+
+import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 
+// ── Types ─────────────────────────────────────────────────────────────────────
+
 export interface ChatMessage {
   role: 'user' | 'agent';
-  text: string;
+  content: string;
+  streaming?: boolean;   // true while tokens are arriving
   timestamp: Date;
 }
 
@@ -26,76 +36,177 @@ export interface AgentHealth {
   active_sessions: number;
 }
 
+// ── Service ───────────────────────────────────────────────────────────────────
+
 @Injectable({ providedIn: 'root' })
 export class UniversalAgentService {
-  private readonly AGENT_URL = 'http://localhost:8000/agent';
-  private sessionId = this._loadOrCreateSession();
 
-  // Reactive state — use in templates with signals
-  messages = signal<ChatMessage[]>([]);
-  isLoading = signal(false);
-  error = signal<string | null>(null);
+  /** Change this to match your backend URL */
+  private readonly agentUrl = 'http://localhost:8000/agent';
 
-  constructor(private http: HttpClient) {}
+  // ── Reactive state (signals) ───────────────────────────────────────────────
+  readonly messages    = signal<ChatMessage[]>([]);
+  readonly isLoading   = signal(false);
+  readonly isStreaming = signal(false);
+  readonly error       = signal<string | null>(null);
+
+  readonly hasMessages = computed(() => this.messages().length > 0);
+
+  private sessionId: string | null = null;
+
+  constructor(private http: HttpClient) {
+    this.sessionId = sessionStorage.getItem('agent_session_id');
+  }
+
+  // ── Send message — full response (simple) ─────────────────────────────────
 
   async chat(userMessage: string): Promise<string> {
+    if (!userMessage.trim()) return '';
+
+    this._addMessage({ role: 'user', content: userMessage });
     this.isLoading.set(true);
     this.error.set(null);
-
-    this.messages.update(msgs => [
-      ...msgs,
-      { role: 'user', text: userMessage, timestamp: new Date() }
-    ]);
 
     try {
       const res = await firstValueFrom(
         this.http.post<{ session_id: string; message: string; agent_name: string }>(
-          `${this.AGENT_URL}/chat`,
+          `${this.agentUrl}/chat`,
           { message: userMessage, session_id: this.sessionId }
         )
       );
-      this.sessionId = res.session_id;
-      this._saveSession(this.sessionId);
-
-      this.messages.update(msgs => [
-        ...msgs,
-        { role: 'agent', text: res.message, timestamp: new Date() }
-      ]);
-
+      this._saveSession(res.session_id);
+      this._addMessage({ role: 'agent', content: res.message });
       return res.message;
     } catch (err: any) {
-      const msg = err?.error?.detail || 'Agent unavailable. Please try again.';
+      const msg = err?.error?.detail || err?.message || 'Agent unavailable';
       this.error.set(msg);
-      throw err;
+      return '';
     } finally {
       this.isLoading.set(false);
     }
   }
 
+  // ── Send message — streaming (tokens appear as they arrive) ───────────────
+
+  async chatStream(userMessage: string): Promise<void> {
+    if (!userMessage.trim()) return;
+
+    this._addMessage({ role: 'user', content: userMessage });
+    this.isStreaming.set(true);
+    this.error.set(null);
+
+    const agentMsgIndex = this.messages().length;
+    this._addMessage({ role: 'agent', content: '', streaming: true });
+
+    try {
+      await this._readStream(userMessage, agentMsgIndex);
+    } catch (err: any) {
+      this.error.set(err?.message || 'Streaming failed');
+      this.messages.update(msgs => msgs.filter((_, i) => i !== agentMsgIndex));
+    } finally {
+      this.isStreaming.set(false);
+    }
+  }
+
+  private async _readStream(userMessage: string, agentMsgIndex: number): Promise<void> {
+    const params = new URLSearchParams({
+      message: userMessage,
+      ...(this.sessionId ? { session_id: this.sessionId } : {}),
+    });
+
+    const response = await fetch(`${this.agentUrl}/stream?${params}`, {
+      method: 'GET',
+      headers: { Accept: 'text/event-stream' },
+    });
+
+    if (!response.ok || !response.body) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() ?? '';
+      for (const line of lines) {
+        this._handleSseLine(line, agentMsgIndex);
+      }
+    }
+  }
+
+  private _handleSseLine(line: string, agentMsgIndex: number): void {
+    if (!line.startsWith('data: ')) return;
+    const raw = line.slice(6).trim();
+    if (raw === '[DONE]') return;
+
+    try {
+      const event = JSON.parse(raw);
+      if (event.type === 'session') {
+        this._saveSession(event.session_id);
+      } else if (event.type === 'token') {
+        this.messages.update(msgs => {
+          const updated = [...msgs];
+          updated[agentMsgIndex] = {
+            ...updated[agentMsgIndex],
+            content: updated[agentMsgIndex].content + event.token,
+          };
+          return updated;
+        });
+      } else if (event.type === 'done') {
+        this.messages.update(msgs => {
+          const updated = [...msgs];
+          updated[agentMsgIndex] = { ...updated[agentMsgIndex], streaming: false };
+          return updated;
+        });
+      } else if (event.type === 'error') {
+        this.error.set(event.message || 'Stream error');
+      }
+    } catch {
+      // ignore malformed SSE lines
+    }
+  }
+
+  // ── Clear session ──────────────────────────────────────────────────────────
+
   async clearSession(): Promise<void> {
-    await firstValueFrom(
-      this.http.post(`${this.AGENT_URL}/clear`, { session_id: this.sessionId })
-    );
-    sessionStorage.removeItem('ua_session_id');
-    this.sessionId = this._loadOrCreateSession();
+    if (this.sessionId) {
+      try {
+        await firstValueFrom(
+          this.http.post(`${this.agentUrl}/clear`, { session_id: this.sessionId })
+        );
+      } catch { /* ignore */ }
+    }
+    this.sessionId = null;
+    sessionStorage.removeItem('agent_session_id');
     this.messages.set([]);
+    this.error.set(null);
   }
 
-  async health(): Promise<AgentHealth> {
-    return firstValueFrom(this.http.get<AgentHealth>(`${this.AGENT_URL}/health`));
+  // ── Health check ───────────────────────────────────────────────────────────
+
+  async health(): Promise<AgentHealth | null> {
+    try {
+      return await firstValueFrom(
+        this.http.get<AgentHealth>(`${this.agentUrl}/health`)
+      );
+    } catch {
+      return null;
+    }
   }
 
-  private _loadOrCreateSession(): string {
-    return sessionStorage.getItem('ua_session_id') || this._newSession();
-  }
+  // ── Helpers ────────────────────────────────────────────────────────────────
 
-  private _newSession(): string {
-    const id = 'sess_' + Math.random().toString(36).slice(2);
-    sessionStorage.setItem('ua_session_id', id);
-    return id;
+  private _addMessage(msg: Omit<ChatMessage, 'timestamp'>): void {
+    this.messages.update(msgs => [...msgs, { ...msg, timestamp: new Date() }]);
   }
 
   private _saveSession(id: string): void {
-    sessionStorage.setItem('ua_session_id', id);
+    this.sessionId = id;
+    sessionStorage.setItem('agent_session_id', id);
   }
 }

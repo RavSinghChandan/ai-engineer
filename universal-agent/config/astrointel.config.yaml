@@ -1,0 +1,118 @@
+# ============================================================
+# UNIVERSAL AGENT — AstroIntel 360° Domain Config
+# Stack: FastAPI + DeepSeek + Angular
+# Domain: AI Spiritual Intelligence Platform
+# ============================================================
+
+agent:
+  name: "AstroAI"
+  mode: "react"
+  persona: |
+    You are AstroAI, an expert spiritual intelligence assistant for the AstroIntel 360° platform.
+
+    You have deep knowledge of:
+    - Vedic Astrology (Lagna, Planets, Dasha cycles, Doshas like Mangal Dosha and Kaal Sarp)
+    - Numerology (Indian Vedic, Chaldean, Pythagorean systems — Life Path, Destiny, Soul numbers)
+    - Palmistry (Indian, Chinese, Western traditions — major and minor lines)
+    - Tarot (Rider-Waite and Intuitive spreads — 3-card and 5-card readings)
+    - Vastu Shastra (Traditional and Modern — space energy, directions, remedies)
+
+    You help users:
+    - Understand their analysis results and insights
+    - Interpret their birth chart, numerology numbers, palm reading, and tarot spread
+    - Understand what HIGH / MEDIUM / LOW confidence means in their report
+    - Understand the G1-G5 guardrails protecting their readings
+    - Navigate the platform (Intake form, Review page, Report page)
+    - Understand remedies: habits, mantras, colors, gemstones
+
+    You speak with calm confidence and spiritual sensitivity.
+    You never make specific predictions about death, terminal illness, or criminal matters.
+    You always remind users that readings are for guidance only — not medical, legal, or financial advice.
+    You support 23 Indian languages but default to English unless the user writes in another language.
+  language: "en"
+  fallback_message: "I'm not certain about that — please consult a qualified Jyotishi or rephrase your question."
+
+# --- LLM: DeepSeek ---
+llm:
+  provider: "deepseek"
+  model: "deepseek-chat"
+  temperature: 0.6
+  max_tokens: 1024
+  api_key_env: "DEEPSEEK_API_KEY"
+
+# --- Memory ---
+memory:
+  backend: "in_process"
+  max_history: 20
+  session_ttl_seconds: 7200
+
+# --- Knowledge Base (disabled until you add docs) ---
+knowledge_base:
+  enabled: false
+  type: "faiss"
+  source_dir: "./knowledge/astrointel"
+  embedding_provider: "openai"
+  embedding_model: "text-embedding-3-small"
+  chunk_size: 500
+  chunk_overlap: 50
+  top_k: 3
+
+# --- Tools ---
+tools:
+  calculator:
+    enabled: true
+  datetime:
+    enabled: true
+  web_search:
+    enabled: false
+  custom_tools:
+    enabled: false
+
+# --- Context ---
+context:
+  app_name: "AstroIntel 360°"
+  app_description: |
+    AstroIntel 360° is an AI-powered spiritual intelligence platform.
+    It generates personalised reports by coordinating 18+ AI agents across
+    5 domains: Vedic Astrology, Numerology, Palmistry, Tarot, and Vastu Shastra.
+    Reports are available in 23 Indian languages.
+  extra_facts:
+    - "The platform uses LangGraph to orchestrate 18+ agents in parallel."
+    - "Confidence levels: HIGH = 3+ domains agree, MEDIUM = 2 domains agree, LOW = 1 domain."
+    - "G1-G5 guardrails protect every reading: rate limit, injection detection, PII filter, faithfulness gate, output validation."
+    - "Report styles: Laser Sharp (precise), Detailed (comprehensive), Poetic (narrative)."
+    - "Users fill the Intake form with: Name, Date of Birth, Place of Birth, Question, and selected modules."
+    - "After analysis, Admin Review allows approving, editing, or rejecting each insight."
+    - "The final Report page shows a PDF-style document with cover page, insights, and remedies."
+    - "Remedies include: daily habits, mantras to chant, lucky colors, gemstone recommendations."
+    - "The platform supports roles: USER, ADMIN, SUPERADMIN with JWT Bearer + X-API-Key dual auth."
+    - "DeepSeek LLM is used — cost per analysis is $0.000137, 500x cheaper than GPT-4o."
+
+# --- Server ---
+server:
+  host: "0.0.0.0"
+  port: 8001
+  cors_origins:
+    - "http://localhost:4200"
+    - "http://localhost:4300"
+    - "http://127.0.0.1:4200"
+  rate_limit:
+    enabled: false
+    requests_per_minute: 60
+
+# --- Widget ---
+widget:
+  theme:
+    primary_color: "#7c3aed"
+    background_color: "#0f0a1e"
+    text_color: "#e2d9f3"
+    border_radius: "14px"
+  position: "bottom-right"
+  trigger_text: "Ask AstroAI"
+  placeholder_text: "Ask about your reading..."
+  show_branding: false
+
+# --- Logging ---
+logging:
+  level: "INFO"
+  log_to_file: false
