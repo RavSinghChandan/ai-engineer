@@ -2,11 +2,12 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from './services/auth.service';
+import { BenchAgentComponent } from './components/bench-agent/bench-agent.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, BenchAgentComponent],
   template: `
     <header class="header">
       <div class="header-inner">
@@ -45,6 +46,7 @@ import { AuthService } from './services/auth.service';
         <router-outlet />
       </div>
     </main>
+    <app-bench-agent />
   `,
   styles: [`
     .header {

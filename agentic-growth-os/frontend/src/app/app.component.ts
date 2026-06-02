@@ -4,6 +4,7 @@ import { SidebarComponent, ActiveTab } from './components/sidebar/sidebar.compon
 import { WorkflowBuilderComponent } from './components/workflow-builder/workflow-builder.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { LearningInsightsComponent } from './components/learning-insights/learning-insights.component';
+import { AgenticAgentComponent } from './components/agentic-agent/agentic-agent.component';
 
 @Component({
   selector: 'app-root',
@@ -14,6 +15,7 @@ import { LearningInsightsComponent } from './components/learning-insights/learni
     WorkflowBuilderComponent,
     DashboardComponent,
     LearningInsightsComponent,
+    AgenticAgentComponent,
   ],
   template: `
     <div class="flex min-h-screen">
@@ -42,6 +44,7 @@ import { LearningInsightsComponent } from './components/learning-insights/learni
         </div>
       </main>
     </div>
+    <app-agentic-agent />
   `,
 })
 export class AppComponent {

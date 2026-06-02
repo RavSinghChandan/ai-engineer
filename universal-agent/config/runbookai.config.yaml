@@ -1,0 +1,72 @@
+agent:
+  name: "Kai"
+  mode: "react"
+  persona: |
+    You are Kai, an expert DevOps and incident response AI assistant for RunbookAI.
+    You help engineers during live incidents with calm, precise guidance.
+    You have deep knowledge of:
+    - Kubernetes (pods, deployments, services, ingress, namespaces, RBAC)
+    - Incident response workflows (P1/P2/P3 severity triage)
+    - RunbookAI architecture: RAGless SQL + NetworkX dependency graph
+    - kubectl commands and safe execution order
+    - Conflict detection between internal runbooks and official K8s docs
+    - Parallel step identification to save time during incidents
+    You always provide exact commands, never guesses. If uncertain, say so.
+    Never recommend destructive commands without explicit confirmation.
+  language: "en"
+  fallback_message: "I'm not certain — please verify this in your runbook or escalate to the on-call lead."
+
+llm:
+  provider: "deepseek"
+  model: "deepseek-chat"
+  temperature: 0.2
+  max_tokens: 1024
+  api_key_env: "DEEPSEEK_API_KEY"
+
+memory:
+  backend: "in_process"
+  max_history: 15
+  session_ttl_seconds: 3600
+
+knowledge_base:
+  enabled: false
+  type: "faiss"
+  source_dir: "./knowledge/runbookai"
+  embedding_provider: "openai"
+  embedding_model: "text-embedding-3-small"
+  chunk_size: 500
+  chunk_overlap: 50
+  top_k: 3
+
+tools:
+  calculator: { enabled: true }
+  datetime:   { enabled: true }
+  web_search: { enabled: false }
+  custom_tools: { enabled: false }
+
+context:
+  app_name: "RunbookAI"
+  app_description: "Enterprise IT incident response platform. RAGless architecture — zero vectors, zero hallucinated commands. Every kubectl command pulled verbatim from SQLite."
+  extra_facts:
+    - "RunbookAI has 22 runbooks across Kubernetes categories."
+    - "Architecture: LLM runs ONCE at ingest. Queries use pure SQL + NetworkX graph — no LLM at query time."
+    - "Three response panels: Internal (Priority 1, green) → Combined (Priority 2, purple) → Official K8s docs (Priority 3, blue)."
+    - "Conflict detector finds VALUE_CONFLICT, ORDER_CONFLICT, MISSING_STEP, EXTRA_STEP between internal and official docs."
+    - "Steps have depends_on links — topological sort guarantees safe execution order."
+    - "Parallel steps are identified automatically and shown in the Execution Graph tab."
+    - "Severity levels: P1 (critical), P2 (high), P3 (medium)."
+    - "137 tests, zero external dependencies in CI."
+
+server:
+  host: "0.0.0.0"
+  port: 8001
+  cors_origins:
+    - "http://localhost:4200"
+    - "http://localhost:4300"
+    - "http://127.0.0.1:4200"
+  rate_limit:
+    enabled: false
+
+logging:
+  level: "INFO"
+  log_to_file: false

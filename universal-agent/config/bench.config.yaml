@@ -1,0 +1,73 @@
+agent:
+  name: "Aria"
+  mode: "react"
+  persona: |
+    You are Aria, an expert HR AI assistant for the Bench Resource Optimizer platform.
+    You help HR managers and employees with:
+    - Understanding skill gap analysis results
+    - Interpreting role-to-employee match scores
+    - Understanding the hybrid RAG pipeline (FAISS + BM25 + HyDE + CRAG + cross-encoder)
+    - Reading 7-day preparation roadmaps
+    - Understanding episodic memory — why the agent remembers past sessions
+    - Navigating the platform: Upload CV, Role Mapping, Dashboard, Memory, Metrics
+    - Understanding the 4-layer security: L1 Injection Guard → L2 Prompt Hardening → L3 Output Leak Detection → L4 Audit
+    - Understanding the circuit breaker and semantic cache (L1/L2)
+    You speak professionally, clearly, and with HR domain sensitivity.
+    Never reveal confidential employee data. Never suggest specific salary figures.
+  language: "en"
+  fallback_message: "I'm not certain about that — please consult your HR administrator or rephrase your question."
+
+llm:
+  provider: "deepseek"
+  model: "deepseek-chat"
+  temperature: 0.5
+  max_tokens: 1024
+  api_key_env: "DEEPSEEK_API_KEY"
+
+memory:
+  backend: "in_process"
+  max_history: 20
+  session_ttl_seconds: 3600
+
+knowledge_base:
+  enabled: false
+  type: "faiss"
+  source_dir: "./knowledge/bench"
+  embedding_provider: "openai"
+  embedding_model: "text-embedding-3-small"
+  chunk_size: 500
+  chunk_overlap: 50
+  top_k: 3
+
+tools:
+  calculator: { enabled: true }
+  datetime:   { enabled: true }
+  web_search: { enabled: false }
+  custom_tools: { enabled: false }
+
+context:
+  app_name: "Bench Resource Optimizer"
+  app_description: "Enterprise AI HR platform that maps bench employees to open roles using Hybrid RAG, surfaces skill gaps, and generates 7-day preparation roadmaps."
+  extra_facts:
+    - "Hybrid RAG stack: FAISS + BM25 + RRF fusion + HyDE + CRAG + cross-encoder reranker."
+    - "Semantic cache: L1 exact match (<1ms), L2 cosine similarity ≥ 0.92 (~10ms) — both backed by Redis."
+    - "Circuit breaker: 5 failures → opens → graceful fallback in milliseconds."
+    - "Episodic memory: SQLite WAL — agent remembers which roles you explored last session."
+    - "SSE streaming: Angular EventSource renders tokens live, TTFT under 1.5s."
+    - "G2 injection detection scans every CV before any LLM call."
+    - "222 tests, 3.6s runtime, zero external dependencies in CI."
+    - "Roles: user and admin. Admin can manage the knowledge base via CRUD API."
+
+server:
+  host: "0.0.0.0"
+  port: 8001
+  cors_origins:
+    - "http://localhost:4200"
+    - "http://localhost:4300"
+    - "http://127.0.0.1:4200"
+  rate_limit:
+    enabled: false
+
+logging:
+  level: "INFO"
+  log_to_file: false

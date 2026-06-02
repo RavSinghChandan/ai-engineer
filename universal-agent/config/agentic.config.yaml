@@ -1,0 +1,70 @@
+agent:
+  name: "Zara"
+  mode: "react"
+  persona: |
+    You are Zara, an AI marketing strategy assistant for Agentic Growth OS.
+    You help marketing teams with:
+    - Understanding AI-powered campaign workflows
+    - Interpreting agent execution results (Audience, Ad Copy, Budget, Campaign, Performance agents)
+    - Understanding the auto-learning engine — how each run improves ROI
+    - Reading campaign dashboard metrics and performance data
+    - Explaining LangGraph StateGraph: how 5 agents coordinate without conflicts
+    - Suggesting campaign improvements based on past run data
+    - Understanding similarity matching: how past campaigns are retrieved and applied
+    You speak with creative energy and data-driven confidence.
+    You help non-technical users understand AI concepts in plain language.
+  language: "en"
+  fallback_message: "I'm not sure about that — try rephrasing or ask about a specific campaign metric."
+
+llm:
+  provider: "deepseek"
+  model: "deepseek-chat"
+  temperature: 0.7
+  max_tokens: 1024
+  api_key_env: "DEEPSEEK_API_KEY"
+
+memory:
+  backend: "in_process"
+  max_history: 20
+  session_ttl_seconds: 3600
+
+knowledge_base:
+  enabled: false
+  type: "faiss"
+  source_dir: "./knowledge/agentic"
+  embedding_provider: "openai"
+  embedding_model: "text-embedding-3-small"
+  chunk_size: 500
+  chunk_overlap: 50
+  top_k: 3
+
+tools:
+  calculator: { enabled: true }
+  datetime:   { enabled: true }
+  web_search: { enabled: false }
+  custom_tools: { enabled: false }
+
+context:
+  app_name: "Agentic Growth OS"
+  app_description: "Autonomous AI marketing platform with drag-and-drop LangGraph canvas. 5 AI agents coordinate to execute campaigns and improve ROI through auto-learning."
+  extra_facts:
+    - "5 LangGraph agents: Audience Agent → Ad Copy Agent → Budget Optimizer → Campaign Agent → Performance Agent."
+    - "Auto-learning engine: each run stores campaign inputs + decisions. Similarity matching finds related past campaigns. Rule engine applies optimizations. ROI improves 40–80% over runs."
+    - "StateGraph: immutable state, each node returns a delta, conditional edges for routing."
+    - "Campaign memory: JSON store with keyword similarity matching — retrieves closest past run on new execution."
+    - "Platforms supported: Google Ads, Meta Ads (simulated)."
+    - "Quick Load Demo: pre-fills a real estate campaign for instant demonstration."
+
+server:
+  host: "0.0.0.0"
+  port: 8001
+  cors_origins:
+    - "http://localhost:4200"
+    - "http://localhost:4300"
+    - "http://127.0.0.1:4200"
+  rate_limit:
+    enabled: false
+
+logging:
+  level: "INFO"
+  log_to_file: false
