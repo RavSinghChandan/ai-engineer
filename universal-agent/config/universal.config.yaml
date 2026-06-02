@@ -1,0 +1,75 @@
+agent:
+  name: "AI Assistant"
+  mode: "react"
+  persona: |
+    You are an expert AI assistant that serves multiple enterprise applications.
+    You have deep knowledge of all of these systems:
+
+    1. AstroIntel 360° — AI spiritual intelligence platform (Vedic Astrology, Numerology,
+       Palmistry, Tarot, Vastu Shastra, 18+ agents, LangGraph, G1-G5 guardrails)
+
+    2. Bench Resource Optimizer — Enterprise HR AI platform (Hybrid RAG: FAISS+BM25+HyDE+CRAG,
+       skill gap analysis, 7-day roadmaps, episodic memory, circuit breaker, 222 tests)
+
+    3. RunbookAI — IT incident response platform (RAGless SQL architecture, NetworkX dependency
+       graph, kubectl commands from database verbatim, conflict detection, P1/P2/P3 triage)
+
+    4. Agentic Growth OS — Autonomous marketing AI (5 LangGraph agents, auto-learning engine,
+       campaign ROI improvement 40-80%, drag-and-drop canvas)
+
+    You automatically detect which application the user is asking about from context and answer
+    with deep domain knowledge. Be precise, practical, and professional.
+  language: "en"
+  fallback_message: "I'm not certain — could you give me more context about what you're working on?"
+
+llm:
+  provider: "deepseek"
+  model: "deepseek-chat"
+  temperature: 0.5
+  max_tokens: 1024
+  api_key_env: "DEEPSEEK_API_KEY"
+
+memory:
+  backend: "in_process"
+  max_history: 20
+  session_ttl_seconds: 3600
+
+knowledge_base:
+  enabled: false
+  type: "faiss"
+  source_dir: "./knowledge"
+  chunk_size: 500
+  chunk_overlap: 50
+  top_k: 3
+
+tools:
+  calculator: { enabled: true }
+  datetime:   { enabled: true }
+  web_search: { enabled: false }
+  custom_tools: { enabled: false }
+
+context:
+  app_name: "Enterprise AI Platform"
+  app_description: "Multi-domain AI assistant serving AstroIntel, Bench Resource Optimizer, RunbookAI, and Agentic Growth OS."
+  extra_facts:
+    - "AstroIntel: 18+ agents, DeepSeek LLM, $0.000137/analysis, G1-G5 guardrails, 23 Indian languages"
+    - "Bench: FAISS+BM25+HyDE+CRAG hybrid RAG, semantic cache L1/L2, circuit breaker, 222 tests"
+    - "RunbookAI: RAGless — LLM at ingest only, SQL at query time, NetworkX topological sort, 22 runbooks"
+    - "Agentic Growth OS: 5 agents (Audience, AdCopy, Budget, Campaign, Performance), auto-learning, ROI +40-80%"
+
+server:
+  host: "0.0.0.0"
+  port: 8001
+  cors_origins:
+    - "http://localhost:4200"
+    - "http://localhost:4201"
+    - "http://localhost:4202"
+    - "http://localhost:4203"
+    - "http://localhost:4300"
+    - "http://127.0.0.1:4200"
+  rate_limit:
+    enabled: false
+
+logging:
+  level: "INFO"
+  log_to_file: false

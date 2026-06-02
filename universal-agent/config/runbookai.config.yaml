@@ -62,6 +62,9 @@ server:
   port: 8001
   cors_origins:
     - "http://localhost:4200"
+    - "http://localhost:4201"
+    - "http://localhost:4202"
+    - "http://localhost:4203"
     - "http://localhost:4300"
     - "http://127.0.0.1:4200"
   rate_limit:
