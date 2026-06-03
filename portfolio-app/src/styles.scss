@@ -9,6 +9,7 @@
   --green:     #10b981;
   --amber:     #f59e0b;
   --red:       #ef4444;
+  --blue:      #2563eb;
   --ease:      cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -45,6 +46,7 @@ html[data-theme="light"], body[data-theme="light"] {
   .tag-green  { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
   .tag-amber  { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
   .tag-red    { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+  .tag-blue   { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
 }
 
 html { scroll-behavior: smooth; }
@@ -87,6 +89,7 @@ html[data-theme="light"] nav.scrolled {
 .tag-green  { background: rgba(16,185,129,0.10); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.25); }
 .tag-amber  { background: rgba(245,158,11,0.10); color: #fcd34d; border: 1px solid rgba(245,158,11,0.25); }
 .tag-red    { background: rgba(239,68,68,0.10);  color: #fca5a5; border: 1px solid rgba(239,68,68,0.25); }
+.tag-blue   { background: rgba(37,99,235,0.12);  color: #93c5fd; border: 1px solid rgba(37,99,235,0.25); }
 
 .btn {
   display: inline-flex; align-items: center; gap: 0.45rem;

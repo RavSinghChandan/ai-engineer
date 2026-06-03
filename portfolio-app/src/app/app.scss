@@ -353,6 +353,7 @@ h1 {
   &.accent-amber:hover  { border-color: var(--amber);  box-shadow: 0 0 0 1px var(--amber),  0 8px 40px rgba(245,158,11,0.10); }
   &.accent-cyan:hover   { border-color: var(--cyan);   box-shadow: 0 0 0 1px var(--cyan),   0 8px 40px rgba(6,182,212,0.10); }
   &.accent-green:hover  { border-color: var(--green);  box-shadow: 0 0 0 1px var(--green),  0 8px 40px rgba(16,185,129,0.10); }
+  &.accent-blue:hover   { border-color: #2563eb;       box-shadow: 0 0 0 1px #2563eb,       0 8px 40px rgba(37,99,235,0.12); }
 }
 .project-top {
   display: flex; justify-content: space-between; align-items: flex-start; gap: 1.5rem; margin-bottom: 1.25rem;
@@ -689,6 +690,7 @@ h1 {
   &--amber  { background: rgba(245,158,11,0.10); }
   &--cyan   { background: rgba(6,182,212,0.10); }
   &--green  { background: rgba(16,185,129,0.10); }
+  &--blue   { background: rgba(37,99,235,0.10); }
   @media (max-height: 500px) { padding: 0.5rem 1rem; }
 }
 .demo-header-left  { display: flex; align-items: center; gap: 0.65rem; min-width: 0; overflow: hidden; }

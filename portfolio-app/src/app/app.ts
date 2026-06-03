@@ -132,6 +132,30 @@ export class App implements OnInit, AfterViewInit {
       ],
       imgSrc: 'project-runbookai.png',
     },
+    {
+      num: '05', accent: 'blue',
+      liveUrl: 'demo',
+      title: 'Universal Agent',
+      subtitle: 'Plug-and-Play AI Agent — Any App, Any Domain, One Config',
+      desc: 'One AI agent that drops into any application — FastAPI, Angular, React, or plain HTML — via a single config file. Swap LLMs (Claude, GPT-4, Gemini, DeepSeek, Ollama) without changing code. Powers 4 enterprise apps simultaneously with per-domain personas and zero hardcoded logic.',
+      github: 'https://github.com/RavSinghChandan/ai-engineer',
+      tags: [
+        { label: 'Python', cls: 'tag-blue' }, { label: 'FastAPI', cls: 'tag-blue' },
+        { label: 'LangGraph ReAct', cls: 'tag-blue' }, { label: 'DeepSeek', cls: 'tag-blue' },
+        { label: 'Claude / GPT-4', cls: 'tag-purple' }, { label: 'Angular SDK', cls: 'tag-cyan' },
+        { label: 'React SDK', cls: 'tag-cyan' }, { label: 'JS Widget', cls: 'tag-cyan' },
+        { label: 'YAML Config', cls: 'tag-green' }, { label: '20 Tests', cls: 'tag-amber' },
+      ],
+      challenges: [
+        { p: 'Every project needs its own chatbot — duplicating agent code across 4 apps', s: 'Single universal agent core — swap domain persona via YAML only. AstroIntel, Bench, RunbookAI, Agentic Growth OS all share the same engine' },
+        { p: 'LLM provider lock-in — switching from GPT-4 to DeepSeek requires code rewrites', s: 'LLM abstraction layer: change one line in config.yaml to switch providers. No code changes. Tested with DeepSeek, Claude, GPT-4, Ollama' },
+        { p: 'Frontend teams need chat UI but can\'t set up a backend', s: 'JS SDK: one <script> tag in any HTML page. Angular service adapter. React hook + widget. All pointing at the same FastAPI backend' },
+        { p: 'Agent needs domain knowledge without full RAG pipeline', s: 'YAML extra_facts inject structured knowledge directly into system prompt. Optional FAISS knowledge base for heavy document use cases' },
+        { p: 'Conversation history lost on every page reload', s: 'Per-session in-process memory store with TTL. Sessions auto-expire, history carried across messages within session' },
+        { p: 'Multi-app deployment — each app needs its own persona and tools', s: '5 pre-built configs: astrointel, bench, runbookai, agentic, universal. Each sets name, persona, tools, CORS origins independently' },
+      ],
+      imgSrc: 'project-universal-agent.png',
+    },
   ];
 
   // ── 6 proof cards — each one a gut-punch stat readable in 2 seconds ──
@@ -687,6 +711,50 @@ export class App implements OnInit, AfterViewInit {
         caption: 'Multi-Runbook page: merge runbooks, detect conflicts across sources, handle compound incidents requiring multiple runbooks. The system reasons across 22 runbooks simultaneously.',
         guide: 'guide-chandan-happy.svg',
         speech: 'One incident, multiple runbooks merged — conflict detection across ALL 22 sources at once! This is the magic! 🎊',
+      },
+    ],
+    '05': [
+      {
+        img: 'ua-step1-landing.png',
+        label: '🚀 Step 1 — Landing: What It Is',
+        caption: 'Universal Agent landing page — "One agent. Any domain. Any application. Configure once, plug in anywhere." Shows FastAPI integration (3 lines of code) and HTML embed (1 script tag) side by side with live stats: 4 LLM providers, 3 lines to integrate, 20 tests passing.',
+        guide: 'guide-chandan.svg',
+        speech: 'Welcome to Universal Agent! I built this so ANY app — portfolio, SaaS, enterprise — can have AI in 3 lines of code! 🚀',
+      },
+      {
+        img: 'ua-step2-widget-open.png',
+        label: '💬 Step 2 — Widget Opens',
+        caption: 'The chat widget opens from the bottom-right corner. Agent name "Aarav" from config.yaml is displayed in the header. The widget is injected by a single <script> tag — no frontend framework required.',
+        guide: 'guide-chandan-thinking.svg',
+        speech: 'See this chat bubble? It appeared from just ONE script tag. No React, no Angular needed — just HTML! 🎯',
+      },
+      {
+        img: 'ua-step3-first-response.png',
+        label: '🤖 Step 3 — First AI Response',
+        caption: 'Agent responds with deep knowledge of all 4 enterprise platforms. It knows AstroIntel (18+ agents, G1–G5 guardrails), Bench (Hybrid RAG, 222 tests), RunbookAI (RAGless SQL), and Agentic Growth OS (auto-learning). Cross-platform intelligence from a single configured agent.',
+        guide: 'guide-chandan-wow.svg',
+        speech: 'WOW — the agent knows ALL 4 of my platforms! AstroIntel, Bench, RunbookAI, Agentic — one brain, four domains! 🤩',
+      },
+      {
+        img: 'ua-step4-integration-response.png',
+        label: '⚡ Step 4 — FastAPI Integration',
+        caption: 'Agent explains how to integrate into a FastAPI app in real time. The answer comes from the configured persona — no hardcoded answers, pure LLM reasoning with domain context injected from YAML extra_facts.',
+        guide: 'guide-chandan-happy.svg',
+        speech: 'The agent explains its own integration! It knows the exact 3-line FastAPI code because I put it in the config! 😄',
+      },
+      {
+        img: 'ua-step5-llm-providers.png',
+        label: '🔌 Step 5 — Multi-LLM Support',
+        caption: 'Agent answers questions about LLM provider support — Claude, GPT-4, Gemini, DeepSeek, Ollama all supported. Swap providers by changing one line in config.yaml: provider: "claude" → provider: "openai". Zero code changes.',
+        guide: 'guide-chandan-thinking.svg',
+        speech: 'Claude, GPT-4, Gemini, Ollama — switch providers by changing ONE line in YAML. No code, no redeploy! 🔄',
+      },
+      {
+        img: 'ua-step6-swagger.png',
+        label: '📚 Step 6 — REST API (Swagger)',
+        caption: 'Full REST API documented at /docs. Endpoints: POST /agent/chat (send message, get response), DELETE /agent/clear (reset session), GET /agent/health (status + model + tools + RAG state). Any frontend can call these directly.',
+        guide: 'guide-chandan-wow.svg',
+        speech: 'Full Swagger docs! /agent/chat, /agent/clear, /agent/health — any frontend can call this REST API directly! 🔥',
       },
     ],
   };
