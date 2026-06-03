@@ -7,7 +7,7 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; color: #1e293b; }
-  .hero { max-width: 700px; margin: 80px auto; text-align: center; padding: 0 24px; }
+  .hero { max-width: 700px; margin: 80px auto; text-align: center; padding: 0 24px 80px; }
   h1 { font-size: 2.4rem; font-weight: 800; color: #0f172a; margin-bottom: 12px; }
   h1 span { color: #2563eb; }
   p { font-size: 1.1rem; color: #475569; line-height: 1.7; margin-bottom: 24px; }
@@ -17,9 +17,76 @@
   .code-block .keyword { color: #7dd3fc; }
   .code-block .string { color: #86efac; }
   .arrow { font-size: 2rem; color: #2563eb; margin: 8px 0; display: block; }
+
+  /* ── Lock/Unlock Control Panel ─────────────────────────────────────────── */
+  .lock-panel {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    background: #fff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 14px 18px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 230px;
+  }
+  .lock-status-dot {
+    width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+    transition: background 0.3s;
+  }
+  .lock-status-dot.unlocked { background: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,0.2); }
+  .lock-status-dot.locked   { background: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,0.2); }
+  .lock-info { flex: 1; }
+  .lock-label { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+  .lock-state { font-size: 13px; font-weight: 600; color: #0f172a; margin-top: 1px; }
+  .lock-state.locked-text   { color: #dc2626; }
+  .lock-state.unlocked-text { color: #059669; }
+  .lock-btn {
+    border: none; border-radius: 8px; padding: 8px 14px;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+    transition: all 0.2s; white-space: nowrap;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .lock-btn.btn-lock   { background: #dc2626; color: #fff; border: 1.5px solid #b91c1c; }
+  .lock-btn.btn-unlock { background: #065f46; color: #fff; border: 1.5px solid #064e3b; }
+  .lock-btn.btn-lock:hover   { background: #b91c1c; }
+  .lock-btn.btn-unlock:hover { background: #064e3b; }
+  .lock-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* locked overlay on the whole page */
+  .locked-banner {
+    display: none;
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999;
+    background: #dc2626; color: #fff;
+    padding: 10px 20px; text-align: center;
+    font-size: 14px; font-weight: 600;
+    letter-spacing: 0.2px;
+  }
+  .locked-banner.visible { display: block; }
 </style>
 </head>
 <body>
+
+<!-- ── Lock / Unlock Control Panel ──────────────────────────────────────── -->
+<div class="lock-panel" id="lockPanel">
+  <div class="lock-status-dot unlocked" id="lockDot"></div>
+  <div class="lock-info">
+    <div class="lock-label">Agent Status</div>
+    <div class="lock-state unlocked-text" id="lockStateText">Unlocked — Active</div>
+  </div>
+  <button class="lock-btn btn-lock" id="lockBtn" onclick="toggleLock()">
+    🔒 Lock
+  </button>
+</div>
+
+<!-- locked banner at bottom -->
+<div class="locked-banner" id="lockedBanner">
+  🔒 All AI agents are LOCKED — No LLM calls are being made. API tokens protected. Click Unlock to resume.
+</div>
 
 <div class="hero">
   <h1>Universal <span>AI Agent</span></h1>
@@ -53,14 +120,84 @@
   </div>
 </div>
 
-<!-- The widget itself — loaded from the running server -->
+<!-- The widget itself — loaded from the running server.
+     data-agent-url uses window.origin so it always points to whichever
+     port this demo page is served from (8000, 8001, etc.). -->
 <script
+  id="ua-sdk-script"
   src="/sdk/universal-agent.js"
-  data-agent-url="http://localhost:8000"
   data-agent-name="Universal Agent"
   data-color="#2563eb"
   data-position="bottom-right"
 ></script>
+<script>
+  // Set data-agent-url at runtime so it always matches the current origin
+  document.getElementById('ua-sdk-script').dataset.agentUrl = window.location.origin;
+</script>
+
+<script type="module">
+  // Use the current page origin — always correct regardless of port
+  const AGENT_URL = window.location.origin;
+
+  let isLocked = false;
+
+  function applyLockState(locked) {
+    isLocked = locked;
+    const dot       = document.getElementById('lockDot');
+    const stateText = document.getElementById('lockStateText');
+    const btn       = document.getElementById('lockBtn');
+    const banner    = document.getElementById('lockedBanner');
+
+    if (locked) {
+      dot.className         = 'lock-status-dot locked';
+      stateText.textContent = 'Locked — No LLM Calls';
+      stateText.className   = 'lock-state locked-text';
+      btn.className         = 'lock-btn btn-unlock';
+      btn.innerHTML         = '🔓 Unlock';
+      banner.classList.add('visible');
+      document.body.style.opacity = '0.92';
+    } else {
+      dot.className         = 'lock-status-dot unlocked';
+      stateText.textContent = 'Unlocked — Active';
+      stateText.className   = 'lock-state unlocked-text';
+      btn.className         = 'lock-btn btn-lock';
+      btn.innerHTML         = '🔒 Lock';
+      banner.classList.remove('visible');
+      document.body.style.opacity = '1';
+    }
+  }
+
+  async function toggleLock() {
+    const btn = document.getElementById('lockBtn');
+    btn.disabled = true;
+    try {
+      const endpoint = isLocked ? 'unlock' : 'lock';
+      const r = await fetch(`${AGENT_URL}/agent/${endpoint}`, { method: 'POST' });
+      if (r.ok) {
+        const d = await r.json();
+        applyLockState(d.locked);
+      }
+    } catch (e) {
+      alert(`Could not reach agent server: ${e.message}`);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // Expose toggleLock for inline onclick
+  globalThis.toggleLock = toggleLock;
+
+  // Load initial lock state — top-level await (module script)
+  try {
+    const r = await fetch(`${AGENT_URL}/agent/lock`);
+    if (r.ok) {
+      const d = await r.json();
+      applyLockState(d.locked);
+    }
+  } catch (e) {
+    console.warn('Could not fetch initial lock state:', e.message);
+  }
+</script>
 
 </body>
 </html>
