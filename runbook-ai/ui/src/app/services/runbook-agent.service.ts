@@ -12,7 +12,7 @@ export interface AgentMessage {
 @Injectable({ providedIn: 'root' })
 export class RunbookAgentService {
 
-  private readonly agentUrl = 'http://localhost:8001/agent';
+  private readonly agentUrl = 'http://localhost:8012/agent';
   private readonly LIMIT = 10;
 
   readonly messages    = signal<AgentMessage[]>([]);
