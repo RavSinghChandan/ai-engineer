@@ -238,33 +238,139 @@ Every request:
 
 ---
 
-## 6. Demo — Screenshots
+## 6. Demo — Complete Flow (Live Screenshots)
 
-### Login
-![Login](demo/screenshots/01_login.png)
-
-`http://localhost:4200/login` — Enter credentials → redirected to Upload CV.
+> Every screenshot below is taken from the **live running application** using a real dummy PDF resume (`docs/dummy_resume.pdf`). The complete flow is shown end-to-end.
 
 ---
 
-### Step 1 — Upload CV
-![Upload CV](demo/screenshots/03_upload_cv.png)
+### Screen 1 — Login Page
 
-`http://localhost:4200/upload` — Drag and drop a PDF resume. AI extracts name, skills, experience, projects, education in 3–5 seconds.
+![Login](docs/screenshots/01-login.png)
 
----
+`http://localhost:4201/login` — Enter **User ID** and **Password** to authenticate. JWT token is issued on success. Role-based routing: regular users go to Upload CV, admin users go to the Admin panel.
 
-### Step 2 — Role Mapping
-![Role Mapping](demo/screenshots/04_role_mapping.png)
-
-`http://localhost:4200/mapping` — Select a target role → AI uses Hybrid RAG (BM25 + FAISS + RRF + HyDE + CRAG) to compare your skills. Returns match score (e.g. 80%), skills you have, and missing skills.
+**Credentials:** User ID: `user` · Password: `BenchUs3r@2026`
 
 ---
 
-### Step 3 — Training Plan & Dashboard
-![Dashboard](demo/screenshots/05_dashboard.png)
+### Screen 2 — After Login: Upload CV (Empty State)
 
-`http://localhost:4200/dashboard` — Day-by-day task plan. Tick tasks complete → readiness score gauge updates. All tasks linked to company-internal resources.
+![After Login - Upload CV](docs/screenshots/02-after-login.png)
+
+Immediately after login the user lands on the **Upload CV** page. The drag-and-drop zone is empty and ready. The top nav shows the 3-step progress: Upload CV → Role Mapping → Dashboard. Nova AI assistant is visible in the bottom-right corner.
+
+---
+
+### Screen 3 — Upload CV: PDF Selected
+
+![Upload CV with file selected](docs/screenshots/03-upload-cv.png)
+
+The user selects `dummy_resume.pdf` via the file picker (or drag-and-drop). The filename appears in the upload zone. Clicking **Parse CV** triggers the AI pipeline: PDF text extraction → LLM-powered profile parsing with injection-hardened prompts.
+
+---
+
+### Screen 4 — CV Parsed: Extracted Profile
+
+![CV Parsed - Extracted Profile](docs/screenshots/04-upload-result.png)
+
+The AI extracts and displays the full candidate profile in 3–5 seconds:
+- **Name & Contact**: Aditya Sharma · aditya.sharma@example.com
+- **Experience**: 4 years · B.Tech Computer Science — IIT Delhi
+- **Skills detected**: 20 skills including Python, FastAPI, TensorFlow, PyTorch, HuggingFace, LangChain, RAG pipelines, Docker, Kubernetes, Kafka
+- **Previous Roles**: Software Engineer II, Junior Software Engineer
+- **Projects**: AI Resume Screener (LLM), Stock Predictor (LSTM)
+
+The `cv_parser@v2` badge and **Secure parse** tag confirm the injection-hardened parsing pipeline ran. The user clicks **Continue to Role Mapping →** to proceed.
+
+---
+
+### Screen 5 — Role Mapping: AI Skill Gap Analysis
+
+![Role Mapping - AI Analysis](docs/screenshots/05-role-mapping.png)
+
+The user selects **AI/ML Engineer** as the target role. Clicking **Analyse Fit** triggers the full Hybrid RAG pipeline:
+
+```
+BM25 + FAISS → RRF Fusion → HyDE query expansion → CRAG scoring → Cross-encoder reranker → DeepSeek LLM
+```
+
+Results returned:
+- **Match Score: 90%** (nearly ready)
+- **RAG Faithfulness: 87%**
+- **Skills You Have**: Python, TensorFlow, PyTorch, scikit-learn, Docker, FastAPI, Git, LangChain
+- **Missing Skills**: MLflow, SQL
+- **Preparation Timeline**: 7 days · ~21 tasks · ~4h/day · 28h total study · Intensive pace
+
+The user then clicks **Generate 7-Day Plan (Streaming)** to generate the training roadmap.
+
+---
+
+### Screen 6 — Preparation Dashboard: 7-Day Training Roadmap
+
+![Preparation Dashboard](docs/screenshots/06-dashboard.png)
+
+`http://localhost:4201/dashboard` — The AI-generated 7-day training plan is displayed as an interactive task grid:
+
+- **Readiness Gauge**: 0% → updates live as tasks are completed
+- **Task Stats**: 14 total tasks · 0 completed · 14 remaining · 7 days
+- **Focus Skills**: MLflow, SQL (the missing skills identified in role mapping)
+- **Day-by-Day Plan**: Each row shows Day, Theme, Task, Skill, Hours, Status, and Resource link
+- **Resource links**: All tasks link to internal company training documents
+- **Filter/Search**: Filter by Day, Status, or search task names
+
+Clicking any row's status toggles it complete → readiness score updates in real time.
+
+---
+
+### Screen 7 — Memory & Resume: Agent State Management
+
+![Memory & Resume](docs/screenshots/07-nova-welcome.png)
+
+`http://localhost:4201/memory` — The **Episodic + Long-term Memory** module (Module 4) shows:
+
+- **Why memory matters**: Explanation of how the agent remembers context across sessions
+- **Load Memory Profile**: Enter user_id to load any user's memory context
+- **Session counter** and **Long-term facts** badge count
+
+This page demonstrates the agent state management layer — without it, employees must re-explain their context at every session start.
+
+---
+
+### Screen 8 — Memory Loaded: Episodic + Long-term Context
+
+![Memory Loaded - Agent Context](docs/screenshots/08-nova-response.png)
+
+After clicking **Load Current Session**, the full agent memory is displayed:
+
+- **Episodic Memory**: Last session timestamp, role explored (AI/ML Engineer), plan status
+- **Long-term Facts**: Extracted skills (Python, TensorFlow, Flask, LangChain, etc.), latest role, training status
+- **LLM Context String**: The exact system-context string injected into every subsequent LLM call — the agent automatically knows the user's background without being re-told
+- **Saved Plan Found**: Role: AI/ML Engineer · 7-day roadmap · 0/14 tasks completed
+- **Interview Explainer**: Annotated explanation of how each memory type works for technical interviews
+
+---
+
+### Screen 9 — Metrics Dashboard: Real-time Observability
+
+![Metrics Dashboard](docs/screenshots/09-metrics.png)
+
+`http://localhost:4201/metrics` — Full real-time observability dashboard showing:
+
+- **LLM Token Usage**: Total tokens consumed, cost estimate per agent
+- **Latency Percentiles**: p50, p95, p99 per endpoint
+- **Cache Statistics**: L1 hit rate (exact hash), L2 hit rate (semantic cosine ≥ 0.92), Redis hit rate
+- **RAGAS Evaluation Scores**: Faithfulness, Answer Relevancy, Context Precision per operation
+- **Guardrail Counters (G1–G5)**: Rate limit hits, circuit breaker trips, JSON repairs, PII filter activations, graceful degradations
+- **Request Log**: Correlation IDs, latency, status per request
+
+---
+
+### Screen 10 — Agent Graph: Live Pipeline Visualization
+
+![Agent Graph](docs/screenshots/10-agent-graph.png)
+
+`http://localhost:4201/agent-graph` — Visual representation of the multi-agent pipeline showing how cv_parser, role_mapper, planner, and tracker agents connect through the RAG pipeline and guardrails layer.
 
 ---
 
