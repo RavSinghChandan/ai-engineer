@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160" width="120" height="160">
+  <rect x="26" y="88" width="68" height="57" rx="8" fill="#1d4ed8"/>
+  <polygon points="52,88 60,100 68,88" fill="#ffffff"/>
+  <rect x="56" y="88" width="8" height="20" fill="#ffffff" rx="1"/>
+  <polygon points="52,88 44,105 52,108" fill="#1e3a8a"/>
+  <polygon points="68,88 76,105 68,108" fill="#1e3a8a"/>
+  <rect x="38" y="100" width="14" height="9" rx="2" fill="#3b82f6"/>
+  <text x="41" y="107" font-size="5" fill="white" font-weight="bold">HR</text>
+  <!-- Left arm — hand on chin -->
+  <rect x="12" y="88" width="20" height="10" rx="5" fill="#1d4ed8" transform="rotate(18 22 93)"/>
+  <ellipse cx="14" cy="77" rx="7" ry="7" fill="#c8956c"/>
+  <!-- Right arm — holding pen -->
+  <rect x="88" y="92" width="20" height="10" rx="5" fill="#1d4ed8" transform="rotate(-10 98 97)"/>
+  <ellipse cx="109" cy="100" rx="6" ry="6" fill="#c8956c"/>
+  <rect x="107" y="105" width="4" height="18" rx="2" fill="#1d4ed8"/>
+  <polygon points="107,123 111,123 109,128" fill="#f8fafc"/>
+  <!-- Thought bubbles -->
+  <circle cx="19" cy="65" r="2"   fill="#3b82f6" opacity="0.5"/>
+  <circle cx="12" cy="55" r="3"   fill="#3b82f6" opacity="0.4"/>
+  <circle cx="5"  cy="43" r="4.5" fill="#3b82f6" opacity="0.25"/>
+  <rect x="52" y="77" width="16" height="14" rx="4" fill="#c8956c"/>
+  <ellipse cx="60" cy="56" rx="24" ry="26" fill="#c8956c"/>
+  <ellipse cx="60" cy="36" rx="24" ry="12" fill="#2c1810"/>
+  <ellipse cx="36" cy="46" rx="10" ry="14" fill="#2c1810"/>
+  <ellipse cx="84" cy="46" rx="10" ry="14" fill="#2c1810"/>
+  <rect x="36" y="46" width="48" height="15" fill="#2c1810"/>
+  <ellipse cx="36" cy="56" rx="4" ry="5" fill="#c8956c"/>
+  <ellipse cx="84" cy="56" rx="4" ry="5" fill="#c8956c"/>
+  <circle cx="36" cy="54" r="2" fill="#3b82f6"/>
+  <circle cx="84" cy="54" r="2" fill="#3b82f6"/>
+  <rect x="40" y="50" width="15" height="10" rx="3" fill="none" stroke="#475569" stroke-width="1.5"/>
+  <rect x="65" y="50" width="15" height="10" rx="3" fill="none" stroke="#475569" stroke-width="1.5"/>
+  <line x1="55" y1="55" x2="65" y2="55" stroke="#475569" stroke-width="1.5"/>
+  <!-- Narrowed thinking eyes -->
+  <path d="M42 54 Q47 51 53 54" stroke="#3d1c02" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M67 54 Q72 51 78 54" stroke="#3d1c02" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M41 47 Q47 44 53 47" stroke="#2c1810" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <path d="M67 47 Q73 44 79 47" stroke="#2c1810" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <path d="M57 61 Q55 66 60 67 Q65 66 63 61" stroke="#a0704a" stroke-width="1" fill="none"/>
+  <path d="M51 71 Q60 75 69 71" stroke="#7a4020" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+</svg>

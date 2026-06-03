@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160" width="120" height="160">
+  <!-- Dark hoodie body -->
+  <rect x="25" y="88" width="70" height="57" rx="10" fill="#1e293b"/>
+  <!-- Hood outline -->
+  <path d="M25 100 Q20 85 35 82 Q60 78 85 82 Q100 85 95 100" fill="#0f172a" stroke="none"/>
+  <!-- Hoodie pocket -->
+  <rect x="42" y="118" width="36" height="18" rx="4" fill="#0f172a"/>
+  <!-- Terminal/code on chest -->
+  <rect x="38" y="98" width="44" height="16" rx="3" fill="#0f172a" stroke="#22c55e" stroke-width="1"/>
+  <text x="41" y="106" font-size="5" fill="#22c55e" font-family="monospace">$ kubectl get</text>
+  <text x="41" y="112" font-size="5" fill="#22c55e" font-family="monospace">pods --all</text>
+  <!-- Left arm up — thumbs up -->
+  <rect x="8" y="80" width="22" height="11" rx="5" fill="#1e293b" transform="rotate(-40 19 85)"/>
+  <ellipse cx="5" cy="70" rx="7" ry="7" fill="#c8956c"/>
+  <!-- Thumb up gesture -->
+  <rect x="1" y="62" width="8" height="10" rx="4" fill="#c8956c"/>
+  <line x1="5" y1="62" x2="5" y2="54" stroke="#c8956c" stroke-width="5" stroke-linecap="round"/>
+  <!-- Right arm — holding coffee -->
+  <rect x="90" y="90" width="22" height="11" rx="5" fill="#1e293b" transform="rotate(10 101 95)"/>
+  <ellipse cx="112" cy="100" rx="6" ry="6" fill="#c8956c"/>
+  <!-- Coffee cup -->
+  <rect x="107" y="103" width="12" height="13" rx="2" fill="#f8fafc" stroke="#94a3b8" stroke-width="1"/>
+  <path d="M119 107 Q123 107 123 112 Q123 117 119 117" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="109" y="113" font-size="7" fill="#92400e">☕</text>
+  <!-- Sparkles — green like terminal -->
+  <text x="92" y="52" font-size="8" fill="#22c55e" opacity="0.7">✦</text>
+  <text x="14" y="65" font-size="7" fill="#22c55e" opacity="0.5">▶</text>
+  <!-- Headset -->
+  <path d="M34 44 Q34 28 60 28 Q86 28 86 44" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round"/>
+  <rect x="30" y="43" width="8" height="14" rx="4" fill="#334155"/>
+  <rect x="82" y="43" width="8" height="14" rx="4" fill="#334155"/>
+  <!-- Neck -->
+  <rect x="52" y="77" width="16" height="14" rx="4" fill="#c8956c"/>
+  <!-- Head -->
+  <ellipse cx="60" cy="55" rx="25" ry="27" fill="#c8956c"/>
+  <!-- Short messy hair -->
+  <ellipse cx="60" cy="34" rx="25" ry="12" fill="#1a0a00"/>
+  <!-- Hair tufts — messy/spiky -->
+  <ellipse cx="45" cy="32" rx="9" ry="7" fill="#1a0a00"/>
+  <ellipse cx="60" cy="29" rx="9" ry="7" fill="#1a0a00"/>
+  <ellipse cx="75" cy="32" rx="9" ry="7" fill="#1a0a00"/>
+  <!-- Ears -->
+  <ellipse cx="35" cy="55" rx="4" ry="5" fill="#c8956c"/>
+  <ellipse cx="85" cy="55" rx="4" ry="5" fill="#c8956c"/>
+  <!-- Stubble/beard shadow -->
+  <path d="M40 68 Q60 76 80 68 Q80 72 60 76 Q40 72 40 68 Z" fill="#2c1810" opacity="0.35"/>
+  <!-- Eyes — sharp, focused -->
+  <ellipse cx="48" cy="54" rx="5.5" ry="5.5" fill="white"/>
+  <ellipse cx="72" cy="54" rx="5.5" ry="5.5" fill="white"/>
+  <ellipse cx="49" cy="55" rx="3.5" ry="3.5" fill="#1e293b"/>
+  <ellipse cx="73" cy="55" rx="3.5" ry="3.5" fill="#1e293b"/>
+  <circle cx="50" cy="54" r="1" fill="white"/>
+  <circle cx="74" cy="54" r="1" fill="white"/>
+  <!-- Eyebrows — straight, determined -->
+  <rect x="42" y="46" width="14" height="2.5" rx="1" fill="#1a0a00"/>
+  <rect x="64" y="46" width="14" height="2.5" rx="1" fill="#1a0a00"/>
+  <!-- Nose -->
+  <path d="M57 60 Q55 65 60 66 Q65 65 63 60" stroke="#a0704a" stroke-width="1" fill="none"/>
+  <!-- Grin -->
+  <path d="M47 70 Q60 82 73 70" stroke="#7a4020" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M51 72 Q60 79 69 72 Q69 76 60 77 Q51 76 51 72 Z" fill="white" opacity="0.85"/>
+</svg>

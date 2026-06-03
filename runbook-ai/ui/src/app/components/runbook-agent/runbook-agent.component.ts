@@ -24,9 +24,9 @@ function md(text: string): string {
   imports: [CommonModule, FormsModule],
   template: `
     @if (auth.isLoggedIn) {
-      <button class="ai-fab" (click)="agent.toggle()" [class.open]="agent.isOpen()" aria-label="Ask Kai">
-        <div class="fab-av-wrap"><img src="aarav-happy.svg" class="fab-av" alt="Kai"/><span class="fab-pulse"></span></div>
-        <div class="fab-txt"><span class="fab-name">Kai</span><span class="fab-sub">DevOps AI · Ask me!</span></div>
+      <button class="ai-fab" (click)="agent.toggle()" [class.open]="agent.isOpen()" aria-label="Ask Rex">
+        <div class="fab-av-wrap"><img src="rex-happy.svg" class="fab-av" alt="Rex"/><span class="fab-pulse"></span></div>
+        <div class="fab-txt"><span class="fab-name">Rex</span><span class="fab-sub">Incident AI · On call!</span></div>
         @if (unread() > 0 && !agent.isOpen()) { <span class="fab-badge">{{ unread() }}</span> }
       </button>
 
@@ -34,8 +34,8 @@ function md(text: string): string {
         <div class="ai-panel" [style.width.px]="pw()" [style.height.px]="ph()" role="dialog">
           <div class="resize-h" (mousedown)="rsStart($event)">⤡</div>
           <div class="ai-header">
-            <img src="aarav-happy.svg" class="h-av" alt="Kai"/>
-            <div class="h-info"><strong>Kai</strong><span>RunbookAI · DevOps Guide ✦</span></div>
+            <img src="rex-happy.svg" class="h-av" alt="Rex"/>
+            <div class="h-info"><strong>Rex</strong><span>RunbookAI · Incident Guide ✦</span></div>
             <button class="h-btn" (click)="newSession()" title="New conversation">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
             </button>
@@ -44,8 +44,8 @@ function md(text: string): string {
           <div class="ai-msgs" #scrollRef>
             @if (!agent.hasMessages()) {
               <div class="welcome">
-                <img src="aarav-happy.svg" class="w-av" alt="Kai"/>
-                <p class="w-title">Hey! I'm Kai 👋</p>
+                <img src="rex-happy.svg" class="w-av" alt="Rex"/>
+                <p class="w-title">Hey! I'm Rex ⚡</p>
                 <p class="w-sub">Your DevOps AI guide for RunbookAI. Ask me about runbooks, incidents, or how the platform works.</p>
                 <div class="q-grid">
                   @for (p of agent.quickPrompts; track p) { <button class="q-btn" (click)="send(p)">{{ p }}</button> }
@@ -54,7 +54,7 @@ function md(text: string): string {
             }
             @for (msg of agent.messages(); track $index) {
               <div class="msg" [class.mu]="msg.role==='user'" [class.ma]="msg.role==='agent'">
-                @if (msg.role==='agent') { <img [src]="av($index)" class="m-av" alt="Kai"/> }
+                @if (msg.role==='agent') { <img [src]="av($index)" class="m-av" alt="Rex"/> }
                 <div class="m-col" [class.mc-u]="msg.role==='user'">
                   <div class="bubble" [class.bu]="msg.role==='user'" [class.ba]="msg.role==='agent'">
                     @if (msg.role==='agent') { <span [innerHTML]="safe(msg.content)"></span>@if (msg.streaming){<span class="cur">▌</span>} }
@@ -65,7 +65,7 @@ function md(text: string): string {
               </div>
             }
             @if (agent.isLoading()) {
-              <div class="msg ma"><img src="aarav-thinking.svg" class="m-av" alt="Kai"/><div class="bubble ba typing"><span></span><span></span><span></span></div></div>
+              <div class="msg ma"><img src="rex-thinking.svg" class="m-av" alt="Rex"/><div class="bubble ba typing"><span></span><span></span><span></span></div></div>
             }
             @if (agent.error()) { <div class="err">⚠️ {{ agent.error() }}<button (click)="agent.error.set(null)">✕</button></div> }
           </div>
@@ -163,7 +163,7 @@ export class RunbookAgentComponent implements AfterViewChecked, OnDestroy {
   private _lmc = 0; private _rs = false; private _sx = 0; private _sy = 0; private _sw = 390; private _sh = 560;
   private _om!: (e: MouseEvent) => void; private _ou!: () => void;
   @ViewChild('scrollRef') private readonly scrollRef!: ElementRef<HTMLDivElement>;
-  av(i: number) { return ['aarav-happy.svg','aarav.svg','aarav-thinking.svg','aarav-wow.svg'][i%4]; }
+  av(i: number) { return ['rex-happy.svg','rex.svg','rex-thinking.svg','rex-wow.svg'][i%4]; }
   safe(t: string): SafeHtml { return this.sanitizer.bypassSecurityTrustHtml(md(t)); } // NOSONAR
   async send(t: string) { if (!t.trim()) return; this.draft=''; await this.agent.chatStream(t); if(!this.agent.isOpen()) this.unread.update(n=>n+1); }
   async newSession() { await this.agent.clearSession(); }

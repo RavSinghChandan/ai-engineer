@@ -22,17 +22,17 @@ function md(text: string): string {
   imports: [CommonModule, FormsModule],
   template: `
     <!-- Agentic Growth OS has no auth gate — it's a standalone tool -->
-    <button class="ai-fab" (click)="agent.toggle()" [class.open]="agent.isOpen()" aria-label="Ask Zara">
-      <div class="fab-av-wrap"><img src="aarav-happy.svg" class="fab-av" alt="Zara"/><span class="fab-pulse"></span></div>
-      <div class="fab-txt"><span class="fab-name">Zara</span><span class="fab-sub">Marketing AI · Ask me!</span></div>
+    <button class="ai-fab" (click)="agent.toggle()" [class.open]="agent.isOpen()" aria-label="Ask Luna">
+      <div class="fab-av-wrap"><img src="luna-happy.svg" class="fab-av" alt="Luna"/><span class="fab-pulse"></span></div>
+      <div class="fab-txt"><span class="fab-name">Luna</span><span class="fab-sub">Growth AI · Ask me!</span></div>
       @if (unread() > 0 && !agent.isOpen()) { <span class="fab-badge">{{ unread() }}</span> }
     </button>
     @if (agent.isOpen()) {
       <div class="ai-panel" [style.width.px]="pw()" [style.height.px]="ph()" role="dialog">
         <div class="resize-h" (mousedown)="rsStart($event)">⤡</div>
         <div class="ai-header">
-          <img src="aarav-happy.svg" class="h-av" alt="Zara"/>
-          <div class="h-info"><strong>Zara</strong><span>Agentic Growth OS · Marketing AI ✦</span></div>
+          <img src="luna-happy.svg" class="h-av" alt="Luna"/>
+          <div class="h-info"><strong>Luna</strong><span>Agentic Growth OS · Growth AI ✦</span></div>
           <button class="h-btn" (click)="newSession()" title="New conversation">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
           </button>
@@ -41,8 +41,8 @@ function md(text: string): string {
         <div class="ai-msgs" #scrollRef>
           @if (!agent.hasMessages()) {
             <div class="welcome">
-              <img src="aarav-happy.svg" class="w-av" alt="Zara"/>
-              <p class="w-title">Hey! I'm Zara 🚀</p>
+              <img src="luna-happy.svg" class="w-av" alt="Luna"/>
+              <p class="w-title">Hey! I'm Luna 🌙</p>
               <p class="w-sub">Your marketing AI guide for Agentic Growth OS. Ask me how the agents work, what auto-learning does, or how to improve your campaign ROI.</p>
               <div class="q-grid">
                 @for (p of agent.quickPrompts; track p) { <button class="q-btn" (click)="send(p)">{{ p }}</button> }
@@ -51,7 +51,7 @@ function md(text: string): string {
           }
           @for (msg of agent.messages(); track $index) {
             <div class="msg" [class.mu]="msg.role==='user'" [class.ma]="msg.role==='agent'">
-              @if (msg.role==='agent') { <img [src]="av($index)" class="m-av" alt="Zara"/> }
+              @if (msg.role==='agent') { <img [src]="av($index)" class="m-av" alt="Luna"/> }
               <div class="m-col" [class.mc-u]="msg.role==='user'">
                 <div class="bubble" [class.bu]="msg.role==='user'" [class.ba]="msg.role==='agent'">
                   @if (msg.role==='agent') { <span [innerHTML]="safe(msg.content)"></span>@if (msg.streaming){<span class="cur">▌</span>} }
@@ -62,7 +62,7 @@ function md(text: string): string {
             </div>
           }
           @if (agent.isLoading()) {
-            <div class="msg ma"><img src="aarav-thinking.svg" class="m-av" alt="Zara"/><div class="bubble ba typing"><span></span><span></span><span></span></div></div>
+            <div class="msg ma"><img src="luna-thinking.svg" class="m-av" alt="Luna"/><div class="bubble ba typing"><span></span><span></span><span></span></div></div>
           }
           @if (agent.error()) { <div class="err">⚠️ {{ agent.error() }}<button (click)="agent.error.set(null)">✕</button></div> }
         </div>
@@ -153,7 +153,7 @@ export class AgenticAgentComponent implements AfterViewChecked, OnDestroy {
   private _lmc=0; private _rs=false; private _sx=0; private _sy=0; private _sw=390; private _sh=560;
   private _om!:(e:MouseEvent)=>void; private _ou!:()=>void;
   @ViewChild('scrollRef') private readonly scrollRef!: ElementRef<HTMLDivElement>;
-  av(i:number){return['aarav-happy.svg','aarav.svg','aarav-thinking.svg','aarav-wow.svg'][i%4];}
+  av(i:number){return['luna-happy.svg','luna.svg','luna-thinking.svg','luna-wow.svg'][i%4];}
   safe(t:string):SafeHtml{return this.sanitizer.bypassSecurityTrustHtml(md(t));} // NOSONAR
   async send(t:string){if(!t.trim())return;this.draft='';await this.agent.chatStream(t);if(!this.agent.isOpen())this.unread.update(n=>n+1);}
   async newSession(){await this.agent.clearSession();}

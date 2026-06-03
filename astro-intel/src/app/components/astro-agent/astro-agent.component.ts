@@ -38,14 +38,14 @@ function renderMarkdown(text: string): string {
     @if (auth.isLoggedIn()) {
 
     <!-- FAB -->
-    <button class="aarav-fab" (click)="togglePanel()" [class.open]="agent.isOpen()" aria-label="Ask Aarav">
+    <button class="aarav-fab" (click)="togglePanel()" [class.open]="agent.isOpen()" aria-label="Ask Jyoti">
       <div class="fab-avatar-wrap">
-        <img src="aarav-happy.svg" class="fab-avatar" alt="Aarav"/>
+        <img src="jyoti-happy.svg" class="fab-avatar" alt="Jyoti"/>
         <span class="fab-pulse"></span>
       </div>
       <div class="fab-text">
-        <span class="fab-name">Aarav</span>
-        <span class="fab-sub">AI Guide · Ask me!</span>
+        <span class="fab-name">Jyoti</span>
+        <span class="fab-sub">Cosmic Guide · Ask me!</span>
       </div>
       @if (unread() > 0 && !agent.isOpen()) {
         <span class="fab-badge">{{ unread() }}</span>
@@ -65,9 +65,9 @@ function renderMarkdown(text: string): string {
 
         <!-- Header -->
         <div class="panel-header">
-          <img src="aarav-happy.svg" class="header-avatar" alt="Aarav"/>
+          <img src="jyoti-happy.svg" class="header-avatar" alt="Jyoti"/>
           <div class="header-info">
-            <strong>Aarav</strong>
+            <strong>Jyoti</strong>
             <span>AstroIntel AI · Always on ✦</span>
           </div>
           <button class="hdr-btn" (click)="newSession()" title="New conversation">
@@ -81,8 +81,8 @@ function renderMarkdown(text: string): string {
 
           @if (!agent.hasMessages()) {
             <div class="welcome">
-              <img src="aarav-happy.svg" class="welcome-avatar" alt="Aarav"/>
-              <p class="welcome-title">Namaste! I'm Aarav 🙏</p>
+              <img src="jyoti-happy.svg" class="welcome-avatar" alt="Jyoti"/>
+              <p class="welcome-title">Namaste! I'm Jyoti 🙏</p>
               <p class="welcome-sub">Your AI guide for AstroIntel 360°. Ask me about your reading, the platform, or any spiritual concept.</p>
               <div class="quick-grid">
                 @for (p of quickPrompts; track p) {
@@ -95,7 +95,7 @@ function renderMarkdown(text: string): string {
           @for (msg of agent.messages(); track $index) {
             <div class="msg" [class.msg-user]="msg.role==='user'" [class.msg-agent]="msg.role==='agent'">
               @if (msg.role === 'agent') {
-                <img [src]="agentAvatar($index)" class="msg-avatar" alt="Aarav"/>
+                <img [src]="agentAvatar($index)" class="msg-avatar" alt="Jyoti"/>
               }
               <div class="msg-col">
                 <div class="msg-bubble"
@@ -115,7 +115,7 @@ function renderMarkdown(text: string): string {
 
           @if (agent.isLoading()) {
             <div class="msg msg-agent">
-              <img src="aarav-thinking.svg" class="msg-avatar" alt="Aarav thinking"/>
+              <img src="jyoti-thinking.svg" class="msg-avatar" alt="Jyoti thinking"/>
               <div class="msg-bubble bubble-agent typing">
                 <span></span><span></span><span></span>
               </div>
@@ -496,8 +496,8 @@ export class AstroAgentComponent implements AfterViewChecked, OnDestroy {
 
   /** Alternate avatar based on message index */
   agentAvatar(index: number): string {
-    const avatars = ['aarav-happy.svg', 'aarav.svg', 'aarav-thinking.svg', 'aarav-wow.svg'];
-    return avatars[index % avatars.length];
+    const avatars = ['jyoti-happy.svg', 'jyoti.svg', 'jyoti-thinking.svg', 'jyoti-wow.svg'];
+    return ['jyoti-happy.svg','jyoti.svg','jyoti-thinking.svg','jyoti-wow.svg'][index % 4];
   }
 
   // Safe: renderMarkdown output is generated from hardcoded patterns applied

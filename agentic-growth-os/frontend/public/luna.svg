@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160" width="120" height="160">
+  <rect x="26" y="88" width="68" height="57" rx="10" fill="#ea580c"/>
+  <polygon points="52,88 60,102 68,88" fill="#ffffff"/>
+  <line x1="60" y1="88" x2="60" y2="105" stroke="#fed7aa" stroke-width="1.5"/>
+  <rect x="55" y="105" width="10" height="7" rx="1" fill="#fff7ed" stroke="#ea580c" stroke-width="0.5"/>
+  <text x="57" y="110" font-size="4" fill="#ea580c" font-weight="bold">CMO</text>
+  <polygon points="32,120 40,110 48,120" fill="#c2410c" opacity="0.5"/>
+  <polygon points="72,120 80,110 88,120" fill="#c2410c" opacity="0.5"/>
+  <!-- Left arm — finger on lips thinking -->
+  <rect x="12" y="90" width="22" height="10" rx="5" fill="#ea580c" transform="rotate(12 23 95)"/>
+  <ellipse cx="16" cy="79" rx="7" ry="7" fill="#c8956c"/>
+  <!-- Right arm — holding notepad -->
+  <rect x="86" y="92" width="22" height="10" rx="5" fill="#ea580c" transform="rotate(-8 97 97)"/>
+  <ellipse cx="109" cy="100" rx="6" ry="6" fill="#c8956c"/>
+  <rect x="103" y="104" width="15" height="20" rx="2" fill="#fff7ed" stroke="#f97316" stroke-width="1"/>
+  <line x1="105" y1="110" x2="116" y2="110" stroke="#ea580c" stroke-width="0.8"/>
+  <line x1="105" y1="113" x2="116" y2="113" stroke="#ea580c" stroke-width="0.8"/>
+  <line x1="105" y1="116" x2="112" y2="116" stroke="#22c55e" stroke-width="0.8"/>
+  <text x="104" y="121" font-size="5" fill="#ea580c">ROI↑</text>
+  <!-- Thought bubbles -->
+  <circle cx="21" cy="66" r="2"   fill="#f97316" opacity="0.5"/>
+  <circle cx="14" cy="56" r="3"   fill="#f97316" opacity="0.4"/>
+  <circle cx="6"  cy="44" r="4.5" fill="#f97316" opacity="0.25"/>
+  <rect x="52" y="77" width="16" height="14" rx="4" fill="#c8956c"/>
+  <ellipse cx="60" cy="55" rx="24" ry="26" fill="#c8956c"/>
+  <ellipse cx="60" cy="34" rx="24" ry="11" fill="#7c2d12"/>
+  <ellipse cx="36" cy="38" rx="11" ry="10" fill="#7c2d12"/>
+  <ellipse cx="84" cy="38" rx="11" ry="10" fill="#7c2d12"/>
+  <path d="M34 48 Q30 42 36 38 Q42 34 38 44" fill="#7c2d12"/>
+  <path d="M86 48 Q90 42 84 38 Q78 34 82 44" fill="#7c2d12"/>
+  <ellipse cx="36" cy="55" rx="4" ry="5" fill="#c8956c"/>
+  <ellipse cx="84" cy="55" rx="4" ry="5" fill="#c8956c"/>
+  <circle cx="36" cy="58" r="4" fill="none" stroke="#f97316" stroke-width="2"/>
+  <circle cx="84" cy="58" r="4" fill="none" stroke="#f97316" stroke-width="2"/>
+  <ellipse cx="48" cy="53" rx="6" ry="6.5" fill="white"/>
+  <ellipse cx="72" cy="53" rx="6" ry="6.5" fill="white"/>
+  <!-- Thoughtful narrowed eyes -->
+  <path d="M42 53 Q48 50 54 53" stroke="#7c2d12" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+  <path d="M66 53 Q72 50 78 53" stroke="#7c2d12" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+  <path d="M41 45 Q48 42 55 45" stroke="#7c2d12" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M65 45 Q72 42 79 45" stroke="#7c2d12" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M57 59 Q55 64 60 65 Q65 64 63 59" stroke="#a0704a" stroke-width="1" fill="none"/>
+  <path d="M51 71 Q60 75 69 71" stroke="#7a4020" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <circle cx="52" cy="63" r="1.2" fill="#b45309" opacity="0.5"/>
+  <circle cx="68" cy="63" r="1.2" fill="#b45309" opacity="0.5"/>
+</svg>

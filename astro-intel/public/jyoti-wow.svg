@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160" width="120" height="160">
+  <!-- Body — deep purple robe with cosmic pattern -->
+  <rect x="28" y="90" width="64" height="55" rx="10" fill="#6d28d9"/>
+  <polygon points="50,90 60,108 70,90" fill="#a78bfa"/>
+  <line x1="44" y1="95" x2="40" y2="145" stroke="#7c3aed" stroke-width="1" opacity="0.5"/>
+  <line x1="76" y1="95" x2="80" y2="145" stroke="#7c3aed" stroke-width="1" opacity="0.5"/>
+  <!-- Stars on robe -->
+  <text x="35" y="115" font-size="8" fill="#fbbf24" opacity="0.8">✦</text>
+  <text x="74" y="125" font-size="7" fill="#a78bfa" opacity="0.9">★</text>
+  <text x="50" y="135" font-size="6" fill="#fbbf24" opacity="0.7">✦</text>
+  <!-- Left arm — holding horoscope wheel -->
+  <rect x="8" y="92" width="22" height="10" rx="5" fill="#6d28d9" transform="rotate(10 19 97)"/>
+  <ellipse cx="7" cy="103" rx="6" ry="6" fill="#d4a574"/>
+  <!-- Horoscope wheel -->
+  <circle cx="7" cy="116" r="10" fill="none" stroke="#fbbf24" stroke-width="1.5"/>
+  <circle cx="7" cy="116" r="4" fill="none" stroke="#a78bfa" stroke-width="1"/>
+  <line x1="7" y1="106" x2="7" y2="126" stroke="#fbbf24" stroke-width="0.8" opacity="0.7"/>
+  <line x1="-3" y1="116" x2="17" y2="116" stroke="#fbbf24" stroke-width="0.8" opacity="0.7"/>
+  <text x="3" y="113" font-size="4" fill="#fbbf24">♈</text>
+  <text x="3" y="122" font-size="4" fill="#a78bfa">♎</text>
+  <!-- Right arm raised with star wand -->
+  <rect x="90" y="80" width="22" height="10" rx="5" fill="#6d28d9" transform="rotate(-45 101 85)"/>
+  <ellipse cx="112" cy="68" rx="6" ry="6" fill="#d4a574"/>
+  <!-- Wand + star -->
+  <line x1="112" y1="62" x2="112" y2="50" stroke="#fbbf24" stroke-width="2"/>
+  <text x="107" y="50" font-size="14" fill="#fbbf24">★</text>
+  <!-- Sparkles -->
+  <text x="90" y="40" font-size="9" fill="#a78bfa" opacity="0.8">✦</text>
+  <text x="18" y="75" font-size="8" fill="#fbbf24" opacity="0.6">✨</text>
+  <!-- Neck -->
+  <rect x="51" y="77" width="18" height="16" rx="4" fill="#d4a574"/>
+  <!-- Head — lighter warm skin -->
+  <ellipse cx="60" cy="56" rx="25" ry="27" fill="#d4a574"/>
+  <!-- Long hair — flowing, dark -->
+  <ellipse cx="60" cy="34" rx="25" ry="12" fill="#1a0a00"/>
+  <rect x="14" y="38" width="12" height="35" rx="6" fill="#1a0a00"/>
+  <rect x="94" y="38" width="12" height="35" rx="6" fill="#1a0a00"/>
+  <ellipse cx="38" cy="40" rx="9" ry="8" fill="#1a0a00"/>
+  <ellipse cx="82" cy="40" rx="9" ry="8" fill="#1a0a00"/>
+  <!-- Bindi -->
+  <circle cx="60" cy="41" r="3" fill="#e74c3c"/>
+  <circle cx="60" cy="41" r="1.2" fill="#fbbf24"/>
+  <!-- Ears + earrings -->
+  <ellipse cx="35" cy="56" rx="4" ry="5" fill="#d4a574"/>
+  <ellipse cx="85" cy="56" rx="4" ry="5" fill="#d4a574"/>
+  <path d="M35 60 L33 66 L35 68 L37 66 Z" fill="#fbbf24" opacity="0.9"/>
+  <path d="M85 60 L83 66 L85 68 L87 66 Z" fill="#fbbf24" opacity="0.9"/>
+  <!-- Eyes — large, expressive, kohl-lined -->
+  <ellipse cx="48" cy="54" rx="6" ry="6.5" fill="white"/>
+  <ellipse cx="72" cy="54" rx="6" ry="6.5" fill="white"/>
+  <ellipse cx="48" cy="55" rx="4" ry="4.5" fill="#3d1c02"/>
+  <ellipse cx="72" cy="55" rx="4" ry="4.5" fill="#3d1c02"/>
+  <ellipse cx="49" cy="53" rx="1.5" ry="1.5" fill="white"/>
+  <ellipse cx="73" cy="53" rx="1.5" ry="1.5" fill="white"/>
+  <!-- Kohl eyeliner -->
+  <path d="M41 54 Q48 50 55 54" stroke="#1a0a00" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <path d="M65 54 Q72 50 79 54" stroke="#1a0a00" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <!-- Nose -->
+  <path d="M57 61 Q55 66 60 67 Q65 66 63 61" stroke="#b07050" stroke-width="1" fill="none"/>
+  <!-- Happy smile -->
+  <path d="M47 70 Q60 81 73 70" stroke="#8b4513" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M51 72 Q60 79 69 72 Q69 76 60 77 Q51 76 51 72 Z" fill="white" opacity="0.8"/>
+  <!-- Maang tikka (head jewellery) -->
+  <line x1="60" y1="30" x2="60" y2="41" stroke="#fbbf24" stroke-width="0.8"/>
+  <circle cx="60" cy="30" r="2" fill="#fbbf24"/>
+</svg>

@@ -26,7 +26,7 @@ export class RunbookAgentService {
   readonly hasMessages = computed(() => this.messages().length > 0);
 
   readonly quickPrompts = [
-    '📋 How do I query a runbook?',
+    { label: '📋 Query runbook', text: 'How do I query a runbook in RunbookAI?' },
     '🔗 What is the dependency graph?',
     '⚠️ How are conflicts detected?',
     '🚨 How to triage a P1 incident?',

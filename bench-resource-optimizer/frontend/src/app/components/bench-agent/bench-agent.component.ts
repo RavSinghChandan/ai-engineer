@@ -24,14 +24,14 @@ function md(text: string): string {
   template: `
     @if (auth.isLoggedIn()) {
       <!-- FAB — blue theme matching Bench -->
-      <button class="b-fab" (click)="agent.toggle()" [class.open]="agent.isOpen()" aria-label="Ask Aria">
+      <button class="b-fab" (click)="agent.toggle()" [class.open]="agent.isOpen()" aria-label="Ask Nova">
         <div class="fab-wrap">
-          <img src="assets/aarav-happy.svg" class="fab-av" alt="Aria"/>
+          <img src="assets/nova-happy.svg" class="fab-av" alt="Nova"/>
           <span class="fab-dot"></span>
         </div>
         <div class="fab-txt">
-          <span class="fab-name">Aria</span>
-          <span class="fab-sub">HR AI · Ask me!</span>
+          <span class="fab-name">Nova</span>
+          <span class="fab-sub">HR Guide · Ask me!</span>
         </div>
         @if (unread() > 0 && !agent.isOpen()) { <span class="fab-badge">{{ unread() }}</span> }
       </button>
@@ -42,10 +42,10 @@ function md(text: string): string {
 
           <!-- Header -->
           <div class="b-header">
-            <img src="assets/aarav-happy.svg" class="h-av" alt="Aria"/>
+            <img src="assets/nova-happy.svg" class="h-av" alt="Nova"/>
             <div class="h-info">
-              <strong>Aria</strong>
-              <span>Bench Resource Optimizer · HR AI</span>
+              <strong>Nova</strong>
+              <span>Bench Resource Optimizer · HR Guide</span>
             </div>
             <button class="h-btn" (click)="newSession()" title="New conversation">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
@@ -57,8 +57,8 @@ function md(text: string): string {
           <div class="b-msgs" #scrollRef>
             @if (!agent.hasMessages()) {
               <div class="welcome">
-                <img src="assets/aarav-happy.svg" class="w-av" alt="Aria"/>
-                <p class="w-title">Hi! I'm Aria 👋</p>
+                <img src="assets/nova-happy.svg" class="w-av" alt="Nova"/>
+                <p class="w-title">Hi! I'm Nova 👋</p>
                 <p class="w-sub">Your HR AI guide for Bench Resource Optimizer. Ask me about match scores, skill gaps, the hybrid RAG pipeline, or how the platform works.</p>
                 <div class="q-grid">
                   @for (p of agent.quickPrompts; track p.label) {
@@ -70,7 +70,7 @@ function md(text: string): string {
 
             @for (msg of agent.messages(); track $index) {
               <div class="msg" [class.mu]="msg.role==='user'" [class.ma]="msg.role==='agent'">
-                @if (msg.role==='agent') { <img [src]="av($index)" class="m-av" alt="Aria"/> }
+                @if (msg.role==='agent') { <img [src]="av($index)" class="m-av" alt="Nova"/> }
                 <div class="m-col" [class.mc-u]="msg.role==='user'">
                   <div class="bubble" [class.bu]="msg.role==='user'" [class.ba]="msg.role==='agent'">
                     @if (msg.role==='agent') {
@@ -85,7 +85,7 @@ function md(text: string): string {
 
             @if (agent.isLoading()) {
               <div class="msg ma">
-                <img src="assets/aarav-thinking.svg" class="m-av" alt="Aria"/>
+                <img src="assets/nova-thinking.svg" class="m-av" alt="Nova"/>
                 <div class="bubble ba typing"><span></span><span></span><span></span></div>
               </div>
             }
@@ -331,7 +331,7 @@ export class BenchAgentComponent implements AfterViewChecked, OnDestroy {
 
   @ViewChild('scrollRef') private readonly scrollRef!: ElementRef<HTMLDivElement>;
 
-  av(i: number) { return ['assets/aarav-happy.svg','assets/aarav.svg','assets/aarav-thinking.svg','assets/aarav-wow.svg'][i % 4]; }
+  av(i: number) { return ['assets/nova-happy.svg','assets/nova.svg','assets/nova-thinking.svg','assets/nova-wow.svg'][i % 4]; }
 
   safe(t: string): SafeHtml { return this.sanitizer.bypassSecurityTrustHtml(md(t)); } // NOSONAR
 
