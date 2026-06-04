@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Agent Dashboard — Universal Agent Control Panel</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #09090b; color: #fafafa;
+  min-height: 100vh;
+}
+
+/* ── Top bar ───────────────────────────────────────────────────────────────── */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 32px; background: #111113;
+  border-bottom: 1px solid #27272a;
+  position: sticky; top: 0; z-index: 100;
+}
+.topbar-brand { display: flex; align-items: center; gap: 10px; }
+.topbar-brand .icon { font-size: 22px; }
+.topbar-brand .title { font-size: 16px; font-weight: 800; color: #fafafa; }
+.topbar-brand .sub { font-size: 11px; color: #71717a; margin-top: 1px; }
+.topbar-actions { display: flex; gap: 10px; align-items: center; }
+.back-link {
+  color: #71717a; font-size: 13px; text-decoration: none;
+  display: flex; align-items: center; gap: 5px;
+  padding: 6px 12px; border-radius: 8px; border: 1px solid #27272a;
+  transition: all 0.15s;
+}
+.back-link:hover { color: #fafafa; border-color: #52525b; }
+
+/* ── Stats strip ───────────────────────────────────────────────────────────── */
+.stats-strip {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 1px; background: #27272a;
+  border-bottom: 1px solid #27272a;
+}
+.stat-box {
+  background: #111113; padding: 20px 28px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.stat-box .num {
+  font-size: 32px; font-weight: 800; line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.stat-box .lbl { font-size: 12px; color: #71717a; text-transform: uppercase; letter-spacing: 0.6px; }
+.stat-box.s-total  .num { color: #a78bfa; }
+.stat-box.s-online .num { color: #34d399; }
+.stat-box.s-locked .num { color: #f87171; }
+.stat-box.s-active .num { color: #60a5fa; }
+
+/* ── Global action bar ─────────────────────────────────────────────────────── */
+.action-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 32px; border-bottom: 1px solid #27272a;
+  background: #111113;
+}
+.action-bar-left { font-size: 13px; color: #a1a1aa; }
+.action-bar-left strong { color: #fafafa; }
+.action-bar-right { display: flex; gap: 10px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 8px; border: none;
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  transition: all 0.15s; font-family: inherit;
+}
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-lock-all   { background: #7f1d1d; color: #fca5a5; border: 1px solid #991b1b; }
+.btn-lock-all:hover:not(:disabled)   { background: #991b1b; }
+.btn-unlock-all { background: #052e16; color: #6ee7b7; border: 1px solid #065f46; }
+.btn-unlock-all:hover:not(:disabled) { background: #065f46; }
+.btn-refresh    { background: #18181b; color: #a1a1aa; border: 1px solid #27272a; }
+.btn-refresh:hover:not(:disabled)    { color: #fafafa; border-color: #52525b; }
+
+/* ── Agent grid ────────────────────────────────────────────────────────────── */
+.agents-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 20px; padding: 28px 32px;
+}
+
+/* ── Agent card ────────────────────────────────────────────────────────────── */
+.agent-card {
+  background: #18181b; border: 1px solid #27272a;
+  border-radius: 16px; overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.agent-card:hover { border-color: #3f3f46; }
+.agent-card.locked { border-color: #7f1d1d; }
+.agent-card.offline { opacity: 0.5; }
+
+.card-header {
+  padding: 18px 20px 14px;
+  display: flex; align-items: flex-start; justify-content: space-between;
+  border-bottom: 1px solid #27272a;
+}
+.card-header-left { display: flex; align-items: center; gap: 12px; }
+.agent-icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; flex-shrink: 0;
+}
+.agent-name { font-size: 16px; font-weight: 800; color: #fafafa; }
+.agent-app  { font-size: 12px; color: #71717a; margin-top: 2px; }
+
+.status-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.4px; flex-shrink: 0;
+}
+.status-badge .dot { width: 7px; height: 7px; border-radius: 50%; }
+.badge-online  { background: rgba(16,185,129,0.15); color: #34d399; }
+.badge-online  .dot { background: #34d399; animation: pulse 2s infinite; }
+.badge-offline { background: rgba(113,113,122,0.15); color: #71717a; }
+.badge-offline .dot { background: #71717a; }
+.badge-locked  { background: rgba(239,68,68,0.15); color: #f87171; }
+.badge-locked  .dot { background: #f87171; animation: pulse-red 1.5s infinite; }
+
+@keyframes pulse     { 0%,100%{box-shadow:0 0 0 0 rgba(52,211,153,.4)}50%{box-shadow:0 0 0 4px rgba(52,211,153,0)}}
+@keyframes pulse-red { 0%,100%{box-shadow:0 0 0 0 rgba(248,113,113,.4)}50%{box-shadow:0 0 0 4px rgba(248,113,113,0)}}
+
+.card-body { padding: 16px 20px; }
+.agent-desc {
+  font-size: 13px; color: #a1a1aa; line-height: 1.6; margin-bottom: 16px;
+}
+
+.stats-row {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 10px; margin-bottom: 16px;
+}
+.mini-stat {
+  background: #09090b; border: 1px solid #27272a; border-radius: 10px;
+  padding: 10px 12px;
+}
+.mini-stat .val { font-size: 18px; font-weight: 800; color: #fafafa; font-variant-numeric: tabular-nums; }
+.mini-stat .key { font-size: 10px; color: #71717a; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+.pills-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: #27272a; color: #a1a1aa;
+  border-radius: 6px; padding: 3px 8px;
+  font-size: 11px; font-weight: 600; font-family: 'Fira Code', monospace;
+}
+.pill.rag    { background: rgba(99,102,241,0.15); color: #a78bfa; }
+.pill.model  { background: rgba(6,182,212,0.12);  color: #67e8f9; }
+.pill.port   { background: rgba(245,158,11,0.12);  color: #fcd34d; }
+
+.card-footer {
+  padding: 14px 20px;
+  border-top: 1px solid #27272a;
+  display: flex; gap: 10px;
+}
+.btn-card-lock   { flex: 1; background: #7f1d1d; color: #fca5a5; border: 1px solid #991b1b; }
+.btn-card-lock:hover:not(:disabled)   { background: #991b1b; }
+.btn-card-unlock { flex: 1; background: #052e16; color: #6ee7b7; border: 1px solid #065f46; }
+.btn-card-unlock:hover:not(:disabled) { background: #065f46; }
+.btn-card-offline { flex: 1; background: #18181b; color: #52525b; border: 1px solid #27272a; cursor: not-allowed; }
+
+/* ── Loading + Toast ───────────────────────────────────────────────────────── */
+.loading-overlay {
+  position: fixed; inset: 0; background: rgba(9,9,11,0.8);
+  display: flex; align-items: center; justify-content: center; z-index: 1000;
+}
+.spinner {
+  width: 40px; height: 40px; border: 3px solid #27272a;
+  border-top-color: #a78bfa; border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.toast {
+  position: fixed; bottom: 28px; right: 28px; z-index: 2000;
+  background: #18181b; border: 1px solid #27272a; border-radius: 12px;
+  padding: 12px 18px; font-size: 13px; font-weight: 600; color: #fafafa;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  transform: translateY(80px); opacity: 0; transition: all 0.25s;
+  max-width: 340px;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { border-color: #065f46; color: #6ee7b7; }
+.toast.error   { border-color: #991b1b; color: #fca5a5; }
+
+/* ── Last updated ──────────────────────────────────────────────────────────── */
+.last-updated { padding: 12px 32px; color: #52525b; font-size: 12px; }
+
+@media (max-width: 700px) {
+  .stats-strip { grid-template-columns: repeat(2, 1fr); }
+  .agents-grid { grid-template-columns: 1fr; padding: 16px; }
+  .action-bar  { flex-direction: column; gap: 12px; align-items: flex-start; }
+  .topbar      { padding: 12px 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+</div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+<!-- Top bar -->
+<header class="topbar">
+  <div class="topbar-brand">
+    <span class="icon">🤖</span>
+    <div>
+      <div class="title">Agent Control Dashboard</div>
+      <div class="sub">Universal Agent — Fine-Grained Token Protection</div>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <a href="/" class="back-link">← Back to Demo</a>
+  </div>
+</header>
+
+<!-- Stats strip -->
+<div class="stats-strip">
+  <div class="stat-box s-total">
+    <span class="num" id="statTotal">—</span>
+    <span class="lbl">Registered Agents</span>
+  </div>
+  <div class="stat-box s-online">
+    <span class="num" id="statOnline">—</span>
+    <span class="lbl">Online</span>
+  </div>
+  <div class="stat-box s-locked">
+    <span class="num" id="statLocked">—</span>
+    <span class="lbl">Locked</span>
+  </div>
+  <div class="stat-box s-active">
+    <span class="num" id="statSessions">—</span>
+    <span class="lbl">Active Sessions</span>
+  </div>
+</div>
+
+<!-- Global action bar -->
+<div class="action-bar">
+  <div class="action-bar-left">
+    Managing <strong id="totalCount">—</strong> agents.
+    Click a card to lock/unlock individually, or use the global controls.
+  </div>
+  <div class="action-bar-right">
+    <button class="btn btn-refresh" id="btnRefresh" onclick="refresh()">⟳ Refresh</button>
+    <button class="btn btn-unlock-all" id="btnUnlockAll" onclick="doGlobal('unlock-all')">🔓 Unlock All</button>
+    <button class="btn btn-lock-all"   id="btnLockAll"   onclick="doGlobal('lock-all')">🔒 Lock All</button>
+  </div>
+</div>
+
+<!-- Agent cards -->
+<main class="agents-grid" id="agentsGrid"></main>
+
+<div class="last-updated" id="lastUpdated"></div>
+
+<script type="module">
+  const BASE = window.location.origin;
+
+  // ── Render one agent card ──────────────────────────────────────────────────
+  function cardHtml(a) {
+    const locked  = a.locked;
+    const online  = a.online;
+
+    let badgeHtml;
+    if (!online)      badgeHtml = `<span class="status-badge badge-offline"><span class="dot"></span>Offline</span>`;
+    else if (locked)  badgeHtml = `<span class="status-badge badge-locked"><span class="dot"></span>Locked</span>`;
+    else              badgeHtml = `<span class="status-badge badge-online"><span class="dot"></span>Active</span>`;
+
+    const tools = (a.tools || []).map(t =>
+      `<span class="pill">${t}</span>`).join('');
+    const ragPill  = a.rag    ? `<span class="pill rag">RAG ✓</span>` : '';
+    const modelPill = `<span class="pill model">${a.model || '—'}</span>`;
+    const portPill  = `<span class="pill port">:${a.port}</span>`;
+
+    let footerBtn;
+    if (!online) {
+      footerBtn = `<button class="btn btn-card-offline" disabled>⚠ Offline</button>`;
+    } else if (locked) {
+      footerBtn = `<button class="btn btn-card-unlock btn" onclick="toggleAgent('${a.id}','unlock')">🔓 Unlock ${a.name}</button>`;
+    } else {
+      footerBtn = `<button class="btn btn-card-lock btn" onclick="toggleAgent('${a.id}','lock')">🔒 Lock ${a.name}</button>`;
+    }
+
+    const cardClass = `agent-card${locked ? ' locked' : ''}${!online ? ' offline' : ''}`;
+
+    return `
+    <div class="${cardClass}" id="card-${a.id}">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="agent-icon" style="background:${a.color}22;border:1.5px solid ${a.color}44">
+            ${a.icon || '🤖'}
+          </div>
+          <div>
+            <div class="agent-name">${a.name}</div>
+            <div class="agent-app">${a.app}</div>
+          </div>
+        </div>
+        ${badgeHtml}
+      </div>
+      <div class="card-body">
+        <div class="agent-desc">${a.description}</div>
+        <div class="stats-row">
+          <div class="mini-stat">
+            <div class="val">${online ? a.active_sessions : '—'}</div>
+            <div class="key">Sessions</div>
+          </div>
+          <div class="mini-stat">
+            <div class="val">${online ? (a.tools?.length ?? 0) : '—'}</div>
+            <div class="key">Tools</div>
+          </div>
+          <div class="mini-stat">
+            <div class="val">${online ? (a.rag ? 'Yes' : 'No') : '—'}</div>
+            <div class="key">RAG</div>
+          </div>
+        </div>
+        <div class="pills-row">
+          ${modelPill}${portPill}${ragPill}${tools}
+        </div>
+      </div>
+      <div class="card-footer">${footerBtn}</div>
+    </div>`;
+  }
+
+  // ── Load and render all agents ─────────────────────────────────────────────
+  async function loadAgents() {
+    try {
+      const r = await fetch(`${BASE}/agents`);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const data = await r.json();
+
+      document.getElementById('statTotal').textContent    = data.total;
+      document.getElementById('statOnline').textContent   = data.online;
+      document.getElementById('statLocked').textContent   = data.locked;
+      document.getElementById('totalCount').textContent   = data.total;
+
+      const totalSessions = data.agents.reduce((s, a) => s + (a.active_sessions || 0), 0);
+      document.getElementById('statSessions').textContent = totalSessions;
+
+      const grid = document.getElementById('agentsGrid');
+      grid.innerHTML = data.agents.map(cardHtml).join('');
+
+      document.getElementById('lastUpdated').textContent =
+        `Last refreshed: ${new Date().toLocaleTimeString()}`;
+    } catch (e) {
+      showToast(`Failed to load agents: ${e.message}`, 'error');
+    } finally {
+      document.getElementById('loadingOverlay').style.display = 'none';
+    }
+  }
+
+  // ── Toggle individual agent ────────────────────────────────────────────────
+  globalThis.toggleAgent = async (agentId, action) => {
+    const btn = document.querySelector(`#card-${agentId} button`);
+    if (btn) btn.disabled = true;
+    try {
+      const r = await fetch(`${BASE}/agents/${agentId}/${action}`, { method: 'POST' });
+      const d = await r.json();
+      const label = action === 'lock' ? 'locked 🔒' : 'unlocked 🔓';
+      showToast(`${d.agent ?? agentId} ${d.error ? 'error: ' + d.error : label}`,
+                d.error ? 'error' : 'success');
+      await loadAgents();
+    } catch (e) {
+      showToast(`Error: ${e.message}`, 'error');
+      if (btn) btn.disabled = false;
+    }
+  };
+
+  // ── Global lock / unlock all ───────────────────────────────────────────────
+  globalThis.doGlobal = async (action) => {
+    const lockBtn   = document.getElementById('btnLockAll');
+    const unlockBtn = document.getElementById('btnUnlockAll');
+    lockBtn.disabled = unlockBtn.disabled = true;
+    try {
+      const r = await fetch(`${BASE}/agents/${action}`, { method: 'POST' });
+      const d = await r.json();
+      const ok  = d.results?.filter(x => !x.error).length ?? 0;
+      const err = d.results?.filter(x =>  x.error).length ?? 0;
+      showToast(
+        action === 'lock-all'
+          ? `All agents locked 🔒 (${ok} ok${err ? ', ' + err + ' unreachable' : ''})`
+          : `All agents unlocked 🔓 (${ok} ok${err ? ', ' + err + ' unreachable' : ''})`,
+        err ? 'error' : 'success'
+      );
+      await loadAgents();
+    } catch (e) {
+      showToast(`Error: ${e.message}`, 'error');
+    } finally {
+      lockBtn.disabled = unlockBtn.disabled = false;
+    }
+  };
+
+  // ── Refresh ────────────────────────────────────────────────────────────────
+  globalThis.refresh = async () => {
+    document.getElementById('loadingOverlay').style.display = 'flex';
+    await loadAgents();
+  };
+
+  // ── Toast ──────────────────────────────────────────────────────────────────
+  let _toastTimer;
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type} show`;
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(() => { t.classList.remove('show'); }, 3500);
+  }
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  await loadAgents();
+  // Auto-refresh every 15 seconds
+  setInterval(loadAgents, 15000);
+</script>
+
+</body>
+</html>

@@ -65,6 +65,15 @@ async def root():
     )
 
 
+@app.get("/agents-dashboard", response_class=HTMLResponse, include_in_schema=False)
+async def agents_dashboard():
+    """Serve the Agent Control Dashboard."""
+    html_file = Path(__file__).parent.parent / "adapters" / "widget" / "agents.html"
+    if html_file.exists():
+        return HTMLResponse(content=html_file.read_text())
+    return HTMLResponse(content="<h2>Dashboard not found.</h2>")
+
+
 if __name__ == "__main__":
     dev_mode = os.environ.get("DEV", "").lower() in ("1", "true", "yes")
     uvicorn.run(

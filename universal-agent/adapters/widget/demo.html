@@ -5,92 +5,124 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Universal Agent — Demo</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; color: #1e293b; }
-  .hero { max-width: 700px; margin: 80px auto; text-align: center; padding: 0 24px 80px; }
+
+  /* ── Hero ──────────────────────────────────────────────────────────────── */
+  .hero { max-width: 720px; margin: 0 auto; text-align: center; padding: 80px 24px 40px; }
   h1 { font-size: 2.4rem; font-weight: 800; color: #0f172a; margin-bottom: 12px; }
   h1 span { color: #2563eb; }
-  p { font-size: 1.1rem; color: #475569; line-height: 1.7; margin-bottom: 24px; }
+  .sub { font-size: 1.1rem; color: #475569; line-height: 1.7; margin-bottom: 24px; }
   .badge { display: inline-block; background: #dbeafe; color: #1d4ed8; border-radius: 6px; padding: 4px 12px; font-size: 13px; font-weight: 600; margin: 4px; }
   .code-block { background: #1e293b; color: #e2e8f0; border-radius: 10px; padding: 20px 24px; text-align: left; margin: 32px 0; font-size: 13px; line-height: 1.8; }
   .code-block .comment { color: #64748b; }
   .code-block .keyword { color: #7dd3fc; }
-  .code-block .string { color: #86efac; }
+  .code-block .string  { color: #86efac; }
   .arrow { font-size: 2rem; color: #2563eb; margin: 8px 0; display: block; }
 
-  /* ── Lock/Unlock Control Panel ─────────────────────────────────────────── */
-  .lock-panel {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 10000;
-    background: #fff;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 14px;
-    padding: 14px 18px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.10);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-width: 230px;
+  /* ── Agent Control Panel (home page) ───────────────────────────────────── */
+  .control-section {
+    max-width: 900px; margin: 0 auto 60px; padding: 0 24px;
   }
-  .lock-status-dot {
-    width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
-    transition: background 0.3s;
+  .control-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
   }
-  .lock-status-dot.unlocked { background: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,0.2); }
-  .lock-status-dot.locked   { background: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,0.2); }
-  .lock-info { flex: 1; }
-  .lock-label { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
-  .lock-state { font-size: 13px; font-weight: 600; color: #0f172a; margin-top: 1px; }
-  .lock-state.locked-text   { color: #dc2626; }
-  .lock-state.unlocked-text { color: #059669; }
-  .lock-btn {
-    border: none; border-radius: 8px; padding: 8px 14px;
+  .control-title { font-size: 16px; font-weight: 800; color: #0f172a; }
+  .control-sub   { font-size: 13px; color: #64748b; margin-top: 2px; }
+  .control-actions { display: flex; gap: 8px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 8px 14px; border-radius: 8px; border: none;
     font-size: 13px; font-weight: 700; cursor: pointer;
-    transition: all 0.2s; white-space: nowrap;
-    display: flex; align-items: center; gap: 6px;
+    transition: all 0.15s; font-family: inherit;
   }
-  .lock-btn.btn-lock   { background: #dc2626; color: #fff; border: 1.5px solid #b91c1c; }
-  .lock-btn.btn-unlock { background: #065f46; color: #fff; border: 1.5px solid #064e3b; }
-  .lock-btn.btn-lock:hover   { background: #b91c1c; }
-  .lock-btn.btn-unlock:hover { background: #064e3b; }
-  .lock-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn-lock-all   { background: #dc2626; color: #fff; }
+  .btn-lock-all:hover:not(:disabled)   { background: #b91c1c; }
+  .btn-unlock-all { background: #065f46; color: #fff; }
+  .btn-unlock-all:hover:not(:disabled) { background: #064e3b; }
+  .btn-dashboard  { background: #1e293b; color: #e2e8f0; text-decoration: none; }
+  .btn-dashboard:hover { background: #0f172a; }
 
-  /* locked overlay on the whole page */
+  /* ── Mini agent cards (home page) ──────────────────────────────────────── */
+  .agents-mini-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+  }
+  .mini-card {
+    background: #fff; border: 1.5px solid #e2e8f0; border-radius: 12px;
+    padding: 14px 16px; display: flex; flex-direction: column; gap: 10px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .mini-card:hover { border-color: #cbd5e1; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+  .mini-card.locked { border-color: #fca5a5; background: #fff5f5; }
+  .mini-card.offline { opacity: 0.55; }
+  .mini-card-top { display: flex; align-items: center; gap: 10px; }
+  .mini-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .mini-name { font-size: 14px; font-weight: 700; color: #0f172a; }
+  .mini-app  { font-size: 11px; color: #94a3b8; margin-top: 1px; }
+  .mini-badge {
+    margin-left: auto; font-size: 10px; font-weight: 700;
+    padding: 2px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.4px;
+    flex-shrink: 0;
+  }
+  .badge-active  { background: #dcfce7; color: #166534; }
+  .badge-locked  { background: #fee2e2; color: #991b1b; }
+  .badge-offline { background: #e2e8f0; color: #475569; }   /* ≥4.5:1 on white */
+  .mini-sessions { font-size: 11px; color: #64748b; }
+  .mini-sessions strong { color: #0f172a; }
+  .mini-lock-btn {
+    width: 100%; padding: 7px; border-radius: 7px; border: none;
+    font-size: 12px; font-weight: 700; cursor: pointer;
+    transition: all 0.15s; font-family: inherit;
+  }
+  .mini-lock-btn.do-lock   { background: #dc2626; color: #fff; border: 1px solid #b91c1c; }   /* white on red ≥4.5:1 */
+  .mini-lock-btn.do-lock:hover   { background: #b91c1c; }
+  .mini-lock-btn.do-unlock { background: #065f46; color: #fff; border: 1px solid #064e3b; }   /* white on dark-green ≥4.5:1 */
+  .mini-lock-btn.do-unlock:hover { background: #064e3b; }
+  .mini-lock-btn.do-offline { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; cursor: not-allowed; }  /* ≥4.5:1 */
+  .mini-lock-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  /* ── Global lock banner ────────────────────────────────────────────────── */
   .locked-banner {
-    display: none;
-    position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999;
-    background: #dc2626; color: #fff;
-    padding: 10px 20px; text-align: center;
-    font-size: 14px; font-weight: 600;
-    letter-spacing: 0.2px;
+    display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999;
+    background: #dc2626; color: #fff; padding: 10px 20px;
+    text-align: center; font-size: 14px; font-weight: 600;
   }
   .locked-banner.visible { display: block; }
+
+  /* ── Toast ─────────────────────────────────────────────────────────────── */
+  .toast {
+    position: fixed; bottom: 52px; right: 24px; z-index: 10000;
+    background: #1e293b; color: #f1f5f9; border-radius: 10px;
+    padding: 10px 16px; font-size: 13px; font-weight: 600;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    transform: translateY(60px); opacity: 0; transition: all 0.2s;
+    max-width: 320px;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.error { background: #7f1d1d; }
 </style>
 </head>
 <body>
 
-<!-- ── Lock / Unlock Control Panel ──────────────────────────────────────── -->
-<div class="lock-panel" id="lockPanel">
-  <div class="lock-status-dot unlocked" id="lockDot"></div>
-  <div class="lock-info">
-    <div class="lock-label">Agent Status</div>
-    <div class="lock-state unlocked-text" id="lockStateText">Unlocked — Active</div>
-  </div>
-  <button class="lock-btn btn-lock" id="lockBtn" onclick="toggleLock()">
-    🔒 Lock
-  </button>
-</div>
-
-<!-- locked banner at bottom -->
+<!-- Global locked banner -->
 <div class="locked-banner" id="lockedBanner">
-  🔒 All AI agents are LOCKED — No LLM calls are being made. API tokens protected. Click Unlock to resume.
+  🔒 One or more agents are LOCKED — API tokens protected. Use the controls below or the Agent Dashboard to manage.
 </div>
 
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Hero -->
 <div class="hero">
   <h1>Universal <span>AI Agent</span></h1>
-  <p>One agent. Any domain. Any application. Configure once, plug in anywhere.</p>
+  <p class="sub">One agent. Any domain. Any application. Configure once, plug in anywhere.</p>
 
   <span class="badge">FastAPI</span>
   <span class="badge">Angular</span>
@@ -103,11 +135,11 @@
     <div><span class="keyword">from</span> universal_agent.adapters.fastapi_adapter <span class="keyword">import</span> mount_agent</div>
     <div>mount_agent(app)</div>
     <div>&nbsp;</div>
-    <div class="comment"># That's it. Your app now has /agent/chat</div>
+    <div class="comment"># Your app now has /agent/chat, /agents, /agents-dashboard</div>
   </div>
 
   <span class="arrow">↓</span>
-  <p>The chat widget is live in the bottom-right corner. Try it now.</p>
+  <p class="sub">The chat widget is live in the bottom-right corner. Try it now.</p>
 
   <div class="code-block">
     <div class="comment">&lt;!-- Embed in any HTML page — 1 script tag --&gt;</div>
@@ -120,83 +152,136 @@
   </div>
 </div>
 
-<!-- The widget itself — loaded from the running server.
-     data-agent-url uses window.origin so it always points to whichever
-     port this demo page is served from (8000, 8001, etc.). -->
-<script
-  id="ua-sdk-script"
-  src="/sdk/universal-agent.js"
+<!-- ── Agent Control Panel ──────────────────────────────────────────────── -->
+<div class="control-section">
+  <div class="control-header">
+    <div>
+      <div class="control-title">🎛️ Agent Control Panel</div>
+      <div class="control-sub">Lock or unlock each agent independently to protect API tokens.</div>
+    </div>
+    <div class="control-actions">
+      <a href="/agents-dashboard" class="btn btn-dashboard">📊 Full Dashboard</a>
+      <button class="btn btn-unlock-all" id="btnUnlockAll" onclick="doGlobal('unlock-all')">🔓 Unlock All</button>
+      <button class="btn btn-lock-all"   id="btnLockAll"   onclick="doGlobal('lock-all')">🔒 Lock All</button>
+    </div>
+  </div>
+
+  <div class="agents-mini-grid" id="miniGrid">
+    <!-- filled by JS -->
+    <div style="color:#94a3b8;font-size:13px;padding:20px 0;">Loading agents…</div>
+  </div>
+</div>
+
+<!-- The chat widget — agent URL set from origin -->
+<script id="ua-sdk-script" src="/sdk/universal-agent.js"
   data-agent-name="Universal Agent"
   data-color="#2563eb"
-  data-position="bottom-right"
-></script>
+  data-position="bottom-right"></script>
 <script>
-  // Set data-agent-url at runtime so it always matches the current origin
-  document.getElementById('ua-sdk-script').dataset.agentUrl = window.location.origin;
+  document.getElementById('ua-sdk-script').dataset.agentUrl = globalThis.location.origin;
 </script>
 
 <script type="module">
-  // Use the current page origin — always correct regardless of port
-  const AGENT_URL = window.location.origin;
+  const BASE = globalThis.location.origin;
 
-  let isLocked = false;
-
-  function applyLockState(locked) {
-    isLocked = locked;
-    const dot       = document.getElementById('lockDot');
-    const stateText = document.getElementById('lockStateText');
-    const btn       = document.getElementById('lockBtn');
-    const banner    = document.getElementById('lockedBanner');
-
-    if (locked) {
-      dot.className         = 'lock-status-dot locked';
-      stateText.textContent = 'Locked — No LLM Calls';
-      stateText.className   = 'lock-state locked-text';
-      btn.className         = 'lock-btn btn-unlock';
-      btn.innerHTML         = '🔓 Unlock';
-      banner.classList.add('visible');
-      document.body.style.opacity = '0.92';
-    } else {
-      dot.className         = 'lock-status-dot unlocked';
-      stateText.textContent = 'Unlocked — Active';
-      stateText.className   = 'lock-state unlocked-text';
-      btn.className         = 'lock-btn btn-lock';
-      btn.innerHTML         = '🔒 Lock';
-      banner.classList.remove('visible');
-      document.body.style.opacity = '1';
-    }
+  function agentState(a) {
+    if (!a.online) return { badgeCls: 'badge-offline', badgeTxt: 'Offline', btnCls: 'do-offline', btnTxt: '⚠ Offline', action: null };
+    if (a.locked)  return { badgeCls: 'badge-locked',  badgeTxt: 'Locked',  btnCls: 'do-unlock',  btnTxt: '🔓 Unlock',  action: 'unlock' };
+    return           { badgeCls: 'badge-active',  badgeTxt: 'Active',  btnCls: 'do-lock',    btnTxt: '🔒 Lock',    action: 'lock' };
   }
 
-  async function toggleLock() {
-    const btn = document.getElementById('lockBtn');
-    btn.disabled = true;
+  function miniCardHtml(a) {
+    const s = agentState(a);
+    const lockedCls  = a.locked  ? ' locked'  : '';
+    const offlineCls = a.online  ? ''          : ' offline';
+    const disabledAttr = a.online ? '' : 'disabled';
+    const onclickAttr  = a.online ? `onclick="toggleAgent('${a.id}','${s.action}')"` : '';
+    const sessions = a.online ? a.active_sessions : '—';
+    const tools    = a.online ? (a.tools?.length ?? 0) : '—';
+    return `
+    <div class="mini-card${lockedCls}${offlineCls}" id="mini-${a.id}">
+      <div class="mini-card-top">
+        <div class="mini-icon" style="background:${a.color}22;border:1px solid ${a.color}44">${a.icon ?? '🤖'}</div>
+        <div>
+          <div class="mini-name">${a.name}</div>
+          <div class="mini-app">${a.app}</div>
+        </div>
+        <span class="mini-badge ${s.badgeCls}">${s.badgeTxt}</span>
+      </div>
+      <div class="mini-sessions">
+        Sessions: <strong>${sessions}</strong>
+        &nbsp;·&nbsp; Tools: <strong>${tools}</strong>
+        &nbsp;·&nbsp; Port: <strong>:${a.port}</strong>
+      </div>
+      <button class="mini-lock-btn ${s.btnCls}" ${onclickAttr} ${disabledAttr}>
+        ${s.btnTxt}
+      </button>
+    </div>`;
+  }
+
+  async function loadAgents() {
     try {
-      const endpoint = isLocked ? 'unlock' : 'lock';
-      const r = await fetch(`${AGENT_URL}/agent/${endpoint}`, { method: 'POST' });
-      if (r.ok) {
-        const d = await r.json();
-        applyLockState(d.locked);
-      }
+      const r = await fetch(`${BASE}/agents`);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const data = await r.json();
+      document.getElementById('miniGrid').innerHTML = data.agents.map(miniCardHtml).join('');
+      const anyLocked = data.agents.some(a => a.locked);
+      document.getElementById('lockedBanner').classList.toggle('visible', anyLocked);
     } catch (e) {
-      alert(`Could not reach agent server: ${e.message}`);
-    } finally {
-      btn.disabled = false;
+      document.getElementById('miniGrid').innerHTML =
+        `<div style="color:#dc2626;font-size:13px">Could not load agents: ${e.message}</div>`;
     }
   }
 
-  // Expose toggleLock for inline onclick
-  globalThis.toggleLock = toggleLock;
-
-  // Load initial lock state — top-level await (module script)
-  try {
-    const r = await fetch(`${AGENT_URL}/agent/lock`);
-    if (r.ok) {
+  globalThis.toggleAgent = async (agentId, action) => {
+    const btn = document.querySelector(`#mini-${agentId} button`);
+    if (btn) btn.disabled = true;
+    try {
+      const r = await fetch(`${BASE}/agents/${agentId}/${action}`, { method: 'POST' });
       const d = await r.json();
-      applyLockState(d.locked);
+      const label = action === 'lock' ? 'locked 🔒' : 'unlocked 🔓';
+      const msg   = d.error ? `Error: ${d.error}` : `${d.agent ?? agentId} ${label}`;
+      showToast(msg, d.error ? 'error' : '');
+      await loadAgents();
+    } catch (e) {
+      showToast(`Error: ${e.message}`, 'error');
+      if (btn) btn.disabled = false;
     }
-  } catch (e) {
-    console.warn('Could not fetch initial lock state:', e.message);
+  };
+
+  globalThis.doGlobal = async (action) => {
+    document.getElementById('btnLockAll').disabled =
+    document.getElementById('btnUnlockAll').disabled = true;
+    try {
+      const r = await fetch(`${BASE}/agents/${action}`, { method: 'POST' });
+      const d = await r.json();
+      const ok  = d.results?.filter(x => !x.error).length ?? 0;
+      const err = d.results?.filter(x =>  x.error).length ?? 0;
+      const suffix = err > 0 ? `, ${err} unreachable` : '';
+      const msg = action === 'lock-all'
+        ? `All agents locked 🔒 (${ok} ok${suffix})`
+        : `All agents unlocked 🔓 (${ok} ok${suffix})`;
+      showToast(msg, err > 0 ? 'error' : '');
+      await loadAgents();
+    } catch (e) {
+      showToast(`Error: ${e.message}`, 'error');
+    } finally {
+      document.getElementById('btnLockAll').disabled =
+      document.getElementById('btnUnlockAll').disabled = false;
+    }
+  };
+
+  let _tt;
+  function showToast(msg, type) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast show${type === 'error' ? ' error' : ''}`;
+    clearTimeout(_tt);
+    _tt = setTimeout(() => t.classList.remove('show'), 3500);
   }
+
+  await loadAgents();
+  setInterval(loadAgents, 15000);
 </script>
 
 </body>
