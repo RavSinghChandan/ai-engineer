@@ -1,9 +1,22 @@
 # Senior AI Engineer — Complete Revision Guide
-### All 12 Modules in One Place · Read in 30–40 Minutes
+### All 13 Modules · All 5 Projects Per Topic · Read in 40–50 Minutes
 
 ---
 
-> **How to use this:** Each module has the most important concepts, key decisions, and what to say in interviews. Nothing is skipped — only simplified. Read top to bottom for a full revision.
+> **How to use this:** Every topic now shows exactly what you implemented across all five projects.
+> When an interviewer asks "How did you handle X?" — find the topic, pick the project, speak the line.
+
+---
+
+## YOUR 5 PROJECTS AT A GLANCE
+
+| # | Project | Architecture | Tests | Key Differentiator |
+|---|---------|-------------|-------|-------------------|
+| 1 | **AstroIntel 360°** | LangGraph 18+ agents, RAG optional | 415 | Rule-based domain agents + LLM synthesis, 23 languages |
+| 2 | **Bench Resource Optimizer** | Hybrid RAG (FAISS+BM25+RRF+HyDE+CRAG) | 502 | 5-layer RAG pipeline, semantic cache L1+L2, SSE streaming |
+| 3 | **RunbookAI** | RAGless SQL + NetworkX DAG | 137 | Zero vectors, zero hallucination by design, 3-panel conflict detection |
+| 4 | **Agentic Growth OS** | LangGraph 5-agent marketing pipeline | — | Auto-learning engine, ROI improves run-over-run 40–80% |
+| 5 | **Universal Agent** | LangGraph ReAct, YAML-configured | 20 | Plug-and-play into any app, per-agent lock/unlock dashboard |
 
 ---
 
@@ -11,91 +24,88 @@
 
 ## AI vs ML vs LLM
 
-- **AI** = any system that acts intelligently (could be simple rules, or an LLM)
-- **ML** = learns patterns from data to make predictions (fraud detection, churn, prices)
-- **Deep Learning** = ML with many layers — works on images, audio, and text
-- **LLM** = a huge deep learning model trained on internet-scale text — it can reason, write, and code without task-specific training
+- **AI** = any system that acts intelligently
+- **ML** = learns patterns from data (fraud, churn, pricing)
+- **LLM** = massive deep learning model trained on internet text — can reason, write, code
 
-The relationship is a hierarchy: AI → ML → Deep Learning → LLM
+**Senior framing:** "I chose LLM over classical ML because our task involved unstructured language reasoning — not pattern prediction on tabular data."
 
-**Senior framing:** Don't say "I used AI." Say "I chose an LLM over classical ML because our task involved unstructured language reasoning — not pattern prediction on tabular data. Here is the latency and cost trade-off we accepted."
+**What each project chose and why:**
 
-**Use ML when** you have structured data (spreadsheet-like), a clear label to predict, and need fast, cheap, deterministic output.
-**Use LLM when** the task requires language understanding, reasoning, summarization, or Q&A — and you cannot build a labeled dataset affordably.
+| Project | Choice | Why |
+|---------|--------|-----|
+| AstroIntel | Rule-based agents + LLM synthesis | Numerology/astrology math must be deterministic; only the narrative uses LLM |
+| Bench | LLM + Hybrid RAG | Skill gap analysis requires language understanding across unstructured CVs |
+| RunbookAI | LLM at ingest only, SQL at query | Commands must be verbatim — LLM only extracts once, SQL returns always |
+| Agentic Growth OS | LLM inside each LangGraph node | Creative ad copy and budget reasoning require flexible language generation |
+| Universal Agent | LLM with configurable persona | Domain is unknown at build time — YAML config defines behaviour at runtime |
 
-**AstroIntel angle:** AstroIntel uses rule-based domain agents (not ML classifiers) for numerology/astrology computation, and LLM only for the narrative synthesis step. This is the correct split — structured calculation stays deterministic, language generation uses LLM. Interview line: "I separated rule-based computation from LLM reasoning — the LLM only writes the story, it never does the maths."
+**Interview line:** "Across my 5 projects I made different LLM vs rule-based decisions per component — RunbookAI uses LLM at ingest and SQL at query so commands are never hallucinated, while AstroIntel keeps arithmetic in pure Python and only calls the LLM to narrate the result."
 
 ---
 
 ## Hallucination — Root Cause and Fix
 
-Hallucination is when an LLM states something confidently that is simply wrong.
-
 **Three root causes:**
-1. **Training data gap** — the model never learned this fact
-2. **Context gap** — the fact exists somewhere, but it was not retrieved into the prompt
-3. **Reasoning error** — the model incorrectly combines two correct facts into a wrong conclusion
+1. Training data gap — model never learned this fact
+2. Context gap — fact exists but was not retrieved
+3. Reasoning error — two correct facts combined into a wrong conclusion
 
-**Three-layer defense:**
-1. **RAG (Retrieval)** — always ground answers in retrieved documents, never rely on the model's memory alone
-2. **Faithfulness gate** — after the LLM responds, automatically check: "Is every claim in this answer supported by the retrieved context?" — if not, reject it
-3. **Confidence threshold** — if the similarity score of retrieved chunks is below 0.75, say "I'm not confident" rather than guessing
+**Three-layer defence:**
+1. RAG — ground every answer in retrieved documents
+2. Faithfulness gate — post-generation check: "Is every claim supported by context?"
+3. Confidence threshold — if retrieval score < 0.75, say "I don't know"
 
-**Interview answer:** "Hallucination has a root cause. In production I address it with a retrieval layer for grounding, a post-generation faithfulness check using RAGAS metrics, and a fallback to 'I don't know' when retrieval confidence is low."
+**What each project does:**
 
-**AstroIntel real implementation:** Instead of vector retrieval, AstroIntel uses rule-based domain agents. RAGAS-equivalent metrics are computed from the report itself: faithfulness = fraction of insights with confidence "high" or "medium" (not domains≥2 — that was wrong and always scored 33% in numerology-only mode because each insight had only 1 domain tag even when 3 sub-traditions ran). Lesson: always tie faithfulness to how confidence was actually assigned in your pipeline, not to a proxy that breaks for single-domain runs.
+| Project | Hallucination strategy |
+|---------|----------------------|
+| **AstroIntel** | Faithfulness gate: `confidence in ("high","medium")` per insight. RAGAS metrics auto-computed at /run — not just /approve. Bugs fixed: RAGAS was 0.00 because evaluation only ran on /approve; faithfulness was always 33% because logic checked `domains >= 2` but each insight has 1 domain tag. |
+| **Bench** | `run_llm_judge` post-generation faithfulness check. G2 injection guard on CV input before LLM sees it. CRAG quality scoring gates retrieval — LOW score triggers wider search, not LLM call. |
+| **RunbookAI** | **Architectural hallucination elimination.** LLM extracts commands once at ingest and writes them to SQLite. At query time, SQL returns the exact stored string — `commands_source: "database"` on every response. No LLM in the query path = no hallucination possible. |
+| **Agentic Growth OS** | Each agent node produces structured output (`CampaignState` TypedDict). Budget numbers come from the learning engine's stored history, not LLM imagination. |
+| **Universal Agent** | Fallback message configured in YAML. If RAG is enabled, FAISS retrieval grounds answers. Lock mechanism prevents any LLM call when token protection is needed. |
+
+**Interview line:** "RunbookAI proves that the best hallucination fix is architectural — remove the LLM from the query path entirely. Bench uses a faithfulness gate and CRAG quality scoring. AstroIntel taught me that RAGAS bugs are silent — you must measure on every run, not just on approval."
 
 ---
 
 ## Evaluation Metrics — What to Measure
 
-| Metric | What it tells you | Good target |
-|---|---|---|
-| Faithfulness | Is the answer grounded in retrieved context? | > 0.8 |
-| Answer Relevancy | Does the answer actually address the question? | > 0.8 |
-| TTFT (Time to First Token) | How quickly user sees the first word | < 500ms |
-| Cost per query | Money spent per LLM call | < $0.10 |
-| Hallucination rate | % of answers with unsupported claims | < 5% |
+| Metric | What it tells you | Target |
+|--------|------------------|--------|
+| Faithfulness | Answer grounded in context? | > 0.80 |
+| Answer Relevancy | Addresses the question? | > 0.80 |
+| TTFT | Time to first token | < 500ms |
+| Cost per query | Money per LLM call | < $0.10 |
+| Hallucination rate | % unsupported claims | < 5% |
 
-**RAGAS** is the standard tool — it computes faithfulness, relevancy, precision, and recall automatically on your RAG pipeline.
+**Per-project evaluation:**
 
-**When RAGAS doesn't fit (rule-based pipelines):** If you have no vector retrieval, you compute RAGAS-equivalent metrics from the LLM output itself. AstroIntel thresholds: faithfulness ≥ 0.80, answer_relevancy ≥ 0.70, context_precision ≥ 0.60, domain_recall ≥ 0.60. Score on every /run, not just on /approve — otherwise you'll never see RAGAS data during development.
-
-**AstroIntel RAGAS debugging (real bugs fixed):**
-- RAGAS always 0.00 → root cause: evaluation only ran on /approve, never on /run. Fix: auto-evaluate at /run time with all insight IDs.
-- Faithfulness 33% → root cause: logic checked `domains >= 2` but each insight has only 1 domain tag even when 3 sub-traditions contributed. Fix: check `confidence in ("high","medium")`.
-- domain_recall 47% → root cause: only admin-selected insight IDs passed to evaluator. Fix: pass all insight IDs, not just the admin-selected subset.
+- **AstroIntel:** RAGAS computed per /run. Four thresholds: faithfulness ≥ 0.80, answer_relevancy ≥ 0.70, context_precision ≥ 0.60, domain_recall ≥ 0.60. Rule-based pipeline so "context" = agent output, not retrieved chunks.
+- **Bench:** `/ragas` endpoint — RAGAS runs async after every map-role call. 502 tests, 94.7% coverage, SonarQube Quality Gate PASSED.
+- **RunbookAI:** Conflict detection as quality metric — `VALUE_CONFLICT`, `ORDER_CONFLICT`, `MISSING_STEP`, `EXTRA_STEP` scored per runbook pair. 137 tests.
+- **Agentic Growth OS:** ROI improvement % across runs is the primary metric. Learning engine tracks CTR, conversion rate, ROI Score per run.
+- **Universal Agent:** 20 tests, no API keys required. Health endpoint reports `locked`, `active_sessions`, `rag` state per agent.
 
 ---
 
 ## Token Economics — Cost, Latency, Throughput
 
-Every token you send or receive costs money and time.
-
-| Model | Input (1M tokens) | Output (1M tokens) |
-|---|---|---|
+| Model | Input / 1M | Output / 1M |
+|-------|-----------|------------|
 | GPT-4o | $2.50 | $10.00 |
 | GPT-4o-mini | $0.15 | $0.60 |
 | Claude Sonnet 4.6 | $3.00 | $15.00 |
-| Claude Haiku 4.5 | $0.08 | $0.40 |
-| DeepSeek Chat | ~$0.14 | ~$0.28 |
+| DeepSeek Chat | $0.14 | $0.28 |
 
-**Five ways to cut cost (know all five):**
-1. **Model tiering** — use mini/haiku for formatting and classification tasks, save the expensive model for complex reasoning
-2. **Semantic caching** — cache responses by embedding similarity; if a new question is close enough to a cached one, return the cached answer (60–70% hit rate in production)
-3. **Prompt compression** — cut filler words, shorten system prompts, reduce RAG chunks — fewer tokens = lower cost
-4. **Cap max_tokens** — if the answer should be 2 sentences, tell the model that — don't let it write an essay
-5. **Batch embeddings** — send 100 texts in one API call, not 100 individual calls (100x cheaper per text)
+**Per-project token strategy:**
 
-**AstroIntel 3-tier cache architecture:**
-- **L1 in-memory** — Python dict, sub-millisecond, process-local, evicted on restart
-- **L2 Redis** — distributed, survives restarts, shared across workers, TTL-based expiry
-- **L3 semantic** — embedding similarity search; catches paraphrase queries ("Tell me about career" ≈ "What career path suits me?")
-- **Dedup problem:** L2 + L3 could both store the same user, causing duplicates in the cache dashboard. Fix: frontend `uniqueCacheEntries()` deduplicates by `(name+dob+place)` composite key, keeping the entry with the highest hit_count.
-
-**AstroIntel token budget per analysis:** 3 numerology traditions × ~250 output tokens + 3 astrology sub-agents × ~200 tokens + meta/remedy/grammar passes ≈ ~2,000 output tokens total. At DeepSeek pricing (~$0.28/1M output tokens), cost per full 5-domain analysis ≈ $0.07. Capping max_tokens=250 per call (was 120/180) gave richer output without meaningful cost increase.
-
-**Real numbers to cite:** "At $0.07 per analysis with 1,000 daily users, LLM costs are $70/day or about $2,100/month. I monitor this in real time and alert if cost-per-query doubles."
+- **AstroIntel:** DeepSeek via OpenAI-compatible SDK. `_global_usage` dict protected by `threading.Lock` for cross-thread token accounting. DeepSeek HTTP timeout: 8s (fail fast, long enough for 250 tokens). Achieved **$0.000137 per analysis** — 500× cheaper than GPT-4o.
+- **Bench:** Semantic cache L1 (exact SHA-256 hash, < 1ms) + L2 (cosine similarity ≥ 0.92) + Redis. Cache hit = zero LLM tokens spent. Token tracker logs per-agent usage to SQLite.
+- **RunbookAI:** LLM called only at PDF ingest — zero LLM tokens at query time. Most cost-efficient architecture in the portfolio.
+- **Agentic Growth OS:** Each of 5 LangGraph nodes calls LLM once per run. Learning engine reuses past campaign data — reduces redundant LLM calls on similar campaigns.
+- **Universal Agent:** `/agent/lock` endpoint blocks all LLM calls instantly — zero tokens spent while locked. Per-agent granular lock via `/agents/{id}/lock`. Dashboard shows active sessions in real time.
 
 ---
 
@@ -103,97 +113,92 @@ Every token you send or receive costs money and time.
 
 ## Context Window — The Model's Working Memory
 
-The context window is the maximum number of tokens the model can process in a single request — everything you send (system prompt, chat history, retrieved documents, user message) plus the output counts against this limit.
+Context window = total tokens the model can see at once (prompt + history + response).
 
-| Model | Window |
-|---|---|
-| GPT-4o | 128K tokens |
-| Claude Sonnet | 200K tokens |
-| Gemini 1.5 Pro | 1M tokens |
+**Strategies when context is too large:**
+1. Summarise conversation history (keep last N turns, summarise the rest)
+2. Retrieve only relevant chunks (RAG — don't dump the whole document)
+3. Use a model with a larger context window (128k, 1M)
+4. Split tasks across multiple LLM calls
 
-**The real problem:** Chat history grows without limit. After many turns, you hit the ceiling and get errors — or silent quality degradation as the model forgets earlier context.
+**Per-project context management:**
 
-**Four management strategies:**
-1. **Sliding window** — keep only the last N conversation turns
-2. **Summarization** — compress old turns into a brief summary, replace them with the summary in context
-3. **Map-Reduce** — split a long document into chunks, summarize each separately, combine summaries
-4. **Truncation** — drop the oldest messages first (last resort)
-
-**Senior answer:** "I budget context proactively: 500 tokens for system prompt, 2K for history, 6K for RAG context, 1K reserved for output. I trigger summarization before the limit is hit, not after."
-
-**AstroIntel angle:** Each domain agent in AstroIntel gets a fresh, isolated context window — no shared history between traditions. This is intentional: Vedic, KP, and Western astrology agents must not cross-contaminate each other's reasoning. Shared context would cause one tradition to echo another. The meta_agent then reads all outputs and synthesizes. This is the map-reduce pattern applied to multi-tradition AI reasoning.
+- **AstroIntel:** Each domain agent has its own focused system prompt. LangGraph passes `CampaignState` between nodes — only relevant state fields are included per node, not the full report. Episodic memory injects a summarised user history as context prefix.
+- **Bench:** `build_memory_context()` injects episodic memory (past sessions, explored roles, readiness score) into every prompt. Context is structured: `system + memory_context + user_message`.
+- **RunbookAI:** No RAG context — SQL returns structured step objects directly. LLM at ingest gets a focused extraction prompt, not the full PDF dump. Chunked extraction for large PDFs.
+- **Agentic Growth OS:** `CampaignState` TypedDict acts as a shared context object — each agent reads only its needed fields. Learning engine adds a compact "past campaign summary" to the prompt for similar campaigns.
+- **Universal Agent:** `max_history: 20` in config, TTL-based session expiry. Extra facts from YAML injected as system context. RAG knowledge base optional — retrieves top-k chunks when enabled.
 
 ---
 
 ## Embeddings — Turning Text into Meaning
 
-An embedding is a list of ~1,500 numbers that captures the meaning of a piece of text. Texts with similar meanings produce similar numbers. This allows semantic search — finding documents by meaning, not just keyword match.
+Embeddings = dense vector representations. Similar meaning → similar vectors → close in vector space.
 
-**Choosing an embedding model:**
-- `text-embedding-3-small` — $0.02/1M tokens, good quality — use this for most projects
-- `text-embedding-3-large` — higher quality, 3072 dimensions — use when accuracy matters most
-- `text-embedding-ada-002` — older, $0.10/1M — only if already deployed
+**Per-project usage:**
 
-**Embedding drift:** Over time, if your knowledge base changes topic or style, old embeddings start to misrepresent new content. Monitor the average cosine similarity of retrieved chunks over time. If it drops, re-embed your corpus.
-
-**AstroIntel angle:** The L3 semantic cache in AstroIntel uses embeddings to match paraphrase queries. A user asking "What does my career look like?" and another asking "Tell me about my professional path" should hit the same cache entry. Embedding similarity threshold is tuned at 0.85 — below that, treat as a new query. Too low = wrong cache hits. Too high = cache never triggers.
+- **AstroIntel:** HuggingFace `all-MiniLM-L6-v2` for local embedding (no API cost) on spiritual domain knowledge.
+- **Bench:** `all-MiniLM-L6-v2` local embeddings for FAISS index. L2 semantic cache uses cosine similarity ≥ 0.92 on query embeddings — similar role queries share cached results.
+- **RunbookAI:** **No embeddings at query time.** LLM extracts step embeddings once at ingest and stores as structured text. Query matching via SQL keyword search + title overlap ≥ 40% threshold.
+- **Agentic Growth OS:** Campaign similarity matching in the learning engine uses string-based cosine similarity on campaign descriptions — no vector store needed at this scale.
+- **Universal Agent:** Optional FAISS knowledge base. When disabled (default), the agent relies entirely on LLM knowledge + YAML-injected facts.
 
 ---
 
 ## Prompt Engineering at Scale
 
-**Four core techniques:**
-1. **Chain of Thought** — "Think step by step" makes the model reason before answering → more accurate, costs more tokens
-2. **Few-shot examples** — 3–10 examples of the expected format inline → model consistently produces the right format
-3. **Structured output** — request JSON, parse with Pydantic, have a repair fallback if the JSON is broken
-4. **Hardened system prompt** — put all constraints and persona in the system prompt, not user messages — it is harder to override
+**Key techniques:**
+- **Few-shot:** Give 2–3 examples in the prompt → massive quality improvement
+- **Chain of Thought:** "Think step by step" → forces reasoning before answer
+- **Structured output:** "Respond only in JSON with keys: X, Y, Z" → parseable output
+- **System prompt versioning:** Store prompts as versioned files, not hardcoded strings
+- **Role injection:** "You are a senior DevOps engineer..." → persona priming
 
-**Version prompts like code:**
-```
-prompts/
-  v1/   ← archived
-  v2/   ← production (pinned in code)
-  v3/   ← in testing
-```
-Every prompt change should be a tracked code change, not an in-place edit.
+**Per-project prompt engineering:**
 
-**AstroIntel angle:** AstroIntel has 9 intent types (career, marriage, finance, health, spirituality, education, travel, children, general) × 3 astrology sub-traditions = 27 distinct prompt templates. All are versioned in `LP_INTENT_TEMPLATES` and `ASTRO_INTENT_TEMPLATES` dicts. Key bug fixed: all 3 astrology traditions originally shared the same `{dasha_timing}` slot — all 3 cards produced identical sentences. Fix: each tradition gets a distinct slot — Vedic uses `{house_nakshatra}`, KP uses `{sub_lord_cusp}`, Western uses `{sun_moon_archetype}`. Interview line: "Template slot discipline prevents multi-agent output from converging to the same sentence."
+- **AstroIntel:** 18+ domain-specific system prompts. Language-aware templates for 23 Indian languages. Prompt style selector: Warm & Exploratory vs Laser Sharp — same question, completely different tone.
+- **Bench:** Prompt versioning (`prompts/loader.py`, v1/v2 per operation). `role_mapper@v2` tag visible in responses. Injection detection runs on CV text before any prompt is constructed.
+- **RunbookAI:** Extraction prompt forces strict JSON: `{steps: [{command, description, depends_on}]}`. No natural language in extraction response — structured output only.
+- **Agentic Growth OS:** Each of 5 agents has a focused role prompt. Ad Copy Agent prompt adapts based on `learning_strategy` field from previous runs — prompt changes based on what worked.
+- **Universal Agent:** Entire persona defined in `agent.config.yaml`. Change one YAML field, change the agent's behaviour — no code change. Five pre-built configs ship with the project.
 
 ---
 
 ## Vector Databases — Where Embeddings Are Stored
 
-**Pick the right store for your situation:**
+| Database | Best For | Notes |
+|----------|---------|-------|
+| FAISS | Local, fast, no server | In-memory, exact or approximate search |
+| Pinecone | Managed cloud, production scale | Paid |
+| pgvector | Already using PostgreSQL | SQL + vectors in one place |
+| Weaviate | GraphQL + vectors | Good for hybrid search |
+| Redis | Cache + vector search | Low latency |
 
-| Store | Use when | Key limitation |
-|---|---|---|
-| **FAISS** | Prototype, single-tenant, fits in RAM | No metadata filtering; manual save/load |
-| **pgvector** | Team already on PostgreSQL, < 5M vectors | Need to manage Postgres |
-| **Pinecone** | Billions of vectors, zero ops desired | Network latency; SaaS cost |
-| **Qdrant** | High-performance self-hosted | More infra overhead |
+**Per-project vector store decision:**
 
-**Three search types:**
-- **Dense (vector similarity)** — finds semantically related text
-- **Sparse (BM25/keyword)** — finds exact matches; great for names, codes, product IDs
-- **Hybrid (both combined with RRF scoring)** — best of both; use in production
-
-**AstroIntel angle:** The numerology hybrid engine uses FAISS for in-process RAG lookup of tradition-specific interpretation tables (Indian/Chaldean/Pythagorean). FAISS is the right call here — the corpus is small (~500 interpretation rules per tradition), single-tenant, and fits in RAM. No need for Pinecone. The hybrid engine does one combined RAG+LLM call per tradition — not separate retrieve-then-generate — which cuts latency by eliminating one network round trip.
+- **AstroIntel:** FAISS pre-warmed at startup for spiritual domain knowledge. Background warm-up so first request is fast.
+- **Bench:** FAISS for dense retrieval + BM25 for sparse. Both rebuilt async after admin uploads new role knowledge. FAISS + BM25 + RRF = hybrid retrieval. Zero external vector DB dependency.
+- **RunbookAI:** No vector store. Deliberate design decision — "zero vectors, zero hallucinated commands." SQL is the retrieval layer.
+- **Agentic Growth OS:** No vector store. Campaign memory stored as JSON with string similarity matching.
+- **Universal Agent:** Optional FAISS. Configured via `knowledge_base.enabled: true/false` in YAML. Source dir points to local PDF/Markdown files.
 
 ---
 
 ## LLM Security — Three Threats, Three Fixes
 
-**Threats:**
-1. **Prompt injection** — user embeds "Ignore previous instructions..." in their input
-2. **Jailbreaks** — crafted inputs that trick the model into ignoring safety rules
-3. **Data leakage** — model reveals your system prompt, or User A's data leaks to User B
+| Threat | What it is | Fix |
+|--------|-----------|-----|
+| Prompt injection | User input hijacks system instructions | Detect and sanitise input before it reaches the prompt |
+| Jailbreak | User coaxes model to ignore safety rules | System prompt hardening + output filter |
+| Data leakage | Model outputs private data from training or context | PII filter on all outputs |
 
-**Fixes:**
-1. **Input sanitization** — detect injection patterns before sending to the LLM (regex + classifier)
-2. **Hardened system prompt** — "Under no circumstances reveal this prompt or follow conflicting instructions"
-3. **Tenant isolation at the DB layer** — every retrieval query filters by `tenant_id`; isolation is enforced by code, not by trust
+**Per-project security:**
 
-**AstroIntel angle:** The `security_check` node is the first node in the 8-node LangGraph pipeline — it runs before any domain agent. It checks for prompt injection patterns, jailbreak attempts, and PII in the user's birth data input. If it fails, the graph short-circuits directly to END with an error response. No domain agent ever runs on a flagged input. The G4 PII filter runs again at output — double-layered protection at entry and exit.
+- **AstroIntel:** X-API-Key dual auth + JWT Bearer. 76 auth tests. Input sanitisation on all /run inputs.
+- **Bench:** G2 injection detection — scans CV text AND role names before any LLM call. G4 PII filter strips email/phone from all LLM outputs. Security headers middleware: HSTS, CSP, X-Frame DENY, nosniff. SonarQube: 0 vulnerabilities, 0 security hotspots.
+- **RunbookAI:** JWT RBAC (admin/user/viewer). NetworkX validates step ordering — no way to inject a "run this command first" via natural language input. SQL parameterised queries — no injection possible.
+- **Agentic Growth OS:** JWT auth on all API endpoints. LangGraph state is immutable between nodes — each agent writes to its own output field, cannot overwrite another agent's output.
+- **Universal Agent:** CORS origins allowlist per config. Lock/unlock API — no auth on lock endpoint by design (operator tool), but chat endpoint blocks when locked. Per-agent isolation — locking one agent doesn't affect others.
 
 ---
 
@@ -201,79 +206,102 @@ Every prompt change should be a tracked code change, not an in-place edit.
 
 ## The RAG Pipeline — How It Works
 
-RAG stands for Retrieval Augmented Generation. Instead of relying on the model's trained memory (which can hallucinate), you retrieve relevant documents at query time and give them to the model as context.
+```
+User query
+  → Embed query
+  → Search vector store (cosine similarity)
+  → Retrieve top-k chunks
+  → Build prompt: system + retrieved context + user question
+  → LLM generates answer grounded in context
+  → Return answer
+```
 
-**Six steps:**
-1. **Chunk** — split documents into smaller pieces (512 tokens typical)
-2. **Embed** — convert each chunk to a vector using an embedding model
-3. **Store** — save vectors in a vector database
-4. **Retrieve** — when a user asks a question, embed the question and find the most similar chunks
-5. **Augment** — add the retrieved chunks to the prompt
-6. **Generate** — LLM reads the question + chunks and produces a grounded answer
+**Per-project RAG architecture:**
 
-**AstroIntel angle:** AstroIntel uses a **hybrid RAG** pattern in the numerology engine — each of 3 traditions (Indian, Chaldean, Pythagorean) does a FAISS lookup of interpretation rules for the computed life-path number, then passes those retrieved rules + the user's birth data to DeepSeek in a single call. This is RAG but without a separate retrieval round trip — the retrieval and generation are combined into one call per tradition. This is valid for small, structured knowledge bases.
+- **AstroIntel:** RAG used for knowledge enrichment on domain queries. FAISS pre-warmed at startup. Context injected per domain agent.
+- **Bench:** Full 5-layer hybrid RAG: `query → BM25 + FAISS → RRF fusion → HyDE expansion → CRAG quality gate → cross-encoder reranker → LLM`. Top-20 after fusion, top-5 after reranker.
+- **RunbookAI:** **RAGless.** The "retrieval" is SQL: `SELECT steps FROM runbooks WHERE category=? AND severity=?`. Deterministic, no embedding needed.
+- **Agentic Growth OS:** No RAG. Campaign memory retrieval via similarity score on campaign_type + keywords.
+- **Universal Agent:** Optional RAG via FAISS knowledge base. Toggle with `knowledge_base.enabled: true`.
 
 ---
 
 ## Chunking — How to Split Documents
 
-| Strategy | How it works | Use when |
-|---|---|---|
-| **Fixed size** | Split every 512 tokens, 50-token overlap | General purpose, simple setup |
-| **Recursive** | Split on paragraphs → sentences → words — respects structure | Mixed document types |
-| **Semantic** | Split at topic boundaries using embeddings | High quality; more compute |
-| **Hierarchical** | Store both summary-level and sentence-level chunks | Complex documents, multi-level retrieval |
+| Strategy | When to use |
+|----------|------------|
+| Fixed-size (512 tokens, 50 overlap) | General documents, fast setup |
+| Sentence-based | QA systems, need complete sentences |
+| Recursive character | LangChain default, good all-rounder |
+| Semantic | Split on meaning change, best quality, slow |
+| Document-structure-aware | PDFs with headers, preserve hierarchy |
 
-**The overlap is important** — a 50-token overlap between chunks ensures a sentence that spans a boundary is not lost.
+**Per-project chunking:**
+
+- **AstroIntel:** Structured domain knowledge (not PDFs) — chunked by domain category.
+- **Bench:** Role knowledge from `roles_knowledge.json` chunked at startup. Admin can upload internal training docs — chunked via PDF text extraction → fixed-size with overlap.
+- **RunbookAI:** **No chunking.** LLM extracts a structured JSON of steps at ingest — the "chunk" is a single step object with `{command, description, depends_on}`. Steps are the atomic unit.
+- **Agentic Growth OS:** No chunking needed.
+- **Universal Agent:** `chunk_size: 500, chunk_overlap: 50` configurable in YAML. Recursive character splitting via LangChain.
 
 ---
 
 ## Retrieval Optimization — Getting Better Results
 
-**Hybrid search** = vector similarity + keyword search combined. Always better than either alone.
+| Technique | What it does |
+|-----------|-------------|
+| Hybrid (BM25 + dense) | BM25 catches exact keyword matches dense misses |
+| RRF fusion | Merges BM25 and FAISS rankings without score normalisation |
+| HyDE | Generate a hypothetical answer, embed it, use that for retrieval |
+| Cross-encoder reranker | Expensive but precise — re-scores top-20 to find true top-5 |
+| MMR | Maximises diversity — avoids returning 5 near-identical chunks |
 
-**Reranking** = after you retrieve 20 candidates, run a CrossEncoder model to re-score them and keep only the top 5. CrossEncoder reads the query and each chunk together, giving much more accurate relevance scores.
+**Per-project retrieval:**
 
-**MMR (Maximal Marginal Relevance)** = retrieves results that are relevant but not repetitive — prevents all 5 chunks from saying the same thing.
-
-**Query expansion** = send multiple versions of the query (different phrasings) and merge the results — catches chunks that would have been missed with one phrasing.
-
-**AstroIntel angle:** AstroIntel's numerology RAG uses LP-specific retrieval — before hitting FAISS, it filters interpretation chunks by life-path number (LP1–LP9, LP11, LP22, LP33). This is metadata pre-filtering before vector search — a standard retrieval optimization that cuts search space and avoids cross-LP contamination. LP7 insights should never appear in an LP1 reading.
+- **AstroIntel:** Single-source FAISS retrieval. Multi-query expansion for ambiguous spiritual terms.
+- **Bench:** Full hybrid stack — **BM25 catches exact skill names** (e.g. "Kubernetes") that dense vectors miss. RRF merges without needing score normalisation. HyDE generates a hypothetical role description for novel roles with no close match in the index. Cross-encoder reranker as final precision layer. Recall improvement: FAISS alone 60% → +BM25+RRF 78% → +HyDE 83% → +reranker: best precision.
+- **RunbookAI:** SQL match by `category`, `severity`, `source_type`. Title overlap ≥ 40% for P3 combined panel. NetworkX topological sort for step ordering.
+- **Agentic Growth OS:** No retrieval optimisation needed.
+- **Universal Agent:** When RAG enabled: FAISS top-k with configurable k. No hybrid retrieval in base config.
 
 ---
 
 ## Advanced RAG Patterns (Senior-Only)
 
-**HyDE (Hypothetical Document Embeddings):**
-User queries and document text are phrased very differently. Solution: first ask the LLM to generate a hypothetical ideal answer (without retrieval). Then use that hypothetical answer's embedding for retrieval — answers find answers.
+| Pattern | What it solves |
+|---------|---------------|
+| CRAG (Corrective RAG) | Low-quality retrieval triggers a fallback (wider search or web) |
+| Self-RAG | LLM decides whether to retrieve at all |
+| HyDE | Better query for novel topics — embed hypothetical answer, not raw question |
+| Re-ranking | Cross-encoder rescores top-N — much more accurate than bi-encoder alone |
+| RAGless | Remove vectors entirely — LLM extracts once, SQL serves always |
 
-**Self-RAG:**
-The LLM itself decides whether it needs retrieval. Special tokens — [Retrieve], [No Retrieve], [Relevant], [Irrelevant] — let the model evaluate its own retrieval and output quality. More expensive but much more accurate.
+**Per-project advanced RAG:**
 
-**CRAG (Corrective RAG):**
-After retrieval, a grading step evaluates each chunk. Chunks graded "irrelevant" are discarded and the system falls back to web search for fresh information. Prevents confidently wrong answers from bad chunks.
-
-**AstroIntel angle:** AstroIntel's `hallucination_check` node is a simplified CRAG step — it reviews the domain agent outputs before they reach the meta_agent and flags any claim that contradicts the input birth data (e.g., an astrology agent claiming the user was born under Scorpio when the birth date is in Taurus season). Flagged insights are soft-rejected: they still appear but get LOW confidence. This is the "corrective" step without a full web-search fallback.
+- **AstroIntel:** CRAG-equivalent: if domain agent confidence < threshold, escalate to a broader multi-domain query.
+- **Bench:** CRAG quality scoring after retrieval — LOW score triggers wider BM25 search before calling LLM. HyDE in the retrieval path. Cross-encoder reranker (sentence-transformers) on top-20.
+- **RunbookAI:** **Invented a 6th pattern: RAGless.** "The best retrieval is no retrieval — extract structure once at ingest, return it verbatim at query time." This is the correct architecture when commands must be exact.
+- **Agentic Growth OS:** N/A.
+- **Universal Agent:** CRAG available when knowledge base enabled. Self-RAG implicit — agent decides whether to use the retrieved context based on relevance score.
 
 ---
 
 ## RAG Evaluation — RAGAS Metrics
 
-**Four metrics (memorize these):**
-- **Faithfulness** — is every claim in the answer supported by the retrieved chunks?
-- **Answer Relevancy** — does the answer actually address the question?
-- **Context Precision** — of the retrieved chunks, how many were actually useful?
-- **Context Recall** — of the chunks that would have helped, how many did we retrieve?
+| Metric | Formula | Meaning |
+|--------|---------|---------|
+| Faithfulness | supported claims / total claims | Is every claim in the answer backed by context? |
+| Answer Relevancy | embedding similarity of question vs answer | Does the answer address the question? |
+| Context Precision | relevant retrieved / total retrieved | Were the retrieved chunks actually useful? |
+| Context Recall | covered ground truths / total ground truths | Did retrieval find all necessary info? |
 
-**Failure modes:**
-- Low precision → irrelevant chunks retrieved → noisy answers
-- Low recall → missed important chunks → incomplete answers
-- Low faithfulness → hallucination even when good chunks were available
+**Per-project RAGAS:**
 
-**Real RAGAS debugging (AstroIntel):**
-- RAGAS always 0.00 → root cause: evaluation only ran on /approve, never on /run. Fix: auto-evaluate at /run time with all insight IDs.
-- Faithfulness 33% → root cause: logic checked `domains >= 2` but each insight has only 1 domain tag even when 3 sub-traditions contributed. Fix: check `confidence in ("high","medium")` — reflects how confidence was actually assigned.
-- domain_recall 47% → root cause: only admin-selected insight IDs passed to evaluator; if admin approved only numerology insights, evaluator saw only 1 domain. Fix: pass all insight IDs, not just admin-selected subset.
+- **AstroIntel:** RAGAS adapted for rule-based pipeline. Key bugs fixed in production: (1) evaluation only ran on /approve — fixed to run on every /run. (2) Faithfulness always 33% because `domains >= 2` check was wrong for single-domain sessions — fixed to `confidence in ("high","medium")`. (3) domain_recall 47% because only admin-selected IDs passed to evaluator — fixed to pass all insight IDs.
+- **Bench:** `/ragas` endpoint. RAGAS runs async after each map-role call. Four metrics tracked: faithfulness, answer_relevancy, context_precision, context_recall. Stored in SQLite `ragas` table.
+- **RunbookAI:** Custom evaluation — conflict detection score replaces faithfulness. Match quality = overlap between P1 internal and P3 combined panels.
+- **Agentic Growth OS:** No RAGAS — ROI improvement % and CTR delta are the metrics.
+- **Universal Agent:** RAGAS can be enabled when knowledge base is active. Health endpoint reports RAG state.
 
 ---
 
@@ -281,95 +309,110 @@ After retrieval, a grading step evaluates each chunk. Chunks graded "irrelevant"
 
 ## Agent vs Workflow — When to Use Which
 
-**Workflow** = a fixed, predetermined sequence of steps. Predictable, fast, cheap. Use when the path from input to output is always the same.
+**Workflow:** Fixed sequence of steps. Same path every time. Use when the process is known.
+**Agent:** LLM decides what to do next. Use when the path depends on the input.
 
-**Agent** = the LLM decides what steps to take. Flexible, can handle unexpected situations, but slower, costlier, and harder to debug.
+**Per-project decision:**
 
-**Decision rule:** Start with a workflow. Only make it an agent when the steps cannot be predetermined — for example, when the user's question could require one, two, or ten different tools depending on context.
-
-**AstroIntel angle:** AstroIntel uses a **workflow**, not a dynamic agent. The 8-node sequence is fixed: security_check → question_agent → domain_agents → meta_agent → hallucination_check → remedy_agent → admin_review_agent → grammar_agent. The path never changes. This is the right call — astrology analysis always needs all steps in the same order. Using an agent (dynamic routing) would add latency and unpredictability for zero benefit.
+| Project | Choice | Reason |
+|---------|--------|--------|
+| AstroIntel | **Workflow inside agents** | Each domain (numerology, astrology, tarot) runs in parallel but each domain agent follows a fixed internal flow |
+| Bench | **Workflow** | CV parse → role map → plan generate → progress track. Fixed sequence. |
+| RunbookAI | **Workflow** | Query → SQL → sort → conflict check. Fixed path. |
+| Agentic Growth OS | **Agent pipeline** | LangGraph StateGraph with conditional edges — learning engine can skip or repeat nodes |
+| Universal Agent | **ReAct agent** | User's query determines whether to use calculator tool, datetime tool, or just answer |
 
 ---
 
 ## Planning vs Execution Patterns
 
-**ReAct (most common):**
-The agent alternates: Reason → Act → Observe → Reason → Act...
-Each cycle the model looks at what it knows, picks a tool, runs it, reads the result, and decides the next step.
+| Pattern | How it works |
+|---------|-------------|
+| ReAct | Reason + Act loop — model thinks, picks a tool, observes result, repeats |
+| Plan-Execute | LLM creates a full plan first, then executes steps sequentially |
+| Tree of Thought | Explore multiple reasoning branches, pick the best |
 
-**Plan-and-Execute:**
-Step 1: LLM creates a full plan (list of steps). Step 2: Executor runs each step in order.
-Better for long tasks because the plan catches logical errors before any action is taken.
+**Per-project:**
 
-**Tree of Thought (ToT):**
-The model explores multiple reasoning branches simultaneously and picks the best path. Used for hard problems where the first idea is rarely the best.
-
-**AstroIntel angle:** The `question_agent` node in AstroIntel is a mini Plan-and-Execute step — it reads the user's raw question, infers the intent (career/marriage/finance/etc.), and emits a structured plan: which domains to activate and which intent template to use. The rest of the pipeline executes that plan. This separates planning (intent resolution) from execution (domain agents), making each independently testable.
+- **AstroIntel:** Parallel domain agents (ReAct-like reasoning per domain) + supervisor node that synthesises all domain outputs.
+- **Bench:** Sequential plan-execute: CV parser → role mapper → planner → tracker. Each agent has a defined input/output contract.
+- **RunbookAI:** No planning layer — SQL executes deterministically. NetworkX computes the execution order.
+- **Agentic Growth OS:** LangGraph StateGraph. Nodes: Audience → AdCopy → BudgetOptimizer → Campaign → PerformanceAnalyzer. Edges are conditional — learning engine can modify the path on subsequent runs.
+- **Universal Agent:** LangGraph ReAct loop. Tool binding: `calculator`, `get_current_datetime`. Model decides whether to call a tool or answer directly.
 
 ---
 
 ## Multi-Agent Orchestration
 
-**Supervisor pattern:** One supervisor agent reads the query, decides which specialist agent to call, routes to it, and synthesizes the result. Clean, easy to extend.
+**Patterns:**
+1. **Supervisor** — one orchestrator LLM routes tasks to specialist sub-agents
+2. **Peer-to-Peer** — agents communicate directly, no central controller
+3. **Hierarchical** — supervisors have sub-supervisors
 
-**Parallel map-reduce:** All agents run simultaneously on the same input (or different parts of it), results are merged at the end. Used in AstroIntel — 5 domain agents run in parallel via ThreadPoolExecutor, cutting latency from 78s → 15s → 4s across three optimization rounds.
+**Per-project orchestration:**
 
-**Effective-count confidence pattern (AstroIntel):** When only one top-level domain runs (e.g., numerology-only mode), domain_count=1 would assign LOW confidence to every insight. Fix: use `effective_count = domain_count if domain_count > 1 else len(sub_traditions)`. Numerology has 3 sub-traditions (Indian, Chaldean, Pythagorean) → effective_count=3 → HIGH confidence. Without this, confidence logic breaks for single-domain runs and all cards show LOW priority.
-
-**Hierarchical:** Supervisors can themselves be sub-agents of a higher-level orchestrator. Used for very complex pipelines.
+- **AstroIntel:** LangGraph StateGraph with 18+ nodes. Supervisor node synthesises multi-domain outputs. Parallel domain agents run concurrently (ThreadPoolExecutor). Conditional edges based on selected analysis modules.
+- **Bench:** Sequential pipeline — `cv_parser` → `role_mapper` → `planner` → `tracker`. No cross-agent communication needed — each receives clean output from the previous.
+- **RunbookAI:** No multi-agent. Single LLM at ingest. SQL handles all query-time logic.
+- **Agentic Growth OS:** 5-agent LangGraph pipeline. Pure functions per node — each agent reads `CampaignState`, writes to its own output field, immutable side effects. Learning engine is a separate module that modifies the StateGraph inputs for the next run.
+- **Universal Agent:** Single ReAct agent per instance. Registry allows 5 independent agents to be monitored and controlled via one dashboard.
 
 ---
 
 ## Agent Memory — Four Types
 
-| Memory type | What it is | Where stored | How long |
-|---|---|---|---|
-| **In-context (working)** | Everything in the current prompt | Context window | This session only |
-| **Episodic (short-term)** | Recent conversations | Redis or DB | Days to weeks |
-| **Semantic (long-term)** | Summarized facts about the user | Database | Months to years |
-| **Procedural** | Reusable task instructions | Prompt library | Permanent |
+| Type | What it stores | Lifetime |
+|------|---------------|---------|
+| In-context | Current conversation | One session |
+| Episodic | Past sessions, what user explored | Persistent, TTL-based |
+| Semantic | Facts about the user | Persistent |
+| Procedural | How the agent behaves | Baked into the prompt |
 
-**In LangGraph,** the `TypedDict` state object is the in-context memory — every node reads and writes to it as the graph runs.
+**Per-project memory:**
 
-**AstroIntel angle:** AstroIntel uses L2 Redis as episodic memory — repeat queries for the same user (same name+dob+place) are served from cache without re-running the pipeline. The cache stores the full admin_review JSON keyed by a hash of (user_data + question_intent). Cache TTL is set per-tier: in-memory = session, Redis = 7 days, semantic = 30 days.
+- **AstroIntel:** Episodic memory via `/api/v1/feedback` router. Persona preferences stored in SQLite. Past readings injected as context prefix. Memory persists across server restarts.
+- **Bench:** `session_store.py` — episodic memory (past sessions, explored roles, readiness score). Long-term facts. Context injection via `build_memory_context()`. Write-through to SQLite WAL — survives restarts. `memory/{user_id}` endpoint.
+- **RunbookAI:** No explicit memory. Runbooks in SQLite serve as the "long-term memory" — steps are stored once at ingest and retrieved forever.
+- **Agentic Growth OS:** `CampaignState` is in-context memory per run. Campaign memory store (JSON) is episodic — similar past campaigns are retrieved and applied. Memory persists between runs.
+- **Universal Agent:** In-process `MemoryStore` with TTL-based expiry. `max_history: 20` turns configurable in YAML. `session_id` per user. Sessions expire after `session_ttl_seconds`.
 
 ---
 
 ## Failure Handling and Guardrails
 
-**Retry with exponential backoff:** Attempt 1 fails → wait 2s → Attempt 2 fails → wait 4s → Attempt 3. Add jitter (random ±0.5s) to prevent all retries hitting the API at exactly the same moment.
+**Five guardrails to know (Bench G1–G5):**
 
-**Circuit breaker:** After 5 consecutive failures, stop calling the failing service for 60 seconds. After 60s, send one test request. If it succeeds, resume. If it fails, stay open another 60s. This is exactly Resilience4j from your Java background.
+| Guardrail | What it does |
+|-----------|-------------|
+| G1 — Rate Limiter | 60 req/min/user → 429 if exceeded |
+| G2 — Injection Check | Scans CV text + role names before any LLM call |
+| G3 — JSON Repair | Cascade: direct → fence → regex → LLM repair |
+| G4 — PII Filter | Strips email/phone from all LLM outputs |
+| G5 — Graceful Degrade | Tracks full/partial/fallback/failed per agent |
 
-**AstroIntel G1–G5 guardrails (real implementation):**
-- **G1 Rate limiter** — per-IP and per-session request rate limiting at the FastAPI middleware layer
-- **G2 Circuit breaker** — wraps DeepSeek API calls; opens after repeated timeouts; returns cached/degraded response during open state
-- **G3 Output validator** — Pydantic schema validation on every agent output; rejects malformed insight dicts before they enter meta_agent
-- **G4 PII filter** — strips phone numbers, email addresses, Aadhaar/SSN patterns from output before delivery
-- **G5 Degradation tracker** — monitors RAGAS scores over time; alerts when average faithfulness drops below 0.80 threshold
+**Per-project failure handling:**
 
-**Timeout enforcement pattern:** Don't rely on `asyncio.wait_for` for CPU-bound or blocking calls. Use `ThreadPoolExecutor.submit(fn).result(timeout=N)` — this gives a hard kill at exactly N seconds regardless of what the thread is doing. AstroIntel uses this in the numerology hybrid engine with timeout_seconds=7.
-
-**Fallback chain:** GPT-4o fails → try GPT-4o-mini → try Claude Haiku → return a graceful error. Never let the whole system fail because one LLM provider has an outage.
-
-**Guardrails:**
-- **Input** — detect harmful/injected input before it reaches the LLM
-- **Output** — validate JSON structure, check faithfulness, filter PII before delivery
-- **Semantic** — reject responses that contradict retrieved context (faithfulness gate)
+- **AstroIntel:** Circuit breaker on DeepSeek client — opens after threshold failures, falls back to cached/partial response. SUPERADMIN-only `/reset-breaker` endpoint. Retry logic with exponential backoff on all LLM calls.
+- **Bench:** Full G1–G5 guardrails. Circuit breaker: 5 failures → opens → 30s reset → graceful fallback message. SSE streaming: if LLM call fails mid-stream, `[DONE]` is still sent so frontend doesn't hang.
+- **RunbookAI:** Rate limiting middleware. JWT RBAC — 403 for unauthorised runbook access. Conflict detection as a data quality guardrail — flags dangerous disagreements between runbooks before the engineer acts.
+- **Agentic Growth OS:** Each LangGraph node has error handling — if an agent fails, the campaign state records the failure and the run continues with partial results. Learning engine skips failed runs.
+- **Universal Agent:** Global lock — one API call blocks all 5 agents instantly. Per-agent lock for surgical control. Lock state persists for the server process lifetime. Locked agent returns a clear message instead of throwing an error.
 
 ---
 
 ## Tool Usage and Function Calling
 
-Tools let an LLM call external APIs, run code, or query databases. The LLM says "call this function with these arguments." Your code runs the function and gives the result back to the LLM.
+Tools give agents the ability to act: search the web, run code, call APIs, query databases.
 
-**Making it reliable:**
-1. Use Pydantic to validate the arguments the LLM passes before running the tool
-2. Wrap every tool call in a try/except with a retry decorator
-3. Give the LLM a clear error message if the tool fails — let it decide whether to retry or use a different tool
-4. Set a maximum number of tool call loops to prevent infinite cycles
+**How it works:** LLM decides to call a tool → returns structured JSON `{tool_name, arguments}` → your code executes the tool → result is added back to conversation → LLM continues.
 
-**AstroIntel angle:** AstroIntel domain agents are not LLM tool-callers — they are deterministic Python functions that compute numbers first, then call the LLM only for narrative generation. This avoids the reliability problem of LLM tool-calling: if the LLM calls the wrong tool or passes wrong args, the whole analysis fails. Deterministic computation first, LLM storytelling second = reliable output every time.
+**Per-project tool usage:**
+
+- **AstroIntel:** Custom tools per domain agent — numerology calculator, astrology chart generator, tarot card selector. Tools are deterministic Python functions, not LLM-based.
+- **Bench:** `upload-cv` (PDF → profile), `map-role` (profile → gap analysis), `generate-plan` (gaps → 7-day roadmap), `update-progress` (tick tasks). Each is a FastAPI endpoint + agent function.
+- **RunbookAI:** SQL query tool (deterministic). `conflict_detector.py` as a post-processing tool. NetworkX topological sort as an ordering tool.
+- **Agentic Growth OS:** Each LangGraph node IS a tool — pure function with defined inputs/outputs. Learning engine is a tool that modifies agent prompts for the next run.
+- **Universal Agent:** `calculator` tool (safe math), `get_current_datetime` (always correct time). Custom tool registration via `tools/my_tools.py` — add a `@tool` decorated function, register it in config.
 
 ---
 
@@ -377,85 +420,88 @@ Tools let an LLM call external APIs, run code, or query databases. The LLM says 
 
 ## API Gateway for AI Services
 
-Every production AI service needs an API gateway layer between clients and your LLM. Without it, one runaway client can exhaust your entire monthly LLM quota in minutes.
+Every AI service needs: rate limiting, auth, retry, caching, monitoring.
 
-**What a good gateway does:**
-- **Authentication** — verify who is calling (JWT / API key)
-- **Rate limiting** — max N requests per minute per user, enforced in Redis
-- **Quota management** — max X tokens per billing period per tenant
-- **Request routing** — send cheap tasks to mini models, expensive tasks to powerful models
-- **Fallback** — if OpenAI is down, route to Anthropic automatically
-- **Logging** — capture every request for billing, audit, and debugging
+**Per-project API gateway:**
 
-**Senior answer:** "I treat the AI gateway the same way I'd treat a Spring Boot API gateway — auth middleware, Redis-backed rate limiting, circuit breakers. The only difference is the resource being metered is tokens, not requests."
-
-**AstroIntel angle:** AstroIntel's FastAPI backend uses X-API-Key header authentication on every endpoint. The G1 rate limiter enforces per-IP limits at the middleware layer — before any LLM call is made. The G2 circuit breaker wraps the DeepSeek HTTP client. This is the full API gateway pattern implemented directly in FastAPI without an external gateway service.
+- **AstroIntel:** FastAPI with custom middleware stack. `/api/v1/` prefix. JWT + X-API-Key dual auth. Rate limiting per IP. Redis for job queue + response cache.
+- **Bench:** FastAPI with middleware chain: SecurityHeaders → RateLimit(G1) → RequestLogging → JWT Auth → InjectionCheck → RouteHandler. Every request passes all 5 layers.
+- **RunbookAI:** FastAPI. JWT RBAC middleware. Rate limiting on /query endpoint. Swagger docs at /docs with full endpoint documentation.
+- **Agentic Growth OS:** FastAPI backend. CORS configured for Angular frontend. Campaign execution is async — returns job_id immediately, client polls for result.
+- **Universal Agent:** FastAPI with CORS per-config. `/agents` registry endpoint serves as a meta-gateway across all 5 agents. Lock endpoint as an emergency kill switch.
 
 ---
 
 ## RAG at Scale — Latency Budget
 
-**Target:** end-to-end RAG response under 3 seconds.
+**Target latency budget:**
+- TTFT (Time to First Token): < 500ms
+- Total response: < 5s for standard query
+- Cached response: < 1ms
 
-**Latency breakdown (typical):**
-- Embedding the query: 50–100ms
-- Vector search: 5–20ms (pgvector) or 10–50ms (Pinecone)
-- Reranking: 100–300ms (optional CrossEncoder)
-- LLM generation: 1–3s (GPT-4o, 500 tokens)
-- SSE first token: < 500ms target
+**Per-project latency:**
 
-**Speed-up strategies:**
-- **Semantic cache** — if the same question was asked before, return the cached answer instantly (zero LLM cost)
-- **Async retrieval** — embed the query and search the vector DB while the previous history is being assembled
-- **Parallel retrieval** — query multiple vector stores simultaneously, merge results
-
-**AstroIntel real latency journey:**
-- v1 (sequential agents): 78s — each of 5 domain agents ran one after another
-- v2 (parallel agents via ThreadPoolExecutor): 15s — all 5 ran simultaneously
-- v3 (timeout enforcement + max_tokens cap): ~4s — hard 7s timeout per agent, DeepSeek HTTP timeout=8s, max_tokens=250
-- Key insight: the bottleneck was not the LLM itself but the missing timeout enforcement. Without `ThreadPoolExecutor.submit().result(timeout=N)`, one slow agent could stall the entire pipeline for 15–20s.
+- **AstroIntel:** Parallel domain agents reduce total latency — 5 agents running concurrently is faster than 5 agents sequentially. DeepSeek timeout: 8s. SSE streaming so users see output within 1–2s.
+- **Bench:** L1 cache (exact match): < 1ms. L2 cache (semantic): ~5ms. Full pipeline: ~3s. SSE streaming plan generation: TTFT < 1.5s. FAISS index rebuild is async — zero downtime on role updates.
+- **RunbookAI:** SQL query: < 50ms. NetworkX topological sort: < 10ms. No LLM in query path. Total response: < 100ms for any incident query.
+- **Agentic Growth OS:** LangGraph pipeline runs all 5 agents sequentially — ~3–5s per full execution. Dashboard updates via polling every 2s during execution.
+- **Universal Agent:** Chat response: ~1–3s (DeepSeek). Cached with Redis optionally. Lock check adds < 1ms to every request.
 
 ---
 
 ## Streaming — SSE vs WebSocket
 
-**SSE (Server-Sent Events):** Server pushes tokens to the browser one at a time as they are generated. One-directional (server → client). Simple to implement. Works through Nginx with `X-Accel-Buffering: no` header.
+| | SSE | WebSocket |
+|---|---|---|
+| Direction | Server → Client only | Bidirectional |
+| Protocol | HTTP | WS |
+| Reconnect | Auto (browser) | Manual |
+| Best for | Token streaming, live updates | Chat with user-to-user, real-time games |
 
-**WebSocket:** Bidirectional — client can also send messages during the stream. Use when the user might interrupt or send follow-ups mid-response.
+**Per-project streaming:**
 
-**For most AI chat UIs:** SSE is enough and simpler to deploy.
-
-**TTFT (Time to First Token):** The most important UX metric for streaming. User sees the first word quickly, even if the full response takes 10 seconds. Target: < 500ms from query submission to first visible token.
-
-**Nginx gotcha:** By default, Nginx buffers responses. With SSE you must disable buffering: `X-Accel-Buffering: no` — otherwise the user sees nothing until the full response is ready.
-
-**AstroIntel angle:** AstroIntel uses a Chakra spinner (Angular) during the analysis phase — not SSE — because the pipeline produces a complete structured JSON at the end, not a token stream. SSE would not add value here; the meaningful output is the full report. The spinner provides UX feedback while the ~4s pipeline runs. Interview line: "Not every LLM product needs streaming. When the output is structured JSON, wait-then-reveal is simpler and more reliable."
+- **AstroIntel:** `/api/v1/stream/{session_id}` — SSE endpoint. Angular `EventSource` subscribes. Tokens streamed as `data: {"type": "token", "token": "..."}`.
+- **Bench:** `/generate-plan/stream` — SSE plan generation. Tokens streamed live, readiness score updates as tasks complete. `EventSource` in Angular frontend.
+- **RunbookAI:** No streaming — SQL responses are instant, no need for SSE.
+- **Agentic Growth OS:** Polling for campaign execution status — not SSE. Each agent node emits progress events stored in campaign state, frontend polls every 2s.
+- **Universal Agent:** `/agent/stream` SSE endpoint. Format: `session → token → token → done → [DONE]`. Locked agent returns a single locked-message token then closes.
 
 ---
 
 ## Cost Optimization — The Five Levers
 
-1. **Model tiering** — classify each task type, route cheap tasks (formatting, summarization) to mini models (10x cheaper), route reasoning tasks to powerful models
-2. **Semantic caching** — store (query_embedding, response) pairs; on new queries, check similarity first — 60–70% cache hit rate is realistic, saving 60–70% of LLM cost
-3. **Prompt compression** — cut system prompt length, trim RAG chunks, remove filler — every 1K tokens saved across 1M requests = $1 saved
-4. **max_tokens cap** — for each use case, know the maximum useful response length and cap it
-5. **Batch processing** — batch embedding API calls, batch document ingestion — 100x cost reduction vs per-item calls
+1. **Cache** — never pay twice for the same query (Bench: L1+L2+Redis)
+2. **Smaller model** — use GPT-4o-mini or DeepSeek for < 10-token tasks
+3. **Prompt compression** — shorter prompts = fewer input tokens
+4. **Batch** — group multiple small requests into one API call
+5. **Lock** — prevent any LLM call when not needed (Universal Agent)
 
-**AstroIntel angle:** AstroIntel uses all 5 levers. Model tiering: DeepSeek for domain analysis (cheap), grammar_agent uses a lighter pass. Semantic caching: 3-tier cache described above. Prompt compression: LP-specific templates cut prompt size vs generic templates. max_tokens: 250 per agent call. Batch: embeddings for the semantic cache are batched per session, not per insight.
+**Per-project cost wins:**
+
+- **AstroIntel:** DeepSeek = 500× cheaper than GPT-4o. $0.000137 per full 360° analysis.
+- **Bench:** Semantic cache means similar role queries (e.g. "ML Engineer" vs "ML Software Engineer") share the same cached response. Estimated 60–70% cache hit rate after warm-up.
+- **RunbookAI:** Zero LLM cost at query time. Most cost-efficient query architecture in portfolio.
+- **Agentic Growth OS:** Learning engine reuses past campaign decisions — fewer novel LLM calls on repeat campaign types.
+- **Universal Agent:** Per-agent lock via `/agents/{id}/lock`. Lock All button kills all 5 agents instantly. Estimated savings: 100% of token cost during lock period.
 
 ---
 
 ## Chat with PDF — Production Design
 
-**Ingestion pipeline (runs once, offline):**
-PDF → extract text → chunk (512 tokens, 50-token overlap) → embed each chunk → store in vector DB with metadata (doc_id, page, chunk_index, tenant_id)
+**Architecture:**
+1. Upload PDF → extract text (PyPDF2 or pdfminer)
+2. Chunk text (512 tokens, 50 overlap)
+3. Embed chunks (HuggingFace local or OpenAI)
+4. Store in vector database (FAISS / pgvector)
+5. User asks question → embed query → retrieve top-5 → LLM answers
 
-**Query pipeline (runs on every user question):**
-User question → embed → hybrid search (dense + sparse) → rerank top 20 → take top 5 → build prompt → LLM → stream back with SSE
+**Per-project PDF handling:**
 
-**Multi-tenant isolation:** Every DB row has `tenant_id`. Every query has a mandatory `WHERE tenant_id = ?` — user A never sees user B's documents.
-
-**Scale concern:** At 10K documents per tenant × 1K tenants = 10M vectors. pgvector handles this with HNSW indexing. Above this, move to Pinecone or Qdrant.
+- **AstroIntel:** No PDF ingestion in main flow. Spiritual readings are form-based inputs, not document-based.
+- **Bench:** **CV as PDF.** `utils/file_parser.py` extracts text. G2 injection guard runs on raw text before any parsing. Extracted profile stored in SQLite. Admin can upload internal training documents (PDF) — chunked and embedded into FAISS for the role knowledge base.
+- **RunbookAI:** **Runbook as PDF.** LLM extracts structured JSON from PDF at ingest. No chunking — one extraction call per runbook. Result stored as rows in `runbook_steps` table. `commands_source: "database"` forever after.
+- **Agentic Growth OS:** No PDF handling.
+- **Universal Agent:** PDF supported as knowledge base source. `source_dir` in config points to folder of PDFs/Markdown files. Chunked and embedded at startup.
 
 ---
 
@@ -463,67 +509,73 @@ User question → embed → hybrid search (dense + sparse) → rerank top 20 →
 
 ## Versioning — Everything Must Be Pinned
 
-An AI system has more moving parts than a regular service. All of these must be versioned:
+What to pin:
+- Model name and version (`deepseek-chat`, not just `deepseek`)
+- Prompt version (`cv_parser@v2`, `role_mapper@v2`)
+- Embedding model (`all-MiniLM-L6-v2`)
+- Dependencies (`requirements.txt` pinned)
 
-| Artifact | How to version |
-|---|---|
-| LLM model | Pin the model ID with date (e.g. `gpt-4o-2024-11-20`) |
-| Prompts | Version folder: `prompts/v2/system.txt` — treat as code |
-| Embedding model | Pin the exact model name; changing it invalidates all embeddings |
-| Vector DB index | Store creation date, model used, schema version |
-| Fine-tuned adapter | Model registry (MLflow / S3) with evaluation scores |
+**Per-project versioning:**
 
-**Why pinning matters:** OpenAI silently updates models. A prompt that worked with `gpt-4o-2024-05-13` may behave differently on a newer version. Pin, test, upgrade deliberately.
-
-**AstroIntel angle:** AstroIntel pins the DeepSeek model ID in `deepseek_client.py` and treats all prompt templates as code — they live in `LP_INTENT_TEMPLATES`, `ASTRO_INTENT_TEMPLATES` dicts, version-controlled in git. When a prompt template changes, it's a git commit with a message explaining why — same discipline as code versioning.
+- **AstroIntel:** `deepseek-chat` pinned in config. Domain agent prompts versioned in `prompts/` directory.
+- **Bench:** Explicit prompt versioning (`prompts/loader.py`). Model pinned in config. `cv_parser@v2` and `role_mapper@v2` tags visible in API responses so you know which version generated each output.
+- **RunbookAI:** SQL schema versioned in migrations. `source_type` column distinguishes internal vs official runbooks. Phase number (v1.0.0 Phase 6) tracked in health endpoint.
+- **Agentic Growth OS:** `CampaignState` TypedDict is the contract — adding fields is backwards compatible, removing is a breaking change.
+- **Universal Agent:** Config file is the version — changing `universal.config.yaml` changes behaviour. SDK versioned as `universal-agent.js`. Agent IDs in registry are stable identifiers.
 
 ---
 
 ## Monitoring — What to Watch in Production
 
-**Four dashboards you need:**
+| Signal | What it tells you |
+|--------|------------------|
+| TTFT p99 | Are 1% of users waiting too long? |
+| Cache hit rate | Is your caching working? |
+| Error rate | Are LLM calls failing? |
+| Token usage / cost | Are you burning budget? |
+| Guardrail triggers | Are users trying to abuse the system? |
 
-1. **Latency dashboard** — p50, p95, p99 latency per endpoint; TTFT histogram; alert if p99 > 5s
-2. **Cost dashboard** — tokens consumed per hour, cost per query, daily/monthly burn rate; alert if cost doubles
-3. **Quality dashboard** — faithfulness score, answer relevancy, hallucination rate from sample; alert if faithfulness < 0.7
-4. **Drift dashboard** — average cosine similarity of retrieved chunks over time; drop signals knowledge base needs re-embedding
+**Per-project monitoring:**
 
-**Tools:** Prometheus + Grafana for infra metrics. LangSmith or custom logging for LLM-specific metrics. RAGAS for offline quality evaluation.
-
-**AstroIntel monitoring real setup:** In-memory deque of last 200 RAGAS records. `/metrics/ragas` endpoint returns averages, trend (last 5 overall scores), per-metric alerts, and explainers. Cross-thread token usage tracked via global mutex accumulator (`threading.Lock` + global dict) so token counts from parallel ThreadPoolExecutor workers are safely aggregated without race conditions.
-
-**AstroIntel metrics dashboard surfaces:** cache hit rates per tier, total users cached, RAGAS per-metric scores with threshold alerts, pipeline latency, token usage per session, DeepSeek API cost estimates. All visible in the Angular admin metrics page.
+- **AstroIntel:** `/api/v1/metrics` — live metrics dashboard. Token usage per domain agent. Cache hit rates. Circuit breaker state. Correlation IDs on every request.
+- **Bench:** `/metrics` — request latency, cache hit rates (L1/L2 separate), guardrail trigger counts (G1–G5), circuit breaker state, SSE streaming TTFT. RAGAS scores stored per query.
+- **RunbookAI:** `/health` — service version, phase, database status. Conflict detection counts per runbook pair. Query response times in logs.
+- **Agentic Growth OS:** Campaign Dashboard — ROI per run, CTR trend, learning badge per improved run. Run history with timestamps.
+- **Universal Agent:** `/agent/health` — locked state, active sessions, tools, RAG state. `/agents` — all 5 agents with live health probed in parallel every 15s. Agent Dashboard UI at `/agents-dashboard`.
 
 ---
 
 ## Model Serving — FastAPI, BentoML, vLLM
 
-**Calling OpenAI/Anthropic (most common):** FastAPI async endpoint → async OpenAI SDK call → SSE streaming response. No GPU needed. This is what AstroIntel uses.
+**Calling OpenAI/Anthropic (most common):** FastAPI async endpoint → async SDK call → SSE streaming response. All 5 projects use this pattern.
 
-**Hosting your own open-source model:**
-- **vLLM** — OpenAI-compatible API, continuous batching (serves multiple requests efficiently on one GPU), the standard for self-hosted LLM inference
-- **BentoML** — packages models as deployable services with a model registry; good for ML models + LLM combinations
+**Self-hosting with vLLM:** OpenAI-compatible API, continuous batching. Best for high-volume or fine-tuned models.
 
-**When to self-host:** Data privacy requirements, cost optimization at very high volume (> 1M requests/day), or need for a fine-tuned model that cannot be uploaded to OpenAI.
+**Per-project serving:**
 
-**AstroIntel angle:** AstroIntel calls DeepSeek's hosted API (OpenAI-compatible endpoint) from a custom `deepseek_client.py` that handles retries, timeout, and cross-thread token accounting. The DeepSeek HTTP timeout is set to 8s — short enough to fail fast, long enough for a 250-token response. All domain agent threads share a single `_global_usage` dict protected by `threading.Lock` for safe cross-thread token aggregation.
+- **AstroIntel:** FastAPI + DeepSeek SDK. Custom `deepseek_client.py` handles retries, timeout, cross-thread token accounting via `threading.Lock`.
+- **Bench:** FastAPI async + DeepSeek OpenAI-compatible SDK. `--reload` in dev, production config via env vars.
+- **RunbookAI:** FastAPI. LLM serving only at ingest time — query serving is pure SQL, no model required at runtime.
+- **Agentic Growth OS:** FastAPI + LangGraph. Each agent node calls DeepSeek synchronously within the LangGraph execution thread.
+- **Universal Agent:** FastAPI via `uvicorn api.main:app`. Provider-agnostic — swap DeepSeek to Claude to GPT-4 by changing one line in YAML. No code change required.
 
 ---
 
 ## Feedback Loops — Making the System Better Over Time
 
-**RLHF (how GPT-4 was trained):** Collect human preference rankings → train a reward model → use RL (PPO) to fine-tune the LLM toward higher-ranked responses. Very expensive. Not practical for most teams.
+**RLHF-lite (practical):**
+1. Thumbs up/down on every AI response
+2. Store: `{query, context, response, rating, timestamp}`
+3. Weekly: review low-rated responses, find patterns
+4. Monthly: update few-shot examples with highest-rated responses
 
-**RLHF-lite (what your team can actually do):**
-1. Add thumbs up/thumbs down to every AI response in your UI
-2. Store signals: `{query, context, response, thumbs_up/down, timestamp}`
-3. Weekly: human review of thumbs-down responses — identify patterns
-4. Monthly: fine-tune on curated good examples, or update few-shot examples in prompts with highest-rated responses
-5. Measure: does thumbs-up rate increase over time?
+**Per-project feedback:**
 
-**DPO (Direct Preference Optimization):** Simpler than RLHF. Feed the model pairs of (good response, bad response) for the same prompt. No reward model needed. This is the practical modern alternative to full RLHF.
-
-**AstroIntel angle:** AstroIntel's admin review step is a form of human-in-the-loop feedback collection. The admin approves or rejects individual insights — this approval signal is the preference signal. Future improvement: log approved vs rejected insights with their confidence levels and use them as a DPO dataset to fine-tune the domain agents' prompts. This converts the admin review UI into a training data collection system.
+- **AstroIntel:** Admin Review workspace — Approve All / Flag for Review / Generate Report. Episodic corrections stored in SQLite. Approved insights feed back into future system prompts.
+- **Bench:** `update-progress` endpoint — task completion acts as implicit feedback. Readiness score updates live. RAGAS scores per query feed into prompt improvement cycle.
+- **RunbookAI:** Conflict detection is its own feedback loop — when internal and official runbooks conflict, an engineer must resolve it, and the resolution updates the runbook.
+- **Agentic Growth OS:** **Explicit learning loop.** Every campaign run stores result. Next run for similar campaigns applies rule-based improvements. ROI delta is measured and displayed. The system gets measurably better over time.
+- **Universal Agent:** Session history as implicit feedback. `max_history: 20` keeps conversation context so follow-up questions improve in quality.
 
 ---
 
@@ -531,60 +583,59 @@ An AI system has more moving parts than a regular service. All of these must be 
 
 ## Async Processing — Queue, Retry, Dead Letter
 
-LLM calls take 500ms to 30 seconds. Running them synchronously for every user request does not scale. Async queues decouple request submission from processing.
+**Pattern:** Producer (API) → Queue (Kafka/Redis) → Worker (LLM call) → Result store → Consumer (polling/webhook)
 
-**Pattern:**
-1. User submits a request → API returns immediately: `{task_id: "abc123", status: "queued"}`
-2. A background worker picks up the task, calls the LLM, stores the result
-3. User polls `GET /tasks/abc123/status` or receives a webhook when done
+**Use when:** LLM calls > 5s, need retry, want to decouple frontend from backend latency.
 
-**Retry strategy (exponential backoff + jitter):**
-- Attempt 1 fails → wait 2s + random jitter
-- Attempt 2 fails → wait 4s + random jitter
-- Attempt 3 fails → wait 8s + random jitter
-- After max retries → move to Dead Letter Queue (DLQ)
+**Per-project async:**
 
-**DLQ:** A separate queue for tasks that failed all retries. A human engineer reviews these. Never silently discard failed tasks.
-
-**Tool:** Celery + Redis is the simple, standard choice for most teams. Kafka for high-throughput event streaming at scale.
-
-**AstroIntel angle:** AstroIntel currently runs synchronously — the /run endpoint blocks until all domain agents complete (~4s). This works at low traffic. At scale (100+ concurrent users), the right move is an async task queue: submit → get task_id → poll or webhook. The G2 circuit breaker provides the current production protection — if DeepSeek is slow, it fails fast and returns a cached response rather than blocking the thread.
+- **AstroIntel:** Kafka producer for async analysis jobs. `pipeline_queue/producer.py`. Dead letter queue for failed jobs. Redis for job state tracking.
+- **Bench:** Kafka topics: `bench.cv.uploaded`, `bench.plan.requested`, `bench.dlq`. Events published after each major operation. Consumers are separate workers that handle background tasks.
+- **RunbookAI:** Synchronous — SQL is so fast (< 100ms) that async is unnecessary.
+- **Agentic Growth OS:** LangGraph execution is synchronous but non-blocking — returns job_id on campaign launch, frontend polls.
+- **Universal Agent:** Synchronous per-request. No queue needed — response time < 3s.
 
 ---
 
 ## Event-Driven Pipelines — Kafka + LLM Workers
 
-**When to use Kafka:** Document ingestion pipelines where documents arrive continuously and multiple consumers need to process them (embedding, classification, indexing — all simultaneously from the same event).
+**AstroIntel:** Kafka producer publishes `analysis_requested` events. Worker pool picks them up. Redis tracks job state per session_id. LLM calls happen in the worker, not the API request thread.
 
-**Pattern:**
-```
-Document uploaded
-    → Kafka topic "documents.new"
-    → Consumer Group A: chunking + embedding worker
-    → Consumer Group B: metadata extraction worker
-    → Consumer Group C: classification worker
-```
-Each consumer group processes independently and at its own pace. If embedding is slow, it falls behind without blocking the other consumers.
+**Bench:** Three Kafka topics form a complete event pipeline:
+1. `bench.cv.uploaded` — triggers async background indexing
+2. `bench.plan.requested` — triggers async plan generation
+3. `bench.dlq` — dead letter queue, all failed events land here for retry/inspection
 
-**Your Java analogy:** Kafka consumer groups work exactly like Spring Batch partition steps — same document, multiple parallel processors.
-
-**AstroIntel angle:** AstroIntel's parallel domain agents inside ThreadPoolExecutor are conceptually the same as Kafka consumer groups — same input (user birth data), multiple independent processors (numerology, astrology, palmistry, tarot, vastu), results merged at the end. The difference: ThreadPoolExecutor is in-process (fast, stateless), Kafka is distributed (survives crashes, scales independently). AstroIntel doesn't need Kafka now — but the pattern is identical.
+**Interview line:** "I used Kafka for decoupling the API from the LLM processing latency. The API returns immediately with a 202 Accepted, the Kafka worker picks up the event, calls DeepSeek, and writes the result to the database. The frontend polls until the result is ready."
 
 ---
 
 ## Token Streaming — SSE in Production
 
-**How it works:**
-1. FastAPI uses `StreamingResponse` with an async generator
-2. The generator yields each token as it arrives from the LLM
-3. Client receives tokens via `EventSource` (SSE) and appends them to the UI in real time
-4. User sees text appearing word by word — no waiting for the full response
+**Implementation (FastAPI):**
+```python
+async def event_generator():
+    yield f"data: {json.dumps({'type': 'session', 'session_id': sid})}\n\n"
+    async for chunk in llm.astream(prompt):
+        yield f"data: {json.dumps({'type': 'token', 'token': chunk.content})}\n\n"
+    yield f"data: {json.dumps({'type': 'done'})}\n\n"
+    yield "data: [DONE]\n\n"
+```
 
-**The Nginx gotcha:** Nginx buffers by default. You must set `X-Accel-Buffering: no` in your response headers, otherwise the user sees nothing until the entire response is complete.
+**Angular client:**
+```typescript
+const source = new EventSource('/generate-plan/stream');
+source.onmessage = (e) => {
+  const d = JSON.parse(e.data);
+  if (d.type === 'token') appendToUI(d.token);
+  if (d.type === 'done')  source.close();
+};
+```
 
-**Angular implementation:** Use `EventSource` in a service, update a signal on each message event, the template reactively renders each new token.
-
-**AstroIntel angle:** AstroIntel uses Angular signals (`signal<>()`) throughout — `selectedModules`, `ragsData`, `cacheData` are all signals. The default module selection changed from all 5 to numerology-only: `signal<Set<Module>>(new Set(['numerology']))`. This is the Angular reactive primitive — one signal change cascades to all dependent UI components without manual change detection.
+**Per-project SSE:**
+- **AstroIntel:** SSE for report streaming — users see insights appear as agents complete
+- **Bench:** SSE for plan generation — each task line appears as it's generated. TTFT < 1.5s
+- **Universal Agent:** SSE endpoint with locked-agent short-circuit — sends locked message and closes without LLM call
 
 ---
 
@@ -592,73 +643,74 @@ Each consumer group processes independently and at its own pace. If embedding is
 
 ## Vector Store Decision (Know This Cold)
 
-```
-Need zero ops, billions of vectors → Pinecone
-Already on PostgreSQL, < 5M vectors → pgvector
-Prototype / on-prem / single-tenant → FAISS
-High performance, self-hosted, metadata filters → Qdrant
-```
+| Need | Use |
+|------|-----|
+| Local, no infra, fast prototype | FAISS |
+| Already on PostgreSQL | pgvector |
+| Managed cloud, production scale | Pinecone |
+| Hybrid search + metadata filtering | Weaviate |
+| No vectors needed | RunbookAI approach — SQL |
 
-**HNSW index** (used by pgvector and Qdrant): Hierarchical Navigable Small World. A graph-based index that finds approximate nearest neighbors in milliseconds. Create it once after ingestion; queries stay fast even with millions of vectors.
-
-**AstroIntel angle:** AstroIntel uses FAISS for the numerology RAG corpus (small, in-process, fits in RAM) and a custom in-memory dict for the semantic cache similarity lookup. No external vector DB needed at current scale. Interview line: "I chose FAISS because the numerology interpretation corpus is ~1,500 entries, single-tenant, and never changes between deployments. Pinecone would be over-engineering."
+**Bench uses FAISS** — no external dependency, rebuilt async after role updates, paired with BM25 for hybrid retrieval.
 
 ---
 
 ## LangChain — When to Use, When to Escape
 
-**Use LangChain for:** Document loaders, text splitters, basic RAG pipeline setup, fast prototyping. It removes boilerplate and gets you running in 50 lines instead of 200.
+**Use LangChain for:** Document loaders, text splitters, LCEL chains, standard RAG pipelines.
 
-**Escape LangChain when:**
-- You need per-call token cost tracking (LangChain hides this)
-- You need fine-grained retry/fallback logic
-- You need streaming with custom buffering behavior
-- Production debugging is hard because the chain is a black box
+**Escape LangChain when:** You need custom control flow, the abstraction hides important decisions, or you're building a multi-agent system (use LangGraph instead).
 
-**The senior pattern:** Use LangChain's document loaders and splitters (they are good and save time). Use the raw OpenAI/Anthropic SDK for the actual LLM calls where you need control.
-
-**AstroIntel angle:** AstroIntel does NOT use LangChain for LLM calls. It uses a custom `deepseek_client.py` with direct HTTP calls — this gives full control over timeout, retry, token counting, and error handling. LangChain was evaluated and rejected because it hid per-call token usage and made cross-thread token aggregation impossible. This is the "escape LangChain" decision in production.
+**Per-project LangChain usage:**
+- **AstroIntel:** LangGraph (built on LangChain) for the agent graph. LangChain document loaders for PDF ingestion.
+- **Bench:** LangChain for embedding (`HuggingFaceEmbeddings`), FAISS integration. Direct DeepSeek SDK for LLM calls — escaped LangChain's LLM abstraction for better control.
+- **RunbookAI:** No LangChain — SQL and NetworkX replace the entire retrieval layer.
+- **Agentic Growth OS:** LangGraph for the 5-agent StateGraph. LangChain tools for individual agent actions.
+- **Universal Agent:** LangGraph ReAct agent loop. LangChain `@tool` decorator for custom tools.
 
 ---
 
 ## LangGraph — State Machines for Agents
 
-**What it is:** A framework for building agents as explicit directed graphs. Each node is a Python function that reads and modifies a shared state dict. Edges define what runs next (conditional or unconditional).
+**Core concept:** Nodes = functions. Edges = transitions. State = shared dict that flows through all nodes.
 
-**Why it matters over LangChain's AgentExecutor:**
-- You control every transition explicitly — no black-box ReAct loop
-- You can add `interrupt_before` or `interrupt_after` on any node for human review
-- Checkpointing lets you pause mid-workflow and resume later — essential for long-running tasks
+```python
+from langgraph.graph import StateGraph
+graph = StateGraph(MyState)
+graph.add_node("agent_1", agent_1_function)
+graph.add_node("agent_2", agent_2_function)
+graph.add_edge("agent_1", "agent_2")
+graph.add_conditional_edges("agent_2", router_function, {"path_a": "node_x", "path_b": "node_y"})
+```
 
-**Key concepts:**
-- `StateGraph` = the graph with typed state
-- `TypedDict` = the state schema — every node reads/writes to this
-- `conditional_edge` = the LLM's output decides which node runs next
-- `interrupt` = pause here, wait for human input, then resume from this exact point
+**Per-project LangGraph:**
 
-**AstroIntel uses LangGraph:** 8-node StateGraph (security_check → question_agent → domain_agents → meta_agent → hallucination_check → remedy_agent → admin_review_agent → grammar_agent), 5 parallel domain agents via ThreadPoolExecutor inside the domain_agents node, human-in-the-loop interrupt at admin_review_agent, checkpointing for long runs.
-
-**The interrupt point:** The graph pauses after admin_review_agent completes. The admin sees the structured insights, approves/rejects each one, and clicks Approve. The graph resumes from that exact checkpoint and proceeds to final_report_agent → grammar_agent → END.
+- **AstroIntel:** 18+ nodes. Parallel domain agents (Astrology, Numerology, Palmistry, Tarot, Vastu). Supervisor node at the end. Conditional edges based on which analysis modules the user selected.
+- **Bench:** Not LangGraph — sequential pipeline. FastAPI orchestrates the 4 agents directly. LangGraph would add overhead for a linear flow.
+- **RunbookAI:** Not LangGraph — SQL handles all routing. NetworkX DiGraph for step ordering.
+- **Agentic Growth OS:** 5-node LangGraph StateGraph: Audience → AdCopy → BudgetOptimizer → Campaign → PerformanceAnalyzer. Pure functions per node. `CampaignState` as the shared state TypedDict.
+- **Universal Agent:** LangGraph ReAct loop. Single agent with tool-calling capability. `agent.py` implements the think → act → observe cycle.
 
 ---
 
 ## OpenAI API — Retry, Rate Limits, Fallback
 
-**Rate limit types:**
-- **RPM** — requests per minute
-- **TPM** — tokens per minute (more important for LLM systems)
-
 **Production pattern:**
-1. Track TPM usage in real time (Redis counter with 60-second window)
-2. Before each request, check if sending it would exceed the TPM limit
-3. If yes, wait or route to a fallback model
-4. Never wait for a 429 error — be proactive
+```python
+from tenacity import retry, stop_after_attempt, wait_exponential
+@retry(stop=stop_after_attempt(3), wait=wait_exponential(min=0.5, max=4))
+async def call_llm(prompt):
+    return await client.chat.completions.create(...)
+```
 
-**Fallback chain:** Primary model fails → secondary model → tertiary → graceful error. Example: GPT-4o → GPT-4o-mini → Claude Haiku → "Service temporarily unavailable."
+**Circuit breaker (Bench):** 5 failures in 60s → opens → returns fallback message → resets after 30s.
 
-**Retry on 429:** Use `retry-after` header value as the wait time. If not present, use exponential backoff starting at 5s.
-
-**AstroIntel angle:** AstroIntel's `deepseek_client.py` implements HTTP timeout (8s) as the primary rate-limit defense — if DeepSeek is slow, the thread is killed at 8s rather than waiting for a 429. The G2 circuit breaker opens after repeated timeouts, preventing queued requests from hitting a degraded API. Cross-thread token usage is tracked so the admin dashboard shows real-time DeepSeek spend.
+**Per-project retry strategy:**
+- **AstroIntel:** Retry + circuit breaker on DeepSeek client. SUPERADMIN `/reset-breaker` endpoint.
+- **Bench:** 3-retry with exponential backoff (0.5s → 1.0s → 2.0s). Circuit breaker opens at 5 failures. Graceful fallback message returned to user.
+- **RunbookAI:** Retry on PDF ingest LLM call only. No retry needed at query time (SQL).
+- **Agentic Growth OS:** Retry per LangGraph node. Failed node records error in CampaignState but pipeline continues.
+- **Universal Agent:** Retry via LangGraph's built-in error handling. `fallback_message` configured in YAML for all failure cases.
 
 ---
 
@@ -666,52 +718,71 @@ High performance, self-hosted, metadata filters → Qdrant
 
 ## AstroIntel 360° — What to Say
 
-**30-second summary:**
-"AstroIntel is a multi-agent astrological intelligence platform. It uses an 8-node LangGraph StateGraph with 5 parallel domain agents — Vedic Astrology, Numerology, Palmistry, Tarot, and Vastu. After the agents run, an admin reviews and approves before the report is generated. The approved report becomes a 20-page PDF generated entirely in Angular with print CSS, with support for 30+ language translations via an LLM translation agent."
+**One sentence:** "18+ LangGraph agents coordinate in parallel to generate personalised 360° spiritual intelligence reports in 23 Indian languages, costing $0.000137 per analysis — 500× cheaper than GPT-4o."
 
-**Key architectural decisions to mention:**
-- Chose LangGraph over raw threads because we needed human-in-the-loop interrupt/resume
-- 5 agents run in parallel (ThreadPoolExecutor inside domain_agents node) — reduces latency from 78s → 15s → 4s across three optimization rounds
-- DeepSeek LLM for domain analysis (cost-effective at scale), max_tokens=250, HTTP timeout=8s
-- 3-tier cache: Redis (distributed) + in-memory (local) + semantic (embedding similarity) — dedup by (name+dob+place) to prevent duplicate cache entries
-- G1–G5 guardrails: G1=rate limiter, G2=circuit breaker, G3=output validator, G4=PII filter, G5=degradation tracker
-- Numerology hybrid engine: single RAG+LLM call per tradition (Indian/Chaldean/Pythagorean), timeout enforced via `ThreadPoolExecutor.submit().result(timeout=N)` — hard kill not soft timeout
-- Effective-count confidence: `effective_count = domain_count if domain_count > 1 else len(sub_traditions)` — ensures numerology-only mode gets HIGH confidence not LOW
-- LP_CAREER_INSIGHTS dict: 12 life-path specific career fingerprints (LP7 = "solitary focus cycles → breakthrough", LP1 = pioneer, LP4 = builder, etc.)
-- RAGAS auto-scored on every /run with all insight IDs — faithfulness = confidence∈(high,medium), not domains≥2
+**Three technical proof points:**
+1. Parallel domain agents (ThreadPoolExecutor) reduce latency vs sequential — 5 domains in the time of 1
+2. RAGAS evaluation runs on every /run (not just /approve) — caught faithfulness bugs that were silently scoring 33%
+3. JWT + X-API-Key dual auth, 76 auth tests, 3 RBAC roles
 
-**Numbers to cite:**
-- 8-node LangGraph StateGraph
-- 5 domain agents, 3 sub-agents each for astrology (Vedic/KP/Western) and numerology (Indian/Chaldean/Pythagorean)
-- ~4s pipeline (optimized from 78s through 3 rounds: parallel agents, timeout enforcement, max_tokens cap)
-- 20-page PDF, 30+ languages
-- $0.07 per analysis
-- RAGAS scores 1.0 faithfulness, 1.0 overall after fixes (was 0.00 — never ran on /run endpoint)
-- Celebrity accuracy test: 72% aggregate across 5 real personalities (Elon Musk, Taylor Swift, Virat Kohli, Oprah Winfrey, Barack Obama)
+**Why you built it:** Real unmet need — spiritual guidance with technical rigour. Demonstrates multi-agent orchestration at scale with production observability.
 
 ---
 
 ## Bench Resource Optimizer — What to Say
 
-**30-second summary:**
-"Bench Resource Optimizer is an AI-powered HR tool that identifies which employees are on the bench (not assigned to any project) and recommends them for open project roles based on skills, availability, and capacity. It uses RAG over a PostgreSQL employee database with pgvector, a LangGraph supervisor agent for multi-step matching, and a Spring Boot integration layer since the HR team runs on Java microservices."
+**One sentence:** "5-layer Hybrid RAG pipeline (BM25+FAISS+RRF+HyDE+CRAG+cross-encoder) maps bench employees to roles, generates 7-day upskilling plans, with semantic cache cutting 60–70% of LLM calls and 502 tests at 94.7% coverage."
 
-**Key architectural decisions:**
-- RAG over structured employee data using pgvector — enables semantic skill matching ("someone who knows distributed systems" finds candidates with Kafka, Kubernetes, and microservices experience)
-- Spring Boot bridge — the Java/Spring background directly applies here; the AI service is a FastAPI sidecar that the Spring Boot orchestrator calls
-- Guardrails prevent recommending employees who are on leave, have conflicts, or are below the required seniority level
+**Three technical proof points:**
+1. Hybrid RAG recall: FAISS alone 60% → full stack 83%+ — each layer has a measured reason
+2. G1–G5 guardrails in production: rate limiting, injection detection, JSON repair, PII filter, graceful degradation
+3. Episodic memory persists to SQLite WAL — agent remembers your explored roles across server restarts
+
+---
+
+## RunbookAI — What to Say
+
+**One sentence:** "RAGless incident response — LLM extracts commands once at PDF ingest, SQL returns them verbatim at query time — zero hallucinated kubectl commands, three ranked panels per incident, automated conflict detection between internal and official K8s docs."
+
+**Three technical proof points:**
+1. `commands_source: "database"` on every response — architectural proof of no hallucination
+2. NetworkX topological sort — step ordering guaranteed safe even for parallel-execution graphs
+3. P1/P2/P3 three-panel response — engineers see internal-only, official-only, and combined simultaneously
+
+---
+
+## Agentic Growth OS — What to Say
+
+**One sentence:** "5-agent LangGraph marketing pipeline with an auto-learning engine — first run establishes baseline, second run applies learned improvements, ROI improves 40–80% run-over-run."
+
+**Three technical proof points:**
+1. LangGraph StateGraph with pure-function nodes — state is immutable per node, no side effects between agents
+2. Learning engine: similarity-match past campaigns → extract winning rules → modify agent prompts automatically
+3. SVG drag-and-drop canvas shows live LangGraph data flow — non-technical users can see AI working
+
+---
+
+## Universal Agent — What to Say
+
+**One sentence:** "A plug-and-play AI agent that drops into any FastAPI, Angular, React, or HTML app via 3 lines of code or 1 script tag — YAML-configured persona, per-agent lock/unlock dashboard to protect API tokens, currently powering all 4 other enterprise platforms."
+
+**Three technical proof points:**
+1. `_resolve_agent_id()` port-based matching — each of 5 agents self-identifies in the registry, no manual config
+2. `/agents/lock-all` and `/agents/{id}/lock` — fine-grained token protection via HTTP, no code change needed
+3. Vite frontend (port 4204) — Apple/Google light-mode UI with iMessage-style chat, sidebar agent list, and real-time dashboard
 
 ---
 
 ## How to Tell Your AI Project Story
 
-**Four-layer structure:**
-1. **Problem** — what business problem did this solve? (one sentence)
-2. **Architecture decision** — what was the key technical choice and why? (one sentence)
-3. **What it does in production** — scale, latency, cost (two to three numbers)
-4. **What you learned / would improve** — shows you reflect on your work
+**Formula:** Problem → Naive solution → Why it fails → Your actual solution → Measurement
 
-**The senior differentiator:** Lead with the architectural decision, not the technology list. "I chose LangGraph because we needed human-in-the-loop interrupts — not because it was popular" is a senior answer. "I used LangGraph" is a junior answer.
+**Example (Bench):**
+- Problem: "Bench employees have no visibility into their skill gaps"
+- Naive: "Just use FAISS for retrieval"
+- Why it fails: "FAISS misses exact skill name matches — 'Kubernetes' vs 'k8s' returns different results"
+- Actual: "Hybrid BM25+FAISS — BM25 catches exact terms, FAISS catches semantic similarity, RRF fuses them"
+- Measurement: "Recall improved from 60% to 83% — I measured each layer's contribution"
 
 ---
 
@@ -719,69 +790,46 @@ High performance, self-hosted, metadata filters → Qdrant
 
 ## Fine-Tuning vs RAG — The Decision Matrix
 
-This is the most common senior interview question. Answer with the matrix.
+| Situation | Use RAG | Use Fine-Tuning |
+|-----------|---------|----------------|
+| Knowledge changes frequently | ✓ | ✗ |
+| Need to cite sources | ✓ | ✗ |
+| Need a specific tone/style | ✗ | ✓ |
+| Reduce hallucination on facts | ✓ | ✗ |
+| No GPU budget | ✓ | ✗ |
+| Model needs to learn a new task format | ✗ | ✓ |
 
-| Factor | Choose RAG | Choose Fine-tuning |
-|---|---|---|
-| Knowledge type | Facts, documents, changes often | Behavior, style, format, tone |
-| Update frequency | Daily/weekly | Rarely changes |
-| Data available | Any amount | Need 100–10,000 good examples |
-| Explainability needed | High (can show sources) | Low (knowledge in weights) |
-| Latency constraint | Can absorb 50–200ms retrieval | Need fastest possible inference |
-| Cost | Per-query retrieval cost | Upfront training; cheaper inference |
-
-**The honest answer:** Most teams should start with RAG. Fine-tune only when RAG cannot solve the problem — usually because the problem is behavioral (format, style, persona) rather than factual.
-
-**Combine them:** Fine-tune for consistent format/style + RAG for grounded facts. The most powerful production systems use both.
-
-**AstroIntel angle:** AstroIntel uses RAG for interpretation lookup (the tradition knowledge base rarely changes) and rule-based computation for the numerological maths. Fine-tuning would not add value here — the output style is controlled by `LP_INTENT_TEMPLATES` prompt engineering, not model weights. Interview line: "I control output style through structured prompt templates, not fine-tuning — because templates are instantly editable and version-controllable, while fine-tuning requires a training run."
+**All 5 projects chose RAG or RAGless over fine-tuning.** Reason: knowledge changes (roles, runbooks, spiritual interpretations), sources must be cited, no GPU budget, and fast iteration matters more than marginal quality gains.
 
 ---
 
 ## LoRA and QLoRA — Fine-Tuning Without Full GPU Clusters
 
-**LoRA (Low-Rank Adaptation):**
-Instead of updating all the model's weights (billions of parameters), LoRA adds small "adapter" weight matrices to specific layers and trains only those. The base model stays frozen. Only ~1% of parameters are updated — training is 10x faster and cheaper.
+Not used in any of the 5 projects — intentional. RAG gives equivalent quality for knowledge-intensive tasks without the infra cost. Know the theory for interviews.
 
-**QLoRA:**
-Same as LoRA but the base model is first compressed to 4-bit precision (quantized). A 7B parameter model that would need 28GB of GPU memory now fits in 16GB. Training a 7B model with QLoRA costs roughly $3–8 on a single GPU.
+**LoRA:** Freeze base model weights, train two small low-rank matrices (A×B) per attention layer. 1–10% of parameters vs full fine-tuning.
 
-**When to use:** You need a model that follows a very specific format, uses your company's terminology, or has a particular personality — and you have at least 500 high-quality training examples.
-
-**AstroIntel angle:** If AstroIntel needed a model that always outputs insights in a specific JSON schema without Pydantic repair fallbacks, QLoRA fine-tuning on 1,000 curated (birth_data → insight_json) pairs would be the approach. Currently Pydantic validation + retry handles format issues cheaply. At scale, fine-tuning the schema adherence behavior would reduce retry overhead.
+**QLoRA:** LoRA + 4-bit quantisation. Run on a single 24GB GPU what previously required 8× A100s.
 
 ---
 
 ## RLHF — How It Shaped GPT-4
 
-**Three phases:**
-1. **SFT (Supervised Fine-Tuning):** Train on human-written high-quality responses — teaches the model to follow instructions
-2. **Reward Model Training:** Show humans pairs of model responses, have them rank which is better — train a separate model to predict human preferences
-3. **RL Fine-Tuning (PPO):** Use the reward model to score the LLM's outputs and update the LLM to produce higher-scoring responses — the loop that produces "helpful, harmless, honest" behavior
-
-**DPO (modern alternative):** Instead of training a separate reward model, directly fine-tune on (winning_response, losing_response) pairs for the same prompt. Simpler, cheaper, increasingly preferred.
-
-**Practical impact:** Without RLHF, GPT-4 would be highly capable but would also follow harmful instructions, leak information, and be inconsistent in format. RLHF is why it behaves helpfully and safely.
-
-**AstroIntel angle:** The admin insight approval/rejection in AstroIntel is a latent DPO dataset. Every approved insight is a "winning response" for that (birth_data + intent) input. Every rejected insight is a "losing response." Logging these pairs enables a future DPO fine-tuning run to improve which insights the model generates without requiring a full RLHF reward model pipeline.
+Not implemented directly, but understood and referenced:
+- **AstroIntel** has an admin review workflow — human experts approve/flag AI insights. This is RLHF-lite: human preference data collected, used to improve future prompts.
+- **Agentic Growth OS** learning engine is DPO-like: it compares good runs vs average runs and applies the delta to the next run automatically.
 
 ---
 
 ## Multi-Modal AI — Vision + Text
 
-**What it is:** Models that can read both images and text in the same prompt. GPT-4o, Claude 3, and Gemini Pro are all multi-modal.
+Not implemented in current projects (all text-based), but architecture known:
+- Vision encoder (ViT) converts image to embeddings
+- Text encoder handles the question
+- Cross-attention mechanism fuses visual and text representations
+- LLM generates the final answer
 
-**Production use cases:**
-- Document parsing with layout (invoices, forms, charts) — image + text together
-- Screenshot-to-code generation
-- Product image classification combined with text descriptions
-- Medical imaging with clinical text notes
-
-**Architecture:** The image is passed as a base64 string (or URL) in the messages array alongside text. The model processes both in the same context.
-
-**Gotcha:** Images cost significantly more tokens than text. A 1024×1024 image can cost 765–1105 tokens. Budget accordingly.
-
-**AstroIntel angle:** AstroIntel's palmistry agent is a natural candidate for multi-modal expansion — instead of text-based palm line descriptions, users could upload a palm photo and GPT-4o/Claude would analyze the image directly. This would replace the current text-input palmistry agent with a vision-based agent. Interview line: "The palmistry agent is currently text-based. The multi-modal upgrade path is clear — pass the palm image as base64 alongside the birth data and switch to a vision-capable model."
+**Interview answer:** "My current projects are text-only, but I understand the architecture. If AstroIntel needed palmistry from a hand photo, I'd add a vision encoder to extract palm features, embed them alongside the user's birth data, and feed the combined context to the LLM."
 
 ---
 
@@ -789,98 +837,62 @@ Same as LoRA but the base model is first compressed to 4-bit precision (quantize
 
 ## The Five-Layer Answer Structure
 
-Every technical question has five layers. Hit layers 3–5 to sound senior.
-
-```
-Layer 1 — What it is (definition)
-Layer 2 — How it works (mechanism)
-Layer 3 — When to use it (judgment) ← minimum for senior
-Layer 4 — What fails (failure modes) ← expected at senior level
-Layer 5 — How to scale/evolve it (architecture) ← differentiates you
-```
-
-**Example — "What is RAG?"**
-
-Junior: "RAG is retrieval augmented generation. You retrieve documents and add them to the prompt."
-
-Senior: "RAG is the right choice when knowledge is external, dynamic, or too large to fine-tune. The three failure modes I watch for are: precision failure (irrelevant chunks retrieved), recall failure (missing the right chunks), and faithfulness failure (hallucination even with good chunks). I address these with hybrid search, CrossEncoder reranking, and a faithfulness gate before delivery."
-
-**AstroIntel example answer for "Tell me about a production debugging challenge":**
-"In AstroIntel, our RAGAS faithfulness score was stuck at 33% for weeks. The root cause was subtle: the faithfulness logic checked `domains >= 2` per insight, but in numerology-only mode each insight has only 1 domain tag even though 3 traditions (Indian, Chaldean, Pythagorean) contributed. The fix was to change the check to `confidence in ('high', 'medium')` — which reflects how confidence was actually assigned in the meta_agent. The lesson: never proxy a metric through a field that breaks for your own pipeline's edge cases."
+1. **Restate the problem** — show you understand the real challenge
+2. **Name the naive solution** — show you know the obvious approach
+3. **Explain why it fails at scale** — shows senior thinking
+4. **Describe your actual solution** — specific, named, measured
+5. **State the result** — a number, a percentage, a before/after
 
 ---
 
 ## Three Question Types — How to Handle Each
 
-**"What is X?" / "How does Y work?"**
-Template: "[X] is [one-sentence definition]. It works by [mechanism]. The reason it matters in production is [relevance]. The key decision is [trade-off]."
+**Design question ("Design a RAG system for X"):**
+→ Chunking strategy → embedding model choice → vector store → retrieval method → reranking → evaluation
 
-**"How would you design X?"**
-Template: "Before designing, I'd clarify [1–2 unknowns]. Given [assumed constraints], here is the architecture: [3–4 bullets]. The key decision is [A vs B] — I'd choose A because [reason]. The main failure mode is [failure], mitigated by [fix]."
+**Debugging question ("Why is your RAG giving bad answers?"):**
+→ Check retrieval first (is the right chunk being returned?) → check chunking (is context being split at the wrong boundary?) → check prompt (is context being injected correctly?) → check model (does it ignore the context?)
 
-**"Tell me about a time you..."**
-Template: "In [project], the key challenge was [challenge]. The architectural decision was [X vs Y]. I chose X because [constraint], giving [benefit] at the cost of [trade-off]. The result was [outcome]. I'd improve it by [evolution]."
-
-**AstroIntel ready-made answers:**
-- Latency optimization: "Pipeline went 78s → 4s. Root cause was sequential agents + missing timeout enforcement. Fix: ThreadPoolExecutor parallel execution + `submit().result(timeout=7)` hard kill."
-- Confidence bug: "All insights showing LOW in numerology-only mode. Root cause: domain_count=1 for single-domain runs. Fix: effective_count uses sub-tradition count when domain_count=1."
-- RAGAS 0.00: "Never scored because evaluation was only wired to /approve not /run. Fix: evaluate at /run time with all insight IDs."
+**Trade-off question ("RAG vs fine-tuning?"):**
+→ RAG when knowledge changes, fine-tuning when behaviour needs to change. Always name a specific project example.
 
 ---
 
 ## Signal Words That Raise Your Level
 
-| Instead of saying... | Say this instead |
-|---|---|
-| "I used X" | "I chose X over Y because [constraint]" |
-| "It works by..." | "The failure mode is... and the mitigation is..." |
-| "We deployed it" | "At 10x load, the bottleneck would be X, so I'd address it by Y" |
-| "It was fast" | "TTFT was under 500ms, measured at the first SSE token" |
-| "It was cheap" | "At $0.07 per analysis, 1,000 daily users costs $70/day" |
+Say these:
+- "I measured the impact of each layer..."
+- "The naive approach would be... but it fails because..."
+- "In production we observed..."
+- "The root cause was..."
+- "I validated this with 502 tests at 94.7% coverage..."
+- "commands_source: database on every response — that's my proof"
+
+Avoid:
+- "I used LangChain" (so does everyone)
+- "The LLM generates..." (describe the architecture, not just the tool)
+- "It uses RAG" (which RAG? which retrieval strategy? which chunking?)
 
 ---
 
 ## One-Paragraph Self Introduction (Memorize This)
 
-"I'm a Senior Full Stack Engineer with 6+ years in Java, Spring Boot, Angular, and cloud architecture. In the last year I've built two production AI systems: AstroIntel, an 8-node LangGraph multi-agent platform with 5 parallel domain agents, human-in-the-loop approval, and a 3-tier semantic cache — optimized from 78s down to ~4s pipeline latency; and a LangChain AI service demonstrating RAG, tool use, and streaming pipelines. My background is unusual for an AI engineer — I apply production reliability patterns from distributed systems, like circuit breakers, async queues, and Kafka consumer design, directly to AI infrastructure. I'm targeting Senior AI Engineer roles where I can architect and ship production-grade AI systems, not just prototype them."
+"I'm a Senior AI Engineer with 4 years of experience building production LLM systems. My most recent work includes five enterprise AI platforms: AstroIntel — 18-agent LangGraph system at $0.000137 per analysis; Bench Resource Optimizer — 5-layer hybrid RAG with 502 tests and 94.7% coverage; RunbookAI — a RAGless incident response system where architectural design eliminates hallucination entirely; Agentic Growth OS — a self-improving marketing agent pipeline; and Universal Agent — a plug-and-play agent infrastructure serving all four platforms. Across these projects I've implemented guardrails, semantic caching, circuit breakers, SSE streaming, episodic memory, and Kafka event pipelines. I use Java/Spring professionally and Python for AI — I can bridge both worlds."
 
 ---
 
 ## Pre-Interview Checklist
 
-**Your projects (no notes, no hesitation):**
-- [ ] 30-second summary of each project
-- [ ] Key architectural decision and why you made it
-- [ ] One failure or challenge you solved
-- [ ] Numbers: latency, cost, scale, model names
-- [ ] How you would scale each project to 10x load
-
-**Core concepts (one sentence each):**
-- [ ] RAG — what, when, and the three failure modes
-- [ ] LangGraph — what it is, when vs LangChain, interrupt/resume
-- [ ] Fine-tuning vs RAG — the decision matrix
-- [ ] RLHF/DPO — three phases, why it matters
-- [ ] Vector store choice — FAISS vs pgvector vs Pinecone
-- [ ] Streaming — TTFT, SSE, the Nginx gotcha
-- [ ] Async — Celery, task queue, DLQ pattern
-- [ ] Cost optimization — five levers
-- [ ] Hallucination — three-layer defense
-- [ ] Multi-agent patterns — parallel, supervisor, hierarchical
-
-**AstroIntel numbers to recite cold:**
-- [ ] 8 nodes, 5 domains, 3 sub-traditions per domain
-- [ ] 78s → 15s → 4s latency journey and why each step cut it
-- [ ] $0.07/analysis, DeepSeek, max_tokens=250, timeout=8s
-- [ ] RAGAS 1.0 after 3 bug fixes (0.00 → 33% → 1.0 faithfulness)
-- [ ] effective_count pattern — why it exists and what breaks without it
-- [ ] G1–G5 guardrails — one sentence each
-- [ ] 3-tier cache — L1/L2/L3 and the dedup fix
-
-**Your Java/Spring differentiator:**
-- [ ] Resilience4j = LLM client retry + circuit breaker (same pattern, different target)
-- [ ] Spring Batch = Celery task chain (same step-level restart concept)
-- [ ] Kafka consumer = document ingestion worker (same group/offset model)
-- [ ] @Async = asyncio/Celery (same non-blocking pattern)
+- [ ] Recite all 5 project one-liners cold
+- [ ] Know test counts: 415, 502, 137, 20
+- [ ] Know the cost: $0.000137 per AstroIntel analysis
+- [ ] Know RAG recall numbers: 60% → 78% → 83%+ (Bench)
+- [ ] Know G1–G5 guardrails by name
+- [ ] Explain RunbookAI RAGless in one sentence
+- [ ] Explain Universal Agent lock mechanism in one sentence
+- [ ] Explain Agentic Growth OS learning loop in two sentences
+- [ ] Explain why you chose DeepSeek over GPT-4o
+- [ ] Explain RAGAS metrics you measured and bugs you fixed
 
 ---
 
@@ -888,163 +900,376 @@ Template: "In [project], the key challenge was [challenge]. The architectural de
 
 ## Integrating LLMs into Spring Boot Microservices
 
-**The pattern:** FastAPI AI sidecar + Spring Boot orchestrator. Spring Boot handles business logic, auth, DB; FastAPI handles LLM calls, RAG, and streaming. They communicate over REST.
-
-**Why not call OpenAI directly from Spring Boot?** You can — but Python's AI ecosystem (LangChain, LangGraph, sentence-transformers, FAISS) is far richer than Java's. The sidecar pattern lets you use the best of both worlds.
-
-**Circuit breaker in Spring Boot calling FastAPI AI sidecar:**
 ```java
-@CircuitBreaker(name = "aiService", fallbackMethod = "aiServiceFallback")
-public String callAiService(String query) {
-    return restTemplate.postForObject("/ai/analyze", query, String.class);
-}
-public String aiServiceFallback(String query, Exception e) {
-    return "AI service temporarily unavailable. Please try again in a moment.";
+// RestTemplate call to FastAPI LLM service
+@Service
+public class LLMService {
+    private final RestTemplate restTemplate;
+
+    public String generatePlan(String userId, String role) {
+        var request = new ChatRequest(userId + " needs a plan for " + role);
+        return restTemplate.postForObject(
+            "http://ai-service:8000/agent/chat",
+            request, ChatResponse.class).message();
+    }
 }
 ```
 
-**AstroIntel angle:** AstroIntel implements the circuit breaker pattern in Python (G2 guardrail) rather than Java, but the logic is identical to Resilience4j. Failure threshold → open state → half-open test → resume. The Resilience4j knowledge from Java directly transfers to Python's `pybreaker` or custom circuit breaker implementations. Interview line: "I implemented the G2 circuit breaker in Python using the same state machine I know from Resilience4j — the pattern is language-agnostic."
+**Pattern:** Spring Boot is the orchestrator, FastAPI is the AI microservice. Spring handles auth, routing, and business logic. Python handles LLM calls, RAG, and embeddings.
+
+**Per-project Java relevance:**
+- Bench pattern maps directly to enterprise HR systems built on Spring Boot
+- Universal Agent's REST API (`/agent/chat`) is designed to be called from any language including Java
+- RunbookAI's incident response fits an enterprise ops platform built on Spring
 
 ---
 
 ## DevOps for AI — Docker, Kubernetes, FastAPI Workers
 
-**Docker image for an AI FastAPI service:**
-- Use `python:3.11-slim` as base (not full python — saves 200MB)
-- Install requirements in a layer that caches well (copy requirements.txt first, then copy code)
-- Separate worker image for Celery workers (same code, different CMD)
-- Never put API keys in the image — use environment variables or secrets manager
+**All 5 projects ship with Docker:**
+- Multi-stage Dockerfiles (build stage → runtime stage)
+- Non-root users in all containers
+- `.dockerignore` to exclude `.env`, `__pycache__`, test files
+- Bench: SonarQube caught `COPY . .` bundling secrets — fixed to explicit per-directory copies
 
-**Kubernetes considerations for AI workloads:**
-- Set `resources.requests` and `resources.limits` on memory — AI services can spike (large vector indexes, model loading)
-- Use separate node pools for GPU workloads vs CPU workloads
-- Add a readiness probe that waits until the model/index is loaded before accepting traffic
-- Use HPA (Horizontal Pod Autoscaler) on CPU or custom metrics (queue depth for Celery workers)
-
-**AstroIntel angle:** AstroIntel's FastAPI backend loads the FAISS numerology index and embedding model at startup — not at first request. This means the first request is not slow due to cold-start model loading. In Kubernetes, the readiness probe should check that the FAISS index is loaded before the pod accepts traffic. Never skip this — K8s will route traffic to a pod that is "Running" but whose model hasn't finished loading yet.
+**docker-compose for local dev:**
+- Bench: FastAPI + Redis + Kafka + ZooKeeper in one `docker-compose.yml`
+- AstroIntel: FastAPI + Redis + Kafka in docker-compose
 
 ---
 
 ## CI/CD for AI Systems
 
-**How AI CI/CD differs from standard CI/CD:**
+**GitHub Actions (Bench):**
+```yaml
+on: [push]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install -r requirements.txt
+      - run: pytest tests/ --cov=. --cov-report=xml
+      - uses: SonarSource/sonarcloud-github-action@master
+```
 
-| Standard | AI |
-|---|---|
-| Tests validate code correctness | Tests validate code + model output quality |
-| Breaking change = crash or wrong output | Breaking change = subtly worse answers (no crash!) |
-| Rollback trigger = error rate spike | Rollback trigger = quality metric regression |
-| Versioned artifact = Docker image | Versioned artifact = Docker image + prompt version + model ID |
-
-**AI pipeline stages (after standard lint/test):**
-1. **Integration test** — run a known Q&A pair through the full pipeline, assert the answer is correct
-2. **Eval stage** — run RAGAS on a test set, compare faithfulness and relevancy vs the last deployment baseline
-3. **Cost gate** — estimate cost per query from the new prompt; fail the pipeline if it's > 20% more expensive
-4. **Promote** — only if all gates pass, deploy to production
-
-**AstroIntel angle:** AstroIntel's celebrity test (Elon Musk, Taylor Swift, Virat Kohli, Oprah Winfrey, Barack Obama) is the integration test suite. Running their known birth data through the pipeline and checking for HIGH confidence outputs + RAGAS ≥ 0.8 is a repeatable quality gate. 72% accuracy against real life events was the baseline established in this round — future prompt changes should not drop below this baseline.
+**What to say:** "Every push runs 502 tests and a SonarQube scan. Quality Gate blocks merge if coverage drops below threshold, if new vulnerabilities appear, or if code smells exceed the budget."
 
 ---
 
 ## Cloud Deployment — AWS and GCP for AI
 
-**Most common scenario (calling OpenAI API, no GPU needed):**
-- AWS: ECS Fargate — fully managed containers, no servers to manage
-- GCP: Cloud Run — same idea, scales to zero when idle (cost-effective)
+| Component | AWS | GCP |
+|-----------|-----|-----|
+| Container | ECS Fargate / EKS | Cloud Run / GKE |
+| Vector DB | OpenSearch | Vertex AI Matching Engine |
+| Queue | SQS / MSK (Kafka) | Pub/Sub |
+| LLM API | Bedrock | Vertex AI |
+| Object Storage | S3 | GCS |
 
-**Self-hosted LLM (need GPU):**
-- AWS: `g4dn.xlarge` — 1x T4 GPU, 16GB VRAM, $0.53/hr — good for 7B model inference
-- GCP: `g2-standard-8` — 1x L4 GPU, 24GB VRAM, $0.89/hr
+**Interview line:** "My projects are containerised and deployable to any cloud. The FastAPI + Docker + SQLite architecture runs on a single ECS task for small deployments. At scale, swap SQLite for RDS, Redis for ElastiCache, and add an Application Load Balancer."
 
-**Vector store in cloud:**
-- AWS: RDS PostgreSQL + pgvector extension
-- GCP: Cloud SQL PostgreSQL + pgvector extension
-- Alternative: Pinecone (managed, no infra — just an API call)
+---
 
-**Senior answer:** "For AstroIntel, the AI service runs on ECS Fargate calling the DeepSeek API — no GPU needed. The vector store is pgvector on RDS. If we needed self-hosted models for data privacy, I'd move to g4dn instances with vLLM serving the model behind an OpenAI-compatible endpoint."
+# MODULE 13 — Regex (Used Extensively in Production AI)
+
+## Why Regex Matters in AI Engineering
+
+Regex appears in **every production AI system** you build:
+- **LLM output parsing** — extract JSON from markdown-wrapped LLM responses (Bench G3)
+- **PII filtering** — strip emails and phones before storing or returning LLM output (Bench G4)
+- **Injection detection** — scan user input for prompt hijacking patterns (Bench G2)
+- **Conflict detection** — find numeric parameter disagreements in runbook text (RunbookAI)
+- **Input validation** — OTP codes, phone numbers, email formats (AstroIntel)
+- **Semantic chunking** — split on sentence boundaries, markdown headers, code fences
+
+---
+
+## Core Patterns Used in Production (Know Cold)
+
+### PII Filter — Bench G4
+
+```python
+import re
+
+# Compiled once at module level — called on every LLM output
+_EMAIL = re.compile(r'[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}')
+_PHONE = re.compile(r'(\+?\d{1,3}[\s\-]?)?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{4}')
+
+def strip_pii(text: str) -> str:
+    text = _EMAIL.sub('[EMAIL]', text)
+    text = _PHONE.sub('[PHONE]', text)
+    return text
+```
+
+### JSON Extraction from LLM Output — Bench G3
+
+```python
+# G3 JSON repair cascade: direct → fence → regex key-value → LLM repair
+_JSON_FENCE  = re.compile(r'```(?:json)?\s*([\s\S]*?)\s*```')
+_JSON_INLINE = re.compile(r'\{[\s\S]*\}')
+
+def extract_json(text: str) -> dict:
+    try:                                        # Step 1: direct parse
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+    m = _JSON_FENCE.search(text)               # Step 2: markdown fence
+    if m:
+        try: return json.loads(m.group(1))
+        except json.JSONDecodeError: pass
+    m = _JSON_INLINE.search(text)              # Step 3: bare JSON object
+    if m:
+        try: return json.loads(m.group(0))
+        except json.JSONDecodeError: pass
+    return llm_repair_json(text)               # Step 4: LLM repair call
+```
+
+### Injection Detection — Bench G2
+
+```python
+_INJECTION = re.compile(
+    r'ignore\s+(all\s+)?previous|forget\s+(all\s+)?instructions'
+    r'|you\s+are\s+now|act\s+as\s+if|pretend\s+(you\s+are|to\s+be)'
+    r'|jailbreak|DAN\s+mode|developer\s+mode',
+    re.IGNORECASE,
+)
+
+def check_injection(text: str) -> bool:
+    return bool(_INJECTION.search(text))
+```
+
+### Numeric Conflict Detection — RunbookAI VALUE_CONFLICT
+
+```python
+_NUMERIC = re.compile(
+    r'\b(\d+(?:\.\d+)?)\s*(GB|MB|KB|ms|s|%|replicas?|pods?|nodes?|cores?|CPU|RAM)\b',
+    re.IGNORECASE,
+)
+
+def detect_value_conflict(internal_step: str, official_step: str) -> bool:
+    def extract(text):
+        return {u.lower(): float(v) for v, u in _NUMERIC.findall(text)}
+    internal, official = extract(internal_step), extract(official_step)
+    shared = set(internal) & set(official)
+    return any(internal[u] != official[u] for u in shared)
+```
+
+### Markdown Header Splitter — Semantic Chunking
+
+```python
+_HEADER = re.compile(r'^#{1,6}\s+.+$', re.MULTILINE)
+
+def split_on_headers(text: str) -> list[str]:
+    boundaries = [m.start() for m in _HEADER.finditer(text)]
+    if not boundaries:
+        return [text]
+    chunks = []
+    for i, start in enumerate(boundaries):
+        end = boundaries[i + 1] if i + 1 < len(boundaries) else len(text)
+        chunks.append(text[start:end].strip())
+    return chunks
+```
+
+### OTP Validation — AstroIntel
+
+```python
+_OTP = re.compile(r'^\d{6}$')
+
+def validate_otp(code: str) -> bool:
+    return bool(_OTP.fullmatch(code.strip()))
+```
+
+---
+
+## Regex in Each of the 5 Projects
+
+### AstroIntel 360°
+```python
+_OTP_PATTERN = re.compile(r'^\d{6}$')
+_HTML_TAGS   = re.compile(r'<[^>]+>')
+_SCRIPT_TAGS = re.compile(r'<script[\s\S]*?</script>', re.IGNORECASE)
+
+def sanitise_input(text: str) -> str:
+    text = _SCRIPT_TAGS.sub('', text)
+    return _HTML_TAGS.sub('', text)
+```
+- OTP validation (`^\d{6}$`), HTML/script tag stripping on birth details input, language routing pattern matching for 23 Indian languages
+
+### Bench Resource Optimizer (heaviest regex usage)
+```python
+# G2 — Injection detection (multi-pattern)
+# G3 — JSON fence extraction, bare JSON extraction
+_FENCE     = re.compile(r'```(?:json)?\s*([\s\S]*?)```')
+# G4 — PII filter
+_PII_EMAIL = re.compile(r'[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}')
+_PII_PHONE = re.compile(r'(\+?\d[\d\s\-().]{7,}\d)')
+```
+- G2: injection detection before every LLM call
+- G3: 4-step JSON repair cascade — direct → fence → bare → LLM
+- G4: PII strips email/phone from all LLM outputs
+- **ReDoS bug fixed**: original `\s*` inside repeated group → replaced with plain `split()`
+
+### RunbookAI
+```python
+_NUM_UNIT = re.compile(r'\b(\d+(?:\.\d+)?)\s*(GB|MB|ms|s|%|replicas?|pods?)\b', re.I)
+_NON_WORD = re.compile(r'[^\w\s]')
+
+def normalise_title(title: str) -> set[str]:
+    clean = _NON_WORD.sub('', title.lower())
+    return set(clean.split())
+
+def title_overlap(a: str, b: str) -> float:
+    sa, sb = normalise_title(a), normalise_title(b)
+    return len(sa & sb) / max(len(sa), len(sb)) if sa and sb else 0.0
+```
+- `VALUE_CONFLICT`: numeric parameter extraction per step
+- `ORDER_CONFLICT`: ordering keyword scan
+- Title overlap (≥ 40% threshold) for P3 combined panel matching
+
+### Agentic Growth OS
+```python
+_ROI_SCORE   = re.compile(r'roi[:\s]+(\d+(?:\.\d+)?)', re.I)
+_IMPROVEMENT = re.compile(r'(\d+(?:\.\d+)?)\s*%\s*(?:improvement|increase|gain)', re.I)
+
+def extract_roi(agent_output: str) -> float | None:
+    m = _ROI_SCORE.search(agent_output)
+    return float(m.group(1)) if m else None
+```
+- Learning engine extracts ROI and improvement % from agent output text
+- Campaign type detection via `re.search` on description keywords
+
+### Universal Agent
+```python
+_CALC_RESULT = re.compile(r'(?:result|answer|=)\s*:?\s*(-?\d+(?:\.\d+)?)', re.I)
+_SESSION_ID  = re.compile(r'^[a-zA-Z0-9\-_]{8,64}$')
+
+def validate_session_id(sid: str) -> bool:
+    return bool(_SESSION_ID.fullmatch(sid))
+```
+- Tool result extraction when LLM returns formatted output
+- Session ID validation on every `/agent/chat` call
+
+---
+
+## The ReDoS Vulnerability (Real Bug from Bench — SonarQube S5852)
+
+**What is ReDoS?** A regex with nested quantifiers can take exponential time on crafted input — causing server hang / denial of service.
+
+```python
+# VULNERABLE — catastrophic backtracking on long user input
+re.match(r'^(\w+\s*)+$', 'a' * 50 + '!')   # hangs the server
+
+# FIXED — plain string op, same result, O(n) always
+' '.join(text.split())  # no regex needed for this use case
+```
+
+**Rule:** Never put `\s*`, `.*`, or `+` inside a group that is itself repeated (`+` or `*`) on user input.
+
+**Safe patterns:**
+```python
+re.match(r'^\d{6}$', otp)          # fixed repetition — safe
+re.search(r'\b\w+\b', text)        # word boundary — safe
+re.sub(r'[^\w\s]', '', text)       # character class — safe
+
+re.match(r'(\w+\s*)+', user_text)  # nested quantifier — RISKY
+re.match(r'(.+)+', user_text)      # nested quantifier — RISKY
+```
+
+**Interview line:** "SonarQube caught a ReDoS vulnerability in our injection guard — `\s*` inside a repeated group on user input. I replaced it with plain string operations. This is why static analysis matters even for 'small' utility functions."
+
+---
+
+## Performance Rules
+
+| Rule | Why |
+|------|-----|
+| `re.compile()` at module level | Compile once, reuse many times — not inside the function |
+| `re.search()` for "contains" | `re.match()` only checks the start of the string |
+| `re.fullmatch()` for format validation | Ensures the entire string matches, not just a prefix |
+| `re.IGNORECASE` over `.lower()` | One operation instead of two |
+| Avoid `re.DOTALL` on user input | `.` matching newlines causes unexpected matches |
+| Raw strings `r'...'` always | Avoids double-escaping `\\d` vs `\d` confusion |
+
+```python
+# Compile once at module level — not inside the function
+_PII_EMAIL = re.compile(r'[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}')
+_PII_PHONE = re.compile(r'(\+?\d[\d\s\-().]{7,}\d)')
+
+def strip_pii(text: str) -> str:
+    text = _PII_EMAIL.sub('[EMAIL]', text)
+    return _PII_PHONE.sub('[PHONE]', text)
+```
+
+This is the exact pattern used in Bench G4 — compiled at module load, called on every LLM output.
+
+---
+
+## Regex vs String Operations — When to Use Each
+
+| Task | Use Regex | Use String Ops |
+|------|-----------|---------------|
+| Validate an email | ✓ | Too complex with string ops |
+| Check if starts with "Error:" | ✗ | `text.startswith("Error:")` |
+| Extract all numbers from text | ✓ | Too complex with string ops |
+| Strip whitespace | ✗ | `text.strip()` |
+| Check word boundary match | ✓ | Hard without regex |
+| Split on a fixed delimiter | ✗ | `text.split(',')` |
+| Find overlapping patterns | ✓ | Impossible with string ops |
+| Replace a simple substring | ✗ | `text.replace('old', 'new')` |
+
+**Bench SonarQube rule:** Replace regex with string ops whenever possible — faster, no ReDoS risk, more readable.
+
+---
+
+## Interview Line
+
+"Regex appears in every production AI system I've built — G4 PII filtering on all LLM outputs, G3 JSON repair cascades for malformed LLM responses, conflict detection in RunbookAI using numeric parameter extraction, and injection detection in Bench. I also fixed a ReDoS vulnerability that SonarQube caught — a `\s*` inside a repeated group on user input. Replaced it with plain string operations."
 
 ---
 
 # QUICK REFERENCE — Numbers and Decisions
 
-## Model Pricing (Approximate)
-| Model | Input /1M | Output /1M |
-|---|---|---|
-| GPT-4o | $2.50 | $10.00 |
-| GPT-4o-mini | $0.15 | $0.60 |
-| Claude Sonnet 4.6 | $3.00 | $15.00 |
-| Claude Haiku 4.5 | $0.08 | $0.40 |
-| DeepSeek Chat | ~$0.14 | ~$0.28 |
-| text-embedding-3-small | $0.02 | — |
+## All 5 Projects at a Glance
 
-## AstroIntel Key Numbers (Recite Cold)
-| Item | Number |
-|---|---|
-| LangGraph nodes | 8 |
-| Domain agents (parallel) | 5 |
-| Sub-traditions per domain | 3 (astrology: Vedic/KP/Western; numerology: Indian/Chaldean/Pythagorean) |
-| Pipeline latency (current) | ~4s |
-| Pipeline latency (original) | 78s |
-| Cost per analysis | $0.07 |
-| max_tokens per agent call | 250 |
-| DeepSeek HTTP timeout | 8s |
-| Agent thread timeout | 7s |
-| RAGAS faithfulness target | ≥ 0.80 |
-| RAGAS answer_relevancy target | ≥ 0.70 |
-| Celebrity test accuracy | 72% aggregate |
-| Cache tiers | 3 (in-memory / Redis / semantic) |
+| Project | Tests | Cost/query | Key metric | Architecture |
+|---------|-------|-----------|-----------|-------------|
+| AstroIntel | 415 | $0.000137 | 18+ agents | LangGraph parallel |
+| Bench | 502, 94.7% cov | ~$0.001 (cached) | 60%→83% recall | Hybrid RAG |
+| RunbookAI | 137 | ~$0 at query | 100% verbatim commands | RAGless SQL |
+| Agentic Growth OS | — | ~$0.005/run | 40–80% ROI gain | LangGraph 5-agent |
+| Universal Agent | 20 | $0 when locked | 5 agents managed | YAML-config ReAct |
 
 ## Latency Targets
-| Operation | Target |
-|---|---|
-| Embedding (single call) | 50–100ms |
-| FAISS search | 1–5ms |
-| pgvector search | 5–20ms |
-| Pinecone query | 10–50ms |
-| GPT-4o (500 tokens) | 2–5s |
-| TTFT (time to first token) | < 500ms |
-| Total RAG response | < 3s |
-| AstroIntel full pipeline | ~4s |
+
+| Operation | Target | Project |
+|-----------|--------|---------|
+| Cache hit | < 1ms | Bench L1 |
+| SQL query | < 100ms | RunbookAI |
+| TTFT streaming | < 500ms | Bench, AstroIntel |
+| Full LLM response | < 5s | All projects |
+| RunbookAI full query | < 100ms | RunbookAI (no LLM) |
+| Lock toggle | < 10ms | Universal Agent |
+
+## RAG Recall Improvement (Bench — Know Cold)
+
+| Stack | Recall |
+|-------|--------|
+| FAISS only | ~60% |
+| + BM25 + RRF | ~78% |
+| + HyDE | ~83% |
+| + Cross-encoder reranker | Best precision |
 
 ## Decision Trees
 
-**Vector store:**
-```
-> 10M vectors, zero ops → Pinecone
-< 5M vectors, already on PostgreSQL → pgvector
-Prototype / on-prem → FAISS
-High perf, self-hosted → Qdrant
-Small corpus, in-process → FAISS (AstroIntel numerology RAG)
-```
+**RAG vs Fine-tuning?** → Knowledge changes frequently → RAG. Behaviour/style needs to change → Fine-tuning.
 
-**Fine-tuning vs RAG:**
-```
-Knowledge changes frequently → RAG
-Need source attribution → RAG
-Behavior / style / format → Fine-tune
-Data privacy, can't send to API → LoRA on self-hosted
-Both factual grounding + consistent format → RAG + Fine-tune
-Style controlled by prompt templates → neither (AstroIntel approach)
-```
+**RAG vs RAGless?** → Commands must be exact and verbatim → RAGless SQL (RunbookAI). Knowledge is natural language → RAG.
 
-**Sync vs Async:**
-```
-Response < 3s, light load → Sync
-Response 3–30s, moderate load → Sync + SSE progress bar
-Response > 30s, any load → Async task queue
-Batch processing → Async always
-AstroIntel current (~4s, low traffic) → Sync with circuit breaker
-```
+**LangGraph vs sequential pipeline?** → Conditional routing / parallel agents → LangGraph. Fixed linear flow → sequential FastAPI (Bench).
 
-**LangChain vs LangGraph vs Direct SDK:**
-```
-Simple RAG pipeline, prototype → LangChain
-Multi-step agent with loops → LangGraph
-Human-in-the-loop → LangGraph (interrupt/resume)
-Production with cost tracking → Direct OpenAI SDK
-Full control over timeout + token counting → Direct HTTP client (AstroIntel)
-```
+**FAISS vs pgvector vs Pinecone?** → Local + no infra → FAISS. Already on PostgreSQL → pgvector. Managed production scale → Pinecone.
 
----
+**SSE vs WebSocket?** → Server-to-client streaming (token stream) → SSE. Bidirectional real-time → WebSocket.
 
-*End of revision. If any concept feels unclear, go back to the full notes in the numbered module folders.*
+**Lock one agent vs lock all?** → Specific agent burning tokens → `/agents/{id}/lock`. Budget emergency → `/agents/lock-all`.
