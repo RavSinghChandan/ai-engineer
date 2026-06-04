@@ -17,7 +17,7 @@
   // ─── Low-level API client ────────────────────────────────────────────────────
 
   class UniversalAgentClient {
-    constructor({ agentUrl = 'http://localhost:8000', prefix = '/agent' } = {}) {
+    constructor({ agentUrl = (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8000'), prefix = '/agent' } = {}) {
       this.baseUrl = agentUrl.replace(/\/$/, '') + prefix;
       this.sessionId = this._loadOrCreateSession();
     }
@@ -253,7 +253,8 @@
     const script = document.currentScript || document.querySelector('script[data-agent-url]');
     if (!script) return;
 
-    const agentUrl = script.getAttribute('data-agent-url') || 'http://localhost:8000';
+    // Fall back to the page's own origin so the widget always calls the server it loaded from
+    const agentUrl = script.getAttribute('data-agent-url') || window.location.origin;
     const position = script.getAttribute('data-position') || 'bottom-right';
     const color = script.getAttribute('data-color') || '#2563eb';
     const agentName = script.getAttribute('data-agent-name') || 'Assistant';
