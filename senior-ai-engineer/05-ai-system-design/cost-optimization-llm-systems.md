@@ -332,3 +332,24 @@ Second, add a code review rule: any change to max_tokens or model selection requ
 Third, add an automated check: in CI, run a token count estimation on the staging environment. If average tokens per request increases by more than 20% from baseline, the check fails with a cost impact warning.
 Fourth, education: show the cost calculation. "Removing max_tokens on this endpoint: 10,000 requests/day × average 300 additional output tokens × $0.60/1M × 30 days = $54/month additional cost for this one endpoint." Real numbers change behavior.
 The deeper principle: LLM cost is a shared team responsibility, not just an infrastructure concern. Every engineer who touches prompts affects the bill.
+
+---
+
+## ★ YOUR 5 PROJECTS — Cost Optimization in Practice
+
+| Project | Cost per query | Key optimization |
+|---------|---------------|-----------------|
+| **AstroIntel 360°** | $0.000137 per full analysis | DeepSeek ($0.14/1M) — 500× cheaper than GPT-4o ($2.50/1M). Parallel agents — same wall time as 1 agent but 5× the domain coverage. Per-agent token caps. |
+| **Bench Resource Optimizer** | ~$0 on cache hit | 3-tier cache: L1 exact, L2 semantic (≥ 0.92), L3 Redis. Est. 60–70% hit rate. Token tracker per agent in SQLite. |
+| **RunbookAI** | ~$0 at query time | Zero LLM tokens at query time — most cost-efficient query architecture in portfolio. One LLM call per runbook at ingest. |
+| **Agentic Growth OS** | ~$0.005/run | Learning engine reuses past campaign decisions — fewer novel LLM calls on similar campaigns. |
+| **Universal Agent** | $0 when locked | Lock all → 100% token saving. Per-agent lock → surgical cost control. |
+
+**The 5 levers:**
+1. **Model choice** — DeepSeek vs GPT-4o: 500× cost difference (AstroIntel)
+2. **Cache** — never pay twice for the same query (Bench L1+L2+Redis)
+3. **Vectorless** — zero LLM at query time (RunbookAI)
+4. **Lock** — prevent any LLM call (Universal Agent)
+5. **Learning reuse** — don't re-solve already-solved campaigns (Agentic Growth OS)
+
+**Interview line:** "The most cost-efficient architecture in my portfolio is RunbookAI — zero LLM tokens per query because the LLM only runs at ingest. The most cost-aware live system is AstroIntel at $0.000137 per full 360° analysis — 500× cheaper than GPT-4o by switching to DeepSeek. These are not theoretical optimizations — they are in production."

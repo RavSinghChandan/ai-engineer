@@ -251,3 +251,17 @@ Step 4 — From your project:
 
 Step 5 — Limitation awareness:
 "RLHF and DPO are imperfect. The model learns to satisfy the reward model or match the preference distribution — not necessarily to be correct. Reward hacking (generating nonsense that scores well) and sycophancy (telling users what they want to hear) are known failure modes. Human evaluation remains the ground truth."
+
+---
+
+## ★ YOUR 5 PROJECTS — RLHF-Lite in Practice
+
+| Project | RLHF-lite mechanism | How it improves |
+|---------|-------------------|----------------|
+| **AstroIntel 360°** | Admin Approve/Flag/Edit per insight | Human preference data collected per insight. Approved insights → feed back into future prompts. Rejected insights → analyzed for patterns. Admin review is the human annotator role. |
+| **Bench Resource Optimizer** | Task completion + readiness score | Implicit feedback: task completion = positive signal. Readiness score trend = quality KPI. RAGAS scores per query feed prompt review cycle. |
+| **RunbookAI** | Conflict resolution as preference | When internal vs official runbooks conflict, engineer resolves → resolution updates the runbook. Human correction = training signal for future ingest. |
+| **Agentic Growth OS** | **Explicit automated learning** | Every run's ROI/CTR stored. Next run: extract rules from high-ROI past campaigns → modify prompts. DPO-like: comparing good runs vs average → applying delta to next run automatically. |
+| **Universal Agent** | Session history as implicit preference | `max_history: 20` — context includes what worked in this conversation. No explicit RLHF. |
+
+**Interview line:** "Agentic Growth OS is the closest I've come to DPO without model training. The learning engine compares high-ROI campaigns vs average-ROI campaigns and extracts the delta — what was different in the winning campaigns. It then encodes those differences as rules that modify the agent prompts for the next similar campaign. The model doesn't change, but its behavior does — effectively prompt-based DPO."

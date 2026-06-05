@@ -530,3 +530,17 @@ FORBIDDEN PATTERNS:
 | Phase 1 (live now) | 0–100 corrections/tenant | Log every correction per tenant. Per-tenant persona prompt injection. Agents learn each tenant's tone immediately. |
 | Phase 2 | 100+ corrections/tenant | Run distillation script: use GPT-4/Claude to generate synthetic training pairs in tenant's corrected style. Human review. Dataset ready. |
 | Phase 3 | 500+ corrections/tenant | LoRA fine-tune Mistral-7B on the tenant's correction dataset. Each tenant gets their own fine-tuned model. |
+
+---
+
+## ★ YOUR 5 PROJECTS — Agent Memory in Practice
+
+| Project | Memory type | Implementation |
+|---------|------------|---------------|
+| **AstroIntel 360°** | Episodic + Semantic | `/api/v1/feedback` router. Persona preferences in SQLite. Past readings injected as context prefix. Persists across server restarts. Memory page at `/memory`. |
+| **Bench Resource Optimizer** | Episodic + Long-term | `session_store.py` — episodic (past sessions, explored roles, readiness score). Long-term facts. `build_memory_context()` injects into every prompt. SQLite WAL — survives restarts. `memory/{user_id}` API endpoint. |
+| **RunbookAI** | Implicit semantic memory | Runbooks in SQLite ARE the long-term memory — steps stored once at ingest, retrieved forever. No explicit episodic memory needed. |
+| **Agentic Growth OS** | In-context + Episodic | `CampaignState` = in-context per run. Campaign memory store (JSON) = episodic — similar past campaigns retrieved and applied. Memory persists between runs. |
+| **Universal Agent** | In-context with TTL | In-process `MemoryStore`, TTL-based expiry. `max_history: 20` turns. `session_id` per user. Sessions expire after `session_ttl_seconds`. |
+
+**Interview line:** "Bench has the most sophisticated memory implementation — episodic memory persists to SQLite WAL so it survives server restarts. When a user returns days later, the agent still knows their explored roles, their readiness score trend, and their long-term career facts. This is what separates a stateful assistant from a stateless chatbot."

@@ -355,3 +355,34 @@ Second, consumer lag monitoring: track consumer group lag (how many messages are
 Third, dynamic scaling: if lag is high, add more consumer instances. But be careful — more consumers = more concurrent LLM API calls = more likely to hit rate limits.
 Fourth, rate limiter in consumer: implement a token bucket rate limiter in each consumer so that even at full concurrency, you stay within the LLM API's rate limit.
 The LLM API rate limit is the bottleneck — the system is designed to buffer traffic from producers until the LLM API can process it. Kafka is the buffer.
+
+---
+
+## ★ YOUR 5 PROJECTS — Event-Driven Pipelines
+
+| Project | Event pipeline | Topics / Events |
+|---------|---------------|----------------|
+| **AstroIntel 360°** | Kafka 3-worker consumer group | `analysis_requested` → worker → DeepSeek LLM → Redis job state → SSE delivers result. `acks=all`, gzip, DLQ. |
+| **Bench Resource Optimizer** | Kafka 3-topic pipeline | `bench.cv.uploaded` → async indexing. `bench.plan.requested` → async plan generation. `bench.dlq` → all failures. |
+| **RunbookAI** | No event pipeline | SQL is synchronous and fast — event pipeline adds complexity with zero benefit. |
+| **Agentic Growth OS** | Internal state events | CampaignState records each node's completion. Frontend polls. Not Kafka — sequential pipeline doesn't need message queue. |
+| **Universal Agent** | No event pipeline | Request-response. Lock state is synchronous in-process. |
+
+**Kafka config that makes it enterprise (AstroIntel & Bench):**
+```python
+producer = KafkaProducer(
+    bootstrap_servers=["kafka:9092"],
+    acks="all",                          # wait for all replicas to ack
+    compression_type="gzip",             # reduce network bandwidth
+    retries=3,
+    value_serializer=lambda v: json.dumps(v).encode()
+)
+consumer = KafkaConsumer(
+    "bench.cv.uploaded",
+    group_id="bench-workers",            # consumer group — 3 workers share load
+    auto_offset_reset="earliest",
+    enable_auto_commit=False             # manual commit — process-at-least-once
+)
+```
+
+**Interview line:** "Both AstroIntel and Bench use `acks=all` and `enable_auto_commit=False`. These two settings together mean: a message is only removed from the queue after the worker has successfully processed it AND committed the offset. If the worker crashes mid-processing, the message is redelivered. This is the at-least-once processing guarantee — the right choice for LLM analysis jobs."

@@ -239,3 +239,17 @@ Overfitting: "Imagine a student who memorized every answer in the practice exam.
 Underfitting: "Imagine a student who only studied the chapter titles. They know too little to answer any specific question. Our model is like that — too simple to capture the real complexity."
 Distribution shift: "Imagine the student studied for a math test but walked into a science exam. The knowledge is fine but the domain changed. Our model has the same problem — production data looks different from what it trained on."
 Fix for the PM: "We need more diverse training examples and we need to monitor the model's performance on live data every week, not just once at launch."
+
+---
+
+## ★ YOUR 5 PROJECTS — Bias/Variance/Overfitting Manifestations
+
+| Project | Manifestation | What you did |
+|---------|--------------|-------------|
+| **AstroIntel 360°** | Variance in LLM outputs — same birth data, different answers across runs | Set temperature=0 for all domain agents. Multi-agent consensus (5 agents) as an ensemble — reduces output variance the same way bagging reduces ML variance. |
+| **Bench Resource Optimizer** | Retrieval variance — FAISS alone gave 60% recall, inconsistent across role types | Hybrid BM25+FAISS+RRF reduced variance. Cross-encoder reranker as the final precision layer — same as model stacking in ML. |
+| **RunbookAI** | Zero variance by design — SQL returns the same row every time | The vectorless architecture eliminates retrieval variance entirely. Deterministic topological sort for step ordering. |
+| **Agentic Growth OS** | Bias in first-run outputs — no historical data means recommendations are generic | Learning engine corrects this run-over-run. First run = high bias (no prior data). Subsequent runs = lower bias (learning applied). |
+| **Universal Agent** | Variance from YAML config changes — persona drifts without version control | Config file is the version. Each YAML change is tracked in git. `max_history: 20` caps context to prevent drift from long conversation history. |
+
+**Interview line:** "I think about bias-variance not just for ML models but for LLM output quality. In AstroIntel, running 5 independent domain agents and taking consensus is ensemble learning applied to LLMs — one biased agent is outvoted, reducing effective output variance. That's the same statistical principle as bagging."

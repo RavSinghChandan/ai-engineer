@@ -249,3 +249,17 @@ Pin your LangChain version in requirements.txt: `langchain==0.2.15`. Never use `
 Add a dedicated test suite that runs against your pinned version in CI. Before upgrading, run the test suite against the new version on a branch. Only upgrade when tests pass.
 Abstraction layer: wrap all LangChain calls in your own functions. If LangChain changes, you update one wrapper, not every place in the codebase.
 Long-term: for critical production code, consider replacing LangChain dependencies with direct SDK calls. LangChain is most valuable for rapid development. The more critical the system, the more you want to control the dependencies.
+
+---
+
+## ★ YOUR 5 PROJECTS — LangChain Usage Decisions
+
+| Project | LangChain usage | When you escaped |
+|---------|----------------|-----------------|
+| **AstroIntel 360°** | LangGraph (built on LangChain) for agent graph. LangChain document loaders for PDF ingestion. | Escaped LangChain's LLM abstraction — use direct DeepSeek SDK for better retry/timeout/token control. |
+| **Bench Resource Optimizer** | LangChain for `HuggingFaceEmbeddings`, FAISS integration, document loaders. | Direct DeepSeek SDK for all LLM calls — escaped LangChain's LLM wrapper for explicit control over retry, backoff, circuit breaker. |
+| **RunbookAI** | No LangChain | SQL + NetworkX replace the entire retrieval layer. LangChain would add zero value and zero functionality here. |
+| **Agentic Growth OS** | LangGraph for 5-agent StateGraph. LangChain tools for agent actions. | Stayed in LangGraph ecosystem — good fit for multi-node conditional graph. |
+| **Universal Agent** | LangGraph ReAct loop. LangChain `@tool` decorator. | YAML config overrides LangChain defaults where needed. Provider-agnostic via OpenAI-compatible SDK. |
+
+**Interview line:** "I use LangChain for what it's genuinely good at: document loaders, text splitters, FAISS integration, and the HuggingFace embedding wrapper. I escape it for LLM calls — I want direct SDK access so I control exactly how retries, timeouts, and circuit breakers work. LangChain's LLM abstraction is a leaky abstraction for production error handling."

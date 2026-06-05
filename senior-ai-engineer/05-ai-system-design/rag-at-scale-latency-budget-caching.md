@@ -410,3 +410,27 @@ Cache pre-warming: before a known peak event, identify the most common queries a
 Graceful degradation: if the queue is backing up, route to a simpler, faster model (GPT-4o-mini instead of GPT-4o) at the cost of quality. Users experience slightly lower quality instead of timeouts.
 Rate limiting per user: if one user is flooding the system, cap them at N requests per minute. This prevents one heavy user from degrading experience for everyone.
 These are standard distributed systems traffic management patterns — the same things you would do for a Spring Boot service under load, with the additional lever of model tier selection.
+
+---
+
+## ★ YOUR 5 PROJECTS — Latency Budget & Caching
+
+| Project | Latency profile | Caching |
+|---------|----------------|---------|
+| **AstroIntel 360°** | Parallel agents → better than sequential. SSE TTFT < 2s. DeepSeek timeout: 8s. | Redis DB0 for response cache. FAISS pre-warmed at startup — first request fast. |
+| **Bench Resource Optimizer** | L1 < 1ms, L2 ~5ms, full pipeline ~3s. SSE TTFT < 1.5s. FAISS rebuild async — zero downtime. | L1: exact SHA-256 match. L2: cosine ≥ 0.92. L3: Redis. Est. 60–70% cache hit rate post-warmup. Token cost: ~$0 on cache hit. |
+| **RunbookAI** | SQL < 50ms. NetworkX sort < 10ms. Total < 100ms. No LLM in query path. | No caching needed — SQL IS the cache. Data is always current. |
+| **Agentic Growth OS** | 5 sequential LLM calls ~3–5s. Dashboard polls every 2s during execution. | Campaign memory reuse reduces redundant LLM calls on repeat campaign types. |
+| **Universal Agent** | Chat ~1–3s. Lock check < 1ms. Locked = instant response. | Redis optional. Lock state in-memory — < 1ms check on every request. |
+
+**Latency targets (know cold):**
+
+| Operation | Target | Project |
+|-----------|--------|---------|
+| Cache hit L1 | < 1ms | Bench |
+| SQL query | < 100ms | RunbookAI |
+| SSE TTFT | < 500ms | Bench, AstroIntel |
+| Full LLM response | < 5s | All |
+| Lock toggle | < 10ms | Universal Agent |
+
+**Interview line:** "Bench's 3-tier cache is the reason its cost is near zero on repeat queries. L1 is an exact SHA-256 hash match — same query bytes → same response, < 1ms. L2 is semantic: cosine similarity ≥ 0.92 on query embeddings — 'ML Engineer London' and 'Machine Learning Engineer London' share the same cached response. L3 is Redis for distributed cache across workers."

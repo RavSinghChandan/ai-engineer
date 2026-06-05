@@ -421,3 +421,17 @@ Senior answer (the one that gets you hired):
 - plus 4 additional edge-case isolation checks
 
 All 30 passing. Zero external dependencies in the test suite.
+
+---
+
+## ★ YOUR 5 PROJECTS — Feedback Loops in Practice
+
+| Project | Feedback mechanism | How it improves the system |
+|---------|------------------|--------------------------|
+| **AstroIntel 360°** | Admin Review workspace — Approve / Flag / Generate Report | Approved insights inform future system prompts. RLHF-lite: human preference data collected per insight. Episodic corrections stored in SQLite. |
+| **Bench Resource Optimizer** | `update-progress` — task completion as implicit feedback | Readiness score updates live. RAGAS scores per query feed prompt improvement cycle. Readiness history tracked as time-series — trend visible. |
+| **RunbookAI** | Conflict detection as feedback loop | When internal and official runbooks conflict, engineer resolves it → resolution updates the runbook. Human-in-the-loop knowledge correction. |
+| **Agentic Growth OS** | **Explicit auto-learning loop** | Every campaign run stores result. Next run: similarity-match past campaigns → extract winning rules → apply to agent prompts automatically. ROI delta measured. System improves itself. |
+| **Universal Agent** | Session history as implicit feedback | `max_history: 20` — conversation context improves follow-up quality. Session expiry resets stale context. |
+
+**Interview line:** "Agentic Growth OS has the most sophisticated feedback loop — it's not human-in-the-loop, it's automated learning. After each campaign run, the learning engine stores the ROI, CTR, and conversion rate. For the next similar campaign, it extracts the winning rules from high-ROI past runs and modifies the agent prompts before the run starts. ROI improves 40–80% run-over-run. This is DPO-style learning applied without any model fine-tuning."

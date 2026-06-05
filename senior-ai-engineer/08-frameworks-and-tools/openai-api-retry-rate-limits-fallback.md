@@ -503,3 +503,34 @@ def test_fallback_to_mini_on_rate_limit():
     assert result.model == "gpt-4o-mini"
 ```
 Unit test the retry logic, the circuit breaker state transitions, and the fallback chain. For integration: use the OpenAI test mode or a local model (Ollama) as a drop-in for smoke tests.
+
+---
+
+## ★ YOUR 5 PROJECTS — Retry & Fallback in Practice
+
+| Project | Retry strategy | Circuit breaker |
+|---------|---------------|----------------|
+| **AstroIntel 360°** | Exponential backoff via tenacity. 8s timeout per call. | Opens after threshold failures. SUPERADMIN `/reset-breaker` endpoint. Falls back to cached/partial response. |
+| **Bench Resource Optimizer** | 3 retries: 0.5s → 1.0s → 2.0s backoff. | 5 failures in 60s → opens → 30s reset. Graceful fallback message returned. SSE stream: `[DONE]` sent even on failure. |
+| **RunbookAI** | Retry on PDF ingest LLM call only. | No retry needed at query time — SQL cannot fail transiently. |
+| **Agentic Growth OS** | Retry per LangGraph node. | Failed node records error in CampaignState but pipeline continues with partial results. |
+| **Universal Agent** | LangGraph built-in error handling. | `fallback_message` in YAML — configured per deployment. |
+
+**Production retry pattern (used in AstroIntel + Bench):**
+```python
+from tenacity import retry, stop_after_attempt, wait_exponential
+
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=0.5, min=0.5, max=4),
+    reraise=True
+)
+async def call_llm(prompt: str) -> str:
+    return await client.chat.completions.create(
+        model="deepseek-chat",
+        messages=[{"role": "user", "content": prompt}],
+        timeout=8.0
+    )
+```
+
+**Interview line:** "The circuit breaker in Bench opens after 5 consecutive failures in 60 seconds. Once open, it returns a fallback message immediately instead of queuing requests to a failing service. After 30 seconds, it moves to half-open — the next request is a probe. If it succeeds, the breaker closes. This is the standard circuit breaker state machine: closed → open → half-open → closed."

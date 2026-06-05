@@ -391,3 +391,17 @@ The diagnostic approach is the same: measure first, then optimize. I use RAGAS m
 The dual-path hybrid search pattern (dense + sparse → merge) is directly analogous to a JOIN query that combines two result sets — the query planner merges them based on a combined relevance score, same as RRF merges two ranked lists.
 Caching: in Spring, I cache expensive DB query results. In RAG, I cache embedding results and frequent query retrievals. Same pattern, different layer.
 This cross-domain thinking is what makes a senior engineer effective — you are not learning RAG from scratch, you are applying proven distributed systems patterns to a new domain.
+
+---
+
+## ★ YOUR 5 PROJECTS — Retrieval Optimization
+
+| Project | Retrieval optimization | Measured impact |
+|---------|----------------------|----------------|
+| **AstroIntel 360°** | Multi-query expansion for ambiguous spiritual terms | Ambiguous queries like "Will my ventures prosper?" — keyword-only = confidence: low, multi-query = confidence: medium. No vector DB — applied to intent classification. |
+| **Bench Resource Optimizer** | BM25+FAISS+RRF+HyDE+CRAG+cross-encoder | FAISS alone: 60% recall. +BM25+RRF: 78%. +HyDE: 83%. +reranker: best precision. BM25 catches exact skill names (Kubernetes, RabbitMQ) dense misses. Top-20 after fusion → top-5 after reranker. |
+| **RunbookAI** | SQL match by category + severity + title overlap | Title overlap ≥ 40% for P3 combined panel. NetworkX topological sort for step ordering. Zero embedding retrieval — deterministic. |
+| **Agentic Growth OS** | No retrieval optimization | String similarity on campaign_type + keywords. Simple, sufficient at scale. |
+| **Universal Agent** | FAISS top-k (when RAG enabled) | Configurable k in YAML. No hybrid retrieval in base config. Vectorless by default. |
+
+**Interview line:** "In Bench, I measured each retrieval layer's contribution separately before adding the next. FAISS alone was 60% — that's the baseline. Adding BM25 with RRF brought it to 78% because BM25 caught exact skill keywords dense vectors missed. HyDE pushed it to 83% by bridging the style gap between manager queries and CV prose. I don't add layers blindly — I measure each one."

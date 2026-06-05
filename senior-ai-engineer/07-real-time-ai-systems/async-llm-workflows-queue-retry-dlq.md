@@ -326,3 +326,17 @@ workflow.apply_async()
 ```
 Each step in the chain receives the output of the previous step. If any step fails, only that step retries — not the entire chain.
 This is equivalent to a Spring Batch job with multiple steps and step-level restart capability. Same pattern.
+
+---
+
+## ★ YOUR 5 PROJECTS — Async Processing in Practice
+
+| Project | Async pattern | Detail |
+|---------|--------------|--------|
+| **AstroIntel 360°** | Kafka producer + worker pool + Redis job state | `pipeline_queue/producer.py` publishes analysis jobs. Worker pool (3 workers, acks=all, gzip compression) processes them. DLQ for failed jobs. Redis tracks job state per session_id. LLM calls happen in worker, not API thread. |
+| **Bench Resource Optimizer** | Kafka topics: `bench.cv.uploaded`, `bench.plan.requested`, `bench.dlq` | Events published after each major operation. Consumers are separate workers for background tasks. API returns 202 Accepted + job_id. DLQ stores all failed events for retry/inspection. |
+| **RunbookAI** | Synchronous (no async needed) | SQL < 100ms — async would add complexity with zero benefit. |
+| **Agentic Growth OS** | LangGraph sync + non-blocking API | `POST /campaigns/run` returns job_id immediately. LangGraph executes all 5 nodes sequentially in background thread. Frontend polls status every 2s. |
+| **Universal Agent** | Synchronous per-request | Response < 3s. No queue needed. Lock check is synchronous — < 1ms overhead. |
+
+**Interview line:** "AstroIntel uses enterprise-grade Kafka: 3 parallel worker threads in a consumer group, `acks=all` for durability (no message lost even if broker crashes mid-write), gzip compression, retry + dead letter queue. This is production Kafka — not demo Kafka. The API returns immediately with a session_id. The analysis happens asynchronously. The SSE stream delivers results as agents complete."

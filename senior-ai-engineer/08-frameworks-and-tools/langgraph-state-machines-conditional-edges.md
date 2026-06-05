@@ -298,3 +298,21 @@ Second: background execution. Do not run a hours-long graph in a synchronous API
 Third: status API. Expose a `GET /tasks/{thread_id}/status` endpoint that reads the latest checkpoint and returns: current node, completed steps, time elapsed, estimated remaining.
 Fourth: timeout per node. Add a soft time limit per node. If a single node takes more than 5 minutes (LLM call hung), it is cancelled and retried rather than blocking the entire workflow.
 This is the same architecture as a Spring Batch long-running job: job definition, step-level restart capability, job status API, background execution.
+
+---
+
+## ★ YOUR 5 PROJECTS — LangGraph Usage
+
+| Project | LangGraph pattern | Key state |
+|---------|------------------|-----------|
+| **AstroIntel 360°** | 18+ node StateGraph | Parallel domain agents (Astrology, Numerology, Palmistry, Tarot, Vastu) via ThreadPoolExecutor. Supervisor at end. Conditional edges based on selected analysis modules. hallucination_check node inserted between meta_agent and remedy_agent. |
+| **Bench Resource Optimizer** | Not LangGraph | Sequential pipeline orchestrated by FastAPI directly. LangGraph would add overhead for a linear flow with no conditional routing. |
+| **RunbookAI** | Not LangGraph | No agent graph. SQL + NetworkX handle all routing. No LLM decision-making needed. |
+| **Agentic Growth OS** | 5-node StateGraph | Audience → AdCopy → BudgetOptimizer → Campaign → PerformanceAnalyzer. Pure functions per node. `CampaignState` TypedDict as shared state. Learning engine modifies StateGraph inputs for next run. |
+| **Universal Agent** | LangGraph ReAct loop | Single agent, tool-calling capability. `think → act → observe` cycle. `calculator`, `get_current_datetime` tools. |
+
+**When you chose LangGraph vs sequential FastAPI:**
+- Conditional routing / parallel agents → LangGraph (AstroIntel, Agentic Growth OS, Universal Agent)
+- Fixed linear flow, no branching → sequential FastAPI (Bench, RunbookAI)
+
+**Interview line:** "Bench deliberately doesn't use LangGraph. The pipeline is linear: upload CV → map role → generate plan → update progress. There are no conditional branches, no parallel nodes, no dynamic routing. LangGraph would add complexity without adding capability. I use LangGraph when the graph structure itself is the value — parallel agents, conditional routing, or a ReAct loop that decides its own next step."

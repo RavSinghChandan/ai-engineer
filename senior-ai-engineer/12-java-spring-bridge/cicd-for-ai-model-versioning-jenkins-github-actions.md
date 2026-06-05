@@ -460,3 +460,17 @@ Step 3 — Versioning:
 
 Step 4 — Canary:
 "AI service changes go canary before full promote. 10% of traffic routes to the new version for 15 minutes. I monitor faithfulness scores from real queries via Prometheus. If anything degrades, automatic rollback. This is the same zero-downtime deployment pattern I used for Spring Boot services."
+
+---
+
+## ★ YOUR 5 PROJECTS — CI/CD in Practice
+
+| Project | CI/CD implementation | Key detail |
+|---------|---------------------|-----------|
+| **AstroIntel 360°** | GitHub Actions: test.yml → build-push.yml → deploy.yml | 82 Kafka+Redis tests (all mocked — no real broker needed). ECR push via OIDC auth. ECS rolling update to `astrointel-cluster` ap-south-1. |
+| **Bench Resource Optimizer** | GitHub Actions + SonarQube | `pytest tests/ --cov=. --cov-report=xml`. SonarQube Quality Gate: coverage threshold, 0 vulnerabilities, code smell budget. Blocks merge on failure. |
+| **RunbookAI** | GitHub Actions | 137 tests. No API key needed for any test — all SQL + NetworkX are deterministic. Fast CI. |
+| **Agentic Growth OS** | GitHub Actions | Campaign pipeline tests. Learning engine tests run without LLM (mock). |
+| **Universal Agent** | GitHub Actions | 20 tests, no API keys. Lock/unlock tests use in-process state — no external dependency. |
+
+**Interview line:** "In AstroIntel's CI, all 82 Kafka and Redis tests run with mocked brokers — no real Kafka cluster needed. This is the right approach: tests should be fast, deterministic, and require no external services to spin up. The integration tests against real Kafka run only on the staging environment, not in PR CI. This is the discipline that keeps CI fast enough that engineers don't skip it."

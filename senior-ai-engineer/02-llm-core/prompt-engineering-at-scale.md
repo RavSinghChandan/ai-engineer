@@ -361,3 +361,17 @@ The symptoms: prompts are hardcoded in business logic, not versioned, not tested
 In production AI systems, the prompt IS the logic. A change to the system prompt changes the behavior of every user-facing feature that uses it. It deserves the same rigor as a code change: version control, code review, test suite, staged rollout.
 Second most common mistake: leaving max_tokens uncapped. I have seen a single developer remove a max_tokens limit "for better answers" — and the monthly LLM bill tripled before anyone noticed.
 Third: using the same system prompt for radically different tasks. One prompt for customer support, invoice extraction, and sentiment analysis — each task needs its own prompt, tested independently.
+
+---
+
+## ★ YOUR 5 PROJECTS — Prompt Engineering in Practice
+
+| Project | Prompt strategy | Key detail |
+|---------|----------------|-----------|
+| **AstroIntel 360°** | 18+ domain-specific system prompts | Language-aware templates for 23 Indian languages. Prompt style selector: Warm & Exploratory vs Laser Sharp — same question, different tone. SECURITY_HEADER + SECURITY_FOOTER injected into every agent prompt. |
+| **Bench Resource Optimizer** | Versioned prompts (`prompts/loader.py`) | `cv_parser@v2`, `role_mapper@v2` tags visible in API responses. HyDE prompt versioned as `prompts/v1/hyde.txt` — A/B testable without code deploy. Injection detection runs on CV text BEFORE prompt construction. |
+| **RunbookAI** | Strict JSON extraction prompt | `{"steps": [{"command": str, "description": str, "depends_on": [int]}]}` — structured output only at ingest. No natural language in extraction response. temperature=0 for deterministic extraction. |
+| **Agentic Growth OS** | Per-node role prompts, learning-adaptive | Each of 5 agents has focused role prompt. Ad Copy Agent prompt adapts based on `learning_strategy` field from previous runs — prompt changes based on what worked. |
+| **Universal Agent** | Full persona in YAML | Change one YAML field → change the agent's behaviour, no code change. Five pre-built configs. `extra_facts` injected as system context. |
+
+**Interview line:** "In Bench, prompts are versioned like code — `role_mapper@v2` is tagged in every API response so you can tell exactly which prompt version generated each output. This lets you A/B test prompt changes by comparing faithfulness scores between v1 and v2 without touching code deployment."

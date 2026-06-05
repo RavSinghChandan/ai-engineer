@@ -302,3 +302,19 @@ An agent is closer to an event-driven system with dynamic routing: a message arr
 The toolbox mapping: LangGraph StateGraph is the agent equivalent of a Spring State Machine (which I have used for order processing workflows). States, transitions, conditional edges — identical concepts.
 The reliability patterns are identical: retry on tool failure = retry on service call failure. Circuit breaker for a failing tool = circuit breaker for a failing downstream service. Dead letter handling for agent loops = DLQ for unprocessable messages.
 This means I can apply 8 years of distributed system reliability thinking directly to agent architecture — it is not a new problem domain, it is a familiar problem domain with a new execution engine.
+
+---
+
+## ★ YOUR 5 PROJECTS — Agent vs Workflow Decision
+
+| Project | Choice | Reason |
+|---------|--------|--------|
+| **AstroIntel 360°** | Workflow inside agents | Each domain (numerology, astrology, tarot) follows fixed internal flow. But the 18+ node LangGraph is a workflow — conditional edges based on which modules user selected. |
+| **Bench Resource Optimizer** | Workflow | CV parse → role map → plan generate → progress track. Fixed sequence. No conditional routing needed — each step receives clean output from previous. |
+| **RunbookAI** | Workflow (deterministic) | Query → SQL → topological sort → conflict check. Fixed path. Zero agent decision-making at query time. |
+| **Agentic Growth OS** | Agent pipeline | LangGraph StateGraph with conditional edges — learning engine can modify node behavior for next run. Audience → AdCopy → BudgetOptimizer → Campaign → PerformanceAnalyzer. |
+| **Universal Agent** | ReAct agent | User's query determines whether to use calculator tool, datetime tool, or just answer. LLM decides the path at every turn. |
+
+**Decision rule you use:** "If the path is known and fixed → workflow. If the path depends on the input and requires LLM reasoning to decide → agent. I default to workflow — it's testable, debuggable, and cheaper. I only use agents when the workflow path cannot be predetermined."
+
+**Interview line:** "Bench is a workflow, not an agent — the sequence is always CV → gap analysis → plan → progress. There's no decision node where the LLM picks the next step. Adding LangGraph to Bench would be over-engineering. Universal Agent is the opposite — the LLM genuinely needs to decide whether to call the calculator or answer from knowledge. That's where agent architecture earns its complexity cost."

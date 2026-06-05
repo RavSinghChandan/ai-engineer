@@ -348,3 +348,17 @@ Second, idempotency: the ingestion pipeline must be idempotent — running it tw
 Third, observability: I instrument the ingestion pipeline with metrics — documents processed per hour, embedding latency P95, queue depth, failure rate. If the pipeline falls behind, I want an alert before users notice stale results.
 Fourth, schema versioning: when the embedding model changes, I treat it like a DB schema migration — version the index, run the migration job, validate before switching traffic. Same discipline as Flyway/Liquibase migrations in Java.
 These are production engineering habits that make the difference between a RAG pipeline that works in a demo and one that runs reliably at 3am.
+
+---
+
+## ★ YOUR 5 PROJECTS — RAG Pipeline Decisions
+
+| Project | RAG? | Architecture | Latency |
+|---------|------|-------------|---------|
+| **AstroIntel 360°** | Partial RAG | FAISS for domain knowledge enrichment. Multi-query expansion for ambiguous spiritual terms. CRAG-equivalent: if domain agent confidence < threshold, escalate to broader query. | SSE streaming — TTFT < 2s |
+| **Bench Resource Optimizer** | Full 5-layer RAG | `query → BM25+FAISS → RRF → HyDE → CRAG quality gate → cross-encoder reranker → LLM`. Top-20 after fusion, top-5 after reranker. Recall: FAISS 60% → full stack 83%+. | Full pipeline ~3s, L1 cache < 1ms |
+| **RunbookAI** | **RAGless** | No RAG. SQL: `SELECT steps FROM runbook_steps WHERE category=? AND severity=?`. Deterministic. `commands_source: "database"` on every response. | < 100ms — no embedding, no LLM |
+| **Agentic Growth OS** | No RAG | Campaign memory via JSON + string similarity. No vector retrieval in any agent node. | ~3–5s full pipeline (5 LLM calls) |
+| **Universal Agent** | Optional RAG | `knowledge_base.enabled: false` (default) = vectorless. `true` = FAISS top-k retrieval. Toggle in YAML, no code change. | Chat ~1–3s; locked = instant |
+
+**Interview line:** "Bench is my most complete RAG implementation — every advanced pattern applied and measured: BM25 for exact skill name recall, HyDE for role description style matching, CRAG for poor retrieval fallback, cross-encoder reranker for precision. RunbookAI is the opposite extreme — RAGless — and it's actually more reliable for its domain."

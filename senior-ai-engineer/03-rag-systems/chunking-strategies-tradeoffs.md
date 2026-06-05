@@ -361,3 +361,17 @@ Implementation: use a code-aware parser (tree-sitter, or language-specific AST) 
 Metadata to store with each code chunk: function name, class name, file path, language, line range, docstring. This metadata is what makes code retrieval useful — you want to find "the login function in auth.py", not just any code that mentions "login".
 For functions that are too long (> 512 tokens): split at logical sub-blocks (try/catch blocks, major conditional branches) while preserving the function signature at the start of each sub-chunk.
 In a Java codebase (your background): each method is one chunk. The class declaration and method signature are included at the top of each chunk for context.
+
+---
+
+## ★ YOUR 5 PROJECTS — Chunking Decisions
+
+| Project | Chunking strategy | Why |
+|---------|-----------------|-----|
+| **AstroIntel 360°** | Domain-category chunking | Structured domain knowledge (not PDFs). Each domain's knowledge chunked by category (marriage, career, health, finances). No fixed-size splitting needed. |
+| **Bench Resource Optimizer** | Fixed-size + overlap for admin uploads | `chunk_size: 512, chunk_overlap: 50` for PDF training docs. Role knowledge from `roles_knowledge.json` chunked at startup. Admin can upload internal training docs — PDF → fixed-size chunks. |
+| **RunbookAI** | **No chunking — structured extraction** | LLM extracts a JSON of steps at ingest. The "chunk" is one step object `{command, description, depends_on}`. Steps are the atomic unit. No text splitting needed. |
+| **Agentic Growth OS** | No chunking | Campaign memory as JSON key-value. No document ingestion. |
+| **Universal Agent** | Configurable in YAML | `chunk_size: 500, chunk_overlap: 50`. Recursive character splitting via LangChain. Only active when `knowledge_base.enabled: true`. |
+
+**Interview line:** "RunbookAI taught me that the best chunking strategy for structured knowledge is no chunking at all — extract the structure directly. A runbook step is an atomic unit: command + description + dependencies. Splitting that across chunks destroys the relationship. LLM extracts it once, SQL stores it atomically, SQL returns it atomically."

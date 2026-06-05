@@ -205,3 +205,54 @@ This question:
 1. Shows you understand the hard problems in AI engineering
 2. Signals you're evaluating them as much as they're evaluating you
 3. Often leads to a genuine technical conversation that lets you demonstrate deeper knowledge
+
+---
+
+## ★ YOUR 5 PROJECTS — Mind Map Quick Reference
+
+```
+AstroIntel 360° ($0.000137/analysis, 415 tests)
+├── Architecture: LangGraph 18+ nodes, parallel domain agents
+├── RAG: FAISS pre-warmed, multi-query expansion
+├── Vectorless: arithmetic (numerology/astrology) = pure Python
+├── Hallucination: 3-layer (consensus + detection node + safety filter)
+├── Guardrails: security_check node, RBAC, circuit breaker
+├── Streaming: SSE drives neural graph node updates in Angular
+├── Cost: DeepSeek 500× cheaper than GPT-4o
+└── Key metric: $0.000137, 20 profiles 100% LOW hallucination risk
+
+Bench Resource Optimizer (502 tests, 94.7% coverage)
+├── Architecture: Sequential FastAPI pipeline (not LangGraph)
+├── RAG: BM25+FAISS+RRF+HyDE+CRAG+reranker (5-layer hybrid)
+├── Recall: FAISS 60% → full stack 83%+
+├── Guardrails: G1(rate) G2(injection) G3(JSON) G4(PII) G5(degrade)
+├── Cache: L1 exact, L2 semantic≥0.92, L3 Redis
+├── Security: SonarQube 0 vulns, ReDoS fixed S5852
+└── Key metric: 502 tests, SonarQube Quality Gate PASSED
+
+RunbookAI (137 tests)
+├── Architecture: Vectorless SQL + NetworkX DAG
+├── RAG: NONE — RAGless + Vectorless
+├── Retrieval: SQL SELECT WHERE category+severity
+├── Ordering: NetworkX topological_sort (guaranteed safe)
+├── Quality: commands_source: "database" (architectural proof)
+├── Conflict: VALUE_CONFLICT, ORDER_CONFLICT, MISSING_STEP, EXTRA_STEP
+└── Key metric: < 100ms query, $0 per query, zero hallucination
+
+Agentic Growth OS
+├── Architecture: 5-node LangGraph StateGraph
+├── RAG: NONE — JSON store + string similarity
+├── Learning: stores ROI/CTR per run, adapts prompts for next run
+├── Memory: CampaignState (in-context) + JSON campaign store (episodic)
+└── Key metric: ROI improves 40–80% run-over-run
+
+Universal Agent (20 tests)
+├── Architecture: LangGraph ReAct, YAML-configured
+├── RAG: Optional (knowledge_base.enabled: false by default) — VECTORLESS default
+├── Lock: /agents/{id}/lock (surgical) + /agents/lock-all (emergency)
+├── Tools: calculator, get_current_datetime, custom @tool
+└── Key metric: 5 agents managed, $0 when locked
+```
+
+**Vectorless projects:** RunbookAI (full), Universal Agent (default), AstroIntel (arithmetic core)
+**RAG projects:** Bench (full 5-layer), AstroIntel (knowledge enrichment)

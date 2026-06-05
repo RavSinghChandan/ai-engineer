@@ -300,3 +300,17 @@ First, async ingestion = event-driven Spring Batch jobs. I have built document p
 Second, multi-tenancy = a pattern I know from Java SaaS development. Row-level security, tenant_id scoping in queries, namespace isolation — these are standard SaaS database patterns. I apply them to the vector DB the same way I would apply them to a PostgreSQL schema.
 Third, cost monitoring = same as monitoring downstream service call costs. I use Prometheus metrics and Grafana dashboards to track costs, latency, and error rates — same tooling I use for microservice monitoring, applied to LLM API calls.
 The infrastructure thinking is identical. The AI-specific parts are the chunking strategy, the embedding model choice, and the RAGAS evaluation. Everything around it is standard production engineering.
+
+---
+
+## ★ YOUR 5 PROJECTS — PDF Handling at Scale
+
+| Project | PDF handling | Detail |
+|---------|-------------|--------|
+| **AstroIntel 360°** | No PDF ingestion | Readings are form-based inputs, not documents. No PDF in main flow. |
+| **Bench Resource Optimizer** | CV as PDF (user upload) | `utils/file_parser.py` extracts text. G2 injection guard runs on raw text BEFORE any parsing. Profile stored in SQLite. Admin uploads internal training docs (PDF) → chunked → FAISS. |
+| **RunbookAI** | Runbook as PDF — vectorless | LLM extracts structured JSON at ingest. No chunking — one extraction call per PDF. Result stored as rows in `runbook_steps`. `commands_source: "database"` forever. Not RAG — structured extraction. |
+| **Agentic Growth OS** | No PDF | Campaign data is form input, not documents. |
+| **Universal Agent** | Knowledge base PDFs (optional) | `source_dir` in YAML points to folder of PDFs/Markdown. Chunked and embedded at startup when `knowledge_base.enabled: true`. |
+
+**Interview line:** "RunbookAI handles PDFs differently from every other system — there's no chunking, no embedding, no vector store. The LLM reads the PDF once at ingest and extracts a structured JSON of steps. After that, the PDF is never read again. Every query hits SQL, not the PDF. This is the vectorless PDF architecture: extract once, serve forever."

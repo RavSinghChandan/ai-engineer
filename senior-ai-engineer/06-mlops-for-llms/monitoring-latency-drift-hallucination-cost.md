@@ -410,3 +410,17 @@ LOG_LEVEL=WARNING
 ### Senior interview talking point
 
 "In bench-resource-optimizer, every PR triggers parallel pytest and ng build jobs. A failing test blocks the merge — there is no bypass. The backend job runs in under 2 seconds because all 144 tests are pure unit tests with mocked LLM and SQLite tmp_path fixtures. No external services means no flakiness from network timeouts. The frontend job validates production AOT compilation — a TypeScript error that slips past dev mode gets caught here. This is the same CI pattern as AstroIntel: treat AI code like production software. No untested code ships."
+
+---
+
+## ★ YOUR 5 PROJECTS — Monitoring in Production
+
+| Project | What you monitor | Where |
+|---------|----------------|-------|
+| **AstroIntel 360°** | Token usage per domain agent. Cache hit rates. Circuit breaker state. Hallucination audit count. RAGAS proxy metrics per run. | `/api/v1/metrics` live dashboard. Correlation IDs on every request. |
+| **Bench Resource Optimizer** | Request latency. Cache hit rates (L1/L2 separate). Guardrail trigger counts (G1–G5). Circuit breaker state. SSE streaming TTFT. RAGAS scores per query. | `/metrics` endpoint. SQLite `ragas` table. SonarQube for code quality. |
+| **RunbookAI** | Service version + phase. Database status. Conflict detection counts per runbook pair. Query response times. | `/health` endpoint. Conflict score in every response. |
+| **Agentic Growth OS** | ROI per run. CTR trend. Learning badge per improved run. Run history with timestamps. | Campaign Dashboard in Angular frontend. |
+| **Universal Agent** | Locked state. Active sessions. Tools list. RAG enabled. All 5 agents probed every 15s. | `/agent/health`. `/agents` registry. Agent Dashboard UI at `/agents-dashboard`. |
+
+**Interview line:** "AstroIntel's hallucination_audit field in every run record means I can track the suppression rate over time without reviewing individual responses. If the daily suppression rate starts rising, it means the consensus architecture is degrading — maybe a domain agent's prompts drifted or the model changed behavior. That's proactive monitoring, not reactive firefighting."

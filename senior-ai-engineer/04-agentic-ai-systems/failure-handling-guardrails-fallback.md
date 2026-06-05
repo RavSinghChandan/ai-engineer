@@ -719,3 +719,24 @@ _FORBIDDEN_PHRASES = [
 **Interview answer when asked "how did you handle failures in your pipeline?":**
 > "AstroIntel has five layers of failure handling, each solving a different failure mode. G1 rate limiting prevents a single user from exhausting LLM API quota. G2 circuit breaker stops cascading failures — if one agent times out repeatedly, it trips open and returns a fallback state rather than queuing retries that amplify latency. G3 JSON repair handles the ~5% of cases where the LLM returns malformed JSON — I have a 4-level cascade before giving up. G4 PII filtering prevents birth data echoing in outputs, which is both a privacy issue and a hallucination signal. G5 graceful degradation means a failed domain agent never kills the report — four other domains still produce insights. The key design principle: every guardrail is non-invasive — agent code was never modified. Each guardrail wraps at the call site."
 
+
+---
+
+## ★ YOUR 5 PROJECTS — Failure Handling & Guardrails
+
+| Project | Key guardrails | Architecture |
+|---------|---------------|-------------|
+| **AstroIntel 360°** | Circuit breaker on DeepSeek, 3-layer hallucination detection | Circuit breaker opens after threshold failures → fallback to cached/partial. SUPERADMIN `/reset-breaker`. Retry with exponential backoff. hallucination_check node between meta_agent and remedy_agent. |
+| **Bench Resource Optimizer** | G1–G5 full guardrail stack | G1: 60 req/min rate limit → 429. G2: injection scan before LLM. G3: 4-step JSON repair cascade. G4: PII strip from all outputs. G5: full/partial/fallback/failed tracking per agent. Circuit breaker: 5 failures → 30s reset. |
+| **RunbookAI** | Rate limiting + JWT RBAC + conflict detection | Conflict detection IS the quality guardrail — flags VALUE_CONFLICT, ORDER_CONFLICT before engineer acts. JWT RBAC: viewer/user/admin. SQL parameterised queries. |
+| **Agentic Growth OS** | Per-node error handling | If agent node fails, CampaignState records failure and run continues with partial results. Learning engine skips failed runs. No cascade failure. |
+| **Universal Agent** | Global + per-agent lock | `/agents/lock-all` — emergency kill switch, all 5 agents blocked instantly. `/agents/{id}/lock` — surgical control. Locked agent returns message, never throws error. |
+
+**G1–G5 (Bench — know cold):**
+- G1 Rate Limiter: 60 req/min/user → 429
+- G2 Injection: CV text + role names scanned before any LLM call
+- G3 JSON Repair: direct → fence → regex → LLM repair cascade
+- G4 PII Filter: email + phone stripped from all LLM outputs
+- G5 Graceful Degrade: full / partial / fallback / failed tracked per agent
+
+**Interview line:** "Bench's G3 JSON repair cascade is the most underrated guardrail. LLMs return malformed JSON more often than people expect — especially on edge cases. Instead of crashing, G3 tries 4 strategies in order: direct parse, extract from markdown fence, extract bare JSON object, LLM repair call. The LLM repair call is the last resort — expensive but saves the response."

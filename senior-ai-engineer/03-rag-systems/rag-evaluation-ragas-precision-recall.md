@@ -505,3 +505,17 @@ Step 3: build your RAG pipeline and evaluate against this synthetic dataset.
 Step 4: when real documents arrive, run the same evaluation and compare. The synthetic baseline tells you your pipeline is working correctly before real data arrives.
 This approach also forces you to think about what types of questions real users will ask — which improves your chunking and retrieval strategy choices before you invest in building them.
 The synthetic eval is not your final truth — it is a development scaffold you replace with real eval data as your system matures.
+
+---
+
+## ★ YOUR 5 PROJECTS — RAG Evaluation in Practice
+
+| Project | Evaluation approach | Key facts |
+|---------|-------------------|----------|
+| **AstroIntel 360°** | RAGAS proxy metrics (rule-based pipeline) | faithfulness_proxy, context_precision_proxy, answer_relevancy_proxy, domain_recall_proxy. Bug fixed: RAGAS ran only on /approve — changed to run on every /run. Bug fixed: faithfulness always 33% because wrong domain count logic — fixed to `confidence in ("high","medium")`. |
+| **Bench Resource Optimizer** | True RAGAS — 4 metrics async after every map-role | faithfulness, answer_relevancy, context_precision, context_recall. `/ragas` endpoint. Stored in SQLite `ragas` table. 502 tests, 94.7% coverage. SonarQube Quality Gate PASSED. |
+| **RunbookAI** | Custom conflict detection score | VALUE_CONFLICT, ORDER_CONFLICT, MISSING_STEP, EXTRA_STEP scored per runbook pair. `commands_source: "database"` = binary quality metric, always 100%. No RAGAS needed — deterministic responses. |
+| **Agentic Growth OS** | ROI improvement % + CTR delta | RAGAS not applicable — no retrieval step. Business outcome is the quality metric. ROI improvement 40–80% run-over-run. |
+| **Universal Agent** | Health endpoint metrics | `locked`, `active_sessions`, `rag` state. 20 tests, no API keys. RAGAS available when RAG enabled. |
+
+**Interview line:** "The RAGAS bug in AstroIntel taught me the most important lesson in AI evaluation: measure on every run, not just on the happy path. We were only running RAGAS on admin approval — so 80% of runs had no quality data at all. Fixed it to run on every /run. Second bug: faithfulness was always 33% because the logic was checking domain count wrong. Silent bugs in evaluation are worse than silent bugs in features — they hide real problems."

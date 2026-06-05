@@ -287,3 +287,17 @@ Step 4 — Catastrophic forgetting:
 
 Step 5 — Production integration:
 "LoRA adapters are ~50-200MB files. In production, you load the base model once and swap adapters at inference time. Multiple adapters for different domains can share one base model in memory — efficient for multi-tenant scenarios where each client has a custom adapter."
+
+---
+
+## ★ YOUR 5 PROJECTS — LoRA/QLoRA Awareness
+
+| Project | Would LoRA help? | Why / Why not |
+|---------|----------------|--------------|
+| **AstroIntel 360°** | Possibly for output format | Domain agents sometimes generate non-standard JSON. LoRA fine-tune for JSON compliance could help. But: prompt engineering with temperature=0 already achieves this. Not worth the training cost yet. |
+| **Bench Resource Optimizer** | No — RAG wins | Role knowledge changes too frequently for fine-tuning to track. RAG updates instantly; fine-tuning takes days. |
+| **RunbookAI** | No — SQL wins | Commands must be verbatim. No fine-tuning approach achieves verbatim recall better than storing in SQL. |
+| **Agentic Growth OS** | Possibly for copy style | Ad copy has a house style. LoRA could encode that style better than prompt engineering. But: not at current scale — prompt adaptation achieves enough improvement. |
+| **Universal Agent** | No — YAML is the config | Persona is YAML-configured at runtime. Fine-tuning would bake the persona into the model — the opposite of what Universal Agent needs (runtime flexibility). |
+
+**Interview line:** "I understand LoRA and QLoRA architecturally — freeze base weights, train two low-rank matrices per attention layer, 1-10% of parameters updated. But for my 5 projects, the knowledge is too dynamic and the iteration speed too important for fine-tuning to win. RAG updates the knowledge base without any training. Prompt engineering updates behavior without any training. The day I need a consistent style that prompt engineering can't achieve at acceptable quality is the day I'd reach for LoRA."

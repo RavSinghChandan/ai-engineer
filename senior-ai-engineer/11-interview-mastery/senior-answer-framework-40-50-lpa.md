@@ -167,3 +167,34 @@ Before any Senior AI Engineer interview, verify you can speak fluently to:
 - [ ] Resilience4j → LLM client retry/circuit breaker mapping
 - [ ] Spring Batch → Celery task chain mapping
 - [ ] Kafka consumer → Ingestion worker mapping
+
+---
+
+## ★ YOUR 5 PROJECTS — One-Liners to Memorise Cold
+
+**AstroIntel 360°:**
+"18+ LangGraph agents coordinate in parallel to generate personalised 360° spiritual intelligence reports in 23 Indian languages, costing $0.000137 per analysis — 500× cheaper than GPT-4o, with 3-layer hallucination detection validated on 20 public profiles."
+
+**Bench Resource Optimizer:**
+"5-layer Hybrid RAG (BM25+FAISS+RRF+HyDE+CRAG+cross-encoder) maps bench employees to roles and generates 7-day upskilling plans, with semantic cache cutting 60–70% of LLM calls, G1–G5 guardrails, and 502 tests at 94.7% coverage."
+
+**RunbookAI:**
+"RAGless + Vectorless incident response — LLM extracts commands once at PDF ingest, SQL returns them verbatim at query time — `commands_source: database` on every response — zero hallucinated kubectl commands, three ranked panels, automated conflict detection."
+
+**Agentic Growth OS:**
+"5-agent LangGraph marketing pipeline with an auto-learning engine — stores ROI and CTR per run, extracts winning rules, modifies agent prompts — ROI improves 40–80% run-over-run."
+
+**Universal Agent:**
+"A plug-and-play AI agent deployable into any FastAPI, Angular, React, or HTML app via 3 lines of code — YAML-configured persona, per-agent lock/unlock dashboard for token protection — currently powering all 4 other enterprise platforms."
+
+---
+
+## Numbers You Must Know Cold
+
+| Project | Tests | Cost/analysis | Key metric |
+|---------|-------|--------------|-----------|
+| AstroIntel | 415 | $0.000137 | 18+ agents, 23 languages |
+| Bench | 502 (94.7% cov) | ~$0 cached | 60%→83% recall |
+| RunbookAI | 137 | $0 at query | < 100ms, commands_source: DB |
+| Agentic Growth OS | — | ~$0.005/run | 40–80% ROI gain |
+| Universal Agent | 20 | $0 locked | 5 agents, YAML-config |

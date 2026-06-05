@@ -321,3 +321,23 @@ Step 4 — From your project:
 
 Step 5 — Failure mode awareness:
 "The biggest risk with fine-tuning is catastrophic forgetting — the model becomes very good at the new task but loses general capability. Use LoRA or QLoRA for parameter-efficient fine-tuning that updates only a small adapter layer, preserving the base model's general reasoning."
+
+---
+
+## ★ YOUR 5 PROJECTS — Fine-tuning vs RAG Decision
+
+| Project | Choice | Why |
+|---------|--------|-----|
+| **AstroIntel 360°** | RAG (domain enrichment) + rule-based arithmetic | Knowledge changes (interpretations, language templates). Rule-based for math — LLM fine-tuning cannot improve deterministic arithmetic. |
+| **Bench Resource Optimizer** | RAG (hybrid 5-layer) | Role knowledge and CVs change frequently. Citations needed. No GPU budget. Fast iteration > marginal fine-tuning quality. |
+| **RunbookAI** | Neither — vectorless SQL | Commands must be verbatim. RAG adds hallucination risk. Fine-tuning doesn't solve verbatim recall. SQL does. |
+| **Agentic Growth OS** | Neither — prompt adaptation | Learning engine adapts prompts based on past performance. This is DPO-like behavior without model training. Effectively fine-tuning the prompt, not the model. |
+| **Universal Agent** | RAG (optional) + persona via YAML | YAML is the "fine-tune" — changes agent behavior without touching the model. RAG optional when knowledge base enabled. |
+
+**All 5 projects chose RAG/vectorless/prompt over fine-tuning.** Reasons:
+1. Knowledge changes frequently (roles, runbooks, spiritual interpretations)
+2. No GPU budget for fine-tuning
+3. Fast iteration matters — prompt changes deploy instantly
+4. RAG gives equivalent quality for knowledge-intensive tasks
+
+**Interview line:** "I haven't needed to fine-tune any of my 5 projects. RAG solves knowledge injection. Prompt engineering solves behavior shaping. The learning engine in Agentic Growth OS achieves DPO-like behavior improvements through prompt adaptation — without any model training. Fine-tuning becomes the right answer when behavior needs to change at inference time in ways that prompt engineering cannot achieve."

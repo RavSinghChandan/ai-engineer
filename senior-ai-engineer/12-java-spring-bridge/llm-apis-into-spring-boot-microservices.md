@@ -394,3 +394,17 @@ Step 3 — Async:
 
 Step 4 — Bridge value:
 "My Java background means I can design the Spring Boot integration correctly — non-blocking WebClient, Resilience4j, @Async — which a pure Python AI engineer wouldn't know. And I can build the FastAPI AI gateway, which a pure Java engineer couldn't. That's the value of the full-stack AI engineer role."
+
+---
+
+## ★ YOUR 5 PROJECTS — Java Bridge Relevance
+
+| Project | Java/Spring relevance | Bridge value |
+|---------|----------------------|-------------|
+| **AstroIntel 360°** | REST API design, async patterns (CompletableFuture → asyncio), circuit breaker (Resilience4j → tenacity) | Java engineers building enterprise HR/ERP systems can integrate AstroIntel's `/run` endpoint via RestTemplate. Same REST contract. |
+| **Bench Resource Optimizer** | Bench pattern maps directly to enterprise HR platforms built on Spring Boot | Spring Boot HR system calls `/upload-cv`, `/map-role`, `/generate-plan`. FastAPI is the AI microservice. Spring handles business logic. |
+| **RunbookAI** | Enterprise ops platforms are Spring Boot — RunbookAI as an AI microservice | Spring Boot DevOps platform calls `/query?category=k8s&severity=P1`. Gets exact commands from RunbookAI. No hallucination risk. |
+| **Agentic Growth OS** | Marketing automation platforms often Spring Boot | Spring Boot campaign system calls `/campaigns/run`. Gets job_id. Polls `/campaigns/{id}/status`. Same async submit-and-poll pattern as Spring Batch. |
+| **Universal Agent** | Universal Agent REST API designed for any language including Java | `POST /agent/chat` → JSON → works from Java WebClient, RestTemplate, or raw HttpClient. Three lines of Spring code. |
+
+**Interview line:** "My Java background makes me the bridge engineer that most companies need — someone who understands the AI layer deeply enough to build it, and understands the enterprise layer deeply enough to integrate it. A Java architect reviewing my FastAPI can read it because the patterns are the same: middleware chain = Spring interceptors, Kafka consumer = Spring Kafka listener, circuit breaker = Resilience4j."

@@ -370,3 +370,30 @@ async def resumable_stream(session_id: str, request: Request):
         yield event
 ```
 This gives users a seamless experience when their connection drops mid-stream.
+
+---
+
+## ★ YOUR 5 PROJECTS — Token Streaming Implementation
+
+| Project | Streams? | SSE format |
+|---------|----------|-----------|
+| **AstroIntel 360°** | ✓ SSE | `{type: "session", session_id}` → `{type: "token", token}` → `{type: "agent_complete", agent}` → `{type: "done"}` → `[DONE]`. Angular EventSource drives neural graph node updates. |
+| **Bench Resource Optimizer** | ✓ SSE | `/generate-plan/stream`. Each task line streamed as generated. TTFT < 1.5s. Resilient: `[DONE]` always sent even on LLM failure. |
+| **RunbookAI** | ✗ | SQL < 100ms — no streaming needed. Instant response. |
+| **Agentic Growth OS** | ✗ (polling) | Campaign execution: job_id → poll `/status` every 2s. Progress events in CampaignState. |
+| **Universal Agent** | ✓ SSE | `/agent/stream`. Locked agent: sends `{type: "locked", message}` → closes stream. No LLM call when locked — zero token cost. |
+
+**FastAPI SSE pattern (used in AstroIntel + Bench):**
+```python
+@router.get("/stream/{session_id}")
+async def stream(session_id: str):
+    async def event_gen():
+        yield f"data: {json.dumps({'type':'session','session_id':session_id})}\n\n"
+        async for chunk in llm.astream(prompt):
+            yield f"data: {json.dumps({'type':'token','token':chunk.content})}\n\n"
+        yield f"data: {json.dumps({'type':'done'})}\n\n"
+        yield "data: [DONE]\n\n"
+    return StreamingResponse(event_gen(), media_type="text/event-stream")
+```
+
+**Interview line:** "The `[DONE]` sentinel is critical — without it, the Angular `EventSource` connection stays open indefinitely after an LLM error. I always emit `[DONE]` in a `finally` block so the client closes its connection regardless of whether the LLM call succeeded. Small detail, prevents thousands of zombie connections in production."

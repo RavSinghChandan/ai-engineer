@@ -298,3 +298,24 @@ Third: "Do you need transactional consistency between document text and its embe
 Fourth: "What are your latency requirements?" Sub-5ms → FAISS in-process. 5-50ms acceptable → pgvector. Both have lower latency than a remote Pinecone call.
 Fifth: "Is this a demo or production?" Demo → FAISS, zero setup. Production with growth potential → start with pgvector, migrate to dedicated vector DB when you exceed its performance envelope.
 The pattern I recommend for most teams: start with pgvector (or FAISS for demos), migrate to Pinecone/Qdrant when the data grows beyond what Postgres handles comfortably. Do not over-engineer from day one.
+
+---
+
+## ★ YOUR 5 PROJECTS — Vector Database Decisions
+
+| Project | Vector DB | Decision rationale |
+|---------|-----------|------------------|
+| **AstroIntel 360°** | FAISS (local) | In-process, zero infra. Pre-warmed at startup. Spiritual domain knowledge is stable — no frequent re-indexing needed. |
+| **Bench Resource Optimizer** | FAISS + BM25 (both local) | No external dependency. FAISS for dense (semantic). BM25 for sparse (exact skill names). Both rebuilt async after admin uploads — zero downtime. FAISS + BM25 + RRF = hybrid retrieval. |
+| **RunbookAI** | **None — SQLite** | Vectorless architecture. SQL is the retrieval layer. `commands_source: "database"` on every response. Zero embedding cost, zero vector infra. Sub-100ms queries. |
+| **Agentic Growth OS** | **None — JSON store** | Campaign memory stored as JSON. String similarity matching via keyword overlap. No vector DB needed at this scale. |
+| **Universal Agent** | FAISS (optional) | `knowledge_base.enabled: false` by default → no FAISS. Enabled via YAML → FAISS loaded from `source_dir`. Toggle without code change. |
+
+**Decision framework (yours):**
+- Local prototype, no infra → FAISS
+- Already on PostgreSQL → pgvector
+- Managed production scale → Pinecone/Qdrant
+- Commands must be verbatim → SQLite (vectorless)
+- No semantic retrieval needed → No vector DB
+
+**Interview line:** "I've made vectorless the deliberate default for RunbookAI and Universal Agent. Adding a vector DB is not always the senior move — it's the right move only when semantic similarity is actually the right retrieval mechanism. For exact commands, SQL is more correct than cosine similarity."

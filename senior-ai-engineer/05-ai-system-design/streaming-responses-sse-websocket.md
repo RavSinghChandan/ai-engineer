@@ -321,3 +321,17 @@ async def stream_parallel_agents(birth_profile: dict, question: str):
 ```
 Angular receives each agent completion event and updates the neural graph node to "completed" state — the user watches the graph come to life progressively.
 This is the exact architecture in AstroIntel's `orchestrator.service.ts` + `agent-flow.component.ts` — SSE events driving signal updates driving DOM changes.
+
+---
+
+## ★ YOUR 5 PROJECTS — Streaming Implementation
+
+| Project | Streaming | Detail |
+|---------|-----------|--------|
+| **AstroIntel 360°** | SSE — report streaming | `/api/v1/stream/{session_id}`. Angular `EventSource`. Format: `{type: "token", token: "..."}`. Users see insights appear as agents complete. SSE drives neural graph node state updates. |
+| **Bench Resource Optimizer** | SSE — plan generation | `/generate-plan/stream`. Each task line appears as generated. TTFT < 1.5s. `EventSource` in Angular frontend. If LLM fails mid-stream, `[DONE]` still sent — frontend never hangs. |
+| **RunbookAI** | No streaming | SQL responses are < 100ms — streaming adds complexity with zero benefit. |
+| **Agentic Growth OS** | Polling | Campaign execution returns job_id → frontend polls `/campaign/{id}/status` every 2s. Progress events in CampaignState. Not SSE — each node completes before next starts. |
+| **Universal Agent** | SSE — chat streaming | `/agent/stream`. Format: `session → token → token → done → [DONE]`. Locked agent: sends locked-message token → closes without LLM call. |
+
+**Interview line:** "In Bench, I made the SSE stream resilient: if the LLM call fails mid-stream, the generator still emits `[DONE]`. Without this, the Angular `EventSource` hangs waiting for a close signal that never comes. The user's browser stays in a loading state forever. Small detail, major UX difference."

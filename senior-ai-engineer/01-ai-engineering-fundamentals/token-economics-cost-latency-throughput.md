@@ -429,3 +429,17 @@ When NOT to stream:
 - Batch processing pipelines — you want the complete response before processing, streaming adds complexity with no benefit
 - Short responses under 100 tokens — latency is low anyway, streaming adds no perceived improvement
 In FastAPI + Angular (your stack): use FastAPI's StreamingResponse with server-sent events. Angular consumes the stream and updates the UI token by token. This is exactly the pattern used in AstroIntel.
+
+---
+
+## ★ YOUR 5 PROJECTS — Token Economics in Practice
+
+| Project | Cost/query | Key strategy | Numbers |
+|---------|-----------|-------------|---------|
+| **AstroIntel 360°** | $0.000137 per full 360° analysis | DeepSeek Chat ($0.14/1M in, $0.28/1M out) — 500× cheaper than GPT-4o. `threading.Lock` for cross-thread token accounting. 8s HTTP timeout (fail fast). | 18+ agents, 23 languages, $0.000137 |
+| **Bench Resource Optimizer** | ~$0 on cache hit | L1 exact-match cache (SHA-256, < 1ms). L2 semantic cache (cosine ≥ 0.92). 60–70% estimated cache hit rate post-warmup. Token tracker logs per-agent usage to SQLite. | 502 tests, 94.7% coverage |
+| **RunbookAI** | ~$0 at query time | LLM called ONLY at PDF ingest — zero tokens at query time. Most token-efficient architecture in portfolio. One LLM call per runbook (ingest), zero per query. | < 100ms query, $0 per query |
+| **Agentic Growth OS** | ~$0.005 per full pipeline run | 5 LangGraph nodes × 1 LLM call each. Learning engine reuses past campaign decisions — reduces novel LLM calls on repeat campaign types. | 5 agents, ROI improves 40–80% |
+| **Universal Agent** | $0 when locked | `/agents/{id}/lock` blocks LLM instantly. `Lock All` kills all 5 agents. 100% token saving during lock. Per-agent granular control. | 5 agents, < 10ms lock toggle |
+
+**Interview line:** "My most cost-efficient architecture is RunbookAI — zero LLM tokens at query time because the LLM only runs at ingest. My most token-aware production system is AstroIntel at $0.000137 per analysis — that's 500× cheaper than GPT-4o, achieved by using DeepSeek and parallelizing agents rather than running them sequentially."

@@ -313,3 +313,42 @@ General software knowledge (that still matters):
 - Observability (metrics, tracing, alerting)
 - Cost awareness (computing cost at scale)
 The senior AI engineer combines both. Lead with AI domain knowledge, then connect it to engineering fundamentals: "The faithfulness scoring pipeline is a background async job — same pattern as Spring Batch, different domain."
+
+---
+
+## ★ YOUR 5 PROJECTS — Story Formula Applied
+
+### Project 1: AstroIntel 360°
+- **Problem:** Spiritual guidance is expensive, inaccessible, and inconsistent — different pandits give different answers
+- **Naive solution:** Call one LLM, ask it about astrology
+- **Why it fails:** LLM has general knowledge, not domain precision. One agent can hallucinate with full confidence.
+- **Actual solution:** 18+ independent domain agents (Numerology, Astrology, Palmistry, Tarot, Vastu) run in parallel. A meta-agent computes consensus confidence. Only HIGH/MEDIUM insights reach the user.
+- **Measurement:** $0.000137 per analysis (500× cheaper than GPT-4o). 415 tests. 20 famous profiles validated: 100% LOW hallucination risk.
+
+### Project 2: Bench Resource Optimizer
+- **Problem:** Bench employees don't know their skill gaps vs target roles
+- **Naive solution:** Just use FAISS for retrieval
+- **Why it fails:** FAISS misses exact skill names — "Kubernetes" and "k8s" get different retrieval results. Dense vectors miss jargon.
+- **Actual solution:** BM25+FAISS+RRF (hybrid) + HyDE + CRAG quality gate + cross-encoder reranker
+- **Measurement:** Recall: FAISS 60% → full stack 83%+. 502 tests, 94.7% coverage, SonarQube PASSED.
+
+### Project 3: RunbookAI
+- **Problem:** Engineers during incidents google kubectl commands, get outdated or wrong results, then run wrong commands on prod clusters
+- **Naive solution:** RAG over runbook documents
+- **Why it fails:** Cosine similarity on runbook commands is noisy. "kubectl drain" and "kubectl delete" are semantically similar. LLM paraphrases retrieved commands — verbatim accuracy lost.
+- **Actual solution:** LLM extracts commands once at PDF ingest → SQL stores exact strings → SQL returns them verbatim. `commands_source: "database"` on every response.
+- **Measurement:** Query latency < 100ms. Zero LLM tokens at query time. `commands_source: "database"` = architectural proof of zero hallucination.
+
+### Project 4: Agentic Growth OS
+- **Problem:** Marketing campaigns are manually created — each campaign starts from zero, no institutional learning
+- **Naive solution:** One LLM call to generate a campaign
+- **Why it fails:** Generic output with no domain context. No improvement over time. Each campaign is as good as the first.
+- **Actual solution:** 5-agent LangGraph pipeline. After each run, learning engine stores ROI + CTR. Next run: extract winning rules from similar past campaigns → modify agent prompts before execution.
+- **Measurement:** ROI improves 40–80% run-over-run. SVG drag-and-drop canvas shows live LangGraph data flow.
+
+### Project 5: Universal Agent
+- **Problem:** Every AI project needs a chatbot — built from scratch each time, no reuse
+- **Naive solution:** Copy-paste chat code across projects
+- **Why it fails:** No isolation, no monitoring, no token protection, no YAML configurability
+- **Actual solution:** Plug-and-play agent via 3 lines of code or 1 script tag. YAML defines persona, tools, knowledge base. Per-agent lock dashboard. Powers all 4 other projects.
+- **Measurement:** 5 agents managed from one dashboard. `/agents/lock-all` = emergency token kill switch. `_resolve_agent_id()` port-based self-identification — no manual config.

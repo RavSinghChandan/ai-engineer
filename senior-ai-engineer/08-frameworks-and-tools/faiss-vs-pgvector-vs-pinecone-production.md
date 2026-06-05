@@ -488,3 +488,28 @@ def benchmark_vector_store(store: VectorStore, test_vectors: list, queries: list
     }
 ```
 Run this with production-representative data (same embedding model, same corpus size, same filter patterns). A benchmark that shows FAISS beats pgvector on 1K vectors may reverse on 1M vectors. Test at your target scale.
+
+---
+
+## ★ YOUR 5 PROJECTS — Vector Store Decisions
+
+| Project | Store used | Reason |
+|---------|-----------|--------|
+| **AstroIntel 360°** | FAISS (local, in-process) | Stable domain knowledge — no frequent re-indexing. Pre-warmed at startup. Zero API cost. Zero external dependency. |
+| **Bench Resource Optimizer** | FAISS + BM25 (both local) | Hybrid: FAISS (dense semantic) + BM25 (sparse exact keyword). FAISS index rebuilt async after admin uploads. No external vector DB dependency. Zero infra overhead. |
+| **RunbookAI** | **None — SQLite** | Vectorless. SQL is the retrieval layer. `commands_source: "database"`. Cosine similarity is the WRONG retrieval for verbatim commands — SQL is correct. |
+| **Agentic Growth OS** | **None — JSON** | Campaign memory via string similarity. No semantic search needed at this scale. |
+| **Universal Agent** | FAISS (optional, disabled by default) | `knowledge_base.enabled: false` = vectorless. Enabled via YAML = FAISS loads from source_dir. No code change. |
+
+**Your decision matrix:**
+
+| Need | Choice |
+|------|--------|
+| Local, no infra, fast prototype | FAISS |
+| Already on PostgreSQL | pgvector |
+| Managed cloud, production scale | Pinecone/Qdrant |
+| Hybrid search | FAISS + BM25 |
+| Verbatim exact commands | SQLite (vectorless) |
+| No semantic retrieval needed | No vector DB |
+
+**Interview line:** "My default starting point is FAISS — local, zero infra, zero API cost. Both AstroIntel and Bench run FAISS in-process. I would migrate to pgvector if I'm already on PostgreSQL and want transactional consistency between the document and its vector. I would move to Pinecone only when the corpus outgrows what FAISS handles reliably — typically above 1M vectors."

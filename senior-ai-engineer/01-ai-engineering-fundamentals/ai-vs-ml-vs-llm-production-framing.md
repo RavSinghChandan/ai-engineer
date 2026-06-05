@@ -318,3 +318,17 @@ The difference in how you answer:
 - You own the full stack: prompt → API → pipeline → deployment → monitoring
 
 That is what a Senior AI Engineer sounds like.
+
+---
+
+## ★ YOUR 5 PROJECTS — AI vs ML vs LLM Choice Per Project
+
+| Project | What you chose | Why |
+|---------|---------------|-----|
+| **AstroIntel 360°** | Rule-based Python + LLM narrative | Numerology/astrology arithmetic is deterministic — Life Path = sum of DOB digits. Only the human-language interpretation uses LLM. LLM for math = hallucination. |
+| **Bench Resource Optimizer** | LLM + Hybrid RAG | CV skill gap analysis requires semantic language understanding — "5 years Java experience" vs "senior Spring Boot developer" must match. ML alone can't do this. |
+| **RunbookAI** | LLM at ingest only, SQL at query | kubectl commands must be verbatim. LLM extracts once from PDF, SQL returns exact string forever. RAGless + Vectorless. |
+| **Agentic Growth OS** | LLM inside each LangGraph node | Marketing copy, budget reasoning, and campaign optimization require flexible language generation — rule-based cannot generate ad copy variants. |
+| **Universal Agent** | LLM with YAML persona | Domain is unknown at build time — YAML defines behavior at runtime. Lock mechanism disables LLM entirely when token protection is needed. |
+
+**Interview line:** "Across my 5 projects I made different LLM vs rule-based decisions per component. RunbookAI is the most extreme: LLM only at PDF ingest, SQL at every query — zero hallucination by architecture. AstroIntel keeps all arithmetic in pure Python and only calls LLM to narrate the result. Bench needs full LLM + RAG because CV-to-role matching is a language understanding problem, not a math problem."

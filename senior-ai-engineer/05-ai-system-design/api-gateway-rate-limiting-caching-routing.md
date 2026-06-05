@@ -57,3 +57,17 @@ Already implemented in `middleware/logging_mw.py` (Phase 1 foundation). Phase 6 
 ### Senior interview talking point
 
 "In bench-resource-optimizer, the readiness probe checks four dependencies: LLM client, FAISS vector store, BM25 index doc count, and a live SQLite SELECT. A Kubernetes pod that fails any one of these returns 503 and is removed from rotation. The liveness probe is separate and always returns 200 — it only answers 'is the process alive'. The readiness probe answers 'can this pod serve traffic right now'. Confusing them is a common production mistake: if your readiness probe is too simple, you route traffic to a pod whose DB connection is broken."
+
+---
+
+## ★ YOUR 5 PROJECTS — API Gateway Production Details
+
+| Project | Key endpoint patterns | Caching layer |
+|---------|----------------------|--------------|
+| **AstroIntel 360°** | POST /api/v1/analysis/run → SSE /stream/{session_id}. GET /metrics, /memory, /health. SUPERADMIN /reset-breaker. | Redis DB0 response cache, DB1 job store. |
+| **Bench Resource Optimizer** | POST /upload-cv, /map-role, /generate-plan/stream. GET /ragas, /metrics, /progress/{user_id}/history, /memory/{user_id}. | L1+L2+Redis 3-tier cache. Readiness probe checks LLM, FAISS, BM25, SQLite — 503 if any fail. |
+| **RunbookAI** | POST /ingest (admin only). POST /query. GET /health (version, phase, DB status). GET /docs (Swagger). | No caching — SQL is always current, < 100ms. |
+| **Agentic Growth OS** | POST /campaigns/run → returns job_id. GET /campaigns/{id}/status (polling). GET /campaigns/history. | Campaign JSON store as implicit cache. |
+| **Universal Agent** | POST /agent/chat, /agent/stream. GET /agent/health. POST /agents/{id}/lock, /agents/lock-all. GET /agents (registry). | Redis optional. Lock state in-memory. |
+
+**Interview line:** "Every project has a `/health` endpoint that checks real dependencies — not just 'is the process alive'. Bench's readiness probe checks the LLM client, FAISS index, BM25 document count, and a live SQLite SELECT. If FAISS failed to load at startup, the pod returns 503 and Kubernetes removes it from rotation. That's production-grade health checking."

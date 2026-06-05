@@ -288,3 +288,17 @@ Second, parallelism: use a job queue (Celery, Kafka consumer group) to distribut
 Third, vector storage: FAISS in-memory doesn't scale to 10M vectors. Use a managed vector DB: Pinecone, Weaviate, or pgvector with HNSW indexing. At 10M × 1536 dimensions × 4 bytes = ~60GB just for vectors — plan storage accordingly.
 Fourth, incremental updates: design the pipeline as event-driven from day one. New document added → emit event → embedding worker picks it up → upserts vector in the index. Never do a full re-index unless changing the embedding model.
 Fifth, monitoring: track embedding queue depth, failure rate, and P95 embedding latency. If the queue grows, scale workers horizontally.
+
+---
+
+## ★ YOUR 5 PROJECTS — Embeddings Usage
+
+| Project | Embedding model | Usage |
+|---------|----------------|-------|
+| **AstroIntel 360°** | `all-MiniLM-L6-v2` (HuggingFace, local) | FAISS pre-warmed at startup for spiritual domain knowledge. Background warm-up so first request is fast. Zero API cost. |
+| **Bench Resource Optimizer** | `all-MiniLM-L6-v2` (local) | FAISS dense retrieval. L2 semantic cache: cosine ≥ 0.92 on query embeddings — similar role queries share cached results. FAISS index rebuilt async after admin uploads new role knowledge — zero downtime. |
+| **RunbookAI** | **None at query time** | Vectorless architecture. LLM extracts step embeddings once at ingest, stored as structured text. Query matching via SQL + title overlap ≥ 40% threshold. Zero embedding cost per query. |
+| **Agentic Growth OS** | None | Campaign similarity via string-based matching on campaign_type + keywords — no vector store. Python `difflib` or keyword overlap score. |
+| **Universal Agent** | `all-MiniLM-L6-v2` (optional) | Only when `knowledge_base.enabled: true`. Disabled by default — vectorless mode. Source dir points to local PDF/Markdown files. |
+
+**Interview line:** "RunbookAI proves that zero embeddings is sometimes the right answer. When you need exact command recall, cosine similarity is the wrong retrieval mechanism — SQL is. Bench uses local HuggingFace embeddings so there's no API cost or latency for embedding calls — FAISS runs in-process."

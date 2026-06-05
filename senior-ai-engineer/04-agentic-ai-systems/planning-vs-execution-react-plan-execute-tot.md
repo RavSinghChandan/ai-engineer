@@ -323,3 +323,17 @@ Metrics to track:
   - Replanning frequency: how often is the plan changed mid-execution?
   - Total run time and token cost per task type
 Dashboard view: a run that completed in 15 steps with 2 replannings and 1 step retry is richer information than just "run completed successfully." Build tooling that surfaces this trace level detail.
+
+---
+
+## ★ YOUR 5 PROJECTS — Planning vs Execution Pattern
+
+| Project | Pattern | How |
+|---------|---------|-----|
+| **AstroIntel 360°** | Parallel domain agents + supervisor synthesis | ReAct-like reasoning per domain agent. Supervisor collects all domain outputs and synthesises. Conditional graph edges — planning is embedded in LangGraph structure. |
+| **Bench Resource Optimizer** | Plan-Execute sequential | CV parser → gap analysis → 7-day plan → progress tracking. LLM plans the roadmap at `generate-plan`. User executes tasks, progress tracked at `update-progress`. |
+| **RunbookAI** | Execute-only (no planning) | NetworkX topological sort IS the execution plan — no LLM planning. Steps come from DB, ordering guaranteed by graph algorithm. |
+| **Agentic Growth OS** | Plan-Execute with learning | Audience Agent plans targeting. AdCopy Agent executes copy generation. Learning engine modifies the plan for next run based on what worked. |
+| **Universal Agent** | ReAct loop | Think → decide (tool or answer?) → act (call tool) → observe → think again. Calculator and datetime tools. LangGraph ReAct agent loop. |
+
+**Interview line:** "RunbookAI has no planning layer — that's a feature, not a missing piece. NetworkX computes the execution order from the step dependency graph using topological sort. The execution plan is a mathematical property of the DAG, not an LLM decision. It cannot hallucinate a wrong execution order — the algorithm guarantees correctness."

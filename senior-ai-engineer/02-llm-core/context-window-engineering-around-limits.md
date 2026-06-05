@@ -301,3 +301,17 @@ Second, tool result summarization: when a tool returns a large result (e.g., a d
 Third, checkpoint compression: at defined checkpoints in a long workflow, the accumulated state is summarized and the raw history is discarded. The agent continues with the summary, not the full trace.
 In LangGraph terms: this is a node that runs "state compression" periodically — same as the summarization memory pattern in chat, applied to agent state.
 Without this, long agentic workflows hit context limits and fail mid-task — which is worse than failing immediately because you have already consumed significant compute.
+
+---
+
+## ★ YOUR 5 PROJECTS — Context Window Management
+
+| Project | Context strategy | Key detail |
+|---------|----------------|-----------|
+| **AstroIntel 360°** | Per-agent focused prompts | Each domain agent gets only its domain's system prompt + birth profile fields. LangGraph passes only relevant state fields per node — not the full report. Episodic memory injected as compact summary prefix. |
+| **Bench Resource Optimizer** | `build_memory_context()` injection | Structure: `system + memory_context + user_message`. Memory context = past sessions, explored roles, readiness score. Compacted — not raw history. |
+| **RunbookAI** | No context window issue | SQL returns structured step objects — no LLM at query time. At ingest, focused extraction prompt sent one PDF chunk at a time. Chunked extraction for large runbooks. |
+| **Agentic Growth OS** | `CampaignState` TypedDict | Shared state object across 5 nodes. Each agent reads only its needed fields. Learning engine adds compact "past campaign summary" — not full history. |
+| **Universal Agent** | `max_history: 20` in YAML | TTL-based session expiry. Extra facts from YAML injected as system context. RAG knowledge base optional — top-k chunks when enabled. |
+
+**Interview line:** "Context window management is about what you leave OUT, not what you put in. In AstroIntel, each agent gets a focused prompt — numerology agent doesn't see tarot's output until the meta-agent synthesis step. In RunbookAI, the context window problem disappears entirely because there's no LLM at query time."

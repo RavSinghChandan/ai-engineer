@@ -1,5 +1,5 @@
 # Senior AI Engineer — Complete Revision Guide
-### All 13 Modules · All 5 Projects Per Topic · Read in 40–50 Minutes
+### All 14 Modules · All 5 Projects Per Topic · Read in 40–50 Minutes
 
 ---
 
@@ -1273,3 +1273,76 @@ This is the exact pattern used in Bench G4 — compiled at module load, called o
 **SSE vs WebSocket?** → Server-to-client streaming (token stream) → SSE. Bidirectional real-time → WebSocket.
 
 **Lock one agent vs lock all?** → Specific agent burning tokens → `/agents/{id}/lock`. Budget emergency → `/agents/lock-all`.
+
+**RAGless vs Vectorless?** → Usually the same. RAGless = no retrieval step at query time. Vectorless = no vector embeddings. RunbookAI is both. Universal Agent default is both.
+
+---
+
+# MODULE 14 — Vectorless / RAGless Architecture (The Pattern That Is Booming)
+
+## The Core Insight
+
+Everyone talks about RAG. Senior engineers know when NOT to use it.
+
+**Vectorless / RAGless** = LLM extracts structure once at ingest → SQL stores it → SQL returns it verbatim at query time. Zero vectors, zero hallucination, sub-100ms latency.
+
+```
+Standard RAG:                    Vectorless (RAGless):
+Query                            Query
+  → Embed (cost + latency)         → SQL SELECT (deterministic)
+  → Vector search (approximate)    → Return exact stored string
+  → LLM generates (hallucination)  → commands_source: "database"
+```
+
+---
+
+## When to Use Vectorless vs RAG
+
+| Situation | RAG | Vectorless |
+|-----------|-----|-----------|
+| Knowledge is prose / unstructured | ✓ | ✗ |
+| Commands must be verbatim exact | ✗ | ✓ |
+| Zero hallucination non-negotiable | ✗ | ✓ |
+| Query latency must be < 100ms | ✗ | ✓ |
+| Knowledge is structured / tabular | ✗ | ✓ |
+| Semantic similarity needed | ✓ | ✗ |
+| Compliance / auditability required | ✗ | ✓ |
+
+---
+
+## The Proof Field
+
+```json
+{
+  "steps": [{"command": "kubectl drain node-1 --ignore-daemonsets"}],
+  "commands_source": "database",
+  "hallucination_risk": "zero",
+  "latency_ms": 43
+}
+```
+
+`commands_source: "database"` is the architectural proof — not a claim, a structural guarantee. The LLM was not in the query path.
+
+---
+
+## What Each Project Does
+
+| Project | Vectorless? | How |
+|---------|-------------|-----|
+| **RunbookAI** | ✓ Full vectorless | LLM extracts once at PDF ingest → SQL at query time. `commands_source: "database"` always. |
+| **Universal Agent** | ✓ Default mode | `knowledge_base.enabled: false` → no FAISS, no embeddings. Lock = zero LLM cost. |
+| **AstroIntel 360°** | Partial | Numerology/astrology arithmetic = pure Python (vectorless core). Only narrative uses LLM. |
+| **Bench** | ✗ RAG | CVs are prose — semantic similarity IS the right retrieval mechanism. 5-layer hybrid RAG. |
+| **Agentic Growth OS** | Partial | Campaign memory = JSON + string similarity. No vectors needed at this scale. |
+
+---
+
+## Interview Lines for Vectorless
+
+**One sentence:** "Vectorless / RAGless is the architecture where the LLM extracts structure once at ingest and SQL returns it verbatim at query time — zero vectors, zero hallucination, sub-100ms latency. RunbookAI proves it: `commands_source: database` on every response."
+
+**Why not RAG for runbooks:** "Cosine similarity is the wrong retrieval mechanism for kubectl commands — 'kubectl drain' and 'kubectl delete' are semantically similar but operationally opposite. SQL returns the exact stored string — structural guarantee, not a statistical one."
+
+**The tradeoff:** "Vectorless only works when your knowledge domain is structured — you can extract clear facts at ingest. For open-ended knowledge bases, RAG wins. The senior move is choosing the right architecture per component."
+
+**Senior signal:** "I invented a 6th RAG pattern: RAGless. The best retrieval is no retrieval — extract structure once at ingest, return it verbatim. This eliminates the entire category of retrieval-related hallucination."

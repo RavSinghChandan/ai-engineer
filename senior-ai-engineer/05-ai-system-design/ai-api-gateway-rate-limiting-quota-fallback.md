@@ -300,3 +300,17 @@ Spring Boot Actuator metrics → Prometheus metrics in FastAPI.
 The patterns are identical: middleware chain, each concern in its own layer, Redis for distributed state, structured logging for observability.
 The difference is the domain: instead of checking request per second for a REST API, I check tokens per billing period for an LLM API. The architecture is the same.
 What I bring from Java: the discipline of not reinventing these patterns. Rate limiting, circuit breaking, and quota management are solved problems in the Java ecosystem. I apply the same solutions in Python, not a custom implementation from scratch.
+
+---
+
+## ★ YOUR 5 PROJECTS — API Gateway & Rate Limiting
+
+| Project | Gateway implementation | Key detail |
+|---------|----------------------|-----------|
+| **AstroIntel 360°** | FastAPI middleware + JWT + X-API-Key | `/api/v1/` prefix. Dual auth: JWT Bearer + X-API-Key header. Rate limiting per IP. Redis job queue + response cache. 76 auth tests, 3 RBAC roles. |
+| **Bench Resource Optimizer** | 5-layer middleware chain | SecurityHeaders → RateLimit(G1 60 req/min) → RequestLogging → JWT Auth → InjectionCheck → RouteHandler. Every request passes all 5 layers sequentially. |
+| **RunbookAI** | FastAPI + JWT RBAC | JWT RBAC middleware. Rate limiting on /query endpoint. Swagger /docs. admin/user/viewer roles — viewer cannot ingest. |
+| **Agentic Growth OS** | FastAPI async + CORS | CORS for Angular frontend. Campaign execution async — returns job_id immediately, client polls. JWT on all endpoints. |
+| **Universal Agent** | FastAPI + per-config CORS | CORS origins in YAML — per-deployment control. `/agents` registry = meta-gateway across all 5 agents. Lock endpoint = emergency kill switch. |
+
+**Interview line:** "Bench's middleware chain is deliberately ordered — SecurityHeaders runs first so every response has HSTS and CSP even if a later layer errors. Rate limiting runs before auth so we don't waste auth compute on flooded requests. Injection check runs last before route handler so it only sees already-authenticated, rate-limited requests. Order in middleware is architecture."

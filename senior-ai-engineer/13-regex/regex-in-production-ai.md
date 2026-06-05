@@ -282,3 +282,23 @@ def validate_session_id(sid: str) -> bool:
 ## Interview Line
 
 "Regex appears in every production AI system I've built — G4 PII filtering on all LLM outputs, G3 JSON repair cascades for malformed LLM responses, conflict detection in RunbookAI using numeric parameter extraction, and injection detection in Bench. I also fixed a ReDoS vulnerability that SonarQube caught — a `\s*` inside a repeated group on user input. Replaced it with plain string operations."
+
+---
+
+## ★ YOUR 5 PROJECTS — Regex Usage Quick Reference
+
+| Project | Regex used for | Pattern count |
+|---------|---------------|--------------|
+| **AstroIntel 360°** | OTP validation `^\d{6}$`. HTML/script tag stripping. Input sanitisation before LLM. Language routing patterns. | 4 compiled patterns at module level |
+| **Bench Resource Optimizer** | G2 injection detection (multi-pattern). G3 JSON fence + bare JSON extraction. G4 PII (email + phone). SonarQube ReDoS fix (S5852). | 6+ compiled patterns. Heaviest regex usage in portfolio. |
+| **RunbookAI** | VALUE_CONFLICT numeric extraction `\b(\d+(?:\.\d+)?)\s*(GB|MB|ms|s|%|replicas?|pods?)\b`. ORDER_CONFLICT keyword scan. Title overlap normalisation `[^\w\s]`. | 3 compiled patterns. Critical for conflict detection. |
+| **Agentic Growth OS** | ROI extraction `roi[:\s]+(\d+(?:\.\d+)?)`. Improvement % extraction. Campaign type keyword detection via `re.search`. | 2–3 compiled patterns. |
+| **Universal Agent** | Calculator result extraction. Session ID validation `^[a-zA-Z0-9\-_]{8,64}$`. Input sanitisation before tool routing. | 2 compiled patterns. |
+
+**ReDoS story (Bench — know cold):**
+- SonarQube rule S5852 caught `\s*` inside a repeated group on user CV input
+- Original: `re.match(r'^(\w+\s*)+$', user_input)` — hangs on `'a'*50 + '!'`
+- Fix: `' '.join(text.split())` — O(n) always, no regex engine backtracking
+- Lesson: static analysis catches security bugs in "utility" functions
+
+**Interview line:** "The ReDoS vulnerability in Bench was in the injection guard — the one function that runs on every piece of user input. A malicious user could send a crafted CV string that caused the regex to take exponential time, hanging the server. SonarQube caught it before it reached production. Now all user-input regexes in my systems are reviewed for nested quantifiers before merging."

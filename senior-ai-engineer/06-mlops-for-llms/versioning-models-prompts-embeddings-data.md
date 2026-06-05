@@ -369,3 +369,17 @@ init_bm25_from_roles(roles)
 ### Senior interview talking point
 
 "In bench-resource-optimizer, roles were originally hardcoded JSON — a classic prototype pattern that breaks in production. Phase 3 migrated to SQLite-backed CRUD with a fire-and-forget FAISS+BM25 rebuild on every role change. Any role addition, update, or deletion immediately becomes searchable via hybrid RAG without restarting the server. The same pattern is used in production RAG systems where the knowledge base must evolve without downtime: write to DB, fire rebuild task, return to caller. The startup seed is idempotent — safe to run on every deploy."
+
+---
+
+## ★ YOUR 5 PROJECTS — Versioning in Practice
+
+| Project | What is versioned | How |
+|---------|-----------------|-----|
+| **AstroIntel 360°** | `deepseek-chat` pinned. Domain prompts in `prompts/` dir. Embedding model `all-MiniLM-L6-v2`. | Prompt changes tracked in git. Config file pins all model names. |
+| **Bench Resource Optimizer** | Prompt versions: `cv_parser@v2`, `role_mapper@v2`. HyDE prompt: `prompts/v1/hyde.txt`. `ACTIVE_VERSIONS` dict across agents. | Version tags visible in API responses. A/B testable without code deploy. SonarQube gates every merge. |
+| **RunbookAI** | SQL schema versioned in migrations. `source_type` column (internal/official). Phase number in `/health` response. | Schema migration discipline — same as Flyway/Liquibase in Java. |
+| **Agentic Growth OS** | `CampaignState` TypedDict is the contract. Adding fields = backwards compatible. Removing = breaking change. | LangGraph state as versioned schema. |
+| **Universal Agent** | `agent.config.yaml` IS the version. `universal-agent.js` SDK versioned. Agent IDs in registry are stable identifiers. | YAML in git = version control for behavior. |
+
+**Interview line:** "In Bench, every API response includes the prompt version tag — `cv_parser@v2` is in the response body. This means I can look at any response from any day and know exactly which prompt generated it. If quality dropped on Tuesday, I check what prompt version was active Tuesday. This is prompt audit trail — the same discipline as database migration audit trail."

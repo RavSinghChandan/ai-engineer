@@ -436,3 +436,17 @@ The DB query uses a subquery pattern: `SELECT ... FROM (SELECT ... ORDER BY ts D
 ### Senior interview talking point
 
 "In bench-resource-optimizer, readiness score is a time-series KPI, not a single value. Every call to /update-progress appends a score snapshot to SQLite. The history endpoint returns the last 30 entries oldest-first, so the frontend can render a trend sparkline directly. This pattern is the difference between a metric and a KPI — a KPI is a metric plus its trend. If a user's score drops from 80% to 60%, the trend exposes regression. If it rises 20% in a week, it validates the training plan. Point-in-time scores answer 'where are you'; trend scores answer 'are you moving in the right direction'."
+
+---
+
+## ★ YOUR 5 PROJECTS — Evaluation Metrics Per Project
+
+| Project | Primary metrics | What you measure |
+|---------|----------------|-----------------|
+| **AstroIntel 360°** | RAGAS proxy: faithfulness_proxy ≥ 0.80, answer_relevancy_proxy ≥ 0.70, context_precision_proxy ≥ 0.60, domain_recall_proxy ≥ 0.60 | Runs on every /run (not just /approve). Fixed bug where faithfulness was always 33% — wrong domain count logic. Validated against 20 famous profiles: 100% LOW hallucination risk. |
+| **Bench Resource Optimizer** | RAGAS: faithfulness, answer_relevancy, context_precision, context_recall. Guardrail triggers: G1–G5 counts. Cache hit rates: L1/L2 separate. | `/ragas` endpoint — async after every map-role call. Stored in SQLite `ragas` table. 502 tests, 94.7% coverage, SonarQube Quality Gate PASSED, 0 vulnerabilities. |
+| **RunbookAI** | Conflict detection score: VALUE_CONFLICT, ORDER_CONFLICT, MISSING_STEP, EXTRA_STEP per runbook pair. Title overlap % for P3 matching. | Custom evaluation — conflict detection replaces faithfulness. `commands_source: "database"` is the binary quality metric — always 100%. 137 tests. |
+| **Agentic Growth OS** | ROI improvement % across runs. CTR delta. Learning badge per improved run. | Primary metric is ROI improvement 40–80% run-over-run. No RAGAS — campaign success is the ground truth. |
+| **Universal Agent** | Health: `locked`, `active_sessions`, `rag` state per agent. Probed every 15s. | 20 tests, no API keys required. `/agent/health` returns live state. |
+
+**Interview line:** "My evaluation philosophy: choose metrics that reflect the actual failure mode of the system. For RunbookAI, faithfulness score is irrelevant — the answer is always the stored database string. The quality metric is `commands_source: database` — binary and architectural. For Bench, RAGAS faithfulness tracks whether the LLM stayed within retrieved CV context. Different system, different metric, same engineering discipline."

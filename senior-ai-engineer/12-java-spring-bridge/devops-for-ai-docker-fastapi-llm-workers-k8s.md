@@ -506,3 +506,17 @@ Step 4 — Startup time handling:
 
 Step 5 — Cost awareness:
 "GPU nodes are $0.53-$3/hour. I use spot instances for inference servers (vLLM is stateless, can restart in 90 seconds). For production, I keep one on-demand GPU node for low-latency and use spot for burst capacity. The cost of one g4dn.xlarge spot instance at $0.16/hr is $115/month — cheaper than Pinecone's middle tier for equivalent serving capacity."
+
+---
+
+## ★ YOUR 5 PROJECTS — DevOps Implementation
+
+| Project | Docker/K8s detail | Key config |
+|---------|------------------|-----------|
+| **AstroIntel 360°** | Multi-stage Dockerfile. docker-compose: FastAPI + Redis + Kafka + ZooKeeper. Non-root user. `.dockerignore` excludes `.env`. | `acks=all` Kafka workers. Redis DB0 cache + DB1 job store. Connection pool. |
+| **Bench Resource Optimizer** | Multi-stage Dockerfile. docker-compose: FastAPI + Redis + Kafka + ZooKeeper. SonarQube caught `COPY . .` bundling secrets — fixed to explicit per-directory copies. | FAISS index rebuilt async on role updates — no pod restart needed. |
+| **RunbookAI** | Dockerfile. SQLite file persisted via Docker volume. No Kafka/Redis needed. | Simplest infra in portfolio — FastAPI + SQLite. No external services at query time. |
+| **Agentic Growth OS** | Dockerfile. docker-compose: FastAPI + Angular frontend. | Campaign JSON persisted via Docker volume. LangGraph in-process. |
+| **Universal Agent** | Dockerfile per agent config. 5 configs = 5 deployable images. CORS per config. | Port-based agent self-identification. `_resolve_agent_id()` reads its own port. |
+
+**Interview line:** "SonarQube caught a security issue in Bench's Dockerfile — `COPY . .` was bundling `.env` secrets into the image layer. Fixed to explicit per-directory copies: `COPY src/ src/`, `COPY tests/ tests/`, never `COPY . .`. This is why static analysis in CI matters for Docker too, not just Python code."

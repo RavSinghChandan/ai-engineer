@@ -335,3 +335,17 @@ Second, response caching: for read tools calling external APIs, cache responses 
 Third, circuit breaker: if the external API returns errors at high rate (>20% of calls in a rolling window), open the circuit — stop calling the API for 30 seconds, return a graceful degradation response. After 30 seconds, try again.
 Fourth, queue-based approach for non-urgent operations: if the tool operation is not real-time, queue it and process asynchronously. Return a "request queued, result will be available shortly" response to the LLM.
 In Spring Boot terms: this is @RateLimiter from Resilience4j + @Cacheable + @CircuitBreaker applied to a tool implementation instead of a service method.
+
+---
+
+## ★ YOUR 5 PROJECTS — Tool Usage & Function Calling
+
+| Project | Tools | How |
+|---------|-------|-----|
+| **AstroIntel 360°** | Custom domain tools | Numerology calculator (pure Python), astrology chart generator (astronomical math), tarot card selector (seeded random). All deterministic Python functions — never LLM-based. |
+| **Bench Resource Optimizer** | FastAPI endpoints as tools | `upload-cv` (PDF → profile), `map-role` (profile → gap analysis), `generate-plan` (gaps → 7-day roadmap), `update-progress` (tick tasks). Each is a FastAPI endpoint + agent function. |
+| **RunbookAI** | SQL + NetworkX as tools | SQL query tool (deterministic). `conflict_detector.py` as post-processing tool. NetworkX topological sort as ordering tool. No LLM tool calls at query time. |
+| **Agentic Growth OS** | LangGraph nodes as tools | Each of 5 nodes IS a tool — pure function with defined inputs/outputs. Learning engine modifies agent prompts for next run. |
+| **Universal Agent** | `calculator` + `get_current_datetime` | Safe math eval, always-correct time. Custom tool registration: add `@tool` decorated function → register in config → available to agent. No code change to core. |
+
+**Interview line:** "In AstroIntel, the domain agent tools are deterministic Python functions — they don't call the LLM, they compute. The numerology calculator computes Life Path from DOB using digit reduction. This is the right architecture: tools that return facts (deterministic), LLM that narrates meaning (generative). Never use LLM for computation that has a correct mathematical answer."

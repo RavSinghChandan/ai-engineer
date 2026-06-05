@@ -415,3 +415,17 @@ Step 4 — Multi-modal RAG:
 
 Step 5 — Production consideration:
 "Vision LLM calls are slow (3-8s per page). For large documents, parallelize page processing in batches of 5, with rate limit buffers between batches. Cache the vision extraction results — re-processing a page costs $0.02-0.05, re-reading from cache costs nothing."
+
+---
+
+## ★ YOUR 5 PROJECTS — Multi-modal Awareness
+
+| Project | Multi-modal? | What you'd add |
+|---------|-------------|---------------|
+| **AstroIntel 360°** | Text-only (currently) | Palmistry: if user uploads a hand photo, add a vision encoder to extract palm features (mounts, lines, finger ratios). Embed palm image features alongside birth data. Feed combined context to LLM. |
+| **Bench Resource Optimizer** | Text-only | Profile photo optional — add vision encoder to extract candidate presentation style signals from profile photo (body language in video interviews). Currently not needed. |
+| **RunbookAI** | Text-only | Architecture diagrams in runbooks could be interpreted with vision encoder — extract topology from diagram, convert to NetworkX graph. High-value future feature. |
+| **Agentic Growth OS** | Text-only | Campaign image generation: add a Stable Diffusion or DALL-E node to generate ad creatives. Text agent writes copy, image agent generates visual. Full multi-modal campaign. |
+| **Universal Agent** | Text-only | YAML `tools` list can include a vision tool — `describe_image` that calls GPT-4V. Config change only, no agent code change. |
+
+**Interview line:** "My current projects are all text-based — intentionally. Multi-modal adds latency (vision models are 3-8s per image), cost (vision calls are 5-10× more expensive than text), and complexity. I would add vision to AstroIntel for palmistry readings from user-uploaded hand photos — that's a genuine UX improvement. I wouldn't add it speculatively."

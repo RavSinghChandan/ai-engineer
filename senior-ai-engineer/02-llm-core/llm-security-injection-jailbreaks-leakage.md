@@ -451,3 +451,17 @@ _FORBIDDEN_PHRASES = [
 **Interview answer when asked "how did you secure AstroIntel?":**
 > "AstroIntel has a 4-layer security architecture. Layer 1 runs before any LLM call — a security_check node validates both the user question and every birth profile field against 12 injection patterns. If any field contains a jailbreak attempt, SecurityError is raised and the pipeline never starts. Layer 2 is prompt hardening — every agent gets SECURITY_HEADER and SECURITY_FOOTER constants injected into its system prompt, with explicit override-resistance instructions. Layer 3 is output validation — the hallucination_check node scans every LLM output for system prompt leakage, off-topic content, and jailbreak compliance. Layer 4 is audit logging — every LLM call is logged with request_id, input hash, output length, and cost estimate to an append-only log. And separately, the system literally cannot start in production if any secret is still set to its default placeholder value — main.py calls sys.exit() on startup."
 
+
+---
+
+## ★ YOUR 5 PROJECTS — LLM Security Implementation
+
+| Project | Security implementation | Key detail |
+|---------|------------------------|-----------|
+| **AstroIntel 360°** | 4-layer security: pre-call check, prompt hardening, output validation, audit log | security_check LangGraph node validates 12 injection patterns before pipeline starts. SECURITY_HEADER/FOOTER in every agent prompt. sys.exit() on startup if secrets = placeholder. 76 auth tests, JWT + X-API-Key dual auth. |
+| **Bench Resource Optimizer** | G2 injection detection + G4 PII filter + SecurityHeaders middleware | G2 scans CV text AND role names before any LLM call. G4 strips email/phone from ALL LLM outputs with compiled regex. HSTS, CSP, X-Frame-Options: DENY, X-Content-Type-Options: nosniff. SonarQube: 0 vulnerabilities, 0 security hotspots. ReDoS bug fixed (S5852). |
+| **RunbookAI** | JWT RBAC (admin/user/viewer) + SQL parameterised queries | NetworkX validates step ordering — no way to inject "run this command first" via natural language. SQL parameterised queries — zero SQL injection possible. Role-based access: viewer cannot ingest, only admin can. |
+| **Agentic Growth OS** | JWT auth + LangGraph immutable state | LangGraph state is immutable between nodes — each agent writes to its own output field, cannot overwrite another agent's output. JWT on all API endpoints. |
+| **Universal Agent** | CORS allowlist per config + Lock mechanism | CORS origins in YAML — per-deployment control. Lock/unlock is the security kill switch: locked agent returns a message, never calls LLM. Per-agent isolation — locking one agent doesn't affect others. |
+
+**Interview line:** "In Bench, SonarQube caught a ReDoS vulnerability in our injection guard — `\s*` inside a repeated group on user input. I replaced it with plain string operations. This is why static analysis is non-negotiable even for 'small' utility functions — injection detection is the last thing you want to be slow or broken."

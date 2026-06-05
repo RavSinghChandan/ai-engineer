@@ -376,3 +376,17 @@ for domain, agent_fn in agent_map.items():
 **Interview answer when asked "which orchestration pattern did you use?":**
 > "AstroIntel uses a parallel fan-out pattern inside a LangGraph StateGraph. Five domain specialist agents run independently — no agent sees another's output during execution, which avoids cross-contamination bias. After the fan-out, a meta-agent acts as the supervisor: it reads all five outputs and produces a consensus score based on cross-domain agreement. Insights where 3 or more traditions agree are marked HIGH confidence. This is the architectural answer to the trade-off I made by going parallel — I gain 5x latency improvement but lose inter-agent context, so the consensus layer compensates by measuring the strength of the multi-source signal."
 
+
+---
+
+## ★ YOUR 5 PROJECTS — Multi-Agent Orchestration
+
+| Project | Pattern | Detail |
+|---------|---------|--------|
+| **AstroIntel 360°** | Supervisor + Parallel Peers | 18+ nodes. 5 domain agents run in parallel (ThreadPoolExecutor). Supervisor (meta_agent) synthesises multi-domain outputs. Conditional edges — skip nodes whose modules user didn't select. |
+| **Bench Resource Optimizer** | Sequential pipeline (not multi-agent) | cv_parser → role_mapper → planner → tracker. FastAPI orchestrates directly — no LangGraph needed for linear flow. Each agent receives clean output from previous. |
+| **RunbookAI** | No multi-agent | Single LLM at ingest only. All query-time logic is SQL + NetworkX. Conflict detection is a post-processing tool, not an agent. |
+| **Agentic Growth OS** | 5-node LangGraph pipeline | Audience → AdCopy → BudgetOptimizer → Campaign → PerformanceAnalyzer. Pure functions per node. Each agent writes to its own output field in CampaignState — immutable side effects. |
+| **Universal Agent** | Single ReAct per instance | One ReAct agent per config. Registry allows 5 independent agents monitored via one dashboard. Each agent is fully isolated — lock one, others unaffected. |
+
+**Interview line:** "In AstroIntel, running 5 domain agents in parallel isn't just faster — it's architecturally correct. If I ran them sequentially, each later agent could be influenced by earlier agents' outputs. Running them independently and synthesising at the end is the ensemble approach: independent analysis, central consensus."

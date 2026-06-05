@@ -386,3 +386,17 @@ Step 4 — SSE consideration:
 
 Step 5 — Cost awareness:
 "Two ECS Fargate tasks (2 vCPU, 4GB) running 24/7 costs approximately $30-50/month. The LLM API call cost at 1000 analyses/day × $0.07 is $70/day. The infrastructure is the smaller cost — the API calls dominate. This is why cost optimization focuses on model selection and caching, not instance rightsizing."
+
+---
+
+## ★ YOUR 5 PROJECTS — Cloud Deployment
+
+| Project | Cloud target | Key consideration |
+|---------|-------------|------------------|
+| **AstroIntel 360°** | AWS ECS Fargate (`astrointel-cluster`, ap-south-1) | OIDC-based ECR auth in GitHub Actions. ECS rolling update. ALB idle timeout 300s for SSE streams. |
+| **Bench Resource Optimizer** | AWS ECS compatible. SonarQube Cloud for code quality. | FAISS + SQLite on ECS Fargate (ephemeral storage → mount EFS for persistence). Redis on ElastiCache. |
+| **RunbookAI** | Any cloud — simplest infra | FastAPI + SQLite. Single ECS task. No Redis, no Kafka, no vector DB. SQLite on EFS for persistence. |
+| **Agentic Growth OS** | AWS ECS + S3 for campaign memory | Campaign JSON persisted to S3 instead of local file in production. |
+| **Universal Agent** | Any cloud — 5 ECS tasks (one per agent) | Each agent on its own port. ALB routes by path prefix. Lock state in Redis for cross-instance consistency. |
+
+**Interview line:** "AstroIntel is already deployed to ECS. The GitHub Actions pipeline: test → build Docker image → push to ECR (OIDC auth, no static credentials) → ECS rolling update. Rolling update means zero downtime — new tasks spin up before old tasks shut down. The ALB health check gates traffic: new tasks only receive requests after /health returns 200."

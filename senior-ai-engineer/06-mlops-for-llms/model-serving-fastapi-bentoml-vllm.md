@@ -240,3 +240,17 @@ Kubernetes rolling update: bring up new pods one at a time. New pod passes readi
 For AI services specifically: the readiness probe should also check that the LLM client is initialized and can reach the API. A pod that starts but cannot connect to OpenAI should not receive traffic.
 Long-in-flight requests during deployment: set terminationGracePeriodSeconds to 120 seconds. Kubernetes sends SIGTERM, pod finishes in-flight LLM calls (max 30s per call), then terminates cleanly.
 For model deployments (if hosting your own model): blue-green is safer than rolling. Bring up a full new deployment, run smoke tests, then switch traffic atomically. Rolling deployment of a model change is risky — partial rollout of a different model creates inconsistent behavior.
+
+---
+
+## ★ YOUR 5 PROJECTS — Model Serving Architecture
+
+| Project | Serving pattern | Key detail |
+|---------|----------------|-----------|
+| **AstroIntel 360°** | FastAPI + DeepSeek SDK | Custom `deepseek_client.py`: retries, timeout, cross-thread token accounting via `threading.Lock`. Circuit breaker. SSE streaming. |
+| **Bench Resource Optimizer** | FastAPI async + DeepSeek OpenAI-compatible SDK | `--reload` dev, env var config for prod. Async LLM calls. SSE stream for plan generation. |
+| **RunbookAI** | FastAPI — LLM only at ingest | PDF ingest: one LLM call. All query serving: pure SQL, zero model required at runtime. Most lightweight serving architecture. |
+| **Agentic Growth OS** | FastAPI + LangGraph | Each LangGraph node calls DeepSeek synchronously within execution thread. Campaign execution async from API perspective. |
+| **Universal Agent** | FastAPI via uvicorn | `uvicorn api.main:app`. Provider-agnostic — swap DeepSeek → Claude → GPT-4 by changing one YAML line. No code change. |
+
+**Interview line:** "Universal Agent is provider-agnostic by design — the LLM provider is a YAML config value, not a code dependency. I can swap from DeepSeek to Claude to GPT-4 without touching a single line of Python. This is how you build AI systems for enterprise: the business doesn't want to be locked into one LLM vendor, so the architecture must not be either."
