@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P2 — RAG Architecture Flow</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f5;display:flex;height:100vh;overflow:hidden}
+
+/* ── Directory Panel ── */
+#dir-panel{width:220px;min-width:220px;background:#1e1e2e;color:#cdd6f4;padding:16px 12px;overflow-y:auto;flex-shrink:0}
+#dir-panel h3{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#6c7086;margin-bottom:12px}
+.dir-section{margin-bottom:14px}
+.dir-section-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#45475a;margin-bottom:6px;padding-left:4px}
+.dir-file{font-size:12px;padding:5px 8px;border-radius:6px;cursor:pointer;transition:background .15s;color:#a6adc8;border-left:3px solid transparent;margin-bottom:2px;word-break:break-all}
+.dir-file.active{background:#fef3c7 !important;color:#92400e !important;border-left-color:#f59e0b !important;font-weight:600}
+.dir-file:hover{background:#313244}
+
+/* ── Main flow area ── */
+#flow-wrap{flex:1;overflow-y:auto;padding:24px 28px}
+.page-title{text-align:center;margin-bottom:6px}
+.page-title h1{font-size:20px;font-weight:700;color:#1e293b}
+.page-title p{font-size:13px;color:#64748b;margin-top:4px}
+.nav-links{display:flex;justify-content:center;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.nav-links a{font-size:12px;padding:4px 12px;border-radius:20px;background:#e2e8f0;color:#475569;text-decoration:none;transition:background .15s}
+.nav-links a:hover{background:#cbd5e1}
+.nav-links a.cur{background:#6366f1;color:#fff}
+
+/* ── Section divider ── */
+.section-sep{display:flex;align-items:center;gap:12px;margin:20px 0 16px;justify-content:center}
+.section-sep .sep-line{height:2px;width:80px;background:linear-gradient(90deg,transparent,#94a3b8)}
+.section-sep .sep-line.r{background:linear-gradient(90deg,#94a3b8,transparent)}
+.section-sep .sep-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#64748b;background:#e2e8f0;padding:4px 14px;border-radius:20px}
+
+/* ── Flow nodes ── */
+.flow{display:flex;flex-direction:column;align-items:center;gap:0}
+.arrow{width:2px;height:22px;background:#94a3b8;position:relative;margin:0 auto}
+.arrow::after{content:'';position:absolute;bottom:-6px;left:-4px;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #94a3b8}
+
+.terminal{display:inline-flex;align-items:center;justify-content:center;border-radius:50px;padding:7px 24px;font-size:13px;font-weight:700;cursor:pointer;border:2px solid rgba(0,0,0,.1);box-shadow:0 2px 8px rgba(0,0,0,.08);transition:transform .12s,box-shadow .12s,outline .12s;min-width:100px}
+.terminal:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.13)}
+
+.process{width:auto;min-width:260px;max-width:400px;border-radius:10px;padding:8px 16px 8px 12px;display:inline-flex;align-items:center;gap:10px;cursor:pointer;border:2px solid rgba(0,0,0,.06);box-shadow:0 2px 8px rgba(0,0,0,.07);transition:transform .12s,box-shadow .12s,outline .12s;position:relative}
+.process:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.13)}
+.process .icon{font-size:18px;flex-shrink:0}
+.process .label{font-size:13px;font-weight:600;color:#1e293b;line-height:1.3}
+.process .sub{font-size:11px;color:#64748b;margin-top:2px}
+
+/* YOUR SKILL highlight */
+.skill-node{outline:2px solid #f472b6 !important;outline-offset:2px}
+.skill-node .label::after{content:' ✦ YOUR SKILL';font-size:10px;color:#f472b6;font-weight:700;margin-left:6px}
+
+/* Diamond decision */
+.diamond-wrap{position:relative;display:flex;justify-content:center;align-items:center;width:220px;height:80px;margin:0 auto}
+.diamond{width:110px;height:70px;background:#fef9c3;border:2px solid #fbbf24;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:filter .12s;position:relative}
+.diamond:hover{filter:brightness(.94)}
+.diamond .d-label{font-size:11px;font-weight:700;color:#92400e;text-align:center;line-height:1.3;clip-path:none;padding:0 14px}
+.yes-label,.no-label{position:absolute;font-size:10px;font-weight:700;color:#64748b}
+.yes-label{bottom:-18px;left:50%;transform:translateX(-50%)}
+.no-label{right:-36px;top:50%;transform:translateY(-50%)}
+
+/* Error branch */
+.error-row{display:flex;align-items:center;justify-content:center;position:relative;width:100%}
+.err-line{height:2px;background:#f87171;width:60px;position:absolute;right:calc(50% - 55px - 60px)}
+.err-box{position:absolute;right:calc(50% - 55px - 140px);display:inline-flex;align-items:center;gap:6px;background:#fee2e2;border:2px solid #f87171;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;color:#b91c1c;white-space:nowrap}
+
+/* active gold ring */
+.node-active{outline:3px solid #f59e0b !important;outline-offset:3px}
+
+/* Prompt sub-cards */
+.pp-row{display:flex;gap:8px;justify-content:center;margin-top:8px;flex-wrap:wrap}
+.pp-box{width:100px;border-radius:8px;padding:8px 10px 7px;text-align:center;cursor:pointer;border:1.5px solid rgba(0,0,0,.08);transition:transform .12s}
+.pp-box:hover{transform:translateY(-2px)}
+.pp-box .pp-icon{font-size:16px;margin-bottom:3px}
+.pp-box .pp-label{font-size:10px;font-weight:600;color:#1e293b}
+.pp-box .pp-sub{font-size:9px;color:#64748b;margin-top:1px}
+
+/* ── Code Panel ── */
+#panel{position:fixed;bottom:0;left:220px;right:0;background:#fff;border-top:2px solid #e2e8f0;border-radius:16px 16px 0 0;transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);z-index:100;max-height:55vh;display:flex;flex-direction:column;box-shadow:0 -4px 32px rgba(0,0,0,.12)}
+#panel.open{transform:translateY(0)}
+#panel-header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid #e2e8f0;flex-shrink:0}
+#panel-title{font-size:14px;font-weight:700;color:#1e293b}
+#panel-flow{font-size:11px;color:#6366f1;margin-top:2px}
+#panel-close{background:none;border:none;font-size:20px;cursor:pointer;color:#94a3b8;padding:0 4px;line-height:1}
+#panel-body{overflow-y:auto;padding:16px 20px;flex:1}
+#panel-desc{font-size:13px;color:#475569;margin-bottom:12px;line-height:1.6}
+pre{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:14px;font-size:12px;line-height:1.7;overflow-x:auto;white-space:pre-wrap;word-break:break-word}
+/* VS Code syntax colors */
+.kw{color:#9333ea;font-weight:600}
+.fn{color:#2563eb}
+.cn{color:#0891b2}
+.st{color:#16a34a}
+.nm{color:#ea580c}
+.cm{color:#94a3b8;font-style:italic}
+.dc{color:#db2777}
+</style>
+</head>
+<body>
+
+<!-- Directory Panel -->
+<div id="dir-panel">
+  <h3>📁 Project Files</h3>
+  <div class="dir-section">
+    <div class="dir-section-label">Ingestion</div>
+    <div class="dir-file" id="df-routes-ingest">routes/ingest.py</div>
+    <div class="dir-file" id="df-schemas-rag">schemas/rag.py</div>
+    <div class="dir-file" id="df-services-parser">services/doc_parser.py</div>
+    <div class="dir-file" id="df-services-chunker">services/chunker.py</div>
+    <div class="dir-file" id="df-services-embedder">services/embedder.py</div>
+    <div class="dir-file" id="df-services-vector">services/vector_store.py</div>
+  </div>
+  <div class="dir-section">
+    <div class="dir-section-label">Query</div>
+    <div class="dir-file" id="df-routes-query">routes/query.py</div>
+    <div class="dir-file" id="df-services-reranker">services/reranker.py</div>
+    <div class="dir-file" id="df-services-prompt">services/prompt.py</div>
+    <div class="dir-file" id="df-services-llm">services/llm_client.py</div>
+    <div class="dir-file" id="df-services-auth">services/auth.py</div>
+  </div>
+</div>
+
+<!-- Flow Area -->
+<div id="flow-wrap">
+  <div class="page-title">
+    <h1>P2 — RAG Architecture</h1>
+    <p>Retrieval-Augmented Generation &nbsp;·&nbsp; <em>Retrieve → Rank → Augment → Generate</em></p>
+  </div>
+  <div class="nav-links">
+    <a href="../P1-plain-llm/flow.html">P1 Plain LLM</a>
+    <a href="#" class="cur">P2 RAG</a>
+    <a href="../P3-agent-tool-calling/flow.html">P3 Agent</a>
+    <a href="../P4-memory-based-ai/flow.html">P4 Memory</a>
+    <a href="../P5-streaming-async/flow.html">P5 Streaming</a>
+  </div>
+
+  <!-- ═══ INGESTION PIPELINE ═══ -->
+  <div class="section-sep">
+    <div class="sep-line"></div>
+    <div class="sep-label">📥 Ingestion Pipeline</div>
+    <div class="sep-line r"></div>
+  </div>
+
+  <div class="flow">
+    <!-- START -->
+    <div class="terminal" style="background:#dbeafe;color:#1d4ed8" onclick="show('start')">▶ START</div>
+    <div class="arrow"></div>
+
+    <!-- Upload -->
+    <div class="process" style="background:#eff6ff" onclick="show('upload')" id="n-upload">
+      <span class="icon">📤</span>
+      <div><div class="label">Document Upload</div><div class="sub">POST /ingest — file bytes</div></div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- File Valid? -->
+    <div style="position:relative;width:100%;display:flex;justify-content:center">
+      <div class="diamond-wrap">
+        <div class="diamond" onclick="show('filevalid')" id="n-filevalid">
+          <div class="d-label">File Valid?</div>
+        </div>
+        <span class="yes-label">YES ↓</span>
+        <span class="no-label">NO → 400</span>
+      </div>
+      <div class="err-line" style="top:50%;right:calc(50% - 55px - 60px)"></div>
+      <div class="err-box" style="top:50%;transform:translateY(-50%)">⚠ 400 Bad File</div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- Parse -->
+    <div class="process" style="background:#f0fdf4" onclick="show('parse')" id="n-parse">
+      <span class="icon">📄</span>
+      <div><div class="label">Document Parser</div><div class="sub">PDF / DOCX / TXT → plain text</div></div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- Chunk -->
+    <div class="process" style="background:#fdf4ff" onclick="show('chunk')" id="n-chunk">
+      <span class="icon">✂️</span>
+      <div><div class="label">Text Chunker</div><div class="sub">Split with overlap · fixed / semantic</div></div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- Embed (ingest) -->
+    <div class="process" style="background:#fff7ed" onclick="show('embed-ingest')" id="n-embed-ingest">
+      <span class="icon">🔢</span>
+      <div><div class="label">Embed Chunks</div><div class="sub">text-embedding-3-small → float[]</div></div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- Store -->
+    <div class="process" style="background:#f0fdfa" onclick="show('store')" id="n-store">
+      <span class="icon">🗄️</span>
+      <div><div class="label">Vector Store</div><div class="sub">FAISS / Pinecone / Weaviate upsert</div></div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- Ingestion END -->
+    <div class="terminal" style="background:#dcfce7;color:#166534" onclick="show('ingest-end')">✅ Indexed</div>
+  </div>
+
+  <!-- ═══ QUERY PIPELINE ═══ -->
+  <div class="section-sep" style="margin-top:28px">
+    <div class="sep-line"></div>
+    <div class="sep-label">🔍 Query Pipeline</div>
+    <div class="sep-line r"></div>
+  </div>
+
+  <div class="flow">
+    <!-- START query -->
+    <div class="terminal" style="background:#dbeafe;color:#1d4ed8" onclick="show('qstart')">▶ User Query</div>
+    <div class="arrow"></div>
+
+    <!-- Auth -->
+    <div style="position:relative;width:100%;display:flex;justify-content:center">
+      <div class="diamond-wrap">
+        <div class="diamond" onclick="show('qauth')" id="n-qauth">
+          <div class="d-label">Token Valid?</div>
+        </div>
+        <span class="yes-label">YES ↓</span>
+        <span class="no-label">NO → 401</span>
+      </div>
+      <div class="err-line"></div>
+      <div class="err-box">🔒 401 Unauthorized</div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- Embed query -->
+    <div class="process" style="background:#fff7ed" onclick="show('embed-query')" id="n-embed-query">
+      <span class="icon">🔢</span>
+      <div><div class="label">Embed Query</div><div class="sub">Same model as ingestion</div></div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- Search -->
+    <div class="process" style="background:#f0fdf4" onclick="show('search')" id="n-search">
+      <span class="icon">🔍</span>
+      <div><div class="label">Vector Search</div><div class="sub">cosine similarity · top-K chunks</div></div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- Rerank -->
+    <div class="process" style="background:#fdf4ff" onclick="show('rerank')" id="n-rerank">
+      <span class="icon">📊</span>
+      <div><div class="label">Reranker</div><div class="sub">Cross-encoder · re-score chunks</div></div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- Context (YOUR SKILL) -->
+    <div class="process skill-node" style="background:#fdf2f8" onclick="show('context')" id="n-context">
+      <span class="icon">📋</span>
+      <div><div class="label">Context Builder</div><div class="sub">Assemble top chunks + query</div></div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- LLM -->
+    <div class="process" style="background:#eff6ff" onclick="show('llm')" id="n-llm">
+      <span class="icon">🤖</span>
+      <div><div class="label">LLM API Call</div><div class="sub">gpt-4o with RAG context</div></div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- Parse response -->
+    <div style="position:relative;width:100%;display:flex;justify-content:center">
+      <div class="diamond-wrap">
+        <div class="diamond" onclick="show('parseresp')" id="n-parseresp">
+          <div class="d-label">Parse Response</div>
+        </div>
+        <span class="yes-label">OK ↓</span>
+        <span class="no-label">ERR → 500</span>
+      </div>
+      <div class="err-line"></div>
+      <div class="err-box">💥 500 LLM Error</div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- Response -->
+    <div class="process" style="background:#f0fdfa" onclick="show('response')" id="n-response">
+      <span class="icon">📨</span>
+      <div><div class="label">Response to Client</div><div class="sub">answer + source chunks + scores</div></div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- END -->
+    <div class="terminal" style="background:#dcfce7;color:#166534" onclick="show('end')">■ END</div>
+  </div>
+  <div style="height:60px"></div>
+</div>
+
+<!-- Code Panel -->
+<div id="panel">
+  <div id="panel-header">
+    <div>
+      <div id="panel-title">—</div>
+      <div id="panel-flow">—</div>
+    </div>
+    <button id="panel-close" onclick="closePanel()">✕</button>
+  </div>
+  <div id="panel-body">
+    <div id="panel-desc"></div>
+    <pre id="panel-code"></pre>
+  </div>
+</div>
+
+<script>
+const DATA = {
+  start:{icon:'▶',title:'START — Document Ingestion',flow:'Client → POST /ingest',desc:'Entry point for uploading documents into the RAG knowledge base.',code:
+`# routes/ingest.py
+@app.post("/ingest", status_code=202)
+async def ingest_document(
+    file: UploadFile = File(...),
+    user: dict = Depends(get_current_user),
+) -> dict:
+    if not file.filename.endswith((".txt", ".pdf", ".docx")):
+        raise HTTPException(400, "Unsupported file type")
+    content = await file.read()
+    job_id = await ingest_pipeline(content, file.filename, user["sub"])
+    return {"job_id": job_id, "status": "processing"}`},
+
+  upload:{icon:'📤',title:'Document Upload',flow:'Client → FastAPI → validation',desc:'Receives the raw file bytes and validates type and size before processing.',code:
+`# schemas/rag.py
+from pydantic import BaseModel, Field
+
+class IngestRequest(BaseModel):
+    filename: str = Field(min_length=1, max_length=255)
+    content_type: str
+
+class IngestResponse(BaseModel):
+    job_id: str
+    status: str
+    chunks_created: int | None = None
+
+ALLOWED_TYPES = {".txt", ".pdf", ".docx", ".md"}
+MAX_FILE_SIZE = 20 * 1024 * 1024  # 20 MB`},
+
+  filevalid:{icon:'✅',title:'File Valid?',flow:'Validate → branch: OK / 400',desc:'Decision gate: checks extension, MIME type, and file size. Rejects unsupported or oversized files with 400.',code:
+`# services/doc_parser.py
+def validate_file(filename: str, content: bytes) -> None:
+    ext = Path(filename).suffix.lower()
+    if ext not in ALLOWED_TYPES:
+        raise HTTPException(400, f"Unsupported type: {ext}")
+    if len(content) > MAX_FILE_SIZE:
+        raise HTTPException(413, "File too large (max 20 MB)")
+    # MIME sniff
+    if ext == ".pdf" and not content.startswith(b"%PDF"):
+        raise HTTPException(400, "Invalid PDF magic bytes")`},
+
+  parse:{icon:'📄',title:'Document Parser',flow:'raw bytes → plain text',desc:'Extracts clean text from PDF, DOCX, or plain text files using library-specific parsers.',code:
+`# services/doc_parser.py
+import pdfplumber
+from docx import Document
+
+async def parse_document(content: bytes, filename: str) -> str:
+    ext = Path(filename).suffix.lower()
+    if ext == ".pdf":
+        with pdfplumber.open(io.BytesIO(content)) as pdf:
+            return "\\n".join(p.extract_text() or "" for p in pdf.pages)
+    elif ext == ".docx":
+        doc = Document(io.BytesIO(content))
+        return "\\n".join(p.text for p in doc.paragraphs)
+    else:
+        return content.decode("utf-8", errors="ignore")`},
+
+  chunk:{icon:'✂️',title:'Text Chunker',flow:'text → List[Chunk]',desc:'Splits text into overlapping chunks. Overlap ensures context is preserved across chunk boundaries.',code:
+`# services/chunker.py
+from dataclasses import dataclass
+
+@dataclass
+class Chunk:
+    text: str
+    index: int
+    source: str
+
+def chunk_text(
+    text: str,
+    source: str,
+    chunk_size: int = 800,
+    overlap: int = 150,
+) -> list[Chunk]:
+    chunks = []
+    start = 0
+    idx = 0
+    while start < len(text):
+        end = min(start + chunk_size, len(text))
+        chunks.append(Chunk(text=text[start:end], index=idx, source=source))
+        start += chunk_size - overlap
+        idx += 1
+    return chunks`},
+
+  'embed-ingest':{icon:'🔢',title:'Embed Chunks',flow:'Chunk[] → float[][] → store',desc:'Converts each chunk to a dense vector using the same embedding model used at query time. Consistency is critical.',code:
+`# services/embedder.py
+from openai import AsyncOpenAI
+import numpy as np, faiss
+
+async def embed_chunks(
+    chunks: list[Chunk],
+    llm: AsyncOpenAI,
+    batch_size: int = 100,
+) -> list[list[float]]:
+    embeddings = []
+    for i in range(0, len(chunks), batch_size):
+        batch = [c.text for c in chunks[i:i+batch_size]]
+        resp = await llm.embeddings.create(
+            model="text-embedding-3-small",
+            input=batch,
+        )
+        embeddings.extend([d.embedding for d in resp.data])
+    return embeddings`},
+
+  store:{icon:'🗄️',title:'Vector Store',flow:'vectors → FAISS / Pinecone upsert',desc:'Stores chunk vectors with metadata. FAISS for local; Pinecone/Weaviate for production scale.',code:
+`# services/vector_store.py
+import faiss, numpy as np, json
+
+class VectorStore:
+    def __init__(self, dim: int = 1536):
+        self.index = faiss.IndexFlatIP(dim)
+        self.metadata: list[dict] = []
+
+    def upsert(self, embeddings: list[list[float]], chunks: list[Chunk]):
+        vecs = np.array(embeddings, dtype=np.float32)
+        faiss.normalize_L2(vecs)
+        self.index.add(vecs)
+        for c in chunks:
+            self.metadata.append({"text": c.text, "source": c.source})
+
+    def search(self, query_vec: np.ndarray, top_k: int = 5):
+        faiss.normalize_L2(query_vec)
+        scores, indices = self.index.search(query_vec, top_k)
+        return [(self.metadata[i], float(scores[0][j]))
+                for j, i in enumerate(indices[0]) if i < len(self.metadata)]`},
+
+  'ingest-end':{icon:'✅',title:'Indexed — Ingestion Complete',flow:'Pipeline done',desc:'All chunks are stored in the vector index. The document is now retrievable for future queries.',code:
+`# routes/ingest.py — final response
+return {
+    "status": "success",
+    "filename": filename,
+    "chunks_created": len(chunks),
+    "embeddings_stored": len(embeddings),
+}`},
+
+  qstart:{icon:'▶',title:'User Query — Start',flow:'Client → POST /query',desc:'Entry point for the query pipeline. User sends a natural-language question.',code:
+`# routes/query.py
+@app.post("/query", response_model=QueryResponse)
+async def query_rag(
+    req: QueryRequest,
+    request: Req,
+    user: dict = Depends(get_current_user),
+) -> QueryResponse:
+    answer, sources = await rag_pipeline(
+        query=req.question,
+        store=request.app.state.vector_store,
+        llm=request.app.state.llm,
+    )
+    return QueryResponse(answer=answer, sources=sources)`},
+
+  qauth:{icon:'🔐',title:'Token Valid?',flow:'JWT check → OK / 401',desc:'Validates the Bearer JWT token. Rejects expired or tampered tokens with 401.',code:
+`# services/auth.py
+from jose import jwt, JWTError
+
+async def get_current_user(token: str = Depends(oauth2)) -> dict:
+    try:
+        payload = jwt.decode(
+            token,
+            os.environ["JWT_SECRET"],
+            algorithms=["HS256"],
+        )
+        return payload
+    except JWTError:
+        raise HTTPException(401, "Invalid or expired token")`},
+
+  'embed-query':{icon:'🔢',title:'Embed Query',flow:'question → float[]',desc:'Converts the user question to a vector using the same model as ingestion. Model consistency is mandatory for meaningful similarity.',code:
+`# services/embedder.py
+async def embed_query(text: str, llm: AsyncOpenAI) -> np.ndarray:
+    resp = await llm.embeddings.create(
+        model="text-embedding-3-small",  # MUST match ingestion model
+        input=[text],
+    )
+    vec = np.array([resp.data[0].embedding], dtype=np.float32)
+    faiss.normalize_L2(vec)
+    return vec`},
+
+  search:{icon:'🔍',title:'Vector Search',flow:'query_vec → top-K chunks',desc:'Retrieves the top-K most similar chunks by cosine similarity (inner product after L2 normalisation).',code:
+`# services/vector_store.py
+def search(self, query_vec: np.ndarray, top_k: int = 5):
+    scores, indices = self.index.search(query_vec, top_k)
+    results = []
+    for j, i in enumerate(indices[0]):
+        if i < len(self.metadata):
+            results.append({
+                "text":   self.metadata[i]["text"],
+                "source": self.metadata[i]["source"],
+                "score":  float(scores[0][j]),
+            })
+    return results`},
+
+  rerank:{icon:'📊',title:'Reranker',flow:'top-K → re-scored top-N',desc:'Cross-encoder reranker re-scores each retrieved chunk independently. More accurate than vector similarity alone.',code:
+`# services/reranker.py
+from sentence_transformers import CrossEncoder
+
+_reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+
+def rerank(query: str, results: list[dict], top_n: int = 3) -> list[dict]:
+    pairs = [(query, r["text"]) for r in results]
+    scores = _reranker.predict(pairs)
+    for r, s in zip(results, scores):
+        r["rerank_score"] = float(s)
+    return sorted(results, key=lambda x: x["rerank_score"], reverse=True)[:top_n]`},
+
+  context:{icon:'📋',title:'Context Builder — YOUR SKILL',flow:'chunks + query → prompt context',desc:'Assembles the retrieved chunks into a structured context block injected into the LLM system prompt. This is the key RAG skill.',code:
+`# services/prompt.py
+def build_rag_prompt(
+    query: str,
+    chunks: list[dict],
+) -> list[dict]:
+    context_lines = []
+    for i, c in enumerate(chunks, 1):
+        context_lines.append(
+            f"[Source {i}] (score={c.get('rerank_score',0):.2f})\\n{c['text']}"
+        )
+    context = "\\n\\n".join(context_lines)
+
+    return [
+        {
+            "role": "system",
+            "content": (
+                "Answer the question using ONLY the context below. "
+                "If the answer is not in the context, say \\"I don\\'t know.\\"\\n\\n"
+                f"CONTEXT:\\n{context}"
+            ),
+        },
+        {"role": "user", "content": query},
+    ]`},
+
+  llm:{icon:'🤖',title:'LLM API Call',flow:'messages → completion',desc:'Sends the RAG-augmented messages to the LLM. Temperature 0 for factual grounding.',code:
+`# services/llm_client.py
+async def call_llm(
+    messages: list[dict],
+    llm: AsyncOpenAI,
+) -> str:
+    response = await llm.chat.completions.create(
+        model="gpt-4o",
+        messages=messages,
+        temperature=0.0,  # factual — no creativity
+        max_tokens=1024,
+    )
+    return response.choices[0].message.content.strip()`},
+
+  parseresp:{icon:'⚙️',title:'Parse Response',flow:'LLM output → validated answer',desc:'Extracts and validates the LLM reply. If the API call failed, returns 500.',code:
+`# services/llm_client.py
+from openai import APIError, RateLimitError
+
+async def safe_llm_call(messages, llm) -> str:
+    try:
+        return await call_llm(messages, llm)
+    except RateLimitError:
+        raise HTTPException(429, "LLM rate limit — retry later")
+    except APIError as e:
+        logger.error("LLM API error: %s", e)
+        raise HTTPException(500, "LLM service unavailable")`},
+
+  response:{icon:'📨',title:'Response to Client',flow:'answer + sources → JSON',desc:'Returns the answer along with the source chunks and their relevance scores for transparency.',code:
+`# schemas/rag.py
+class QueryResponse(BaseModel):
+    answer: str
+    sources: list[SourceChunk]
+
+class SourceChunk(BaseModel):
+    text: str
+    source: str
+    score: float
+
+# Example response:
+# {
+#   "answer": "The capital of France is Paris.",
+#   "sources": [
+#     {"text": "Paris is the capital...", "source": "doc1.pdf", "score": 0.94}
+#   ]
+# }`},
+
+  end:{icon:'■',title:'END',flow:'Response delivered',desc:'RAG query pipeline complete. Answer with citations returned to client.',code:
+`# End of RAG pipeline
+# Golden memory: Retrieve → Rank → Augment → Generate
+#
+# Key interview points:
+# 1. Embedding model MUST be same for ingest and query
+# 2. Overlap in chunking preserves boundary context
+# 3. Reranker fixes vector search recall/precision gap
+# 4. Temperature=0 for factual RAG answers
+# 5. Return source chunks so user can verify`},
+};
+
+const DIR = {
+  upload:        {files:['df-routes-ingest','df-schemas-rag'],         path:'routes/ingest.py',    hint:'File upload handler'},
+  filevalid:     {files:['df-services-parser'],                         path:'services/doc_parser.py',hint:'File validation'},
+  parse:         {files:['df-services-parser'],                         path:'services/doc_parser.py',hint:'PDF/DOCX parser'},
+  chunk:         {files:['df-services-chunker'],                        path:'services/chunker.py',  hint:'Text splitter'},
+  'embed-ingest':{files:['df-services-embedder'],                       path:'services/embedder.py', hint:'Chunk embedder'},
+  store:         {files:['df-services-vector'],                         path:'services/vector_store.py',hint:'FAISS store'},
+  qstart:        {files:['df-routes-query'],                            path:'routes/query.py',      hint:'Query endpoint'},
+  qauth:         {files:['df-services-auth'],                           path:'services/auth.py',     hint:'JWT auth'},
+  'embed-query': {files:['df-services-embedder'],                       path:'services/embedder.py', hint:'Query embedder'},
+  search:        {files:['df-services-vector'],                         path:'services/vector_store.py',hint:'Vector search'},
+  rerank:        {files:['df-services-reranker'],                       path:'services/reranker.py', hint:'Cross-encoder rerank'},
+  context:       {files:['df-services-prompt'],                         path:'services/prompt.py',   hint:'RAG prompt builder'},
+  llm:           {files:['df-services-llm'],                            path:'services/llm_client.py',hint:'LLM call'},
+  parseresp:     {files:['df-services-llm'],                            path:'services/llm_client.py',hint:'Error handling'},
+  response:      {files:['df-routes-query','df-schemas-rag'],           path:'routes/query.py',      hint:'Response shape'},
+};
+
+const NODE_EL = {
+  upload:'n-upload', filevalid:'n-filevalid', parse:'n-parse', chunk:'n-chunk',
+  'embed-ingest':'n-embed-ingest', store:'n-store',
+  qauth:'n-qauth', 'embed-query':'n-embed-query', search:'n-search',
+  rerank:'n-rerank', context:'n-context', llm:'n-llm',
+  parseresp:'n-parseresp', response:'n-response',
+};
+
+function hl(raw){
+  const P={};let n=0;
+  function ph(tag,content){const k='\x00'+n+'\x01';P[k]='<span class="'+tag+'">'+content+'</span>';n++;return k;}
+  let s=raw;
+  s=s.replace(/(#[^\n]*)/g,(_,m)=>ph('cm',m));
+  s=s.replace(/("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')/g,(_,m)=>ph('st',m));
+  s=s.replace(/\b(\d+(?:\.\d+)?)\b/g,(_,m)=>ph('nm',m));
+  s=s.replace(/@(\w+)/g,(_,m)=>ph('dc','@'+m));
+  s=s.replace(/\b(def|class|async|await|import|from|return|if|else|elif|for|while|try|except|raise|with|as|not|and|or|in|True|False|None|pass|yield|lambda)\b/g,(_,m)=>ph('kw',m));
+  s=s.replace(/\b([A-Z][A-Za-z0-9_]*)\b/g,(_,m)=>ph('cn',m));
+  s=s.replace(/\b([a-z_][a-z_0-9]*)(?=\s*\()/g,(_,m)=>ph('fn',m));
+  for(const[k,v] of Object.entries(P)) s=s.split(k).join(v);
+  return s;
+}
+
+let activeKey=null;
+function show(key){
+  // clear highlights
+  document.querySelectorAll('.node-active').forEach(el=>el.classList.remove('node-active'));
+  document.querySelectorAll('.dir-file.active').forEach(el=>el.classList.remove('active'));
+  activeKey=key;
+  // highlight node
+  if(NODE_EL[key]) document.getElementById(NODE_EL[key])?.classList.add('node-active');
+  // highlight dir files
+  const d=DIR[key];
+  if(d) d.files.forEach(id=>document.getElementById(id)?.classList.add('active'));
+  // fill panel
+  const info=DATA[key];
+  if(!info) return;
+  document.getElementById('panel-title').textContent=info.icon+' '+info.title;
+  document.getElementById('panel-flow').textContent='Flow: '+info.flow;
+  document.getElementById('panel-desc').textContent=info.desc;
+  document.getElementById('panel-code').innerHTML=hl(info.code);
+  document.getElementById('panel').classList.add('open');
+}
+function closePanel(){
+  document.getElementById('panel').classList.remove('open');
+  document.querySelectorAll('.node-active').forEach(el=>el.classList.remove('node-active'));
+  document.querySelectorAll('.dir-file.active').forEach(el=>el.classList.remove('active'));
+  activeKey=null;
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape') closePanel();});
+</script>
+</body>
+</html>

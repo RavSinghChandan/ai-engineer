@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P4 — Memory-Based AI Flow</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f5;display:flex;height:100vh;overflow:hidden}
+
+/* ── Directory Panel ── */
+#dir-panel{width:220px;min-width:220px;background:#1e1e2e;color:#cdd6f4;padding:16px 12px;overflow-y:auto;flex-shrink:0}
+#dir-panel h3{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#6c7086;margin-bottom:12px}
+.dir-section{margin-bottom:14px}
+.dir-section-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#45475a;margin-bottom:6px;padding-left:4px}
+.dir-file{font-size:12px;padding:5px 8px;border-radius:6px;cursor:pointer;transition:background .15s;color:#a6adc8;border-left:3px solid transparent;margin-bottom:2px;word-break:break-all}
+.dir-file.active{background:#fef3c7 !important;color:#92400e !important;border-left-color:#f59e0b !important;font-weight:600}
+.dir-file:hover{background:#313244}
+
+/* ── Main flow area ── */
+#flow-wrap{flex:1;overflow-y:auto;padding:24px 28px}
+.page-title{text-align:center;margin-bottom:6px}
+.page-title h1{font-size:20px;font-weight:700;color:#1e293b}
+.page-title p{font-size:13px;color:#64748b;margin-top:4px}
+.nav-links{display:flex;justify-content:center;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.nav-links a{font-size:12px;padding:4px 12px;border-radius:20px;background:#e2e8f0;color:#475569;text-decoration:none;transition:background .15s}
+.nav-links a:hover{background:#cbd5e1}
+.nav-links a.cur{background:#6366f1;color:#fff}
+
+/* ── Flow nodes ── */
+.flow{display:flex;flex-direction:column;align-items:center;gap:0}
+.arrow{width:2px;height:22px;background:#94a3b8;position:relative;margin:0 auto}
+.arrow::after{content:'';position:absolute;bottom:-6px;left:-4px;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #94a3b8}
+
+.terminal{display:inline-flex;align-items:center;justify-content:center;border-radius:50px;padding:7px 24px;font-size:13px;font-weight:700;cursor:pointer;border:2px solid rgba(0,0,0,.1);box-shadow:0 2px 8px rgba(0,0,0,.08);transition:transform .12s,box-shadow .12s,outline .12s;min-width:100px}
+.terminal:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.13)}
+
+.process{width:auto;min-width:260px;max-width:400px;border-radius:10px;padding:8px 16px 8px 12px;display:inline-flex;align-items:center;gap:10px;cursor:pointer;border:2px solid rgba(0,0,0,.06);box-shadow:0 2px 8px rgba(0,0,0,.07);transition:transform .12s,box-shadow .12s,outline .12s;position:relative}
+.process:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.13)}
+.process .icon{font-size:18px;flex-shrink:0}
+.process .label{font-size:13px;font-weight:600;color:#1e293b;line-height:1.3}
+.process .sub{font-size:11px;color:#64748b;margin-top:2px}
+
+.skill-node{outline:2px solid #f472b6 !important;outline-offset:2px}
+.skill-node .label::after{content:' ✦ YOUR SKILL';font-size:10px;color:#f472b6;font-weight:700;margin-left:6px}
+
+/* Diamond */
+.diamond-wrap{position:relative;display:flex;justify-content:center;align-items:center;width:220px;height:80px;margin:0 auto}
+.diamond{width:110px;height:70px;background:#fef9c3;border:2px solid #fbbf24;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:filter .12s;position:relative}
+.diamond:hover{filter:brightness(.94)}
+.diamond .d-label{font-size:11px;font-weight:700;color:#92400e;text-align:center;line-height:1.3;clip-path:none;padding:0 14px}
+.yes-label,.no-label{position:absolute;font-size:10px;font-weight:700;color:#64748b}
+.yes-label{bottom:-18px;left:50%;transform:translateX(-50%)}
+.no-label{right:-36px;top:50%;transform:translateY(-50%)}
+
+/* Error / skip branches */
+.err-line{height:2px;background:#f87171;width:60px;position:absolute;right:calc(50% - 55px - 60px)}
+.err-box{position:absolute;right:calc(50% - 55px - 140px);display:inline-flex;align-items:center;gap:6px;background:#fee2e2;border:2px solid #f87171;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;color:#b91c1c;white-space:nowrap}
+.skip-box{position:absolute;right:calc(50% - 55px - 160px);display:inline-flex;align-items:center;gap:6px;background:#f1f5f9;border:2px solid #94a3b8;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;color:#475569;white-space:nowrap}
+
+/* parallel fetch box */
+.parallel-box{border:2px dashed #10b981;border-radius:12px;padding:14px 20px;margin:6px 0;background:rgba(16,185,129,.04);display:flex;flex-direction:column;align-items:center;position:relative;min-width:340px}
+.parallel-box-label{position:absolute;top:-11px;left:20px;background:#f0f2f5;padding:0 8px;font-size:11px;font-weight:700;color:#10b981;letter-spacing:.08em;text-transform:uppercase}
+.parallel-inner{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.parallel-card{border-radius:10px;padding:8px 14px;display:inline-flex;align-items:center;gap:8px;cursor:pointer;border:2px solid rgba(0,0,0,.07);box-shadow:0 2px 8px rgba(0,0,0,.06);transition:transform .12s;width:auto;min-width:140px}
+.parallel-card:hover{transform:translateY(-2px)}
+.parallel-card .icon{font-size:16px;flex-shrink:0}
+.parallel-card .label{font-size:12px;font-weight:600;color:#1e293b}
+.parallel-card .sub{font-size:10px;color:#64748b;margin-top:1px}
+
+/* active gold ring */
+.node-active{outline:3px solid #f59e0b !important;outline-offset:3px}
+
+/* Code Panel */
+#panel{position:fixed;bottom:0;left:220px;right:0;background:#fff;border-top:2px solid #e2e8f0;border-radius:16px 16px 0 0;transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);z-index:100;max-height:55vh;display:flex;flex-direction:column;box-shadow:0 -4px 32px rgba(0,0,0,.12)}
+#panel.open{transform:translateY(0)}
+#panel-header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid #e2e8f0;flex-shrink:0}
+#panel-title{font-size:14px;font-weight:700;color:#1e293b}
+#panel-flow{font-size:11px;color:#6366f1;margin-top:2px}
+#panel-close{background:none;border:none;font-size:20px;cursor:pointer;color:#94a3b8;padding:0 4px;line-height:1}
+#panel-body{overflow-y:auto;padding:16px 20px;flex:1}
+#panel-desc{font-size:13px;color:#475569;margin-bottom:12px;line-height:1.6}
+pre{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:14px;font-size:12px;line-height:1.7;overflow-x:auto;white-space:pre-wrap;word-break:break-word}
+.kw{color:#9333ea;font-weight:600}
+.fn{color:#2563eb}
+.cn{color:#0891b2}
+.st{color:#16a34a}
+.nm{color:#ea580c}
+.cm{color:#94a3b8;font-style:italic}
+.dc{color:#db2777}
+</style>
+</head>
+<body>
+
+<!-- Directory Panel -->
+<div id="dir-panel">
+  <h3>📁 Project Files</h3>
+  <div class="dir-section">
+    <div class="dir-section-label">API</div>
+    <div class="dir-file" id="df-routes-chat">routes/chat.py</div>
+    <div class="dir-file" id="df-schemas-chat">schemas/chat.py</div>
+  </div>
+  <div class="dir-section">
+    <div class="dir-section-label">Memory</div>
+    <div class="dir-file" id="df-memory-short">memory/short_term.py</div>
+    <div class="dir-file" id="df-memory-long">memory/long_term.py</div>
+    <div class="dir-file" id="df-memory-extract">memory/extractor.py</div>
+  </div>
+  <div class="dir-section">
+    <div class="dir-section-label">Services</div>
+    <div class="dir-file" id="df-services-context">services/context_builder.py</div>
+    <div class="dir-file" id="df-services-llm">services/llm_client.py</div>
+    <div class="dir-file" id="df-services-auth">services/auth.py</div>
+  </div>
+</div>
+
+<!-- Flow Area -->
+<div id="flow-wrap">
+  <div class="page-title">
+    <h1>P4 — Memory-Based AI</h1>
+    <p>Two-layer memory &nbsp;·&nbsp; <em>Retrieve → Context Build → LLM → Store</em></p>
+  </div>
+  <div class="nav-links">
+    <a href="../P1-plain-llm/flow.html">P1 Plain LLM</a>
+    <a href="../P2-rag/flow.html">P2 RAG</a>
+    <a href="../P3-agent-tool-calling/flow.html">P3 Agent</a>
+    <a href="#" class="cur">P4 Memory</a>
+    <a href="../P5-streaming-async/flow.html">P5 Streaming</a>
+  </div>
+
+  <div class="flow">
+    <!-- START -->
+    <div class="terminal" style="background:#dbeafe;color:#1d4ed8" onclick="show('start')">▶ START</div>
+    <div class="arrow"></div>
+
+    <!-- Endpoint -->
+    <div class="process" style="background:#eff6ff" onclick="show('endpoint')" id="n-endpoint">
+      <span class="icon">🌐</span>
+      <div><div class="label">FastAPI Endpoint</div><div class="sub">POST /chat — ChatRequest</div></div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- Auth -->
+    <div style="position:relative;width:100%;display:flex;justify-content:center">
+      <div class="diamond-wrap">
+        <div class="diamond" onclick="show('auth')" id="n-auth">
+          <div class="d-label">Token Valid?</div>
+        </div>
+        <span class="yes-label">YES ↓</span>
+        <span class="no-label">NO → 401</span>
+      </div>
+      <div class="err-line"></div>
+      <div class="err-box">🔒 401 Unauthorized</div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- Session ID -->
+    <div class="process" style="background:#f0fdf4" onclick="show('session')" id="n-session">
+      <span class="icon">🪪</span>
+      <div><div class="label">Identify Session</div><div class="sub">user_id + session_id from JWT</div></div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- Parallel fetch -->
+    <div class="parallel-box">
+      <div class="parallel-box-label">⟶ Parallel Memory Fetch</div>
+      <div class="parallel-inner">
+        <div class="parallel-card" style="background:#fff7ed" onclick="show('short-term')" id="n-short-term">
+          <span class="icon">⚡</span>
+          <div><div class="label">Short-Term Memory</div><div class="sub">Redis · last 10 msgs</div></div>
+        </div>
+        <div class="parallel-card" style="background:#fdf4ff" onclick="show('long-term')" id="n-long-term">
+          <span class="icon">🧠</span>
+          <div><div class="label">Long-Term Memory</div><div class="sub">FAISS · top-3 facts</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- Rank / filter -->
+    <div class="process" style="background:#f0fdf4" onclick="show('rank')" id="n-rank">
+      <span class="icon">📊</span>
+      <div><div class="label">Memory Ranking</div><div class="sub">cosine similarity filter</div></div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- Context Builder (YOUR SKILL) -->
+    <div class="process skill-node" style="background:#fdf2f8" onclick="show('context')" id="n-context">
+      <span class="icon">📋</span>
+      <div><div class="label">Context Builder</div><div class="sub">query + short-term + long-term</div></div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- LLM -->
+    <div class="process" style="background:#eff6ff" onclick="show('llm')" id="n-llm">
+      <span class="icon">🤖</span>
+      <div><div class="label">LLM API Call</div><div class="sub">gpt-4o with memory context</div></div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- Update short-term -->
+    <div class="process" style="background:#fff7ed" onclick="show('update-short')" id="n-update-short">
+      <span class="icon">💾</span>
+      <div><div class="label">Update Short-Term Memory</div><div class="sub">append turn → Redis setex</div></div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- Should store? -->
+    <div style="position:relative;width:100%;display:flex;justify-content:center">
+      <div class="diamond-wrap">
+        <div class="diamond" onclick="show('shouldstore')" id="n-shouldstore">
+          <div class="d-label">Store Memory?</div>
+        </div>
+        <span class="yes-label">YES ↓</span>
+        <span class="no-label">NO → skip</span>
+      </div>
+      <div class="err-line" style="background:#94a3b8"></div>
+      <div class="skip-box">⏭ Skip — NOTHING</div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- Persist long-term -->
+    <div class="process" style="background:#fdf4ff" onclick="show('persist')" id="n-persist">
+      <span class="icon">🗄️</span>
+      <div><div class="label">Persist Long-Term Memory</div><div class="sub">embed + FAISS append</div></div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- Response -->
+    <div class="process" style="background:#eff6ff" onclick="show('response')" id="n-response">
+      <span class="icon">📨</span>
+      <div><div class="label">Response to Client</div><div class="sub">answer + session_id + memories_used</div></div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- END -->
+    <div class="terminal" style="background:#dcfce7;color:#166534" onclick="show('end')">■ END</div>
+  </div>
+  <div style="height:60px"></div>
+</div>
+
+<!-- Code Panel -->
+<div id="panel">
+  <div id="panel-header">
+    <div>
+      <div id="panel-title">—</div>
+      <div id="panel-flow">—</div>
+    </div>
+    <button id="panel-close" onclick="closePanel()">✕</button>
+  </div>
+  <div id="panel-body">
+    <div id="panel-desc"></div>
+    <pre id="panel-code"></pre>
+  </div>
+</div>
+
+<script>
+const DATA = {
+  start:{icon:'▶',title:'START',flow:'Client → POST /chat',desc:'User sends a chat message. The system fetches both memory layers before calling the LLM.',code:
+`# routes/chat.py
+@app.post("/chat", response_model=ChatResponse)
+async def chat_with_memory(
+    req: ChatRequest,
+    request: Req,
+    user: dict = Depends(get_current_user),
+) -> ChatResponse:
+    user_id   = user["sub"]
+    llm       = request.app.state.llm
+    redis     = request.app.state.redis
+    user_mems = request.app.state.user_memories
+    # ... pipeline continues below`},
+
+  endpoint:{icon:'🌐',title:'FastAPI Endpoint',flow:'POST /chat → ChatRequest',desc:'Receives user message and session_id. Both are required — session_id links to short-term memory.',code:
+`# schemas/chat.py
+from pydantic import BaseModel, Field
+
+class ChatRequest(BaseModel):
+    message:    str = Field(min_length=1, max_length=5000)
+    session_id: str = Field(min_length=1)
+
+class ChatResponse(BaseModel):
+    answer:       str
+    session_id:   str
+    memories_used: int`},
+
+  auth:{icon:'🔐',title:'Token Valid?',flow:'JWT decode → OK / 401',desc:'Validates Bearer JWT. user["sub"] becomes the user_id used as the memory store key.',code:
+`# services/auth.py
+async def get_current_user(token: str = Depends(oauth2)) -> dict:
+    from jose import jwt, JWTError
+    try:
+        return jwt.decode(token, os.environ["JWT_SECRET"], algorithms=["HS256"])
+    except JWTError:
+        raise HTTPException(401, "Invalid token")`},
+
+  session:{icon:'🪪',title:'Identify Session',flow:'JWT payload → user_id + session_id',desc:'user_id is extracted from the JWT (sub claim). session_id comes from the request body. Together they scope both memory layers.',code:
+`# routes/chat.py
+user_id    = user["sub"]          # from JWT — persistent across sessions
+session_id = req.session_id       # from request — scopes short-term memory
+# user_id  → long-term memory key  (FAISS store)
+# session_id → short-term memory key (Redis key)`},
+
+  'short-term':{icon:'⚡',title:'Short-Term Memory — Redis',flow:'Redis GET session:{id} → last 10 msgs',desc:'Fetches the recent conversation history for this session. Sliding window of last 10 turns. TTL of 1 hour.',code:
+`# memory/short_term.py
+SHORT_TERM_LIMIT = 10   # keep last 10 messages
+SESSION_TTL      = 3600  # 1 hour
+
+async def fetch_short_term_memory(
+    redis: aioredis.Redis, session_id: str
+) -> list[dict]:
+    raw = await redis.get(f"session:{session_id}")
+    if not raw:
+        return []
+    return json.loads(raw)
+
+async def save_short_term_memory(
+    redis, session_id, messages, ttl=SESSION_TTL
+):
+    trimmed = messages[-SHORT_TERM_LIMIT:]  # sliding window
+    await redis.setex(f"session:{session_id}", ttl, json.dumps(trimmed))`},
+
+  'long-term':{icon:'🧠',title:'Long-Term Memory — FAISS',flow:'embed query → FAISS search → top-3 facts',desc:'Retrieves the most relevant stored facts about this user. Cosine similarity via FAISS inner product after L2 normalisation.',code:
+`# memory/long_term.py
+async def fetch_long_term_memory(
+    query: str,
+    user_id: str,
+    user_memories: dict[str, list[MemoryEntry]],
+    llm: AsyncOpenAI,
+    top_k: int = 3,
+) -> list[MemoryEntry]:
+    memories = user_memories.get(user_id, [])
+    if not memories:
+        return []
+    vecs = np.array([m.embedding for m in memories], dtype=np.float32)
+    index = faiss.IndexFlatIP(1536)
+    faiss.normalize_L2(vecs)
+    index.add(vecs)
+    q_vec = await embed_text(query, llm)
+    _, indices = index.search(q_vec, k=min(top_k, len(memories)))
+    return [memories[i] for i in indices[0] if i < len(memories)]`},
+
+  rank:{icon:'📊',title:'Memory Ranking',flow:'raw memories → sorted by relevance',desc:'Short-term is already ordered by time. Long-term is already ranked by cosine similarity from FAISS. This step optionally applies further filtering.',code:
+`# memory/long_term.py
+# Long-term already returns top_k by cosine similarity.
+# For short-term: most recent N messages are most relevant.
+# Optional: hybrid re-rank combining recency + semantic similarity.
+
+# FAISS IndexFlatIP returns results sorted by inner product score
+# (equivalent to cosine similarity after L2 normalisation)
+# scores[0][0] is the most similar, scores[0][-1] is least.`},
+
+  context:{icon:'📋',title:'Context Builder — YOUR SKILL',flow:'query + short + long → messages[]',desc:'Assembles all memory into a structured LLM context. Long-term facts go in the system prompt. Short-term history goes as conversation messages.',code:
+`# services/context_builder.py
+def build_context_messages(
+    current_query: str,
+    short_term: list[dict],
+    long_term_memories: list[MemoryEntry],
+) -> list[dict]:
+    messages = []
+    memory_text = ""
+    if long_term_memories:
+        facts = "\\n".join(f"- {m.content}" for m in long_term_memories)
+        memory_text = f"\\n\\nWhat you know about this user:\\n{facts}"
+
+    messages.append({
+        "role": "system",
+        "content": f"You are a helpful personalized assistant.{memory_text}",
+    })
+    messages.extend(short_term)     # recent conversation
+    messages.append({"role": "user", "content": current_query})
+    return messages`},
+
+  llm:{icon:'🤖',title:'LLM API Call',flow:'messages with memory → completion',desc:'Calls the LLM with the full memory-augmented context. The LLM "knows" the user through the system prompt and conversation history.',code:
+`# services/llm_client.py
+response = await llm.chat.completions.create(
+    model="gpt-4o",
+    messages=messages,
+    temperature=0.7,   # slightly creative for conversational feel
+)
+answer = response.choices[0].message.content.strip()`},
+
+  'update-short':{icon:'💾',title:'Update Short-Term Memory',flow:'append turn → Redis setex',desc:'Saves the new user+assistant turn back to Redis immediately after the LLM responds. Always runs — no decision gate.',code:
+`# memory/short_term.py
+short_term.append({"role": "user",      "content": req.message})
+short_term.append({"role": "assistant", "content": answer})
+await save_short_term_memory(redis, req.session_id, short_term)
+# trimmed to last SHORT_TERM_LIMIT=10 messages
+# TTL reset to 1 hour on every save`},
+
+  shouldstore:{icon:'❓',title:'Store Memory?',flow:'LLM extraction → fact / NOTHING',desc:'Asks the LLM: did this conversation reveal anything worth remembering long-term? Returns a fact string or the literal "NOTHING".',code:
+`# memory/extractor.py
+async def should_store_memory(
+    user_message: str,
+    assistant_reply: str,
+    llm: AsyncOpenAI,
+) -> str | None:
+    prompt = (
+        f"User said: {user_message}\\n"
+        f"Assistant replied: {assistant_reply}\\n\\n"
+        "Extract ONE short fact worth remembering about this user "
+        "(preference, goal, constraint, name, role). "
+        "If nothing is worth storing, reply with exactly: NOTHING"
+    )
+    response = await llm.chat.completions.create(
+        model="gpt-4o",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.0,
+        max_tokens=80,
+    )
+    result = response.choices[0].message.content.strip()
+    return None if result == "NOTHING" else result`},
+
+  persist:{icon:'🗄️',title:'Persist Long-Term Memory',flow:'fact → embed → FAISS append',desc:'Embeds the extracted fact and appends it to the user\'s FAISS memory store. In production: backed by a database for durability.',code:
+`# memory/long_term.py
+async def persist_long_term_memory(
+    user_id: str,
+    content: str,
+    user_memories: dict[str, list[MemoryEntry]],
+    llm: AsyncOpenAI,
+) -> None:
+    vec = await embed_text(content, llm)
+    entry = MemoryEntry(
+        user_id=user_id,
+        content=content,
+        embedding=vec[0].tolist(),
+    )
+    if user_id not in user_memories:
+        user_memories[user_id] = []
+    user_memories[user_id].append(entry)
+    logger.info("memory stored user=%s: %.60s", user_id, content)`},
+
+  response:{icon:'📨',title:'Response to Client',flow:'answer + session_id + memories_used → JSON',desc:'Returns the answer along with how many long-term memories influenced it — useful for debugging.',code:
+`# schemas/chat.py
+class ChatResponse(BaseModel):
+    answer:        str
+    session_id:    str
+    memories_used: int  # how many long-term facts were injected
+
+# Example:
+# {
+#   "answer": "As we discussed, you prefer concise bullet points.",
+#   "session_id": "sess-abc123",
+#   "memories_used": 2
+# }`},
+
+  end:{icon:'■',title:'END',flow:'Response delivered',desc:'Memory AI pipeline complete. Golden memory: Retrieve → Context Build → LLM → Store.',code:
+`# Interview cheat sheet for P4:
+# Q: "How do you implement memory in an AI assistant?"
+#
+# A: "Two layers:
+#    SHORT-TERM: Redis keyed by session_id — JSON list of last 10
+#    messages, TTL 1 hour. Every request fetches, appends, saves back.
+#
+#    LONG-TERM: FAISS vector store keyed by user_id — each entry is
+#    an embedded fact (preference, goal, role). Embed the current
+#    query, search for top-3 relevant facts, inject into system prompt.
+#
+#    After the LLM responds: run memory extraction — ask LLM if the
+#    conversation revealed anything worth remembering. If yes: embed
+#    and append. This is the Store step in:
+#    Retrieve → Context Build → LLM → Store.
+#
+#    Key insight: never put ALL memories in the prompt.
+#    Retrieve only the RELEVANT ones — same principle as RAG."`},
+};
+
+const DIR = {
+  endpoint:     {files:['df-routes-chat','df-schemas-chat'],   path:'routes/chat.py',          hint:'Endpoint + schema'},
+  auth:         {files:['df-services-auth'],                    path:'services/auth.py',        hint:'JWT auth'},
+  session:      {files:['df-routes-chat'],                      path:'routes/chat.py',          hint:'Session scoping'},
+  'short-term': {files:['df-memory-short'],                     path:'memory/short_term.py',    hint:'Redis memory'},
+  'long-term':  {files:['df-memory-long'],                      path:'memory/long_term.py',     hint:'FAISS memory'},
+  rank:         {files:['df-memory-long'],                      path:'memory/long_term.py',     hint:'Similarity ranking'},
+  context:      {files:['df-services-context'],                 path:'services/context_builder.py',hint:'Context assembly'},
+  llm:          {files:['df-services-llm'],                     path:'services/llm_client.py',  hint:'LLM call'},
+  'update-short':{files:['df-memory-short'],                    path:'memory/short_term.py',    hint:'Save to Redis'},
+  shouldstore:  {files:['df-memory-extract'],                   path:'memory/extractor.py',     hint:'Memory extraction'},
+  persist:      {files:['df-memory-long'],                      path:'memory/long_term.py',     hint:'FAISS append'},
+  response:     {files:['df-routes-chat','df-schemas-chat'],    path:'routes/chat.py',          hint:'Response shape'},
+};
+
+const NODE_EL = {
+  endpoint:'n-endpoint', auth:'n-auth', session:'n-session',
+  'short-term':'n-short-term', 'long-term':'n-long-term',
+  rank:'n-rank', context:'n-context', llm:'n-llm',
+  'update-short':'n-update-short', shouldstore:'n-shouldstore',
+  persist:'n-persist', response:'n-response',
+};
+
+function hl(raw){
+  const P={};let n=0;
+  function ph(tag,content){const k='\x00'+n+'\x01';P[k]='<span class="'+tag+'">'+content+'</span>';n++;return k;}
+  let s=raw;
+  s=s.replace(/(#[^\n]*)/g,(_,m)=>ph('cm',m));
+  s=s.replace(/("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')/g,(_,m)=>ph('st',m));
+  s=s.replace(/\b(\d+(?:\.\d+)?)\b/g,(_,m)=>ph('nm',m));
+  s=s.replace(/@(\w+)/g,(_,m)=>ph('dc','@'+m));
+  s=s.replace(/\b(def|class|async|await|import|from|return|if|else|elif|for|while|try|except|raise|with|as|not|and|or|in|True|False|None|pass|yield|lambda)\b/g,(_,m)=>ph('kw',m));
+  s=s.replace(/\b([A-Z][A-Za-z0-9_]*)\b/g,(_,m)=>ph('cn',m));
+  s=s.replace(/\b([a-z_][a-z_0-9]*)(?=\s*\()/g,(_,m)=>ph('fn',m));
+  for(const[k,v] of Object.entries(P)) s=s.split(k).join(v);
+  return s;
+}
+
+let activeKey=null;
+function show(key){
+  document.querySelectorAll('.node-active').forEach(el=>el.classList.remove('node-active'));
+  document.querySelectorAll('.dir-file.active').forEach(el=>el.classList.remove('active'));
+  activeKey=key;
+  if(NODE_EL[key]) document.getElementById(NODE_EL[key])?.classList.add('node-active');
+  const d=DIR[key];
+  if(d) d.files.forEach(id=>document.getElementById(id)?.classList.add('active'));
+  const info=DATA[key];
+  if(!info) return;
+  document.getElementById('panel-title').textContent=info.icon+' '+info.title;
+  document.getElementById('panel-flow').textContent='Flow: '+info.flow;
+  document.getElementById('panel-desc').textContent=info.desc;
+  document.getElementById('panel-code').innerHTML=hl(info.code);
+  document.getElementById('panel').classList.add('open');
+}
+function closePanel(){
+  document.getElementById('panel').classList.remove('open');
+  document.querySelectorAll('.node-active').forEach(el=>el.classList.remove('node-active'));
+  document.querySelectorAll('.dir-file.active').forEach(el=>el.classList.remove('active'));
+  activeKey=null;
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape') closePanel();});
+</script>
+</body>
+</html>

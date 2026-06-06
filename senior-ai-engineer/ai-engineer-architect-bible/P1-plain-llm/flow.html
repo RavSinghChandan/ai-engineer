@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P1 — Plain LLM Architecture Flow</title>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #f0f2f5;
+  font-family: -apple-system, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+  min-height: 100vh;
+  padding: 48px 24px 100px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── HEADER ─── */
+.header { text-align: center; margin-bottom: 48px; }
+.badge {
+  display: inline-block; padding: 5px 16px; border-radius: 20px;
+  background: #fff; border: 1px solid #d2d2d7;
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; color: #6e6e73; margin-bottom: 14px;
+}
+.header h1 { font-size: 2.4rem; font-weight: 900; letter-spacing: -.04em; color: #1d1d1f; }
+.header p  { margin-top: 8px; font-size: .9rem; color: #6e6e73; font-family: 'SF Mono', monospace; }
+
+/* ─── LAYOUT ─── */
+.layout {
+  display: flex;
+  gap: 28px;
+  max-width: 1100px;
+  margin: 0 auto;
+  align-items: flex-start;
+}
+
+/* ─── DIRECTORY PANEL (left) ─── */
+.dir-panel {
+  width: 240px;
+  flex-shrink: 0;
+  background: #fff;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 16px 14px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.06);
+  position: sticky;
+  top: 32px;
+}
+.dir-title {
+  font-size: 0.65rem; font-weight: 800; letter-spacing: 1.2px;
+  text-transform: uppercase; color: #9ca3af; margin-bottom: 14px;
+  display: flex; align-items: center; gap: 6px;
+}
+.dir-tree { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.72rem; line-height: 1; }
+.dir-item {
+  display: flex; align-items: center; gap: 5px;
+  padding: 4px 6px; border-radius: 6px;
+  color: #6e6e73; cursor: default;
+  transition: background .15s, color .15s;
+  white-space: nowrap;
+}
+.dir-item.folder { color: #374151; font-weight: 600; }
+.dir-item.active {
+  background: #fef3c7;
+  color: #92400e;
+  font-weight: 700;
+  border-left: 3px solid #f59e0b;
+  padding-left: 9px;
+}
+.dir-item.active .fi { color: #f59e0b; }
+.dir-item .fi { font-size: .85rem; flex-shrink: 0; }
+.dir-hint {
+  margin-top: 14px; padding-top: 12px;
+  border-top: 1px solid #f3f4f6;
+  font-size: 0.65rem; color: #d1d5db;
+  text-align: center; font-style: italic;
+  line-height: 1.5;
+}
+
+/* ─── FLOW CANVAS ─── */
+.flow { flex: 1; display: flex; flex-direction: column; align-items: center; min-width: 0; }
+
+/* ─── TERMINAL (oval) ─── */
+.terminal {
+  width: 200px; height: 50px; border-radius: 25px;
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px; font-size: .95rem; font-weight: 800;
+  box-shadow: 0 3px 14px rgba(0,0,0,.12);
+}
+.terminal.start { background: #1d1d1f; color: #fff; }
+.terminal.end   { background: #059669; color: #fff; }
+
+/* ─── PROCESS (rounded rect) ─── */
+.process {
+  width: auto;
+  min-width: 260px;
+  max-width: 400px;
+  border-radius: 10px;
+  padding: 8px 16px 8px 12px;
+  display: inline-flex; align-items: center; gap: 10px;
+  cursor: pointer;
+  border: 2px solid rgba(0,0,0,.06);
+  box-shadow: 0 2px 8px rgba(0,0,0,.07);
+  transition: transform .16s, box-shadow .16s;
+  position: relative;
+}
+.process:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.12); }
+.process.active-node { box-shadow: 0 0 0 3px #f59e0b, 0 4px 16px rgba(0,0,0,.12) !important; }
+.process:active { transform: scale(.98); }
+.proc-icon  { font-size: 1.3rem; flex-shrink: 0; }
+.proc-body  { flex: 1; min-width: 0; }
+.proc-title { font-size: .82rem; font-weight: 800; letter-spacing: -.01em; line-height: 1.2; }
+.proc-sub   { font-size: 0.63rem; margin-top: 2px; font-family: 'SF Mono', monospace; opacity: .65; }
+.proc-badge {
+  flex-shrink: 0; font-size: 0.55rem; font-weight: 800; letter-spacing: .6px;
+  text-transform: uppercase; padding: 2px 7px; border-radius: 20px; white-space: nowrap;
+}
+.tap-hint {
+  position: absolute; bottom: 5px; right: 10px;
+  font-size: 0.55rem; font-weight: 600; opacity: 0; transition: opacity .18s;
+}
+.process:hover .tap-hint { opacity: .4; }
+
+/* ─── DECISION (diamond) ─── */
+.diamond-wrap {
+  display: flex; align-items: center; justify-content: center;
+  position: relative; width: 100%; height: 62px;
+}
+.diamond {
+  width: 190px; height: 58px;
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.74rem; font-weight: 800; text-align: center;
+}
+.d-green  { background: #bbf7d0; color: #14532d; }
+.d-orange { background: #fed7aa; color: #7c2d12; }
+.d-sky    { background: #bae6fd; color: #0c4a6e; }
+.d-label-yes {
+  position: absolute; left: calc(50% + 100px);
+  font-size: 0.6rem; font-weight: 800; color: #16a34a; letter-spacing: .5px; text-transform: uppercase;
+}
+.d-label-no {
+  position: absolute; right: calc(50% + 100px);
+  font-size: 0.6rem; font-weight: 800; color: #dc2626; letter-spacing: .5px; text-transform: uppercase;
+}
+
+/* ─── CONNECTOR ─── */
+.conn { display: flex; flex-direction: column; align-items: center; width: 100%; }
+.conn-line { width: 2px; background: linear-gradient(to bottom,#c7d2fe,#818cf8); border-radius: 2px; }
+.conn-label {
+  font-size: 0.57rem; font-weight: 700; letter-spacing: .5px; text-transform: uppercase;
+  color: #6366f1; background: #eef2ff; border: 1px solid #c7d2fe;
+  padding: 1px 8px; border-radius: 10px; margin: 1px 0;
+}
+.conn-arrow { width:0; height:0; border-left:6px solid transparent; border-right:6px solid transparent; border-top:8px solid #818cf8; margin-top:1px; }
+
+/* ─── ERROR BRANCH ─── */
+.with-err { display:flex; align-items:flex-start; gap:0; width:100%; }
+.err-main { flex:1; display:flex; flex-direction:column; align-items:center; min-width:0; }
+.err-side { display:flex; flex-direction:column; align-items:flex-start; padding-top:12px; padding-left:10px; width:170px; }
+.err-hline { height:2px; width:44px; background:linear-gradient(to right,#fca5a5,#f87171); margin-top:26px; position:relative; }
+.err-hline::after { content:''; position:absolute; right:-7px; top:-5px; width:0; height:0; border-top:6px solid transparent; border-bottom:6px solid transparent; border-left:8px solid #f87171; }
+.err-box {
+  background:#fff; border:1.5px solid #fca5a5; border-radius:8px;
+  padding:6px 9px; cursor:pointer; min-width:120px;
+  box-shadow:0 2px 6px rgba(220,38,38,.08);
+  transition:transform .15s, box-shadow .15s;
+}
+.err-box:hover { transform:translateY(-2px); box-shadow:0 5px 14px rgba(220,38,38,.16); }
+.err-box.active-node { box-shadow: 0 0 0 3px #f59e0b !important; }
+.eb-title { font-size:0.67rem; font-weight:800; color:#991b1b; }
+.eb-sub   { font-size:0.57rem; color:#b91c1c; font-family:'SF Mono',monospace; margin-top:1px; }
+
+/* ─── PROMPT PARTS ─── */
+.pp-row { display:flex; gap:8px; justify-content:center; }
+.pp-box {
+  width:100px; border-radius:8px; padding:8px 10px 7px;
+  cursor:pointer; border:2px solid rgba(0,0,0,.06);
+  box-shadow:0 2px 6px rgba(0,0,0,.06);
+  transition:transform .14s, box-shadow .14s; text-align:center;
+}
+.pp-box:hover { transform:translateY(-2px); box-shadow:0 5px 14px rgba(0,0,0,.1); }
+.pp-box.active-node { box-shadow: 0 0 0 3px #f59e0b !important; }
+.pp-icon  { font-size:1.1rem; margin-bottom:3px; }
+.pp-title { font-size:0.65rem; font-weight:800; }
+.pp-sub   { font-size:0.57rem; font-family:'SF Mono',monospace; opacity:.62; margin-top:1px; }
+
+/* ─── COLOR THEMES ─── */
+.c-purple { background:#f5f0ff; border-color:#c4b5fd !important; color:#3b0764; }
+.c-purple .proc-badge { background:#ede9fe; color:#6d28d9; }
+.c-purple .tap-hint   { color:#7c3aed; }
+
+.c-blue { background:#eff6ff; border-color:#93c5fd !important; color:#1e3a8a; }
+.c-blue .proc-badge { background:#dbeafe; color:#1d4ed8; }
+.c-blue .tap-hint   { color:#2563eb; }
+
+.c-green { background:#f0fdf4; border-color:#86efac !important; color:#14532d; }
+.c-green .proc-badge { background:#dcfce7; color:#15803d; }
+.c-green .tap-hint   { color:#16a34a; }
+
+.c-orange { background:#fff7ed; border-color:#fdba74 !important; color:#7c2d12; }
+.c-orange .proc-badge { background:#fed7aa; color:#c2410c; }
+.c-orange .tap-hint   { color:#ea580c; }
+
+.c-sky { background:#f0f9ff; border-color:#7dd3fc !important; color:#0c4a6e; }
+.c-sky .proc-badge { background:#e0f2fe; color:#0369a1; }
+.c-sky .tap-hint   { color:#0284c7; }
+
+.c-pink { background:#fdf2f8; border-color:#f9a8d4 !important; color:#831843; }
+.c-pink .proc-badge { background:#fce7f3; color:#be185d; }
+.c-pink .tap-hint   { color:#db2777; }
+
+.c-gold { background:#fffbeb; border-color:#fcd34d !important; color:#78350f; }
+.c-gold .proc-badge { background:#fef3c7; color:#b45309; }
+.c-gold .tap-hint   { color:#d97706; }
+
+.c-teal { background:#f0fdfa; border-color:#5eead4 !important; color:#134e4a; }
+.c-teal .proc-badge { background:#ccfbf1; color:#0f766e; }
+.c-teal .tap-hint   { color:#0d9488; }
+
+.c-indigo { background:#eef2ff; border-color:#a5b4fc !important; color:#1e1b4b; }
+.c-indigo .proc-badge { background:#e0e7ff; color:#4338ca; }
+.c-indigo .tap-hint   { color:#4f46e5; }
+
+/* ─── VARIANTS ─── */
+.variants-title {
+  text-align:center; font-size:0.66rem; font-weight:700; letter-spacing:2px;
+  text-transform:uppercase; color:#aeaeb2; margin:40px auto 13px; max-width:1100px;
+}
+.variants { display:grid; grid-template-columns:1fr 1fr; gap:12px; max-width:560px; margin:0 auto; }
+.vcard {
+  background:#fff; border-radius:14px; padding:16px 16px 14px;
+  cursor:pointer; border:2px solid #e5e7eb;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);
+  transition:transform .15s, box-shadow .15s;
+}
+.vcard:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(0,0,0,.12); }
+.vcard h3 { font-size:0.84rem; font-weight:800; margin-bottom:8px; }
+.vflow { display:flex; align-items:center; gap:5px; flex-wrap:wrap; margin-bottom:7px; }
+.vn { padding:2px 9px; border-radius:6px; font-size:0.62rem; font-weight:700; }
+.va { color:#aeaeb2; }
+.vdesc { font-size:0.7rem; color:#6e6e73; line-height:1.6; }
+
+/* ─── OVERLAY + PANEL ─── */
+.overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,.2);
+  z-index:100; opacity:0; pointer-events:none;
+  transition:opacity .22s; backdrop-filter:blur(6px);
+}
+.overlay.on { opacity:1; pointer-events:all; }
+
+.panel {
+  position:fixed; bottom:0; left:0; right:0; z-index:101;
+  background:#fff; border-top-left-radius:28px; border-top-right-radius:28px;
+  padding:22px 28px 48px; max-width:860px; margin:0 auto;
+  transform:translateY(100%); transition:transform .3s cubic-bezier(.32,0,.67,0);
+  box-shadow:0 -8px 48px rgba(0,0,0,.12); max-height:85vh; overflow-y:auto;
+}
+.panel.on { transform:translateY(0); transition:transform .3s cubic-bezier(.33,1,.68,1); }
+.panel-handle { width:40px; height:4px; border-radius:2px; background:#e5e7eb; margin:0 auto 20px; }
+.panel-close {
+  position:absolute; top:20px; right:22px; width:30px; height:30px;
+  border-radius:50%; background:#f5f5f7; border:none; cursor:pointer;
+  font-size:1rem; color:#6e6e73; display:flex; align-items:center; justify-content:center;
+  transition:background .14s;
+}
+.panel-close:hover { background:#e5e7eb; }
+
+/* panel top row: icon+title LEFT, file path RIGHT */
+.panel-top {
+  display:flex; align-items:flex-start; justify-content:space-between;
+  gap:16px; margin-bottom:5px;
+}
+.panel-left { display:flex; align-items:center; gap:12px; }
+.p-icon  { font-size:1.8rem; }
+.p-title { font-size:1.1rem; font-weight:900; color:#1d1d1f; letter-spacing:-.02em; }
+.p-filepath {
+  display:flex; align-items:center; gap:7px;
+  background:#f9fafb; border:1.5px solid #e5e7eb; border-radius:10px;
+  padding:7px 12px; font-family:'SF Mono',monospace; font-size:0.7rem;
+  color:#374151; flex-shrink:0; max-width:300px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.p-filepath .fp-icon { font-size:.9rem; flex-shrink:0; }
+.p-filepath .fp-dir  { color:#9ca3af; }
+.p-filepath .fp-file { color:#2563eb; font-weight:700; }
+
+.p-flow  { font-size:0.68rem; color:#aeaeb2; font-family:'SF Mono',monospace; margin-bottom:12px; }
+.p-desc  { font-size:0.85rem; line-height:1.72; color:#3d3d3f; margin-bottom:18px; }
+
+/* ─── CODE BLOCK — WHITE BG, VS Code colors ─── */
+.code-wrap {
+  background:#fff; border:1.5px solid #e5e7eb;
+  border-radius:14px; overflow:hidden;
+  box-shadow:0 2px 12px rgba(0,0,0,.06);
+}
+.code-header {
+  background:#f9fafb; border-bottom:1px solid #e5e7eb;
+  padding:9px 14px; display:flex; align-items:center; gap:8px;
+}
+.code-dots { display:flex; gap:5px; }
+.code-dots span { width:11px; height:11px; border-radius:50%; }
+.code-dots span:nth-child(1) { background:#f87171; }
+.code-dots span:nth-child(2) { background:#fbbf24; }
+.code-dots span:nth-child(3) { background:#4ade80; }
+.code-lang { font-size:0.63rem; font-weight:700; letter-spacing:.8px; text-transform:uppercase; color:#9ca3af; margin-left:4px; }
+.code-file { margin-left:auto; font-size:0.63rem; color:#6366f1; font-family:'SF Mono',monospace; font-weight:600; }
+.code-block {
+  background:#fff;
+  padding:18px 20px;
+  font-family:'SF Mono','Fira Code','JetBrains Mono','Consolas',monospace;
+  font-size:0.78rem; line-height:1.82; overflow-x:auto; white-space:pre; tab-size:4;
+  color:#1d1d1f;
+}
+
+/* VS Code syntax on white */
+.kw  { color:#7c3aed; font-weight:700; }
+.fn  { color:#2563eb; }
+.cls { color:#0891b2; font-weight:600; }
+.str { color:#16a34a; }
+.num { color:#ea580c; }
+.cm  { color:#9ca3af; font-style:italic; }
+.dec { color:#db2777; }
+.bi  { color:#d97706; font-weight:600; }  /* built-in */
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+.process, .pp-box, .vcard { animation:fadeUp .38s ease both; }
+
+@media (max-width: 860px) {
+  .layout { flex-direction:column; }
+  .dir-panel { width:100%; position:static; }
+  .err-side { display:none; }
+  .variants { grid-template-columns:1fr; }
+  .pp-row { flex-direction:column; }
+  .p-filepath { display:none; }
+  .panel-top { flex-direction:column; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="badge">⚡ Pattern 1 of 5 — Universal Architecture</div>
+  <h1>Plain LLM Application</h1>
+  <p>Request → Validate → Auth → Rate Limit → Prompt → LLM → Parse → Response</p>
+</div>
+
+<div class="layout">
+
+  <!-- ══ LEFT: FILE DIRECTORY ══ -->
+  <div class="dir-panel">
+    <div class="dir-title">📁 Project Structure</div>
+    <div class="dir-tree" id="dirTree">
+      <div class="dir-item folder"><span class="fi">📂</span>your_project/</div>
+
+      <div class="dir-item folder" style="padding-left:14px"><span class="fi">📂</span>app/</div>
+      <div class="dir-item" id="df-main"     style="padding-left:28px"><span class="fi">🐍</span>main.py</div>
+
+      <div class="dir-item folder" style="padding-left:14px"><span class="fi">📂</span>routes/</div>
+      <div class="dir-item" id="df-routes"   style="padding-left:28px"><span class="fi">🐍</span>api.py</div>
+
+      <div class="dir-item folder" style="padding-left:14px"><span class="fi">📂</span>middleware/</div>
+      <div class="dir-item" id="df-auth"     style="padding-left:28px"><span class="fi">🐍</span>auth.py</div>
+      <div class="dir-item" id="df-ratelimit" style="padding-left:28px"><span class="fi">🐍</span>rate_limit.py</div>
+
+      <div class="dir-item folder" style="padding-left:14px"><span class="fi">📂</span>schemas/</div>
+      <div class="dir-item" id="df-schemas"  style="padding-left:28px"><span class="fi">🐍</span>chat.py</div>
+
+      <div class="dir-item folder" style="padding-left:14px"><span class="fi">📂</span>services/</div>
+      <div class="dir-item" id="df-prompt"   style="padding-left:28px"><span class="fi">🐍</span>prompt.py</div>
+      <div class="dir-item" id="df-llm"      style="padding-left:28px"><span class="fi">🐍</span>llm_client.py</div>
+      <div class="dir-item" id="df-parser"   style="padding-left:28px"><span class="fi">🐍</span>parser.py</div>
+      <div class="dir-item" id="df-post"     style="padding-left:28px"><span class="fi">🐍</span>postprocess.py</div>
+    </div>
+    <div class="dir-hint" id="dirHint">Click any node in the flow to highlight its file →</div>
+  </div>
+
+  <!-- ══ RIGHT: FLOW ══ -->
+  <div class="flow">
+
+    <!-- START -->
+    <div class="terminal start">⬤ &nbsp;START</div>
+    <div class="conn"><div class="conn-line" style="height:14px"></div><div class="conn-arrow"></div></div>
+
+    <!-- USER -->
+    <div class="process c-purple" id="n-user" onclick="show('user')">
+      <span class="proc-icon">👤</span>
+      <div class="proc-body">
+        <div class="proc-title">Client Request</div>
+        <div class="proc-sub">any client — web, mobile, CLI, another service</div>
+      </div>
+      <span class="proc-badge">Entry</span>
+      <span class="tap-hint">tap for code ›</span>
+    </div>
+    <div class="conn"><div class="conn-line" style="height:6px"></div><div class="conn-label">HTTP POST /chat</div><div class="conn-line" style="height:6px"></div><div class="conn-arrow"></div></div>
+
+    <!-- FASTAPI ENDPOINT -->
+    <div class="process c-blue" id="n-fastapi" onclick="show('fastapi')">
+      <span class="proc-icon">⚡</span>
+      <div class="proc-body">
+        <div class="proc-title">API Endpoint</div>
+        <div class="proc-sub">routes/api.py — routing only, delegates all logic</div>
+      </div>
+      <span class="proc-badge">Router</span>
+      <span class="tap-hint">tap for code ›</span>
+    </div>
+    <div class="conn"><div class="conn-line" style="height:14px"></div><div class="conn-arrow"></div></div>
+
+    <!-- VALIDATE DECISION + PROCESS -->
+    <div class="diamond-wrap">
+      <div class="diamond d-green">Valid<br>Request?</div>
+      <span class="d-label-no">NO → 422</span>
+      <span class="d-label-yes">YES ↓</span>
+    </div>
+    <div class="with-err" style="margin-top:-2px">
+      <div class="err-main">
+        <div class="conn"><div class="conn-line" style="height:6px"></div><div class="conn-arrow"></div></div>
+        <div class="process c-green" id="n-validate" onclick="show('validate')">
+          <span class="proc-icon">✅</span>
+          <div class="proc-body">
+            <div class="proc-title">Validate Request</div>
+            <div class="proc-sub">schemas/chat.py — Pydantic types, ranges, required</div>
+          </div>
+          <span class="proc-badge">Pydantic</span>
+          <span class="tap-hint">tap for code ›</span>
+        </div>
+      </div>
+      <div class="err-side">
+        <div class="err-hline"></div>
+        <div class="err-box" id="n-e422" onclick="show('e422')">
+          <div class="eb-title">❌ 422 Unprocessable</div>
+          <div class="eb-sub">field missing / wrong type</div>
+        </div>
+      </div>
+    </div>
+    <div class="conn"><div class="conn-line" style="height:6px"></div><div class="conn-label">valid ✓</div><div class="conn-line" style="height:6px"></div><div class="conn-arrow"></div></div>
+
+    <!-- AUTH DECISION + PROCESS -->
+    <div class="diamond-wrap">
+      <div class="diamond d-orange">Token<br>Valid?</div>
+      <span class="d-label-no">NO → 401</span>
+      <span class="d-label-yes">YES ↓</span>
+    </div>
+    <div class="with-err" style="margin-top:-2px">
+      <div class="err-main">
+        <div class="conn"><div class="conn-line" style="height:6px"></div><div class="conn-arrow"></div></div>
+        <div class="process c-orange" id="n-auth" onclick="show('auth')">
+          <span class="proc-icon">🔐</span>
+          <div class="proc-body">
+            <div class="proc-title">Auth / JWT</div>
+            <div class="proc-sub">middleware/auth.py — decode Bearer token</div>
+          </div>
+          <span class="proc-badge">Security</span>
+          <span class="tap-hint">tap for code ›</span>
+        </div>
+      </div>
+      <div class="err-side">
+        <div class="err-hline"></div>
+        <div class="err-box" id="n-e401" onclick="show('e401')">
+          <div class="eb-title">🔒 401 Unauthorised</div>
+          <div class="eb-sub">no token / expired</div>
+        </div>
+      </div>
+    </div>
+    <div class="conn"><div class="conn-line" style="height:6px"></div><div class="conn-label">verified ✓</div><div class="conn-line" style="height:6px"></div><div class="conn-arrow"></div></div>
+
+    <!-- RATE LIMIT DECISION + PROCESS -->
+    <div class="diamond-wrap">
+      <div class="diamond d-sky">Under<br>Quota?</div>
+      <span class="d-label-no">NO → 429</span>
+      <span class="d-label-yes">YES ↓</span>
+    </div>
+    <div class="with-err" style="margin-top:-2px">
+      <div class="err-main">
+        <div class="conn"><div class="conn-line" style="height:6px"></div><div class="conn-arrow"></div></div>
+        <div class="process c-sky" id="n-ratelimit" onclick="show('ratelimit')">
+          <span class="proc-icon">🚦</span>
+          <div class="proc-body">
+            <div class="proc-title">Rate Limit</div>
+            <div class="proc-sub">middleware/rate_limit.py — Redis INCR + 1hr TTL</div>
+          </div>
+          <span class="proc-badge">Redis</span>
+          <span class="tap-hint">tap for code ›</span>
+        </div>
+      </div>
+      <div class="err-side">
+        <div class="err-hline"></div>
+        <div class="err-box" id="n-e429" onclick="show('e429')">
+          <div class="eb-title">⏱ 429 Rate Limited</div>
+          <div class="eb-sub">quota exceeded</div>
+        </div>
+      </div>
+    </div>
+    <div class="conn"><div class="conn-line" style="height:14px"></div><div class="conn-arrow"></div></div>
+
+    <!-- PROMPT BUILDER -->
+    <div class="process c-pink" id="n-prompt" onclick="show('prompt')" style="border-width:3px">
+      <span class="proc-icon">🏗️</span>
+      <div class="proc-body">
+        <div class="proc-title">Prompt Builder &nbsp;<span style="font-size:.72rem;color:#be185d">← YOUR SKILL</span></div>
+        <div class="proc-sub">services/prompt.py — system + user + params → messages</div>
+      </div>
+      <span class="proc-badge" style="background:#fce7f3;color:#be185d">AI Skill</span>
+      <span class="tap-hint">tap for code ›</span>
+    </div>
+    <div class="conn"><div class="conn-line" style="height:14px"></div><div class="conn-arrow"></div></div>
+
+    <!-- PROMPT PARTS -->
+    <div class="pp-row">
+      <div class="pp-box c-pink" id="n-ppsys" onclick="show('pp-sys')">
+        <div class="pp-icon">📋</div>
+        <div class="pp-title">System Prompt</div>
+        <div class="pp-sub">role · rules · format</div>
+      </div>
+      <div class="pp-box c-blue" id="n-ppuser" onclick="show('pp-user')">
+        <div class="pp-icon">💬</div>
+        <div class="pp-title">User Message</div>
+        <div class="pp-sub">actual input</div>
+      </div>
+      <div class="pp-box c-green" id="n-ppparams" onclick="show('pp-params')">
+        <div class="pp-icon">🎛️</div>
+        <div class="pp-title">Parameters</div>
+        <div class="pp-sub">temp · max_tokens</div>
+      </div>
+    </div>
+    <div class="conn"><div class="conn-line" style="height:6px"></div><div class="conn-label">messages list</div><div class="conn-line" style="height:6px"></div><div class="conn-arrow"></div></div>
+
+    <!-- LLM -->
+    <div class="process c-gold" id="n-llm" onclick="show('llm')">
+      <span class="proc-icon">🤖</span>
+      <div class="proc-body">
+        <div class="proc-title">LLM API Call</div>
+        <div class="proc-sub">services/llm_client.py — AsyncOpenAI singleton</div>
+      </div>
+      <span class="proc-badge">OpenAI / Claude</span>
+      <span class="tap-hint">tap for code ›</span>
+    </div>
+    <div class="conn"><div class="conn-line" style="height:6px"></div><div class="conn-label">raw completion</div><div class="conn-line" style="height:6px"></div><div class="conn-arrow"></div></div>
+
+    <!-- PARSE -->
+    <div class="with-err">
+      <div class="err-main">
+        <div class="process c-teal" id="n-parse" onclick="show('parse')">
+          <span class="proc-icon">📦</span>
+          <div class="proc-body">
+            <div class="proc-title">Parse Response</div>
+            <div class="proc-sub">services/parser.py — extract content + tokens</div>
+          </div>
+          <span class="proc-badge">Extract</span>
+          <span class="tap-hint">tap for code ›</span>
+        </div>
+      </div>
+      <div class="err-side">
+        <div class="err-hline"></div>
+        <div class="err-box" id="n-e500" onclick="show('e500')">
+          <div class="eb-title">📭 500 Empty</div>
+          <div class="eb-sub">content_filter / empty</div>
+        </div>
+      </div>
+    </div>
+    <div class="conn"><div class="conn-line" style="height:14px"></div><div class="conn-arrow"></div></div>
+
+    <!-- POST PROCESS -->
+    <div class="process c-indigo" id="n-post" onclick="show('postprocess')">
+      <span class="proc-icon">🔧</span>
+      <div class="proc-body">
+        <div class="proc-title">Post-Process</div>
+        <div class="proc-sub">services/postprocess.py — strip, log, format</div>
+      </div>
+      <span class="proc-badge">Cleanup</span>
+      <span class="tap-hint">tap for code ›</span>
+    </div>
+    <div class="conn"><div class="conn-line" style="height:14px"></div><div class="conn-arrow"></div></div>
+
+    <!-- SUCCESS -->
+    <div class="process c-green" id="n-success" onclick="show('success')" style="border-width:3px">
+      <span class="proc-icon">📤</span>
+      <div class="proc-body">
+        <div class="proc-title">Response to Client</div>
+        <div class="proc-sub">routes/api.py — { answer, tokens_used, model }</div>
+      </div>
+      <span class="proc-badge" style="background:#dcfce7;color:#15803d">HTTP 200</span>
+      <span class="tap-hint">tap for code ›</span>
+    </div>
+    <div class="conn"><div class="conn-line" style="height:14px"></div><div class="conn-arrow" style="border-top-color:#059669"></div></div>
+
+    <!-- END -->
+    <div class="terminal end">⬤ &nbsp;END</div>
+
+  </div><!-- /flow -->
+</div><!-- /layout -->
+
+<!-- VARIANTS -->
+<div class="variants-title">Pattern Variants — click to see code</div>
+<div class="variants">
+  <div class="vcard" onclick="show('v-structured')" style="border-color:#f9a8d4">
+    <h3 style="color:#db2777">🧩 Structured Output</h3>
+    <div class="vflow">
+      <div class="vn" style="background:#fce7f3;color:#831843">Prompt</div>
+      <span class="va">→</span>
+      <div class="vn" style="background:#dbeafe;color:#1e40af">.parse()</div>
+      <span class="va">→</span>
+      <div class="vn" style="background:#dcfce7;color:#14532d">Typed obj</div>
+    </div>
+    <div class="vdesc">Returns a typed Pydantic object — no json.loads. Perfect for classifiers and extractors.</div>
+  </div>
+  <div class="vcard" onclick="show('v-multiturn')" style="border-color:#93c5fd">
+    <h3 style="color:#2563eb">💬 Multi-Turn Chat</h3>
+    <div class="vflow">
+      <div class="vn" style="background:#dbeafe;color:#1e40af">History[-10]</div>
+      <span class="va">→</span>
+      <div class="vn" style="background:#fce7f3;color:#831843">Messages</div>
+      <span class="va">→</span>
+      <div class="vn" style="background:#fef3c7;color:#78350f">LLM</div>
+    </div>
+    <div class="vdesc">Keep last 10 turns. Always prepend system prompt. History is the only state you need.</div>
+  </div>
+</div>
+
+<div style="text-align:center;font-size:.66rem;color:#aeaeb2;margin-top:28px">
+  Tap any node to see production code and the file it lives in &nbsp;·&nbsp;
+  <a href="../P2-rag/flow.html" style="color:#2563eb;text-decoration:none">P2 RAG →</a>
+</div>
+
+<!-- OVERLAY + PANEL -->
+<div class="overlay" id="overlay" onclick="closePanel()"></div>
+<div class="panel" id="panel">
+  <div class="panel-handle"></div>
+  <button class="panel-close" onclick="closePanel()">✕</button>
+  <div class="panel-top">
+    <div class="panel-left">
+      <span class="p-icon" id="pIcon"></span>
+      <span class="p-title" id="pTitle"></span>
+    </div>
+    <div class="p-filepath" id="pFilepath">
+      <span class="fp-icon">📄</span>
+      <span id="fpText"></span>
+    </div>
+  </div>
+  <div class="p-flow" id="pFlow"></div>
+  <div class="p-desc"  id="pDesc"></div>
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="code-dots"><span></span><span></span><span></span></div>
+      <span class="code-lang">Python</span>
+      <span class="code-file" id="codeFile"></span>
+    </div>
+    <pre class="code-block" id="pCode"></pre>
+  </div>
+</div>
+
+<script>
+/* ── syntax highlighter ─────────────────────────────────────── */
+function hl(raw) {
+  let s = raw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // comments first (protect from further replacement)
+  s = s.replace(/(#[^\n]*)/g, '\x00cm\x01$1\x00/cm\x01');
+  // decorators
+  s = s.replace(/(@\w[\w.]*)/g, '\x00dec\x01$1\x00/dec\x01');
+  // strings (triple then single/double)
+  s = s.replace(/("""[\s\S]*?"""|'''[\s\S]*?''')/g, '\x00str\x01$1\x00/str\x01');
+  s = s.replace(/("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')/g, '\x00str\x01$1\x00/str\x01');
+  // keywords
+  s = s.replace(/\b(async |await |def |class |from |import |return |if |elif |else:|raise |with |yield |lambda |for |in |not |and |or |True|False|None|pass)\b/g,
+    '\x00kw\x01$1\x00/kw\x01');
+  // well-known classes
+  s = s.replace(/\b(FastAPI|BaseModel|Field|Depends|HTTPException|JWTError|OAuth2PasswordBearer|AsyncOpenAI|asynccontextmanager|logger|redis|Request)\b/g,
+    '\x00cls\x01$1\x00/cls\x01');
+  // built-ins
+  s = s.replace(/\b(os|int|str|float|list|dict|bool|print|len|range|type)\b/g,
+    '\x00bi\x01$1\x00/bi\x01');
+  // function/method calls  word(
+  s = s.replace(/\b([A-Za-z_]\w*)\s*(?=\()/g, '\x00fn\x01$1\x00/fn\x01');
+  // numbers
+  s = s.replace(/\b(\d+\.?\d*)\b/g, '\x00num\x01$1\x00/num\x01');
+  // convert placeholders to spans
+  s = s.replace(/\x00(\w+)\x01([\s\S]*?)\x00\/\1\x01/g, '<span class="$1">$2</span>');
+  return s;
+}
+
+/* ── directory mapping: nodeKey → { files: [ids], path, hint } ─ */
+const DIR = {
+  user:        { files:['df-routes'],              path:'routes/api.py',           hint:'Client hits the API endpoint defined here' },
+  fastapi:     { files:['df-main','df-routes'],    path:'app/main.py + routes/api.py', hint:'App setup in main.py, route handler in routes/api.py' },
+  validate:    { files:['df-schemas'],             path:'schemas/chat.py',          hint:'Request & response Pydantic models live here' },
+  auth:        { files:['df-auth'],                path:'middleware/auth.py',        hint:'JWT decode and get_current_user dependency' },
+  ratelimit:   { files:['df-ratelimit'],           path:'middleware/rate_limit.py',  hint:'Redis INCR counter, TTL logic' },
+  prompt:      { files:['df-prompt'],              path:'services/prompt.py',        hint:'build_messages() — your AI engineering lives here' },
+  'pp-sys':    { files:['df-prompt'],              path:'services/prompt.py',        hint:'System prompt string defined inside build_messages()' },
+  'pp-user':   { files:['df-prompt'],              path:'services/prompt.py',        hint:'User content always placed in user role here' },
+  'pp-params': { files:['df-prompt'],              path:'services/prompt.py',        hint:'temperature and max_tokens set here' },
+  llm:         { files:['df-main','df-llm'],       path:'services/llm_client.py',    hint:'AsyncOpenAI singleton created at startup in main.py' },
+  parse:       { files:['df-parser'],              path:'services/parser.py',        hint:'finish_reason check, content extraction, token logging' },
+  postprocess: { files:['df-post'],                path:'services/postprocess.py',   hint:'strip, validate, logger.info cost tracking' },
+  success:     { files:['df-routes'],              path:'routes/api.py',             hint:'Return typed ChatResponse — FastAPI auto-serialises' },
+  e422:        { files:['df-schemas'],             path:'schemas/chat.py',           hint:'Pydantic auto-raises 422 from model definition' },
+  e401:        { files:['df-auth'],                path:'middleware/auth.py',        hint:'raise HTTPException(401) inside get_current_user' },
+  e429:        { files:['df-ratelimit'],           path:'middleware/rate_limit.py',  hint:'raise HTTPException(429) with Retry-After header' },
+  e500:        { files:['df-parser'],              path:'services/parser.py',        hint:'Empty answer guard raises 500 here' },
+  'v-structured':{ files:['df-llm'],              path:'services/llm_client.py',    hint:'beta.chat.completions.parse() variant' },
+  'v-multiturn':{ files:['df-prompt'],            path:'services/prompt.py',        hint:'build_multiturn_messages() variant' },
+};
+
+/* ── node → element id mapping ─────────────────────────────── */
+const NODE_EL = {
+  user:'n-user', fastapi:'n-fastapi', validate:'n-validate',
+  auth:'n-auth', ratelimit:'n-ratelimit', prompt:'n-prompt',
+  'pp-sys':'n-ppsys','pp-user':'n-ppuser','pp-params':'n-ppparams',
+  llm:'n-llm', parse:'n-parse', postprocess:'n-post', success:'n-success',
+  e422:'n-e422', e401:'n-e401', e429:'n-e429', e500:'n-e500',
+};
+
+/* ── DATA ───────────────────────────────────────────────────── */
+const DATA = {
+  user:{
+    icon:'👤',title:'Client Request',
+    flow:'Entry — any client sends message + params to your API',
+    desc:'A request arrives from a web UI, mobile app, CLI, or another service. It hits your FastAPI endpoint as JSON. Nothing smart happens here — routing and Pydantic validation come next.',
+    code:
+`# This is the shape the client sends — defined in schemas/chat.py
+# Any HTTP client (curl, axios, fetch, requests) can call this
+
+# Example call from a Python client:
+import httpx
+
+response = httpx.post(
+    "http://localhost:8000/chat",
+    headers={"Authorization": f"Bearer {token}"},
+    json={
+        "message": "Explain Kubernetes pods",
+        "temperature": 0.7,
+        "max_tokens": 500,
+    },
+)
+print(response.json())
+# {"answer": "...", "tokens_used": 423, "model": "gpt-4o"}`
+  },
+  fastapi:{
+    icon:'⚡',title:'API Endpoint',
+    flow:'routes/api.py — routing only, delegates every concern',
+    desc:'The endpoint does only one thing: receive the typed request and call the service layer. No logic lives here. Auth and rate-limit are injected as FastAPI dependencies so they run before the handler body.',
+    code:
+`# routes/api.py
+from fastapi import APIRouter, Depends, Request as FastAPIRequest
+from schemas.chat import ChatRequest, ChatResponse
+from services.prompt import build_messages
+from middleware.auth import get_current_user
+from middleware.rate_limit import is_rate_limited
+
+router = APIRouter()
+
+@router.post("/chat", response_model=ChatResponse)
+async def chat(
+    req:     ChatRequest,
+    request: FastAPIRequest,
+    user:    dict = Depends(get_current_user),
+) -> ChatResponse:
+    await is_rate_limited(user["sub"])          # raises 429 if over quota
+    messages  = build_messages(req)
+    response  = await request.app.state.llm.chat.completions.create(
+        model="gpt-4o", messages=messages,
+        temperature=req.temperature, max_tokens=req.max_tokens,
+    )
+    answer = response.choices[0].message.content.strip()
+    return ChatResponse(
+        answer=answer,
+        tokens_used=response.usage.total_tokens,
+        model="gpt-4o",
+    )`
+  },
+  validate:{
+    icon:'✅',title:'Validate Request',
+    flow:'schemas/chat.py — Pydantic auto-validates, auto-422 on failure',
+    desc:'Define your request shape once as a Pydantic model. FastAPI validates every incoming request against it automatically. If any field fails, a 422 is returned with field-level detail — you write zero if/else.',
+    code:
+`# schemas/chat.py
+from pydantic import BaseModel, Field
+
+class ChatRequest(BaseModel):
+    message:       str   = Field(min_length=1, max_length=10_000)
+    system_prompt: str   = "You are a helpful assistant."
+    temperature:   float = Field(default=0.7, ge=0.0, le=2.0)
+    max_tokens:    int   = Field(default=500,  ge=1,   le=4096)
+
+class ChatResponse(BaseModel):
+    answer:      str
+    tokens_used: int
+    model:       str
+
+# FastAPI auto-returns 422 if validation fails:
+# {"detail": [{"type": "string_too_long", "loc": ["body","message"]}]}`
+  },
+  auth:{
+    icon:'🔐',title:'Auth / JWT',
+    flow:'middleware/auth.py — decode Bearer token, raise 401 on failure',
+    desc:'Decode the JWT from the Authorization header. Verify signature, expiry, and claims. Returns a user dict injected into the endpoint via Depends. The LLM is never called if this fails — no cost incurred.',
+    code:
+`# middleware/auth.py
+import os
+from fastapi import Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer
+from jose import jwt, JWTError
+
+oauth2 = OAuth2PasswordBearer(tokenUrl="/auth/login")
+
+async def get_current_user(token: str = Depends(oauth2)) -> dict:
+    try:
+        payload = jwt.decode(
+            token,
+            os.environ["JWT_SECRET"],
+            algorithms=["HS256"],
+        )
+        return payload           # {"sub": "user-123", "role": "admin"}
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+# Generate token (e.g. in /auth/login route):
+from datetime import datetime, timedelta
+def create_token(user_id: str) -> str:
+    return jwt.encode(
+        {"sub": user_id, "exp": datetime.utcnow() + timedelta(hours=24)},
+        os.environ["JWT_SECRET"],
+        algorithm="HS256",
+    )`
+  },
+  ratelimit:{
+    icon:'🚦',title:'Rate Limit',
+    flow:'middleware/rate_limit.py — Redis INCR + TTL, O(1), atomic',
+    desc:'Check quota before any LLM call. Uses Redis INCR — atomic, O(1), no database needed. First request sets a 1-hour TTL. If the counter exceeds the limit, raises 429 with Retry-After header.',
+    code:
+`# middleware/rate_limit.py
+import os
+import redis.asyncio as aioredis
+from fastapi import HTTPException
+
+_redis = aioredis.from_url(os.environ["REDIS_URL"])
+
+async def is_rate_limited(user_id: str, limit: int = 100) -> None:
+    key   = f"ratelimit:{user_id}"
+    count = await _redis.incr(key)
+    if count == 1:
+        await _redis.expire(key, 3600)      # 1-hour sliding window
+    if count > limit:
+        raise HTTPException(
+            status_code=429,
+            detail="Rate limit exceeded",
+            headers={"Retry-After": "3600"},
+        )`
+  },
+  prompt:{
+    icon:'🏗️',title:'Prompt Builder — Your Skill',
+    flow:'services/prompt.py — system + user + params → messages list',
+    desc:'This is where AI engineering happens. Anyone can call an LLM in 3 lines. The prompt is YOUR contribution — it transforms a generic model into your domain expert. System prompt is the most powerful lever.',
+    code:
+`# services/prompt.py
+from schemas.chat import ChatRequest
+
+def build_messages(req: ChatRequest) -> list[dict]:
+    return [
+        {
+            "role": "system",
+            "content": req.system_prompt,
+            # Strong system prompt pattern:
+            # "You are a [ROLE].
+            #  Your job is to [TASK].
+            #  Rules: always [X], never [Y].
+            #  Respond in [FORMAT]."
+        },
+        {
+            "role": "user",
+            "content": req.message,
+            # NEVER concatenate user input into system prompt
+            # That is a prompt injection vulnerability
+        },
+    ]
+
+# Few-shot variant: insert example turns between system and user
+# CoT variant:      add "Think step by step." to system content`
+  },
+  'pp-sys':{
+    icon:'📋',title:'System Prompt',
+    flow:'services/prompt.py — the most powerful lever in your AI stack',
+    desc:'Sets the LLM role, rules, and output format. Evaluated before the user message. One focused role and clear rules beat a long vague prompt every time.',
+    code:
+`# services/prompt.py  — system prompt patterns
+
+# Weak (generic, no rules, no format):
+weak = "You are a helpful assistant."
+
+# Strong (role + task + rules + format):
+strong = """You are a senior DevOps engineer.
+Your job is to diagnose Kubernetes issues.
+Rules:
+  - Always state the root cause FIRST, then list fix steps
+  - Never suggest restarting a pod unless all other fixes fail
+  - Be concise — maximum 3 bullet points per section
+Respond in Markdown with code blocks for commands."""
+
+# Chain-of-thought variant:
+cot = strong + "\nThink step by step before giving your answer."
+
+# Few-shot variant: prepend 1-2 example Q&A pairs as
+# {"role":"user","content":"..."}, {"role":"assistant","content":"..."}`
+  },
+  'pp-user':{
+    icon:'💬',title:'User Message',
+    flow:'services/prompt.py — user content always in user role, never system',
+    desc:'Always place user-supplied content in the user role. Concatenating it into the system prompt is a prompt injection vulnerability — a user could override your rules.',
+    code:
+`# services/prompt.py
+
+# CORRECT — user content isolated in user role:
+messages = [
+    {"role": "system", "content": system_prompt},
+    {"role": "user",   "content": req.message},     # safe
+]
+
+# WRONG — never do this (prompt injection risk):
+# system = f"You are an expert. User says: {req.message}"
+
+# Guard in schemas/chat.py (already there):
+# message: str = Field(min_length=1, max_length=10_000)
+# This prevents essay-length inputs that inflate token costs`
+  },
+  'pp-params':{
+    icon:'🎛️',title:'Parameters',
+    flow:'services/prompt.py — temperature and max_tokens, always explicit',
+    desc:'temperature controls creativity vs consistency. max_tokens caps output length and cost. Always set both explicitly — API defaults change over time and will surprise you in production.',
+    code:
+`# services/prompt.py / routes/api.py
+
+# temperature quick guide:
+# 0.0 – 0.3   factual, deterministic   Q&A, classification, extraction
+# 0.4 – 0.7   balanced                 summaries, explanations, translation
+# 0.8 – 1.0   creative                 drafts, brainstorming, storytelling
+
+response = await llm.chat.completions.create(
+    model="gpt-4o",
+    messages=messages,
+    temperature=req.temperature,    # from validated ChatRequest
+    max_tokens=req.max_tokens,      # always set — prevents runaway costs
+)
+
+# max_tokens rule of thumb:
+# 500   short answers, one-liners
+# 1000  paragraph explanations
+# 4096  full documents, long code`
+  },
+  llm:{
+    icon:'🤖',title:'LLM API Call',
+    flow:'services/llm_client.py — AsyncOpenAI singleton, one client for all requests',
+    desc:'Create the AsyncOpenAI client ONCE at app startup, store on app.state, reuse for every request. Creating it inside the handler opens a new HTTP connection per request — a production bottleneck. max_retries handles 429/503 automatically.',
+    code:
+`# app/main.py  — client created once at startup
+import os
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from openai import AsyncOpenAI
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app.state.llm = AsyncOpenAI(
+        api_key=os.environ["OPENAI_API_KEY"],
+        max_retries=3,      # auto-retries 429 / 503
+        timeout=60.0,       # fail fast — don't hang forever
+    )
+    yield                   # app runs here
+    await app.state.llm.close()
+
+app = FastAPI(lifespan=lifespan)
+
+# services/llm_client.py  — call from endpoint:
+async def call_llm(request, messages, temperature, max_tokens):
+    return await request.app.state.llm.chat.completions.create(
+        model="gpt-4o",
+        messages=messages,
+        temperature=temperature,
+        max_tokens=max_tokens,
+    )`
+  },
+  parse:{
+    icon:'📦',title:'Parse Response',
+    flow:'services/parser.py — extract content, check finish_reason, log tokens',
+    desc:'Extract the answer and token count from the completion object. Always check finish_reason — "length" means the model was cut off and the answer is incomplete. Log tokens on every call for cost tracking.',
+    code:
+`# services/parser.py
+import logging
+from fastapi import HTTPException
+
+logger = logging.getLogger(__name__)
+
+def parse_completion(response, user_id: str) -> tuple[str, int]:
+    choice = response.choices[0]
+    answer = (choice.message.content or "").strip()
+    tokens = response.usage.total_tokens
+    finish = choice.finish_reason
+
+    # finish_reason values:
+    # "stop"           normal completion ✓
+    # "length"         hit max_tokens — answer is TRUNCATED
+    # "content_filter" blocked by safety policy
+
+    if finish == "length":
+        logger.warning("truncated | user=%s | increase max_tokens", user_id)
+
+    if not answer:
+        logger.error("empty response | finish=%s | user=%s", finish, user_id)
+        raise HTTPException(status_code=500, detail="LLM returned an empty response")
+
+    return answer, tokens`
+  },
+  postprocess:{
+    icon:'🔧',title:'Post-Process',
+    flow:'services/postprocess.py — strip, validate, log cost, return typed model',
+    desc:'Final cleanup before the response goes out. Log token usage per user — without this you cannot do cost attribution or billing. Measure latency on every call.',
+    code:
+`# services/postprocess.py
+import time
+import logging
+from fastapi import HTTPException
+from schemas.chat import ChatResponse
+
+logger = logging.getLogger(__name__)
+
+def build_response(
+    answer: str,
+    tokens: int,
+    user_id: str,
+    model: str,
+    t_start: float,
+) -> ChatResponse:
+    answer = answer.strip()
+    if not answer:
+        raise HTTPException(status_code=500, detail="Empty response after strip")
+
+    logger.info(
+        "ok | user=%s | model=%s | tokens=%d | latency_ms=%d",
+        user_id, model, tokens,
+        int((time.time() - t_start) * 1000),
+    )
+
+    return ChatResponse(answer=answer, tokens_used=tokens, model=model)`
+  },
+  success:{
+    icon:'📤',title:'Response to Client',
+    flow:'routes/api.py — FastAPI auto-serialises typed Pydantic model to JSON',
+    desc:'FastAPI serialises the Pydantic model to JSON automatically. Always include tokens_used so clients can track cost or implement client-side budgets.',
+    code:
+`# schemas/chat.py  — response model
+from pydantic import BaseModel
+
+class ChatResponse(BaseModel):
+    answer:      str
+    tokens_used: int
+    model:       str
+
+# routes/api.py  — returned from endpoint:
+return ChatResponse(
+    answer=answer,
+    tokens_used=tokens,
+    model="gpt-4o",
+)
+
+# FastAPI sends HTTP 200 with body:
+# {
+#     "answer": "Kubernetes pods are the smallest deployable units...",
+#     "tokens_used": 423,
+#     "model": "gpt-4o"
+# }`
+  },
+  e422:{
+    icon:'❌',title:'422 Validation Error',
+    flow:'schemas/chat.py — Pydantic raises this automatically, zero code needed',
+    desc:'Pydantic returns 422 with field-level detail when any field fails validation. You write zero error-handling code — the model definition IS the guard.',
+    code:
+`# schemas/chat.py  — the model definition IS the guard
+from pydantic import BaseModel, Field
+
+class ChatRequest(BaseModel):
+    message:     str   = Field(min_length=1, max_length=10_000)
+    temperature: float = Field(default=0.7, ge=0.0, le=2.0)
+    max_tokens:  int   = Field(default=500,  ge=1,   le=4096)
+
+# If "message" is too long, FastAPI auto-returns:
+# HTTP 422 Unprocessable Entity
+# {
+#     "detail": [{
+#         "type":  "string_too_long",
+#         "loc":   ["body", "message"],
+#         "msg":   "String should have at most 10000 characters"
+#     }]
+# }`
+  },
+  e401:{
+    icon:'🔒',title:'401 Unauthorised',
+    flow:'middleware/auth.py — raised before any LLM cost is incurred',
+    desc:'Three causes: missing Bearer header, JWT expired, or wrong signature. Raised by get_current_user before the endpoint body runs — the LLM is never called, zero cost incurred.',
+    code:
+`# middleware/auth.py
+from jose import jwt, JWTError
+from fastapi import HTTPException, Depends
+from fastapi.security import OAuth2PasswordBearer
+
+oauth2 = OAuth2PasswordBearer(tokenUrl="/auth/login")
+
+async def get_current_user(token: str = Depends(oauth2)) -> dict:
+    try:
+        return jwt.decode(token, os.environ["JWT_SECRET"], algorithms=["HS256"])
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+# Three root causes:
+# 1. No Authorization header          → OAuth2PasswordBearer raises 401
+# 2. Token expired (exp claim past)   → JWTError → 401
+# 3. Wrong secret / tampered token    → JWTError → 401`
+  },
+  e429:{
+    icon:'⏱',title:'429 Too Many Requests',
+    flow:'middleware/rate_limit.py — fail before LLM, Retry-After tells client when',
+    desc:'Raised before the prompt is built or the LLM is called — so zero API cost is incurred. The Retry-After header tells the client exactly how long to wait.',
+    code:
+`# middleware/rate_limit.py
+from fastapi import HTTPException
+import redis.asyncio as aioredis
+
+async def is_rate_limited(user_id: str, limit: int = 100) -> None:
+    key   = f"ratelimit:{user_id}"
+    count = await _redis.incr(key)
+    if count == 1:
+        await _redis.expire(key, 3600)
+    if count > limit:
+        raise HTTPException(
+            status_code=429,
+            detail="Rate limit exceeded — try again in 1 hour",
+            headers={"Retry-After": "3600"},
+        )
+
+# Client should check Retry-After header and back off:
+# HTTP 429
+# Retry-After: 3600
+# {"detail": "Rate limit exceeded — try again in 1 hour"}`
+  },
+  e500:{
+    icon:'📭',title:'500 Empty Response',
+    flow:'services/parser.py — guard against empty LLM output',
+    desc:'Happens when content filters trigger, max_tokens is hit at token 0, or a rare API glitch. Check finish_reason to tell the difference between a safety block and a truncation.',
+    code:
+`# services/parser.py
+def parse_completion(response, user_id: str) -> tuple[str, int]:
+    choice = response.choices[0]
+    answer = (choice.message.content or "").strip()
+    finish = choice.finish_reason
+
+    if not answer:
+        logger.error(
+            "empty response | finish=%s | user=%s",
+            finish, user_id
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="LLM returned an empty response",
+        )
+
+    return answer, response.usage.total_tokens
+
+# finish_reason diagnosis:
+# "content_filter" → prompt triggered safety policy — revise system prompt
+# "length"         → max_tokens too low — increase it
+# None             → rare API glitch — retry`
+  },
+  'v-structured':{
+    icon:'🧩',title:'Variant: Structured Output',
+    flow:'services/llm_client.py — response_format=PydanticModel → typed object',
+    desc:'Use beta.chat.completions.parse() with a Pydantic model. The SDK validates the JSON and returns a typed Python object. No json.loads needed. Raises if the model returns invalid JSON.',
+    code:
+`# services/llm_client.py  — structured output variant
+from pydantic import BaseModel
+from openai import AsyncOpenAI
+
+class SentimentResult(BaseModel):
+    label:      str    # "positive" | "negative" | "neutral"
+    confidence: float  # 0.0 – 1.0
+    reason:     str
+
+async def classify_sentiment(text: str, llm: AsyncOpenAI) -> SentimentResult:
+    response = await llm.beta.chat.completions.parse(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": "Classify the sentiment. Return JSON."},
+            {"role": "user",   "content": text},
+        ],
+        response_format=SentimentResult,
+    )
+    return response.choices[0].message.parsed
+    # result.label, result.confidence, result.reason — fully typed
+    # SDK raises ParseError if model returns malformed JSON`
+  },
+  'v-multiturn':{
+    icon:'💬',title:'Variant: Multi-Turn Chat',
+    flow:'services/prompt.py — history[-10] + new_message → messages list',
+    desc:'Keep the last 10 turns for context. Trim old history to control cost. The LLM only sees what you pass — there is no server-side memory unless you add it.',
+    code:
+`# services/prompt.py  — multi-turn variant
+from pydantic import BaseModel
+
+class TurnMessage(BaseModel):
+    role:    str    # "user" | "assistant"
+    content: str
+
+class MultiTurnRequest(BaseModel):
+    history:       list[TurnMessage]
+    new_message:   str
+    system_prompt: str = "You are a helpful assistant."
+
+def build_multiturn_messages(req: MultiTurnRequest) -> list[dict]:
+    messages = [{"role": "system", "content": req.system_prompt}]
+    for turn in req.history[-10:]:          # cost control: last 10 turns only
+        messages.append({"role": turn.role, "content": turn.content})
+    messages.append({"role": "user", "content": req.new_message})
+    return messages`
+  },
+};
+
+/* ── active node tracking ────────────────────────────────────── */
+let activeNodeEl  = null;
+let activeDirEls  = [];
+
+function clearActive() {
+  if (activeNodeEl) { activeNodeEl.classList.remove('active-node'); activeNodeEl = null; }
+  activeDirEls.forEach(el => el.classList.remove('active'));
+  activeDirEls = [];
+}
+
+function highlightDir(key) {
+  const d = DIR[key];
+  if (!d) return;
+  d.files.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.classList.add('active'); activeDirEls.push(el); }
+  });
+  document.getElementById('dirHint').textContent = d.hint;
+}
+
+function show(key) {
+  const d = DATA[key];
+  if (!d) return;
+
+  clearActive();
+
+  // highlight node
+  const nid = NODE_EL[key];
+  if (nid) {
+    activeNodeEl = document.getElementById(nid);
+    if (activeNodeEl) activeNodeEl.classList.add('active-node');
+  }
+
+  // highlight directory
+  highlightDir(key);
+
+  // fill panel
+  document.getElementById('pIcon').textContent  = d.icon;
+  document.getElementById('pTitle').textContent = d.title;
+  document.getElementById('pFlow').textContent  = d.flow;
+  document.getElementById('pDesc').textContent  = d.desc;
+
+  const dir = DIR[key];
+  const fpText = document.getElementById('fpText');
+  const codeFile = document.getElementById('codeFile');
+  if (dir) {
+    const parts = dir.path.split('/');
+    const file  = parts.pop();
+    const folder = parts.join('/') + (parts.length ? '/' : '');
+    fpText.innerHTML = `<span class="fp-dir">${folder}</span><span class="fp-file">${file}</span>`;
+    codeFile.textContent = dir.path;
+  }
+
+  document.getElementById('pCode').innerHTML = hl(d.code);
+
+  document.getElementById('panel').classList.add('on');
+  document.getElementById('overlay').classList.add('on');
+}
+
+function closePanel() {
+  document.getElementById('panel').classList.remove('on');
+  document.getElementById('overlay').classList.remove('on');
+  clearActive();
+  document.getElementById('dirHint').textContent = 'Click any node in the flow to highlight its file →';
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(); });
+</script>
+</body>
+</html>

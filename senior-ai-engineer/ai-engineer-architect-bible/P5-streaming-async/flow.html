@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P5 — Streaming + Async Jobs Flow</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f5;display:flex;height:100vh;overflow:hidden}
+
+/* ── Directory Panel ── */
+#dir-panel{width:220px;min-width:220px;background:#1e1e2e;color:#cdd6f4;padding:16px 12px;overflow-y:auto;flex-shrink:0}
+#dir-panel h3{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#6c7086;margin-bottom:12px}
+.dir-section{margin-bottom:14px}
+.dir-section-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#45475a;margin-bottom:6px;padding-left:4px}
+.dir-file{font-size:12px;padding:5px 8px;border-radius:6px;cursor:pointer;transition:background .15s;color:#a6adc8;border-left:3px solid transparent;margin-bottom:2px;word-break:break-all}
+.dir-file.active{background:#fef3c7 !important;color:#92400e !important;border-left-color:#f59e0b !important;font-weight:600}
+.dir-file:hover{background:#313244}
+
+/* ── Main flow area ── */
+#flow-wrap{flex:1;overflow-y:auto;padding:24px 28px}
+.page-title{text-align:center;margin-bottom:6px}
+.page-title h1{font-size:20px;font-weight:700;color:#1e293b}
+.page-title p{font-size:13px;color:#64748b;margin-top:4px}
+.nav-links{display:flex;justify-content:center;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.nav-links a{font-size:12px;padding:4px 12px;border-radius:20px;background:#e2e8f0;color:#475569;text-decoration:none;transition:background .15s}
+.nav-links a:hover{background:#cbd5e1}
+.nav-links a.cur{background:#6366f1;color:#fff}
+
+/* ── Section divider ── */
+.section-sep{display:flex;align-items:center;gap:12px;margin:20px 0 16px;justify-content:center}
+.section-sep .sep-line{height:2px;width:80px;background:linear-gradient(90deg,transparent,#94a3b8)}
+.section-sep .sep-line.r{background:linear-gradient(90deg,#94a3b8,transparent)}
+.section-sep .sep-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#64748b;background:#e2e8f0;padding:4px 14px;border-radius:20px}
+
+/* ── Flow nodes ── */
+.flow{display:flex;flex-direction:column;align-items:center;gap:0}
+.arrow{width:2px;height:22px;background:#94a3b8;position:relative;margin:0 auto}
+.arrow::after{content:'';position:absolute;bottom:-6px;left:-4px;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #94a3b8}
+
+.terminal{display:inline-flex;align-items:center;justify-content:center;border-radius:50px;padding:7px 24px;font-size:13px;font-weight:700;cursor:pointer;border:2px solid rgba(0,0,0,.1);box-shadow:0 2px 8px rgba(0,0,0,.08);transition:transform .12s,box-shadow .12s,outline .12s;min-width:100px}
+.terminal:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.13)}
+
+.process{width:auto;min-width:260px;max-width:400px;border-radius:10px;padding:8px 16px 8px 12px;display:inline-flex;align-items:center;gap:10px;cursor:pointer;border:2px solid rgba(0,0,0,.06);box-shadow:0 2px 8px rgba(0,0,0,.07);transition:transform .12s,box-shadow .12s,outline .12s;position:relative}
+.process:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.13)}
+.process .icon{font-size:18px;flex-shrink:0}
+.process .label{font-size:13px;font-weight:600;color:#1e293b;line-height:1.3}
+.process .sub{font-size:11px;color:#64748b;margin-top:2px}
+
+.skill-node{outline:2px solid #f472b6 !important;outline-offset:2px}
+.skill-node .label::after{content:' ✦ YOUR SKILL';font-size:10px;color:#f472b6;font-weight:700;margin-left:6px}
+
+/* Diamond */
+.diamond-wrap{position:relative;display:flex;justify-content:center;align-items:center;width:220px;height:80px;margin:0 auto}
+.diamond{width:110px;height:70px;background:#fef9c3;border:2px solid #fbbf24;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:filter .12s}
+.diamond:hover{filter:brightness(.94)}
+.diamond .d-label{font-size:11px;font-weight:700;color:#92400e;text-align:center;line-height:1.3;padding:0 14px}
+.yes-label,.no-label{position:absolute;font-size:10px;font-weight:700;color:#64748b}
+.yes-label{bottom:-18px;left:50%;transform:translateX(-50%)}
+.no-label{right:-36px;top:50%;transform:translateY(-50%)}
+
+/* Error branch */
+.err-line{height:2px;background:#f87171;width:60px;position:absolute;right:calc(50% - 55px - 60px)}
+.err-box{position:absolute;right:calc(50% - 55px - 140px);display:inline-flex;align-items:center;gap:6px;background:#fee2e2;border:2px solid #f87171;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;color:#b91c1c;white-space:nowrap}
+
+/* Token stream loop box */
+.stream-box{border:2px dashed #0ea5e9;border-radius:14px;padding:18px 24px;margin:6px 0;background:rgba(14,165,233,.04);display:flex;flex-direction:column;align-items:center;position:relative;min-width:340px}
+.stream-box-label{position:absolute;top:-11px;left:24px;background:#f0f2f5;padding:0 8px;font-size:11px;font-weight:700;color:#0ea5e9;letter-spacing:.08em;text-transform:uppercase}
+
+/* Worker section box */
+.worker-box{border:2px dashed #f59e0b;border-radius:14px;padding:18px 24px;margin:6px 0;background:rgba(245,158,11,.04);display:flex;flex-direction:column;align-items:center;position:relative;min-width:340px}
+.worker-box-label{position:absolute;top:-11px;left:24px;background:#f0f2f5;padding:0 8px;font-size:11px;font-weight:700;color:#f59e0b;letter-spacing:.08em;text-transform:uppercase}
+
+.loop-line{font-size:11px;font-weight:600;border:1.5px dashed #0ea5e9;border-radius:6px;padding:3px 10px;white-space:nowrap;color:#0ea5e9;margin-top:4px}
+
+/* active gold ring */
+.node-active{outline:3px solid #f59e0b !important;outline-offset:3px}
+
+/* Code Panel */
+#panel{position:fixed;bottom:0;left:220px;right:0;background:#fff;border-top:2px solid #e2e8f0;border-radius:16px 16px 0 0;transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);z-index:100;max-height:55vh;display:flex;flex-direction:column;box-shadow:0 -4px 32px rgba(0,0,0,.12)}
+#panel.open{transform:translateY(0)}
+#panel-header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid #e2e8f0;flex-shrink:0}
+#panel-title{font-size:14px;font-weight:700;color:#1e293b}
+#panel-flow{font-size:11px;color:#6366f1;margin-top:2px}
+#panel-close{background:none;border:none;font-size:20px;cursor:pointer;color:#94a3b8;padding:0 4px;line-height:1}
+#panel-body{overflow-y:auto;padding:16px 20px;flex:1}
+#panel-desc{font-size:13px;color:#475569;margin-bottom:12px;line-height:1.6}
+pre{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:14px;font-size:12px;line-height:1.7;overflow-x:auto;white-space:pre-wrap;word-break:break-word}
+.kw{color:#9333ea;font-weight:600}
+.fn{color:#2563eb}
+.cn{color:#0891b2}
+.st{color:#16a34a}
+.nm{color:#ea580c}
+.cm{color:#94a3b8;font-style:italic}
+.dc{color:#db2777}
+</style>
+</head>
+<body>
+
+<!-- Directory Panel -->
+<div id="dir-panel">
+  <h3>📁 Project Files</h3>
+  <div class="dir-section">
+    <div class="dir-section-label">Part A — Streaming</div>
+    <div class="dir-file" id="df-routes-stream">routes/stream.py</div>
+    <div class="dir-file" id="df-services-generator">services/token_generator.py</div>
+    <div class="dir-file" id="df-services-sse">services/sse_formatter.py</div>
+  </div>
+  <div class="dir-section">
+    <div class="dir-section-label">Part B — Async Jobs</div>
+    <div class="dir-file" id="df-routes-jobs">routes/jobs.py</div>
+    <div class="dir-file" id="df-tasks-celery">tasks/celery_tasks.py</div>
+    <div class="dir-file" id="df-services-jobstore">services/job_store.py</div>
+  </div>
+  <div class="dir-section">
+    <div class="dir-section-label">Shared</div>
+    <div class="dir-file" id="df-schemas-p5">schemas/p5.py</div>
+    <div class="dir-file" id="df-services-auth">services/auth.py</div>
+  </div>
+</div>
+
+<!-- Flow Area -->
+<div id="flow-wrap">
+  <div class="page-title">
+    <h1>P5 — Streaming + Async Jobs</h1>
+    <p>Part A: <em>Generate → Push Token → Repeat</em> &nbsp;·&nbsp; Part B: <em>Accept → Queue → Worker → Status</em></p>
+  </div>
+  <div class="nav-links">
+    <a href="../P1-plain-llm/flow.html">P1 Plain LLM</a>
+    <a href="../P2-rag/flow.html">P2 RAG</a>
+    <a href="../P3-agent-tool-calling/flow.html">P3 Agent</a>
+    <a href="../P4-memory-based-ai/flow.html">P4 Memory</a>
+    <a href="#" class="cur">P5 Streaming</a>
+  </div>
+
+  <!-- ═══ PART A — STREAMING ═══ -->
+  <div class="section-sep">
+    <div class="sep-line"></div>
+    <div class="sep-label">🌊 Part A — SSE Streaming</div>
+    <div class="sep-line r"></div>
+  </div>
+
+  <div class="flow">
+    <div class="terminal" style="background:#dbeafe;color:#1d4ed8" onclick="show('a-start')">▶ User Request</div>
+    <div class="arrow"></div>
+
+    <!-- Auth -->
+    <div style="position:relative;width:100%;display:flex;justify-content:center">
+      <div class="diamond-wrap">
+        <div class="diamond" onclick="show('a-auth')" id="n-a-auth">
+          <div class="d-label">Token Valid?</div>
+        </div>
+        <span class="yes-label">YES ↓</span>
+        <span class="no-label">NO → 401</span>
+      </div>
+      <div class="err-line"></div>
+      <div class="err-box">🔒 401 Unauthorized</div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- Prompt builder -->
+    <div class="process" style="background:#fdf4ff" onclick="show('a-prompt')" id="n-a-prompt">
+      <span class="icon">📝</span>
+      <div><div class="label">Prompt Builder</div><div class="sub">system + user → messages[]</div></div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- LLM streaming call -->
+    <div class="process" style="background:#eff6ff" onclick="show('a-llmcall')" id="n-a-llmcall">
+      <span class="icon">🤖</span>
+      <div><div class="label">LLM Streaming API Call</div><div class="sub">stream=True → async stream object</div></div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- Token stream loop box -->
+    <div class="stream-box">
+      <div class="stream-box-label">🔁 Token Stream Loop</div>
+
+      <div class="process" style="background:#f0f9ff" onclick="show('a-token')" id="n-a-token">
+        <span class="icon">📡</span>
+        <div><div class="label">Model Generates Token</div><div class="sub">chunk.choices[0].delta.content</div></div>
+      </div>
+      <div class="arrow"></div>
+
+      <div class="process skill-node" style="background:#fdf2f8" onclick="show('a-sse')" id="n-a-sse">
+        <span class="icon">📤</span>
+        <div><div class="label">SSE Formatter</div><div class="sub">data: {token}\n\n — double newline</div></div>
+      </div>
+      <div class="arrow"></div>
+
+      <div class="process" style="background:#f0fdf4" onclick="show('a-render')" id="n-a-render">
+        <span class="icon">🖥️</span>
+        <div><div class="label">Frontend Receives Token</div><div class="sub">EventSource.onmessage → append</div></div>
+      </div>
+
+      <div class="loop-line">↺ next token until [DONE]</div>
+    </div>
+    <div class="arrow"></div>
+
+    <div class="terminal" style="background:#dcfce7;color:#166634" onclick="show('a-end')">✅ Stream Complete</div>
+  </div>
+
+  <!-- ═══ PART B — ASYNC JOBS ═══ -->
+  <div class="section-sep" style="margin-top:28px">
+    <div class="sep-line"></div>
+    <div class="sep-label">⚙️ Part B — Async Jobs (Celery)</div>
+    <div class="sep-line r"></div>
+  </div>
+
+  <div class="flow">
+    <div class="terminal" style="background:#dbeafe;color:#1d4ed8" onclick="show('b-start')">▶ Upload / Request</div>
+    <div class="arrow"></div>
+
+    <!-- Validate -->
+    <div style="position:relative;width:100%;display:flex;justify-content:center">
+      <div class="diamond-wrap">
+        <div class="diamond" onclick="show('b-validate')" id="n-b-validate">
+          <div class="d-label">File Valid?</div>
+        </div>
+        <span class="yes-label">YES ↓</span>
+        <span class="no-label">NO → 400</span>
+      </div>
+      <div class="err-line"></div>
+      <div class="err-box">⚠ 400 Bad Request</div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- Create Job ID -->
+    <div class="process" style="background:#f0fdf4" onclick="show('b-jobid')" id="n-b-jobid">
+      <span class="icon">🪪</span>
+      <div><div class="label">Create Job ID</div><div class="sub">uuid4() + Redis status=pending</div></div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- Push to Queue (YOUR SKILL) -->
+    <div class="process skill-node" style="background:#fdf2f8" onclick="show('b-queue')" id="n-b-queue">
+      <span class="icon">📬</span>
+      <div><div class="label">Push to Celery Queue</div><div class="sub">task.delay() — returns immediately</div></div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- 202 Accepted -->
+    <div class="process" style="background:#fff7ed" onclick="show('b-accepted')" id="n-b-accepted">
+      <span class="icon">⚡</span>
+      <div><div class="label">202 Accepted Response</div><div class="sub">{job_id, status: "pending"}</div></div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- Worker section -->
+    <div class="worker-box">
+      <div class="worker-box-label">🏭 Background Worker (Celery)</div>
+
+      <div class="process" style="background:#fffbeb" onclick="show('b-pull')" id="n-b-pull">
+        <span class="icon">📥</span>
+        <div><div class="label">Pull Job from Queue</div><div class="sub">status: pending → processing</div></div>
+      </div>
+      <div class="arrow"></div>
+
+      <div class="process" style="background:#f0fdf4" onclick="show('b-execute')" id="n-b-execute">
+        <span class="icon">⚙️</span>
+        <div><div class="label">Execute Task</div><div class="sub">parse → chunk → embed → LLM</div></div>
+      </div>
+      <div class="arrow"></div>
+
+      <div style="position:relative;width:100%;display:flex;justify-content:center">
+        <div class="diamond-wrap">
+          <div class="diamond" onclick="show('b-success')" id="n-b-success">
+            <div class="d-label">Success?</div>
+          </div>
+          <span class="yes-label">YES ↓</span>
+          <span class="no-label">NO → retry</span>
+        </div>
+      </div>
+      <div class="arrow"></div>
+
+      <div class="process" style="background:#f0fdfa" onclick="show('b-persist')" id="n-b-persist">
+        <span class="icon">💾</span>
+        <div><div class="label">Persist Result</div><div class="sub">Redis job:{id}:result + status=success</div></div>
+      </div>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- Poll status -->
+    <div class="process" style="background:#eff6ff" onclick="show('b-poll')" id="n-b-poll">
+      <span class="icon">🔍</span>
+      <div><div class="label">Frontend Polls Status</div><div class="sub">GET /jobs/{job_id} → {status, result}</div></div>
+    </div>
+    <div class="arrow"></div>
+
+    <div class="terminal" style="background:#dcfce7;color:#166634" onclick="show('b-end')">■ END</div>
+  </div>
+  <div style="height:60px"></div>
+</div>
+
+<!-- Code Panel -->
+<div id="panel">
+  <div id="panel-header">
+    <div>
+      <div id="panel-title">—</div>
+      <div id="panel-flow">—</div>
+    </div>
+    <button id="panel-close" onclick="closePanel()">✕</button>
+  </div>
+  <div id="panel-body">
+    <div id="panel-desc"></div>
+    <pre id="panel-code"></pre>
+  </div>
+</div>
+
+<script>
+const DATA = {
+  'a-start':{icon:'▶',title:'START — Streaming Request',flow:'Client → POST /stream',desc:'User sends a message and expects a token-by-token streaming response (ChatGPT typing effect).',code:
+`# routes/stream.py
+@app.post("/stream")
+async def stream_chat(
+    req: StreamRequest,
+    request: Req,
+    user: dict = Depends(get_current_user),
+) -> StreamingResponse:
+    messages = [
+        {"role": "system", "content": req.system_prompt},
+        {"role": "user",   "content": req.message},
+    ]
+    return StreamingResponse(
+        sse_event_stream(messages, request.app.state.llm),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control":     "no-cache",
+            "X-Accel-Buffering": "no",    # CRITICAL: disables Nginx buffering
+            "Connection":        "keep-alive",
+        },
+    )`},
+
+  'a-auth':{icon:'🔐',title:'Token Valid?',flow:'JWT decode → OK / 401',desc:'Validates Bearer JWT before opening the stream.',code:
+`# services/auth.py
+async def get_current_user(token: str = Depends(oauth2)) -> dict:
+    from jose import jwt, JWTError
+    try:
+        return jwt.decode(token, os.environ["JWT_SECRET"], algorithms=["HS256"])
+    except JWTError:
+        raise HTTPException(401, "Invalid token")`},
+
+  'a-prompt':{icon:'📝',title:'Prompt Builder',flow:'system + user → messages[]',desc:'Builds the messages list for the streaming LLM call.',code:
+`# schemas/p5.py
+from pydantic import BaseModel, Field
+
+class StreamRequest(BaseModel):
+    message:       str = Field(min_length=1, max_length=10_000)
+    system_prompt: str = "You are a helpful assistant."
+
+# Prompt assembly:
+messages = [
+    {"role": "system", "content": req.system_prompt},
+    {"role": "user",   "content": req.message},
+]`},
+
+  'a-llmcall':{icon:'🤖',title:'LLM Streaming API Call',flow:'stream=True → async iterator',desc:'Sets stream=True on the OpenAI call. Returns an async stream object — not a complete response. You iterate it with "async for chunk in stream".',code:
+`# services/token_generator.py
+async def token_generator(
+    messages: list[dict],
+    llm: AsyncOpenAI,
+) -> AsyncIterator[str]:
+    stream = await llm.chat.completions.create(
+        model="gpt-4o",
+        messages=messages,
+        stream=True,   # KEY difference — returns async iterator
+    )
+    async for chunk in stream:
+        token = chunk.choices[0].delta.content
+        if token:
+            yield token   # one token at a time`},
+
+  'a-token':{icon:'📡',title:'Model Generates Token',flow:'chunk.choices[0].delta.content',desc:'Each chunk from the stream contains one or a few tokens. We yield them one at a time as they arrive.',code:
+`# services/token_generator.py
+accumulated = []
+try:
+    async for chunk in stream:
+        token = chunk.choices[0].delta.content
+        if token:
+            accumulated.append(token)
+            yield token   # caller receives one token at a time
+
+except RateLimitError:
+    yield "\\n\\n[Rate limit — please retry in a moment]"
+except APITimeoutError:
+    yield "\\n\\n[Response timed out]"
+finally:
+    full = "".join(accumulated)
+    logger.info("stream complete tokens_approx=%d", len(full.split()))`},
+
+  'a-sse':{icon:'📤',title:'SSE Formatter — YOUR SKILL',flow:'token → "data: {token}\\n\\n"',desc:'Wraps each token in SSE format. The double newline is the SSE event delimiter. Escape newlines inside tokens to avoid breaking the protocol.',code:
+`# services/sse_formatter.py
+async def sse_event_stream(
+    messages: list[dict],
+    llm: AsyncOpenAI,
+) -> AsyncIterator[str]:
+    """
+    SSE format: "data: <content>\\n\\n"
+    Double newline = end of SSE event.
+    Frontend: const source = new EventSource('/stream')
+              source.onmessage = (e) => appendToken(e.data)
+    """
+    async for token in token_generator(messages, llm):
+        safe = token.replace("\\n", "\\\\n")  # protect SSE delimiter
+        yield f"data: {safe}\\n\\n"
+    yield "data: [DONE]\\n\\n"  # signal completion to frontend`},
+
+  'a-render':{icon:'🖥️',title:'Frontend Receives Token',flow:'EventSource.onmessage → append',desc:'Browser uses the native EventSource API to receive tokens. Each onmessage event fires with one token. Appended to the UI incrementally.',code:
+`// Frontend JavaScript
+const source = new EventSource('/stream');
+
+source.onmessage = (e) => {
+    if (e.data === '[DONE]') {
+        source.close();
+        return;
+    }
+    const token = e.data.replace(/\\\\n/g, '\\n');
+    document.getElementById('output').innerText += token;
+};
+
+source.onerror = () => {
+    source.close();
+    // handle reconnect or show error
+};`},
+
+  'a-end':{icon:'✅',title:'Stream Complete',flow:'[DONE] → EventSource.close()',desc:'Server sends "data: [DONE]\\n\\n" as the last event. Frontend closes the EventSource connection.',code:
+`# The [DONE] sentinel closes the stream:
+yield "data: [DONE]\\n\\n"
+
+# Interview answer for Part A:
+# "AsyncOpenAI with stream=True returns a stream object.
+#  Iterate with 'async for chunk in stream' and yield each token.
+#  FastAPI StreamingResponse wraps the async generator and writes
+#  SSE format: 'data: {token}\\n\\n'. Double newline = SSE event delimiter.
+#  Set X-Accel-Buffering: no so Nginx doesn't buffer the response.
+#  Frontend reads with EventSource API — native browser support."`},
+
+  'b-start':{icon:'▶',title:'START — Async Job Request',flow:'Client → POST /jobs/ingest',desc:'User uploads a file or submits a long-running task. The server should respond immediately and process in the background.',code:
+`# routes/jobs.py
+@app.post("/jobs/ingest", response_model=JobResponse, status_code=202)
+async def submit_ingest_job(
+    file: UploadFile = File(...),
+    request: Req = None,
+    user: dict = Depends(get_current_user),
+) -> JobResponse:
+    if not file.filename.endswith((".txt", ".pdf")):
+        raise HTTPException(400, "Only .txt and .pdf files supported")
+    content = await file.read()
+    text = content.decode("utf-8", errors="ignore")
+    job_id = str(uuid.uuid4())
+    await request.app.state.redis.set(f"job:{job_id}:status", "pending")
+    process_document_task.delay(job_id, text, file.filename)
+    return JobResponse(job_id=job_id, status="pending")`},
+
+  'b-validate':{icon:'✅',title:'File Valid?',flow:'extension + size check → OK / 400',desc:'Validates file type and size before creating a job. Rejects unsupported types with 400 immediately.',code:
+`# routes/jobs.py
+if not file.filename.endswith((".txt", ".pdf")):
+    raise HTTPException(400, "Only .txt and .pdf files supported")
+
+content = await file.read()
+if len(content) > 20 * 1024 * 1024:  # 20 MB limit
+    raise HTTPException(413, "File too large")`},
+
+  'b-jobid':{icon:'🪪',title:'Create Job ID',flow:'uuid4() → Redis status=pending',desc:'Creates a unique job ID and stores the initial status in Redis BEFORE pushing to the queue, so the status endpoint always finds it.',code:
+`# routes/jobs.py
+job_id = str(uuid.uuid4())
+
+# Store initial status — BEFORE pushing to queue
+# so /status/{job_id} never returns 404 for a valid job
+await request.app.state.redis.set(
+    f"job:{job_id}:status",
+    "pending",
+)
+
+# JobStatus enum: pending → processing → success / failed`},
+
+  'b-queue':{icon:'📬',title:'Push to Celery Queue — YOUR SKILL',flow:'task.delay() → returns immediately',desc:'Pushes the job to Celery using .delay(). This is non-blocking — the endpoint returns the 202 response without waiting for the task to complete.',code:
+`# tasks/celery_tasks.py
+celery_app = Celery(
+    "ai_jobs",
+    broker=f"{REDIS_URL}/0",    # task queue channel
+    backend=f"{REDIS_URL}/1",   # result storage
+)
+
+# Push to queue — non-blocking, returns AsyncResult immediately
+process_document_task.delay(job_id, text, file.filename)
+
+# The task runs in a SEPARATE Celery worker process.
+# FastAPI process returns immediately — it doesn't wait.`},
+
+  'b-accepted':{icon:'⚡',title:'202 Accepted Response',flow:'{job_id, status: "pending"} → client',desc:'Returns HTTP 202 Accepted immediately with the job_id. The client will poll /jobs/{job_id} to check progress.',code:
+`# schemas/p5.py
+class JobResponse(BaseModel):
+    job_id: str
+    status: str   # "pending"
+
+# HTTP 202 = "I received your request and I'm working on it"
+# NOT 200 — the work is not done yet.
+# Client response:
+# {
+#   "job_id": "uuid-xyz",
+#   "status": "pending"
+# }`},
+
+  'b-pull':{icon:'📥',title:'Pull Job from Queue',flow:'Celery worker → status=processing',desc:'A Celery worker process (separate from FastAPI) pulls the job from Redis and updates the status to "processing".',code:
+`# tasks/celery_tasks.py
+@celery_app.task(bind=True, max_retries=3, default_retry_delay=30)
+def process_document_task(
+    self, job_id: str, file_content: str, filename: str
+) -> dict:
+    import redis as sync_redis
+    r = sync_redis.from_url(REDIS_URL, decode_responses=True)
+
+    # First thing: mark as processing
+    r.set(f"job:{job_id}:status", "processing")
+
+    # ... task execution continues below`},
+
+  'b-execute':{icon:'⚙️',title:'Execute Task',flow:'parse → chunk → embed → LLM',desc:'The worker runs the heavy AI pipeline synchronously. Uses the sync OpenAI client (not async) inside Celery workers.',code:
+`# tasks/celery_tasks.py
+# Step 1: parse text
+text = file_content   # real: pdfplumber.extract_text()
+
+# Step 2: chunk
+chunks = [text[i:i+1000] for i in range(0, len(text), 800)]
+
+# Step 3: embed (sync OpenAI client inside Celery worker)
+from openai import OpenAI  # NOT AsyncOpenAI — Celery is sync
+client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+response = client.embeddings.create(
+    model="text-embedding-3-small",
+    input=chunks[:10],
+)
+embedding_count = len(response.data)`},
+
+  'b-success':{icon:'❓',title:'Success?',flow:'try/except → success / retry',desc:'If the task raises an exception, Celery retries up to max_retries times with exponential backoff. Permanent failures set status=failed.',code:
+`# tasks/celery_tasks.py
+try:
+    # ... task execution ...
+    r.set(f"job:{job_id}:status", "success")
+    r.set(f"job:{job_id}:result", json.dumps(result))
+    return result
+
+except Exception as exc:
+    r.set(f"job:{job_id}:status", "failed")
+    r.set(f"job:{job_id}:error", str(exc))
+    raise self.retry(exc=exc)   # retry up to max_retries=3`},
+
+  'b-persist':{icon:'💾',title:'Persist Result',flow:'Redis job:{id}:result + status=success',desc:'Stores the final result in Redis. The status endpoint reads from here. Results expire after 1 hour.',code:
+`# tasks/celery_tasks.py
+result = {
+    "filename": filename,
+    "chunks": len(chunks),
+    "embeddings_created": embedding_count,
+}
+r.set(f"job:{job_id}:result", json.dumps(result))
+r.set(f"job:{job_id}:status", "success")
+
+# Celery backend auto-expires results after result_expires=3600
+celery_app.conf.update(result_expires=3600)`},
+
+  'b-poll':{icon:'🔍',title:'Frontend Polls Status',flow:'GET /jobs/{job_id} → {status, result}',desc:'Client polls this endpoint periodically until status is "success" or "failed". Simple and reliable.',code:
+`# routes/jobs.py
+@app.get("/jobs/{job_id}", response_model=JobResult)
+async def get_job_status(
+    job_id: str, request: Req,
+    user: dict = Depends(get_current_user),
+) -> JobResult:
+    redis = request.app.state.redis
+    status_raw = await redis.get(f"job:{job_id}:status")
+    if not status_raw:
+        raise HTTPException(404, f"Job {job_id} not found")
+    result = None
+    if status_raw == "success":
+        raw = await redis.get(f"job:{job_id}:result")
+        if raw: result = json.loads(raw)
+    return JobResult(job_id=job_id, status=status_raw, result=result)`},
+
+  'b-end':{icon:'■',title:'END',flow:'Result delivered',desc:'Async job pipeline complete. Golden memory: Accept → Queue → Worker → Status.',code:
+`# Interview cheat sheet for Part B:
+# Q: "How do you handle long-running AI tasks in production?"
+#
+# A: "The FastAPI endpoint validates input, creates a UUID job ID,
+#    stores status=pending in Redis, then calls task.delay() —
+#    pushes the job to Celery queue and returns immediately.
+#    The endpoint responds with 202 Accepted + {jobId}.
+#    A Celery worker in a separate process pulls the job and runs it.
+#    It updates Redis status: pending → processing → success/failed.
+#    Frontend polls /jobs/{jobId} to check status.
+#    This pattern is: Accept → Queue → Worker → Status."`},
+};
+
+const DIR = {
+  'a-start':   {files:['df-routes-stream'],           path:'routes/stream.py',         hint:'Streaming endpoint'},
+  'a-auth':    {files:['df-services-auth'],            path:'services/auth.py',         hint:'JWT auth'},
+  'a-prompt':  {files:['df-schemas-p5'],               path:'schemas/p5.py',            hint:'StreamRequest schema'},
+  'a-llmcall': {files:['df-services-generator'],       path:'services/token_generator.py',hint:'Async stream'},
+  'a-token':   {files:['df-services-generator'],       path:'services/token_generator.py',hint:'Token yield'},
+  'a-sse':     {files:['df-services-sse'],             path:'services/sse_formatter.py',hint:'SSE wrapping'},
+  'a-render':  {files:['df-routes-stream'],            path:'routes/stream.py',         hint:'StreamingResponse'},
+  'b-start':   {files:['df-routes-jobs'],              path:'routes/jobs.py',           hint:'Job submit endpoint'},
+  'b-validate':{files:['df-routes-jobs'],              path:'routes/jobs.py',           hint:'File validation'},
+  'b-jobid':   {files:['df-services-jobstore'],        path:'services/job_store.py',    hint:'Job ID creation'},
+  'b-queue':   {files:['df-tasks-celery'],             path:'tasks/celery_tasks.py',    hint:'Celery push'},
+  'b-accepted':{files:['df-routes-jobs','df-schemas-p5'],path:'routes/jobs.py',         hint:'202 response'},
+  'b-pull':    {files:['df-tasks-celery'],             path:'tasks/celery_tasks.py',    hint:'Worker pull'},
+  'b-execute': {files:['df-tasks-celery'],             path:'tasks/celery_tasks.py',    hint:'Task execution'},
+  'b-success': {files:['df-tasks-celery'],             path:'tasks/celery_tasks.py',    hint:'Error handling'},
+  'b-persist': {files:['df-services-jobstore'],        path:'services/job_store.py',    hint:'Result storage'},
+  'b-poll':    {files:['df-routes-jobs'],              path:'routes/jobs.py',           hint:'Status polling'},
+};
+
+const NODE_EL = {
+  'a-auth':'n-a-auth', 'a-prompt':'n-a-prompt', 'a-llmcall':'n-a-llmcall',
+  'a-token':'n-a-token', 'a-sse':'n-a-sse', 'a-render':'n-a-render',
+  'b-validate':'n-b-validate', 'b-jobid':'n-b-jobid', 'b-queue':'n-b-queue',
+  'b-accepted':'n-b-accepted', 'b-pull':'n-b-pull', 'b-execute':'n-b-execute',
+  'b-success':'n-b-success', 'b-persist':'n-b-persist', 'b-poll':'n-b-poll',
+};
+
+function hl(raw){
+  const P={};let n=0;
+  function ph(tag,content){const k='\x00'+n+'\x01';P[k]='<span class="'+tag+'">'+content+'</span>';n++;return k;}
+  let s=raw;
+  s=s.replace(/(#[^\n]*)/g,(_,m)=>ph('cm',m));
+  s=s.replace(/(\/\/[^\n]*)/g,(_,m)=>ph('cm',m));
+  s=s.replace(/("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)/g,(_,m)=>ph('st',m));
+  s=s.replace(/\b(\d+(?:\.\d+)?)\b/g,(_,m)=>ph('nm',m));
+  s=s.replace(/@(\w+)/g,(_,m)=>ph('dc','@'+m));
+  s=s.replace(/\b(def|class|async|await|import|from|return|if|else|elif|for|while|try|except|raise|with|as|not|and|or|in|True|False|None|pass|yield|lambda|const|let|var|function|new|this|typeof)\b/g,(_,m)=>ph('kw',m));
+  s=s.replace(/\b([A-Z][A-Za-z0-9_]*)\b/g,(_,m)=>ph('cn',m));
+  s=s.replace(/\b([a-z_][a-z_0-9]*)(?=\s*\()/g,(_,m)=>ph('fn',m));
+  for(const[k,v] of Object.entries(P)) s=s.split(k).join(v);
+  return s;
+}
+
+let activeKey=null;
+function show(key){
+  document.querySelectorAll('.node-active').forEach(el=>el.classList.remove('node-active'));
+  document.querySelectorAll('.dir-file.active').forEach(el=>el.classList.remove('active'));
+  activeKey=key;
+  if(NODE_EL[key]) document.getElementById(NODE_EL[key])?.classList.add('node-active');
+  const d=DIR[key];
+  if(d) d.files.forEach(id=>document.getElementById(id)?.classList.add('active'));
+  const info=DATA[key];
+  if(!info) return;
+  document.getElementById('panel-title').textContent=info.icon+' '+info.title;
+  document.getElementById('panel-flow').textContent='Flow: '+info.flow;
+  document.getElementById('panel-desc').textContent=info.desc;
+  document.getElementById('panel-code').innerHTML=hl(info.code);
+  document.getElementById('panel').classList.add('open');
+}
+function closePanel(){
+  document.getElementById('panel').classList.remove('open');
+  document.querySelectorAll('.node-active').forEach(el=>el.classList.remove('node-active'));
+  document.querySelectorAll('.dir-file.active').forEach(el=>el.classList.remove('active'));
+  activeKey=null;
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape') closePanel();});
+</script>
+</body>
+</html>
