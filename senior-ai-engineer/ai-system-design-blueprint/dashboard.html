@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI System Design Blueprint — Dashboard</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+body{background:#0f0f13;font-family:-apple-system,'SF Pro Display','Segoe UI',system-ui,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;overflow:hidden}
+
+/* ── LEFT SIDEBAR ── */
+.sidebar{
+  position:fixed;left:0;top:0;bottom:0;width:300px;
+  background:#13131a;border-right:1px solid rgba(255,255,255,.07);
+  display:flex;flex-direction:column;z-index:100;
+  overflow:hidden;
+}
+.sidebar-header{padding:20px 18px 14px;border-bottom:1px solid rgba(255,255,255,.07)}
+.sidebar-title{font-size:0.62rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#666;margin-bottom:6px}
+.sidebar-heading{font-size:1.1rem;font-weight:900;color:#fff}
+.sidebar-sub{font-size:0.68rem;color:#555;margin-top:3px}
+
+.sidebar-tools{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;gap:6px}
+.tool-btn{flex:1;padding:7px 6px;border-radius:8px;border:1px solid rgba(255,255,255,.08);background:transparent;color:#888;font-size:0.65rem;font-weight:700;cursor:pointer;transition:all .15s;letter-spacing:.3px}
+.tool-btn:hover{background:rgba(255,255,255,.06);color:#ccc}
+.tool-btn.active{background:rgba(96,165,250,.12);border-color:rgba(96,165,250,.3);color:#60a5fa}
+
+.tier-sections{flex:1;overflow-y:auto;padding:8px 10px 20px}
+.tier-sections::-webkit-scrollbar{width:4px}
+.tier-sections::-webkit-scrollbar-track{background:transparent}
+.tier-sections::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+
+.tier-group{margin-bottom:6px}
+.tier-group-label{
+  font-size:0.56rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;
+  padding:8px 8px 4px;color:#555;display:flex;align-items:center;gap:6px;
+}
+.tier-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+
+.pattern-btn{
+  width:100%;text-align:left;padding:9px 10px;border-radius:10px;
+  border:1px solid transparent;background:transparent;cursor:pointer;
+  transition:all .15s;display:flex;align-items:flex-start;gap:10px;margin-bottom:2px;
+}
+.pattern-btn:hover{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.07)}
+.pattern-btn.active{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1)}
+.pb-num{
+  font-size:0.58rem;font-weight:800;min-width:24px;padding:2px 5px;
+  border-radius:5px;text-align:center;flex-shrink:0;margin-top:1px;
+}
+.pb-body{flex:1;min-width:0}
+.pb-title{font-size:0.75rem;font-weight:700;color:#ccc;line-height:1.2}
+.pb-mem{font-size:0.6rem;color:#555;margin-top:2px;font-family:'SF Mono',monospace;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* tier colour sets */
+.t1 .pb-num{background:rgba(96,165,250,.15);color:#60a5fa}
+.t1 .pattern-btn.active .pb-title,.t1 .pattern-btn:hover .pb-title{color:#93c5fd}
+.t2 .pb-num{background:rgba(52,211,153,.15);color:#34d399}
+.t2 .pattern-btn.active .pb-title,.t2 .pattern-btn:hover .pb-title{color:#6ee7b7}
+.t3 .pb-num{background:rgba(251,191,36,.15);color:#fbbf24}
+.t3 .pattern-btn.active .pb-title,.t3 .pattern-btn:hover .pb-title{color:#fcd34d}
+.t4 .pb-num{background:rgba(251,113,133,.15);color:#fb7185}
+.t4 .pattern-btn.active .pb-title,.t4 .pattern-btn:hover .pb-title{color:#fda4af}
+
+/* ── MAIN CONTENT ── */
+.main{margin-left:300px;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── TOP BAR ── */
+.topbar{
+  padding:12px 20px;background:#13131a;border-bottom:1px solid rgba(255,255,255,.07);
+  display:flex;align-items:center;gap:12px;flex-shrink:0;
+}
+.topbar-title{font-size:0.8rem;font-weight:800;color:#ccc;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.topbar-actions{display:flex;gap:8px;flex-shrink:0}
+.ta-btn{
+  padding:6px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.1);
+  background:transparent;color:#888;font-size:0.68rem;font-weight:700;
+  cursor:pointer;transition:all .15s;
+}
+.ta-btn:hover{background:rgba(255,255,255,.06);color:#ccc}
+.ta-btn.primary{background:rgba(96,165,250,.12);border-color:rgba(96,165,250,.3);color:#60a5fa}
+.ta-btn.primary:hover{background:rgba(96,165,250,.2)}
+
+/* ── WELCOME SCREEN ── */
+.welcome{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:0;padding:40px;
+}
+.welcome-icon{font-size:3rem;margin-bottom:16px;opacity:.3}
+.welcome-title{font-size:1.6rem;font-weight:900;color:#fff;text-align:center;letter-spacing:-.03em}
+.welcome-sub{font-size:0.85rem;color:#555;text-align:center;margin-top:8px;max-width:400px;line-height:1.6}
+.welcome-hint{
+  margin-top:28px;padding:14px 22px;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;
+  font-size:0.72rem;color:#666;text-align:center;line-height:1.7;
+}
+.welcome-hint kbd{
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+  border-radius:4px;padding:1px 6px;font-size:0.7rem;color:#ccc;font-family:inherit;
+}
+
+/* ── IFRAME WRAPPER ── */
+.frame-wrap{flex:1;display:none;overflow:hidden;position:relative}
+.frame-wrap.show{display:block}
+#flowFrame{width:100%;height:100%;border:none;display:block}
+
+/* ── MIND MAP WRAPPER ── */
+.mindmap-wrap{flex:1;display:none;overflow:hidden;position:relative}
+.mindmap-wrap.show{display:block}
+#mindmapFrame{width:100%;height:100%;border:none;display:block}
+
+/* ── LOADING INDICATOR ── */
+.loader{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  display:none;flex-direction:column;align-items:center;gap:10px;
+}
+.loader.show{display:flex}
+.spinner{width:28px;height:28px;border:2.5px solid rgba(255,255,255,.1);border-top-color:#60a5fa;border-radius:50%;animation:spin .7s linear infinite}
+.loader-text{font-size:0.72rem;color:#555}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<div class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-title">AI System Design</div>
+    <div class="sidebar-heading">Blueprint</div>
+    <div class="sidebar-sub">15 patterns · click to open</div>
+  </div>
+
+  <div class="sidebar-tools">
+    <button class="tool-btn active" id="btn-flows" onclick="setMode('flows')">Flows</button>
+    <button class="tool-btn" id="btn-mindmap" onclick="setMode('mindmap')">Mind Map</button>
+    <button class="tool-btn" id="btn-new" onclick="openInNewTab()">New Tab ↗</button>
+  </div>
+
+  <div class="tier-sections">
+
+    <!-- TIER 1 -->
+    <div class="tier-group t1">
+      <div class="tier-group-label"><div class="tier-dot" style="background:#60a5fa"></div>Tier 1 — LLM Patterns</div>
+      <button class="pattern-btn" id="pb1" onclick="loadFlow('P1-plain-llm/flow.html','P1 — Plain LLM Application','pb1')">
+        <div class="pb-num">P1</div>
+        <div class="pb-body">
+          <div class="pb-title">Plain LLM Application</div>
+          <div class="pb-mem">Request → Prompt → LLM → Parse → Response</div>
+        </div>
+      </button>
+      <button class="pattern-btn" id="pb2" onclick="loadFlow('P2-rag/flow.html','P2 — RAG Application','pb2')">
+        <div class="pb-num">P2</div>
+        <div class="pb-body">
+          <div class="pb-title">RAG Application</div>
+          <div class="pb-mem">Retrieve → Rank → Augment → Generate</div>
+        </div>
+      </button>
+      <button class="pattern-btn" id="pb3" onclick="loadFlow('P3-agent-tool-calling/flow.html','P3 — Agent + Tool Calling','pb3')">
+        <div class="pb-num">P3</div>
+        <div class="pb-body">
+          <div class="pb-title">Agent + Tool Calling</div>
+          <div class="pb-mem">Think → Tool → Result → Think → Answer</div>
+        </div>
+      </button>
+      <button class="pattern-btn" id="pb4" onclick="loadFlow('P4-memory-based-ai/flow.html','P4 — Memory-Based AI','pb4')">
+        <div class="pb-num">P4</div>
+        <div class="pb-body">
+          <div class="pb-title">Memory-Based AI</div>
+          <div class="pb-mem">Retrieve → Context Build → LLM → Store</div>
+        </div>
+      </button>
+      <button class="pattern-btn" id="pb5" onclick="loadFlow('P5-streaming-async/flow.html','P5 — Streaming + Async Jobs','pb5')">
+        <div class="pb-num">P5</div>
+        <div class="pb-body">
+          <div class="pb-title">Streaming + Async Jobs</div>
+          <div class="pb-mem">Generate → Push Token · Accept → Queue → Worker</div>
+        </div>
+      </button>
+      <button class="pattern-btn" id="pb6" onclick="loadFlow('P6-multi-agent-systems/flow.html','P6 — Multi-Agent Systems','pb6')">
+        <div class="pb-num">P6</div>
+        <div class="pb-body">
+          <div class="pb-title">Multi-Agent Systems</div>
+          <div class="pb-mem">Orchestrate → Dispatch → Synthesise → Critique</div>
+        </div>
+      </button>
+      <button class="pattern-btn" id="pb7" onclick="loadFlow('P7-guardrails-safety/flow.html','P7 — Guardrails & Safety','pb7')">
+        <div class="pb-num">P7</div>
+        <div class="pb-body">
+          <div class="pb-title">Guardrails &amp; Safety</div>
+          <div class="pb-mem">Input Guard → LLM → Output Guard → Audit</div>
+        </div>
+      </button>
+    </div>
+
+    <!-- TIER 2 -->
+    <div class="tier-group t2">
+      <div class="tier-group-label"><div class="tier-dot" style="background:#34d399"></div>Tier 2 — Data &amp; Retrieval</div>
+      <button class="pattern-btn" id="pb8" onclick="loadFlow('P8-vector-database-design/flow.html','P8 — Vector Database Design','pb8')">
+        <div class="pb-num">P8</div>
+        <div class="pb-body">
+          <div class="pb-title">Vector Database Design</div>
+          <div class="pb-mem">Embed → Index → ANN Search → Rerank</div>
+        </div>
+      </button>
+      <button class="pattern-btn" id="pb9" onclick="loadFlow('P9-hybrid-search/flow.html','P9 — Hybrid Search','pb9')">
+        <div class="pb-num">P9</div>
+        <div class="pb-body">
+          <div class="pb-title">Hybrid Search</div>
+          <div class="pb-mem">BM25 + Vector → RRF Merge → Rerank</div>
+        </div>
+      </button>
+      <button class="pattern-btn" id="pb10" onclick="loadFlow('P10-fine-tuning-peft/flow.html','P10 — Fine-Tuning & PEFT','pb10')">
+        <div class="pb-num">P10</div>
+        <div class="pb-body">
+          <div class="pb-title">Fine-Tuning &amp; PEFT</div>
+          <div class="pb-mem">Dataset → LoRA/QLoRA → Train → Eval → Deploy</div>
+        </div>
+      </button>
+    </div>
+
+    <!-- TIER 3 -->
+    <div class="tier-group t3">
+      <div class="tier-group-label"><div class="tier-dot" style="background:#fbbf24"></div>Tier 3 — Production</div>
+      <button class="pattern-btn" id="pb11" onclick="loadFlow('P11-caching-strategy/flow.html','P11 — Caching Strategy','pb11')">
+        <div class="pb-num">P11</div>
+        <div class="pb-body">
+          <div class="pb-title">Caching Strategy</div>
+          <div class="pb-mem">L1 In-Memory → L2 Redis → L3 Semantic</div>
+        </div>
+      </button>
+      <button class="pattern-btn" id="pb12" onclick="loadFlow('P12-observability-evals/flow.html','P12 — Observability & Evals','pb12')">
+        <div class="pb-num">P12</div>
+        <div class="pb-body">
+          <div class="pb-title">Observability &amp; Evals</div>
+          <div class="pb-mem">Trace → Metrics → RAGAS → Alert</div>
+        </div>
+      </button>
+      <button class="pattern-btn" id="pb13" onclick="loadFlow('P13-cost-latency-optimisation/flow.html','P13 — Cost & Latency Optimisation','pb13')">
+        <div class="pb-num">P13</div>
+        <div class="pb-body">
+          <div class="pb-title">Cost &amp; Latency Optimisation</div>
+          <div class="pb-mem">Route → Budget Tokens → Batch → JSON Mode</div>
+        </div>
+      </button>
+    </div>
+
+    <!-- TIER 4 -->
+    <div class="tier-group t4">
+      <div class="tier-group-label"><div class="tier-dot" style="background:#fb7185"></div>Tier 4 — Security</div>
+      <button class="pattern-btn" id="pb14" onclick="loadFlow('P14-prompt-injection-defence/flow.html','P14 — Prompt Injection Defence','pb14')">
+        <div class="pb-num">P14</div>
+        <div class="pb-body">
+          <div class="pb-title">Prompt Injection Defence</div>
+          <div class="pb-mem">Detect → Blocklist → LLM Judge → Isolate</div>
+        </div>
+      </button>
+      <button class="pattern-btn" id="pb15" onclick="loadFlow('P15-pii-data-privacy/flow.html','P15 — PII & Data Privacy','pb15')">
+        <div class="pb-num">P15</div>
+        <div class="pb-body">
+          <div class="pb-title">PII &amp; Data Privacy</div>
+          <div class="pb-mem">Detect → Tokenise → LLM → Restore</div>
+        </div>
+      </button>
+    </div>
+
+  </div><!-- tier-sections -->
+</div><!-- sidebar -->
+
+<!-- ── MAIN CONTENT ── -->
+<div class="main">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="topbar-title" id="topbar-title">Select a pattern from the left sidebar</div>
+    <div class="topbar-actions">
+      <button class="ta-btn" id="prev-btn" onclick="navigate(-1)">← Prev</button>
+      <button class="ta-btn" id="next-btn" onclick="navigate(1)">Next →</button>
+      <button class="ta-btn primary" id="newtab-btn" onclick="openInNewTab()">Open in New Tab ↗</button>
+    </div>
+  </div>
+
+  <!-- Welcome screen -->
+  <div class="welcome" id="welcome">
+    <div class="welcome-icon">🗺️</div>
+    <div class="welcome-title">AI System Design Blueprint</div>
+    <div class="welcome-sub">15 interactive flow diagrams covering everything from Plain LLM to PII Privacy. Click any pattern in the sidebar to open it here.</div>
+    <div class="welcome-hint">
+      <strong style="color:#ccc">Tip:</strong> Use <kbd>←</kbd> <kbd>→</kbd> arrow buttons to step through all 15 patterns in order.<br>
+      Click <strong style="color:#60a5fa">Open in New Tab ↗</strong> to get a full-screen view.<br>
+      Use <strong style="color:#60a5fa">Mind Map</strong> button above to see all 15 patterns at once.
+    </div>
+  </div>
+
+  <!-- Flow iframe -->
+  <div class="frame-wrap" id="frame-wrap">
+    <div class="loader" id="loader">
+      <div class="spinner"></div>
+      <div class="loader-text">Loading diagram...</div>
+    </div>
+    <iframe id="flowFrame" title="Flow Diagram" onload="frameLoaded()"></iframe>
+  </div>
+
+  <!-- Mind map iframe -->
+  <div class="mindmap-wrap" id="mindmap-wrap">
+    <iframe id="mindmapFrame" src="mind-map.html" title="Mind Map"></iframe>
+  </div>
+
+</div>
+
+<script>
+// ── State ──
+let currentPath = null;
+let currentBtn  = null;
+let currentMode = 'flows';
+
+const ORDER = [
+  'P1-plain-llm/flow.html',
+  'P2-rag/flow.html',
+  'P3-agent-tool-calling/flow.html',
+  'P4-memory-based-ai/flow.html',
+  'P5-streaming-async/flow.html',
+  'P6-multi-agent-systems/flow.html',
+  'P7-guardrails-safety/flow.html',
+  'P8-vector-database-design/flow.html',
+  'P9-hybrid-search/flow.html',
+  'P10-fine-tuning-peft/flow.html',
+  'P11-caching-strategy/flow.html',
+  'P12-observability-evals/flow.html',
+  'P13-cost-latency-optimisation/flow.html',
+  'P14-prompt-injection-defence/flow.html',
+  'P15-pii-data-privacy/flow.html',
+];
+const BTN_IDS = ['pb1','pb2','pb3','pb4','pb5','pb6','pb7','pb8','pb9','pb10','pb11','pb12','pb13','pb14','pb15'];
+
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('btn-flows').classList.toggle('active', mode === 'flows');
+  document.getElementById('btn-mindmap').classList.toggle('active', mode === 'mindmap');
+
+  document.getElementById('mindmap-wrap').classList.toggle('show', mode === 'mindmap');
+
+  if (mode === 'mindmap') {
+    document.getElementById('welcome').style.display = 'none';
+    document.getElementById('frame-wrap').classList.remove('show');
+    document.getElementById('topbar-title').textContent = 'Mind Map — All 15 Patterns';
+  } else {
+    document.getElementById('mindmap-wrap').classList.remove('show');
+    if (currentPath) {
+      document.getElementById('frame-wrap').classList.add('show');
+      document.getElementById('welcome').style.display = 'none';
+    } else {
+      document.getElementById('welcome').style.display = 'flex';
+    }
+  }
+}
+
+function loadFlow(path, title, btnId) {
+  // Switch to flows mode
+  if (currentMode !== 'flows') setMode('flows');
+
+  // Update active button
+  if (currentBtn) document.getElementById(currentBtn)?.classList.remove('active');
+  document.getElementById(btnId)?.classList.add('active');
+  currentBtn  = btnId;
+  currentPath = path;
+
+  // Update topbar
+  document.getElementById('topbar-title').textContent = title;
+  document.getElementById('newtab-btn').style.display = 'block';
+
+  // Show frame, hide welcome
+  document.getElementById('welcome').style.display = 'none';
+  document.getElementById('frame-wrap').classList.add('show');
+
+  // Show loader
+  document.getElementById('loader').classList.add('show');
+
+  // Load iframe
+  document.getElementById('flowFrame').src = path;
+}
+
+function frameLoaded() {
+  document.getElementById('loader').classList.remove('show');
+}
+
+function openInNewTab() {
+  if (currentMode === 'mindmap') {
+    window.open('mind-map.html', '_blank');
+  } else if (currentPath) {
+    window.open(currentPath, '_blank');
+  }
+}
+
+function navigate(dir) {
+  const idx = ORDER.indexOf(currentPath);
+  let next;
+  if (idx === -1) {
+    next = dir === 1 ? 0 : ORDER.length - 1;
+  } else {
+    next = (idx + dir + ORDER.length) % ORDER.length;
+  }
+  const titles = [
+    'P1 — Plain LLM Application','P2 — RAG Application','P3 — Agent + Tool Calling',
+    'P4 — Memory-Based AI','P5 — Streaming + Async Jobs','P6 — Multi-Agent Systems',
+    'P7 — Guardrails & Safety','P8 — Vector Database Design','P9 — Hybrid Search',
+    'P10 — Fine-Tuning & PEFT','P11 — Caching Strategy','P12 — Observability & Evals',
+    'P13 — Cost & Latency Optimisation','P14 — Prompt Injection Defence','P15 — PII & Data Privacy'
+  ];
+  loadFlow(ORDER[next], titles[next], BTN_IDS[next]);
+
+  // Scroll button into view in sidebar
+  const btn = document.getElementById(BTN_IDS[next]);
+  if (btn) btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') navigate(1);
+  if (e.key === 'ArrowLeft')  navigate(-1);
+});
+</script>
+</body>
+</html>

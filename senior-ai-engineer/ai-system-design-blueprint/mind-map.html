@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI System Design Blueprint — Mind Map</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+body{background:#0f0f13;font-family:-apple-system,'SF Pro Display','Segoe UI',system-ui,sans-serif;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+
+/* ── HEADER ── */
+.header{text-align:center;padding:48px 24px 0}
+.badge{display:inline-block;padding:5px 18px;border-radius:20px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:0.68rem;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#888;margin-bottom:16px}
+.header h1{font-size:2.6rem;font-weight:900;letter-spacing:-.04em;color:#fff}
+.header h1 span{background:linear-gradient(135deg,#60a5fa,#a78bfa,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header p{margin-top:8px;font-size:.88rem;color:#666;font-family:'SF Mono',monospace}
+.legend{display:flex;gap:20px;justify-content:center;margin:24px 0 0;flex-wrap:wrap}
+.leg-item{display:flex;align-items:center;gap:7px;font-size:0.72rem;color:#888}
+.leg-dot{width:10px;height:10px;border-radius:50%}
+
+/* ── MAP CONTAINER ── */
+.map-container{width:100%;padding:40px 20px 80px;overflow-x:auto}
+.map-inner{min-width:1100px;position:relative}
+
+/* ── SVG CONNECTORS ── */
+svg.connectors{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+
+/* ── CENTRAL NODE ── */
+.center-node{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:160px;height:160px;border-radius:50%;
+  background:linear-gradient(135deg,#1e293b,#0f172a);
+  border:2px solid rgba(255,255,255,.15);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  box-shadow:0 0 60px rgba(96,165,250,.15),0 0 120px rgba(167,139,250,.08);
+  z-index:10;cursor:default;
+}
+.center-node .cn-label{font-size:0.6rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#60a5fa;margin-bottom:4px}
+.center-node .cn-title{font-size:0.95rem;font-weight:900;color:#fff;text-align:center;line-height:1.2}
+.center-node .cn-sub{font-size:0.6rem;color:#666;margin-top:4px;text-align:center}
+
+/* ── TIER RINGS ── */
+.tier-label-ring{
+  position:absolute;left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;gap:8px;
+  font-size:0.6rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;
+  color:rgba(255,255,255,.3);z-index:5;white-space:nowrap;
+}
+
+/* ── PATTERN NODE ── */
+.pnode{
+  position:absolute;
+  background:#1a1a24;border:1.5px solid rgba(255,255,255,.1);
+  border-radius:14px;padding:12px 15px;
+  width:190px;cursor:pointer;z-index:10;
+  transition:border-color .2s,box-shadow .2s,transform .15s;
+}
+.pnode:hover{transform:scale(1.04);box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.pnode .pn-num{font-size:0.58rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;opacity:.8}
+.pnode .pn-title{font-size:0.82rem;font-weight:800;color:#fff;line-height:1.2}
+.pnode .pn-mem{font-size:0.62rem;color:#888;margin-top:4px;font-family:'SF Mono',monospace;line-height:1.35}
+.pnode .pn-tech{display:flex;flex-wrap:wrap;gap:3px;margin-top:6px}
+.pnode .pn-tag{font-size:0.55rem;font-weight:700;padding:2px 6px;border-radius:6px;opacity:.85}
+
+/* tier colours */
+.t1{border-color:rgba(96,165,250,.35)} .t1:hover{border-color:#60a5fa;box-shadow:0 8px 32px rgba(96,165,250,.2)}
+.t2{border-color:rgba(52,211,153,.35)} .t2:hover{border-color:#34d399;box-shadow:0 8px 32px rgba(52,211,153,.2)}
+.t3{border-color:rgba(251,191,36,.35)}  .t3:hover{border-color:#fbbf24;box-shadow:0 8px 32px rgba(251,191,36,.2)}
+.t4{border-color:rgba(251,113,133,.35)} .t4:hover{border-color:#fb7185;box-shadow:0 8px 32px rgba(251,113,133,.2)}
+
+.num-t1{color:#60a5fa} .num-t2{color:#34d399} .num-t3{color:#fbbf24} .num-t4{color:#fb7185}
+.tag-t1{background:rgba(96,165,250,.15);color:#93c5fd}
+.tag-t2{background:rgba(52,211,153,.15);color:#6ee7b7}
+.tag-t3{background:rgba(251,191,36,.15);color:#fcd34d}
+.tag-t4{background:rgba(251,113,133,.15);color:#fda4af}
+
+/* ── TOOLTIP ── */
+.tooltip{
+  display:none;position:fixed;z-index:999;
+  background:#1e1e2e;border:1px solid rgba(255,255,255,.12);
+  border-radius:12px;padding:14px 18px;max-width:280px;
+  box-shadow:0 12px 40px rgba(0,0,0,.6);
+}
+.tooltip.show{display:block}
+.tt-title{font-size:0.82rem;font-weight:800;color:#fff;margin-bottom:6px}
+.tt-mem{font-size:0.72rem;color:#a78bfa;font-family:'SF Mono',monospace;margin-bottom:8px;line-height:1.4}
+.tt-row{font-size:0.7rem;color:#888;line-height:1.6}
+.tt-row strong{color:#ccc}
+
+/* ── BOTTOM INTERVIEW MAP ── */
+.interview-section{max-width:900px;margin:0 auto 60px;padding:0 20px}
+.int-title{font-size:0.65rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#666;text-align:center;margin-bottom:20px}
+.int-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+.int-card{background:#1a1a24;border:1.5px solid rgba(255,255,255,.08);border-radius:12px;padding:14px 16px}
+.int-q{font-size:0.75rem;font-weight:700;color:#e2e8f0;margin-bottom:8px}
+.int-tags{display:flex;flex-wrap:wrap;gap:4px}
+.int-tag{font-size:0.58rem;font-weight:700;padding:2px 7px;border-radius:6px;background:rgba(96,165,250,.12);color:#93c5fd}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="badge">AI System Design Blueprint</div>
+  <h1>AI System Design <span>Mind Map</span></h1>
+  <p>15 patterns · 4 tiers · everything a Senior AI Engineer needs to know</p>
+  <div class="legend">
+    <div class="leg-item"><div class="leg-dot" style="background:#60a5fa"></div> Tier 1 — LLM Patterns</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#34d399"></div> Tier 2 — Data & Retrieval</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#fbbf24"></div> Tier 3 — Production</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#fb7185"></div> Tier 4 — Security</div>
+  </div>
+</div>
+
+<!-- MIND MAP (SVG + absolute positioned cards) -->
+<div class="map-container">
+  <div class="map-inner" id="mapInner" style="height:1100px">
+
+    <!-- SVG connector lines drawn by JS -->
+    <svg class="connectors" id="svg"></svg>
+
+    <!-- Central node -->
+    <div class="center-node" id="center">
+      <div class="cn-label">Blueprint</div>
+      <div class="cn-title">AI System Design</div>
+      <div class="cn-sub">15 patterns</div>
+    </div>
+
+    <!-- T1 nodes -->
+    <div class="pnode t1" id="n1" onclick="openFlow('P1-plain-llm/flow.html')" onmouseenter="showTip(event,'n1')" onmouseleave="hideTip()">
+      <div class="pn-num num-t1">P1 — TIER 1</div>
+      <div class="pn-title">Plain LLM Application</div>
+      <div class="pn-mem">Request → Prompt → LLM → Parse → Response</div>
+      <div class="pn-tech"><span class="pn-tag tag-t1">FastAPI</span><span class="pn-tag tag-t1">AsyncOpenAI</span><span class="pn-tag tag-t1">Pydantic</span></div>
+    </div>
+
+    <div class="pnode t1" id="n2" onclick="openFlow('P2-rag/flow.html')" onmouseenter="showTip(event,'n2')" onmouseleave="hideTip()">
+      <div class="pn-num num-t1">P2 — TIER 1</div>
+      <div class="pn-title">RAG Application</div>
+      <div class="pn-mem">Retrieve → Rank → Augment → Generate</div>
+      <div class="pn-tech"><span class="pn-tag tag-t1">FAISS</span><span class="pn-tag tag-t1">CrossEncoder</span><span class="pn-tag tag-t1">OpenAI</span></div>
+    </div>
+
+    <div class="pnode t1" id="n3" onclick="openFlow('P3-agent-tool-calling/flow.html')" onmouseenter="showTip(event,'n3')" onmouseleave="hideTip()">
+      <div class="pn-num num-t1">P3 — TIER 1</div>
+      <div class="pn-title">Agent + Tool Calling</div>
+      <div class="pn-mem">Think → Tool → Result → Think → Answer</div>
+      <div class="pn-tech"><span class="pn-tag tag-t1">tool_calls</span><span class="pn-tag tag-t1">asyncio</span><span class="pn-tag tag-t1">ReAct</span></div>
+    </div>
+
+    <div class="pnode t1" id="n4" onclick="openFlow('P4-memory-based-ai/flow.html')" onmouseenter="showTip(event,'n4')" onmouseleave="hideTip()">
+      <div class="pn-num num-t1">P4 — TIER 1</div>
+      <div class="pn-title">Memory-Based AI</div>
+      <div class="pn-mem">Retrieve → Context Build → LLM → Store</div>
+      <div class="pn-tech"><span class="pn-tag tag-t1">Redis</span><span class="pn-tag tag-t1">FAISS</span><span class="pn-tag tag-t1">sliding window</span></div>
+    </div>
+
+    <div class="pnode t1" id="n5" onclick="openFlow('P5-streaming-async/flow.html')" onmouseenter="showTip(event,'n5')" onmouseleave="hideTip()">
+      <div class="pn-num num-t1">P5 — TIER 1</div>
+      <div class="pn-title">Streaming + Async Jobs</div>
+      <div class="pn-mem">Generate → Push Token + Accept → Queue → Worker</div>
+      <div class="pn-tech"><span class="pn-tag tag-t1">SSE</span><span class="pn-tag tag-t1">Celery</span><span class="pn-tag tag-t1">Redis</span></div>
+    </div>
+
+    <div class="pnode t1" id="n6" onclick="openFlow('P6-multi-agent-systems/flow.html')" onmouseenter="showTip(event,'n6')" onmouseleave="hideTip()">
+      <div class="pn-num num-t1">P6 — TIER 1</div>
+      <div class="pn-title">Multi-Agent Systems</div>
+      <div class="pn-mem">Orchestrate → Dispatch → Synthesise → Critique</div>
+      <div class="pn-tech"><span class="pn-tag tag-t1">LangGraph</span><span class="pn-tag tag-t1">StateGraph</span><span class="pn-tag tag-t1">asyncio.gather</span></div>
+    </div>
+
+    <div class="pnode t1" id="n7" onclick="openFlow('P7-guardrails-safety/flow.html')" onmouseenter="showTip(event,'n7')" onmouseleave="hideTip()">
+      <div class="pn-num num-t1">P7 — TIER 1</div>
+      <div class="pn-title">Guardrails & Safety</div>
+      <div class="pn-mem">Input Guard → LLM → Output Guard → Audit</div>
+      <div class="pn-tech"><span class="pn-tag tag-t1">G1–G5</span><span class="pn-tag tag-t1">rate limit</span><span class="pn-tag tag-t1">hallucination</span></div>
+    </div>
+
+    <!-- T2 nodes -->
+    <div class="pnode t2" id="n8" onclick="openFlow('P8-vector-database-design/flow.html')" onmouseenter="showTip(event,'n8')" onmouseleave="hideTip()">
+      <div class="pn-num num-t2">P8 — TIER 2</div>
+      <div class="pn-title">Vector Database Design</div>
+      <div class="pn-mem">Embed → Index → ANN Search → Rerank</div>
+      <div class="pn-tech"><span class="pn-tag tag-t2">FAISS</span><span class="pn-tag tag-t2">Pinecone</span><span class="pn-tag tag-t2">pgvector</span></div>
+    </div>
+
+    <div class="pnode t2" id="n9" onclick="openFlow('P9-hybrid-search/flow.html')" onmouseenter="showTip(event,'n9')" onmouseleave="hideTip()">
+      <div class="pn-num num-t2">P9 — TIER 2</div>
+      <div class="pn-title">Hybrid Search</div>
+      <div class="pn-mem">BM25 + Vector → RRF Merge → Rerank</div>
+      <div class="pn-tech"><span class="pn-tag tag-t2">BM25</span><span class="pn-tag tag-t2">RRF</span><span class="pn-tag tag-t2">CrossEncoder</span></div>
+    </div>
+
+    <div class="pnode t2" id="n10" onclick="openFlow('P10-fine-tuning-peft/flow.html')" onmouseenter="showTip(event,'n10')" onmouseleave="hideTip()">
+      <div class="pn-num num-t2">P10 — TIER 2</div>
+      <div class="pn-title">Fine-Tuning & PEFT</div>
+      <div class="pn-mem">Dataset → LoRA/QLoRA → Train → Eval → Deploy</div>
+      <div class="pn-tech"><span class="pn-tag tag-t2">LoRA</span><span class="pn-tag tag-t2">QLoRA</span><span class="pn-tag tag-t2">vLLM</span></div>
+    </div>
+
+    <!-- T3 nodes -->
+    <div class="pnode t3" id="n11" onclick="openFlow('P11-caching-strategy/flow.html')" onmouseenter="showTip(event,'n11')" onmouseleave="hideTip()">
+      <div class="pn-num num-t3">P11 — TIER 3</div>
+      <div class="pn-title">Caching Strategy</div>
+      <div class="pn-mem">L1 In-Memory → L2 Redis → L3 Semantic</div>
+      <div class="pn-tech"><span class="pn-tag tag-t3">LRU</span><span class="pn-tag tag-t3">Redis</span><span class="pn-tag tag-t3">semantic cache</span></div>
+    </div>
+
+    <div class="pnode t3" id="n12" onclick="openFlow('P12-observability-evals/flow.html')" onmouseenter="showTip(event,'n12')" onmouseleave="hideTip()">
+      <div class="pn-num num-t3">P12 — TIER 3</div>
+      <div class="pn-title">Observability & Evals</div>
+      <div class="pn-mem">Trace → Metrics → RAGAS → Alert</div>
+      <div class="pn-tech"><span class="pn-tag tag-t3">OTEL</span><span class="pn-tag tag-t3">Prometheus</span><span class="pn-tag tag-t3">RAGAS</span></div>
+    </div>
+
+    <div class="pnode t3" id="n13" onclick="openFlow('P13-cost-latency-optimisation/flow.html')" onmouseenter="showTip(event,'n13')" onmouseleave="hideTip()">
+      <div class="pn-num num-t3">P13 — TIER 3</div>
+      <div class="pn-title">Cost & Latency Optimisation</div>
+      <div class="pn-mem">Route → Budget Tokens → Batch → JSON Mode</div>
+      <div class="pn-tech"><span class="pn-tag tag-t3">DeepSeek</span><span class="pn-tag tag-t3">model routing</span><span class="pn-tag tag-t3">500×</span></div>
+    </div>
+
+    <!-- T4 nodes -->
+    <div class="pnode t4" id="n14" onclick="openFlow('P14-prompt-injection-defence/flow.html')" onmouseenter="showTip(event,'n14')" onmouseleave="hideTip()">
+      <div class="pn-num num-t4">P14 — TIER 4</div>
+      <div class="pn-title">Prompt Injection Defence</div>
+      <div class="pn-mem">Detect → Blocklist → LLM Judge → Isolate</div>
+      <div class="pn-tech"><span class="pn-tag tag-t4">OWASP #1</span><span class="pn-tag tag-t4">regex</span><span class="pn-tag tag-t4">isolation</span></div>
+    </div>
+
+    <div class="pnode t4" id="n15" onclick="openFlow('P15-pii-data-privacy/flow.html')" onmouseenter="showTip(event,'n15')" onmouseleave="hideTip()">
+      <div class="pn-num num-t4">P15 — TIER 4</div>
+      <div class="pn-title">PII & Data Privacy</div>
+      <div class="pn-mem">Detect → Tokenise → LLM → Restore</div>
+      <div class="pn-tech"><span class="pn-tag tag-t4">GDPR</span><span class="pn-tag tag-t4">DPDP</span><span class="pn-tag tag-t4">PII vault</span></div>
+    </div>
+
+  </div><!-- map-inner -->
+</div><!-- map-container -->
+
+<!-- Interview coverage section -->
+<div class="interview-section">
+  <div class="int-title">Interview Coverage Map — which patterns answer which questions</div>
+  <div class="int-grid">
+    <div class="int-card">
+      <div class="int-q">"Design a chatbot"</div>
+      <div class="int-tags"><span class="int-tag">P1</span><span class="int-tag">P4</span><span class="int-tag">P11</span></div>
+    </div>
+    <div class="int-card">
+      <div class="int-q">"Design a document Q&A system"</div>
+      <div class="int-tags"><span class="int-tag">P2</span><span class="int-tag">P8</span><span class="int-tag">P9</span></div>
+    </div>
+    <div class="int-card">
+      <div class="int-q">"Design an autonomous agent"</div>
+      <div class="int-tags"><span class="int-tag">P3</span><span class="int-tag">P6</span></div>
+    </div>
+    <div class="int-card">
+      <div class="int-q">"How do you make LLM apps safe?"</div>
+      <div class="int-tags"><span class="int-tag">P7</span><span class="int-tag">P14</span><span class="int-tag">P15</span></div>
+    </div>
+    <div class="int-card">
+      <div class="int-q">"How do you reduce LLM costs?"</div>
+      <div class="int-tags"><span class="int-tag">P11</span><span class="int-tag">P13</span></div>
+    </div>
+    <div class="int-card">
+      <div class="int-q">"How do you measure LLM quality?"</div>
+      <div class="int-tags"><span class="int-tag">P12</span></div>
+    </div>
+    <div class="int-card">
+      <div class="int-q">"When would you fine-tune a model?"</div>
+      <div class="int-tags"><span class="int-tag">P10</span></div>
+    </div>
+    <div class="int-card">
+      <div class="int-q">"Design a production RAG system"</div>
+      <div class="int-tags"><span class="int-tag">P2</span><span class="int-tag">P8</span><span class="int-tag">P9</span><span class="int-tag">P11</span><span class="int-tag">P12</span><span class="int-tag">P13</span></div>
+    </div>
+    <div class="int-card">
+      <div class="int-q">"How do you handle PII in AI systems?"</div>
+      <div class="int-tags"><span class="int-tag">P15</span><span class="int-tag">P7</span></div>
+    </div>
+    <div class="int-card">
+      <div class="int-q">"78s → 4s, how did you do it?"</div>
+      <div class="int-tags"><span class="int-tag">P6</span><span class="int-tag">P11</span><span class="int-tag">P13</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Tooltip -->
+<div class="tooltip" id="tooltip">
+  <div class="tt-title" id="tt-title"></div>
+  <div class="tt-mem" id="tt-mem"></div>
+  <div class="tt-row" id="tt-row"></div>
+</div>
+
+<script>
+// ── Node data ──
+const nodes = {
+  n1:  { title:'Plain LLM Application',      mem:'Request → Prompt → LLM → Parse → Response',            why:'Foundation: every other pattern builds on this' },
+  n2:  { title:'RAG Application',             mem:'Retrieve → Rank → Augment → Generate',                 why:'Add external knowledge without retraining' },
+  n3:  { title:'Agent + Tool Calling',        mem:'Think → Tool → Result → Think → Answer',               why:'Give LLM the ability to take actions' },
+  n4:  { title:'Memory-Based AI',             mem:'Retrieve → Context Build → LLM → Store',               why:'Redis short-term + FAISS long-term memory' },
+  n5:  { title:'Streaming + Async Jobs',      mem:'Generate → Push Token  ·  Accept → Queue → Worker',    why:'SSE for real-time, Celery for heavy background tasks' },
+  n6:  { title:'Multi-Agent Systems',         mem:'Orchestrate → Dispatch → Synthesise → Critique',       why:'LangGraph StateGraph + parallel workers' },
+  n7:  { title:'Guardrails & Safety',         mem:'Input Guard → LLM → Output Guard → Audit',             why:'G1 rate limit · G2 validate · G3 PII · G4 JSON · G5 hallucination' },
+  n8:  { title:'Vector Database Design',      mem:'Embed → Index → ANN Search → Rerank',                  why:'FAISS (dev) · pgvector (SQL) · Pinecone (scale)' },
+  n9:  { title:'Hybrid Search',               mem:'BM25 + Vector → RRF Merge → Rerank',                   why:'BM25 catches exact matches, vector catches semantics' },
+  n10: { title:'Fine-Tuning & PEFT',          mem:'Dataset → LoRA/QLoRA → Train → Eval → Deploy',         why:'Use when: style, domain jargon, or latency at scale' },
+  n11: { title:'Caching Strategy',            mem:'L1 LRU → L2 Redis → L3 Semantic Cache',                why:'500× cost reduction — 90% cache hit rate target' },
+  n12: { title:'Observability & Evals',       mem:'Trace → Metrics → RAGAS → Alert',                      why:'RAGAS: faithfulness · relevancy · precision · recall' },
+  n13: { title:'Cost & Latency Optimisation', mem:'Route → Budget Tokens → Batch → JSON Mode',            why:'78s → 15s → 4s — DeepSeek = 500× cheaper than GPT-4o' },
+  n14: { title:'Prompt Injection Defence',    mem:'Detect → Blocklist → LLM Judge → Isolate',             why:'OWASP LLM Top 10 #1 — never interpolate user into system prompt' },
+  n15: { title:'PII & Data Privacy',          mem:'Detect → Tokenise → LLM → Restore',                   why:'PII vault: real data never sent to third-party LLM API' },
+};
+
+// ── Tooltip ──
+function showTip(e, id) {
+  const d = nodes[id];
+  document.getElementById('tt-title').textContent = d.title;
+  document.getElementById('tt-mem').textContent   = d.mem;
+  document.getElementById('tt-row').innerHTML     = '<strong>Key insight:</strong> ' + d.why;
+  const t = document.getElementById('tooltip');
+  t.classList.add('show');
+  moveTip(e);
+}
+function moveTip(e) {
+  const t = document.getElementById('tooltip');
+  let x = e.clientX + 16, y = e.clientY + 16;
+  if (x + 290 > window.innerWidth) x = e.clientX - 300;
+  if (y + 120 > window.innerHeight) y = e.clientY - 130;
+  t.style.left = x + 'px';
+  t.style.top  = y + 'px';
+}
+document.addEventListener('mousemove', e => {
+  if (document.getElementById('tooltip').classList.contains('show')) moveTip(e);
+});
+function hideTip() { document.getElementById('tooltip').classList.remove('show'); }
+
+// ── Open flow ──
+function openFlow(path) { window.open(path, '_blank'); }
+
+// ── Layout engine: radial + cluster ──
+function layout() {
+  const map  = document.getElementById('mapInner');
+  const W    = Math.max(map.offsetWidth, 1100);
+  const H    = 1100;
+  map.style.height = H + 'px';
+
+  const cx = W / 2, cy = H / 2;
+
+  // Position center node
+  const c = document.getElementById('center');
+  c.style.left = (cx - 80) + 'px';
+  c.style.top  = (cy - 80) + 'px';
+
+  // Radial positions: [id, angle_deg, radius, tier]
+  const positions = [
+    // T1 — top and left arc (0°-180°)
+    ['n1',  -100, 360, 't1'],
+    ['n2',  -60,  370, 't1'],
+    ['n3',  -20,  360, 't1'],
+    ['n4',   20,  360, 't1'],
+    ['n5',   65,  370, 't1'],
+    ['n6',  115,  360, 't1'],
+    ['n7',  160,  370, 't1'],
+    // T2 — right arc
+    ['n8',  220,  340, 't2'],
+    ['n9',  250,  360, 't2'],
+    ['n10', 280,  340, 't2'],
+    // T3 — bottom arc
+    ['n11', -160, 360, 't3'],
+    ['n12', -135, 370, 't3'],
+    ['n13', -108, 360, 't3'],
+    // T4 — far left
+    ['n14', 195,  340, 't4'],
+    ['n15', 165,  370, 't4'],
+  ];
+
+  const nodeW = 190, nodeH = 90;
+  const pts = {};
+
+  positions.forEach(([id, angleDeg, r]) => {
+    const rad = angleDeg * Math.PI / 180;
+    const x   = cx + r * Math.cos(rad) - nodeW / 2;
+    const y   = cy + r * Math.sin(rad) - nodeH / 2;
+    const el  = document.getElementById(id);
+    if (!el) return;
+    el.style.left = x + 'px';
+    el.style.top  = y + 'px';
+    // midpoint of node for connector
+    pts[id] = { x: x + nodeW / 2, y: y + el.offsetHeight / 2 || y + 55 };
+  });
+
+  // Draw SVG connectors
+  const svg = document.getElementById('svg');
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('width', W);
+  svg.setAttribute('height', H);
+
+  const tierColour = { t1: '#60a5fa', t2: '#34d399', t3: '#fbbf24', t4: '#fb7185' };
+
+  let paths = '';
+  positions.forEach(([id, , , tier]) => {
+    const p = pts[id];
+    if (!p) return;
+    const color = tierColour[tier];
+    // Curved bezier from center to node
+    const dx = p.x - cx, dy = p.y - cy;
+    const cpx = cx + dx * 0.5, cpy = cy + dy * 0.5;
+    paths += `<path d="M${cx},${cy} Q${cpx},${cpy} ${p.x},${p.y}"
+      stroke="${color}" stroke-width="1.5" fill="none" opacity="0.25"
+      stroke-dasharray="4 4"/>`;
+    // Dot at node end
+    paths += `<circle cx="${p.x}" cy="${p.y}" r="3" fill="${color}" opacity="0.5"/>`;
+  });
+  svg.innerHTML = paths;
+}
+
+window.addEventListener('load', layout);
+window.addEventListener('resize', layout);
+</script>
+</body>
+</html>
