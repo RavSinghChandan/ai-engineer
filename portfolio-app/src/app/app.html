@@ -99,12 +99,13 @@
       </div>
     </div>
 
-    <!-- RIGHT: Avatar character + card -->
+    <!-- RIGHT: Real photo + card -->
     <div class="hero-visual">
       <div class="hero-photo-wrap">
         <img
-          class="hero-photo hero-avatar-char"
-          src="guide-chandan-happy.png"
+          class="hero-photo"
+          src="chandan-photo.jpg"
+          onerror="this.src='https://ui-avatars.com/api/?name=Chandan+Kumar&size=300&background=7c3aed&color=fff&bold=true&font-size=0.35&rounded=true'"
           alt="Chandan Kumar — Senior AI Engineer"/>
         <div class="hero-photo-ring"></div>
       </div>
@@ -146,7 +147,12 @@
 
           <!-- Aarav character CTA — click to ask -->
           <button class="proof-aarav" (click)="askAarav(p.askQuestion)" [title]="p.askQuestion">
-            <img [src]="p.aaravImg" class="proof-aarav-avatar" alt="Aarav"/>
+            <div class="proof-aarav-avatar expr-cycle" [attr.data-mood]="p.aaravImg.includes('wow') ? 'wow' : p.aaravImg.includes('thinking') ? 'think' : p.aaravImg.includes('happy') ? 'happy' : 'default'">
+              <img src="guide-chandan.png"         class="expr-default" alt=""/>
+              <img src="guide-chandan-happy.png"   class="expr-happy"   alt=""/>
+              <img src="guide-chandan-thinking.png" class="expr-think"  alt=""/>
+              <img src="guide-chandan-wow.png"     class="expr-wow"     alt=""/>
+            </div>
             <div class="proof-aarav-bubble">
               <span class="proof-aarav-text">{{ p.aaravSay }}</span>
               <span class="proof-aarav-cta">Tap to ask me! ↗</span>
@@ -204,7 +210,11 @@
                       [ngClass]="'live-btn--' + project.accent"
                       (click)="openDemo(project)">
                 <span class="live-btn-guide">
-                  <img src="guide-chandan.png" alt="" class="live-btn-avatar" />
+                  <div class="live-btn-avatar expr-cycle" data-mood="wow">
+                    <img src="guide-chandan.png"          class="expr-default" alt=""/>
+                    <img src="guide-chandan-happy.png"    class="expr-happy"   alt=""/>
+                    <img src="guide-chandan-wow.png"      class="expr-wow"     alt=""/>
+                  </div>
                   <span class="live-btn-bubble">Come &amp; see! 👀</span>
                 </span>
                 <span class="live-btn-label">Live Demo</span>
@@ -573,7 +583,12 @@
   <div class="cb-fab-ring-wrap">
     <div class="cb-fab-ring"></div>
     <div class="cb-fab-ring cb-fab-ring--outer"></div>
-    <img src="guide-chandan-happy.png" class="cb-fab-avatar" alt="Aarav"/>
+    <div class="cb-fab-avatar expr-cycle" data-mood="happy">
+      <img src="guide-chandan.png"          class="expr-default" alt=""/>
+      <img src="guide-chandan-happy.png"    class="expr-happy"   alt=""/>
+      <img src="guide-chandan-thinking.png" class="expr-think"   alt=""/>
+      <img src="guide-chandan-wow.png"      class="expr-wow"     alt=""/>
+    </div>
     @if (cbUnread()) { <span class="cb-fab-badge">{{ cbUnread() }}</span> }
   </div>
   <!-- Speech bubble -->
@@ -592,7 +607,12 @@
   <div class="cb-resize-handle" (mousedown)="cbResizeStart($event)" title="Drag to resize">⤡</div>
   <!-- Header -->
   <div class="cb-header">
-    <img src="guide-chandan-happy.png" class="cb-header-avatar" alt="Aarav"/>
+    <div class="cb-header-avatar expr-cycle" data-mood="happy">
+      <img src="guide-chandan.png"          class="expr-default" alt=""/>
+      <img src="guide-chandan-happy.png"    class="expr-happy"   alt=""/>
+      <img src="guide-chandan-thinking.png" class="expr-think"   alt=""/>
+      <img src="guide-chandan-wow.png"      class="expr-wow"     alt=""/>
+    </div>
     <div class="cb-header-info">
       <strong>Aarav</strong>
       <span>Chandan's AI assistant · Always online</span>
@@ -605,7 +625,12 @@
     @for (msg of cbMessages(); track $index) {
       <div class="cb-msg" [class.cb-msg--bot]="msg.role==='bot'" [class.cb-msg--user]="msg.role==='user'">
         @if (msg.role === 'bot') {
-          <img src="guide-chandan-happy.png" class="cb-msg-avatar" alt="Aarav"/>
+          <div class="cb-msg-avatar expr-cycle" data-mood="happy">
+            <img src="guide-chandan.png"          class="expr-default" alt=""/>
+            <img src="guide-chandan-happy.png"    class="expr-happy"   alt=""/>
+            <img src="guide-chandan-thinking.png" class="expr-think"   alt=""/>
+            <img src="guide-chandan-wow.png"      class="expr-wow"     alt=""/>
+          </div>
         }
         <div class="cb-msg-col">
           <div class="cb-msg-bubble" [innerHTML]="msg.role==='bot' ? msg.safeHtml : msg.html"></div>
@@ -695,9 +720,13 @@
       @if (demoProject()!.slides[demoSlide()].guide) {
         <div class="demo-guide-row">
           <div class="demo-guide-char">
-            <img [src]="demoProject()!.slides[demoSlide()].guide"
-                 alt="Chandan guide character"
-                 class="demo-guide-img" />
+            <div class="demo-guide-img expr-cycle"
+                 [attr.data-mood]="demoProject()!.slides[demoSlide()].guide!.includes('wow') ? 'wow' : demoProject()!.slides[demoSlide()].guide!.includes('thinking') ? 'think' : demoProject()!.slides[demoSlide()].guide!.includes('happy') ? 'happy' : 'default'">
+              <img src="guide-chandan.png"          class="expr-default" alt=""/>
+              <img src="guide-chandan-happy.png"    class="expr-happy"   alt=""/>
+              <img src="guide-chandan-thinking.png" class="expr-think"   alt=""/>
+              <img src="guide-chandan-wow.png"      class="expr-wow"     alt=""/>
+            </div>
           </div>
           <div class="demo-guide-bubble">
             <div class="demo-guide-speech">{{ demoProject()!.slides[demoSlide()].speech }}</div>

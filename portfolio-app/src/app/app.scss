@@ -123,29 +123,17 @@ h1 {
 }
 /* Photo */
 .hero-photo-wrap {
-  position: relative; width: 200px; height: 240px;
+  position: relative; width: 180px; height: 180px;
 }
 .hero-photo {
-  width: 200px; height: 240px; border-radius: 50%;
+  width: 180px; height: 180px; border-radius: 50%;
   object-fit: cover; object-position: center top;
   border: 3px solid var(--purple);
   box-shadow: 0 0 0 6px rgba(124,58,237,0.15), 0 0 40px rgba(124,58,237,0.3);
   display: block;
 }
-/* Avatar character variant — no circle clip, show full portrait */
-.hero-photo.hero-avatar-char {
-  border-radius: 24px;
-  object-fit: contain;
-  object-position: center;
-  background: #111827;
-  animation: float-hero 3s ease-in-out infinite;
-}
-@keyframes float-hero {
-  0%,100% { transform: translateY(0); }
-  50%      { transform: translateY(-6px); }
-}
 .hero-photo-ring {
-  position: absolute; inset: -8px; border-radius: 28px;
+  position: absolute; inset: -8px; border-radius: 50%;
   border: 2px dashed rgba(124,58,237,0.3);
   animation: spin 20s linear infinite;
 }
@@ -1469,5 +1457,103 @@ footer { border-top: 1px solid var(--border); padding: 2rem 0; }
   35%  { opacity: 0;   transform: scale(0.82) rotate(-5deg); }
   65%  { opacity: 0;   transform: scale(0.82) rotate(5deg); }
   100% { opacity: 1;   transform: scale(1) rotate(0deg); }
+}
+
+/* ── DYNAMIC EXPRESSION CYCLING ─────────────────────────────────────────
+   expr-cycle: stacks all 4 expression images on top of each other.
+   CSS keyframes cycle through them with crossfade — the face expression
+   changes naturally over time, no bobbing/moving. Photo stays in place.
+   data-mood controls which expression leads and what sequence is used.
+   Total cycle: 12s. Each expression shows for ~3s, crossfades in 0.6s.
+──────────────────────────────────────────────────────────────────────── */
+.expr-cycle {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+
+  img {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: contain;
+    opacity: 0;
+  }
+}
+
+/* Each mood uses 4 separate keyframes — one per expression slot in the 16s cycle.
+   Slot A=0s, B=4s, C=8s, D=12s. Each is visible ~3s, crossfades 0.5s each side. */
+
+/* default mood: default(A) → happy(B) → thinking(C) → default(D) */
+.expr-cycle[data-mood="default"] {
+  .expr-default { animation: ec-A 16s ease-in-out infinite; }
+  .expr-happy   { animation: ec-B 16s ease-in-out infinite; }
+  .expr-think   { animation: ec-C 16s ease-in-out infinite; }
+  .expr-wow     { opacity: 0; }
+}
+
+/* happy mood: happy(A) → wow(B) → happy(C) → default(D) */
+.expr-cycle[data-mood="happy"] {
+  .expr-happy   { animation: ec-A 16s ease-in-out infinite; }
+  .expr-wow     { animation: ec-B 16s ease-in-out infinite; }
+  .expr-default { animation: ec-C 16s ease-in-out infinite; }
+  .expr-think   { opacity: 0; }
+}
+
+/* think mood: thinking(A) → default(B) → happy(C) → thinking(D implied by loop) */
+.expr-cycle[data-mood="think"] {
+  .expr-think   { animation: ec-A 16s ease-in-out infinite; }
+  .expr-default { animation: ec-B 16s ease-in-out infinite; }
+  .expr-happy   { animation: ec-C 16s ease-in-out infinite; }
+  .expr-wow     { opacity: 0; }
+}
+
+/* wow mood: wow(A) → happy(B) → wow(C via loop) → default(D) */
+.expr-cycle[data-mood="wow"] {
+  .expr-wow     { animation: ec-A 16s ease-in-out infinite; }
+  .expr-happy   { animation: ec-B 16s ease-in-out infinite; }
+  .expr-default { animation: ec-C 16s ease-in-out infinite; }
+  .expr-think   { opacity: 0; }
+}
+
+/* Slot A: visible 0–4s */
+@keyframes ec-A {
+  0%    { opacity: 0; }
+  3%    { opacity: 1; }
+  22%   { opacity: 1; }
+  25%   { opacity: 0; }
+  100%  { opacity: 0; }
+}
+/* Slot B: visible 4–8s */
+@keyframes ec-B {
+  0%    { opacity: 0; }
+  25%   { opacity: 0; }
+  28%   { opacity: 1; }
+  47%   { opacity: 1; }
+  50%   { opacity: 0; }
+  100%  { opacity: 0; }
+}
+/* Slot C: visible 8–12s */
+@keyframes ec-C {
+  0%    { opacity: 0; }
+  50%   { opacity: 0; }
+  53%   { opacity: 1; }
+  72%   { opacity: 1; }
+  75%   { opacity: 0; }
+  100%  { opacity: 0; }
+}
+
+/* Size overrides — all imgs fully absolute-stacked, no first-child special case */
+.proof-aarav-avatar.expr-cycle  { width: 42px;  height: 56px;  img { position: absolute; } }
+.live-btn-avatar.expr-cycle     { width: 32px;  height: 42px;  img { position: absolute; } }
+.cb-fab-avatar.expr-cycle       {
+  width: 86px; height: 112px; img { position: absolute; }
+  @media (max-width: 1024px) and (min-width: 601px) { width: 74px; height: 96px; }
+  @media (max-width: 600px)  { width: 62px; height: 80px; }
+}
+.cb-header-avatar.expr-cycle    { width: 38px;  height: 50px;  img { position: absolute; } }
+.cb-msg-avatar.expr-cycle       { width: 26px;  height: 34px;  img { position: absolute; } }
+.demo-guide-img.expr-cycle      {
+  width: 72px;  height: 96px;  img { position: absolute; }
+  @media (max-width: 600px) { width: 52px; height: 70px; }
 }
 
