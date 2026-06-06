@@ -1,47 +1,100 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160" width="120" height="160">
-  <!-- Cartoon Chandan — happy/celebrating, arms up -->
-  <!-- Body / blazer -->
-  <rect x="30" y="88" width="60" height="52" rx="8" fill="#2d4a7a"/>
-  <polygon points="52,88 60,103 68,88" fill="#a8c4e0"/>
-  <!-- Left arm raised -->
-  <rect x="15" y="68" width="22" height="12" rx="6" fill="#2d4a7a" transform="rotate(-50 26 74)"/>
-  <!-- Left hand -->
-  <ellipse cx="10" cy="62" rx="7" ry="7" fill="#c8956c"/>
-  <!-- Right arm raised -->
-  <rect x="83" y="68" width="22" height="12" rx="6" fill="#2d4a7a" transform="rotate(50 94 74)"/>
-  <!-- Right hand -->
-  <ellipse cx="110" cy="62" rx="7" ry="7" fill="#c8956c"/>
-  <!-- Stars/sparkles celebrate -->
-  <text x="5" y="50" font-size="14" fill="#f59e0b">★</text>
-  <text x="100" y="48" font-size="12" fill="#f59e0b">✦</text>
-  <text x="95" y="35" font-size="10" fill="#7c3aed">✨</text>
-  <!-- Neck -->
-  <rect x="52" y="75" width="16" height="16" rx="4" fill="#c8956c"/>
-  <!-- Head -->
-  <ellipse cx="60" cy="55" rx="28" ry="30" fill="#c8956c"/>
-  <!-- Hair -->
-  <ellipse cx="60" cy="32" rx="28" ry="16" fill="#1a1a2e"/>
-  <ellipse cx="40" cy="38" rx="10" ry="8" fill="#1a1a2e"/>
-  <ellipse cx="80" cy="38" rx="10" ry="8" fill="#1a1a2e"/>
-  <!-- Ears -->
-  <ellipse cx="32" cy="55" rx="5" ry="7" fill="#c8956c"/>
-  <ellipse cx="88" cy="55" rx="5" ry="7" fill="#c8956c"/>
-  <!-- Glasses -->
-  <rect x="38" y="50" width="18" height="12" rx="4" fill="none" stroke="#8b7355" stroke-width="1.5"/>
-  <rect x="64" y="50" width="18" height="12" rx="4" fill="none" stroke="#8b7355" stroke-width="1.5"/>
-  <line x1="56" y1="56" x2="64" y2="56" stroke="#8b7355" stroke-width="1.5"/>
-  <!-- Happy eyes — curved/squinting with joy -->
-  <path d="M43 56 Q47 51 51 56" stroke="#2c1810" stroke-width="2" fill="none"/>
-  <path d="M69 56 Q73 51 77 56" stroke="#2c1810" stroke-width="2" fill="none"/>
-  <!-- Eyebrows raised -->
-  <path d="M40 46 Q47 42 54 46" stroke="#1a1a2e" stroke-width="2" fill="none" stroke-linecap="round"/>
-  <path d="M66 46 Q73 42 80 46" stroke="#1a1a2e" stroke-width="2" fill="none" stroke-linecap="round"/>
-  <!-- Beard -->
-  <path d="M38 65 Q60 78 82 65 Q82 72 60 78 Q38 72 38 65 Z" fill="#2c2c3e" opacity="0.7"/>
-  <!-- Big happy smile -->
-  <path d="M46 68 Q60 80 74 68" stroke="#8b4513" stroke-width="2" fill="none" stroke-linecap="round"/>
-  <!-- Teeth showing -->
-  <path d="M50 70 Q60 78 70 70 Q70 75 60 76 Q50 75 50 70 Z" fill="white" opacity="0.8"/>
-  <!-- Nose -->
-  <path d="M57 60 Q55 66 60 67 Q65 66 63 60" stroke="#b07050" stroke-width="1" fill="none"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 180" width="120" height="180">
+  <defs>
+    <style>
+      .body-bounce { animation: bounce 0.7s ease-in-out infinite alternate; transform-origin: 60px 130px; }
+      .arm-l       { animation: waveL 1.0s ease-in-out infinite; transform-origin: 32px 102px; }
+      .arm-r       { animation: waveR 1.0s ease-in-out infinite; transform-origin: 88px 102px; }
+      .sp1         { animation: sparkPop 1.4s ease-in-out infinite; }
+      .sp2         { animation: sparkPop 1.4s ease-in-out 0.45s infinite; }
+      .sp3         { animation: sparkPop 1.4s ease-in-out 0.9s infinite; }
+      @keyframes bounce {
+        0%   { transform: translateY(0) rotate(-1deg) scale(1); }
+        100% { transform: translateY(-7px) rotate(1.5deg) scale(1.02); }
+      }
+      @keyframes waveL {
+        0%,100% { transform: rotate(-40deg); }
+        50%     { transform: rotate(-60deg); }
+      }
+      @keyframes waveR {
+        0%,100% { transform: rotate(40deg); }
+        50%     { transform: rotate(60deg); }
+      }
+      @keyframes sparkPop {
+        0%,100% { opacity:0.9; transform: scale(1) translateY(0); }
+        50%     { opacity:0.2; transform: scale(0.5) translateY(-4px); }
+      }
+    </style>
+    <radialGradient id="skinG" cx="50%" cy="40%" r="55%">
+      <stop offset="0%" stop-color="#e8aa7a"/><stop offset="100%" stop-color="#c47840"/>
+    </radialGradient>
+    <linearGradient id="hairG" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2a2a3a"/><stop offset="100%" stop-color="#111118"/>
+    </linearGradient>
+    <linearGradient id="suitG" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2c4480"/><stop offset="100%" stop-color="#1a2d5a"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Sparkles — outside bounce group so they float independently -->
+  <text x="5"  y="44" font-size="12" class="sp1" fill="#f59e0b">★</text>
+  <text x="99" y="40" font-size="10" class="sp2" fill="#f59e0b">✦</text>
+  <text x="97" y="24" font-size="9"  class="sp3" fill="#7c3aed">✦</text>
+  <text x="10" y="28" font-size="9"  class="sp2" fill="#06b6d4">✦</text>
+
+  <g class="body-bounce">
+    <!-- Suit -->
+    <path d="M28 105 Q28 95 38 92 L52 88 L60 100 L68 88 L82 92 Q92 95 92 105 L92 165 Q92 170 87 170 L33 170 Q28 170 28 165 Z" fill="url(#suitG)"/>
+    <path d="M52 88 L60 102 L68 88" fill="none" stroke="#c8d8f0" stroke-width="2.5" stroke-linejoin="round"/>
+    <line x1="60" y1="102" x2="60" y2="118" stroke="#c8d8f0" stroke-width="1.5" opacity="0.6"/>
+
+    <!-- Left arm raised -->
+    <g class="arm-l">
+      <path d="M32 100 Q20 88 14 76 Q10 68 16 66 Q22 64 26 73 L34 92 Z" fill="url(#suitG)"/>
+      <ellipse cx="14" cy="66" rx="6" ry="5.5" fill="url(#skinG)"/>
+    </g>
+    <!-- Right arm raised -->
+    <g class="arm-r">
+      <path d="M88 100 Q100 88 106 76 Q110 68 104 66 Q98 64 94 73 L86 92 Z" fill="url(#suitG)"/>
+      <ellipse cx="106" cy="66" rx="6" ry="5.5" fill="url(#skinG)"/>
+    </g>
+
+    <!-- Neck -->
+    <rect x="53" y="82" width="14" height="12" rx="4" fill="url(#skinG)"/>
+    <!-- Head -->
+    <ellipse cx="60" cy="58" rx="26" ry="28" fill="url(#skinG)"/>
+    <!-- Hair -->
+    <path d="M34 52 Q34 26 60 26 Q86 26 86 52 Q86 42 80 38 Q72 32 60 31 Q48 32 40 38 Q34 42 34 52 Z" fill="url(#hairG)"/>
+    <path d="M34 52 Q33 44 37 40 Q40 37 40 44 Z" fill="url(#hairG)"/>
+    <path d="M86 52 Q87 44 83 40 Q80 37 80 44 Z" fill="url(#hairG)"/>
+    <!-- Ears -->
+    <path d="M34 55 Q30 55 30 62 Q30 69 34 69 Q36 69 36 62 Q36 55 34 55 Z" fill="url(#skinG)"/>
+    <path d="M86 55 Q90 55 90 62 Q90 69 86 69 Q84 69 84 62 Q84 55 86 55 Z" fill="url(#skinG)"/>
+
+    <!-- Glasses -->
+    <rect x="38" y="54" width="17" height="12" rx="4" fill="white" opacity="0.08"/>
+    <rect x="38" y="54" width="17" height="12" rx="4" fill="none" stroke="#8a6c42" stroke-width="1.8"/>
+    <rect x="65" y="54" width="17" height="12" rx="4" fill="white" opacity="0.08"/>
+    <rect x="65" y="54" width="17" height="12" rx="4" fill="none" stroke="#8a6c42" stroke-width="1.8"/>
+    <line x1="55" y1="60" x2="65" y2="60" stroke="#8a6c42" stroke-width="1.8"/>
+    <line x1="38" y1="60" x2="34" y2="60" stroke="#8a6c42" stroke-width="1.5"/>
+    <line x1="82" y1="60" x2="86" y2="60" stroke="#8a6c42" stroke-width="1.5"/>
+
+    <!-- Happy squinting eyes -->
+    <path d="M42 60 Q46.5 55 51 60" stroke="#1e1208" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M69 60 Q73.5 55 78 60" stroke="#1e1208" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <circle cx="47"  cy="58" r="1" fill="white" opacity="0.8"/>
+    <circle cx="74"  cy="58" r="1" fill="white" opacity="0.8"/>
+
+    <!-- Eyebrows raised -->
+    <path d="M39 50 Q46.5 46 53 50" stroke="#1e1208" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M67 50 Q73.5 46 80 50" stroke="#1e1208" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <!-- Nose -->
+    <path d="M58 64 Q56 70 60 72 Q64 70 62 64" stroke="#b07248" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+    <!-- Beard -->
+    <path d="M37 70 Q38 80 60 83 Q82 80 83 70 Q82 76 60 80 Q38 76 37 70 Z" fill="#1e1e30" opacity="0.75"/>
+    <path d="M51 67 Q56 70 60 69 Q64 70 69 67" stroke="#1e1e30" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    <!-- Big smile with teeth -->
+    <path d="M49 74 Q60 83 71 74" stroke="#7a3a18" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M51 75 Q60 82 69 75 Q69 79 60 80 Q51 79 51 75 Z" fill="white" opacity="0.85"/>
+  </g>
 </svg>

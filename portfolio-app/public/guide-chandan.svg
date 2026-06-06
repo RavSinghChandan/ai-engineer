@@ -1,51 +1,117 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160" width="120" height="160">
-  <!-- Cartoon Chandan Kumar — pointing pose -->
-  <!-- Body / blazer -->
-  <rect x="30" y="85" width="60" height="55" rx="8" fill="#2d4a7a"/>
-  <!-- Shirt collar -->
-  <polygon points="52,85 60,100 68,85" fill="#a8c4e0"/>
-  <!-- Left arm pointing right -->
-  <rect x="10" y="90" width="28" height="12" rx="6" fill="#2d4a7a"/>
-  <!-- Hand pointing -->
-  <ellipse cx="8" cy="96" rx="8" ry="6" fill="#c8956c"/>
-  <!-- Finger point -->
-  <rect x="0" y="94" width="12" height="4" rx="2" fill="#c8956c"/>
-  <!-- Right arm normal -->
-  <rect x="82" y="90" width="22" height="12" rx="6" fill="#2d4a7a"/>
-  <!-- Neck -->
-  <rect x="52" y="72" width="16" height="16" rx="4" fill="#c8956c"/>
-  <!-- Head -->
-  <ellipse cx="60" cy="55" rx="28" ry="30" fill="#c8956c"/>
-  <!-- Hair — dark messy -->
-  <ellipse cx="60" cy="32" rx="28" ry="16" fill="#1a1a2e"/>
-  <ellipse cx="40" cy="38" rx="10" ry="8" fill="#1a1a2e"/>
-  <ellipse cx="80" cy="38" rx="10" ry="8" fill="#1a1a2e"/>
-  <ellipse cx="60" cy="28" rx="20" ry="10" fill="#1a1a2e"/>
-  <!-- Ears -->
-  <ellipse cx="32" cy="55" rx="5" ry="7" fill="#c8956c"/>
-  <ellipse cx="88" cy="55" rx="5" ry="7" fill="#c8956c"/>
-  <!-- Eyes with glasses -->
-  <!-- Glasses frame left -->
-  <rect x="38" y="50" width="18" height="12" rx="4" fill="none" stroke="#8b7355" stroke-width="1.5"/>
-  <!-- Glasses frame right -->
-  <rect x="64" y="50" width="18" height="12" rx="4" fill="none" stroke="#8b7355" stroke-width="1.5"/>
-  <!-- Glasses bridge -->
-  <line x1="56" y1="56" x2="64" y2="56" stroke="#8b7355" stroke-width="1.5"/>
-  <!-- Eye pupils left -->
-  <circle cx="47" cy="56" r="3.5" fill="#2c1810"/>
-  <circle cx="48.5" cy="55" r="1" fill="white"/>
-  <!-- Eye pupils right -->
-  <circle cx="73" cy="56" r="3.5" fill="#2c1810"/>
-  <circle cx="74.5" cy="55" r="1" fill="white"/>
-  <!-- Eyebrows -->
-  <path d="M40 48 Q47 45 54 48" stroke="#1a1a2e" stroke-width="2" fill="none" stroke-linecap="round"/>
-  <path d="M66 48 Q73 45 80 48" stroke="#1a1a2e" stroke-width="2" fill="none" stroke-linecap="round"/>
-  <!-- Beard -->
-  <path d="M38 65 Q60 78 82 65 Q82 72 60 78 Q38 72 38 65 Z" fill="#2c2c3e" opacity="0.7"/>
-  <!-- Mustache -->
-  <path d="M50 65 Q60 70 70 65" stroke="#1a1a2e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-  <!-- Smile -->
-  <path d="M50 68 Q60 76 70 68" stroke="#8b4513" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-  <!-- Nose -->
-  <path d="M57 60 Q55 66 60 67 Q65 66 63 60" stroke="#b07050" stroke-width="1" fill="none"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 180" width="120" height="180">
+  <defs>
+    <style>
+      .body-idle { animation: bodyFloat 3s ease-in-out infinite; transform-origin: 60px 120px; }
+      .blink     { animation: blink 4s ease-in-out infinite; transform-origin: 60px 70px; }
+      .hand-l    { animation: handPoint 2s ease-in-out infinite; transform-origin: 32px 115px; }
+      @keyframes bodyFloat {
+        0%,100% { transform: translateY(0px); }
+        50%     { transform: translateY(-4px); }
+      }
+      @keyframes blink {
+        0%,94%,100% { transform: scaleY(1); }
+        96%         { transform: scaleY(0.08); }
+      }
+      @keyframes handPoint {
+        0%,100% { transform: translateX(0px); }
+        50%     { transform: translateX(3px); }
+      }
+    </style>
+    <!-- Skin gradient -->
+    <radialGradient id="skinG" cx="50%" cy="40%" r="55%">
+      <stop offset="0%"   stop-color="#e8aa7a"/>
+      <stop offset="100%" stop-color="#c47840"/>
+    </radialGradient>
+    <!-- Hair gradient -->
+    <linearGradient id="hairG" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#2a2a3a"/>
+      <stop offset="100%" stop-color="#111118"/>
+    </linearGradient>
+    <!-- Suit gradient -->
+    <linearGradient id="suitG" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#2c4480"/>
+      <stop offset="100%" stop-color="#1a2d5a"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ── BODY GROUP (floats) ── -->
+  <g class="body-idle">
+
+    <!-- Suit body — clean rounded shape -->
+    <path d="M28 105 Q28 95 38 92 L52 88 L60 100 L68 88 L82 92 Q92 95 92 105 L92 165 Q92 170 87 170 L33 170 Q28 170 28 165 Z"
+          fill="url(#suitG)"/>
+
+    <!-- Collar / shirt strip -->
+    <path d="M52 88 L60 102 L68 88" fill="none" stroke="#c8d8f0" stroke-width="2.5" stroke-linejoin="round"/>
+    <line x1="60" y1="102" x2="60" y2="118" stroke="#c8d8f0" stroke-width="1.5" opacity="0.6"/>
+
+    <!-- Left arm — relaxed at side, clean shape -->
+    <path d="M32 100 Q22 104 20 118 Q19 126 24 128 Q28 129 30 122 L34 108 Z"
+          fill="url(#suitG)"/>
+    <!-- Left hand -->
+    <ellipse cx="23" cy="130" rx="6" ry="5.5" fill="url(#skinG)"/>
+
+    <!-- Right arm — pointing outward subtly -->
+    <g class="hand-l">
+      <path d="M88 100 Q98 104 100 118 Q101 126 96 128 Q92 129 90 122 L86 108 Z"
+            fill="url(#suitG)"/>
+      <!-- Right hand -->
+      <ellipse cx="97" cy="130" rx="6" ry="5.5" fill="url(#skinG)"/>
+      <!-- Pointing finger -->
+      <rect x="100" y="127" width="14" height="4.5" rx="2.2" fill="url(#skinG)"/>
+    </g>
+
+    <!-- Neck -->
+    <rect x="53" y="82" width="14" height="12" rx="4" fill="url(#skinG)"/>
+
+    <!-- Head -->
+    <ellipse cx="60" cy="58" rx="26" ry="28" fill="url(#skinG)"/>
+
+    <!-- Hair — clean styled top -->
+    <path d="M34 52 Q34 26 60 26 Q86 26 86 52 Q86 42 80 38 Q72 32 60 31 Q48 32 40 38 Q34 42 34 52 Z"
+          fill="url(#hairG)"/>
+    <!-- Hair side sweep -->
+    <path d="M34 52 Q33 44 37 40 Q40 37 40 44 Z" fill="url(#hairG)"/>
+    <path d="M86 52 Q87 44 83 40 Q80 37 80 44 Z" fill="url(#hairG)"/>
+
+    <!-- Ears -->
+    <path d="M34 55 Q30 55 30 62 Q30 69 34 69 Q36 69 36 62 Q36 55 34 55 Z" fill="url(#skinG)"/>
+    <path d="M86 55 Q90 55 90 62 Q90 69 86 69 Q84 69 84 62 Q84 55 86 55 Z" fill="url(#skinG)"/>
+
+    <!-- ── FACE ── -->
+    <g class="blink">
+      <!-- Glasses frames -->
+      <rect x="38" y="54" width="17" height="12" rx="4" fill="white" opacity="0.08"/>
+      <rect x="38" y="54" width="17" height="12" rx="4" fill="none" stroke="#8a6c42" stroke-width="1.8"/>
+      <rect x="65" y="54" width="17" height="12" rx="4" fill="white" opacity="0.08"/>
+      <rect x="65" y="54" width="17" height="12" rx="4" fill="none" stroke="#8a6c42" stroke-width="1.8"/>
+      <line x1="55" y1="60" x2="65" y2="60" stroke="#8a6c42" stroke-width="1.8"/>
+      <!-- Temple arms -->
+      <line x1="38" y1="60" x2="34" y2="60" stroke="#8a6c42" stroke-width="1.5"/>
+      <line x1="82" y1="60" x2="86" y2="60" stroke="#8a6c42" stroke-width="1.5"/>
+
+      <!-- Eyes -->
+      <circle cx="46.5" cy="60" r="3.8" fill="#1e1208"/>
+      <circle cx="73.5" cy="60" r="3.8" fill="#1e1208"/>
+      <!-- Eye shine -->
+      <circle cx="48"   cy="58.5" r="1.2" fill="white" opacity="0.9"/>
+      <circle cx="75"   cy="58.5" r="1.2" fill="white" opacity="0.9"/>
+    </g>
+
+    <!-- Eyebrows — neutral professional -->
+    <path d="M40 51 Q46.5 48 53 51" stroke="#1e1208" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M67 51 Q73.5 48 80 51" stroke="#1e1208" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+    <!-- Nose — simple elegant -->
+    <path d="M58 64 Q56 70 60 72 Q64 70 62 64" stroke="#b07248" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+
+    <!-- Beard — clean fade -->
+    <path d="M37 70 Q38 80 60 83 Q82 80 83 70 Q82 76 60 80 Q38 76 37 70 Z" fill="#1e1e30" opacity="0.75"/>
+    <!-- Moustache -->
+    <path d="M51 67 Q56 70 60 69 Q64 70 69 67" stroke="#1e1e30" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+
+    <!-- Confident neutral smile -->
+    <path d="M51 74 Q60 79 69 74" stroke="#7a3a18" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+
+  </g>
 </svg>

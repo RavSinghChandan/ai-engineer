@@ -1,49 +1,109 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160" width="120" height="160">
-  <!-- Cartoon Chandan — wow/amazed, mouth open, eyes wide -->
-  <!-- Body / blazer -->
-  <rect x="30" y="88" width="60" height="52" rx="8" fill="#2d4a7a"/>
-  <polygon points="52,88 60,103 68,88" fill="#a8c4e0"/>
-  <!-- Both arms slightly raised in amazement -->
-  <rect x="12" y="88" width="24" height="11" rx="5" fill="#2d4a7a" transform="rotate(-25 24 94)"/>
-  <rect x="84" y="88" width="24" height="11" rx="5" fill="#2d4a7a" transform="rotate(25 96 94)"/>
-  <!-- Hands -->
-  <ellipse cx="10" cy="82" rx="6" ry="6" fill="#c8956c"/>
-  <ellipse cx="110" cy="82" rx="6" ry="6" fill="#c8956c"/>
-  <!-- Impact stars -->
-  <text x="2" y="40" font-size="16" fill="#f59e0b">✦</text>
-  <text x="100" y="38" font-size="14" fill="#06b6d4">★</text>
-  <text x="5" y="25" font-size="10" fill="#7c3aed">⚡</text>
-  <text x="102" y="22" font-size="10" fill="#10b981">⚡</text>
-  <!-- Neck -->
-  <rect x="52" y="75" width="16" height="16" rx="4" fill="#c8956c"/>
-  <!-- Head -->
-  <ellipse cx="60" cy="55" rx="28" ry="30" fill="#c8956c"/>
-  <!-- Hair -->
-  <ellipse cx="60" cy="32" rx="28" ry="16" fill="#1a1a2e"/>
-  <ellipse cx="40" cy="37" rx="11" ry="8" fill="#1a1a2e"/>
-  <ellipse cx="80" cy="37" rx="11" ry="8" fill="#1a1a2e"/>
-  <!-- Ears -->
-  <ellipse cx="32" cy="55" rx="5" ry="7" fill="#c8956c"/>
-  <ellipse cx="88" cy="55" rx="5" ry="7" fill="#c8956c"/>
-  <!-- Glasses -->
-  <rect x="37" y="48" width="19" height="13" rx="4" fill="none" stroke="#8b7355" stroke-width="1.5"/>
-  <rect x="64" y="48" width="19" height="13" rx="4" fill="none" stroke="#8b7355" stroke-width="1.5"/>
-  <line x1="56" y1="54" x2="64" y2="54" stroke="#8b7355" stroke-width="1.5"/>
-  <!-- Wide amazed eyes -->
-  <circle cx="46.5" cy="55" r="5" fill="white"/>
-  <circle cx="73.5" cy="55" r="5" fill="white"/>
-  <circle cx="47" cy="55" r="3.5" fill="#2c1810"/>
-  <circle cx="74" cy="55" r="3.5" fill="#2c1810"/>
-  <circle cx="48" cy="54" r="1.2" fill="white"/>
-  <circle cx="75" cy="54" r="1.2" fill="white"/>
-  <!-- Eyebrows high up -->
-  <path d="M38 44 Q46.5 40 55 44" stroke="#1a1a2e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-  <path d="M65 44 Q73.5 40 82 44" stroke="#1a1a2e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-  <!-- Beard -->
-  <path d="M38 65 Q60 78 82 65 Q82 72 60 78 Q38 72 38 65 Z" fill="#2c2c3e" opacity="0.7"/>
-  <!-- Open mouth wow -->
-  <ellipse cx="60" cy="72" rx="8" ry="6" fill="#8b4513"/>
-  <ellipse cx="60" cy="70" rx="7" ry="3" fill="white"/>
-  <!-- Nose -->
-  <path d="M57 60 Q55 66 60 67 Q65 66 63 60" stroke="#b07050" stroke-width="1" fill="none"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 180" width="120" height="180">
+  <defs>
+    <style>
+      .body-wow  { animation: wowShake 0.5s ease-in-out infinite; transform-origin: 60px 130px; }
+      .arm-lw    { animation: armJolt 0.6s ease-in-out infinite; transform-origin: 32px 105px; }
+      .arm-rw    { animation: armJoltR 0.6s ease-in-out infinite; transform-origin: 88px 105px; }
+      .imp1      { animation: impactSpin 1.8s linear infinite; transform-origin: 12px 36px; }
+      .imp2      { animation: impactSpin 2.2s linear infinite reverse; transform-origin: 108px 34px; }
+      .imp3      { animation: impactPop 1.2s ease-in-out infinite; }
+      .imp4      { animation: impactPop 1.2s ease-in-out 0.4s infinite; }
+      @keyframes wowShake {
+        0%,100% { transform: scale(1) rotate(0deg); }
+        25%     { transform: scale(1.04) rotate(-1.5deg); }
+        75%     { transform: scale(1.04) rotate(1.5deg); }
+      }
+      @keyframes armJolt {
+        0%,100% { transform: rotate(-20deg); }
+        50%     { transform: rotate(-32deg); }
+      }
+      @keyframes armJoltR {
+        0%,100% { transform: rotate(20deg); }
+        50%     { transform: rotate(32deg); }
+      }
+      @keyframes impactSpin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      @keyframes impactPop {
+        0%,100% { opacity:1; transform: scale(1); }
+        50%     { opacity:0.3; transform: scale(0.6); }
+      }
+    </style>
+    <radialGradient id="skinG" cx="50%" cy="40%" r="55%">
+      <stop offset="0%" stop-color="#e8aa7a"/><stop offset="100%" stop-color="#c47840"/>
+    </radialGradient>
+    <linearGradient id="hairG" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2a2a3a"/><stop offset="100%" stop-color="#111118"/>
+    </linearGradient>
+    <linearGradient id="suitG" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2c4480"/><stop offset="100%" stop-color="#1a2d5a"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Impact bursts outside body -->
+  <text x="2"  y="40" font-size="14" class="imp1" fill="#f59e0b">✦</text>
+  <text x="100" y="36" font-size="12" class="imp2" fill="#06b6d4">★</text>
+  <text x="4"   y="22" font-size="10" class="imp3" fill="#7c3aed">⚡</text>
+  <text x="100" y="20" font-size="10" class="imp4" fill="#10b981">⚡</text>
+
+  <g class="body-wow">
+    <!-- Suit -->
+    <path d="M28 105 Q28 95 38 92 L52 88 L60 100 L68 88 L82 92 Q92 95 92 105 L92 165 Q92 170 87 170 L33 170 Q28 170 28 165 Z" fill="url(#suitG)"/>
+    <path d="M52 88 L60 102 L68 88" fill="none" stroke="#c8d8f0" stroke-width="2.5" stroke-linejoin="round"/>
+    <line x1="60" y1="102" x2="60" y2="118" stroke="#c8d8f0" stroke-width="1.5" opacity="0.6"/>
+
+    <!-- Left arm jolted up-out -->
+    <g class="arm-lw">
+      <path d="M32 102 Q18 96 12 84 Q8 76 14 73 Q20 70 25 80 L34 96 Z" fill="url(#suitG)"/>
+      <ellipse cx="12" cy="73" rx="6" ry="5.5" fill="url(#skinG)"/>
+    </g>
+    <!-- Right arm jolted up-out -->
+    <g class="arm-rw">
+      <path d="M88 102 Q102 96 108 84 Q112 76 106 73 Q100 70 95 80 L86 96 Z" fill="url(#suitG)"/>
+      <ellipse cx="108" cy="73" rx="6" ry="5.5" fill="url(#skinG)"/>
+    </g>
+
+    <!-- Neck -->
+    <rect x="53" y="82" width="14" height="12" rx="4" fill="url(#skinG)"/>
+    <!-- Head -->
+    <ellipse cx="60" cy="58" rx="26" ry="28" fill="url(#skinG)"/>
+    <!-- Hair -->
+    <path d="M34 52 Q34 26 60 26 Q86 26 86 52 Q86 42 80 38 Q72 32 60 31 Q48 32 40 38 Q34 42 34 52 Z" fill="url(#hairG)"/>
+    <path d="M34 52 Q33 44 37 40 Q40 37 40 44 Z" fill="url(#hairG)"/>
+    <path d="M86 52 Q87 44 83 40 Q80 37 80 44 Z" fill="url(#hairG)"/>
+    <!-- Ears -->
+    <path d="M34 55 Q30 55 30 62 Q30 69 34 69 Q36 69 36 62 Q36 55 34 55 Z" fill="url(#skinG)"/>
+    <path d="M86 55 Q90 55 90 62 Q90 69 86 69 Q84 69 84 62 Q84 55 86 55 Z" fill="url(#skinG)"/>
+
+    <!-- Glasses -->
+    <rect x="38" y="52" width="17" height="13" rx="4" fill="white" opacity="0.08"/>
+    <rect x="38" y="52" width="17" height="13" rx="4" fill="none" stroke="#8a6c42" stroke-width="1.8"/>
+    <rect x="65" y="52" width="17" height="13" rx="4" fill="white" opacity="0.08"/>
+    <rect x="65" y="52" width="17" height="13" rx="4" fill="none" stroke="#8a6c42" stroke-width="1.8"/>
+    <line x1="55" y1="58" x2="65" y2="58" stroke="#8a6c42" stroke-width="1.8"/>
+    <line x1="38" y1="58" x2="34" y2="58" stroke="#8a6c42" stroke-width="1.5"/>
+    <line x1="82" y1="58" x2="86" y2="58" stroke="#8a6c42" stroke-width="1.5"/>
+
+    <!-- Wide amazed eyes — white sclera showing -->
+    <circle cx="46.5" cy="59" r="5.5" fill="white"/>
+    <circle cx="73.5" cy="59" r="5.5" fill="white"/>
+    <circle cx="46.5" cy="59" r="3.8" fill="#1e1208"/>
+    <circle cx="73.5" cy="59" r="3.8" fill="#1e1208"/>
+    <circle cx="48"   cy="57.5" r="1.4" fill="white" opacity="0.95"/>
+    <circle cx="75"   cy="57.5" r="1.4" fill="white" opacity="0.95"/>
+
+    <!-- Eyebrows — shot up in surprise -->
+    <path d="M38 47 Q46.5 43 55 47" stroke="#1e1208" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    <path d="M65 47 Q73.5 43 82 47" stroke="#1e1208" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+
+    <!-- Nose -->
+    <path d="M58 64 Q56 70 60 72 Q64 70 62 64" stroke="#b07248" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+    <!-- Beard -->
+    <path d="M37 70 Q38 80 60 83 Q82 80 83 70 Q82 76 60 80 Q38 76 37 70 Z" fill="#1e1e30" opacity="0.75"/>
+    <path d="M51 67 Q56 70 60 69 Q64 70 69 67" stroke="#1e1e30" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    <!-- Open wow mouth -->
+    <ellipse cx="60" cy="76" rx="7.5" ry="5.5" fill="#7a3a18"/>
+    <ellipse cx="60" cy="74" rx="6.5" ry="2.8" fill="white" opacity="0.8"/>
+  </g>
 </svg>
