@@ -26,7 +26,7 @@ body {
   width: 240px; flex-shrink: 0; background: #fff;
   border: 1.5px solid #e5e7eb; border-radius: 16px; padding: 16px 14px;
   box-shadow: 0 2px 12px rgba(0,0,0,.06); position: sticky; top: 32px;
-}
+display:none}
 .dir-title {
   font-size: 0.65rem; font-weight: 800; letter-spacing: 1.2px;
   text-transform: uppercase; color: #9ca3af; margin-bottom: 14px;
@@ -278,7 +278,7 @@ pre { white-space: pre-wrap; word-break: break-all; }
 <div class="code-panel" id="panel">
   <div class="panel-header">
     <span class="panel-title" id="panel-title">Code</span>
-    <div style="display:flex;align-items:center;gap:6px"><button onclick="codeZoom(-1)" style="background:#e2e8f0;border:none;border-radius:5px;padding:2px 9px;cursor:pointer;font-size:.78rem;color:#374151">A−</button><button onclick="codeZoom(1)" style="background:#e2e8f0;border:none;border-radius:5px;padding:2px 9px;cursor:pointer;font-size:.78rem;color:#374151">A+</button><button class="panel-close" onclick="close_panel()">✕ close</button></div>
+    <button class="panel-close" onclick="close_panel()">✕ close</button>
   </div>
   <pre id="panel-body"></pre>
 </div>
@@ -411,6 +411,32 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') close_panel(
   data-color="#1d4ed8"
   data-position="bottom-right"
 ></script>
+
+
+<script>
+(function(){
+  var panel = null, dragging = false, startY = 0, startH = 0;
+  document.addEventListener('DOMContentLoaded', function(){
+    panel = document.getElementById('panel');
+    var hdr = panel ? panel.querySelector('.panel-header') : null;
+    if(!hdr) return;
+    hdr.addEventListener('mousedown', function(e){
+      if(e.target.classList.contains('panel-close')) return;
+      dragging=true; startY=e.clientY; startH=panel.offsetHeight;
+      document.body.style.userSelect='none'; document.body.style.cursor='ns-resize';
+    });
+    document.addEventListener('mousemove', function(e){
+      if(!dragging) return;
+      var delta = startY - e.clientY;
+      var newH = Math.max(80, Math.min(window.innerHeight*0.85, startH+delta));
+      panel.style.maxHeight = newH+'px';
+    });
+    document.addEventListener('mouseup', function(){ 
+      dragging=false; document.body.style.userSelect=''; document.body.style.cursor='';
+    });
+  });
+})();
+</script>
 
 </body>
 </html>

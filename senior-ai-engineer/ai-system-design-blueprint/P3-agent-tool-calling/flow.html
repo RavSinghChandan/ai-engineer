@@ -538,11 +538,6 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape') closePanel();});
 </script>
 
 
-<script>
-var _cfs = 0.78;
-function codeZoom(d){ _cfs=Math.max(0.5,Math.min(1.4,_cfs+d*0.08)); document.getElementById("panel").style.fontSize=_cfs+"rem"; }
-</script>
-
 <!-- ── Universal Agent SDK Widget ── -->
 <script
   src="http://localhost:8000/sdk/universal-agent.js"
@@ -551,6 +546,32 @@ function codeZoom(d){ _cfs=Math.max(0.5,Math.min(1.4,_cfs+d*0.08)); document.get
   data-color="#1d4ed8"
   data-position="bottom-right"
 ></script>
+
+
+<script>
+(function(){
+  var panel = null, dragging = false, startY = 0, startH = 0;
+  document.addEventListener('DOMContentLoaded', function(){
+    panel = document.getElementById('panel');
+    var hdr = panel ? panel.querySelector('.panel-header') : null;
+    if(!hdr) return;
+    hdr.addEventListener('mousedown', function(e){
+      if(e.target.classList.contains('panel-close')) return;
+      dragging=true; startY=e.clientY; startH=panel.offsetHeight;
+      document.body.style.userSelect='none'; document.body.style.cursor='ns-resize';
+    });
+    document.addEventListener('mousemove', function(e){
+      if(!dragging) return;
+      var delta = startY - e.clientY;
+      var newH = Math.max(80, Math.min(window.innerHeight*0.85, startH+delta));
+      panel.style.maxHeight = newH+'px';
+    });
+    document.addEventListener('mouseup', function(){ 
+      dragging=false; document.body.style.userSelect=''; document.body.style.cursor='';
+    });
+  });
+})();
+</script>
 
 </body>
 </html>

@@ -12,7 +12,7 @@ body { background: #f0f2f5; font-family: -apple-system,'SF Pro Display','Segoe U
 .header h1 { font-size:2.4rem; font-weight:900; letter-spacing:-.04em; color:#1d1d1f; }
 .header p  { margin-top:8px; font-size:.9rem; color:#6e6e73; font-family:'SF Mono',monospace; }
 .layout { display:flex; gap:28px; max-width:1200px; margin:0 auto; align-items:flex-start; }
-.dir-panel { width:240px; flex-shrink:0; background:#fff; border:1.5px solid #e5e7eb; border-radius:16px; padding:16px 14px; box-shadow:0 2px 12px rgba(0,0,0,.06); position:sticky; top:32px; }
+.dir-panel { width:240px; flex-shrink:0; background:#fff; border:1.5px solid #e5e7eb; border-radius:16px; padding:16px 14px; box-shadow:0 2px 12px rgba(0,0,0,.06); position:sticky; top:32px; display:none}
 .dir-title { font-size:0.65rem; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; color:#9ca3af; margin-bottom:14px; display:flex; align-items:center; gap:6px; }
 .dir-tree { font-family:'SF Mono','Fira Code',monospace; font-size:0.72rem; line-height:1; }
 .dir-item { display:flex; align-items:center; gap:5px; padding:4px 6px; border-radius:6px; color:#6e6e73; cursor:default; transition:background .15s,color .15s; white-space:nowrap; }
@@ -22,7 +22,7 @@ body { background: #f0f2f5; font-family: -apple-system,'SF Pro Display','Segoe U
 .dir-hint { margin-top:14px; padding-top:12px; border-top:1px solid #f3f4f6; font-size:0.65rem; color:#d1d5db; text-align:center; font-style:italic; line-height:1.5; }
 .main { flex:1; min-width:0; }
 .flow-wrap { display:flex; flex-direction:column; align-items:center; gap:0; }
-.node-plain .node-title, .node:not([class*="c-"]) .node-title { color:#1d1d1f; } .node:not([class*="c-"]) .node-sub { color:#6e6e73; } .node { width:auto; min-width:260px; max-width:420px; background:#fff; border:1.5px solid #e5e7eb; border-radius:14px; padding:14px 20px; display:inline-flex; flex-direction:column; align-items:flex-start; box-shadow:0 2px 10px rgba(0,0,0,.06); cursor:pointer; transition:box-shadow .2s,transform .15s; position:relative; }
+.node { width:auto; min-width:260px; max-width:420px; background:#fff; border:1.5px solid #e5e7eb; border-radius:14px; padding:14px 20px; display:inline-flex; flex-direction:column; align-items:flex-start; box-shadow:0 2px 10px rgba(0,0,0,.06); cursor:pointer; transition:box-shadow .2s,transform .15s; position:relative; }
 .node:hover { box-shadow:0 6px 24px rgba(0,0,0,.12); transform:translateY(-1px); }
 .node-label { font-size:0.6rem; font-weight:800; letter-spacing:1px; text-transform:uppercase; margin-bottom:4px; }
 .node-title { font-size:1.0rem; font-weight:800; color:#fff; }
@@ -37,8 +37,8 @@ body { background: #f0f2f5; font-family: -apple-system,'SF Pro Display','Segoe U
 .guard-box-label { position:absolute; top:-11px; left:20px; background:#f0f2f5; padding:0 8px; font-size:0.62rem; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:#e11d48; }
 .output-box { border:2.5px dashed #16a34a; border-radius:18px; padding:16px 20px; margin:12px 0; position:relative; display:flex; flex-direction:column; align-items:center; gap:8px; }
 .output-box-label { position:absolute; top:-11px; left:20px; background:#f0f2f5; padding:0 8px; font-size:0.62rem; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:#16a34a; }
-.c-rose   { background:#e11d48; } .c-blue { background:#2563eb; } .c-green { background:#16a34a; }
-.c-amber  { background:#d97706; } .c-purple { background:#7c3aed; } .c-slate { background:#475569; }
+.c-rose{background:#fff2f2;border-left:4px solid #e11d48}.c-blue{background:#eff6ff;border-left:4px solid #2563eb}.c-green{background:#f0fdf4;border-left:4px solid #16a34a}
+.c-amber{background:#fffbeb;border-left:4px solid #d97706}.c-purple{background:#f5f3ff;border-left:4px solid #7c3aed}.c-slate{background:#f8fafc;border-left:4px solid #475569}
 .lbl-rose   { color:#e11d48; } .lbl-blue { color:#2563eb; } .lbl-green { color:#16a34a; }
 .lbl-amber  { color:#d97706; } .lbl-purple { color:#7c3aed; } .lbl-slate { color:#475569; }
 .code-panel { position:fixed; bottom:0; left:0; right:0; z-index:100; background:#f8fafc; color:#1e293b; font-family:'SF Mono','Fira Code','Consolas',monospace; font-size:0.78rem; line-height:1.6; border-radius:20px 20px 0 0; padding:20px 28px 28px; transform:translateY(100%); transition:transform .35s cubic-bezier(.4,0,.2,1); max-height:55vh; overflow-y:auto; box-shadow:0 -8px 40px rgba(0,0,0,.12); border-top:2px solid #e2e8f0; }
@@ -164,7 +164,7 @@ pre { white-space:pre-wrap; word-break:break-all; }
 <div class="code-panel" id="panel">
   <div class="panel-header">
     <span class="panel-title" id="panel-title">Code</span>
-    <div style="display:flex;align-items:center;gap:6px"><button onclick="codeZoom(-1)" style="background:#e2e8f0;border:none;border-radius:5px;padding:2px 9px;cursor:pointer;font-size:.78rem;color:#374151">A−</button><button onclick="codeZoom(1)" style="background:#e2e8f0;border:none;border-radius:5px;padding:2px 9px;cursor:pointer;font-size:.78rem;color:#374151">A+</button><button class="panel-close" onclick="close_panel()">✕ close</button></div>
+    <button class="panel-close" onclick="close_panel()">✕ close</button>
   </div>
   <pre id="panel-body"></pre>
 </div>
@@ -323,6 +323,32 @@ document.addEventListener(<span class="st">'keydown'</span>, e => { <span class=
   data-color="#1d4ed8"
   data-position="bottom-right"
 ></script>
+
+
+<script>
+(function(){
+  var panel = null, dragging = false, startY = 0, startH = 0;
+  document.addEventListener('DOMContentLoaded', function(){
+    panel = document.getElementById('panel');
+    var hdr = panel ? panel.querySelector('.panel-header') : null;
+    if(!hdr) return;
+    hdr.addEventListener('mousedown', function(e){
+      if(e.target.classList.contains('panel-close')) return;
+      dragging=true; startY=e.clientY; startH=panel.offsetHeight;
+      document.body.style.userSelect='none'; document.body.style.cursor='ns-resize';
+    });
+    document.addEventListener('mousemove', function(e){
+      if(!dragging) return;
+      var delta = startY - e.clientY;
+      var newH = Math.max(80, Math.min(window.innerHeight*0.85, startH+delta));
+      panel.style.maxHeight = newH+'px';
+    });
+    document.addEventListener('mouseup', function(){ 
+      dragging=false; document.body.style.userSelect=''; document.body.style.cursor='';
+    });
+  });
+})();
+</script>
 
 </body>
 </html>
