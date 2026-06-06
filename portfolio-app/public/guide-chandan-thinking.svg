@@ -1,97 +1,92 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 180" width="120" height="180">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 110" width="100" height="110">
   <defs>
     <style>
-      .body-think  { animation: tiltThink 3.5s ease-in-out infinite; transform-origin: 60px 130px; }
-      .arm-chin    { animation: chinTap 2.5s ease-in-out infinite; transform-origin: 80px 105px; }
-      .bubble1     { animation: bubbleFloat 2s ease-in-out infinite; }
-      .bubble2     { animation: bubbleFloat 2s ease-in-out 0.6s infinite; }
-      .bubble3     { animation: bubbleFloat 2s ease-in-out 1.2s infinite; }
-      @keyframes tiltThink {
+      .face-t  { animation: tilt 3.5s ease-in-out infinite; transform-origin: 50px 55px; }
+      .bub1    { animation: bubFloat 2s ease-in-out infinite; }
+      .bub2    { animation: bubFloat 2s ease-in-out 0.55s infinite; }
+      .bub3    { animation: bubFloat 2s ease-in-out 1.1s infinite; }
+      @keyframes tilt {
         0%,100% { transform: rotate(0deg) translateY(0); }
-        30%     { transform: rotate(-2deg) translateY(-3px); }
+        35%     { transform: rotate(-2.5deg) translateY(-2px); }
         70%     { transform: rotate(1deg) translateY(-1px); }
       }
-      @keyframes chinTap {
-        0%,100% { transform: translateY(0); }
-        50%     { transform: translateY(-3px); }
-      }
-      @keyframes bubbleFloat {
-        0%,100% { opacity:0.85; transform: translateY(0) scale(1); }
-        50%     { opacity:0.4;  transform: translateY(-5px) scale(0.9); }
+      @keyframes bubFloat {
+        0%,100% { opacity:0.88; transform:translateY(0) scale(1); }
+        50%     { opacity:0.35; transform:translateY(-6px) scale(0.88); }
       }
     </style>
-    <radialGradient id="skinG" cx="50%" cy="40%" r="55%">
-      <stop offset="0%" stop-color="#e8aa7a"/><stop offset="100%" stop-color="#c47840"/>
+    <radialGradient id="sk" cx="48%" cy="38%" r="60%">
+      <stop offset="0%" stop-color="#f0b97c"/><stop offset="100%" stop-color="#cc7e3a"/>
     </radialGradient>
-    <linearGradient id="hairG" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#2a2a3a"/><stop offset="100%" stop-color="#111118"/>
+    <radialGradient id="sk2" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f0b97c"/><stop offset="100%" stop-color="#cc7e3a"/>
+    </radialGradient>
+    <linearGradient id="hr" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2e2e42"/><stop offset="100%" stop-color="#111"/>
     </linearGradient>
-    <linearGradient id="suitG" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#2c4480"/><stop offset="100%" stop-color="#1a2d5a"/>
+    <linearGradient id="suit" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#304e9a"/><stop offset="100%" stop-color="#1a2d60"/>
     </linearGradient>
   </defs>
 
-  <!-- Floating thought bubbles — outside body group -->
-  <circle cx="92" cy="56" r="3.5" fill="white" opacity="0.85" stroke="#9ca3af" stroke-width="0.8" class="bubble3"/>
-  <circle cx="98" cy="42" r="7"   fill="white" opacity="0.9"  stroke="#9ca3af" stroke-width="1"   class="bubble2"/>
-  <circle cx="106" cy="26" r="11" fill="white" opacity="0.92" stroke="#9ca3af" stroke-width="1.2" class="bubble1"/>
-  <!-- AI icon inside thought bubble -->
-  <text x="101" y="30" font-size="9" fill="#7c3aed" class="bubble1">AI</text>
+  <!-- Thought bubbles -->
+  <circle cx="80" cy="55" r="4"  fill="white" opacity="0.85" stroke="#9ca3af" stroke-width="0.8" class="bub1"/>
+  <circle cx="87" cy="38" r="7"  fill="white" opacity="0.9"  stroke="#9ca3af" stroke-width="1"   class="bub2"/>
+  <circle cx="90" cy="20" r="10" fill="white" opacity="0.92" stroke="#9ca3af" stroke-width="1.2" class="bub3"/>
+  <text x="85.5" y="24" font-size="8" fill="#7c3aed" class="bub3" text-anchor="middle">AI</text>
 
-  <g class="body-think">
-    <!-- Suit -->
-    <path d="M28 105 Q28 95 38 92 L52 88 L60 100 L68 88 L82 92 Q92 95 92 105 L92 165 Q92 170 87 170 L33 170 Q28 170 28 165 Z" fill="url(#suitG)"/>
-    <path d="M52 88 L60 102 L68 88" fill="none" stroke="#c8d8f0" stroke-width="2.5" stroke-linejoin="round"/>
-    <line x1="60" y1="102" x2="60" y2="118" stroke="#c8d8f0" stroke-width="1.5" opacity="0.6"/>
-
-    <!-- Left arm relaxed at side -->
-    <path d="M32 100 Q22 104 20 118 Q19 126 24 128 Q28 129 30 122 L34 108 Z" fill="url(#suitG)"/>
-    <ellipse cx="23" cy="130" rx="6" ry="5.5" fill="url(#skinG)"/>
-
-    <!-- Right arm bent — hand at chin -->
-    <g class="arm-chin">
-      <path d="M88 102 Q96 96 90 82 Q87 76 80 78 Q76 80 78 86 L84 100 Z" fill="url(#suitG)"/>
-      <ellipse cx="79" cy="79" rx="6.5" ry="5.5" fill="url(#skinG)"/>
-    </g>
-
+  <g class="face-t">
+    <!-- Shoulders -->
+    <path d="M10 110 Q10 88 26 83 L42 79 L50 88 L58 79 L74 83 Q90 88 90 110 Z" fill="url(#suit)"/>
+    <path d="M42 79 L50 90 L58 79" fill="none" stroke="#a8c4f0" stroke-width="2.2" stroke-linejoin="round"/>
     <!-- Neck -->
-    <rect x="53" y="82" width="14" height="12" rx="4" fill="url(#skinG)"/>
+    <rect x="43" y="71" width="14" height="13" rx="5" fill="url(#sk)"/>
     <!-- Head -->
-    <ellipse cx="60" cy="58" rx="26" ry="28" fill="url(#skinG)"/>
-    <!-- Hair -->
-    <path d="M34 52 Q34 26 60 26 Q86 26 86 52 Q86 42 80 38 Q72 32 60 31 Q48 32 40 38 Q34 42 34 52 Z" fill="url(#hairG)"/>
-    <path d="M34 52 Q33 44 37 40 Q40 37 40 44 Z" fill="url(#hairG)"/>
-    <path d="M86 52 Q87 44 83 40 Q80 37 80 44 Z" fill="url(#hairG)"/>
+    <ellipse cx="50" cy="44" rx="34" ry="37" fill="url(#sk)"/>
     <!-- Ears -->
-    <path d="M34 55 Q30 55 30 62 Q30 69 34 69 Q36 69 36 62 Q36 55 34 55 Z" fill="url(#skinG)"/>
-    <path d="M86 55 Q90 55 90 62 Q90 69 86 69 Q84 69 84 62 Q84 55 86 55 Z" fill="url(#skinG)"/>
+    <ellipse cx="16" cy="44" rx="6" ry="9" fill="url(#sk2)"/>
+    <ellipse cx="84" cy="44" rx="6" ry="9" fill="url(#sk2)"/>
+    <ellipse cx="16" cy="44" rx="3" ry="5" fill="#c07035" opacity="0.4"/>
+    <ellipse cx="84" cy="44" rx="3" ry="5" fill="#c07035" opacity="0.4"/>
+    <!-- Hair -->
+    <path d="M16 36 Q16 8 50 7 Q84 8 84 36 Q84 24 76 17 Q64 10 50 10 Q36 10 24 17 Q16 24 16 36 Z" fill="url(#hr)"/>
+    <path d="M16 36 Q14 26 18 20 Q20 17 22 22 Q20 28 20 36 Z" fill="url(#hr)"/>
+    <path d="M84 36 Q86 26 82 20 Q80 17 78 22 Q80 28 80 36 Z" fill="url(#hr)"/>
 
     <!-- Glasses -->
-    <rect x="38" y="54" width="17" height="12" rx="4" fill="white" opacity="0.08"/>
-    <rect x="38" y="54" width="17" height="12" rx="4" fill="none" stroke="#8a6c42" stroke-width="1.8"/>
-    <rect x="65" y="54" width="17" height="12" rx="4" fill="white" opacity="0.08"/>
-    <rect x="65" y="54" width="17" height="12" rx="4" fill="none" stroke="#8a6c42" stroke-width="1.8"/>
-    <line x1="55" y1="60" x2="65" y2="60" stroke="#8a6c42" stroke-width="1.8"/>
-    <line x1="38" y1="60" x2="34" y2="60" stroke="#8a6c42" stroke-width="1.5"/>
-    <line x1="82" y1="60" x2="86" y2="60" stroke="#8a6c42" stroke-width="1.5"/>
+    <rect x="22" y="40" width="24" height="17" rx="5.5" fill="white" fill-opacity="0.07"/>
+    <rect x="22" y="40" width="24" height="17" rx="5.5" fill="none" stroke="#a07840" stroke-width="2"/>
+    <rect x="54" y="40" width="24" height="17" rx="5.5" fill="white" fill-opacity="0.07"/>
+    <rect x="54" y="40" width="24" height="17" rx="5.5" fill="none" stroke="#a07840" stroke-width="2"/>
+    <path d="M46 48.5 Q50 46 54 48.5" stroke="#a07840" stroke-width="2" fill="none"/>
+    <line x1="22" y1="48" x2="16" y2="46" stroke="#a07840" stroke-width="2"/>
+    <line x1="78" y1="48" x2="84" y2="46" stroke="#a07840" stroke-width="2"/>
 
-    <!-- Thinking eyes — one narrowed -->
-    <circle cx="46.5" cy="60" r="3.8" fill="#1e1208"/>
-    <circle cx="48"   cy="58.5" r="1.2" fill="white" opacity="0.9"/>
-    <!-- Right eye slightly squinted -->
-    <path d="M69 60 Q73.5 57 78 60 Q78 63 73.5 63 Q69 63 69 60 Z" fill="#1e1208"/>
-    <circle cx="74" cy="59" r="0.9" fill="white" opacity="0.9"/>
+    <!-- Eyes: left normal, right slightly narrowed thinking -->
+    <ellipse cx="34" cy="49" rx="7" ry="6" fill="white"/>
+    <circle  cx="34" cy="49" r="4.5" fill="#3d2010"/>
+    <circle  cx="34" cy="49" r="2.5" fill="#0a0505"/>
+    <circle  cx="36" cy="47" r="1.4" fill="white" opacity="0.95"/>
+    <!-- Right eye narrowed -->
+    <path d="M59 51 Q66 44 73 51 Q73 56 66 56 Q59 56 59 51 Z" fill="white"/>
+    <ellipse cx="66" cy="52" rx="4" ry="3.5" fill="#3d2010"/>
+    <ellipse cx="66" cy="52" rx="2.2" ry="1.8" fill="#0a0505"/>
+    <circle  cx="67.5" cy="50.5" r="1" fill="white" opacity="0.95"/>
 
-    <!-- One eyebrow arched thinking -->
-    <path d="M40 51 Q46.5 48 53 51" stroke="#1e1208" stroke-width="2" fill="none" stroke-linecap="round"/>
-    <path d="M67 49 Q73.5 45 80 49" stroke="#1e1208" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    <!-- One brow arched, one flat — thinking -->
+    <path d="M23 37 Q34 33 45 37" stroke="#1a1020" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+    <path d="M55 35 Q66 30 77 35" stroke="#1a1020" stroke-width="3.2" fill="none" stroke-linecap="round"/>
 
     <!-- Nose -->
-    <path d="M58 64 Q56 70 60 72 Q64 70 62 64" stroke="#b07248" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+    <path d="M47 54 Q44 62 47 65 Q50 67 53 65 Q56 62 53 54" stroke="#b87040" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <ellipse cx="47" cy="65" rx="2.2" ry="1.4" fill="#b87040" opacity="0.5"/>
+    <ellipse cx="53" cy="65" rx="2.2" ry="1.4" fill="#b87040" opacity="0.5"/>
+
     <!-- Beard -->
-    <path d="M37 70 Q38 80 60 83 Q82 80 83 70 Q82 76 60 80 Q38 76 37 70 Z" fill="#1e1e30" opacity="0.75"/>
-    <path d="M51 67 Q56 70 60 69 Q64 70 69 67" stroke="#1e1e30" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-    <!-- Thoughtful slight smile -->
-    <path d="M51 74 Q60 77 69 74" stroke="#7a3a18" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <path d="M18 62 Q18 80 50 83 Q82 80 82 62 Q80 72 66 76 Q58 79 50 79 Q42 79 34 76 Q20 72 18 62 Z" fill="#1e1e2e" opacity="0.82"/>
+    <path d="M38 67 Q44 72 50 70 Q56 72 62 67" stroke="#111" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+
+    <!-- Thoughtful slight asymmetric smile -->
+    <path d="M40 74 Q50 78 62 74" stroke="#7a3010" stroke-width="2" fill="none" stroke-linecap="round"/>
   </g>
 </svg>

@@ -1,109 +1,96 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 180" width="120" height="180">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 110" width="100" height="110">
   <defs>
     <style>
-      .body-wow  { animation: wowShake 0.5s ease-in-out infinite; transform-origin: 60px 130px; }
-      .arm-lw    { animation: armJolt 0.6s ease-in-out infinite; transform-origin: 32px 105px; }
-      .arm-rw    { animation: armJoltR 0.6s ease-in-out infinite; transform-origin: 88px 105px; }
-      .imp1      { animation: impactSpin 1.8s linear infinite; transform-origin: 12px 36px; }
-      .imp2      { animation: impactSpin 2.2s linear infinite reverse; transform-origin: 108px 34px; }
-      .imp3      { animation: impactPop 1.2s ease-in-out infinite; }
-      .imp4      { animation: impactPop 1.2s ease-in-out 0.4s infinite; }
-      @keyframes wowShake {
+      .face-w { animation: wowPulse 0.55s ease-in-out infinite; transform-origin: 50px 55px; }
+      .imp1   { animation: spin  1.8s linear infinite; transform-origin: 8px 36px; }
+      .imp2   { animation: spin  2.3s linear infinite reverse; transform-origin: 92px 32px; }
+      .imp3   { animation: pop   1.1s ease-in-out infinite; }
+      .imp4   { animation: pop   1.1s ease-in-out 0.55s infinite; }
+      @keyframes wowPulse {
         0%,100% { transform: scale(1) rotate(0deg); }
         25%     { transform: scale(1.04) rotate(-1.5deg); }
         75%     { transform: scale(1.04) rotate(1.5deg); }
       }
-      @keyframes armJolt {
-        0%,100% { transform: rotate(-20deg); }
-        50%     { transform: rotate(-32deg); }
+      @keyframes spin {
+        0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); }
       }
-      @keyframes armJoltR {
-        0%,100% { transform: rotate(20deg); }
-        50%     { transform: rotate(32deg); }
-      }
-      @keyframes impactSpin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-      @keyframes impactPop {
-        0%,100% { opacity:1; transform: scale(1); }
-        50%     { opacity:0.3; transform: scale(0.6); }
+      @keyframes pop {
+        0%,100% { opacity:1; transform:scale(1); }
+        50%     { opacity:0.2; transform:scale(0.55); }
       }
     </style>
-    <radialGradient id="skinG" cx="50%" cy="40%" r="55%">
-      <stop offset="0%" stop-color="#e8aa7a"/><stop offset="100%" stop-color="#c47840"/>
+    <radialGradient id="sk" cx="48%" cy="38%" r="60%">
+      <stop offset="0%" stop-color="#f0b97c"/><stop offset="100%" stop-color="#cc7e3a"/>
     </radialGradient>
-    <linearGradient id="hairG" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#2a2a3a"/><stop offset="100%" stop-color="#111118"/>
+    <radialGradient id="sk2" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f0b97c"/><stop offset="100%" stop-color="#cc7e3a"/>
+    </radialGradient>
+    <linearGradient id="hr" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2e2e42"/><stop offset="100%" stop-color="#111"/>
     </linearGradient>
-    <linearGradient id="suitG" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#2c4480"/><stop offset="100%" stop-color="#1a2d5a"/>
+    <linearGradient id="suit" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#304e9a"/><stop offset="100%" stop-color="#1a2d60"/>
     </linearGradient>
   </defs>
 
-  <!-- Impact bursts outside body -->
-  <text x="2"  y="40" font-size="14" class="imp1" fill="#f59e0b">✦</text>
-  <text x="100" y="36" font-size="12" class="imp2" fill="#06b6d4">★</text>
-  <text x="4"   y="22" font-size="10" class="imp3" fill="#7c3aed">⚡</text>
-  <text x="100" y="20" font-size="10" class="imp4" fill="#10b981">⚡</text>
+  <!-- Impact elements -->
+  <text x="2"  y="40" font-size="13" class="imp1" fill="#f59e0b">✦</text>
+  <text x="88" y="36" font-size="11" class="imp2" fill="#06b6d4">★</text>
+  <text x="4"  y="20" font-size="9"  class="imp3" fill="#7c3aed">⚡</text>
+  <text x="87" y="18" font-size="9"  class="imp4" fill="#10b981">⚡</text>
 
-  <g class="body-wow">
-    <!-- Suit -->
-    <path d="M28 105 Q28 95 38 92 L52 88 L60 100 L68 88 L82 92 Q92 95 92 105 L92 165 Q92 170 87 170 L33 170 Q28 170 28 165 Z" fill="url(#suitG)"/>
-    <path d="M52 88 L60 102 L68 88" fill="none" stroke="#c8d8f0" stroke-width="2.5" stroke-linejoin="round"/>
-    <line x1="60" y1="102" x2="60" y2="118" stroke="#c8d8f0" stroke-width="1.5" opacity="0.6"/>
-
-    <!-- Left arm jolted up-out -->
-    <g class="arm-lw">
-      <path d="M32 102 Q18 96 12 84 Q8 76 14 73 Q20 70 25 80 L34 96 Z" fill="url(#suitG)"/>
-      <ellipse cx="12" cy="73" rx="6" ry="5.5" fill="url(#skinG)"/>
-    </g>
-    <!-- Right arm jolted up-out -->
-    <g class="arm-rw">
-      <path d="M88 102 Q102 96 108 84 Q112 76 106 73 Q100 70 95 80 L86 96 Z" fill="url(#suitG)"/>
-      <ellipse cx="108" cy="73" rx="6" ry="5.5" fill="url(#skinG)"/>
-    </g>
-
+  <g class="face-w">
+    <!-- Shoulders -->
+    <path d="M10 110 Q10 88 26 83 L42 79 L50 88 L58 79 L74 83 Q90 88 90 110 Z" fill="url(#suit)"/>
+    <path d="M42 79 L50 90 L58 79" fill="none" stroke="#a8c4f0" stroke-width="2.2" stroke-linejoin="round"/>
     <!-- Neck -->
-    <rect x="53" y="82" width="14" height="12" rx="4" fill="url(#skinG)"/>
+    <rect x="43" y="71" width="14" height="13" rx="5" fill="url(#sk)"/>
     <!-- Head -->
-    <ellipse cx="60" cy="58" rx="26" ry="28" fill="url(#skinG)"/>
-    <!-- Hair -->
-    <path d="M34 52 Q34 26 60 26 Q86 26 86 52 Q86 42 80 38 Q72 32 60 31 Q48 32 40 38 Q34 42 34 52 Z" fill="url(#hairG)"/>
-    <path d="M34 52 Q33 44 37 40 Q40 37 40 44 Z" fill="url(#hairG)"/>
-    <path d="M86 52 Q87 44 83 40 Q80 37 80 44 Z" fill="url(#hairG)"/>
+    <ellipse cx="50" cy="44" rx="34" ry="37" fill="url(#sk)"/>
     <!-- Ears -->
-    <path d="M34 55 Q30 55 30 62 Q30 69 34 69 Q36 69 36 62 Q36 55 34 55 Z" fill="url(#skinG)"/>
-    <path d="M86 55 Q90 55 90 62 Q90 69 86 69 Q84 69 84 62 Q84 55 86 55 Z" fill="url(#skinG)"/>
+    <ellipse cx="16" cy="44" rx="6" ry="9" fill="url(#sk2)"/>
+    <ellipse cx="84" cy="44" rx="6" ry="9" fill="url(#sk2)"/>
+    <ellipse cx="16" cy="44" rx="3" ry="5" fill="#c07035" opacity="0.4"/>
+    <ellipse cx="84" cy="44" rx="3" ry="5" fill="#c07035" opacity="0.4"/>
+    <!-- Hair -->
+    <path d="M16 36 Q16 8 50 7 Q84 8 84 36 Q84 24 76 17 Q64 10 50 10 Q36 10 24 17 Q16 24 16 36 Z" fill="url(#hr)"/>
+    <path d="M16 36 Q14 26 18 20 Q20 17 22 22 Q20 28 20 36 Z" fill="url(#hr)"/>
+    <path d="M84 36 Q86 26 82 20 Q80 17 78 22 Q80 28 80 36 Z" fill="url(#hr)"/>
 
     <!-- Glasses -->
-    <rect x="38" y="52" width="17" height="13" rx="4" fill="white" opacity="0.08"/>
-    <rect x="38" y="52" width="17" height="13" rx="4" fill="none" stroke="#8a6c42" stroke-width="1.8"/>
-    <rect x="65" y="52" width="17" height="13" rx="4" fill="white" opacity="0.08"/>
-    <rect x="65" y="52" width="17" height="13" rx="4" fill="none" stroke="#8a6c42" stroke-width="1.8"/>
-    <line x1="55" y1="58" x2="65" y2="58" stroke="#8a6c42" stroke-width="1.8"/>
-    <line x1="38" y1="58" x2="34" y2="58" stroke="#8a6c42" stroke-width="1.5"/>
-    <line x1="82" y1="58" x2="86" y2="58" stroke="#8a6c42" stroke-width="1.5"/>
+    <rect x="22" y="38" width="24" height="18" rx="5.5" fill="white" fill-opacity="0.07"/>
+    <rect x="22" y="38" width="24" height="18" rx="5.5" fill="none" stroke="#a07840" stroke-width="2"/>
+    <rect x="54" y="38" width="24" height="18" rx="5.5" fill="white" fill-opacity="0.07"/>
+    <rect x="54" y="38" width="24" height="18" rx="5.5" fill="none" stroke="#a07840" stroke-width="2"/>
+    <path d="M46 47 Q50 44 54 47" stroke="#a07840" stroke-width="2" fill="none"/>
+    <line x1="22" y1="47" x2="16" y2="45" stroke="#a07840" stroke-width="2"/>
+    <line x1="78" y1="47" x2="84" y2="45" stroke="#a07840" stroke-width="2"/>
 
-    <!-- Wide amazed eyes — white sclera showing -->
-    <circle cx="46.5" cy="59" r="5.5" fill="white"/>
-    <circle cx="73.5" cy="59" r="5.5" fill="white"/>
-    <circle cx="46.5" cy="59" r="3.8" fill="#1e1208"/>
-    <circle cx="73.5" cy="59" r="3.8" fill="#1e1208"/>
-    <circle cx="48"   cy="57.5" r="1.4" fill="white" opacity="0.95"/>
-    <circle cx="75"   cy="57.5" r="1.4" fill="white" opacity="0.95"/>
+    <!-- Wide amazed eyes — big whites showing -->
+    <ellipse cx="34" cy="48" rx="8.5" ry="7.5" fill="white"/>
+    <circle  cx="34" cy="48" r="5.5" fill="#3d2010"/>
+    <circle  cx="34" cy="48" r="3"   fill="#0a0505"/>
+    <circle  cx="36" cy="45.5" r="1.8" fill="white" opacity="0.95"/>
+    <ellipse cx="66" cy="48" rx="8.5" ry="7.5" fill="white"/>
+    <circle  cx="66" cy="48" r="5.5" fill="#3d2010"/>
+    <circle  cx="66" cy="48" r="3"   fill="#0a0505"/>
+    <circle  cx="68" cy="45.5" r="1.8" fill="white" opacity="0.95"/>
 
-    <!-- Eyebrows — shot up in surprise -->
-    <path d="M38 47 Q46.5 43 55 47" stroke="#1e1208" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-    <path d="M65 47 Q73.5 43 82 47" stroke="#1e1208" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    <!-- Eyebrows shot up high -->
+    <path d="M22 32 Q34 27 46 32" stroke="#1a1020" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M54 32 Q66 27 78 32" stroke="#1a1020" stroke-width="3" fill="none" stroke-linecap="round"/>
 
     <!-- Nose -->
-    <path d="M58 64 Q56 70 60 72 Q64 70 62 64" stroke="#b07248" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+    <path d="M47 54 Q44 62 47 65 Q50 67 53 65 Q56 62 53 54" stroke="#b87040" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <ellipse cx="47" cy="65" rx="2.2" ry="1.4" fill="#b87040" opacity="0.5"/>
+    <ellipse cx="53" cy="65" rx="2.2" ry="1.4" fill="#b87040" opacity="0.5"/>
+
     <!-- Beard -->
-    <path d="M37 70 Q38 80 60 83 Q82 80 83 70 Q82 76 60 80 Q38 76 37 70 Z" fill="#1e1e30" opacity="0.75"/>
-    <path d="M51 67 Q56 70 60 69 Q64 70 69 67" stroke="#1e1e30" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    <path d="M18 62 Q18 80 50 83 Q82 80 82 62 Q80 72 66 76 Q58 79 50 79 Q42 79 34 76 Q20 72 18 62 Z" fill="#1e1e2e" opacity="0.82"/>
+    <path d="M38 67 Q44 72 50 70 Q56 72 62 67" stroke="#111" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+
     <!-- Open wow mouth -->
-    <ellipse cx="60" cy="76" rx="7.5" ry="5.5" fill="#7a3a18"/>
-    <ellipse cx="60" cy="74" rx="6.5" ry="2.8" fill="white" opacity="0.8"/>
+    <ellipse cx="50" cy="76" rx="8" ry="6" fill="#7a3010"/>
+    <ellipse cx="50" cy="73.5" rx="7" ry="3" fill="white" opacity="0.82"/>
   </g>
 </svg>
