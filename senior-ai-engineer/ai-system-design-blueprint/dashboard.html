@@ -260,8 +260,13 @@ body{
   <div class="sidebar-tools">
     <button class="tool-btn active" id="btn-flows"   onclick="setMode('flows')">Flows</button>
     <button class="tool-btn"        id="btn-mindmap" onclick="setMode('mindmap')">Map</button>
-    <button class="tool-btn ai-btn" id="btn-ai"      onclick="toggleChat()">AI</button>
     <button class="tool-btn"                         onclick="openInNewTab()">↗</button>
+  </div>
+  <div style="padding:5px 10px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:5px;flex-shrink:0">
+    <span style="font-size:.55rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#9ca3af;flex:1">Width</span>
+    <button onclick="setSidebarWidth(200)" style="padding:3px 9px;border-radius:5px;border:1px solid #e5e7eb;background:#f9fafb;color:#374151;font-size:.62rem;font-weight:700;cursor:pointer">S</button>
+    <button onclick="setSidebarWidth(270)" style="padding:3px 9px;border-radius:5px;border:1px solid #e5e7eb;background:#fef3c7;border-color:#f59e0b;color:#92400e;font-size:.62rem;font-weight:700;cursor:pointer">M</button>
+    <button onclick="setSidebarWidth(360)" style="padding:3px 9px;border-radius:5px;border:1px solid #e5e7eb;background:#f9fafb;color:#374151;font-size:.62rem;font-weight:700;cursor:pointer">L</button>
   </div>
   <div class="tier-sections">
     <div class="tier-group t1">
@@ -569,7 +574,7 @@ function applyZoom(){
 function toggleChat(){
   chatOpen = !chatOpen;
   document.getElementById('chatPanel').classList.toggle('open', chatOpen);
-  document.getElementById('btn-ai').classList.toggle('active', chatOpen);
+  
   if (chatOpen && chatHistory.length === 0) {
     // welcome message
     addMessage('ai', "Hi! I'm your AI System Design Mentor. I know all 15 patterns in this blueprint — from Plain LLM to PII Privacy.\n\nAsk me anything:\n• \"Explain the RAG pattern\"\n• \"When should I use fine-tuning vs RAG?\"\n• \"What is RRF in hybrid search?\"\n• \"How does the PII vault work?\"");
@@ -889,6 +894,13 @@ function mkEl(tag, parent, attrs={}){
   Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,String(v)));
   parent.appendChild(el);
   return el;
+}
+
+
+function setSidebarWidth(w) {
+  document.getElementById('sidebar').style.width = w + 'px';
+  document.getElementById('main').style.marginLeft = w + 'px';
+  if (currentMode === 'mindmap') buildMindMap();
 }
 
 window.addEventListener('resize', ()=>{ if(currentMode==='mindmap') buildMindMap(); });
