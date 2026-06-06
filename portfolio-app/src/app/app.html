@@ -204,7 +204,7 @@
                       [ngClass]="'live-btn--' + project.accent"
                       (click)="openDemo(project)">
                 <span class="live-btn-guide">
-                  <img src="guide-chandan.svg" alt="" class="live-btn-avatar" />
+                  <img src="guide-chandan.png" alt="" class="live-btn-avatar" />
                   <span class="live-btn-bubble">Come &amp; see! 👀</span>
                 </span>
                 <span class="live-btn-label">Live Demo</span>
@@ -573,7 +573,7 @@
   <div class="cb-fab-ring-wrap">
     <div class="cb-fab-ring"></div>
     <div class="cb-fab-ring cb-fab-ring--outer"></div>
-    <img src="guide-chandan-happy.svg" class="cb-fab-avatar" alt="Aarav"/>
+    <img src="guide-chandan-happy.png" class="cb-fab-avatar" alt="Aarav"/>
     @if (cbUnread()) { <span class="cb-fab-badge">{{ cbUnread() }}</span> }
   </div>
   <!-- Speech bubble -->
@@ -592,7 +592,7 @@
   <div class="cb-resize-handle" (mousedown)="cbResizeStart($event)" title="Drag to resize">⤡</div>
   <!-- Header -->
   <div class="cb-header">
-    <img src="guide-chandan-happy.svg" class="cb-header-avatar" alt="Aarav"/>
+    <img src="guide-chandan-happy.png" class="cb-header-avatar" alt="Aarav"/>
     <div class="cb-header-info">
       <strong>Aarav</strong>
       <span>Chandan's AI assistant · Always online</span>
@@ -605,7 +605,7 @@
     @for (msg of cbMessages(); track $index) {
       <div class="cb-msg" [class.cb-msg--bot]="msg.role==='bot'" [class.cb-msg--user]="msg.role==='user'">
         @if (msg.role === 'bot') {
-          <img src="guide-chandan-happy.svg" class="cb-msg-avatar" alt="Aarav"/>
+          <img src="guide-chandan-happy.png" class="cb-msg-avatar" alt="Aarav"/>
         }
         <div class="cb-msg-col">
           <div class="cb-msg-bubble" [innerHTML]="msg.role==='bot' ? msg.safeHtml : msg.html"></div>
@@ -622,7 +622,7 @@
     }
     @if (cbTyping()) {
       <div class="cb-msg cb-msg--bot">
-        <img src="guide-chandan-happy.svg" class="cb-msg-avatar" alt="Aarav"/>
+        <img src="guide-chandan-happy.png" class="cb-msg-avatar" alt="Aarav"/>
         <div class="cb-msg-bubble cb-typing">
           <span></span><span></span><span></span>
         </div>

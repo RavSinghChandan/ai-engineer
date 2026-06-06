@@ -297,8 +297,8 @@ h1 {
   object-fit: contain;
   flex-shrink: 0;
   filter: drop-shadow(0 3px 8px rgba(124,58,237,0.35));
-  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), opacity 0.18s ease;
-  /* Smooth emotion swap: fade out then back in when src changes */
+  animation: avatar-float 3s ease-in-out infinite;
+  transition: opacity 0.18s ease;
   &.emotion-swap { animation: emotionSwap 0.32s ease; }
   @keyframes emotionSwap {
     0%   { opacity: 1; transform: scale(1); }
@@ -462,8 +462,9 @@ h1 {
 }
 .live-btn-avatar {
   width: 32px; height: 42px; object-fit: contain;
-  transition: transform 0.22s var(--ease), opacity 0.18s ease;
   filter: drop-shadow(0 1px 4px rgba(0,0,0,0.3));
+  animation: avatar-float 3.2s ease-in-out infinite;
+  transition: opacity 0.18s ease;
   &.emotion-swap { animation: emotionSwap 0.3s ease; }
 }
 .live-btn-bubble {
@@ -1071,6 +1072,10 @@ footer { border-top: 1px solid var(--border); padding: 2rem 0; }
   0%,100% { transform: translateY(0) rotate(0deg); }
   38%     { transform: translateY(-8px) rotate(-3deg); }
   70%     { transform: translateY(-3px) rotate(2deg); }
+}
+@keyframes avatar-float {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(-5px); }
 }
 
 /* Unread badge */
