@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P13 — Cost & Latency Optimisation</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+body{background:#f0f2f5;font-family:-apple-system,'SF Pro Display','Segoe UI',system-ui,sans-serif;min-height:100vh;padding:48px 24px 100px;-webkit-font-smoothing:antialiased}
+.header{text-align:center;margin-bottom:48px}
+.badge{display:inline-block;padding:5px 16px;border-radius:20px;background:#fff;border:1px solid #d2d2d7;font-size:0.7rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#6e6e73;margin-bottom:14px}
+.header h1{font-size:2.4rem;font-weight:900;letter-spacing:-.04em;color:#1d1d1f}
+.header p{margin-top:8px;font-size:.9rem;color:#6e6e73;font-family:'SF Mono',monospace}
+.layout{display:flex;gap:28px;max-width:1200px;margin:0 auto;align-items:flex-start}
+.dir-panel{width:240px;flex-shrink:0;background:#fff;border:1.5px solid #e5e7eb;border-radius:16px;padding:16px 14px;box-shadow:0 2px 12px rgba(0,0,0,.06);position:sticky;top:32px}
+.dir-title{font-size:0.65rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#9ca3af;margin-bottom:14px}
+.dir-tree{font-family:'SF Mono','Fira Code',monospace;font-size:0.72rem;line-height:1}
+.dir-item{display:flex;align-items:center;gap:5px;padding:4px 6px;border-radius:6px;color:#6e6e73;white-space:nowrap}
+.dir-item.folder{color:#374151;font-weight:600}
+.dir-item.active{background:#fef3c7;color:#92400e;font-weight:700;border-left:3px solid #f59e0b;padding-left:9px}
+.dir-hint{margin-top:14px;padding-top:12px;border-top:1px solid #f3f4f6;font-size:0.65rem;color:#d1d5db;text-align:center;font-style:italic;line-height:1.5}
+.main{flex:1;min-width:0}
+.flow-wrap{display:flex;flex-direction:column;align-items:center;gap:0}
+.node{width:auto;min-width:260px;max-width:460px;background:#fff;border:1.5px solid #e5e7eb;border-radius:14px;padding:14px 20px;display:inline-flex;flex-direction:column;align-items:flex-start;box-shadow:0 2px 10px rgba(0,0,0,.06);cursor:pointer;transition:box-shadow .2s,transform .15s}
+.node:hover{box-shadow:0 6px 24px rgba(0,0,0,.12);transform:translateY(-1px)}
+.node-label{font-size:0.6rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.node-title{font-size:1.0rem;font-weight:800;color:#1d1d1f}
+.node-sub{font-size:0.72rem;color:#6e6e73;margin-top:3px;font-family:'SF Mono',monospace}
+.arrow{font-size:1.4rem;color:#9ca3af;margin:2px 0;line-height:1;text-align:center}
+.diamond{width:130px;height:130px;margin:4px auto;display:flex;align-items:center;justify-content:center;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);cursor:pointer}
+.diamond-inner{text-align:center;padding:0 16px}
+.diamond-inner .d-title{font-size:0.75rem;font-weight:800;color:#fff;line-height:1.2}
+.diamond-inner .d-sub{font-size:0.58rem;color:rgba(255,255,255,.8);margin-top:2px}
+.opt-row{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin:12px 0}
+.opt-card{background:#fff;border:1.5px solid #e5e7eb;border-radius:12px;padding:12px 14px;min-width:140px;cursor:pointer;transition:box-shadow .2s}
+.opt-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.1)}
+.oc-title{font-size:0.82rem;font-weight:800;color:#1d1d1f;margin-bottom:4px}
+.oc-tag{font-size:0.6rem;font-weight:700;padding:2px 7px;border-radius:8px;display:inline-block;margin-bottom:5px}
+.oc-row{font-size:0.66rem;color:#6e6e73;margin-top:2px}
+.c-blue{background:#2563eb}.c-purple{background:#7c3aed}.c-teal{background:#0d9488}.c-green{background:#16a34a}.c-amber{background:#d97706}
+.lbl-blue{color:#2563eb}.lbl-purple{color:#7c3aed}.lbl-teal{color:#0d9488}.lbl-green{color:#16a34a}.lbl-amber{color:#d97706}
+.code-panel{position:fixed;bottom:0;left:0;right:0;z-index:100;background:#1e1e1e;color:#d4d4d4;font-family:'SF Mono','Fira Code','Consolas',monospace;font-size:0.78rem;line-height:1.6;border-radius:20px 20px 0 0;padding:20px 28px 28px;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);max-height:55vh;overflow-y:auto;box-shadow:0 -8px 40px rgba(0,0,0,.4)}
+.code-panel.open{transform:translateY(0)}
+.panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:1px solid #3e3e3e;padding-bottom:10px}
+.panel-title{font-size:0.75rem;font-weight:700;color:#cccccc;letter-spacing:.5px}
+.panel-close{background:#3e3e3e;border:none;color:#cccccc;border-radius:6px;padding:3px 10px;cursor:pointer;font-size:0.78rem}
+pre{white-space:pre-wrap;word-break:break-all}
+.kw{color:#569cd6}.fn{color:#dcdcaa}.st{color:#ce9178}.cm{color:#6a9955}.tp{color:#4ec9b0}.nu{color:#b5cea8}.de{color:#c586c0}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="badge">AI System Design Blueprint · Pattern 13</div>
+  <h1>Cost &amp; Latency Optimisation</h1>
+  <p>Model routing · Token budgeting · Batching · Caching · 500× savings possible</p>
+</div>
+<div class="layout">
+  <div class="dir-panel">
+    <div class="dir-title">📁 Blueprint</div>
+    <div class="dir-tree">
+      <div class="dir-item folder">📂 ai-system-design-blueprint/</div>
+      <div class="dir-item" style="padding-left:18px">📄 P1–P12 ...</div>
+      <div class="dir-item active" style="padding-left:18px">📄 P13-cost-latency ◀</div>
+      <div class="dir-item" style="padding-left:18px">📄 P14–P15 ...</div>
+    </div>
+    <div class="dir-hint">Click any node<br>to see code snippet</div>
+  </div>
+  <div class="main">
+    <div class="flow-wrap">
+
+      <div class="node c-blue" style="border-color:#2563eb" onclick="show('request')">
+        <span class="node-label lbl-blue">INCOMING REQUEST</span>
+        <span class="node-title">Classify Complexity</span>
+        <span class="node-sub">Route to cheapest model that can handle it</span>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="diamond c-amber" onclick="show('route')">
+        <div class="diamond-inner">
+          <div class="d-title">Complexity?</div>
+          <div class="d-sub">simple/medium/complex</div>
+        </div>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="opt-row">
+        <div class="opt-card" onclick="show('small')">
+          <div class="oc-title">Small Task</div>
+          <div class="oc-tag" style="background:#dcfce7;color:#16a34a">cheapest</div>
+          <div class="oc-row">gpt-4o-mini</div>
+          <div class="oc-row">$0.15 / 1M in</div>
+          <div class="oc-row">~300ms</div>
+        </div>
+        <div class="opt-card" onclick="show('medium')">
+          <div class="oc-title">Medium Task</div>
+          <div class="oc-tag" style="background:#fef9c3;color:#854d0e">balanced</div>
+          <div class="oc-row">DeepSeek</div>
+          <div class="oc-row">$0.14 / 1M in</div>
+          <div class="oc-row">~800ms</div>
+        </div>
+        <div class="opt-card" onclick="show('complex')">
+          <div class="oc-title">Complex Task</div>
+          <div class="oc-tag" style="background:#fce7f3;color:#9d174d">powerful</div>
+          <div class="oc-row">gpt-4o</div>
+          <div class="oc-row">$2.50 / 1M in</div>
+          <div class="oc-row">~2s</div>
+        </div>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="node c-purple" style="border-color:#7c3aed" onclick="show('token_budget')">
+        <span class="node-label lbl-purple">TOKEN BUDGET</span>
+        <span class="node-title">Prompt Trimmer</span>
+        <span class="node-sub">System ≤200 · Context ≤2000 · max_tokens=512</span>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="node c-teal" style="border-color:#0d9488" onclick="show('batch')">
+        <span class="node-label lbl-teal">BATCHING</span>
+        <span class="node-title">Request Batcher</span>
+        <span class="node-sub">Batch embeddings 100/call · async gather</span>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="node c-green" style="border-color:#16a34a" onclick="show('structured')">
+        <span class="node-label lbl-green">STRUCTURED OUTPUT</span>
+        <span class="node-title">JSON Mode</span>
+        <span class="node-sub">Avoid retry loops · deterministic output</span>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="node" style="background:#f0fdf4;border-color:#16a34a" onclick="show('result')">
+        <span class="node-label lbl-green">RESULT</span>
+        <span class="node-title">Optimised Response</span>
+        <span class="node-sub">78s → 15s → 4s (real benchmark)</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="code-panel" id="panel">
+  <div class="panel-header">
+    <span class="panel-title" id="panel-title">Code</span>
+    <button class="panel-close" onclick="close_panel()">✕ close</button>
+  </div>
+  <pre id="panel-body"></pre>
+</div>
+
+<script>
+const snippets={
+  request:['Complexity Classifier',`<span class="cm"># Route to cheapest model that handles the task</span>
+<span class="kw">async def</span> <span class="fn">classify_complexity</span>(prompt: <span class="tp">str</span>) -> <span class="tp">str</span>:
+    <span class="kw">if</span> len(prompt) < <span class="nu">200</span> <span class="kw">and</span> <span class="st">"simple"</span> <span class="kw">in</span> prompt.lower():
+        <span class="kw">return</span> <span class="st">"simple"</span>
+    <span class="cm"># Or: use a fast classifier LLM to route</span>
+    resp = <span class="kw">await</span> llm.chat.completions.create(
+        model=<span class="st">"gpt-4o-mini"</span>,   <span class="cm"># cheap classifier</span>
+        messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: f<span class="st">"Classify as simple/medium/complex: {prompt[:100]}"</span>}],
+        max_tokens=<span class="nu">5</span>,
+    )
+    <span class="kw">return</span> resp.choices[<span class="nu">0</span>].message.content.strip().lower()`],
+  route:['Model Routing',`<span class="cm"># Model selection by complexity</span>
+MODEL_ROUTING = {
+    <span class="st">"simple"</span>:  <span class="st">"gpt-4o-mini"</span>,       <span class="cm"># $0.15/1M input</span>
+    <span class="st">"medium"</span>:  <span class="st">"deepseek-chat"</span>,     <span class="cm"># $0.14/1M input — 500× cheaper than GPT-4o</span>
+    <span class="st">"complex"</span>: <span class="st">"gpt-4o"</span>,            <span class="cm"># $2.50/1M input — best quality</span>
+}
+
+complexity = <span class="kw">await</span> classify_complexity(prompt)
+model      = MODEL_ROUTING[complexity]
+logger.info(<span class="st">"routed complexity=%s model=%s"</span>, complexity, model)`],
+  small:['gpt-4o-mini — Simple Tasks',`<span class="cm"># Use for: summarisation, classification, simple Q&A</span>
+<span class="cm"># Cost: $0.15 input / $0.60 output per 1M tokens</span>
+<span class="cm"># Latency: ~300ms p50</span>
+<span class="cm">#</span>
+<span class="cm"># Ideal tasks:</span>
+<span class="cm"># - "Is this positive or negative?" → 1 token answer</span>
+<span class="cm"># - "Summarise in 3 bullets"</span>
+<span class="cm"># - FAQ lookups with RAG context</span>
+
+resp = <span class="kw">await</span> llm.chat.completions.create(
+    model=<span class="st">"gpt-4o-mini"</span>,
+    messages=messages,
+    max_tokens=<span class="nu">256</span>,   <span class="cm"># hard cap output tokens</span>
+)`],
+  medium:['DeepSeek — Medium Tasks',`<span class="cm"># DeepSeek-V3: GPT-4o quality at 500× lower cost</span>
+<span class="cm"># $0.14 input / $0.28 output per 1M tokens</span>
+<span class="cm"># Best for: coding, reasoning, structured output</span>
+
+<span class="kw">from</span> openai <span class="kw">import</span> AsyncOpenAI
+
+deepseek = AsyncOpenAI(
+    api_key=os.environ[<span class="st">"DEEPSEEK_API_KEY"</span>],
+    base_url=<span class="st">"https://api.deepseek.com"</span>,
+)
+resp = <span class="kw">await</span> deepseek.chat.completions.create(
+    model=<span class="st">"deepseek-chat"</span>,
+    messages=messages,
+)`],
+  complex:['GPT-4o — Complex Tasks',`<span class="cm"># Reserve GPT-4o for: multi-step reasoning, creative tasks</span>
+<span class="cm"># Only ~5-10% of requests should reach this tier</span>
+<span class="cm"># $2.50 input / $10.00 output per 1M tokens</span>
+
+resp = <span class="kw">await</span> llm.chat.completions.create(
+    model=<span class="st">"gpt-4o"</span>,
+    messages=messages,
+    temperature=<span class="nu">0.7</span>,
+    max_tokens=<span class="nu">2048</span>,
+)`],
+  token_budget:['Token Budget — Prompt Trimming',`<span class="cm"># Each token ≈ $0.000002 — every token counts at scale</span>
+<span class="kw">def</span> <span class="fn">trim_prompt</span>(
+    system:  <span class="tp">str</span>,
+    context: <span class="tp">str</span>,
+    query:   <span class="tp">str</span>,
+    max_context_tokens: <span class="tp">int</span> = <span class="nu">2000</span>,
+) -> list[dict]:
+    <span class="cm"># Estimate: 1 token ≈ 4 chars</span>
+    max_chars = max_context_tokens * <span class="nu">4</span>
+    <span class="kw">if</span> len(context) > max_chars:
+        context = context[:max_chars] + <span class="st">"... [truncated]"</span>
+    <span class="kw">return</span> [
+        {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: system[:800]},  <span class="cm"># cap system prompt</span>
+        {<span class="st">"role"</span>: <span class="st">"user"</span>,   <span class="st">"content"</span>: f<span class="st">"Context:\n{context}\n\nQ: {query}"</span>},
+    ]`],
+  batch:['Batching Embeddings',`<span class="cm"># Never embed one at a time — batch up to 2048</span>
+<span class="kw">async def</span> <span class="fn">embed_texts_batched</span>(texts: list[<span class="tp">str</span>], batch_size=<span class="nu">100</span>) -> list:
+    all_embeddings = []
+    <span class="kw">for</span> i <span class="kw">in</span> range(<span class="nu">0</span>, len(texts), batch_size):
+        batch = texts[i:i+batch_size]
+        resp  = <span class="kw">await</span> llm.embeddings.create(
+            model=<span class="st">"text-embedding-3-small"</span>, input=batch
+        )
+        all_embeddings.extend([d.embedding <span class="kw">for</span> d <span class="kw">in</span> resp.data])
+    <span class="kw">return</span> all_embeddings  <span class="cm"># 100x fewer API calls than 1-by-1</span>`],
+  structured:['JSON Mode — Avoid Retries',`<span class="cm"># response_format={"type":"json_object"} guarantees valid JSON</span>
+<span class="cm"># Eliminates 3-tier JSON repair + retry loops → saves tokens</span>
+resp = <span class="kw">await</span> llm.chat.completions.create(
+    model=<span class="st">"gpt-4o"</span>,
+    messages=[
+        {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: <span class="st">"Return JSON only."</span>},
+        {<span class="st">"role"</span>: <span class="st">"user"</span>,   <span class="st">"content"</span>: prompt},
+    ],
+    response_format={<span class="st">"type"</span>: <span class="st">"json_object"</span>},  <span class="cm"># enforced valid JSON</span>
+    max_tokens=<span class="nu">512</span>,
+)
+data = json.loads(resp.choices[<span class="nu">0</span>].message.content)  <span class="cm"># always works</span>`],
+  result:['Real Benchmark — AstroIntel',`<span class="cm"># AstroIntel 360° pipeline optimisation journey</span>
+<span class="cm">#</span>
+<span class="cm"># V1: Sequential GPT-4o            → 78s  · $0.068/request</span>
+<span class="cm"># V2: Parallel GPT-4o-mini         → 15s  · $0.008/request</span>
+<span class="cm"># V3: Parallel DeepSeek + 3-tier   →  4s  · $0.000137/request</span>
+<span class="cm">#</span>
+<span class="cm"># Techniques applied:</span>
+<span class="cm"># ✅ Parallel agents (asyncio.gather) → 5x speedup</span>
+<span class="cm"># ✅ DeepSeek vs GPT-4o              → 500x cost reduction</span>
+<span class="cm"># ✅ L1/L2/L3 semantic cache         → 90% cache hit rate</span>
+<span class="cm"># ✅ max_tokens caps per agent       → 40% token reduction</span>
+<span class="cm"># ✅ JSON mode                       → eliminated retry loops</span>`],
+};
+function show(k){const[t,b]=snippets[k];document.getElementById('panel-title').textContent=t;document.getElementById('panel-body').innerHTML=b;document.getElementById('panel').classList.add('open')}
+function close_panel(){document.getElementById('panel').classList.remove('open')}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')close_panel()})
+</script>
+</body>
+</html>

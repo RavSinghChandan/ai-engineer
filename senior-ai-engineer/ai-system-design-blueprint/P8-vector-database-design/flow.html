@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P8 — Vector Database Design</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+body{background:#f0f2f5;font-family:-apple-system,'SF Pro Display','Segoe UI',system-ui,sans-serif;min-height:100vh;padding:48px 24px 100px;-webkit-font-smoothing:antialiased}
+.header{text-align:center;margin-bottom:48px}
+.badge{display:inline-block;padding:5px 16px;border-radius:20px;background:#fff;border:1px solid #d2d2d7;font-size:0.7rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#6e6e73;margin-bottom:14px}
+.header h1{font-size:2.4rem;font-weight:900;letter-spacing:-.04em;color:#1d1d1f}
+.header p{margin-top:8px;font-size:.9rem;color:#6e6e73;font-family:'SF Mono',monospace}
+.layout{display:flex;gap:28px;max-width:1200px;margin:0 auto;align-items:flex-start}
+.dir-panel{width:240px;flex-shrink:0;background:#fff;border:1.5px solid #e5e7eb;border-radius:16px;padding:16px 14px;box-shadow:0 2px 12px rgba(0,0,0,.06);position:sticky;top:32px}
+.dir-title{font-size:0.65rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#9ca3af;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.dir-tree{font-family:'SF Mono','Fira Code',monospace;font-size:0.72rem;line-height:1}
+.dir-item{display:flex;align-items:center;gap:5px;padding:4px 6px;border-radius:6px;color:#6e6e73;cursor:default;white-space:nowrap}
+.dir-item.folder{color:#374151;font-weight:600}
+.dir-item.active{background:#fef3c7;color:#92400e;font-weight:700;border-left:3px solid #f59e0b;padding-left:9px}
+.dir-hint{margin-top:14px;padding-top:12px;border-top:1px solid #f3f4f6;font-size:0.65rem;color:#d1d5db;text-align:center;font-style:italic;line-height:1.5}
+.main{flex:1;min-width:0}
+.flow-wrap{display:flex;flex-direction:column;align-items:center;gap:0}
+.node{width:auto;min-width:260px;max-width:440px;background:#fff;border:1.5px solid #e5e7eb;border-radius:14px;padding:14px 20px;display:inline-flex;flex-direction:column;align-items:flex-start;box-shadow:0 2px 10px rgba(0,0,0,.06);cursor:pointer;transition:box-shadow .2s,transform .15s}
+.node:hover{box-shadow:0 6px 24px rgba(0,0,0,.12);transform:translateY(-1px)}
+.node-label{font-size:0.6rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.node-title{font-size:1.0rem;font-weight:800;color:#1d1d1f}
+.node-sub{font-size:0.72rem;color:#6e6e73;margin-top:3px;font-family:'SF Mono',monospace}
+.arrow{font-size:1.4rem;color:#9ca3af;margin:2px 0;line-height:1;text-align:center}
+.diamond{width:130px;height:130px;margin:4px auto;display:flex;align-items:center;justify-content:center;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);cursor:pointer}
+.diamond-inner{text-align:center;padding:0 18px}
+.diamond-inner .d-title{font-size:0.78rem;font-weight:800;color:#fff;line-height:1.2}
+.diamond-inner .d-sub{font-size:0.6rem;color:rgba(255,255,255,.8);margin-top:2px}
+.compare-row{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin:12px 0}
+.compare-card{background:#fff;border:1.5px solid #e5e7eb;border-radius:14px;padding:14px 16px;min-width:150px;max-width:180px;cursor:pointer;transition:box-shadow .2s}
+.compare-card:hover{box-shadow:0 6px 24px rgba(0,0,0,.12)}
+.cc-title{font-size:0.85rem;font-weight:800;color:#1d1d1f;margin-bottom:6px}
+.cc-tag{font-size:0.62rem;font-weight:700;padding:2px 8px;border-radius:10px;display:inline-block;margin-bottom:6px}
+.cc-row{font-size:0.68rem;color:#6e6e73;margin-top:3px}
+.c-blue{background:#2563eb}.c-purple{background:#7c3aed}.c-teal{background:#0d9488}.c-green{background:#16a34a}.c-amber{background:#d97706}
+.lbl-blue{color:#2563eb}.lbl-purple{color:#7c3aed}.lbl-teal{color:#0d9488}.lbl-green{color:#16a34a}.lbl-amber{color:#d97706}
+.code-panel{position:fixed;bottom:0;left:0;right:0;z-index:100;background:#1e1e1e;color:#d4d4d4;font-family:'SF Mono','Fira Code','Consolas',monospace;font-size:0.78rem;line-height:1.6;border-radius:20px 20px 0 0;padding:20px 28px 28px;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);max-height:55vh;overflow-y:auto;box-shadow:0 -8px 40px rgba(0,0,0,.4)}
+.code-panel.open{transform:translateY(0)}
+.panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:1px solid #3e3e3e;padding-bottom:10px}
+.panel-title{font-size:0.75rem;font-weight:700;color:#cccccc;letter-spacing:.5px}
+.panel-close{background:#3e3e3e;border:none;color:#cccccc;border-radius:6px;padding:3px 10px;cursor:pointer;font-size:0.78rem}
+pre{white-space:pre-wrap;word-break:break-all}
+.kw{color:#569cd6}.fn{color:#dcdcaa}.st{color:#ce9178}.cm{color:#6a9955}.tp{color:#4ec9b0}.nu{color:#b5cea8}.de{color:#c586c0}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="badge">AI System Design Blueprint · Pattern 8</div>
+  <h1>Vector Database Design</h1>
+  <p>Embed → Index → Search → Rank · FAISS vs Pinecone vs pgvector</p>
+</div>
+<div class="layout">
+  <div class="dir-panel">
+    <div class="dir-title">📁 Blueprint</div>
+    <div class="dir-tree">
+      <div class="dir-item folder">📂 ai-system-design-blueprint/</div>
+      <div class="dir-item" style="padding-left:18px">📄 P1–P7 ...</div>
+      <div class="dir-item active" style="padding-left:18px">📄 P8-vector-db ◀</div>
+      <div class="dir-item" style="padding-left:18px">📄 P9-hybrid-search</div>
+      <div class="dir-item" style="padding-left:18px">📄 P10-fine-tuning</div>
+      <div class="dir-item" style="padding-left:18px">📄 P11-caching</div>
+      <div class="dir-item" style="padding-left:18px">📄 P12-observability</div>
+      <div class="dir-item" style="padding-left:18px">📄 P13-cost-latency</div>
+      <div class="dir-item" style="padding-left:18px">📄 P14-prompt-injection</div>
+      <div class="dir-item" style="padding-left:18px">📄 P15-pii-privacy</div>
+    </div>
+    <div class="dir-hint">Click any node<br>to see code snippet</div>
+  </div>
+  <div class="main">
+    <div class="flow-wrap">
+
+      <div class="node c-blue" style="border-color:#2563eb" onclick="show('text_in')">
+        <span class="node-label lbl-blue">INPUT</span>
+        <span class="node-title">Raw Text / Documents</span>
+        <span class="node-sub">Chunks of 800 tokens, 150 overlap</span>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="node c-purple" style="border-color:#7c3aed" onclick="show('embed')">
+        <span class="node-label lbl-purple">STEP 1 — EMBED</span>
+        <span class="node-title">Embedding Model</span>
+        <span class="node-sub">text-embedding-3-small · 1536-dim float32</span>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="diamond c-amber" onclick="show('pick_db')">
+        <div class="diamond-inner">
+          <div class="d-title">Pick DB?</div>
+          <div class="d-sub">scale / latency</div>
+        </div>
+      </div>
+      <div class="arrow">↓</div>
+
+      <!-- DB comparison row -->
+      <div style="margin:8px 0; font-size:0.65rem; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:#9ca3af; text-align:center">VECTOR DB OPTIONS</div>
+      <div class="compare-row">
+        <div class="compare-card" onclick="show('faiss')">
+          <div class="cc-title">FAISS</div>
+          <div class="cc-tag" style="background:#eff6ff;color:#2563eb">In-process</div>
+          <div class="cc-row">✅ No infra, &lt;1M vecs</div>
+          <div class="cc-row">✅ IndexFlatIP (cosine)</div>
+          <div class="cc-row">⚠️ No persistence</div>
+          <div class="cc-row">⚠️ Single node only</div>
+        </div>
+        <div class="compare-card" onclick="show('pinecone')">
+          <div class="cc-title">Pinecone</div>
+          <div class="cc-tag" style="background:#f5f3ff;color:#7c3aed">Managed SaaS</div>
+          <div class="cc-row">✅ 1B+ vectors</div>
+          <div class="cc-row">✅ Metadata filters</div>
+          <div class="cc-row">✅ Auto-scale</div>
+          <div class="cc-row">💰 $0.096/hr (p1-x1)</div>
+        </div>
+        <div class="compare-card" onclick="show('pgvector')">
+          <div class="cc-title">pgvector</div>
+          <div class="cc-tag" style="background:#f0fdf4;color:#16a34a">Postgres ext</div>
+          <div class="cc-row">✅ SQL + vectors</div>
+          <div class="cc-row">✅ ACID transactions</div>
+          <div class="cc-row">✅ Already in stack</div>
+          <div class="cc-row">⚠️ &lt;10M vecs sweet spot</div>
+        </div>
+        <div class="compare-card" onclick="show('weaviate')">
+          <div class="cc-title">Weaviate</div>
+          <div class="cc-tag" style="background:#fff7ed;color:#c2410c">Self-hosted</div>
+          <div class="cc-row">✅ GraphQL API</div>
+          <div class="cc-row">✅ Multi-modal</div>
+          <div class="cc-row">✅ Hybrid built-in</div>
+          <div class="cc-row">⚙️ Ops overhead</div>
+        </div>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="node c-teal" style="border-color:#0d9488" onclick="show('index')">
+        <span class="node-label lbl-teal">STEP 2 — INDEX</span>
+        <span class="node-title">Index Strategy</span>
+        <span class="node-sub">Flat (exact) vs HNSW (approx) vs IVF (cluster)</span>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="node c-teal" style="border-color:#0d9488" onclick="show('search')">
+        <span class="node-label lbl-teal">STEP 3 — SEARCH</span>
+        <span class="node-title">ANN Search</span>
+        <span class="node-sub">top_k=20 · cosine similarity · L2-normalised</span>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="node c-green" style="border-color:#16a34a" onclick="show('rerank')">
+        <span class="node-label lbl-green">STEP 4 — RERANK</span>
+        <span class="node-title">Cross-Encoder Rerank</span>
+        <span class="node-sub">ms-marco-MiniLM → top_n=3</span>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="node" style="background:#f0fdf4;border-color:#16a34a" onclick="show('result')">
+        <span class="node-label lbl-green">OUTPUT</span>
+        <span class="node-title">Ranked Chunks</span>
+        <span class="node-sub">Ready for RAG context builder</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="code-panel" id="panel">
+  <div class="panel-header">
+    <span class="panel-title" id="panel-title">Code</span>
+    <button class="panel-close" onclick="close_panel()">✕ close</button>
+  </div>
+  <pre id="panel-body"></pre>
+</div>
+
+<script>
+const snippets = {
+  text_in: ['Input — Chunk Strategy', `<span class="cm"># Chunk size trade-off</span>
+<span class="cm"># Small chunks (200-400 tok): precise retrieval, lose context</span>
+<span class="cm"># Large chunks (800-1200 tok): rich context, noisy retrieval</span>
+<span class="cm"># Overlap (150 tok): prevents boundary information loss</span>
+
+<span class="kw">def</span> <span class="fn">chunk_text</span>(text: <span class="tp">str</span>, size=<span class="nu">800</span>, overlap=<span class="nu">150</span>) -> list[<span class="tp">str</span>]:
+    chunks, start = [], <span class="nu">0</span>
+    <span class="kw">while</span> start < len(text):
+        end = min(start + size, len(text))
+        chunks.append(text[start:end])
+        start += size - overlap
+    <span class="kw">return</span> chunks`],
+  embed: ['Embedding Model — Dimensions', `<span class="cm"># OpenAI models</span>
+<span class="cm"># text-embedding-3-small: 1536-dim, $0.00002/1K tok — best price/perf</span>
+<span class="cm"># text-embedding-3-large: 3072-dim, $0.00013/1K tok — max quality</span>
+<span class="cm"># ada-002 (legacy):        1536-dim, $0.00010/1K tok — avoid for new projects</span>
+
+resp = <span class="kw">await</span> llm.embeddings.create(
+    model=<span class="st">"text-embedding-3-small"</span>,
+    input=chunks,          <span class="cm"># batch up to 2048 items</span>
+    dimensions=<span class="nu">512</span>,        <span class="cm"># optional: reduce dim to save storage</span>
+)
+vecs = np.array([d.embedding <span class="kw">for</span> d <span class="kw">in</span> resp.data], dtype=np.float32)
+faiss.normalize_L2(vecs)   <span class="cm"># L2 norm → inner product == cosine</span>`],
+  pick_db: ['Choosing a Vector DB', `<span class="cm"># Decision tree</span>
+<span class="cm"># Prototype / &lt;1M vectors → FAISS (in-process, zero infra)</span>
+<span class="cm"># Already on Postgres / &lt;10M → pgvector (SQL + vectors)</span>
+<span class="cm"># Production / 10M+ / multi-tenant → Pinecone or Weaviate</span>
+<span class="cm"># Need SQL joins + vectors → pgvector</span>
+<span class="cm"># Need multi-modal (image+text) → Weaviate</span>`],
+  faiss: ['FAISS — In-Process', `<span class="cm"># Best for: prototypes, &lt;1M vecs, no infra overhead</span>
+index = faiss.IndexFlatIP(<span class="nu">1536</span>)  <span class="cm"># exact cosine (after L2 norm)</span>
+<span class="cm"># OR for large scale (ANN, faster but approximate):</span>
+<span class="cm"># index = faiss.IndexIVFFlat(faiss.IndexFlatIP(1536), 1536, 100)</span>
+<span class="cm"># index.train(training_vecs)</span>
+
+index.add(vecs)
+D, I = index.search(query_vec, k=<span class="nu">20</span>)   <span class="cm"># D=scores, I=indices</span>
+results = [metadata[i] <span class="kw">for</span> i <span class="kw">in</span> I[<span class="nu">0</span>] <span class="kw">if</span> i >= <span class="nu">0</span>]`],
+  pinecone: ['Pinecone — Managed SaaS', `<span class="cm"># Best for: production, 10M+ vecs, multi-tenant</span>
+<span class="kw">from</span> pinecone <span class="kw">import</span> Pinecone
+
+pc    = Pinecone(api_key=os.environ[<span class="st">"PINECONE_API_KEY"</span>])
+index = pc.Index(<span class="st">"my-index"</span>)
+
+<span class="cm"># Upsert with metadata</span>
+index.upsert(vectors=[
+    (<span class="st">"chunk-001"</span>, vec.tolist(), {<span class="st">"source"</span>: <span class="st">"doc.pdf"</span>, <span class="st">"tenant"</span>: <span class="st">"acme"</span>})
+])
+
+<span class="cm"># Query with metadata filter (namespace isolation)</span>
+results = index.query(
+    vector=query_vec.tolist(), top_k=<span class="nu">20</span>,
+    filter={<span class="st">"tenant"</span>: {<span class="st">"$eq"</span>: <span class="st">"acme"</span>}},
+    include_metadata=<span class="kw">True</span>,
+)`],
+  pgvector: ['pgvector — Postgres Extension', `<span class="cm"># Best for: existing Postgres stack, ACID + vectors</span>
+<span class="cm"># SQL: CREATE EXTENSION vector;</span>
+
+<span class="kw">from</span> pgvector.asyncpg <span class="kw">import</span> register_vector
+
+<span class="cm"># Table schema:</span>
+<span class="cm"># CREATE TABLE documents (</span>
+<span class="cm">#   id SERIAL, content TEXT, embedding vector(1536),</span>
+<span class="cm">#   source TEXT, tenant_id TEXT</span>
+<span class="cm"># );</span>
+<span class="cm"># CREATE INDEX ON documents USING hnsw (embedding vector_cosine_ops);</span>
+
+rows = <span class="kw">await</span> conn.fetch(<span class="st">"""
+    SELECT content, source, 1 - (embedding &lt;=> $1) AS similarity
+    FROM documents WHERE tenant_id = $2
+    ORDER BY embedding &lt;=> $1 LIMIT 20
+"""</span>, query_vec, tenant_id)`],
+  weaviate: ['Weaviate — Self-hosted', `<span class="cm"># Best for: multi-modal, built-in hybrid search, GraphQL</span>
+<span class="kw">import</span> weaviate
+
+client = weaviate.connect_to_local()
+collection = client.collections.get(<span class="st">"Document"</span>)
+
+results = collection.query.near_vector(
+    near_vector=query_vec.tolist(),
+    limit=<span class="nu">20</span>,
+    return_metadata=weaviate.classes.query.MetadataQuery(distance=<span class="kw">True</span>),
+)`],
+  index: ['Index Strategy — Flat vs HNSW vs IVF', `<span class="cm"># IndexFlatIP — exact, O(n), best for &lt;500K vecs</span>
+faiss.IndexFlatIP(<span class="nu">1536</span>)
+
+<span class="cm"># HNSW — approx, O(log n), best recall/speed tradeoff</span>
+<span class="cm"># pgvector default for large tables</span>
+<span class="cm"># CREATE INDEX USING hnsw (embedding vector_cosine_ops)</span>
+<span class="cm">#   WITH (m = 16, ef_construction = 64);</span>
+
+<span class="cm"># IVF (Inverted File) — cluster-based, fast at huge scale</span>
+quantizer = faiss.IndexFlatIP(<span class="nu">1536</span>)
+index = faiss.IndexIVFFlat(quantizer, <span class="nu">1536</span>, nlist=<span class="nu">256</span>)
+index.train(training_vecs)  <span class="cm"># must train before add</span>
+index.nprobe = <span class="nu">10</span>           <span class="cm"># search 10/256 clusters</span>`],
+  search: ['ANN Search — Query Pipeline', `<span class="cm"># Embed query with SAME model used during ingestion</span>
+resp = <span class="kw">await</span> llm.embeddings.create(
+    model=<span class="st">"text-embedding-3-small"</span>,   <span class="cm"># MUST MATCH ingestion model</span>
+    input=[query],
+)
+q_vec = np.array([resp.data[<span class="nu">0</span>].embedding], dtype=np.float32)
+faiss.normalize_L2(q_vec)
+
+<span class="cm"># Retrieve top_k=20 (over-retrieve then rerank)</span>
+scores, indices = index.search(q_vec, k=<span class="nu">20</span>)
+candidates = [metadata[i] <span class="kw">for</span> i <span class="kw">in</span> indices[<span class="nu">0</span>] <span class="kw">if</span> i >= <span class="nu">0</span>]`],
+  rerank: ['Cross-Encoder Rerank', `<span class="cm"># Reranker re-scores (query, chunk) pairs — expensive but precise</span>
+<span class="kw">from</span> sentence_transformers <span class="kw">import</span> CrossEncoder
+
+reranker = CrossEncoder(<span class="st">"cross-encoder/ms-marco-MiniLM-L-6-v2"</span>)
+pairs  = [(query, c[<span class="st">"text"</span>]) <span class="kw">for</span> c <span class="kw">in</span> candidates]
+scores = reranker.predict(pairs)  <span class="cm"># batch inference</span>
+<span class="kw">for</span> c, s <span class="kw">in</span> zip(candidates, scores):
+    c[<span class="st">"rerank_score"</span>] = float(s)
+top3 = sorted(candidates, key=<span class="kw">lambda</span> x: x[<span class="st">"rerank_score"</span>], reverse=<span class="kw">True</span>)[:<span class="nu">3</span>]`],
+  result: ['Output — Ranked Chunks', `<span class="cm"># Pass to RAG context builder (P2)</span>
+context = <span class="st">"\n\n"</span>.join(
+    f<span class="st">"[Source {i+1}]: {c['text']}"</span>
+    <span class="kw">for</span> i, c <span class="kw">in</span> enumerate(top3)
+)
+messages = [
+    {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: f<span class="st">"Answer using ONLY this context:\n{context}"</span>},
+    {<span class="st">"role"</span>: <span class="st">"user"</span>,   <span class="st">"content"</span>: query},
+]`],
+};
+function show(k){const[t,b]=snippets[k];document.getElementById('panel-title').textContent=t;document.getElementById('panel-body').innerHTML=b;document.getElementById('panel').classList.add('open')}
+function close_panel(){document.getElementById('panel').classList.remove('open')}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')close_panel()})
+</script>
+</body>
+</html>

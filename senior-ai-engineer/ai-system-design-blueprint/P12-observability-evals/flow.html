@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P12 — Observability & Evals</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+body{background:#f0f2f5;font-family:-apple-system,'SF Pro Display','Segoe UI',system-ui,sans-serif;min-height:100vh;padding:48px 24px 100px;-webkit-font-smoothing:antialiased}
+.header{text-align:center;margin-bottom:48px}
+.badge{display:inline-block;padding:5px 16px;border-radius:20px;background:#fff;border:1px solid #d2d2d7;font-size:0.7rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#6e6e73;margin-bottom:14px}
+.header h1{font-size:2.4rem;font-weight:900;letter-spacing:-.04em;color:#1d1d1f}
+.header p{margin-top:8px;font-size:.9rem;color:#6e6e73;font-family:'SF Mono',monospace}
+.layout{display:flex;gap:28px;max-width:1200px;margin:0 auto;align-items:flex-start}
+.dir-panel{width:240px;flex-shrink:0;background:#fff;border:1.5px solid #e5e7eb;border-radius:16px;padding:16px 14px;box-shadow:0 2px 12px rgba(0,0,0,.06);position:sticky;top:32px}
+.dir-title{font-size:0.65rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#9ca3af;margin-bottom:14px}
+.dir-tree{font-family:'SF Mono','Fira Code',monospace;font-size:0.72rem;line-height:1}
+.dir-item{display:flex;align-items:center;gap:5px;padding:4px 6px;border-radius:6px;color:#6e6e73;white-space:nowrap}
+.dir-item.folder{color:#374151;font-weight:600}
+.dir-item.active{background:#fef3c7;color:#92400e;font-weight:700;border-left:3px solid #f59e0b;padding-left:9px}
+.dir-hint{margin-top:14px;padding-top:12px;border-top:1px solid #f3f4f6;font-size:0.65rem;color:#d1d5db;text-align:center;font-style:italic;line-height:1.5}
+.main{flex:1;min-width:0}
+.flow-wrap{display:flex;flex-direction:column;align-items:center;gap:0}
+.node{width:auto;min-width:260px;max-width:440px;background:#fff;border:1.5px solid #e5e7eb;border-radius:14px;padding:14px 20px;display:inline-flex;flex-direction:column;align-items:flex-start;box-shadow:0 2px 10px rgba(0,0,0,.06);cursor:pointer;transition:box-shadow .2s,transform .15s}
+.node:hover{box-shadow:0 6px 24px rgba(0,0,0,.12);transform:translateY(-1px)}
+.node-label{font-size:0.6rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.node-title{font-size:1.0rem;font-weight:800;color:#1d1d1f}
+.node-sub{font-size:0.72rem;color:#6e6e73;margin-top:3px;font-family:'SF Mono',monospace}
+.arrow{font-size:1.4rem;color:#9ca3af;margin:2px 0;line-height:1;text-align:center}
+.parallel-box{border:2.5px dashed #7c3aed;border-radius:18px;padding:16px 20px;margin:12px 0;position:relative;display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;justify-content:center}
+.parallel-label{position:absolute;top:-11px;left:20px;background:#f0f2f5;padding:0 8px;font-size:0.62rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#7c3aed}
+.c-blue{background:#2563eb}.c-purple{background:#7c3aed}.c-teal{background:#0d9488}.c-green{background:#16a34a}.c-amber{background:#d97706}.c-slate{background:#475569}
+.lbl-blue{color:#2563eb}.lbl-purple{color:#7c3aed}.lbl-teal{color:#0d9488}.lbl-green{color:#16a34a}.lbl-amber{color:#d97706}.lbl-slate{color:#475569}
+.code-panel{position:fixed;bottom:0;left:0;right:0;z-index:100;background:#1e1e1e;color:#d4d4d4;font-family:'SF Mono','Fira Code','Consolas',monospace;font-size:0.78rem;line-height:1.6;border-radius:20px 20px 0 0;padding:20px 28px 28px;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);max-height:55vh;overflow-y:auto;box-shadow:0 -8px 40px rgba(0,0,0,.4)}
+.code-panel.open{transform:translateY(0)}
+.panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:1px solid #3e3e3e;padding-bottom:10px}
+.panel-title{font-size:0.75rem;font-weight:700;color:#cccccc;letter-spacing:.5px}
+.panel-close{background:#3e3e3e;border:none;color:#cccccc;border-radius:6px;padding:3px 10px;cursor:pointer;font-size:0.78rem}
+pre{white-space:pre-wrap;word-break:break-all}
+.kw{color:#569cd6}.fn{color:#dcdcaa}.st{color:#ce9178}.cm{color:#6a9955}.tp{color:#4ec9b0}.nu{color:#b5cea8}.de{color:#c586c0}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="badge">AI System Design Blueprint · Pattern 12</div>
+  <h1>Observability &amp; Evals</h1>
+  <p>Trace → Metrics → RAGAS Evals → Alert · Know what your LLM is actually doing</p>
+</div>
+<div class="layout">
+  <div class="dir-panel">
+    <div class="dir-title">📁 Blueprint</div>
+    <div class="dir-tree">
+      <div class="dir-item folder">📂 ai-system-design-blueprint/</div>
+      <div class="dir-item" style="padding-left:18px">📄 P1–P11 ...</div>
+      <div class="dir-item active" style="padding-left:18px">📄 P12-observability ◀</div>
+      <div class="dir-item" style="padding-left:18px">📄 P13–P15 ...</div>
+    </div>
+    <div class="dir-hint">Click any node<br>to see code snippet</div>
+  </div>
+  <div class="main">
+    <div class="flow-wrap">
+
+      <div class="node c-blue" style="border-color:#2563eb" onclick="show('request')">
+        <span class="node-label lbl-blue">INPUT</span>
+        <span class="node-title">LLM Request</span>
+        <span class="node-sub">Attach trace_id to every request</span>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="node c-purple" style="border-color:#7c3aed" onclick="show('trace')">
+        <span class="node-label lbl-purple">STEP 1 — TRACE</span>
+        <span class="node-title">Distributed Tracing</span>
+        <span class="node-sub">OpenTelemetry span · latency · token count</span>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="parallel-box">
+        <div class="parallel-label">CONCURRENT METRIC COLLECTION</div>
+
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+          <div class="node c-amber" style="border-color:#d97706;min-width:160px;background:#fffbeb" onclick="show('latency')">
+            <span class="node-label lbl-amber">INFRA METRICS</span>
+            <span class="node-title">Prometheus</span>
+            <span class="node-sub">p50/p95/p99 latency · error rate</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+          <div class="node c-teal" style="border-color:#0d9488;min-width:160px;background:#f0fdfa" onclick="show('ragas')">
+            <span class="node-label lbl-teal">AI QUALITY METRICS</span>
+            <span class="node-title">RAGAS Evals</span>
+            <span class="node-sub">Faithfulness · Relevancy · Recall</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+          <div class="node c-slate" style="border-color:#475569;min-width:160px;background:#f8fafc" onclick="show('cost')">
+            <span class="node-label lbl-slate">COST METRICS</span>
+            <span class="node-title">Token Tracker</span>
+            <span class="node-sub">prompt + completion tokens · $/call</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow">↓</div>
+
+      <div class="node c-green" style="border-color:#16a34a" onclick="show('dashboard')">
+        <span class="node-label lbl-green">DASHBOARD</span>
+        <span class="node-title">Grafana Dashboard</span>
+        <span class="node-sub">Real-time · per-tenant · per-model</span>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="node c-amber" style="border-color:#d97706" onclick="show('alert')">
+        <span class="node-label lbl-amber">ALERT</span>
+        <span class="node-title">Alerting Rules</span>
+        <span class="node-sub">p95 &gt;2s · error rate &gt;1% · faithfulness &lt;0.8</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="code-panel" id="panel">
+  <div class="panel-header">
+    <span class="panel-title" id="panel-title">Code</span>
+    <button class="panel-close" onclick="close_panel()">✕ close</button>
+  </div>
+  <pre id="panel-body"></pre>
+</div>
+
+<script>
+const snippets={
+  request:['Trace ID on Every Request',`<span class="kw">import</span> uuid
+<span class="kw">from</span> fastapi <span class="kw">import</span> Request
+
+<span class="de">@app.middleware</span>(<span class="st">"http"</span>)
+<span class="kw">async def</span> <span class="fn">add_trace_id</span>(request: Request, call_next):
+    trace_id = request.headers.get(<span class="st">"X-Trace-Id"</span>, str(uuid.uuid4()))
+    request.state.trace_id = trace_id
+    response = <span class="kw">await</span> call_next(request)
+    response.headers[<span class="st">"X-Trace-Id"</span>] = trace_id
+    <span class="kw">return</span> response`],
+  trace:['OpenTelemetry Tracing',`<span class="kw">from</span> opentelemetry <span class="kw">import</span> trace
+<span class="kw">from</span> opentelemetry.sdk.trace <span class="kw">import</span> TracerProvider
+
+tracer = trace.get_tracer(<span class="st">"ai-service"</span>)
+
+<span class="kw">async def</span> <span class="fn">traced_llm_call</span>(prompt: <span class="tp">str</span>) -> <span class="tp">str</span>:
+    <span class="kw">with</span> tracer.start_as_current_span(<span class="st">"llm_call"</span>) <span class="kw">as</span> span:
+        span.set_attribute(<span class="st">"prompt_len"</span>, len(prompt))
+        span.set_attribute(<span class="st">"model"</span>, <span class="st">"gpt-4o"</span>)
+        t0 = time.time()
+        resp = <span class="kw">await</span> llm.chat.completions.create(...)
+        span.set_attribute(<span class="st">"latency_ms"</span>, (time.time() - t0) * <span class="nu">1000</span>)
+        span.set_attribute(<span class="st">"tokens_used"</span>, resp.usage.total_tokens)
+        <span class="kw">return</span> resp.choices[<span class="nu">0</span>].message.content`],
+  latency:['Prometheus Metrics',`<span class="kw">from</span> prometheus_client <span class="kw">import</span> Histogram, Counter, generate_latest
+
+llm_latency  = Histogram(<span class="st">"llm_latency_seconds"</span>, <span class="st">"LLM call latency"</span>,
+                         buckets=[.1,.25,.5,1,2,4,8])
+llm_errors   = Counter(<span class="st">"llm_errors_total"</span>, <span class="st">"LLM errors"</span>, [<span class="st">"error_type"</span>])
+token_usage  = Counter(<span class="st">"token_usage_total"</span>, <span class="st">"Tokens used"</span>, [<span class="st">"model"</span>, <span class="st">"type"</span>])
+
+<span class="cm"># Usage</span>
+<span class="kw">with</span> llm_latency.time():
+    resp = <span class="kw">await</span> call_llm(prompt)
+
+token_usage.labels(model=<span class="st">"gpt-4o"</span>, type=<span class="st">"prompt"</span>).inc(resp.usage.prompt_tokens)
+token_usage.labels(model=<span class="st">"gpt-4o"</span>, type=<span class="st">"completion"</span>).inc(resp.usage.completion_tokens)
+
+<span class="de">@app.get</span>(<span class="st">"/metrics"</span>)
+<span class="kw">def</span> <span class="fn">metrics</span>(): <span class="kw">return</span> generate_latest()`],
+  ragas:['RAGAS Quality Evaluation',`<span class="cm"># RAGAS: 4 key metrics for RAG quality</span>
+<span class="cm">#</span>
+<span class="cm"># Faithfulness:       Is every claim in answer grounded in context? (0-1)</span>
+<span class="cm"># Answer Relevancy:   Does the answer address the question? (0-1)</span>
+<span class="cm"># Context Precision:  Are retrieved chunks actually useful? (0-1)</span>
+<span class="cm"># Context Recall:     Did we retrieve all needed info? (0-1)</span>
+
+<span class="kw">from</span> ragas <span class="kw">import</span> evaluate
+<span class="kw">from</span> ragas.metrics <span class="kw">import</span> faithfulness, answer_relevancy, context_precision
+
+<span class="kw">from</span> datasets <span class="kw">import</span> Dataset
+
+data = Dataset.from_dict({
+    <span class="st">"question"</span>: [question],
+    <span class="st">"answer"</span>:   [answer],
+    <span class="st">"contexts"</span>: [[ctx1, ctx2]],
+})
+result = evaluate(data, metrics=[faithfulness, answer_relevancy, context_precision])
+print(result)  <span class="cm"># {"faithfulness": 0.92, "answer_relevancy": 0.87, ...}</span>`],
+  cost:['Token Cost Tracking',`<span class="cm"># Cost per 1M tokens (June 2025)</span>
+COSTS = {
+    <span class="st">"gpt-4o"</span>:          {<span class="st">"input"</span>: <span class="nu">2.50</span>, <span class="st">"output"</span>: <span class="nu">10.00</span>},
+    <span class="st">"gpt-4o-mini"</span>:     {<span class="st">"input"</span>: <span class="nu">0.15</span>, <span class="st">"output"</span>:  <span class="nu">0.60</span>},
+    <span class="st">"deepseek-chat"</span>:   {<span class="st">"input"</span>: <span class="nu">0.14</span>, <span class="st">"output"</span>:  <span class="nu">0.28</span>},
+}
+
+<span class="kw">def</span> <span class="fn">calc_cost</span>(model: <span class="tp">str</span>, prompt_tokens: <span class="tp">int</span>, completion_tokens: <span class="tp">int</span>) -> <span class="tp">float</span>:
+    c = COSTS.get(model, {<span class="st">"input"</span>: <span class="nu">0</span>, <span class="st">"output"</span>: <span class="nu">0</span>})
+    <span class="kw">return</span> (prompt_tokens * c[<span class="st">"input"</span>] + completion_tokens * c[<span class="st">"output"</span>]) / <span class="nu">1_000_000</span>`],
+  dashboard:['Grafana Dashboard Config',`<span class="cm"># Key panels to build</span>
+<span class="cm"># 1. Request rate (req/s)              — Counter rate()</span>
+<span class="cm"># 2. p50/p95/p99 latency              — Histogram quantile()</span>
+<span class="cm"># 3. Error rate %                      — Counter ratio</span>
+<span class="cm"># 4. Token usage per hour              — Counter</span>
+<span class="cm"># 5. Cost per hour / per model         — Token * price</span>
+<span class="cm"># 6. Cache hit rate L1/L2/L3           — Counter ratio</span>
+<span class="cm"># 7. RAGAS faithfulness trend          — Gauge</span>
+<span class="cm"># 8. Active users (unique sessions)    — Set cardinality</span>
+<span class="cm">#</span>
+<span class="cm"># PromQL for p95 latency:</span>
+<span class="cm"># histogram_quantile(0.95, rate(llm_latency_seconds_bucket[5m]))</span>`],
+  alert:['Alerting Rules (Prometheus)',`<span class="cm"># prometheus/alerts.yml</span>
+groups:
+  - name: ai_service
+    rules:
+      - alert: HighLLMLatency
+        expr: histogram_quantile(<span class="nu">0.95</span>, rate(llm_latency_seconds_bucket[<span class="nu">5</span>m])) > <span class="nu">2.0</span>
+        <span class="kw">for</span>: <span class="nu">2</span>m
+        labels: {severity: warning}
+        annotations:
+          summary: <span class="st">"p95 LLM latency > 2s"</span>
+
+      - alert: HighErrorRate
+        expr: rate(llm_errors_total[<span class="nu">5</span>m]) / rate(llm_calls_total[<span class="nu">5</span>m]) > <span class="nu">0.01</span>
+        <span class="kw">for</span>: <span class="nu">1</span>m
+        labels: {severity: critical}`],
+};
+function show(k){const[t,b]=snippets[k];document.getElementById('panel-title').textContent=t;document.getElementById('panel-body').innerHTML=b;document.getElementById('panel').classList.add('open')}
+function close_panel(){document.getElementById('panel').classList.remove('open')}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')close_panel()})
+</script>
+</body>
+</html>

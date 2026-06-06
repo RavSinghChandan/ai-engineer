@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P11 — Caching Strategy</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+body{background:#f0f2f5;font-family:-apple-system,'SF Pro Display','Segoe UI',system-ui,sans-serif;min-height:100vh;padding:48px 24px 100px;-webkit-font-smoothing:antialiased}
+.header{text-align:center;margin-bottom:48px}
+.badge{display:inline-block;padding:5px 16px;border-radius:20px;background:#fff;border:1px solid #d2d2d7;font-size:0.7rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#6e6e73;margin-bottom:14px}
+.header h1{font-size:2.4rem;font-weight:900;letter-spacing:-.04em;color:#1d1d1f}
+.header p{margin-top:8px;font-size:.9rem;color:#6e6e73;font-family:'SF Mono',monospace}
+.layout{display:flex;gap:28px;max-width:1200px;margin:0 auto;align-items:flex-start}
+.dir-panel{width:240px;flex-shrink:0;background:#fff;border:1.5px solid #e5e7eb;border-radius:16px;padding:16px 14px;box-shadow:0 2px 12px rgba(0,0,0,.06);position:sticky;top:32px}
+.dir-title{font-size:0.65rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#9ca3af;margin-bottom:14px}
+.dir-tree{font-family:'SF Mono','Fira Code',monospace;font-size:0.72rem;line-height:1}
+.dir-item{display:flex;align-items:center;gap:5px;padding:4px 6px;border-radius:6px;color:#6e6e73;white-space:nowrap}
+.dir-item.folder{color:#374151;font-weight:600}
+.dir-item.active{background:#fef3c7;color:#92400e;font-weight:700;border-left:3px solid #f59e0b;padding-left:9px}
+.dir-hint{margin-top:14px;padding-top:12px;border-top:1px solid #f3f4f6;font-size:0.65rem;color:#d1d5db;text-align:center;font-style:italic;line-height:1.5}
+.main{flex:1;min-width:0}
+.flow-wrap{display:flex;flex-direction:column;align-items:center;gap:0}
+.node{width:auto;min-width:260px;max-width:440px;background:#fff;border:1.5px solid #e5e7eb;border-radius:14px;padding:14px 20px;display:inline-flex;flex-direction:column;align-items:flex-start;box-shadow:0 2px 10px rgba(0,0,0,.06);cursor:pointer;transition:box-shadow .2s,transform .15s}
+.node:hover{box-shadow:0 6px 24px rgba(0,0,0,.12);transform:translateY(-1px)}
+.node-label{font-size:0.6rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.node-title{font-size:1.0rem;font-weight:800;color:#1d1d1f}
+.node-sub{font-size:0.72rem;color:#6e6e73;margin-top:3px;font-family:'SF Mono',monospace}
+.arrow{font-size:1.4rem;color:#9ca3af;margin:2px 0;line-height:1;text-align:center}
+.diamond{width:130px;height:130px;margin:4px auto;display:flex;align-items:center;justify-content:center;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);cursor:pointer}
+.diamond-inner{text-align:center;padding:0 16px}
+.diamond-inner .d-title{font-size:0.75rem;font-weight:800;color:#fff;line-height:1.2}
+.diamond-inner .d-sub{font-size:0.58rem;color:rgba(255,255,255,.8);margin-top:2px}
+.tier-box{border:2.5px dashed #2563eb;border-radius:18px;padding:16px 20px;margin:8px 0;position:relative;display:flex;flex-direction:column;align-items:center;gap:8px}
+.tier-label{position:absolute;top:-11px;left:20px;background:#f0f2f5;padding:0 8px;font-size:0.62rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#2563eb}
+.c-blue{background:#2563eb}.c-purple{background:#7c3aed}.c-teal{background:#0d9488}.c-green{background:#16a34a}.c-amber{background:#d97706}.c-sky{background:#0ea5e9}
+.lbl-blue{color:#2563eb}.lbl-purple{color:#7c3aed}.lbl-teal{color:#0d9488}.lbl-green{color:#16a34a}.lbl-amber{color:#d97706}.lbl-sky{color:#0ea5e9}
+.code-panel{position:fixed;bottom:0;left:0;right:0;z-index:100;background:#1e1e1e;color:#d4d4d4;font-family:'SF Mono','Fira Code','Consolas',monospace;font-size:0.78rem;line-height:1.6;border-radius:20px 20px 0 0;padding:20px 28px 28px;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);max-height:55vh;overflow-y:auto;box-shadow:0 -8px 40px rgba(0,0,0,.4)}
+.code-panel.open{transform:translateY(0)}
+.panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:1px solid #3e3e3e;padding-bottom:10px}
+.panel-title{font-size:0.75rem;font-weight:700;color:#cccccc;letter-spacing:.5px}
+.panel-close{background:#3e3e3e;border:none;color:#cccccc;border-radius:6px;padding:3px 10px;cursor:pointer;font-size:0.78rem}
+pre{white-space:pre-wrap;word-break:break-all}
+.kw{color:#569cd6}.fn{color:#dcdcaa}.st{color:#ce9178}.cm{color:#6a9955}.tp{color:#4ec9b0}.nu{color:#b5cea8}.de{color:#c586c0}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="badge">AI System Design Blueprint · Pattern 11</div>
+  <h1>Caching Strategy</h1>
+  <p>L1 In-Memory → L2 Redis → L3 Semantic Cache · 500× cost reduction</p>
+</div>
+<div class="layout">
+  <div class="dir-panel">
+    <div class="dir-title">📁 Blueprint</div>
+    <div class="dir-tree">
+      <div class="dir-item folder">📂 ai-system-design-blueprint/</div>
+      <div class="dir-item" style="padding-left:18px">📄 P1–P10 ...</div>
+      <div class="dir-item active" style="padding-left:18px">📄 P11-caching ◀</div>
+      <div class="dir-item" style="padding-left:18px">📄 P12–P15 ...</div>
+    </div>
+    <div class="dir-hint">Click any node<br>to see code snippet</div>
+  </div>
+  <div class="main">
+    <div class="flow-wrap">
+
+      <div class="node c-blue" style="border-color:#2563eb" onclick="show('request')">
+        <span class="node-label lbl-blue">INPUT</span>
+        <span class="node-title">Incoming Request</span>
+        <span class="node-sub">Cache key = hash(prompt + model + params)</span>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="tier-box">
+        <div class="tier-label">3-TIER CACHE LOOKUP (L1 → L2 → L3)</div>
+
+        <div class="node" style="border-color:#0ea5e9;background:#f0f9ff;min-width:300px" onclick="show('l1')">
+          <span class="node-label lbl-sky">L1 — IN-MEMORY (0ms)</span>
+          <span class="node-title">In-Process Dict</span>
+          <span class="node-sub">LRU · max 1000 entries · per-process</span>
+        </div>
+        <div class="arrow" style="font-size:1rem">↓ miss</div>
+
+        <div class="node" style="border-color:#2563eb;background:#eff6ff;min-width:300px" onclick="show('l2')">
+          <span class="node-label lbl-blue">L2 — REDIS (1–3ms)</span>
+          <span class="node-title">Redis String Cache</span>
+          <span class="node-sub">Hash key → JSON · TTL 3600s · shared</span>
+        </div>
+        <div class="arrow" style="font-size:1rem">↓ miss</div>
+
+        <div class="node" style="border-color:#7c3aed;background:#faf5ff;min-width:300px" onclick="show('l3')">
+          <span class="node-label lbl-purple">L3 — SEMANTIC (5–10ms)</span>
+          <span class="node-title">Semantic Cache (FAISS)</span>
+          <span class="node-sub">Cosine ≥ 0.92 → return cached answer</span>
+        </div>
+      </div>
+
+      <div class="arrow">↓ all miss</div>
+
+      <div class="diamond c-amber" onclick="show('cache_miss')">
+        <div class="diamond-inner">
+          <div class="d-title">Cache miss?</div>
+          <div class="d-sub">call LLM</div>
+        </div>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="node c-purple" style="border-color:#7c3aed" onclick="show('llm_call')">
+        <span class="node-label lbl-purple">LLM CALL</span>
+        <span class="node-title">LLM (uncached)</span>
+        <span class="node-sub">~$0.000137 / call · 1–4s latency</span>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="node c-green" style="border-color:#16a34a" onclick="show('store')">
+        <span class="node-label lbl-green">STORE</span>
+        <span class="node-title">Write to All 3 Tiers</span>
+        <span class="node-sub">L1 dict + L2 Redis + L3 FAISS embed</span>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="node" style="background:#f0fdf4;border-color:#16a34a" onclick="show('response')">
+        <span class="node-label lbl-green">OUTPUT</span>
+        <span class="node-title">Response</span>
+        <span class="node-sub">Cache HIT = &lt;10ms · MISS = 1–4s</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="code-panel" id="panel">
+  <div class="panel-header">
+    <span class="panel-title" id="panel-title">Code</span>
+    <button class="panel-close" onclick="close_panel()">✕ close</button>
+  </div>
+  <pre id="panel-body"></pre>
+</div>
+
+<script>
+const snippets={
+  request:['Cache Key Generation',`<span class="kw">import</span> hashlib, json
+
+<span class="kw">def</span> <span class="fn">make_cache_key</span>(prompt: <span class="tp">str</span>, model: <span class="tp">str</span> = <span class="st">"gpt-4o"</span>, temp: <span class="tp">float</span> = <span class="nu">0.0</span>) -> <span class="tp">str</span>:
+    payload = json.dumps({<span class="st">"prompt"</span>: prompt, <span class="st">"model"</span>: model, <span class="st">"temperature"</span>: temp}, sort_keys=<span class="kw">True</span>)
+    <span class="kw">return</span> <span class="st">"cache:"</span> + hashlib.sha256(payload.encode()).hexdigest()`],
+  l1:['L1 — In-Memory LRU Cache',`<span class="kw">from</span> functools <span class="kw">import</span> lru_cache
+<span class="kw">from</span> collections <span class="kw">import</span> OrderedDict
+
+<span class="kw">class</span> <span class="tp">L1Cache</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, maxsize=<span class="nu">1000</span>):
+        self._cache: OrderedDict = OrderedDict()
+        self._maxsize = maxsize
+
+    <span class="kw">def</span> <span class="fn">get</span>(self, key: <span class="tp">str</span>):
+        <span class="kw">if</span> key <span class="kw">in</span> self._cache:
+            self._cache.move_to_end(key)  <span class="cm"># LRU: move to end on access</span>
+            <span class="kw">return</span> self._cache[key]
+        <span class="kw">return</span> <span class="kw">None</span>
+
+    <span class="kw">def</span> <span class="fn">set</span>(self, key: <span class="tp">str</span>, value: <span class="tp">str</span>):
+        <span class="kw">if</span> len(self._cache) >= self._maxsize:
+            self._cache.popitem(last=<span class="kw">False</span>)  <span class="cm"># evict oldest</span>
+        self._cache[key] = value`],
+  l2:['L2 — Redis Cache',`<span class="cm"># Redis: shared across all instances, 1-3ms latency</span>
+<span class="kw">async def</span> <span class="fn">l2_get</span>(redis, key: <span class="tp">str</span>) -> str | None:
+    raw = <span class="kw">await</span> redis.get(key)
+    <span class="kw">return</span> raw <span class="kw">if</span> raw <span class="kw">else</span> <span class="kw">None</span>
+
+<span class="kw">async def</span> <span class="fn">l2_set</span>(redis, key: <span class="tp">str</span>, value: <span class="tp">str</span>, ttl: <span class="tp">int</span> = <span class="nu">3600</span>):
+    <span class="kw">await</span> redis.setex(key, ttl, value)
+
+<span class="cm"># Use connection pool — critical for performance</span>
+redis = aioredis.from_url(
+    REDIS_URL,
+    decode_responses=<span class="kw">True</span>,
+    max_connections=<span class="nu">50</span>,   <span class="cm"># pool size</span>
+)`],
+  l3:['L3 — Semantic Cache',`<span class="cm"># Semantic cache: similar (not exact) queries hit cache</span>
+<span class="cm"># "What is Python?" and "Explain Python" → same cached answer</span>
+
+<span class="kw">class</span> <span class="tp">SemanticCache</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, threshold=<span class="nu">0.92</span>, dim=<span class="nu">1536</span>):
+        self.index     = faiss.IndexFlatIP(dim)
+        self.answers:  list[<span class="tp">str</span>]        = []
+        self.threshold = threshold
+
+    <span class="kw">async def</span> <span class="fn">get</span>(self, query: <span class="tp">str</span>, llm) -> str | None:
+        <span class="kw">if</span> self.index.ntotal == <span class="nu">0</span>:
+            <span class="kw">return</span> <span class="kw">None</span>
+        q_vec = <span class="kw">await</span> embed_text(query, llm)
+        D, I  = self.index.search(q_vec, k=<span class="nu">1</span>)
+        <span class="kw">if</span> D[<span class="nu">0</span>][<span class="nu">0</span>] >= self.threshold:
+            <span class="kw">return</span> self.answers[I[<span class="nu">0</span>][<span class="nu">0</span>]]   <span class="cm"># cache HIT</span>
+        <span class="kw">return</span> <span class="kw">None</span>
+
+    <span class="kw">async def</span> <span class="fn">set</span>(self, query: <span class="tp">str</span>, answer: <span class="tp">str</span>, llm):
+        q_vec = <span class="kw">await</span> embed_text(query, llm)
+        self.index.add(q_vec)
+        self.answers.append(answer)`],
+  cache_miss:['Cache Miss — Full Lookup',`<span class="cm"># 3-tier lookup function</span>
+<span class="kw">async def</span> <span class="fn">cache_lookup</span>(prompt: <span class="tp">str</span>, l1: <span class="tp">L1Cache</span>, redis, semantic: <span class="tp">SemanticCache</span>, llm):
+    key = make_cache_key(prompt)
+
+    <span class="cm"># L1 check</span>
+    hit = l1.get(key)
+    <span class="kw">if</span> hit: <span class="kw">return</span> hit, <span class="st">"L1"</span>
+
+    <span class="cm"># L2 check</span>
+    hit = <span class="kw">await</span> l2_get(redis, key)
+    <span class="kw">if</span> hit:
+        l1.set(key, hit)   <span class="cm"># backfill L1</span>
+        <span class="kw">return</span> hit, <span class="st">"L2"</span>
+
+    <span class="cm"># L3 check</span>
+    hit = <span class="kw">await</span> semantic.get(prompt, llm)
+    <span class="kw">if</span> hit:
+        l1.set(key, hit)
+        <span class="kw">await</span> l2_set(redis, key, hit)
+        <span class="kw">return</span> hit, <span class="st">"L3"</span>
+
+    <span class="kw">return</span> <span class="kw">None</span>, <span class="st">"MISS"</span>`],
+  llm_call:['LLM Call on Miss',`<span class="cm"># Only reach LLM on full 3-tier miss</span>
+answer, tier = <span class="kw">await</span> cache_lookup(prompt, l1, redis, semantic, llm)
+<span class="kw">if</span> <span class="kw">not</span> answer:
+    resp   = <span class="kw">await</span> llm.chat.completions.create(model=<span class="st">"gpt-4o"</span>, messages=[...])
+    answer = resp.choices[<span class="nu">0</span>].message.content
+    tier   = <span class="st">"MISS"</span>
+
+logger.info(<span class="st">"cache tier=%s"</span>, tier)  <span class="cm"># monitor HIT rates in Prometheus</span>`],
+  store:['Write-Through to All Tiers',`<span class="cm"># Always write to all 3 tiers after LLM call</span>
+<span class="kw">async def</span> <span class="fn">cache_store</span>(prompt: <span class="tp">str</span>, answer: <span class="tp">str</span>, l1, redis, semantic, llm):
+    key = make_cache_key(prompt)
+    l1.set(key, answer)
+    <span class="kw">await</span> l2_set(redis, key, answer, ttl=<span class="nu">3600</span>)
+    <span class="kw">await</span> semantic.set(prompt, answer, llm)
+    <span class="cm"># L3 semantic is permanent (no TTL) — eviction by max size</span>`],
+  response:['Hit Rate Monitoring',`<span class="cm"># Prometheus counters for cache monitoring</span>
+<span class="kw">from</span> prometheus_client <span class="kw">import</span> Counter
+
+cache_hits   = Counter(<span class="st">"cache_hits_total"</span>,   <span class="st">"tier"</span>)
+cache_misses = Counter(<span class="st">"cache_misses_total"</span>, [])
+
+<span class="cm"># Log tier hit: L1 ≥70%, L2 ≥15%, L3 ≥10%, MISS ≤5% is target</span>
+<span class="kw">if</span> tier == <span class="st">"MISS"</span>:
+    cache_misses.inc()
+<span class="kw">else</span>:
+    cache_hits.labels(tier=tier).inc()`],
+};
+function show(k){const[t,b]=snippets[k];document.getElementById('panel-title').textContent=t;document.getElementById('panel-body').innerHTML=b;document.getElementById('panel').classList.add('open')}
+function close_panel(){document.getElementById('panel').classList.remove('open')}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')close_panel()})
+</script>
+</body>
+</html>

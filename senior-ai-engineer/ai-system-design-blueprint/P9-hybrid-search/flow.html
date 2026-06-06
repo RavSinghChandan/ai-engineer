@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P9 — Hybrid Search</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+body{background:#f0f2f5;font-family:-apple-system,'SF Pro Display','Segoe UI',system-ui,sans-serif;min-height:100vh;padding:48px 24px 100px;-webkit-font-smoothing:antialiased}
+.header{text-align:center;margin-bottom:48px}
+.badge{display:inline-block;padding:5px 16px;border-radius:20px;background:#fff;border:1px solid #d2d2d7;font-size:0.7rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#6e6e73;margin-bottom:14px}
+.header h1{font-size:2.4rem;font-weight:900;letter-spacing:-.04em;color:#1d1d1f}
+.header p{margin-top:8px;font-size:.9rem;color:#6e6e73;font-family:'SF Mono',monospace}
+.layout{display:flex;gap:28px;max-width:1200px;margin:0 auto;align-items:flex-start}
+.dir-panel{width:240px;flex-shrink:0;background:#fff;border:1.5px solid #e5e7eb;border-radius:16px;padding:16px 14px;box-shadow:0 2px 12px rgba(0,0,0,.06);position:sticky;top:32px}
+.dir-title{font-size:0.65rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#9ca3af;margin-bottom:14px}
+.dir-tree{font-family:'SF Mono','Fira Code',monospace;font-size:0.72rem;line-height:1}
+.dir-item{display:flex;align-items:center;gap:5px;padding:4px 6px;border-radius:6px;color:#6e6e73;white-space:nowrap}
+.dir-item.folder{color:#374151;font-weight:600}
+.dir-item.active{background:#fef3c7;color:#92400e;font-weight:700;border-left:3px solid #f59e0b;padding-left:9px}
+.dir-hint{margin-top:14px;padding-top:12px;border-top:1px solid #f3f4f6;font-size:0.65rem;color:#d1d5db;text-align:center;font-style:italic;line-height:1.5}
+.main{flex:1;min-width:0}
+.flow-wrap{display:flex;flex-direction:column;align-items:center;gap:0}
+.node{width:auto;min-width:260px;max-width:420px;background:#fff;border:1.5px solid #e5e7eb;border-radius:14px;padding:14px 20px;display:inline-flex;flex-direction:column;align-items:flex-start;box-shadow:0 2px 10px rgba(0,0,0,.06);cursor:pointer;transition:box-shadow .2s,transform .15s}
+.node:hover{box-shadow:0 6px 24px rgba(0,0,0,.12);transform:translateY(-1px)}
+.node-label{font-size:0.6rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.node-title{font-size:1.0rem;font-weight:800;color:#1d1d1f}
+.node-sub{font-size:0.72rem;color:#6e6e73;margin-top:3px;font-family:'SF Mono',monospace}
+.arrow{font-size:1.4rem;color:#9ca3af;margin:2px 0;line-height:1;text-align:center}
+.parallel-box{border:2.5px dashed #2563eb;border-radius:18px;padding:16px 20px;margin:12px 0;position:relative;display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;justify-content:center}
+.parallel-label{position:absolute;top:-11px;left:20px;background:#f0f2f5;padding:0 8px;font-size:0.62rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#2563eb}
+.c-blue{background:#2563eb}.c-purple{background:#7c3aed}.c-teal{background:#0d9488}.c-green{background:#16a34a}.c-amber{background:#d97706}
+.lbl-blue{color:#2563eb}.lbl-purple{color:#7c3aed}.lbl-teal{color:#0d9488}.lbl-green{color:#16a34a}.lbl-amber{color:#d97706}
+.code-panel{position:fixed;bottom:0;left:0;right:0;z-index:100;background:#1e1e1e;color:#d4d4d4;font-family:'SF Mono','Fira Code','Consolas',monospace;font-size:0.78rem;line-height:1.6;border-radius:20px 20px 0 0;padding:20px 28px 28px;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);max-height:55vh;overflow-y:auto;box-shadow:0 -8px 40px rgba(0,0,0,.4)}
+.code-panel.open{transform:translateY(0)}
+.panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:1px solid #3e3e3e;padding-bottom:10px}
+.panel-title{font-size:0.75rem;font-weight:700;color:#cccccc;letter-spacing:.5px}
+.panel-close{background:#3e3e3e;border:none;color:#cccccc;border-radius:6px;padding:3px 10px;cursor:pointer;font-size:0.78rem}
+pre{white-space:pre-wrap;word-break:break-all}
+.kw{color:#569cd6}.fn{color:#dcdcaa}.st{color:#ce9178}.cm{color:#6a9955}.tp{color:#4ec9b0}.nu{color:#b5cea8}.de{color:#c586c0}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="badge">AI System Design Blueprint · Pattern 9</div>
+  <h1>Hybrid Search</h1>
+  <p>BM25 (keyword) + Vector (semantic) → RRF Merge → Rerank → Top-K</p>
+</div>
+<div class="layout">
+  <div class="dir-panel">
+    <div class="dir-title">📁 Blueprint</div>
+    <div class="dir-tree">
+      <div class="dir-item folder">📂 ai-system-design-blueprint/</div>
+      <div class="dir-item" style="padding-left:18px">📄 P1–P8 ...</div>
+      <div class="dir-item active" style="padding-left:18px">📄 P9-hybrid-search ◀</div>
+      <div class="dir-item" style="padding-left:18px">📄 P10–P15 ...</div>
+    </div>
+    <div class="dir-hint">Click any node<br>to see code snippet</div>
+  </div>
+  <div class="main">
+    <div class="flow-wrap">
+
+      <div class="node c-blue" style="border-color:#2563eb" onclick="show('query')">
+        <span class="node-label lbl-blue">INPUT</span>
+        <span class="node-title">User Query</span>
+        <span class="node-sub">Both keyword + semantic intent</span>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="parallel-box">
+        <div class="parallel-label">PARALLEL SEARCH PATHS</div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+          <div class="node c-amber" style="border-color:#d97706;min-width:180px" onclick="show('bm25')">
+            <span class="node-label lbl-amber">PATH A — KEYWORD</span>
+            <span class="node-title">BM25 Search</span>
+            <span class="node-sub">TF-IDF · exact match · fast</span>
+          </div>
+          <div class="arrow" style="font-size:1rem">↓</div>
+          <div class="node" style="border-color:#d97706;min-width:180px;background:#fffbeb" onclick="show('bm25_results')">
+            <span class="node-label lbl-amber">RESULTS A</span>
+            <span class="node-title">BM25 Top-20</span>
+            <span class="node-sub">BM25 scores, rank list</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+          <div class="node c-purple" style="border-color:#7c3aed;min-width:180px" onclick="show('vector')">
+            <span class="node-label lbl-purple">PATH B — SEMANTIC</span>
+            <span class="node-title">Vector Search</span>
+            <span class="node-sub">FAISS / pgvector · cosine sim</span>
+          </div>
+          <div class="arrow" style="font-size:1rem">↓</div>
+          <div class="node" style="border-color:#7c3aed;min-width:180px;background:#faf5ff" onclick="show('vec_results')">
+            <span class="node-label lbl-purple">RESULTS B</span>
+            <span class="node-title">Vector Top-20</span>
+            <span class="node-sub">Cosine scores, rank list</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow">↓</div>
+
+      <div class="node c-teal" style="border-color:#0d9488" onclick="show('rrf')">
+        <span class="node-label lbl-teal">STEP 3 — FUSE</span>
+        <span class="node-title">RRF Merge</span>
+        <span class="node-sub">Reciprocal Rank Fusion · k=60 constant</span>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="node c-green" style="border-color:#16a34a" onclick="show('rerank')">
+        <span class="node-label lbl-green">STEP 4 — RERANK</span>
+        <span class="node-title">Cross-Encoder Rerank</span>
+        <span class="node-sub">Final precision pass → top-3</span>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="node" style="background:#f0fdf4;border-color:#16a34a" onclick="show('output')">
+        <span class="node-label lbl-green">OUTPUT</span>
+        <span class="node-title">Hybrid Top-3</span>
+        <span class="node-sub">Best of keyword + semantic</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="code-panel" id="panel">
+  <div class="panel-header">
+    <span class="panel-title" id="panel-title">Code</span>
+    <button class="panel-close" onclick="close_panel()">✕ close</button>
+  </div>
+  <pre id="panel-body"></pre>
+</div>
+
+<script>
+const snippets = {
+  query:['User Query',`<span class="cm"># When to use hybrid search</span>
+<span class="cm"># Pure vector: "what is the meaning of..." (semantic)</span>
+<span class="cm"># Pure BM25: "find exact error code ERR_CONNECTION_RESET" (keyword)</span>
+<span class="cm"># Hybrid: everything else — product names, codes + concepts</span>
+
+<span class="kw">class</span> <span class="tp">HybridRequest</span>(BaseModel):
+    query: <span class="tp">str</span>
+    alpha: <span class="tp">float</span> = <span class="nu">0.5</span>   <span class="cm"># 0=pure BM25, 1=pure vector, 0.5=balanced</span>`],
+  bm25:['BM25 Keyword Search',`<span class="kw">from</span> rank_bm25 <span class="kw">import</span> BM25Okapi
+
+<span class="cm"># Index: tokenized corpus (built at ingest time)</span>
+corpus_tokens = [doc.split() <span class="kw">for</span> doc <span class="kw">in</span> all_texts]
+bm25 = BM25Okapi(corpus_tokens)
+
+<span class="cm"># Query</span>
+query_tokens = query.lower().split()
+scores = bm25.get_scores(query_tokens)   <span class="cm"># float array len=corpus</span>
+top_indices = np.argsort(scores)[::-<span class="nu">1</span>][:<span class="nu">20</span>]
+bm25_results = [
+    {<span class="st">"id"</span>: i, <span class="st">"text"</span>: all_texts[i], <span class="st">"bm25_score"</span>: scores[i]}
+    <span class="kw">for</span> i <span class="kw">in</span> top_indices
+]`],
+  bm25_results:['BM25 Results Structure',`<span class="cm"># BM25 result format — used by RRF</span>
+bm25_results = [
+    {<span class="st">"id"</span>: <span class="nu">42</span>,  <span class="st">"bm25_score"</span>: <span class="nu">8.3</span>, <span class="st">"rank"</span>: <span class="nu">1</span>},
+    {<span class="st">"id"</span>: <span class="nu">101</span>, <span class="st">"bm25_score"</span>: <span class="nu">7.1</span>, <span class="st">"rank"</span>: <span class="nu">2</span>},
+    ...
+]
+<span class="cm"># Note: BM25 good at exact term matches</span>
+<span class="cm"># "gpt-4o" → BM25 finds it, vector might miss it</span>`],
+  vector:['Vector Search',`<span class="cm"># Same as P2/P8 — cosine similarity via FAISS</span>
+q_vec = <span class="kw">await</span> embed_query(query)
+scores, indices = index.search(q_vec, k=<span class="nu">20</span>)
+vector_results = [
+    {<span class="st">"id"</span>: int(i), <span class="st">"text"</span>: metadata[i][<span class="st">"text"</span>], <span class="st">"vec_score"</span>: float(s)}
+    <span class="kw">for</span> s, i <span class="kw">in</span> zip(scores[<span class="nu">0</span>], indices[<span class="nu">0</span>]) <span class="kw">if</span> i >= <span class="nu">0</span>
+]`],
+  vec_results:['Vector Results Structure',`<span class="cm"># Vector result format — used by RRF</span>
+vector_results = [
+    {<span class="st">"id"</span>: <span class="nu">42</span>,  <span class="st">"vec_score"</span>: <span class="nu">0.92</span>, <span class="st">"rank"</span>: <span class="nu">1</span>},
+    {<span class="st">"id"</span>: <span class="nu">99</span>,  <span class="st">"vec_score"</span>: <span class="nu">0.87</span>, <span class="st">"rank"</span>: <span class="nu">2</span>},
+    ...
+]
+<span class="cm"># Note: Vector good at paraphrases and synonyms</span>
+<span class="cm"># "how to fix slow response" → finds "latency optimisation"</span>`],
+  rrf:['RRF — Reciprocal Rank Fusion',`<span class="cm"># RRF: merge two ranked lists without score normalisation</span>
+<span class="cm"># Formula: score(d) = Σ 1 / (k + rank(d))  where k=60</span>
+<span class="cm"># k=60 dampens high ranks, prevents outliers dominating</span>
+
+<span class="kw">def</span> <span class="fn">reciprocal_rank_fusion</span>(
+    lists: list[list[dict]],
+    id_key: <span class="tp">str</span> = <span class="st">"id"</span>,
+    k: <span class="tp">int</span> = <span class="nu">60</span>,
+) -> list[dict]:
+    scores: dict[<span class="tp">int</span>, float] = {}
+    docs:   dict[<span class="tp">int</span>, dict]  = {}
+    <span class="kw">for</span> ranked_list <span class="kw">in</span> lists:
+        <span class="kw">for</span> rank, doc <span class="kw">in</span> enumerate(ranked_list, start=<span class="nu">1</span>):
+            doc_id = doc[id_key]
+            scores[doc_id] = scores.get(doc_id, <span class="nu">0</span>) + <span class="nu">1</span> / (k + rank)
+            docs[doc_id]   = doc
+    merged = sorted(scores.items(), key=<span class="kw">lambda</span> x: x[<span class="nu">1</span>], reverse=<span class="kw">True</span>)
+    <span class="kw">return</span> [{**docs[doc_id], <span class="st">"rrf_score"</span>: score} <span class="kw">for</span> doc_id, score <span class="kw">in</span> merged[::<span class="nu">20</span>]]`],
+  rerank:['Cross-Encoder Rerank',`<span class="cm"># Final rerank of merged results for max precision</span>
+<span class="kw">from</span> sentence_transformers <span class="kw">import</span> CrossEncoder
+
+reranker = CrossEncoder(<span class="st">"cross-encoder/ms-marco-MiniLM-L-6-v2"</span>)
+pairs  = [(query, doc[<span class="st">"text"</span>]) <span class="kw">for</span> doc <span class="kw">in</span> merged[::<span class="nu">20</span>]]
+scores = reranker.predict(pairs)
+<span class="kw">for</span> doc, score <span class="kw">in</span> zip(merged, scores):
+    doc[<span class="st">"rerank_score"</span>] = float(score)
+top3 = sorted(merged, key=<span class="kw">lambda</span> x: x[<span class="st">"rerank_score"</span>], reverse=<span class="kw">True</span>)[:<span class="nu">3</span>]`],
+  output:['Output',`<span class="cm"># Why hybrid beats pure vector/BM25</span>
+<span class="cm"># BM25 catches: exact product codes, names, error strings</span>
+<span class="cm"># Vector catches: paraphrases, synonyms, semantic similarity</span>
+<span class="cm"># RRF combines both without needing to normalise scores</span>
+<span class="cm"># Reranker does final precision pass on the merged set</span>
+
+<span class="kw">return</span> {<span class="st">"top_chunks"</span>: top3, <span class="st">"method"</span>: <span class="st">"bm25+vector+rrf+rerank"</span>}`],
+};
+function show(k){const[t,b]=snippets[k];document.getElementById('panel-title').textContent=t;document.getElementById('panel-body').innerHTML=b;document.getElementById('panel').classList.add('open')}
+function close_panel(){document.getElementById('panel').classList.remove('open')}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')close_panel()})
+</script>
+</body>
+</html>

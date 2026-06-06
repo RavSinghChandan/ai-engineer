@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P6 — Multi-Agent Systems Architecture Flow</title>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #f0f2f5;
+  font-family: -apple-system, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+  min-height: 100vh; padding: 48px 24px 100px;
+  -webkit-font-smoothing: antialiased;
+}
+.header { text-align: center; margin-bottom: 48px; }
+.badge {
+  display: inline-block; padding: 5px 16px; border-radius: 20px;
+  background: #fff; border: 1px solid #d2d2d7;
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; color: #6e6e73; margin-bottom: 14px;
+}
+.header h1 { font-size: 2.4rem; font-weight: 900; letter-spacing: -.04em; color: #1d1d1f; }
+.header p  { margin-top: 8px; font-size: .9rem; color: #6e6e73; font-family: 'SF Mono', monospace; }
+.layout { display: flex; gap: 28px; max-width: 1200px; margin: 0 auto; align-items: flex-start; }
+.dir-panel {
+  width: 240px; flex-shrink: 0; background: #fff;
+  border: 1.5px solid #e5e7eb; border-radius: 16px; padding: 16px 14px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.06); position: sticky; top: 32px;
+}
+.dir-title {
+  font-size: 0.65rem; font-weight: 800; letter-spacing: 1.2px;
+  text-transform: uppercase; color: #9ca3af; margin-bottom: 14px;
+  display: flex; align-items: center; gap: 6px;
+}
+.dir-tree { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.72rem; line-height: 1; }
+.dir-item {
+  display: flex; align-items: center; gap: 5px;
+  padding: 4px 6px; border-radius: 6px; color: #6e6e73;
+  cursor: default; transition: background .15s, color .15s; white-space: nowrap;
+}
+.dir-item.folder { color: #374151; font-weight: 600; }
+.dir-item.active {
+  background: #fef3c7; color: #92400e; font-weight: 700;
+  border-left: 3px solid #f59e0b; padding-left: 9px;
+}
+.dir-item .fi { font-size: .85rem; flex-shrink: 0; }
+.dir-hint {
+  margin-top: 14px; padding-top: 12px; border-top: 1px solid #f3f4f6;
+  font-size: 0.65rem; color: #d1d5db; text-align: center; font-style: italic; line-height: 1.5;
+}
+.main { flex: 1; min-width: 0; }
+.flow-wrap { display: flex; flex-direction: column; align-items: center; gap: 0; }
+.node {
+  width: auto; min-width: 260px; max-width: 420px;
+  background: #fff; border: 1.5px solid #e5e7eb;
+  border-radius: 14px; padding: 14px 20px;
+  display: inline-flex; flex-direction: column; align-items: flex-start;
+  box-shadow: 0 2px 10px rgba(0,0,0,.06);
+  cursor: pointer; transition: box-shadow .2s, transform .15s;
+  position: relative;
+}
+.node:hover { box-shadow: 0 6px 24px rgba(0,0,0,.12); transform: translateY(-1px); }
+.node-label {
+  font-size: 0.6rem; font-weight: 800; letter-spacing: 1px;
+  text-transform: uppercase; margin-bottom: 4px;
+}
+.node-title { font-size: 1.0rem; font-weight: 800; color: #1d1d1f; }
+.node-sub { font-size: 0.72rem; color: #6e6e73; margin-top: 3px; font-family: 'SF Mono', monospace; }
+.arrow { font-size: 1.4rem; color: #9ca3af; margin: 2px 0; line-height: 1; text-align: center; }
+.diamond {
+  width: 130px; height: 130px; margin: 4px auto;
+  display: flex; align-items: center; justify-content: center;
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  cursor: pointer; transition: filter .2s;
+}
+.diamond:hover { filter: brightness(1.08); }
+.diamond-inner { text-align: center; padding: 0 18px; }
+.diamond-inner .d-title { font-size: 0.78rem; font-weight: 800; color: #fff; line-height: 1.2; }
+.diamond-inner .d-sub { font-size: 0.6rem; color: rgba(255,255,255,.8); margin-top: 2px; }
+.branch-row {
+  display: flex; gap: 20px; align-items: flex-start;
+  justify-content: center; margin: 0; flex-wrap: wrap;
+}
+.branch-col { display: flex; flex-direction: column; align-items: center; gap: 0; }
+.branch-label {
+  font-size: 0.6rem; font-weight: 700; letter-spacing: .8px;
+  text-transform: uppercase; color: #9ca3af; padding: 2px 10px;
+  background: #f9fafb; border-radius: 20px; margin-bottom: 4px;
+}
+/* orchestrator box */
+.orch-box {
+  border: 2.5px dashed #7c3aed; border-radius: 18px;
+  padding: 16px 20px; margin: 12px 0;
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.orch-box-label {
+  position: absolute; top: -11px; left: 20px;
+  background: #f0f2f5; padding: 0 8px;
+  font-size: 0.62rem; font-weight: 800; letter-spacing: 1px;
+  text-transform: uppercase; color: #7c3aed;
+}
+/* worker row */
+.worker-row {
+  border: 2.5px dashed #0ea5e9; border-radius: 18px;
+  padding: 16px 20px; margin: 12px 0;
+  position: relative; display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; justify-content: center;
+}
+.worker-row-label {
+  position: absolute; top: -11px; left: 20px;
+  background: #f0f2f5; padding: 0 8px;
+  font-size: 0.62rem; font-weight: 800; letter-spacing: 1px;
+  text-transform: uppercase; color: #0ea5e9;
+}
+/* colours */
+.c-purple  { background: #7c3aed; border-color: #7c3aed; }
+.c-blue    { background: #2563eb; border-color: #2563eb; }
+.c-sky     { background: #0ea5e9; border-color: #0ea5e9; }
+.c-green   { background: #16a34a; border-color: #16a34a; }
+.c-amber   { background: #d97706; border-color: #d97706; }
+.c-rose    { background: #e11d48; border-color: #e11d48; }
+.c-indigo  { background: #4f46e5; border-color: #4f46e5; }
+.c-teal    { background: #0d9488; border-color: #0d9488; }
+.lbl-purple { color: #7c3aed; }
+.lbl-blue   { color: #2563eb; }
+.lbl-sky    { color: #0ea5e9; }
+.lbl-green  { color: #16a34a; }
+.lbl-amber  { color: #d97706; }
+.lbl-rose   { color: #e11d48; }
+/* code panel */
+.code-panel {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+  background: #1e1e1e; color: #d4d4d4;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.78rem; line-height: 1.6;
+  border-radius: 20px 20px 0 0; padding: 20px 28px 28px;
+  transform: translateY(100%); transition: transform .35s cubic-bezier(.4,0,.2,1);
+  max-height: 55vh; overflow-y: auto; box-shadow: 0 -8px 40px rgba(0,0,0,.4);
+}
+.code-panel.open { transform: translateY(0); }
+.panel-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 14px; border-bottom: 1px solid #3e3e3e; padding-bottom: 10px;
+}
+.panel-title { font-size: 0.75rem; font-weight: 700; color: #cccccc; letter-spacing: .5px; }
+.panel-close {
+  background: #3e3e3e; border: none; color: #cccccc; border-radius: 6px;
+  padding: 3px 10px; cursor: pointer; font-size: 0.78rem;
+}
+pre { white-space: pre-wrap; word-break: break-all; }
+.kw { color: #569cd6; } .fn { color: #dcdcaa; } .st { color: #ce9178; }
+.cm { color: #6a9955; } .tp { color: #4ec9b0; } .nu { color: #b5cea8; }
+.de { color: #c586c0; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="badge">AI System Design Blueprint · Pattern 6</div>
+  <h1>Multi-Agent Systems</h1>
+  <p>Orchestrator → Dispatch → Workers (parallel) → Synthesise → Response</p>
+</div>
+
+<div class="layout">
+  <!-- Directory Panel -->
+  <div class="dir-panel">
+    <div class="dir-title">📁 Blueprint</div>
+    <div class="dir-tree">
+      <div class="dir-item folder">📂 ai-system-design-blueprint/</div>
+      <div class="dir-item" style="padding-left:18px">📄 P1-plain-llm</div>
+      <div class="dir-item" style="padding-left:18px">📄 P2-rag</div>
+      <div class="dir-item" style="padding-left:18px">📄 P3-agent-tool-calling</div>
+      <div class="dir-item" style="padding-left:18px">📄 P4-memory-based-ai</div>
+      <div class="dir-item" style="padding-left:18px">📄 P5-streaming-async</div>
+      <div class="dir-item active" style="padding-left:18px">📄 P6-multi-agent ◀</div>
+      <div class="dir-item" style="padding-left:18px">📄 P7-guardrails</div>
+      <div class="dir-item" style="padding-left:18px">📄 P8-vector-db</div>
+      <div class="dir-item" style="padding-left:18px">📄 P9-hybrid-search</div>
+      <div class="dir-item" style="padding-left:18px">📄 P10-fine-tuning</div>
+      <div class="dir-item" style="padding-left:18px">📄 P11-caching</div>
+      <div class="dir-item" style="padding-left:18px">📄 P12-observability</div>
+      <div class="dir-item" style="padding-left:18px">📄 P13-cost-latency</div>
+      <div class="dir-item" style="padding-left:18px">📄 P14-prompt-injection</div>
+      <div class="dir-item" style="padding-left:18px">📄 P15-pii-privacy</div>
+    </div>
+    <div class="dir-hint">Click any node<br>to see code snippet</div>
+  </div>
+
+  <!-- Flow -->
+  <div class="main">
+    <div class="flow-wrap">
+
+      <!-- User Request -->
+      <div class="node c-blue" style="border-color:#2563eb" onclick="show('request')">
+        <span class="node-label lbl-blue">ENTRY</span>
+        <span class="node-title">User Request</span>
+        <span class="node-sub">Complex task → needs multiple agents</span>
+      </div>
+      <div class="arrow">↓</div>
+
+      <!-- Orchestrator box -->
+      <div class="orch-box">
+        <div class="orch-box-label">ORCHESTRATOR (LangGraph StateGraph)</div>
+
+        <div class="node c-purple" style="border-color:#7c3aed" onclick="show('planner')">
+          <span class="node-label lbl-purple">STEP 1 — PLAN</span>
+          <span class="node-title">Planner Agent</span>
+          <span class="node-sub">Decomposes task → subtask list</span>
+        </div>
+        <div class="arrow">↓</div>
+
+        <div class="diamond c-purple" onclick="show('route')">
+          <div class="diamond-inner">
+            <div class="d-title">Route?</div>
+            <div class="d-sub">parallel / sequential</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow">↓</div>
+
+      <!-- Worker agents row -->
+      <div class="worker-row">
+        <div class="worker-row-label">WORKER AGENTS (parallel via asyncio.gather)</div>
+        <div class="branch-col">
+          <div class="node c-sky" style="border-color:#0ea5e9; min-width:160px" onclick="show('worker_rag')">
+            <span class="node-label lbl-sky">WORKER A</span>
+            <span class="node-title">RAG Agent</span>
+            <span class="node-sub">Search + retrieve docs</span>
+          </div>
+        </div>
+        <div class="branch-col">
+          <div class="node c-sky" style="border-color:#0ea5e9; min-width:160px" onclick="show('worker_code')">
+            <span class="node-label lbl-sky">WORKER B</span>
+            <span class="node-title">Code Agent</span>
+            <span class="node-sub">Write / analyse code</span>
+          </div>
+        </div>
+        <div class="branch-col">
+          <div class="node c-sky" style="border-color:#0ea5e9; min-width:160px" onclick="show('worker_web')">
+            <span class="node-label lbl-sky">WORKER C</span>
+            <span class="node-title">Web Agent</span>
+            <span class="node-sub">Fetch live data</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow">↓</div>
+
+      <!-- Synthesiser -->
+      <div class="node c-indigo" style="border-color:#4f46e5" onclick="show('synth')">
+        <span class="node-label" style="color:#4f46e5">STEP 3 — SYNTHESISE</span>
+        <span class="node-title">Synthesiser Agent</span>
+        <span class="node-sub">Merge worker results → coherent answer</span>
+      </div>
+      <div class="arrow">↓</div>
+
+      <!-- Critic check -->
+      <div class="diamond c-amber" onclick="show('critic')">
+        <div class="diamond-inner">
+          <div class="d-title">Critic OK?</div>
+          <div class="d-sub">self-critique loop</div>
+        </div>
+      </div>
+      <div class="arrow">↓</div>
+
+      <!-- Final response -->
+      <div class="node c-green" style="border-color:#16a34a" onclick="show('response')">
+        <span class="node-label lbl-green">OUTPUT</span>
+        <span class="node-title">Final Response</span>
+        <span class="node-sub">Structured + cited answer</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Code Panel -->
+<div class="code-panel" id="panel">
+  <div class="panel-header">
+    <span class="panel-title" id="panel-title">Code</span>
+    <button class="panel-close" onclick="close_panel()">✕ close</button>
+  </div>
+  <pre id="panel-body"></pre>
+</div>
+
+<script>
+const snippets = {
+  request: ['User Request', `<span class="cm"># FastAPI entry point</span>
+<span class="kw">class</span> <span class="tp">AgentRequest</span>(BaseModel):
+    task: <span class="tp">str</span>   <span class="cm"># complex multi-step task</span>
+
+<span class="de">@app.post</span>(<span class="st">"/run"</span>)
+<span class="kw">async def</span> <span class="fn">run_multi_agent</span>(req: <span class="tp">AgentRequest</span>) -> <span class="tp">dict</span>:
+    result = <span class="kw">await</span> orchestrator.run(req.task)
+    <span class="kw">return</span> {<span class="st">"answer"</span>: result}`],
+
+  planner: ['Planner Agent', `<span class="cm"># Planner: decompose task into subtasks</span>
+<span class="kw">async def</span> <span class="fn">planner_node</span>(state: <span class="tp">AgentState</span>) -> <span class="tp">AgentState</span>:
+    response = <span class="kw">await</span> llm.chat.completions.create(
+        model=<span class="st">"gpt-4o"</span>,
+        messages=[
+            {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: <span class="st">"Decompose the task into subtasks. Return JSON list."</span>},
+            {<span class="st">"role"</span>: <span class="st">"user"</span>,   <span class="st">"content"</span>: state[<span class="st">"task"</span>]},
+        ],
+        response_format={<span class="st">"type"</span>: <span class="st">"json_object"</span>},
+    )
+    subtasks = json.loads(response.choices[<span class="nu">0</span>].message.content)[<span class="st">"subtasks"</span>]
+    <span class="kw">return</span> {**state, <span class="st">"subtasks"</span>: subtasks}`],
+
+  route: ['Router — parallel vs sequential', `<span class="cm"># LangGraph conditional edge</span>
+<span class="kw">def</span> <span class="fn">route_decision</span>(state: <span class="tp">AgentState</span>) -> <span class="tp">str</span>:
+    <span class="kw">if</span> state.get(<span class="st">"parallel"</span>, <span class="kw">True</span>):
+        <span class="kw">return</span> <span class="st">"parallel_workers"</span>
+    <span class="kw">return</span> <span class="st">"sequential_workers"</span>
+
+graph.add_conditional_edges(<span class="st">"planner"</span>, route_decision, {
+    <span class="st">"parallel_workers"</span>:   <span class="st">"dispatch"</span>,
+    <span class="st">"sequential_workers"</span>: <span class="st">"worker_a"</span>,
+})`],
+
+  worker_rag: ['Worker A — RAG Agent', `<span class="cm"># RAG worker node</span>
+<span class="kw">async def</span> <span class="fn">rag_worker</span>(subtask: <span class="tp">str</span>, vector_store) -> <span class="tp">str</span>:
+    q_vec   = <span class="kw">await</span> embed_query(subtask)
+    chunks  = vector_store.search(q_vec, top_k=<span class="nu">5</span>)
+    ranked  = rerank(subtask, chunks)
+    messages = build_rag_messages(subtask, ranked)
+    resp = <span class="kw">await</span> llm.chat.completions.create(model=<span class="st">"gpt-4o"</span>, messages=messages)
+    <span class="kw">return</span> resp.choices[<span class="nu">0</span>].message.content`],
+
+  worker_code: ['Worker B — Code Agent', `<span class="cm"># Code worker node</span>
+<span class="kw">async def</span> <span class="fn">code_worker</span>(subtask: <span class="tp">str</span>) -> <span class="tp">str</span>:
+    resp = <span class="kw">await</span> llm.chat.completions.create(
+        model=<span class="st">"gpt-4o"</span>,
+        messages=[
+            {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: <span class="st">"You are an expert software engineer."</span>},
+            {<span class="st">"role"</span>: <span class="st">"user"</span>,   <span class="st">"content"</span>: subtask},
+        ],
+    )
+    <span class="kw">return</span> resp.choices[<span class="nu">0</span>].message.content`],
+
+  worker_web: ['Worker C — Web Agent (parallel dispatch)', `<span class="cm"># Run all workers in parallel</span>
+<span class="kw">async def</span> <span class="fn">dispatch_workers</span>(state: <span class="tp">AgentState</span>) -> <span class="tp">AgentState</span>:
+    tasks = [
+        rag_worker(state[<span class="st">"subtasks"</span>][<span class="nu">0</span>]),
+        code_worker(state[<span class="st">"subtasks"</span>][<span class="nu">1</span>]),
+        web_worker(state[<span class="st">"subtasks"</span>][<span class="nu">2</span>]),
+    ]
+    results = <span class="kw">await</span> asyncio.gather(*tasks)  <span class="cm"># parallel!</span>
+    <span class="kw">return</span> {**state, <span class="st">"worker_results"</span>: list(results)}`],
+
+  synth: ['Synthesiser Agent', `<span class="cm"># Merge worker results</span>
+<span class="kw">async def</span> <span class="fn">synthesiser_node</span>(state: <span class="tp">AgentState</span>) -> <span class="tp">AgentState</span>:
+    combined = <span class="st">"\n\n"</span>.join(
+        f<span class="st">"[Worker {i+1}]: {r}"</span>
+        <span class="kw">for</span> i, r <span class="kw">in</span> enumerate(state[<span class="st">"worker_results"</span>])
+    )
+    resp = <span class="kw">await</span> llm.chat.completions.create(
+        model=<span class="st">"gpt-4o"</span>,
+        messages=[
+            {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: <span class="st">"Merge these worker results into one coherent answer."</span>},
+            {<span class="st">"role"</span>: <span class="st">"user"</span>,   <span class="st">"content"</span>: combined},
+        ],
+    )
+    <span class="kw">return</span> {**state, <span class="st">"draft_answer"</span>: resp.choices[<span class="nu">0</span>].message.content}`],
+
+  critic: ['Critic Loop', `<span class="cm"># Self-critique: ask LLM to score its own answer</span>
+<span class="kw">async def</span> <span class="fn">critic_node</span>(state: <span class="tp">AgentState</span>) -> <span class="tp">AgentState</span>:
+    resp = <span class="kw">await</span> llm.chat.completions.create(
+        model=<span class="st">"gpt-4o"</span>,
+        messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>:
+            f<span class="st">"Rate this answer 1-10 for completeness and accuracy. Return JSON {score, feedback}.\n{state['draft_answer']}"</span>}],
+        response_format={<span class="st">"type"</span>: <span class="st">"json_object"</span>},
+    )
+    data = json.loads(resp.choices[<span class="nu">0</span>].message.content)
+    <span class="kw">return</span> {**state, <span class="st">"critic_score"</span>: data[<span class="st">"score"</span>], <span class="st">"critic_feedback"</span>: data[<span class="st">"feedback"</span>]}
+
+<span class="kw">def</span> <span class="fn">critic_route</span>(state) -> <span class="tp">str</span>:
+    <span class="kw">return</span> <span class="st">"done"</span> <span class="kw">if</span> state[<span class="st">"critic_score"</span>] >= <span class="nu">7</span> <span class="kw">else</span> <span class="st">"re_plan"</span>`],
+
+  response: ['Final Response', `<span class="cm"># Return structured response</span>
+<span class="kw">class</span> <span class="tp">MultiAgentResponse</span>(BaseModel):
+    answer:       <span class="tp">str</span>
+    agents_used:  list[<span class="tp">str</span>]
+    critic_score: <span class="tp">float</span>
+    steps:        <span class="tp">int</span>
+
+<span class="kw">return</span> <span class="tp">MultiAgentResponse</span>(
+    answer       = state[<span class="st">"draft_answer"</span>],
+    agents_used  = [<span class="st">"planner"</span>, <span class="st">"rag"</span>, <span class="st">"code"</span>, <span class="st">"web"</span>, <span class="st">"synthesiser"</span>],
+    critic_score = state[<span class="st">"critic_score"</span>],
+    steps        = state[<span class="st">"step_count"</span>],
+)`],
+};
+
+function show(key) {
+  const [title, body] = snippets[key];
+  document.getElementById('panel-title').textContent = title;
+  document.getElementById('panel-body').innerHTML = body;
+  document.getElementById('panel').classList.add('open');
+}
+function close_panel() { document.getElementById('panel').classList.remove('open'); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') close_panel(); });
+</script>
+</body>
+</html>

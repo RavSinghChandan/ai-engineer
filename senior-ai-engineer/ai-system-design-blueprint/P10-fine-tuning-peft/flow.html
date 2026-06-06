@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P10 — Fine-Tuning & PEFT</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+body{background:#f0f2f5;font-family:-apple-system,'SF Pro Display','Segoe UI',system-ui,sans-serif;min-height:100vh;padding:48px 24px 100px;-webkit-font-smoothing:antialiased}
+.header{text-align:center;margin-bottom:48px}
+.badge{display:inline-block;padding:5px 16px;border-radius:20px;background:#fff;border:1px solid #d2d2d7;font-size:0.7rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#6e6e73;margin-bottom:14px}
+.header h1{font-size:2.4rem;font-weight:900;letter-spacing:-.04em;color:#1d1d1f}
+.header p{margin-top:8px;font-size:.9rem;color:#6e6e73;font-family:'SF Mono',monospace}
+.layout{display:flex;gap:28px;max-width:1200px;margin:0 auto;align-items:flex-start}
+.dir-panel{width:240px;flex-shrink:0;background:#fff;border:1.5px solid #e5e7eb;border-radius:16px;padding:16px 14px;box-shadow:0 2px 12px rgba(0,0,0,.06);position:sticky;top:32px}
+.dir-title{font-size:0.65rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#9ca3af;margin-bottom:14px}
+.dir-tree{font-family:'SF Mono','Fira Code',monospace;font-size:0.72rem;line-height:1}
+.dir-item{display:flex;align-items:center;gap:5px;padding:4px 6px;border-radius:6px;color:#6e6e73;white-space:nowrap}
+.dir-item.folder{color:#374151;font-weight:600}
+.dir-item.active{background:#fef3c7;color:#92400e;font-weight:700;border-left:3px solid #f59e0b;padding-left:9px}
+.dir-hint{margin-top:14px;padding-top:12px;border-top:1px solid #f3f4f6;font-size:0.65rem;color:#d1d5db;text-align:center;font-style:italic;line-height:1.5}
+.main{flex:1;min-width:0}
+.flow-wrap{display:flex;flex-direction:column;align-items:center;gap:0}
+.node{width:auto;min-width:260px;max-width:440px;background:#fff;border:1.5px solid #e5e7eb;border-radius:14px;padding:14px 20px;display:inline-flex;flex-direction:column;align-items:flex-start;box-shadow:0 2px 10px rgba(0,0,0,.06);cursor:pointer;transition:box-shadow .2s,transform .15s}
+.node:hover{box-shadow:0 6px 24px rgba(0,0,0,.12);transform:translateY(-1px)}
+.node-label{font-size:0.6rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.node-title{font-size:1.0rem;font-weight:800;color:#1d1d1f}
+.node-sub{font-size:0.72rem;color:#6e6e73;margin-top:3px;font-family:'SF Mono',monospace}
+.arrow{font-size:1.4rem;color:#9ca3af;margin:2px 0;line-height:1;text-align:center}
+.diamond{width:140px;height:140px;margin:4px auto;display:flex;align-items:center;justify-content:center;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);cursor:pointer}
+.diamond-inner{text-align:center;padding:0 18px}
+.diamond-inner .d-title{font-size:0.78rem;font-weight:800;color:#fff;line-height:1.2}
+.diamond-inner .d-sub{font-size:0.6rem;color:rgba(255,255,255,.8);margin-top:2px}
+.branch-row{display:flex;gap:20px;align-items:flex-start;justify-content:center;margin:0;flex-wrap:wrap}
+.branch-col{display:flex;flex-direction:column;align-items:center;gap:4px}
+.branch-label{font-size:0.6rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#9ca3af;padding:2px 10px;background:#f9fafb;border-radius:20px;margin-bottom:4px}
+.c-blue{background:#2563eb}.c-purple{background:#7c3aed}.c-teal{background:#0d9488}.c-green{background:#16a34a}.c-amber{background:#d97706}.c-rose{background:#e11d48}
+.lbl-blue{color:#2563eb}.lbl-purple{color:#7c3aed}.lbl-teal{color:#0d9488}.lbl-green{color:#16a34a}.lbl-amber{color:#d97706}.lbl-rose{color:#e11d48}
+.code-panel{position:fixed;bottom:0;left:0;right:0;z-index:100;background:#1e1e1e;color:#d4d4d4;font-family:'SF Mono','Fira Code','Consolas',monospace;font-size:0.78rem;line-height:1.6;border-radius:20px 20px 0 0;padding:20px 28px 28px;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);max-height:55vh;overflow-y:auto;box-shadow:0 -8px 40px rgba(0,0,0,.4)}
+.code-panel.open{transform:translateY(0)}
+.panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:1px solid #3e3e3e;padding-bottom:10px}
+.panel-title{font-size:0.75rem;font-weight:700;color:#cccccc;letter-spacing:.5px}
+.panel-close{background:#3e3e3e;border:none;color:#cccccc;border-radius:6px;padding:3px 10px;cursor:pointer;font-size:0.78rem}
+pre{white-space:pre-wrap;word-break:break-all}
+.kw{color:#569cd6}.fn{color:#dcdcaa}.st{color:#ce9178}.cm{color:#6a9955}.tp{color:#4ec9b0}.nu{color:#b5cea8}.de{color:#c586c0}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="badge">AI System Design Blueprint · Pattern 10</div>
+  <h1>Fine-Tuning &amp; PEFT</h1>
+  <p>When to fine-tune · LoRA / QLoRA · Dataset prep → Train → Evaluate → Deploy</p>
+</div>
+<div class="layout">
+  <div class="dir-panel">
+    <div class="dir-title">📁 Blueprint</div>
+    <div class="dir-tree">
+      <div class="dir-item folder">📂 ai-system-design-blueprint/</div>
+      <div class="dir-item" style="padding-left:18px">📄 P1–P9 ...</div>
+      <div class="dir-item active" style="padding-left:18px">📄 P10-fine-tuning ◀</div>
+      <div class="dir-item" style="padding-left:18px">📄 P11–P15 ...</div>
+    </div>
+    <div class="dir-hint">Click any node<br>to see code snippet</div>
+  </div>
+  <div class="main">
+    <div class="flow-wrap">
+
+      <div class="node c-blue" style="border-color:#2563eb" onclick="show('when')">
+        <span class="node-label lbl-blue">DECISION POINT</span>
+        <span class="node-title">Fine-tune vs RAG vs Prompt?</span>
+        <span class="node-sub">Always try prompt engineering first</span>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="diamond c-amber" onclick="show('decision')">
+        <div class="diamond-inner">
+          <div class="d-title">Need fine-tune?</div>
+          <div class="d-sub">style / domain / latency</div>
+        </div>
+      </div>
+      <div class="arrow">↓ yes</div>
+
+      <div class="node c-purple" style="border-color:#7c3aed" onclick="show('dataset')">
+        <span class="node-label lbl-purple">STEP 1 — DATA</span>
+        <span class="node-title">Dataset Preparation</span>
+        <span class="node-sub">JSONL · instruction-response pairs · 500–10K examples</span>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="diamond c-teal" onclick="show('method')">
+        <div class="diamond-inner">
+          <div class="d-title">Method?</div>
+          <div class="d-sub">LoRA / QLoRA / Full</div>
+        </div>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="branch-row">
+        <div class="branch-col">
+          <div class="branch-label">LoRA</div>
+          <div class="node" style="border-color:#7c3aed;min-width:160px;background:#faf5ff;cursor:pointer" onclick="show('lora')">
+            <span class="node-label lbl-purple">PEFT</span>
+            <span class="node-title">LoRA</span>
+            <span class="node-sub">r=8, α=16 · adapters only</span>
+          </div>
+        </div>
+        <div class="branch-col">
+          <div class="branch-label">QLoRA (4-bit)</div>
+          <div class="node" style="border-color:#0d9488;min-width:160px;background:#f0fdfa;cursor:pointer" onclick="show('qlora')">
+            <span class="node-label lbl-teal">PEFT + QUANT</span>
+            <span class="node-title">QLoRA</span>
+            <span class="node-sub">bitsandbytes 4-bit + NF4</span>
+          </div>
+        </div>
+        <div class="branch-col">
+          <div class="branch-label">OpenAI API</div>
+          <div class="node" style="border-color:#16a34a;min-width:160px;background:#f0fdf4;cursor:pointer" onclick="show('openai_ft')">
+            <span class="node-label lbl-green">MANAGED</span>
+            <span class="node-title">OpenAI Fine-tune</span>
+            <span class="node-sub">gpt-4o-mini · JSONL upload</span>
+          </div>
+        </div>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="node c-green" style="border-color:#16a34a" onclick="show('eval')">
+        <span class="node-label lbl-green">STEP 3 — EVALUATE</span>
+        <span class="node-title">Evaluation</span>
+        <span class="node-sub">Perplexity · BLEU · task-specific evals</span>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="node" style="background:#f0fdf4;border-color:#16a34a" onclick="show('deploy')">
+        <span class="node-label lbl-green">DEPLOY</span>
+        <span class="node-title">Serve Fine-tuned Model</span>
+        <span class="node-sub">vLLM / TGI · quantized · &lt;100ms</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="code-panel" id="panel">
+  <div class="panel-header">
+    <span class="panel-title" id="panel-title">Code</span>
+    <button class="panel-close" onclick="close_panel()">✕ close</button>
+  </div>
+  <pre id="panel-body"></pre>
+</div>
+
+<script>
+const snippets={
+  when:['Fine-tune vs RAG vs Prompt',`<span class="cm"># Decision tree — use in interviews</span>
+<span class="cm">#</span>
+<span class="cm"># Problem                  | Solution</span>
+<span class="cm"># ─────────────────────────|──────────────────────────</span>
+<span class="cm"># Wrong output format      | Prompt engineering (free)</span>
+<span class="cm"># Missing knowledge        | RAG (add docs)</span>
+<span class="cm"># Wrong tone/style         | Fine-tune (100+ examples)</span>
+<span class="cm"># Domain jargon not known  | Fine-tune (500+ examples)</span>
+<span class="cm"># Too slow / too expensive | Fine-tune smaller model</span>
+<span class="cm"># Private data             | Fine-tune on-prem</span>
+<span class="cm">#</span>
+<span class="cm"># RULE: prompt → RAG → fine-tune (in that order of cost)</span>`],
+  decision:['Fine-tune Decision',`<span class="cm"># When fine-tuning is justified</span>
+<span class="cm"># 1. You have 500+ quality labelled examples</span>
+<span class="cm"># 2. Prompt engineering + RAG don't solve the problem</span>
+<span class="cm"># 3. You need specific output format repeatedly</span>
+<span class="cm"># 4. Latency matters: fine-tuned small model > large model</span>
+<span class="cm"># 5. Cost at scale: fine-tuned 7B > GPT-4o-mini for same quality</span>`],
+  dataset:['Dataset Preparation',`<span class="cm"># JSONL format for instruction tuning</span>
+<span class="cm"># {"messages": [{"role": "system", "content": "..."}, ...]}</span>
+
+<span class="kw">import</span> json
+
+<span class="kw">def</span> <span class="fn">format_example</span>(instruction: <span class="tp">str</span>, output: <span class="tp">str</span>) -> <span class="tp">dict</span>:
+    <span class="kw">return</span> {
+        <span class="st">"messages"</span>: [
+            {<span class="st">"role"</span>: <span class="st">"system"</span>,    <span class="st">"content"</span>: <span class="st">"You are a helpful AI assistant."</span>},
+            {<span class="st">"role"</span>: <span class="st">"user"</span>,      <span class="st">"content"</span>: instruction},
+            {<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: output},
+        ]
+    }
+
+<span class="cm"># Write JSONL</span>
+<span class="kw">with</span> open(<span class="st">"train.jsonl"</span>, <span class="st">"w"</span>) <span class="kw">as</span> f:
+    <span class="kw">for</span> ex <span class="kw">in</span> examples:
+        f.write(json.dumps(format_example(ex[<span class="st">"instruction"</span>], ex[<span class="st">"output"</span>])) + <span class="st">"\n"</span>)`],
+  lora:['LoRA — Low-Rank Adaptation',`<span class="kw">from</span> peft <span class="kw">import</span> LoraConfig, get_peft_model, TaskType
+<span class="kw">from</span> transformers <span class="kw">import</span> AutoModelForCausalLM, AutoTokenizer, TrainingArguments
+<span class="kw">from</span> trl <span class="kw">import</span> SFTTrainer
+
+model = AutoModelForCausalLM.from_pretrained(<span class="st">"mistralai/Mistral-7B-v0.1"</span>)
+
+lora_config = LoraConfig(
+    r=<span class="nu">8</span>,                   <span class="cm"># rank — low=fewer params, high=more capacity</span>
+    lora_alpha=<span class="nu">16</span>,          <span class="cm"># scaling factor (alpha/r = 2 is typical)</span>
+    target_modules=[<span class="st">"q_proj"</span>, <span class="st">"v_proj"</span>],   <span class="cm"># which layers get adapters</span>
+    lora_dropout=<span class="nu">0.05</span>,
+    task_type=TaskType.CAUSAL_LM,
+)
+model = get_peft_model(model, lora_config)
+model.print_trainable_parameters()  <span class="cm"># e.g. "0.1% of 7B params"</span>`],
+  qlora:['QLoRA — Quantized LoRA',`<span class="kw">from</span> transformers <span class="kw">import</span> BitsAndBytesConfig
+<span class="kw">import</span> torch
+
+<span class="cm"># 4-bit quantization config</span>
+bnb_config = BitsAndBytesConfig(
+    load_in_4bit=<span class="kw">True</span>,
+    bnb_4bit_use_double_quant=<span class="kw">True</span>,    <span class="cm"># nested quantization</span>
+    bnb_4bit_quant_type=<span class="st">"nf4"</span>,          <span class="cm"># NormalFloat4 — best for LLM weights</span>
+    bnb_4bit_compute_dtype=torch.bfloat16,
+)
+
+<span class="cm"># Load 7B model in 4-bit → fits on single 16GB GPU</span>
+model = AutoModelForCausalLM.from_pretrained(
+    <span class="st">"mistralai/Mistral-7B-v0.1"</span>,
+    quantization_config=bnb_config,
+    device_map=<span class="st">"auto"</span>,
+)`],
+  openai_ft:['OpenAI Fine-Tuning API',`<span class="kw">from</span> openai <span class="kw">import</span> OpenAI
+
+client = OpenAI()
+
+<span class="cm"># Upload training file</span>
+file = client.files.create(
+    file=open(<span class="st">"train.jsonl"</span>, <span class="st">"rb"</span>),
+    purpose=<span class="st">"fine-tune"</span>,
+)
+
+<span class="cm"># Create fine-tuning job</span>
+job = client.fine_tuning.jobs.create(
+    training_file=file.id,
+    model=<span class="st">"gpt-4o-mini-2024-07-18"</span>,     <span class="cm"># cheapest fine-tunable model</span>
+    hyperparameters={<span class="st">"n_epochs"</span>: <span class="nu">3</span>},
+)
+print(f<span class="st">"Job ID: {job.id}"</span>)  <span class="cm"># poll until status == "succeeded"</span>
+
+<span class="cm"># Use fine-tuned model</span>
+resp = client.chat.completions.create(
+    model=f<span class="st">"ft:gpt-4o-mini::{job.fine_tuned_model}"</span>,
+    messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: <span class="st">"Hello"</span>}],
+)`],
+  eval:['Evaluation',`<span class="cm"># Evaluate fine-tuned model on held-out test set</span>
+<span class="kw">from</span> evaluate <span class="kw">import</span> load
+
+bleu   = load(<span class="st">"bleu"</span>)
+rouge  = load(<span class="st">"rouge"</span>)
+
+<span class="cm"># Or task-specific: exact match on structured output</span>
+<span class="kw">def</span> <span class="fn">evaluate_json_accuracy</span>(predictions, references) -> <span class="tp">float</span>:
+    correct = sum(
+        json.loads(p) == json.loads(r)
+        <span class="kw">for</span> p, r <span class="kw">in</span> zip(predictions, references)
+        <span class="kw">if</span> <span class="kw">not</span> isinstance(json.loads(p), Exception)
+    )
+    <span class="kw">return</span> correct / len(predictions)`],
+  deploy:['Deploy with vLLM',`<span class="cm"># Serve fine-tuned model with vLLM (OpenAI-compatible API)</span>
+<span class="cm"># vllm serve mistralai/Mistral-7B-v0.1 \\</span>
+<span class="cm">#   --enable-lora \\</span>
+<span class="cm">#   --lora-modules my-model=./lora-adapter \\</span>
+<span class="cm">#   --quantization awq \\</span>
+<span class="cm">#   --gpu-memory-utilization 0.9</span>
+
+<span class="cm"># Client: exactly the same as OpenAI SDK</span>
+client = AsyncOpenAI(base_url=<span class="st">"http://localhost:8000/v1"</span>, api_key=<span class="st">"token"</span>)
+resp = <span class="kw">await</span> client.chat.completions.create(
+    model=<span class="st">"my-model"</span>,
+    messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: <span class="st">"Hello"</span>}],
+)`],
+};
+function show(k){const[t,b]=snippets[k];document.getElementById('panel-title').textContent=t;document.getElementById('panel-body').innerHTML=b;document.getElementById('panel').classList.add('open')}
+function close_panel(){document.getElementById('panel').classList.remove('open')}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')close_panel()})
+</script>
+</body>
+</html>
