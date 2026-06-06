@@ -369,15 +369,6 @@ body{
     Ask about any of the 15 AI system design patterns
   </div>
 
-  <!-- API key setup (shown if no key) -->
-  <div class="apikey-setup" id="apikeySetup" style="display:none">
-    <div class="apikey-icon">🔑</div>
-    <div class="apikey-title">Enter your DeepSeek API Key</div>
-    <div class="apikey-sub">Your key is stored only in this browser session and never sent anywhere except DeepSeek's API.</div>
-    <input type="password" id="apiKeyInput" placeholder="sk-..." />
-    <button class="save-key-btn" onclick="saveApiKey()">Save &amp; Start Chatting</button>
-  </div>
-
   <!-- Chat messages -->
   <div class="chat-messages" id="chatMessages"></div>
 
@@ -403,8 +394,8 @@ let zoomLevel    = 100;
 let chatOpen     = false;
 let chatHistory  = [];
 
-// DeepSeek key — pre-loaded; user can override
-let DEEPSEEK_KEY = 'REMOVED_KEY';
+// Agent endpoint — Universal Agent (Aarav) running locally
+const AGENT_URL = 'http://localhost:8000';
 
 const ORDER = [
   'P1-plain-llm/flow.html','P2-rag/flow.html','P3-agent-tool-calling/flow.html',
@@ -576,22 +567,15 @@ function toggleChat(){
   document.getElementById('chatPanel').classList.toggle('open', chatOpen);
   
   if (chatOpen && chatHistory.length === 0) {
-    // welcome message
-    addMessage('ai', "Hi! I'm your AI System Design Mentor. I know all 15 patterns in this blueprint — from Plain LLM to PII Privacy.\n\nAsk me anything:\n• \"Explain the RAG pattern\"\n• \"When should I use fine-tuning vs RAG?\"\n• \"What is RRF in hybrid search?\"\n• \"How does the PII vault work?\"");
-    document.getElementById('apikeySetup').style.display = 'none';
+    addMessage('ai', "Hi! I'm Aarav, your AI System Design Mentor.\n\nI know all 15 patterns in this blueprint. Ask me anything:\n• \"Explain the RAG pattern\"\n• \"When should I use fine-tuning vs RAG?\"\n• \"What is RRF in hybrid search?\"\n• \"How does the PII vault work?\"\n\n⚡ Make sure Aarav agent is running (./start-agent.sh)");
   }
-}
-
-function saveApiKey(){
-  const val = document.getElementById('apiKeyInput').value.trim();
-  if (!val) return;
-  DEEPSEEK_KEY = val;
-  document.getElementById('apikeySetup').style.display = 'none';
 }
 
 function chatKeydown(e){
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
 }
+
+let _sessionId = 'dashboard-' + Math.random().toString(36).slice(2);
 
 async function sendChat(){
   const input = document.getElementById('chatInput');
@@ -603,44 +587,32 @@ async function sendChat(){
   addMessage('user', text);
   chatHistory.push({role:'user', content: text});
 
-  // show typing
   const typing = addTyping();
   document.getElementById('sendBtn').disabled = true;
 
   try {
-    const res = await fetch('https://api.deepseek.com/chat/completions', {
+    const res = await fetch(`${AGENT_URL}/agent/chat`, {
       method: 'POST',
-      headers: {
-        'Content-Type':  'application/json',
-        'Authorization': `Bearer ${DEEPSEEK_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'deepseek-chat',
-        messages: [
-          {role:'system', content: SYSTEM_PROMPT},
-          ...chatHistory.slice(-12)  // keep last 12 turns for context
-        ],
-        temperature: 0.4,
-        max_tokens: 800,
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text, session_id: _sessionId })
     });
 
     typing.remove();
 
     if (!res.ok) {
-      const err = await res.json().catch(()=>({error:{message:'Unknown error'}}));
-      addMessage('ai', `⚠️ API error: ${err.error?.message || res.status}. Check your DeepSeek key.`);
+      const err = await res.json().catch(()=>({detail:'Unknown error'}));
+      addMessage('ai', `⚠️ Agent error: ${err.detail || res.status}. Make sure Aarav is running (./start-agent.sh).`);
       return;
     }
 
     const data = await res.json();
-    const reply = data.choices?.[0]?.message?.content || 'No response.';
+    const reply = data.response || data.message || 'No response.';
     addMessage('ai', reply);
     chatHistory.push({role:'assistant', content: reply});
 
   } catch(err) {
     typing.remove();
-    addMessage('ai', `⚠️ Network error: ${err.message}`);
+    addMessage('ai', `⚠️ Cannot reach Aarav at ${AGENT_URL}. Run ./start-agent.sh first, then refresh.`);
   } finally {
     document.getElementById('sendBtn').disabled = false;
     input.focus();
