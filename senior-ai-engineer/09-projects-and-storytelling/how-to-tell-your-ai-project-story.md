@@ -324,6 +324,8 @@ The senior AI engineer combines both. Lead with AI domain knowledge, then connec
 - **Why it fails:** LLM has general knowledge, not domain precision. One agent can hallucinate with full confidence.
 - **Actual solution:** 18+ independent domain agents (Numerology, Astrology, Palmistry, Tarot, Vastu) run in parallel. A meta-agent computes consensus confidence. Only HIGH/MEDIUM insights reach the user.
 - **Measurement:** $0.000137 per analysis (500× cheaper than GPT-4o). 415 tests. 20 famous profiles validated: 100% LOW hallucination risk.
+- **P4 — Memory-Based AI:** Every admin correction (via `/approve`) is stored in a tenant-scoped SQLite episodic table. On the next run for the same tenant, `build_tenant_context()` retrieves the top-K most similar past corrections by cosine similarity and injects them as `persona_context` before the first agent runs — the system gets better with every review cycle without retraining. `GET /api/v1/feedback/memory-summary` exposes the full memory profile.
+- **P5 — Streaming + Async:** Three modes covered. (1) Sync+SSE: `GET /stream/{session_id}` streams `node_start`/`node_done` events in real time via in-process event bus. (2) Async+poll: `POST /submit` returns `job_id` immediately; client polls `GET /job/{id}`. (3) Combined full pattern: `POST /submit-stream` — one SSE connection delivers the `job_id` in the first event and live pipeline progress in subsequent events.
 
 ### Project 2: Bench Resource Optimizer
 - **Problem:** Bench employees don't know their skill gaps vs target roles

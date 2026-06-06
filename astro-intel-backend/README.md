@@ -193,6 +193,65 @@ The LangGraph pipeline runs 15 agents in sequence/parallel:
 
 ---
 
+---
+
+## P4 — Memory-Based AI Pattern
+
+**Flow:** `Retrieve → Context Build → LLM → Store`
+
+Every pipeline run is memory-informed. Here is the full loop:
+
+| Step | What happens | Code |
+|------|-------------|------|
+| **Retrieve** | `build_tenant_context()` fetches the tenant's top-K past corrections by cosine similarity | `memory/persona.py` |
+| **Context Build** | `persona_injection_node` formats corrections into a `persona_context` string and injects into LangGraph state | `graph/pipeline.py` |
+| **LLM** | All 15 domain agents receive `persona_context` via `build_prompt()` — tone rules and known corrections apply automatically | `agents/` |
+| **Store** | `POST /api/v1/analysis/approve` with `edited_insights` calls `log_correction()` → persisted to SQLite | `memory/episodic.py` |
+
+**Demo endpoint:** `GET /api/v1/feedback/memory-summary`
+Returns the tenant's full memory profile: correction count, by-intent breakdown, saved persona preferences, 5 most recent corrections, and the correction summary injected into every pipeline run. No session_id required — uses the authenticated tenant.
+
+```bash
+curl -H "X-API-Key: sk-master-test-superadmin" \
+     http://localhost:8080/api/v1/feedback/memory-summary
+```
+
+---
+
+## P5 — Streaming + Async Pattern
+
+**Three modes — all non-breaking, all additive:**
+
+### Part A — SSE Token Streaming (sync)
+`GET /api/v1/stream/{session_id}` — open before calling `/run`. Receives real-time `node_start` / `node_done` events as each pipeline agent completes.
+
+### Part B — Async Job Queue (poll)
+`POST /api/v1/analysis/submit` → returns `{job_id}` immediately → poll `GET /api/v1/analysis/job/{job_id}` every 2s until `status == "done"`. Works without Kafka (background thread fallback).
+
+### Combined — P5 Full Pattern
+`POST /api/v1/analysis/submit-stream` — submits the async job AND streams SSE progress events in a single connection.
+
+```
+SSE event sequence:
+  event: job_queued    data: {"job_id": "...", "status": "queued"}
+  event: node_start    data: {"node": "question_agent", "ts": ...}
+  event: node_done     data: {"node": "domain_agents", "duration_ms": 8432}
+  ...
+  event: pipeline_done data: {"session_id": "...", "ts": ...}
+```
+
+The `job_id` from `job_queued` can also be used to poll `GET /job/{id}` in parallel — both patterns work simultaneously.
+
+```bash
+# Combined P5 pattern
+curl -N -H "X-API-Key: sk-master-test-superadmin" \
+     -H "Content-Type: application/json" \
+     -d '{"user_profile":{"full_name":"Test","date_of_birth":"1990-01-01","time_of_birth":"10:00","place_of_birth":"Delhi"},"user_question":"Career?","questions":[],"selected_modules":["astrology"]}' \
+     http://localhost:8080/api/v1/analysis/submit-stream
+```
+
+---
+
 ## See Also
 
 - [SONARQUBE_REPORT.md](SONARQUBE_REPORT.md) — Full quality gate evidence

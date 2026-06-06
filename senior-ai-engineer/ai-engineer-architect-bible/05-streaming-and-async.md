@@ -455,3 +455,52 @@ async def get_job_status(
 #  Frontend polls /jobs/{jobId} to check status.
 #  This pattern is Accept → Queue → Worker → Status."
 ```
+
+---
+
+## Real Project Example — AstroIntel 360°
+
+AstroIntel implements all three P5 modes. Here is how each maps:
+
+### Part A — SSE Token Streaming (sync pipeline)
+
+| Code | Location |
+|------|----------|
+| `GET /api/v1/stream/{session_id}` | `routers/stream.py` |
+| In-process pub/sub per session | `utils/event_bus.py` |
+| `emit(session_id, "node_done", {...})` called from pipeline | `graph/pipeline.py` |
+| Frontend opens `EventSource` before calling `/run` | `astro-intel/src/app/services/orchestrator.service.ts` |
+
+Event types: `pipeline_start`, `node_start`, `node_done`, `pipeline_done`, `pipeline_error`, `: heartbeat` (every 15s).
+
+### Part B — Async Job Queue (submit + poll)
+
+| Code | Location |
+|------|----------|
+| `POST /api/v1/analysis/submit` → `{job_id, status: "queued"}` | `routers/async_analysis.py` |
+| `GET /api/v1/analysis/job/{job_id}` → `{status, result}` | `routers/async_analysis.py` |
+| In-memory job store with Redis write-through | `pipeline_queue/job_store.py` |
+| Kafka producer (optional, falls back to background thread) | `pipeline_queue/producer.py` |
+
+Works without Kafka: set `KAFKA_ENABLED=false` (default) and the pipeline runs in a `ThreadPoolExecutor`. Job lifecycle: `queued → processing → done/failed`.
+
+### Combined — P5 Full Pattern
+
+`POST /api/v1/analysis/submit-stream` — the endpoint that closes the gap between Part A and Part B.
+
+```
+Single HTTP connection delivers both:
+  1. job_id (from the queue)
+  2. live node progress events (from the event bus)
+
+SSE sequence:
+  event: job_queued    data: {"job_id": "uuid", "status": "queued"}
+  event: node_start    data: {"node": "question_agent", "ts": 1234}
+  event: node_done     data: {"node": "domain_agents", "duration_ms": 8100}
+  event: pipeline_done data: {"session_id": "uuid", "ts": 1234}
+```
+
+Key implementation detail: `subscribe(job_id)` is called **before** `publish(job_id, payload)` so no events are missed in the race between queue subscription and job start.
+
+**Interview answer using AstroIntel:**
+> "AstroIntel implements the full P5 spectrum. For the sync path: the frontend opens an EventSource to /stream/{session_id} before calling /run — the pipeline emits node_start and node_done events via an in-process asyncio.Queue, and the SSE endpoint yields them as they arrive. For async jobs: /submit returns a job_id immediately and the pipeline runs in a background thread — the client polls /job/{id} until done. For the combined pattern: /submit-stream subscribes to the event bus first, then publishes the job, so the client gets the job_id in the first SSE event and live progress in subsequent events — one connection, both patterns. The critical engineering decision was using the job_id as the event bus session_id, which meant zero additional infrastructure — the two existing systems compose cleanly."

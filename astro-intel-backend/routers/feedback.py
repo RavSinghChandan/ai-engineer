@@ -8,6 +8,7 @@ Endpoints:
   GET  /persona/preferences  — this tenant's static key-value prefs
   POST /persona/preferences  — upsert a key-value pref for this tenant
   GET  /persona/preview      — show what agents will see for a given query
+  GET  /memory-summary       — P4 pattern: full memory profile for this tenant
 
 All endpoints are tenant-scoped: each tenant only sees and modifies their own data.
 """
@@ -163,4 +164,48 @@ async def preview_persona(
         "past_corrections":       tenant_ctx["past_corrections"],
         "preference_overrides":   tenant_ctx["preference_overrides"],
         "full_prompt_block":      format_for_prompt(tenant_ctx),
+    })
+
+
+# ── P4 Memory-Based AI Pattern — /memory-summary ─────────────────────────────
+
+@router.get("/memory-summary", summary="P4 pattern: full memory profile for this tenant")
+async def get_memory_summary(
+    ctx: TenantContext = Depends(can(Permission.ANALYSIS__RUN)),
+) -> JSONResponse:
+    """
+    P4 — Memory-Based AI pattern endpoint.
+
+    Flow: Retrieve → Context Build → LLM → Store
+
+    Returns the tenant's complete memory profile:
+    - Episodic correction count and breakdown by intent
+    - Saved persona preferences
+    - 5 most recent corrections
+    - Correction summary injected into every pipeline run
+
+    This endpoint makes the P4 pattern directly observable and demo-able.
+    Every POST /analysis/run auto-retrieves from this same store and injects
+    it as persona_context before any agent runs.
+    """
+    stats   = correction_stats(ctx.tenant_id)
+    prefs   = get_persona_prefs(ctx.tenant_id)
+    recent  = list_corrections(ctx.tenant_id, limit=5)
+    preview = build_tenant_context(query="general", intent="general", tenant_id=ctx.tenant_id)
+
+    return JSONResponse({
+        "tenant_id":          ctx.tenant_id,
+        "pattern":            "P4-Memory-Based-AI",
+        "flow":               "retrieve → context_build → LLM → store",
+        "correction_count":   stats["total_corrections"],
+        "by_intent":          stats["by_intent"],
+        "preferences":        prefs,
+        "recent_corrections": recent,
+        "persona_preview":    preview.get("correction_summary", ""),
+        "how_it_works": {
+            "retrieve":      "build_tenant_context() fetches top-K corrections by cosine similarity",
+            "context_build": "persona_injection_node formats corrections into persona_context string",
+            "llm":           "all 15 domain agents receive persona_context via build_prompt()",
+            "store":         "POST /approve with edited_insights calls log_correction() → SQLite",
+        },
     })

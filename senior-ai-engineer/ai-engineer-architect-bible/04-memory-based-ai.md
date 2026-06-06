@@ -337,3 +337,41 @@ async def chat_with_memory(
 #    The key design decision: never put all memories in the prompt.
 #    You retrieve only the relevant ones — same principle as RAG."
 ```
+
+---
+
+## Real Project Example — AstroIntel 360°
+
+AstroIntel is a production implementation of the P4 pattern. Here is how each step maps:
+
+| P4 Step | AstroIntel implementation | File |
+|---------|--------------------------|------|
+| **Retrieve** | `build_tenant_context(query, tenant_id)` fetches top-K past corrections by TF-IDF cosine similarity, scoped strictly to that tenant | `memory/persona.py` |
+| **Context Build** | `persona_injection_node` (first LangGraph node) formats corrections into `persona_context` string and stores in LangGraph state | `graph/pipeline.py` |
+| **LLM** | All 15 domain agents call `build_prompt(persona_context=state["persona_context"], ...)` — tone rules and known corrections apply automatically | `agents/` |
+| **Store** | `POST /api/v1/analysis/approve` with `edited_insights` → `log_correction()` → `episodic_corrections` SQLite table | `memory/episodic.py` |
+
+**What makes this production-grade vs the template above:**
+- No external Redis or vector DB needed — TF-IDF cosine similarity runs in-process
+- Multi-tenant isolation: Tenant A's corrections never appear in Tenant B's pipeline
+- Persona preferences as a separate key-value store (`persona_preferences` table) — tenant can set tone, forbidden phrases, structural preferences
+- SQLite WAL mode — corrections survive process restarts
+- Memory is observable: `GET /api/v1/feedback/memory-summary` returns the full memory profile for any tenant
+
+**Demo the P4 pattern directly:**
+```bash
+# See what memory looks like for the superadmin tenant
+curl -H "X-API-Key: sk-master-test-superadmin" \
+     http://localhost:8080/api/v1/feedback/memory-summary
+
+# Log a correction (Store step)
+curl -X POST -H "X-API-Key: sk-master-test-superadmin" \
+     -H "Content-Type: application/json" \
+     -d '{"insight_id":"q1_i1","original_text":"Saturn may affect career","corrected_text":"Saturn in 10th house directly delays career milestone until age 36","intent":"career"}' \
+     http://localhost:8080/api/v1/corrections
+
+# Next /run for same tenant auto-retrieves this correction (Retrieve step)
+```
+
+**Interview answer using AstroIntel:**
+> "In AstroIntel I implemented two-layer tenant-scoped memory. Short-term is the in-process LangGraph state for that session — cleared after the response. Long-term is a SQLite episodic corrections table: every time an admin edits an insight before approving it, we log the original and corrected text with the intent and tenant_id. On the next run for that tenant, we cosine-score the current query against all past corrections, take the top 5, and inject them as persona_context before the first agent runs. The Store step is the /approve endpoint — the correction loop is closed without any extra user action. The key insight: memory is not a feature I added on top — it's the feedback mechanism that makes the system improve with every admin review."
