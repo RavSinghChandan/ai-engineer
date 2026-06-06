@@ -1,87 +1,66 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 110" width="100" height="110">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140" width="120" height="140">
   <defs>
     <style>
-      .face-h { animation: bounce 0.65s ease-in-out infinite alternate; transform-origin: 50px 55px; }
-      .sp1 { animation: sparkPop 1.3s ease-in-out infinite; }
-      .sp2 { animation: sparkPop 1.3s ease-in-out 0.44s infinite; }
-      .sp3 { animation: sparkPop 1.3s ease-in-out 0.88s infinite; }
-      @keyframes bounce {
-        0%   { transform: translateY(0) rotate(-1deg); }
-        100% { transform: translateY(-5px) rotate(1deg); }
-      }
-      @keyframes sparkPop {
-        0%,100% { opacity:1; transform:scale(1); }
-        50%     { opacity:0.15; transform:scale(0.5); }
-      }
+      .av{animation:bounce .7s ease-in-out infinite alternate;}
+      .s1{animation:pop 1.4s ease-in-out infinite;}
+      .s2{animation:pop 1.4s .47s ease-in-out infinite;}
+      .s3{animation:pop 1.4s .94s ease-in-out infinite;}
+      @keyframes bounce{0%{transform:translateY(0) rotate(-1deg);}100%{transform:translateY(-6px) rotate(1deg);}}
+      @keyframes pop{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.1;transform:scale(.5);}}
     </style>
-    <radialGradient id="sk" cx="46%" cy="36%" r="62%">
-      <stop offset="0%" stop-color="#d4895a"/>
-      <stop offset="100%" stop-color="#a85c28"/>
-    </radialGradient>
-    <radialGradient id="sk2" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#d4895a"/>
-      <stop offset="100%" stop-color="#a85c28"/>
-    </radialGradient>
-    <linearGradient id="hr" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#1c1c2a"/>
-      <stop offset="100%" stop-color="#080810"/>
-    </linearGradient>
-    <linearGradient id="suit" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#2d4fa0"/>
-      <stop offset="100%" stop-color="#172860"/>
-    </linearGradient>
   </defs>
-
-  <text x="4"  y="28" font-size="11" class="sp1" fill="#f59e0b">★</text>
-  <text x="83" y="24" font-size="9"  class="sp2" fill="#f59e0b">✦</text>
-  <text x="89" y="13" font-size="8"  class="sp3" fill="#7c3aed">✦</text>
-  <text x="6"  y="14" font-size="8"  class="sp2" fill="#06b6d4">✦</text>
-
-  <g class="face-h">
-    <path d="M8 110 Q8 86 25 81 L42 77 L50 87 L58 77 L75 81 Q92 86 92 110 Z" fill="url(#suit)"/>
-    <path d="M42 77 L50 88 L58 77" fill="none" stroke="#9ab8e8" stroke-width="2.5" stroke-linejoin="round"/>
-    <rect x="43" y="69" width="14" height="13" rx="5" fill="url(#sk)"/>
-    <ellipse cx="50" cy="43" rx="33" ry="36" fill="url(#sk)"/>
-    <ellipse cx="17" cy="43" rx="6.5" ry="9.5" fill="url(#sk2)"/>
-    <ellipse cx="83" cy="43" rx="6.5" ry="9.5" fill="url(#sk2)"/>
-    <ellipse cx="17" cy="43" rx="3.2" ry="5.5" fill="#8a4520" opacity="0.35"/>
-    <ellipse cx="83" cy="43" rx="3.2" ry="5.5" fill="#8a4520" opacity="0.35"/>
-    <path d="M17 34 Q17 7 50 6 Q83 7 83 34 Q83 22 75 15 Q63 8 50 8 Q37 8 25 15 Q17 22 17 34 Z" fill="url(#hr)"/>
-    <path d="M17 34 Q15 23 19 17 Q21 14 23 20 Q21 27 21 34 Z" fill="url(#hr)"/>
-    <path d="M83 34 Q85 23 81 17 Q79 14 77 20 Q79 27 79 34 Z" fill="url(#hr)"/>
-
+  <text x="5"  y="30" font-size="13" class="s1" fill="#f59e0b">★</text>
+  <text x="101" y="26" font-size="11" class="s2" fill="#f59e0b">✦</text>
+  <text x="105" y="13" font-size="9"  class="s3" fill="#7c3aed">✦</text>
+  <text x="8"   y="14" font-size="9"  class="s2" fill="#06b6d4">✦</text>
+  <g class="av">
+    <path d="M10 140 L10 112 Q10 100 24 96 L44 90 L60 104 L76 90 L96 96 Q110 100 110 112 L110 140 Z" fill="#232b38"/>
+    <path d="M44 90 L60 106 L76 90 L70 100 L60 108 L50 100 Z" fill="#93b5ce"/>
+    <path d="M44 90 L36 104 L10 112 L10 140 L44 140 L44 114 L50 100 Z" fill="#2c3848"/>
+    <path d="M76 90 L84 104 L110 112 L110 140 L76 140 L76 114 L70 100 Z" fill="#2c3848"/>
+    <rect x="51" y="82" width="18" height="14" rx="7" fill="#b87548"/>
+    <ellipse cx="60" cy="50" rx="34" ry="40" fill="#c07848"/>
+    <ellipse cx="26" cy="50" rx="6" ry="9" fill="#a86030"/>
+    <ellipse cx="94" cy="50" rx="6" ry="9" fill="#a86030"/>
+    <ellipse cx="26" cy="50" rx="2.8" ry="4.5" fill="#8a4818" opacity="0.45"/>
+    <ellipse cx="94" cy="50" rx="2.8" ry="4.5" fill="#8a4818" opacity="0.45"/>
+    <path d="M26 40 Q26 8 60 7 Q94 8 94 40 Q94 24 84 16 Q73 9 60 9 Q47 9 36 16 Q26 24 26 40 Z" fill="#141018"/>
+    <path d="M28 26 Q34 19 41 23 Q47 16 54 20 Q58 14 64 18 Q70 12 77 16 Q83 20 88 26" fill="none" stroke="#0a0810" stroke-width="5.5" stroke-linecap="round"/>
+    <path d="M31 20 Q38 14 45 18 Q50 12 57 15 Q62 10 68 13 Q74 10 80 14 Q86 18 90 23" fill="none" stroke="#141018" stroke-width="4" stroke-linecap="round"/>
+    <path d="M26 40 Q23 28 27 18 Q29 14 32 20 Q30 30 30 40 Z" fill="#141018"/>
+    <path d="M94 40 Q97 28 93 18 Q91 14 88 20 Q90 30 90 40 Z" fill="#141018"/>
     <!-- Glasses -->
-    <rect x="21" y="38" width="25" height="18" rx="5" fill="white" fill-opacity="0.06"/>
-    <rect x="21" y="38" width="25" height="18" rx="5" fill="none" stroke="#9a7030" stroke-width="2.2"/>
-    <rect x="54" y="38" width="25" height="18" rx="5" fill="white" fill-opacity="0.06"/>
-    <rect x="54" y="38" width="25" height="18" rx="5" fill="none" stroke="#9a7030" stroke-width="2.2"/>
-    <path d="M46 47 Q50 44.5 54 47" stroke="#9a7030" stroke-width="2" fill="none" stroke-linecap="round"/>
-    <line x1="21" y1="47" x2="15" y2="45" stroke="#9a7030" stroke-width="2"/>
-    <line x1="79" y1="47" x2="85" y2="45" stroke="#9a7030" stroke-width="2"/>
-
-    <!-- Happy eyes — squinting arcs of joy (appropriate for THIS emotion) -->
-    <path d="M26 48 Q33.5 42 41 48" stroke="#1a0a04" stroke-width="3" fill="none" stroke-linecap="round"/>
-    <path d="M59 48 Q66.5 42 74 48" stroke="#1a0a04" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <rect x="27" y="44" width="26" height="16" rx="4" fill="none" stroke="#2a2010" stroke-width="2.4"/>
+    <rect x="67" y="44" width="26" height="16" rx="4" fill="none" stroke="#2a2010" stroke-width="2.4"/>
+    <path d="M53 52 Q60 49 67 52" stroke="#2a2010" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    <line x1="27" y1="52" x2="20" y2="50" stroke="#2a2010" stroke-width="2.2"/>
+    <line x1="93" y1="52" x2="100" y2="50" stroke="#2a2010" stroke-width="2.2"/>
+    <!-- Happy squinting eyes — arcs of joy -->
+    <path d="M32 53 Q40 46 48 53" stroke="#180804" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <path d="M72 53 Q80 46 88 53" stroke="#180804" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <!-- Under-eye curve -->
+    <path d="M33 54 Q40 58 47 54" stroke="#180804" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.5"/>
+    <path d="M73 54 Q80 58 87 54" stroke="#180804" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.5"/>
     <!-- Cheek blush -->
-    <ellipse cx="22" cy="55" rx="7" ry="4" fill="#d06050" opacity="0.2"/>
-    <ellipse cx="78" cy="55" rx="7" ry="4" fill="#d06050" opacity="0.2"/>
-
-    <!-- Eyebrows raised -->
-    <path d="M23 33 Q33.5 28 44 33" stroke="#100808" stroke-width="3.2" fill="none" stroke-linecap="round"/>
-    <path d="M56 33 Q66.5 28 77 33" stroke="#100808" stroke-width="3.2" fill="none" stroke-linecap="round"/>
-
+    <ellipse cx="26" cy="62" rx="9" ry="5" fill="#d05040" opacity="0.18"/>
+    <ellipse cx="94" cy="62" rx="9" ry="5" fill="#d05040" opacity="0.18"/>
+    <!-- Eyebrows raised high -->
+    <path d="M29 38 Q40 33 51 38" stroke="#0c0810" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <path d="M69 38 Q80 33 91 38" stroke="#0c0810" stroke-width="3.5" fill="none" stroke-linecap="round"/>
     <!-- Nose -->
-    <path d="M47 53 Q44 61 47 64 Q50 66.5 53 64 Q56 61 53 53" stroke="#8a4020" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-    <ellipse cx="47" cy="64" rx="2.5" ry="1.5" fill="#8a4020" opacity="0.5"/>
-    <ellipse cx="53" cy="64" rx="2.5" ry="1.5" fill="#8a4020" opacity="0.5"/>
-
-    <!-- Beard -->
-    <path d="M19 61 Q19 79 50 82 Q81 79 81 61 Q79 71 65 75 Q57 78 50 78 Q43 78 35 75 Q21 71 19 61 Z" fill="#141420" opacity="0.85"/>
-    <path d="M38 66 Q44 71 50 69" stroke="#0e0e1c" stroke-width="2.8" fill="none" stroke-linecap="round"/>
-    <path d="M50 69 Q56 71 62 66" stroke="#0e0e1c" stroke-width="2.8" fill="none" stroke-linecap="round"/>
-
-    <!-- Big smile + teeth -->
-    <path d="M36 72 Q50 82 64 72" stroke="#6a2808" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-    <path d="M38 73 Q50 81 62 73 Q62 78 50 79 Q38 78 38 73 Z" fill="white" opacity="0.88"/>
+    <path d="M57 60 Q54 70 57 74 Q60 77 63 74 Q66 70 63 60" stroke="#7a3810" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <ellipse cx="57" cy="74" rx="3" ry="1.8" fill="#7a3810" opacity="0.4"/>
+    <ellipse cx="63" cy="74" rx="3" ry="1.8" fill="#7a3810" opacity="0.4"/>
+    <!-- Natural jaw beard -->
+    <path d="M28 68 Q32 80 40 85 Q50 90 60 90 Q70 90 80 85 Q88 80 92 68" fill="#1a1428" opacity="0.18"/>
+    <path d="M28 68 Q30 78 36 84 Q43 90 50 91" stroke="#1a1428" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.7"/>
+    <path d="M92 68 Q90 78 84 84 Q77 90 70 91" stroke="#1a1428" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.7"/>
+    <path d="M50 91 Q60 94 70 91" stroke="#1a1428" stroke-width="4.5" fill="none" stroke-linecap="round" opacity="0.75"/>
+    <!-- Moustache -->
+    <path d="M47 72 Q54 77 60 75" stroke="#0e0c18" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M60 75 Q66 77 73 72" stroke="#0e0c18" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <!-- Big smile + teeth showing -->
+    <path d="M46 82 Q60 92 74 82" stroke="#7a3010" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M48 83 Q60 91 72 83 Q72 88 60 89 Q48 88 48 83 Z" fill="white" opacity="0.9"/>
   </g>
 </svg>
