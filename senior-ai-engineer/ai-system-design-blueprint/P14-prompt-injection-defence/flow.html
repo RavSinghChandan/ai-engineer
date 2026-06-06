@@ -11,7 +11,7 @@ body{background:#f0f2f5;font-family:-apple-system,'SF Pro Display','Segoe UI',sy
 .header h1{font-size:2.4rem;font-weight:900;letter-spacing:-.04em;color:#1d1d1f}
 .header p{margin-top:8px;font-size:.9rem;color:#6e6e73;font-family:'SF Mono',monospace}
 .layout{display:flex;gap:28px;max-width:1200px;margin:0 auto;align-items:flex-start}
-.dir-panel{width:240px;flex-shrink:0;background:#fff;border:1.5px solid #e5e7eb;border-radius:16px;padding:16px 14px;box-shadow:0 2px 12px rgba(0,0,0,.06);position:sticky;top:32px}
+.dir-panel{width:240px;flex-shrink:0;background:#fff;border:1.5px solid #e5e7eb;border-radius:16px;padding:16px 14px;box-shadow:0 2px 12px rgba(0,0,0,.06);position:sticky;top:32px;display:none}
 .dir-title{font-size:0.65rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#9ca3af;margin-bottom:14px}
 .dir-tree{font-family:'SF Mono','Fira Code',monospace;font-size:0.72rem;line-height:1}
 .dir-item{display:flex;align-items:center;gap:5px;padding:4px 6px;border-radius:6px;color:#6e6e73;white-space:nowrap}
@@ -23,26 +23,26 @@ body{background:#f0f2f5;font-family:-apple-system,'SF Pro Display','Segoe UI',sy
 .node{width:auto;min-width:260px;max-width:460px;background:#fff;border:1.5px solid #e5e7eb;border-radius:14px;padding:14px 20px;display:inline-flex;flex-direction:column;align-items:flex-start;box-shadow:0 2px 10px rgba(0,0,0,.06);cursor:pointer;transition:box-shadow .2s,transform .15s}
 .node:hover{box-shadow:0 6px 24px rgba(0,0,0,.12);transform:translateY(-1px)}
 .node-label{font-size:0.6rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
-.node-title{font-size:1.0rem;font-weight:800;color:#1d1d1f}
-.node-sub{font-size:0.72rem;color:#6e6e73;margin-top:3px;font-family:'SF Mono',monospace}
+.node-title{font-size:1.0rem;font-weight:800;color:#111827}
+.node-sub{font-size:0.72rem;color:#374151;margin-top:3px;font-family:'SF Mono',monospace}
 .arrow{font-size:1.4rem;color:#9ca3af;margin:2px 0;line-height:1;text-align:center}
 .diamond{width:130px;height:130px;margin:4px auto;display:flex;align-items:center;justify-content:center;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);cursor:pointer}
 .diamond-inner{text-align:center;padding:0 16px}
-.diamond-inner .d-title{font-size:0.75rem;font-weight:800;color:#fff;line-height:1.2}
+.diamond-inner .d-title{font-size:0.78rem;font-weight:800;color:#fff;line-height:1.2}
 .diamond-inner .d-sub{font-size:0.58rem;color:rgba(255,255,255,.8);margin-top:2px}
 .attack-box{border:2.5px dashed #e11d48;border-radius:18px;padding:16px;margin:8px 0;position:relative;display:flex;flex-direction:column;gap:8px;align-items:center}
 .attack-label{position:absolute;top:-11px;left:20px;background:#f0f2f5;padding:0 8px;font-size:0.62rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#e11d48}
 .defence-box{border:2.5px dashed #16a34a;border-radius:18px;padding:16px;margin:8px 0;position:relative;display:flex;flex-direction:column;gap:8px;align-items:center}
 .defence-label{position:absolute;top:-11px;left:20px;background:#f0f2f5;padding:0 8px;font-size:0.62rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#16a34a}
-.c-blue{background:#2563eb}.c-rose{background:#e11d48}.c-green{background:#16a34a}.c-amber{background:#d97706}.c-purple{background:#7c3aed}
+.c-blue{background:#eff6ff;border-left:4px solid #2563eb}.c-rose{background:#fff2f2;border-left:4px solid #e11d48}.c-green{background:#f0fdf4;border-left:4px solid #16a34a}.c-amber{background:#fffbeb;border-left:4px solid #d97706}.c-purple{background:#f5f3ff;border-left:4px solid #7c3aed}
 .lbl-blue{color:#2563eb}.lbl-rose{color:#e11d48}.lbl-green{color:#16a34a}.lbl-amber{color:#d97706}.lbl-purple{color:#7c3aed}
-.code-panel{position:fixed;bottom:0;left:0;right:0;z-index:100;background:#1e1e1e;color:#d4d4d4;font-family:'SF Mono','Fira Code','Consolas',monospace;font-size:0.78rem;line-height:1.6;border-radius:20px 20px 0 0;padding:20px 28px 28px;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);max-height:55vh;overflow-y:auto;box-shadow:0 -8px 40px rgba(0,0,0,.4)}
+.code-panel{position:fixed;bottom:0;left:0;right:0;z-index:100;background:#ffffff;color:#1e293b;font-family:'SF Mono','Fira Code','Consolas',monospace;font-size:0.82rem;line-height:1.7;border-radius:14px 14px 0 0;padding:0 0 20px 0;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);max-height:60vh;overflow-y:auto;box-shadow:0 -4px 24px rgba(0,0,0,.10);border-top:2px solid #e2e8f0}
 .code-panel.open{transform:translateY(0)}
-.panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:1px solid #e2e8f0;padding-bottom:10px}
-.panel-title{font-size:0.75rem;font-weight:700;color:#cccccc;letter-spacing:.5px}
-.panel-close{background:#3e3e3e;border:none;color:#cccccc;border-radius:6px;padding:3px 10px;cursor:pointer;font-size:0.78rem}
+.panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:0;border-bottom:1px solid #e2e8f0;padding:10px 20px;cursor:ns-resize;background:#f8fafc;border-radius:14px 14px 0 0;user-select:none;flex-shrink:0}
+.panel-title{font-size:0.75rem;font-weight:700;color:#1e293b;letter-spacing:.5px}
+.panel-close{background:#e2e8f0;border:none;color:#374151;border-radius:6px;padding:3px 12px;cursor:pointer;font-size:0.78rem;font-weight:600}
 pre{white-space:pre-wrap;word-break:break-all}
-.kw{color:#569cd6}.fn{color:#dcdcaa}.st{color:#ce9178}.cm{color:#6a9955}.tp{color:#4ec9b0}.nu{color:#b5cea8}.de{color:#c586c0}
+.kw{color:#1d4ed8}.fn{color:#6d28d9}.st{color:#b45309}.cm{color:#15803d}.tp{color:#0e7490}.nu{color:#c2410c}.de{color:#9d174d}
 </style>
 </head>
 <body>
@@ -133,7 +133,7 @@ pre{white-space:pre-wrap;word-break:break-all}
 <div class="code-panel" id="panel">
   <div class="panel-header">
     <span class="panel-title" id="panel-title">Code</span>
-    <div style="display:flex;align-items:center;gap:6px"><button onclick="codeZoom(-1)" style="background:#e2e8f0;border:none;border-radius:5px;padding:2px 9px;cursor:pointer;font-size:.78rem;color:#374151">A−</button><button onclick="codeZoom(1)" style="background:#e2e8f0;border:none;border-radius:5px;padding:2px 9px;cursor:pointer;font-size:.78rem;color:#374151">A+</button><button class="panel-close" onclick="close_panel()">✕ close</button></div>
+    <button class="panel-close" onclick="close_panel()">✕ close</button>
   </div>
   <pre id="panel-body"></pre>
 </div>
@@ -264,6 +264,32 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')close_panel()})
   data-color="#1d4ed8"
   data-position="bottom-right"
 ></script>
+
+
+<script>
+(function(){
+  var panel = null, dragging = false, startY = 0, startH = 0;
+  document.addEventListener('DOMContentLoaded', function(){
+    panel = document.getElementById('panel');
+    var hdr = panel ? panel.querySelector('.panel-header') : null;
+    if(!hdr) return;
+    hdr.addEventListener('mousedown', function(e){
+      if(e.target.classList.contains('panel-close')) return;
+      dragging=true; startY=e.clientY; startH=panel.offsetHeight;
+      document.body.style.userSelect='none'; document.body.style.cursor='ns-resize';
+    });
+    document.addEventListener('mousemove', function(e){
+      if(!dragging) return;
+      var delta = startY - e.clientY;
+      var newH = Math.max(80, Math.min(window.innerHeight*0.85, startH+delta));
+      panel.style.maxHeight = newH+'px';
+    });
+    document.addEventListener('mouseup', function(){ 
+      dragging=false; document.body.style.userSelect=''; document.body.style.cursor='';
+    });
+  });
+})();
+</script>
 
 </body>
 </html>
