@@ -123,17 +123,29 @@ h1 {
 }
 /* Photo */
 .hero-photo-wrap {
-  position: relative; width: 180px; height: 180px;
+  position: relative; width: 200px; height: 240px;
 }
 .hero-photo {
-  width: 180px; height: 180px; border-radius: 50%;
+  width: 200px; height: 240px; border-radius: 50%;
   object-fit: cover; object-position: center top;
   border: 3px solid var(--purple);
   box-shadow: 0 0 0 6px rgba(124,58,237,0.15), 0 0 40px rgba(124,58,237,0.3);
   display: block;
 }
+/* Avatar character variant — no circle clip, show full portrait */
+.hero-photo.hero-avatar-char {
+  border-radius: 24px;
+  object-fit: contain;
+  object-position: center;
+  background: #111827;
+  animation: float-hero 3s ease-in-out infinite;
+}
+@keyframes float-hero {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
 .hero-photo-ring {
-  position: absolute; inset: -8px; border-radius: 50%;
+  position: absolute; inset: -8px; border-radius: 28px;
   border: 2px dashed rgba(124,58,237,0.3);
   animation: spin 20s linear infinite;
 }
