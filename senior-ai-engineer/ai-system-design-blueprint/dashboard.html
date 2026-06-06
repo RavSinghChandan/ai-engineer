@@ -6,599 +6,892 @@
 <title>AI System Design Blueprint — Dashboard</title>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-body{background:#0f0f13;font-family:-apple-system,'SF Pro Display','Segoe UI',system-ui,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;overflow:hidden}
-
-/* ── LEFT SIDEBAR ── */
-.sidebar{
-  position:fixed;left:0;top:0;bottom:0;width:300px;
-  background:#13131a;border-right:1px solid rgba(255,255,255,.07);
-  display:flex;flex-direction:column;z-index:100;
-  overflow:hidden;
+body{
+  background:#f0f2f5;
+  font-family:-apple-system,'SF Pro Display','Segoe UI',system-ui,sans-serif;
+  min-height:100vh;-webkit-font-smoothing:antialiased;overflow:hidden;
+  color:#1d1d1f;
 }
-.sidebar-header{padding:20px 18px 14px;border-bottom:1px solid rgba(255,255,255,.07)}
-.sidebar-title{font-size:0.62rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#666;margin-bottom:6px}
-.sidebar-heading{font-size:1.1rem;font-weight:900;color:#fff}
-.sidebar-sub{font-size:0.68rem;color:#555;margin-top:3px}
 
-.sidebar-tools{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;gap:6px}
-.tool-btn{flex:1;padding:7px 6px;border-radius:8px;border:1px solid rgba(255,255,255,.08);background:transparent;color:#888;font-size:0.65rem;font-weight:700;cursor:pointer;transition:all .15s;letter-spacing:.3px}
-.tool-btn:hover{background:rgba(255,255,255,.06);color:#ccc}
-.tool-btn.active{background:rgba(96,165,250,.12);border-color:rgba(96,165,250,.3);color:#60a5fa}
+/* ══ SIDEBAR ══ */
+.sidebar{
+  position:fixed;left:0;top:0;bottom:0;width:270px;min-width:160px;max-width:420px;
+  background:#fff;border-right:1.5px solid #e5e7eb;
+  display:flex;flex-direction:column;z-index:100;overflow:hidden;
+  box-shadow:2px 0 12px rgba(0,0,0,.06);
+}
+.sidebar-header{padding:14px 14px 10px;border-bottom:1px solid #e5e7eb;flex-shrink:0}
+.sidebar-title{font-size:.56rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#9ca3af;margin-bottom:3px}
+.sidebar-heading{font-size:.95rem;font-weight:900;color:#1d1d1f}
+.sidebar-sub{font-size:.63rem;color:#9ca3af;margin-top:2px}
 
-.tier-sections{flex:1;overflow-y:auto;padding:8px 10px 20px}
-.tier-sections::-webkit-scrollbar{width:4px}
-.tier-sections::-webkit-scrollbar-track{background:transparent}
-.tier-sections::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+.sidebar-tools{padding:8px 10px;border-bottom:1px solid #e5e7eb;display:flex;gap:5px;flex-shrink:0}
+.tool-btn{
+  flex:1;padding:7px 4px;border-radius:7px;
+  border:1.5px solid #e5e7eb;background:#f9fafb;
+  color:#374151;font-size:.61rem;font-weight:700;
+  cursor:pointer;transition:all .15s;letter-spacing:.2px;
+}
+.tool-btn:hover{background:#f3f4f6;border-color:#d1d5db}
+.tool-btn.active{background:#fef3c7;border-color:#f59e0b;color:#92400e}
+.tool-btn.ai-btn{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8}
+.tool-btn.ai-btn:hover{background:#dbeafe}
+.tool-btn.ai-btn.active{background:#1d4ed8;border-color:#1d4ed8;color:#fff}
 
-.tier-group{margin-bottom:6px}
+.tier-sections{flex:1;overflow-y:auto;padding:5px 7px 20px}
+.tier-sections::-webkit-scrollbar{width:3px}
+.tier-sections::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:2px}
+
+.tier-group{margin-bottom:3px}
 .tier-group-label{
-  font-size:0.56rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;
-  padding:8px 8px 4px;color:#555;display:flex;align-items:center;gap:6px;
+  font-size:.53rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;
+  padding:7px 6px 3px;color:#9ca3af;display:flex;align-items:center;gap:5px;
 }
 .tier-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
 
 .pattern-btn{
-  width:100%;text-align:left;padding:9px 10px;border-radius:10px;
-  border:1px solid transparent;background:transparent;cursor:pointer;
-  transition:all .15s;display:flex;align-items:flex-start;gap:10px;margin-bottom:2px;
+  width:100%;text-align:left;padding:7px 8px;border-radius:8px;
+  border:1.5px solid transparent;background:transparent;cursor:pointer;
+  transition:all .15s;display:flex;align-items:flex-start;gap:8px;margin-bottom:2px;
 }
-.pattern-btn:hover{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.07)}
-.pattern-btn.active{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1)}
+.pattern-btn:hover{background:#f9fafb;border-color:#e5e7eb}
+.pattern-btn.active{background:#fef3c7;border-color:#fde68a}
 .pb-num{
-  font-size:0.58rem;font-weight:800;min-width:24px;padding:2px 5px;
-  border-radius:5px;text-align:center;flex-shrink:0;margin-top:1px;
+  font-size:.54rem;font-weight:800;min-width:21px;padding:2px 3px;
+  border-radius:4px;text-align:center;flex-shrink:0;margin-top:1px;
 }
 .pb-body{flex:1;min-width:0}
-.pb-title{font-size:0.75rem;font-weight:700;color:#ccc;line-height:1.2}
-.pb-mem{font-size:0.6rem;color:#555;margin-top:2px;font-family:'SF Mono',monospace;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pb-title{font-size:.7rem;font-weight:700;color:#374151;line-height:1.2}
+.pb-mem{font-size:.57rem;color:#9ca3af;margin-top:1px;font-family:'SF Mono',monospace;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pattern-btn.active .pb-title{color:#92400e}
+.t1 .pb-num{background:#eff6ff;color:#1d4ed8}
+.t2 .pb-num{background:#f0fdf4;color:#15803d}
+.t3 .pb-num{background:#fffbeb;color:#b45309}
+.t4 .pb-num{background:#fff1f2;color:#be123c}
 
-/* tier colour sets */
-.t1 .pb-num{background:rgba(96,165,250,.15);color:#60a5fa}
-.t1 .pattern-btn.active .pb-title,.t1 .pattern-btn:hover .pb-title{color:#93c5fd}
-.t2 .pb-num{background:rgba(52,211,153,.15);color:#34d399}
-.t2 .pattern-btn.active .pb-title,.t2 .pattern-btn:hover .pb-title{color:#6ee7b7}
-.t3 .pb-num{background:rgba(251,191,36,.15);color:#fbbf24}
-.t3 .pattern-btn.active .pb-title,.t3 .pattern-btn:hover .pb-title{color:#fcd34d}
-.t4 .pb-num{background:rgba(251,113,133,.15);color:#fb7185}
-.t4 .pattern-btn.active .pb-title,.t4 .pattern-btn:hover .pb-title{color:#fda4af}
-
-/* ── MAIN CONTENT ── */
-.main{margin-left:300px;height:100vh;display:flex;flex-direction:column;overflow:hidden}
-
-/* ── TOP BAR ── */
-.topbar{
-  padding:12px 20px;background:#13131a;border-bottom:1px solid rgba(255,255,255,.07);
-  display:flex;align-items:center;gap:12px;flex-shrink:0;
+/* ── resize handle ── */
+.resize-handle{
+  position:absolute;right:-4px;top:0;bottom:0;width:8px;
+  cursor:col-resize;z-index:200;
+  display:flex;align-items:center;justify-content:center;
 }
-.topbar-title{font-size:0.8rem;font-weight:800;color:#ccc;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.topbar-actions{display:flex;gap:8px;flex-shrink:0}
+.resize-handle::after{
+  content:'';width:2px;height:40px;
+  background:#d1d5db;border-radius:2px;
+  transition:background .15s;
+}
+.resize-handle:hover::after{background:#9ca3af}
+
+/* ══ MAIN ══ */
+.main{margin-left:270px;height:100vh;display:flex;flex-direction:column;overflow:hidden;transition:margin-left 0s}
+
+.topbar{
+  padding:10px 16px;background:#fff;border-bottom:1.5px solid #e5e7eb;
+  display:flex;align-items:center;gap:10px;flex-shrink:0;
+}
+.topbar-title{font-size:.76rem;font-weight:700;color:#374151;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.topbar-actions{display:flex;gap:6px;flex-shrink:0}
 .ta-btn{
-  padding:6px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.1);
-  background:transparent;color:#888;font-size:0.68rem;font-weight:700;
+  padding:5px 11px;border-radius:7px;border:1.5px solid #e5e7eb;
+  background:#f9fafb;color:#374151;font-size:.64rem;font-weight:700;
   cursor:pointer;transition:all .15s;
 }
-.ta-btn:hover{background:rgba(255,255,255,.06);color:#ccc}
-.ta-btn.primary{background:rgba(96,165,250,.12);border-color:rgba(96,165,250,.3);color:#60a5fa}
-.ta-btn.primary:hover{background:rgba(96,165,250,.2)}
+.ta-btn:hover{background:#f3f4f6;border-color:#d1d5db}
+.ta-btn.primary{background:#fef3c7;border-color:#f59e0b;color:#92400e}
+.ta-btn.primary:hover{background:#fde68a}
 
-/* ── WELCOME SCREEN ── */
+/* zoom controls */
+.zoom-strip{
+  padding:5px 16px;background:#f9fafb;border-bottom:1px solid #e5e7eb;
+  display:flex;align-items:center;gap:8px;flex-shrink:0;
+}
+.zoom-label{font-size:.6rem;color:#9ca3af;font-weight:600}
+.zoom-btn{
+  padding:3px 10px;border-radius:5px;border:1px solid #e5e7eb;
+  background:#fff;color:#374151;font-size:.72rem;font-weight:700;
+  cursor:pointer;transition:all .1s;line-height:1;
+}
+.zoom-btn:hover{background:#f3f4f6}
+.zoom-val{font-size:.65rem;font-weight:700;color:#374151;min-width:36px;text-align:center}
+
+/* welcome */
 .welcome{
   flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:0;padding:40px;
+  padding:40px;background:#f0f2f5;
 }
-.welcome-icon{font-size:3rem;margin-bottom:16px;opacity:.3}
-.welcome-title{font-size:1.6rem;font-weight:900;color:#fff;text-align:center;letter-spacing:-.03em}
-.welcome-sub{font-size:0.85rem;color:#555;text-align:center;margin-top:8px;max-width:400px;line-height:1.6}
+.welcome-icon{font-size:2.5rem;margin-bottom:12px;opacity:.3}
+.welcome-title{font-size:1.4rem;font-weight:900;color:#1d1d1f;text-align:center;letter-spacing:-.03em}
+.welcome-sub{font-size:.8rem;color:#6e6e73;text-align:center;margin-top:8px;max-width:360px;line-height:1.65}
 .welcome-hint{
-  margin-top:28px;padding:14px 22px;
-  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;
-  font-size:0.72rem;color:#666;text-align:center;line-height:1.7;
+  margin-top:20px;padding:12px 18px;
+  background:#fff;border:1.5px solid #e5e7eb;border-radius:11px;
+  font-size:.68rem;color:#6e6e73;text-align:center;line-height:1.8;
 }
-.welcome-hint kbd{
-  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
-  border-radius:4px;padding:1px 6px;font-size:0.7rem;color:#ccc;font-family:inherit;
-}
+.welcome-hint kbd{background:#f3f4f6;border:1px solid #d1d5db;border-radius:4px;padding:1px 5px;font-size:.66rem;color:#374151}
+.welcome-hint strong{color:#d97706}
 
-/* ── IFRAME WRAPPER ── */
-.frame-wrap{flex:1;display:none;overflow:hidden;position:relative}
+/* flow frame */
+.frame-wrap{flex:1;display:none;overflow:hidden;position:relative;background:#f0f2f5}
 .frame-wrap.show{display:block}
-#flowFrame{width:100%;height:100%;border:none;display:block}
+#flowFrame{width:100%;height:100%;border:none;display:block;transform-origin:top left}
 
-/* ── MIND MAP WRAPPER ── */
-.mindmap-wrap{flex:1;display:none;overflow-y:auto;background:#0f0f13}
-.mindmap-wrap.show{display:block}
-.mindmap-wrap::-webkit-scrollbar{width:5px}
-.mindmap-wrap::-webkit-scrollbar-track{background:transparent}
-.mindmap-wrap::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px}
-.mm-inner{max-width:1100px;margin:0 auto;padding:32px 24px 60px}
-.mm-header{text-align:center;margin-bottom:32px}
-.mm-title{font-size:1.8rem;font-weight:900;color:#fff;letter-spacing:-.03em}
-.mm-title span{background:linear-gradient(135deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.mm-sub{font-size:.8rem;color:#555;margin-top:6px;font-family:'SF Mono',monospace}
-.mm-legend{display:flex;gap:18px;justify-content:center;margin-top:14px;flex-wrap:wrap}
-.ml{display:flex;align-items:center;gap:6px;font-size:.68rem;color:#666}
-.mld{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.mm-tier{margin-bottom:24px}
-.mm-tier-label{font-size:.65rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:10px;padding:0 4px}
-.mm-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
-.mm-card{background:#1a1a24;border:1.5px solid rgba(255,255,255,.08);border-radius:12px;padding:13px 14px;cursor:pointer;transition:all .15s}
-.mm-card:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,.3)}
-.t1c:hover{border-color:rgba(96,165,250,.4);box-shadow:0 6px 20px rgba(96,165,250,.12)}
-.t2c:hover{border-color:rgba(52,211,153,.4);box-shadow:0 6px 20px rgba(52,211,153,.12)}
-.t3c:hover{border-color:rgba(251,191,36,.4);box-shadow:0 6px 20px rgba(251,191,36,.12)}
-.t4c:hover{border-color:rgba(251,113,133,.4);box-shadow:0 6px 20px rgba(251,113,133,.12)}
-.mc-num{font-size:.6rem;font-weight:800;letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px}
-.mc-title{font-size:.8rem;font-weight:800;color:#e2e8f0;line-height:1.2;margin-bottom:4px}
-.mc-mem{font-size:.62rem;color:#555;font-family:'SF Mono',monospace;line-height:1.4;margin-bottom:7px}
-.mc-tags{display:flex;flex-wrap:wrap;gap:3px}
-.mct{font-size:.55rem;font-weight:700;padding:2px 6px;border-radius:5px}
-.mm-int-section{margin-top:32px;border-top:1px solid rgba(255,255,255,.06);padding-top:28px}
-.mm-int-title{font-size:.62rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#555;text-align:center;margin-bottom:16px}
-.mm-int-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
-.mm-int-card{background:#1a1a24;border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:12px 14px}
-.mic-q{font-size:.72rem;font-weight:700;color:#ccc;margin-bottom:7px;line-height:1.3}
-.mic-tags{display:flex;flex-wrap:wrap;gap:4px}
-.mic-tag{font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:6px;background:rgba(96,165,250,.1);color:#60a5fa}
-
-/* ── LOADING INDICATOR ── */
-.loader{
-  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  display:none;flex-direction:column;align-items:center;gap:10px;
-}
+.loader{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:none;flex-direction:column;align-items:center;gap:10px}
 .loader.show{display:flex}
-.spinner{width:28px;height:28px;border:2.5px solid rgba(255,255,255,.1);border-top-color:#60a5fa;border-radius:50%;animation:spin .7s linear infinite}
-.loader-text{font-size:0.72rem;color:#555}
+.spinner{width:24px;height:24px;border:2px solid #e5e7eb;border-top-color:#f59e0b;border-radius:50%;animation:spin .7s linear infinite}
+.loader-text{font-size:.68rem;color:#9ca3af}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+/* ══ MIND MAP ══ */
+.mindmap-wrap{flex:1;display:none;overflow:hidden;background:#f0f2f5;flex-direction:column}
+.mindmap-wrap.show{display:flex}
+.mm-topstrip{
+  background:#fff;border-bottom:1.5px solid #e5e7eb;
+  padding:8px 16px;display:flex;align-items:center;gap:14px;flex-shrink:0;
+}
+.mm-strip-title{font-size:.78rem;font-weight:900;color:#1d1d1f}
+.mm-legend{display:flex;gap:12px;flex-wrap:wrap}
+.ml{display:flex;align-items:center;gap:4px;font-size:.61rem;color:#374151}
+.mld{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.mm-hint{font-size:.59rem;color:#9ca3af;margin-left:auto}
+.mm-canvas-wrap{flex:1;overflow:auto;position:relative}
+#mmSvg{display:block}
+
+/* ══ AI CHAT PANEL ══ */
+.chat-panel{
+  position:fixed;right:0;top:0;bottom:0;width:380px;
+  background:#fff;border-left:1.5px solid #e5e7eb;
+  display:flex;flex-direction:column;z-index:300;
+  box-shadow:-4px 0 20px rgba(0,0,0,.08);
+  transform:translateX(100%);transition:transform .25s ease;
+}
+.chat-panel.open{transform:translateX(0)}
+.chat-header{
+  padding:14px 16px;background:#1d4ed8;
+  display:flex;align-items:center;gap:10px;flex-shrink:0;
+}
+.chat-header-icon{font-size:1.1rem}
+.chat-header-text{flex:1}
+.chat-header-title{font-size:.82rem;font-weight:800;color:#fff}
+.chat-header-sub{font-size:.58rem;color:#bfdbfe;margin-top:1px}
+.chat-close{
+  width:28px;height:28px;border-radius:6px;border:none;
+  background:rgba(255,255,255,.15);color:#fff;font-size:.9rem;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+.chat-close:hover{background:rgba(255,255,255,.25)}
+
+.chat-context-bar{
+  padding:8px 12px;background:#eff6ff;border-bottom:1px solid #bfdbfe;
+  font-size:.6rem;color:#1d4ed8;font-weight:600;flex-shrink:0;
+}
+
+.chat-messages{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+.chat-messages::-webkit-scrollbar{width:3px}
+.chat-messages::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:2px}
+
+.msg{max-width:92%;display:flex;flex-direction:column;gap:3px}
+.msg.user{align-self:flex-end;align-items:flex-end}
+.msg.ai{align-self:flex-start;align-items:flex-start}
+.msg-bubble{
+  padding:9px 12px;border-radius:12px;font-size:.72rem;line-height:1.6;
+}
+.msg.user .msg-bubble{background:#1d4ed8;color:#fff;border-bottom-right-radius:3px}
+.msg.ai   .msg-bubble{background:#f3f4f6;color:#1d1d1f;border-bottom-left-radius:3px;border:1px solid #e5e7eb}
+.msg-time{font-size:.55rem;color:#9ca3af}
+
+.chat-typing{align-self:flex-start}
+.typing-bubble{background:#f3f4f6;border:1px solid #e5e7eb;border-radius:12px;border-bottom-left-radius:3px;padding:10px 14px}
+.typing-dots{display:flex;gap:4px}
+.typing-dots span{width:7px;height:7px;border-radius:50%;background:#9ca3af;animation:blink 1.2s ease-in-out infinite}
+.typing-dots span:nth-child(2){animation-delay:.2s}
+.typing-dots span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+
+.chat-input-area{
+  padding:10px 12px;border-top:1px solid #e5e7eb;background:#f9fafb;flex-shrink:0;
+}
+.chat-input-row{display:flex;gap:7px;align-items:flex-end}
+#chatInput{
+  flex:1;padding:9px 12px;border-radius:9px;border:1.5px solid #e5e7eb;
+  background:#fff;color:#1d1d1f;font-size:.72rem;font-family:inherit;
+  resize:none;outline:none;max-height:100px;line-height:1.5;
+}
+#chatInput:focus{border-color:#93c5fd}
+#chatInput::placeholder{color:#9ca3af}
+.send-btn{
+  padding:9px 14px;border-radius:9px;border:none;
+  background:#1d4ed8;color:#fff;font-size:.72rem;font-weight:700;
+  cursor:pointer;transition:all .15s;flex-shrink:0;
+}
+.send-btn:hover{background:#1e40af}
+.send-btn:disabled{background:#bfdbfe;cursor:not-allowed}
+.chat-hint{font-size:.56rem;color:#9ca3af;margin-top:6px;text-align:center}
+
+/* API key setup */
+.apikey-setup{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px;gap:12px;
+}
+.apikey-icon{font-size:2rem;opacity:.4}
+.apikey-title{font-size:.82rem;font-weight:800;color:#1d1d1f;text-align:center}
+.apikey-sub{font-size:.68rem;color:#6e6e73;text-align:center;line-height:1.6}
+#apiKeyInput{
+  width:100%;padding:9px 12px;border-radius:8px;border:1.5px solid #e5e7eb;
+  background:#fff;color:#1d1d1f;font-size:.72rem;outline:none;
+}
+#apiKeyInput:focus{border-color:#93c5fd}
+.save-key-btn{
+  width:100%;padding:9px;border-radius:8px;border:none;
+  background:#1d4ed8;color:#fff;font-size:.72rem;font-weight:700;cursor:pointer;
+}
+.save-key-btn:hover{background:#1e40af}
 </style>
 </head>
 <body>
 
-<!-- ── SIDEBAR ── -->
-<div class="sidebar">
+<!-- ══ SIDEBAR ══ -->
+<div class="sidebar" id="sidebar">
+  <div class="resize-handle" id="resizeHandle"></div>
   <div class="sidebar-header">
     <div class="sidebar-title">AI System Design</div>
     <div class="sidebar-heading">Blueprint</div>
-    <div class="sidebar-sub">15 patterns · click to open</div>
+    <div class="sidebar-sub">15 patterns · 4 tiers</div>
   </div>
-
   <div class="sidebar-tools">
-    <button class="tool-btn active" id="btn-flows" onclick="setMode('flows')">Flows</button>
-    <button class="tool-btn" id="btn-mindmap" onclick="setMode('mindmap')">Mind Map</button>
-    <button class="tool-btn" id="btn-new" onclick="openInNewTab()">New Tab ↗</button>
+    <button class="tool-btn active" id="btn-flows"   onclick="setMode('flows')">Flows</button>
+    <button class="tool-btn"        id="btn-mindmap" onclick="setMode('mindmap')">Map</button>
+    <button class="tool-btn ai-btn" id="btn-ai"      onclick="toggleChat()">AI</button>
+    <button class="tool-btn"                         onclick="openInNewTab()">↗</button>
   </div>
-
   <div class="tier-sections">
-
-    <!-- TIER 1 -->
     <div class="tier-group t1">
-      <div class="tier-group-label"><div class="tier-dot" style="background:#60a5fa"></div>Tier 1 — LLM Patterns</div>
-      <button class="pattern-btn" id="pb1" onclick="loadFlow('P1-plain-llm/flow.html','P1 — Plain LLM Application','pb1')">
-        <div class="pb-num">P1</div>
-        <div class="pb-body">
-          <div class="pb-title">Plain LLM Application</div>
-          <div class="pb-mem">Request → Prompt → LLM → Parse → Response</div>
-        </div>
-      </button>
-      <button class="pattern-btn" id="pb2" onclick="loadFlow('P2-rag/flow.html','P2 — RAG Application','pb2')">
-        <div class="pb-num">P2</div>
-        <div class="pb-body">
-          <div class="pb-title">RAG Application</div>
-          <div class="pb-mem">Retrieve → Rank → Augment → Generate</div>
-        </div>
-      </button>
-      <button class="pattern-btn" id="pb3" onclick="loadFlow('P3-agent-tool-calling/flow.html','P3 — Agent + Tool Calling','pb3')">
-        <div class="pb-num">P3</div>
-        <div class="pb-body">
-          <div class="pb-title">Agent + Tool Calling</div>
-          <div class="pb-mem">Think → Tool → Result → Think → Answer</div>
-        </div>
-      </button>
-      <button class="pattern-btn" id="pb4" onclick="loadFlow('P4-memory-based-ai/flow.html','P4 — Memory-Based AI','pb4')">
-        <div class="pb-num">P4</div>
-        <div class="pb-body">
-          <div class="pb-title">Memory-Based AI</div>
-          <div class="pb-mem">Retrieve → Context Build → LLM → Store</div>
-        </div>
-      </button>
-      <button class="pattern-btn" id="pb5" onclick="loadFlow('P5-streaming-async/flow.html','P5 — Streaming + Async Jobs','pb5')">
-        <div class="pb-num">P5</div>
-        <div class="pb-body">
-          <div class="pb-title">Streaming + Async Jobs</div>
-          <div class="pb-mem">Generate → Push Token · Accept → Queue → Worker</div>
-        </div>
-      </button>
-      <button class="pattern-btn" id="pb6" onclick="loadFlow('P6-multi-agent-systems/flow.html','P6 — Multi-Agent Systems','pb6')">
-        <div class="pb-num">P6</div>
-        <div class="pb-body">
-          <div class="pb-title">Multi-Agent Systems</div>
-          <div class="pb-mem">Orchestrate → Dispatch → Synthesise → Critique</div>
-        </div>
-      </button>
-      <button class="pattern-btn" id="pb7" onclick="loadFlow('P7-guardrails-safety/flow.html','P7 — Guardrails & Safety','pb7')">
-        <div class="pb-num">P7</div>
-        <div class="pb-body">
-          <div class="pb-title">Guardrails &amp; Safety</div>
-          <div class="pb-mem">Input Guard → LLM → Output Guard → Audit</div>
-        </div>
-      </button>
+      <div class="tier-group-label"><div class="tier-dot" style="background:#1d4ed8"></div>Tier 1 — LLM Patterns</div>
+      <button class="pattern-btn" id="pb1"  onclick="loadFlow('P1-plain-llm/flow.html','P1 — Plain LLM','pb1')"><div class="pb-num">P1</div><div class="pb-body"><div class="pb-title">Plain LLM Application</div><div class="pb-mem">Request → Prompt → LLM → Parse</div></div></button>
+      <button class="pattern-btn" id="pb2"  onclick="loadFlow('P2-rag/flow.html','P2 — RAG Application','pb2')"><div class="pb-num">P2</div><div class="pb-body"><div class="pb-title">RAG Application</div><div class="pb-mem">Retrieve → Rank → Augment → Generate</div></div></button>
+      <button class="pattern-btn" id="pb3"  onclick="loadFlow('P3-agent-tool-calling/flow.html','P3 — Agent + Tool Calling','pb3')"><div class="pb-num">P3</div><div class="pb-body"><div class="pb-title">Agent + Tool Calling</div><div class="pb-mem">Think → Tool → Result → Answer</div></div></button>
+      <button class="pattern-btn" id="pb4"  onclick="loadFlow('P4-memory-based-ai/flow.html','P4 — Memory-Based AI','pb4')"><div class="pb-num">P4</div><div class="pb-body"><div class="pb-title">Memory-Based AI</div><div class="pb-mem">Retrieve → Context → LLM → Store</div></div></button>
+      <button class="pattern-btn" id="pb5"  onclick="loadFlow('P5-streaming-async/flow.html','P5 — Streaming + Async','pb5')"><div class="pb-num">P5</div><div class="pb-body"><div class="pb-title">Streaming + Async Jobs</div><div class="pb-mem">Generate → Push Token · Queue</div></div></button>
+      <button class="pattern-btn" id="pb6"  onclick="loadFlow('P6-multi-agent-systems/flow.html','P6 — Multi-Agent Systems','pb6')"><div class="pb-num">P6</div><div class="pb-body"><div class="pb-title">Multi-Agent Systems</div><div class="pb-mem">Orchestrate → Dispatch → Synthesise</div></div></button>
+      <button class="pattern-btn" id="pb7"  onclick="loadFlow('P7-guardrails-safety/flow.html','P7 — Guardrails','pb7')"><div class="pb-num">P7</div><div class="pb-body"><div class="pb-title">Guardrails &amp; Safety</div><div class="pb-mem">Input Guard → LLM → Output Guard</div></div></button>
     </div>
-
-    <!-- TIER 2 -->
     <div class="tier-group t2">
-      <div class="tier-group-label"><div class="tier-dot" style="background:#34d399"></div>Tier 2 — Data &amp; Retrieval</div>
-      <button class="pattern-btn" id="pb8" onclick="loadFlow('P8-vector-database-design/flow.html','P8 — Vector Database Design','pb8')">
-        <div class="pb-num">P8</div>
-        <div class="pb-body">
-          <div class="pb-title">Vector Database Design</div>
-          <div class="pb-mem">Embed → Index → ANN Search → Rerank</div>
-        </div>
-      </button>
-      <button class="pattern-btn" id="pb9" onclick="loadFlow('P9-hybrid-search/flow.html','P9 — Hybrid Search','pb9')">
-        <div class="pb-num">P9</div>
-        <div class="pb-body">
-          <div class="pb-title">Hybrid Search</div>
-          <div class="pb-mem">BM25 + Vector → RRF Merge → Rerank</div>
-        </div>
-      </button>
-      <button class="pattern-btn" id="pb10" onclick="loadFlow('P10-fine-tuning-peft/flow.html','P10 — Fine-Tuning & PEFT','pb10')">
-        <div class="pb-num">P10</div>
-        <div class="pb-body">
-          <div class="pb-title">Fine-Tuning &amp; PEFT</div>
-          <div class="pb-mem">Dataset → LoRA/QLoRA → Train → Eval → Deploy</div>
-        </div>
-      </button>
+      <div class="tier-group-label"><div class="tier-dot" style="background:#15803d"></div>Tier 2 — Data &amp; Retrieval</div>
+      <button class="pattern-btn" id="pb8"  onclick="loadFlow('P8-vector-database-design/flow.html','P8 — Vector DB Design','pb8')"><div class="pb-num">P8</div><div class="pb-body"><div class="pb-title">Vector Database Design</div><div class="pb-mem">Embed → Index → ANN Search → Rerank</div></div></button>
+      <button class="pattern-btn" id="pb9"  onclick="loadFlow('P9-hybrid-search/flow.html','P9 — Hybrid Search','pb9')"><div class="pb-num">P9</div><div class="pb-body"><div class="pb-title">Hybrid Search</div><div class="pb-mem">BM25 + Vector → RRF → Rerank</div></div></button>
+      <button class="pattern-btn" id="pb10" onclick="loadFlow('P10-fine-tuning-peft/flow.html','P10 — Fine-Tuning','pb10')"><div class="pb-num">P10</div><div class="pb-body"><div class="pb-title">Fine-Tuning &amp; PEFT</div><div class="pb-mem">Dataset → LoRA/QLoRA → Deploy</div></div></button>
     </div>
-
-    <!-- TIER 3 -->
     <div class="tier-group t3">
-      <div class="tier-group-label"><div class="tier-dot" style="background:#fbbf24"></div>Tier 3 — Production</div>
-      <button class="pattern-btn" id="pb11" onclick="loadFlow('P11-caching-strategy/flow.html','P11 — Caching Strategy','pb11')">
-        <div class="pb-num">P11</div>
-        <div class="pb-body">
-          <div class="pb-title">Caching Strategy</div>
-          <div class="pb-mem">L1 In-Memory → L2 Redis → L3 Semantic</div>
-        </div>
-      </button>
-      <button class="pattern-btn" id="pb12" onclick="loadFlow('P12-observability-evals/flow.html','P12 — Observability & Evals','pb12')">
-        <div class="pb-num">P12</div>
-        <div class="pb-body">
-          <div class="pb-title">Observability &amp; Evals</div>
-          <div class="pb-mem">Trace → Metrics → RAGAS → Alert</div>
-        </div>
-      </button>
-      <button class="pattern-btn" id="pb13" onclick="loadFlow('P13-cost-latency-optimisation/flow.html','P13 — Cost & Latency Optimisation','pb13')">
-        <div class="pb-num">P13</div>
-        <div class="pb-body">
-          <div class="pb-title">Cost &amp; Latency Optimisation</div>
-          <div class="pb-mem">Route → Budget Tokens → Batch → JSON Mode</div>
-        </div>
-      </button>
+      <div class="tier-group-label"><div class="tier-dot" style="background:#b45309"></div>Tier 3 — Production</div>
+      <button class="pattern-btn" id="pb11" onclick="loadFlow('P11-caching-strategy/flow.html','P11 — Caching Strategy','pb11')"><div class="pb-num">P11</div><div class="pb-body"><div class="pb-title">Caching Strategy</div><div class="pb-mem">L1 LRU → L2 Redis → L3 Semantic</div></div></button>
+      <button class="pattern-btn" id="pb12" onclick="loadFlow('P12-observability-evals/flow.html','P12 — Observability','pb12')"><div class="pb-num">P12</div><div class="pb-body"><div class="pb-title">Observability &amp; Evals</div><div class="pb-mem">Trace → Metrics → RAGAS → Alert</div></div></button>
+      <button class="pattern-btn" id="pb13" onclick="loadFlow('P13-cost-latency-optimisation/flow.html','P13 — Cost &amp; Latency','pb13')"><div class="pb-num">P13</div><div class="pb-body"><div class="pb-title">Cost &amp; Latency Optimisation</div><div class="pb-mem">Route → Budget → Batch</div></div></button>
     </div>
-
-    <!-- TIER 4 -->
     <div class="tier-group t4">
-      <div class="tier-group-label"><div class="tier-dot" style="background:#fb7185"></div>Tier 4 — Security</div>
-      <button class="pattern-btn" id="pb14" onclick="loadFlow('P14-prompt-injection-defence/flow.html','P14 — Prompt Injection Defence','pb14')">
-        <div class="pb-num">P14</div>
-        <div class="pb-body">
-          <div class="pb-title">Prompt Injection Defence</div>
-          <div class="pb-mem">Detect → Blocklist → LLM Judge → Isolate</div>
-        </div>
-      </button>
-      <button class="pattern-btn" id="pb15" onclick="loadFlow('P15-pii-data-privacy/flow.html','P15 — PII & Data Privacy','pb15')">
-        <div class="pb-num">P15</div>
-        <div class="pb-body">
-          <div class="pb-title">PII &amp; Data Privacy</div>
-          <div class="pb-mem">Detect → Tokenise → LLM → Restore</div>
-        </div>
-      </button>
+      <div class="tier-group-label"><div class="tier-dot" style="background:#be123c"></div>Tier 4 — Security</div>
+      <button class="pattern-btn" id="pb14" onclick="loadFlow('P14-prompt-injection-defence/flow.html','P14 — Prompt Injection','pb14')"><div class="pb-num">P14</div><div class="pb-body"><div class="pb-title">Prompt Injection Defence</div><div class="pb-mem">Detect → Blocklist → Isolate</div></div></button>
+      <button class="pattern-btn" id="pb15" onclick="loadFlow('P15-pii-data-privacy/flow.html','P15 — PII Privacy','pb15')"><div class="pb-num">P15</div><div class="pb-body"><div class="pb-title">PII &amp; Data Privacy</div><div class="pb-mem">Detect → Tokenise → LLM → Restore</div></div></button>
     </div>
+  </div>
+</div>
 
-  </div><!-- tier-sections -->
-</div><!-- sidebar -->
-
-<!-- ── MAIN CONTENT ── -->
-<div class="main">
-
-  <!-- Top bar -->
+<!-- ══ MAIN ══ -->
+<div class="main" id="main">
   <div class="topbar">
-    <div class="topbar-title" id="topbar-title">Select a pattern from the left sidebar</div>
+    <div class="topbar-title" id="topbar-title">Select a pattern from the sidebar</div>
     <div class="topbar-actions">
-      <button class="ta-btn" id="prev-btn" onclick="navigate(-1)">← Prev</button>
-      <button class="ta-btn" id="next-btn" onclick="navigate(1)">Next →</button>
-      <button class="ta-btn primary" id="newtab-btn" onclick="openInNewTab()">Open in New Tab ↗</button>
+      <button class="ta-btn" onclick="navigate(-1)">← Prev</button>
+      <button class="ta-btn" onclick="navigate(1)">Next →</button>
+      <button class="ta-btn primary" onclick="openInNewTab()">Open in New Tab ↗</button>
     </div>
   </div>
 
-  <!-- Welcome screen -->
+  <!-- Zoom strip (shown in flows mode) -->
+  <div class="zoom-strip" id="zoomStrip" style="display:none">
+    <span class="zoom-label">ZOOM</span>
+    <button class="zoom-btn" onclick="changeZoom(-10)">−</button>
+    <span class="zoom-val" id="zoomVal">100%</span>
+    <button class="zoom-btn" onclick="changeZoom(10)">+</button>
+    <button class="zoom-btn" onclick="resetZoom()">↺ Reset</button>
+  </div>
+
+  <!-- Welcome -->
   <div class="welcome" id="welcome">
     <div class="welcome-icon">🗺️</div>
     <div class="welcome-title">AI System Design Blueprint</div>
-    <div class="welcome-sub">15 interactive flow diagrams covering everything from Plain LLM to PII Privacy. Click any pattern in the sidebar to open it here.</div>
+    <div class="welcome-sub">15 interactive flow diagrams — from Plain LLM to PII Privacy. Click any pattern, open Mind Map, or ask the AI assistant.</div>
     <div class="welcome-hint">
-      <strong style="color:#ccc">Tip:</strong> Use <kbd>←</kbd> <kbd>→</kbd> arrow buttons to step through all 15 patterns in order.<br>
-      Click <strong style="color:#60a5fa">Open in New Tab ↗</strong> to get a full-screen view.<br>
-      Use <strong style="color:#60a5fa">Mind Map</strong> button above to see all 15 patterns at once.
+      <strong>Mind Map:</strong> click a tier to expand patterns.<br>
+      <strong>AI:</strong> ask anything about the 15 design patterns.<br>
+      Use <kbd>←</kbd> <kbd>→</kbd> to step through all 15 flows.
     </div>
   </div>
 
   <!-- Flow iframe -->
   <div class="frame-wrap" id="frame-wrap">
-    <div class="loader" id="loader">
-      <div class="spinner"></div>
-      <div class="loader-text">Loading diagram...</div>
-    </div>
+    <div class="loader" id="loader"><div class="spinner"></div><div class="loader-text">Loading…</div></div>
     <iframe id="flowFrame" title="Flow Diagram" onload="frameLoaded()"></iframe>
   </div>
 
-  <!-- Mind map — rendered natively, no separate file needed -->
+  <!-- Mind Map -->
   <div class="mindmap-wrap" id="mindmap-wrap">
-    <div class="mm-inner">
-
-      <div class="mm-header">
-        <div class="mm-title">AI System Design <span>Mind Map</span></div>
-        <div class="mm-sub">15 patterns · 4 tiers · click any card to open its flow</div>
-        <div class="mm-legend">
-          <span class="ml"><span class="mld" style="background:#60a5fa"></span>Tier 1 — LLM Patterns</span>
-          <span class="ml"><span class="mld" style="background:#34d399"></span>Tier 2 — Data &amp; Retrieval</span>
-          <span class="ml"><span class="mld" style="background:#fbbf24"></span>Tier 3 — Production</span>
-          <span class="ml"><span class="mld" style="background:#fb7185"></span>Tier 4 — Security</span>
-        </div>
+    <div class="mm-topstrip">
+      <div class="mm-strip-title">Mind Map — Click a Tier to Expand</div>
+      <div class="mm-legend">
+        <span class="ml"><span class="mld" style="background:#1d4ed8"></span>Tier 1</span>
+        <span class="ml"><span class="mld" style="background:#15803d"></span>Tier 2</span>
+        <span class="ml"><span class="mld" style="background:#b45309"></span>Tier 3</span>
+        <span class="ml"><span class="mld" style="background:#be123c"></span>Tier 4</span>
       </div>
+      <div class="mm-hint">Click tier → expand · Click pattern → open flow</div>
+    </div>
+    <div class="mm-canvas-wrap" id="mmWrap">
+      <svg id="mmSvg" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+  </div>
+</div>
 
-      <!-- Tier 1 -->
-      <div class="mm-tier">
-        <div class="mm-tier-label" style="color:#60a5fa">▸ Tier 1 — LLM Application Patterns</div>
-        <div class="mm-cards">
-          <div class="mm-card t1c" onclick="loadFlow('P1-plain-llm/flow.html','P1 — Plain LLM Application','pb1');setMode('flows')">
-            <div class="mc-num" style="color:#60a5fa">P1</div>
-            <div class="mc-title">Plain LLM Application</div>
-            <div class="mc-mem">Request → Prompt → LLM → Parse → Response</div>
-            <div class="mc-tags"><span class="mct" style="background:rgba(96,165,250,.12);color:#93c5fd">FastAPI</span><span class="mct" style="background:rgba(96,165,250,.12);color:#93c5fd">AsyncOpenAI</span></div>
-          </div>
-          <div class="mm-card t1c" onclick="loadFlow('P2-rag/flow.html','P2 — RAG Application','pb2');setMode('flows')">
-            <div class="mc-num" style="color:#60a5fa">P2</div>
-            <div class="mc-title">RAG Application</div>
-            <div class="mc-mem">Retrieve → Rank → Augment → Generate</div>
-            <div class="mc-tags"><span class="mct" style="background:rgba(96,165,250,.12);color:#93c5fd">FAISS</span><span class="mct" style="background:rgba(96,165,250,.12);color:#93c5fd">CrossEncoder</span></div>
-          </div>
-          <div class="mm-card t1c" onclick="loadFlow('P3-agent-tool-calling/flow.html','P3 — Agent + Tool Calling','pb3');setMode('flows')">
-            <div class="mc-num" style="color:#60a5fa">P3</div>
-            <div class="mc-title">Agent + Tool Calling</div>
-            <div class="mc-mem">Think → Tool → Result → Think → Answer</div>
-            <div class="mc-tags"><span class="mct" style="background:rgba(96,165,250,.12);color:#93c5fd">tool_calls</span><span class="mct" style="background:rgba(96,165,250,.12);color:#93c5fd">ReAct loop</span></div>
-          </div>
-          <div class="mm-card t1c" onclick="loadFlow('P4-memory-based-ai/flow.html','P4 — Memory-Based AI','pb4');setMode('flows')">
-            <div class="mc-num" style="color:#60a5fa">P4</div>
-            <div class="mc-title">Memory-Based AI</div>
-            <div class="mc-mem">Retrieve → Context Build → LLM → Store</div>
-            <div class="mc-tags"><span class="mct" style="background:rgba(96,165,250,.12);color:#93c5fd">Redis</span><span class="mct" style="background:rgba(96,165,250,.12);color:#93c5fd">FAISS</span></div>
-          </div>
-          <div class="mm-card t1c" onclick="loadFlow('P5-streaming-async/flow.html','P5 — Streaming + Async Jobs','pb5');setMode('flows')">
-            <div class="mc-num" style="color:#60a5fa">P5</div>
-            <div class="mc-title">Streaming + Async Jobs</div>
-            <div class="mc-mem">Generate → Push Token · Accept → Queue → Worker</div>
-            <div class="mc-tags"><span class="mct" style="background:rgba(96,165,250,.12);color:#93c5fd">SSE</span><span class="mct" style="background:rgba(96,165,250,.12);color:#93c5fd">Celery</span></div>
-          </div>
-          <div class="mm-card t1c" onclick="loadFlow('P6-multi-agent-systems/flow.html','P6 — Multi-Agent Systems','pb6');setMode('flows')">
-            <div class="mc-num" style="color:#60a5fa">P6</div>
-            <div class="mc-title">Multi-Agent Systems</div>
-            <div class="mc-mem">Orchestrate → Dispatch → Synthesise → Critique</div>
-            <div class="mc-tags"><span class="mct" style="background:rgba(96,165,250,.12);color:#93c5fd">LangGraph</span><span class="mct" style="background:rgba(96,165,250,.12);color:#93c5fd">asyncio.gather</span></div>
-          </div>
-          <div class="mm-card t1c" onclick="loadFlow('P7-guardrails-safety/flow.html','P7 — Guardrails & Safety','pb7');setMode('flows')">
-            <div class="mc-num" style="color:#60a5fa">P7</div>
-            <div class="mc-title">Guardrails &amp; Safety</div>
-            <div class="mc-mem">Input Guard → LLM → Output Guard → Audit</div>
-            <div class="mc-tags"><span class="mct" style="background:rgba(96,165,250,.12);color:#93c5fd">G1–G5</span><span class="mct" style="background:rgba(96,165,250,.12);color:#93c5fd">hallucination</span></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tier 2 -->
-      <div class="mm-tier">
-        <div class="mm-tier-label" style="color:#34d399">▸ Tier 2 — Data &amp; Retrieval</div>
-        <div class="mm-cards">
-          <div class="mm-card t2c" onclick="loadFlow('P8-vector-database-design/flow.html','P8 — Vector Database Design','pb8');setMode('flows')">
-            <div class="mc-num" style="color:#34d399">P8</div>
-            <div class="mc-title">Vector Database Design</div>
-            <div class="mc-mem">Embed → Index → ANN Search → Rerank</div>
-            <div class="mc-tags"><span class="mct" style="background:rgba(52,211,153,.12);color:#6ee7b7">FAISS</span><span class="mct" style="background:rgba(52,211,153,.12);color:#6ee7b7">Pinecone</span><span class="mct" style="background:rgba(52,211,153,.12);color:#6ee7b7">pgvector</span></div>
-          </div>
-          <div class="mm-card t2c" onclick="loadFlow('P9-hybrid-search/flow.html','P9 — Hybrid Search','pb9');setMode('flows')">
-            <div class="mc-num" style="color:#34d399">P9</div>
-            <div class="mc-title">Hybrid Search</div>
-            <div class="mc-mem">BM25 + Vector → RRF Merge → Rerank</div>
-            <div class="mc-tags"><span class="mct" style="background:rgba(52,211,153,.12);color:#6ee7b7">BM25</span><span class="mct" style="background:rgba(52,211,153,.12);color:#6ee7b7">RRF</span><span class="mct" style="background:rgba(52,211,153,.12);color:#6ee7b7">CrossEncoder</span></div>
-          </div>
-          <div class="mm-card t2c" onclick="loadFlow('P10-fine-tuning-peft/flow.html','P10 — Fine-Tuning & PEFT','pb10');setMode('flows')">
-            <div class="mc-num" style="color:#34d399">P10</div>
-            <div class="mc-title">Fine-Tuning &amp; PEFT</div>
-            <div class="mc-mem">Dataset → LoRA/QLoRA → Train → Eval → Deploy</div>
-            <div class="mc-tags"><span class="mct" style="background:rgba(52,211,153,.12);color:#6ee7b7">LoRA</span><span class="mct" style="background:rgba(52,211,153,.12);color:#6ee7b7">QLoRA</span><span class="mct" style="background:rgba(52,211,153,.12);color:#6ee7b7">vLLM</span></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tier 3 -->
-      <div class="mm-tier">
-        <div class="mm-tier-label" style="color:#fbbf24">▸ Tier 3 — Production Infrastructure</div>
-        <div class="mm-cards">
-          <div class="mm-card t3c" onclick="loadFlow('P11-caching-strategy/flow.html','P11 — Caching Strategy','pb11');setMode('flows')">
-            <div class="mc-num" style="color:#fbbf24">P11</div>
-            <div class="mc-title">Caching Strategy</div>
-            <div class="mc-mem">L1 In-Memory → L2 Redis → L3 Semantic</div>
-            <div class="mc-tags"><span class="mct" style="background:rgba(251,191,36,.12);color:#fcd34d">LRU</span><span class="mct" style="background:rgba(251,191,36,.12);color:#fcd34d">Redis</span><span class="mct" style="background:rgba(251,191,36,.12);color:#fcd34d">500× savings</span></div>
-          </div>
-          <div class="mm-card t3c" onclick="loadFlow('P12-observability-evals/flow.html','P12 — Observability & Evals','pb12');setMode('flows')">
-            <div class="mc-num" style="color:#fbbf24">P12</div>
-            <div class="mc-title">Observability &amp; Evals</div>
-            <div class="mc-mem">Trace → Metrics → RAGAS → Alert</div>
-            <div class="mc-tags"><span class="mct" style="background:rgba(251,191,36,.12);color:#fcd34d">OTEL</span><span class="mct" style="background:rgba(251,191,36,.12);color:#fcd34d">Prometheus</span><span class="mct" style="background:rgba(251,191,36,.12);color:#fcd34d">RAGAS</span></div>
-          </div>
-          <div class="mm-card t3c" onclick="loadFlow('P13-cost-latency-optimisation/flow.html','P13 — Cost & Latency Optimisation','pb13');setMode('flows')">
-            <div class="mc-num" style="color:#fbbf24">P13</div>
-            <div class="mc-title">Cost &amp; Latency Optimisation</div>
-            <div class="mc-mem">Route → Budget Tokens → Batch → JSON Mode</div>
-            <div class="mc-tags"><span class="mct" style="background:rgba(251,191,36,.12);color:#fcd34d">DeepSeek</span><span class="mct" style="background:rgba(251,191,36,.12);color:#fcd34d">model routing</span></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tier 4 -->
-      <div class="mm-tier">
-        <div class="mm-tier-label" style="color:#fb7185">▸ Tier 4 — Security &amp; Compliance</div>
-        <div class="mm-cards">
-          <div class="mm-card t4c" onclick="loadFlow('P14-prompt-injection-defence/flow.html','P14 — Prompt Injection Defence','pb14');setMode('flows')">
-            <div class="mc-num" style="color:#fb7185">P14</div>
-            <div class="mc-title">Prompt Injection Defence</div>
-            <div class="mc-mem">Detect → Blocklist → LLM Judge → Isolate</div>
-            <div class="mc-tags"><span class="mct" style="background:rgba(251,113,133,.12);color:#fda4af">OWASP #1</span><span class="mct" style="background:rgba(251,113,133,.12);color:#fda4af">structural isolation</span></div>
-          </div>
-          <div class="mm-card t4c" onclick="loadFlow('P15-pii-data-privacy/flow.html','P15 — PII & Data Privacy','pb15');setMode('flows')">
-            <div class="mc-num" style="color:#fb7185">P15</div>
-            <div class="mc-title">PII &amp; Data Privacy</div>
-            <div class="mc-mem">Detect → Tokenise → LLM → Restore</div>
-            <div class="mc-tags"><span class="mct" style="background:rgba(251,113,133,.12);color:#fda4af">GDPR</span><span class="mct" style="background:rgba(251,113,133,.12);color:#fda4af">DPDP</span><span class="mct" style="background:rgba(251,113,133,.12);color:#fda4af">PII vault</span></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Interview coverage -->
-      <div class="mm-int-section">
-        <div class="mm-int-title">Interview Coverage — which patterns answer which questions</div>
-        <div class="mm-int-grid">
-          <div class="mm-int-card"><div class="mic-q">"Design a chatbot"</div><div class="mic-tags"><span class="mic-tag">P1</span><span class="mic-tag">P4</span><span class="mic-tag">P11</span></div></div>
-          <div class="mm-int-card"><div class="mic-q">"Design a document Q&amp;A system"</div><div class="mic-tags"><span class="mic-tag">P2</span><span class="mic-tag">P8</span><span class="mic-tag">P9</span></div></div>
-          <div class="mm-int-card"><div class="mic-q">"Design an autonomous agent"</div><div class="mic-tags"><span class="mic-tag">P3</span><span class="mic-tag">P6</span></div></div>
-          <div class="mm-int-card"><div class="mic-q">"How do you make LLM apps safe?"</div><div class="mic-tags"><span class="mic-tag">P7</span><span class="mic-tag">P14</span><span class="mic-tag">P15</span></div></div>
-          <div class="mm-int-card"><div class="mic-q">"How do you reduce LLM costs?"</div><div class="mic-tags"><span class="mic-tag">P11</span><span class="mic-tag">P13</span></div></div>
-          <div class="mm-int-card"><div class="mic-q">"How do you measure LLM quality?"</div><div class="mic-tags"><span class="mic-tag">P12</span></div></div>
-          <div class="mm-int-card"><div class="mic-q">"When would you fine-tune?"</div><div class="mic-tags"><span class="mic-tag">P10</span></div></div>
-          <div class="mm-int-card"><div class="mic-q">"Design a production RAG system"</div><div class="mic-tags"><span class="mic-tag">P2</span><span class="mic-tag">P8</span><span class="mic-tag">P9</span><span class="mic-tag">P11</span><span class="mic-tag">P12</span><span class="mic-tag">P13</span></div></div>
-          <div class="mm-int-card"><div class="mic-q">"78s → 4s, how did you do it?"</div><div class="mic-tags"><span class="mic-tag">P6</span><span class="mic-tag">P11</span><span class="mic-tag">P13</span></div></div>
-          <div class="mm-int-card"><div class="mic-q">"How do you handle PII in AI?"</div><div class="mic-tags"><span class="mic-tag">P7</span><span class="mic-tag">P15</span></div></div>
-        </div>
-      </div>
-
-    </div><!-- mm-inner -->
+<!-- ══ AI CHAT PANEL ══ -->
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-header">
+    <div class="chat-header-icon">🤖</div>
+    <div class="chat-header-text">
+      <div class="chat-header-title">AI Design Mentor</div>
+      <div class="chat-header-sub">Expert on all 15 AI system design patterns</div>
+    </div>
+    <button class="chat-close" onclick="toggleChat()">✕</button>
+  </div>
+  <div class="chat-context-bar" id="chatContextBar">
+    Ask about any of the 15 AI system design patterns
   </div>
 
+  <!-- API key setup (shown if no key) -->
+  <div class="apikey-setup" id="apikeySetup" style="display:none">
+    <div class="apikey-icon">🔑</div>
+    <div class="apikey-title">Enter your DeepSeek API Key</div>
+    <div class="apikey-sub">Your key is stored only in this browser session and never sent anywhere except DeepSeek's API.</div>
+    <input type="password" id="apiKeyInput" placeholder="sk-..." />
+    <button class="save-key-btn" onclick="saveApiKey()">Save &amp; Start Chatting</button>
+  </div>
+
+  <!-- Chat messages -->
+  <div class="chat-messages" id="chatMessages"></div>
+
+  <!-- Input -->
+  <div class="chat-input-area">
+    <div class="chat-input-row">
+      <textarea id="chatInput" rows="1" placeholder="Ask about any design pattern…" onkeydown="chatKeydown(event)"></textarea>
+      <button class="send-btn" id="sendBtn" onclick="sendChat()">Send</button>
+    </div>
+    <div class="chat-hint">Powered by DeepSeek · scoped to AI system design patterns</div>
+  </div>
 </div>
 
 <script>
-// ── State ──
+// ══════════════════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════════════════
 let currentPath  = null;
 let currentBtn   = null;
 let currentMode  = 'flows';
-let currentTitle = null;
+let currentTitle = 'Select a pattern from the sidebar';
+let zoomLevel    = 100;
+let chatOpen     = false;
+let chatHistory  = [];
+
+// DeepSeek key — pre-loaded; user can override
+let DEEPSEEK_KEY = 'sk-b42b2da056144e37a0fce6a363bb30ef';
 
 const ORDER = [
-  'P1-plain-llm/flow.html',
-  'P2-rag/flow.html',
-  'P3-agent-tool-calling/flow.html',
-  'P4-memory-based-ai/flow.html',
-  'P5-streaming-async/flow.html',
-  'P6-multi-agent-systems/flow.html',
-  'P7-guardrails-safety/flow.html',
-  'P8-vector-database-design/flow.html',
-  'P9-hybrid-search/flow.html',
-  'P10-fine-tuning-peft/flow.html',
-  'P11-caching-strategy/flow.html',
-  'P12-observability-evals/flow.html',
-  'P13-cost-latency-optimisation/flow.html',
-  'P14-prompt-injection-defence/flow.html',
-  'P15-pii-data-privacy/flow.html',
+  'P1-plain-llm/flow.html','P2-rag/flow.html','P3-agent-tool-calling/flow.html',
+  'P4-memory-based-ai/flow.html','P5-streaming-async/flow.html',
+  'P6-multi-agent-systems/flow.html','P7-guardrails-safety/flow.html',
+  'P8-vector-database-design/flow.html','P9-hybrid-search/flow.html',
+  'P10-fine-tuning-peft/flow.html','P11-caching-strategy/flow.html',
+  'P12-observability-evals/flow.html','P13-cost-latency-optimisation/flow.html',
+  'P14-prompt-injection-defence/flow.html','P15-pii-data-privacy/flow.html',
 ];
-const BTN_IDS = ['pb1','pb2','pb3','pb4','pb5','pb6','pb7','pb8','pb9','pb10','pb11','pb12','pb13','pb14','pb15'];
+const TITLES = [
+  'P1 — Plain LLM','P2 — RAG Application','P3 — Agent + Tool Calling',
+  'P4 — Memory-Based AI','P5 — Streaming + Async','P6 — Multi-Agent Systems',
+  'P7 — Guardrails & Safety','P8 — Vector DB Design','P9 — Hybrid Search',
+  'P10 — Fine-Tuning & PEFT','P11 — Caching Strategy','P12 — Observability & Evals',
+  'P13 — Cost & Latency','P14 — Prompt Injection Defence','P15 — PII & Data Privacy',
+];
+const BTNIDS = ['pb1','pb2','pb3','pb4','pb5','pb6','pb7','pb8','pb9','pb10','pb11','pb12','pb13','pb14','pb15'];
 
+// ══ System prompt for AI ══
+const SYSTEM_PROMPT = `You are an expert AI System Design Mentor, specialising exclusively in these 15 AI engineering patterns:
+
+P1 - Plain LLM Application: Request → Prompt Template → LLM → Output Parser → Response
+P2 - RAG (Retrieval Augmented Generation): Embed query → FAISS/vector search → retrieve top-k → augment prompt → generate
+P3 - Agent + Tool Calling: ReAct loop (Reason → Act → Observe), OpenAI function calling, tool registry
+P4 - Memory-Based AI: Short-term (Redis conversation buffer), long-term (FAISS semantic memory), memory retrieval
+P5 - Streaming + Async Jobs: SSE token streaming, Celery async job queue, Redis pub/sub, status polling
+P6 - Multi-Agent Systems: Orchestrator → Planner → parallel Worker agents → Synthesiser → Critic (LangGraph StateGraph)
+P7 - Guardrails & Safety: Rate limiting, input validation, PII stripping, hallucination detection, audit logging
+P8 - Vector Database Design: FAISS (local), Pinecone (managed), pgvector (Postgres), Weaviate (hybrid); HNSW indexing, ANN search
+P9 - Hybrid Search: BM25 (keyword) + dense vector search in parallel → RRF (Reciprocal Rank Fusion) merge → CrossEncoder rerank
+P10 - Fine-Tuning & PEFT: When to fine-tune vs RAG vs prompt; LoRA, QLoRA, OpenAI fine-tune API; dataset prep, eval, vLLM deploy
+P11 - Caching Strategy: L1 in-process LRU dict (0ms) → L2 Redis exact match (1-3ms) → L3 FAISS semantic cache (cosine ≥ 0.92)
+P12 - Observability & Evals: OpenTelemetry traces → Prometheus metrics → RAGAS (faithfulness, relevancy, precision, recall) → Grafana alerts
+P13 - Cost & Latency Optimisation: Complexity classifier → model routing (gpt-4o-mini / DeepSeek / gpt-4o) → token budget trimmer → batching
+P14 - Prompt Injection Defence: Direct injection, indirect RAG poisoning, jailbreak → regex blocklist → LLM classifier → structural isolation
+P15 - PII & Data Privacy: spaCy NER detection → tokenise (replace with [EMAIL_1]) → LLM call with tokens → restore; GDPR/DPDP compliance
+
+RULES:
+- Only answer questions about these 15 patterns and AI system design.
+- If asked about unrelated topics, politely redirect: "I'm scoped to AI system design patterns — ask me about P1–P15."
+- Give concrete, technical answers with code snippets when helpful.
+- Use the pattern numbering (P1–P15) when referencing patterns.
+- Be concise but thorough. Format with bullet points and code blocks where helpful.
+- When someone asks about a specific pattern, explain the golden memory flow, when to use it, key tech, and a code snippet.`;
+
+// ══════════════════════════════════════════════════════════════════
+//  MODE
+// ══════════════════════════════════════════════════════════════════
 function setMode(mode) {
   currentMode = mode;
-  document.getElementById('btn-flows').classList.toggle('active', mode === 'flows');
-  document.getElementById('btn-mindmap').classList.toggle('active', mode === 'mindmap');
+  document.getElementById('btn-flows').classList.toggle('active',   mode==='flows');
+  document.getElementById('btn-mindmap').classList.toggle('active', mode==='mindmap');
+  document.getElementById('zoomStrip').style.display = mode==='flows' && currentPath ? 'flex' : 'none';
 
   if (mode === 'mindmap') {
-    document.getElementById('welcome').style.display = 'none';
+    document.getElementById('welcome').style.display    = 'none';
     document.getElementById('frame-wrap').classList.remove('show');
     document.getElementById('mindmap-wrap').classList.add('show');
     document.getElementById('topbar-title').textContent = 'Mind Map — All 15 Patterns';
+    buildMindMap();
   } else {
     document.getElementById('mindmap-wrap').classList.remove('show');
     if (currentPath) {
       document.getElementById('frame-wrap').classList.add('show');
       document.getElementById('welcome').style.display = 'none';
+      document.getElementById('topbar-title').textContent = currentTitle;
     } else {
       document.getElementById('welcome').style.display = 'flex';
+      document.getElementById('topbar-title').textContent = 'Select a pattern from the sidebar';
     }
-    if (currentPath) document.getElementById('topbar-title').textContent = currentTitle || 'Flow Diagram';
   }
 }
 
+// ══════════════════════════════════════════════════════════════════
+//  LOAD FLOW
+// ══════════════════════════════════════════════════════════════════
 function loadFlow(path, title, btnId) {
-  // Switch to flows mode
   if (currentMode !== 'flows') setMode('flows');
-
-  // Update active button
   if (currentBtn) document.getElementById(currentBtn)?.classList.remove('active');
   document.getElementById(btnId)?.classList.add('active');
-  currentBtn   = btnId;
-  currentPath  = path;
-  currentTitle = title;
-
-  // Update topbar
+  currentBtn = btnId; currentPath = path; currentTitle = title;
   document.getElementById('topbar-title').textContent = title;
-  document.getElementById('newtab-btn').style.display = 'block';
-
-  // Show frame, hide welcome
   document.getElementById('welcome').style.display = 'none';
   document.getElementById('frame-wrap').classList.add('show');
-
-  // Show loader
   document.getElementById('loader').classList.add('show');
-
-  // Load iframe
   document.getElementById('flowFrame').src = path;
+  document.getElementById('zoomStrip').style.display = 'flex';
+  applyZoom();
+  // update chat context bar
+  document.getElementById('chatContextBar').textContent = `Context: ${title} — ask me anything about this pattern`;
+}
+function frameLoaded(){ document.getElementById('loader').classList.remove('show'); }
+
+function openInNewTab(){
+  if (currentPath && currentMode==='flows') window.open(currentPath,'_blank');
 }
 
-function frameLoaded() {
-  document.getElementById('loader').classList.remove('show');
+function navigate(dir){
+  const idx  = currentPath ? ORDER.indexOf(currentPath) : -1;
+  const next = ((idx<0?0:idx) + dir + ORDER.length) % ORDER.length;
+  loadFlow(ORDER[next], TITLES[next], BTNIDS[next]);
+  document.getElementById(BTNIDS[next])?.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
-function openInNewTab() {
-  if (currentMode === 'mindmap') {
-    window.open('mind-map.html', '_blank');
-  } else if (currentPath) {
-    window.open(currentPath, '_blank');
-  }
-}
-
-function navigate(dir) {
-  const idx = ORDER.indexOf(currentPath);
-  let next;
-  if (idx === -1) {
-    next = dir === 1 ? 0 : ORDER.length - 1;
-  } else {
-    next = (idx + dir + ORDER.length) % ORDER.length;
-  }
-  const titles = [
-    'P1 — Plain LLM Application','P2 — RAG Application','P3 — Agent + Tool Calling',
-    'P4 — Memory-Based AI','P5 — Streaming + Async Jobs','P6 — Multi-Agent Systems',
-    'P7 — Guardrails & Safety','P8 — Vector Database Design','P9 — Hybrid Search',
-    'P10 — Fine-Tuning & PEFT','P11 — Caching Strategy','P12 — Observability & Evals',
-    'P13 — Cost & Latency Optimisation','P14 — Prompt Injection Defence','P15 — PII & Data Privacy'
-  ];
-  loadFlow(ORDER[next], titles[next], BTN_IDS[next]);
-
-  // Scroll button into view in sidebar
-  const btn = document.getElementById(BTN_IDS[next]);
-  if (btn) btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-// Keyboard navigation
-document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowRight') navigate(1);
-  if (e.key === 'ArrowLeft')  navigate(-1);
+document.addEventListener('keydown', e=>{
+  if (e.target.tagName === 'TEXTAREA') return;
+  if (e.key==='ArrowRight') navigate(1);
+  if (e.key==='ArrowLeft')  navigate(-1);
 });
+
+// ══════════════════════════════════════════════════════════════════
+//  ZOOM
+// ══════════════════════════════════════════════════════════════════
+function changeZoom(delta){
+  zoomLevel = Math.max(40, Math.min(200, zoomLevel + delta));
+  document.getElementById('zoomVal').textContent = zoomLevel + '%';
+  applyZoom();
+}
+function resetZoom(){
+  zoomLevel = 100;
+  document.getElementById('zoomVal').textContent = '100%';
+  applyZoom();
+}
+function applyZoom(){
+  const frame = document.getElementById('flowFrame');
+  const wrap  = document.getElementById('frame-wrap');
+  const scale = zoomLevel / 100;
+  frame.style.transform = `scale(${scale})`;
+  frame.style.width     = (100 / scale) + '%';
+  frame.style.height    = (100 / scale) + '%';
+  frame.style.transformOrigin = 'top left';
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  SIDEBAR RESIZE
+// ══════════════════════════════════════════════════════════════════
+(function(){
+  const handle  = document.getElementById('resizeHandle');
+  const sidebar = document.getElementById('sidebar');
+  const main    = document.getElementById('main');
+  let dragging  = false, startX = 0, startW = 0;
+
+  handle.addEventListener('mousedown', e => {
+    dragging = true; startX = e.clientX; startW = sidebar.offsetWidth;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  });
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const newW = Math.max(160, Math.min(420, startW + e.clientX - startX));
+    sidebar.style.width = newW + 'px';
+    main.style.marginLeft = newW + 'px';
+    if (currentMode === 'mindmap') buildMindMap();
+  });
+  document.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false;
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  });
+})();
+
+// ══════════════════════════════════════════════════════════════════
+//  AI CHAT
+// ══════════════════════════════════════════════════════════════════
+function toggleChat(){
+  chatOpen = !chatOpen;
+  document.getElementById('chatPanel').classList.toggle('open', chatOpen);
+  document.getElementById('btn-ai').classList.toggle('active', chatOpen);
+  if (chatOpen && chatHistory.length === 0) {
+    // welcome message
+    addMessage('ai', "Hi! I'm your AI System Design Mentor. I know all 15 patterns in this blueprint — from Plain LLM to PII Privacy.\n\nAsk me anything:\n• \"Explain the RAG pattern\"\n• \"When should I use fine-tuning vs RAG?\"\n• \"What is RRF in hybrid search?\"\n• \"How does the PII vault work?\"");
+    document.getElementById('apikeySetup').style.display = 'none';
+  }
+}
+
+function saveApiKey(){
+  const val = document.getElementById('apiKeyInput').value.trim();
+  if (!val) return;
+  DEEPSEEK_KEY = val;
+  document.getElementById('apikeySetup').style.display = 'none';
+}
+
+function chatKeydown(e){
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+}
+
+async function sendChat(){
+  const input = document.getElementById('chatInput');
+  const text  = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  input.style.height = 'auto';
+
+  addMessage('user', text);
+  chatHistory.push({role:'user', content: text});
+
+  // show typing
+  const typing = addTyping();
+  document.getElementById('sendBtn').disabled = true;
+
+  try {
+    const res = await fetch('https://api.deepseek.com/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': `Bearer ${DEEPSEEK_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        messages: [
+          {role:'system', content: SYSTEM_PROMPT},
+          ...chatHistory.slice(-12)  // keep last 12 turns for context
+        ],
+        temperature: 0.4,
+        max_tokens: 800,
+      })
+    });
+
+    typing.remove();
+
+    if (!res.ok) {
+      const err = await res.json().catch(()=>({error:{message:'Unknown error'}}));
+      addMessage('ai', `⚠️ API error: ${err.error?.message || res.status}. Check your DeepSeek key.`);
+      return;
+    }
+
+    const data = await res.json();
+    const reply = data.choices?.[0]?.message?.content || 'No response.';
+    addMessage('ai', reply);
+    chatHistory.push({role:'assistant', content: reply});
+
+  } catch(err) {
+    typing.remove();
+    addMessage('ai', `⚠️ Network error: ${err.message}`);
+  } finally {
+    document.getElementById('sendBtn').disabled = false;
+    input.focus();
+  }
+}
+
+function addMessage(role, text){
+  const msgs = document.getElementById('chatMessages');
+  const div  = document.createElement('div');
+  div.className = `msg ${role}`;
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  // basic markdown: **bold**, `code`, newlines
+  bubble.innerHTML = escapeHtml(text)
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/`([^`]+)`/g, '<code style="background:#e5e7eb;padding:1px 5px;border-radius:4px;font-size:.68rem">$1</code>')
+    .replace(/\n/g, '<br>');
+  const time = document.createElement('div');
+  time.className = 'msg-time';
+  time.textContent = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  div.appendChild(bubble);
+  div.appendChild(time);
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+function addTyping(){
+  const msgs = document.getElementById('chatMessages');
+  const div  = document.createElement('div');
+  div.className = 'msg ai chat-typing';
+  div.innerHTML = '<div class="typing-bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>';
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+function escapeHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// auto-grow textarea
+document.getElementById('chatInput').addEventListener('input', function(){
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+});
+
+// ══════════════════════════════════════════════════════════════════
+//  MIND MAP — 3-level radial tree
+// ══════════════════════════════════════════════════════════════════
+const TIERS = [
+  {
+    id:'t1', label:'Tier 1', sub:'LLM Patterns', colour:'#1d4ed8', fill:'#eff6ff',
+    angle: -90,
+    patterns:[
+      {id:'p1',  title:'Plain LLM',    mem:'Request → Prompt → LLM', ti:0},
+      {id:'p2',  title:'RAG',          mem:'Retrieve → Augment',     ti:1},
+      {id:'p3',  title:'Agent+Tools',  mem:'Think → Tool → Answer',  ti:2},
+      {id:'p4',  title:'Memory AI',    mem:'Retrieve → Store',       ti:3},
+      {id:'p5',  title:'Streaming',    mem:'Token Push · Queue',     ti:4},
+      {id:'p6',  title:'Multi-Agent',  mem:'Dispatch → Synthesise',  ti:5},
+      {id:'p7',  title:'Guardrails',   mem:'Guard → LLM → Audit',    ti:6},
+    ]
+  },
+  {
+    id:'t2', label:'Tier 2', sub:'Data & Retrieval', colour:'#15803d', fill:'#f0fdf4',
+    angle: 0,
+    patterns:[
+      {id:'p8',  title:'Vector DB',    mem:'Embed → Index → Search', ti:7},
+      {id:'p9',  title:'Hybrid Search',mem:'BM25 + Vector → RRF',    ti:8},
+      {id:'p10', title:'Fine-Tuning',  mem:'LoRA → Train → Deploy',  ti:9},
+    ]
+  },
+  {
+    id:'t3', label:'Tier 3', sub:'Production', colour:'#b45309', fill:'#fffbeb',
+    angle: 90,
+    patterns:[
+      {id:'p11', title:'Caching',      mem:'L1→L2→L3 Semantic',      ti:10},
+      {id:'p12', title:'Observability',mem:'Trace → RAGAS → Alert',  ti:11},
+      {id:'p13', title:'Cost+Latency', mem:'Route → Budget → Batch', ti:12},
+    ]
+  },
+  {
+    id:'t4', label:'Tier 4', sub:'Security', colour:'#be123c', fill:'#fff1f2',
+    angle: 180,
+    patterns:[
+      {id:'p14', title:'Inj. Defence', mem:'Detect → Isolate',       ti:13},
+      {id:'p15', title:'PII Privacy',  mem:'Tokenise → Restore',     ti:14},
+    ]
+  },
+];
+
+const NS = 'http://www.w3.org/2000/svg';
+let expandedTier = null;
+
+function buildMindMap(){
+  const wrap = document.getElementById('mmWrap');
+  const W    = Math.max(900, wrap.clientWidth  || 960);
+  const H    = Math.max(720, wrap.clientHeight || 760);
+  const CX   = W/2, CY = H/2;
+  const R1   = Math.min(W, H) * 0.22;   // centre → tier
+  const R2   = Math.min(W, H) * 0.22;   // tier → pattern
+
+  const svg = document.getElementById('mmSvg');
+  svg.setAttribute('width', W);
+  svg.setAttribute('height', H);
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.innerHTML = '';
+
+  // dot grid
+  const defs = mkEl('defs', svg);
+  const pat  = mkEl('pattern', defs, {id:'dg',width:'28',height:'28',patternUnits:'userSpaceOnUse'});
+  mkEl('circle', pat, {cx:'1',cy:'1',r:'1',fill:'#d1d5db',opacity:'0.4'});
+  mkEl('rect', svg, {width:W,height:H,fill:'url(#dg)'});
+
+  const gLines  = mkEl('g', svg, {id:'gl'});
+  const gPNodes = mkEl('g', svg, {id:'gp'});
+  const gTNodes = mkEl('g', svg, {id:'gt'});
+  const gCenter = mkEl('g', svg, {id:'gc'});
+
+  // ── tier nodes ──
+  TIERS.forEach(tier => {
+    const rad = tier.angle * Math.PI / 180;
+    const tx  = CX + R1 * Math.cos(rad);
+    const ty  = CY + R1 * Math.sin(rad);
+    const TR  = 46;
+
+    // spoke
+    mkEl('line', gLines, {
+      x1:CX, y1:CY, x2:tx, y2:ty,
+      stroke:tier.colour, 'stroke-width':'2',
+      'stroke-dasharray':'6 4', opacity:'0.3'
+    });
+
+    // shadow + fill circle
+    mkEl('circle', gTNodes, {cx:tx, cy:ty, r:TR+4, fill:'rgba(0,0,0,.05)'});
+    const circ = mkEl('circle', gTNodes, {
+      cx:tx, cy:ty, r:TR,
+      fill:tier.fill, stroke:tier.colour, 'stroke-width':'2.5',
+      style:'cursor:pointer'
+    });
+    circ.addEventListener('click', () => toggleTier(tier.id));
+
+    // label (foreignObject)
+    const fo = document.createElementNS(NS,'foreignObject');
+    fo.setAttribute('x', tx-TR); fo.setAttribute('y', ty-TR);
+    fo.setAttribute('width', TR*2); fo.setAttribute('height', TR*2);
+    fo.style.pointerEvents = 'none';
+    fo.innerHTML = `<div xmlns="http://www.w3.org/1999/xhtml"
+      style="width:${TR*2}px;height:${TR*2}px;display:flex;flex-direction:column;
+             align-items:center;justify-content:center;text-align:center;
+             border-radius:50%;overflow:hidden">
+      <div style="font-size:.7rem;font-weight:900;color:${tier.colour}">${tier.label}</div>
+      <div style="font-size:.58rem;font-weight:700;color:#1f2937;line-height:1.3;padding:0 4px">${tier.sub}</div>
+      <div style="font-size:.5rem;color:#6b7280;margin-top:1px">${tier.patterns.length}P ▾</div>
+    </div>`;
+    gTNodes.appendChild(fo);
+
+    // click overlay
+    const ov = mkEl('circle', gTNodes, {cx:tx, cy:ty, r:TR, fill:'transparent', style:'cursor:pointer'});
+    ov.addEventListener('click', () => toggleTier(tier.id));
+
+    // ── pattern nodes (hidden) ──
+    const n = tier.patterns.length;
+    const spreadDeg = n===1 ? 0 : n<=3 ? 50 : 68;
+    const NW=130, NH=56;
+
+    tier.patterns.forEach((p, i) => {
+      const offset  = n===1 ? 0 : (i/(n-1)-0.5)*spreadDeg*2;
+      const prad    = (tier.angle + offset) * Math.PI / 180;
+      const nx      = tx + R2 * Math.cos(prad);
+      const ny      = ty + R2 * Math.sin(prad);
+
+      mkEl('line', gLines, {
+        id:`ln_${p.id}`, x1:tx, y1:ty, x2:nx, y2:ny,
+        stroke:tier.colour, 'stroke-width':'1.5',
+        'stroke-dasharray':'4 3', opacity:'0.3', visibility:'hidden'
+      });
+      mkEl('circle', gPNodes, {
+        id:`dot_${p.id}`, cx:nx, cy:ny, r:'4',
+        fill:tier.colour, opacity:'0.6', visibility:'hidden'
+      });
+
+      const fo2 = document.createElementNS(NS,'foreignObject');
+      fo2.setAttribute('id',  `fo_${p.id}`);
+      fo2.setAttribute('x',   nx - NW/2);
+      fo2.setAttribute('y',   ny - NH/2);
+      fo2.setAttribute('width',  NW);
+      fo2.setAttribute('height', NH);
+      fo2.setAttribute('visibility','hidden');
+      const tIdx = p.ti;
+      fo2.innerHTML = `<div xmlns="http://www.w3.org/1999/xhtml"
+        style="width:${NW}px;height:${NH}px;background:#ffffff;border-radius:10px;
+               padding:8px 11px;border:1.5px solid ${tier.colour};cursor:pointer;
+               box-shadow:0 2px 8px rgba(0,0,0,.10);overflow:hidden;
+               font-family:-apple-system,sans-serif"
+        onmouseenter="this.style.boxShadow='0 6px 18px rgba(0,0,0,.16)';this.style.background='${tier.fill}'"
+        onmouseleave="this.style.boxShadow='0 2px 8px rgba(0,0,0,.10)';this.style.background='#ffffff'"
+        onclick="pickPattern(${tIdx})">
+        <div style="font-size:.72rem;font-weight:900;color:${tier.colour};margin-bottom:3px">${p.title}</div>
+        <div style="font-size:.59rem;color:#374151;font-family:'SF Mono',monospace;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.mem}</div>
+      </div>`;
+      gPNodes.appendChild(fo2);
+    });
+  });
+
+  // ── centre ──
+  const CR = 60;
+  mkEl('circle', gCenter, {cx:CX, cy:CY, r:CR+6, fill:'rgba(0,0,0,.08)'});
+  mkEl('circle', gCenter, {cx:CX, cy:CY, r:CR, fill:'#1e293b',
+    style:'filter:drop-shadow(0 4px 14px rgba(0,0,0,.25))'});
+  const foC = document.createElementNS(NS,'foreignObject');
+  foC.setAttribute('x', CX-CR); foC.setAttribute('y', CY-CR);
+  foC.setAttribute('width', CR*2); foC.setAttribute('height', CR*2);
+  foC.innerHTML = `<div xmlns="http://www.w3.org/1999/xhtml"
+    style="width:${CR*2}px;height:${CR*2}px;display:flex;flex-direction:column;
+           align-items:center;justify-content:center;text-align:center;
+           border-radius:50%;overflow:hidden">
+    <div style="font-size:.46rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#94a3b8;margin-bottom:2px">Blueprint</div>
+    <div style="font-size:.78rem;font-weight:900;color:#f8fafc;line-height:1.2">AI System<br>Design</div>
+    <div style="font-size:.5rem;color:#64748b;margin-top:3px">15 patterns</div>
+  </div>`;
+  gCenter.appendChild(foC);
+
+  if (expandedTier) _setVisible(expandedTier, true);
+}
+
+function toggleTier(id){
+  if (expandedTier===id){ _setVisible(id,false); expandedTier=null; }
+  else { if(expandedTier) _setVisible(expandedTier,false); expandedTier=id; _setVisible(id,true); }
+}
+
+function _setVisible(tierId, show){
+  const tier = TIERS.find(t=>t.id===tierId);
+  const v    = show ? 'visible' : 'hidden';
+  tier.patterns.forEach(p => {
+    ['ln_','dot_','fo_'].forEach(pre => {
+      const el = document.getElementById(pre+p.id);
+      if(el) el.setAttribute('visibility', v);
+    });
+  });
+}
+
+function pickPattern(ti){
+  loadFlow(ORDER[ti], TITLES[ti], BTNIDS[ti]);
+  setTimeout(()=>setMode('flows'), 80);
+}
+
+function mkEl(tag, parent, attrs={}){
+  const el = document.createElementNS(NS, tag);
+  Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,String(v)));
+  parent.appendChild(el);
+  return el;
+}
+
+window.addEventListener('resize', ()=>{ if(currentMode==='mindmap') buildMindMap(); });
 </script>
 </body>
 </html>
