@@ -285,14 +285,7 @@ h1 {
   object-fit: contain;
   flex-shrink: 0;
   filter: drop-shadow(0 3px 8px rgba(124,58,237,0.35));
-  animation: avatar-float 3s ease-in-out infinite;
-  transition: opacity 0.18s ease;
-  &.emotion-swap { animation: emotionSwap 0.32s ease; }
-  @keyframes emotionSwap {
-    0%   { opacity: 1; transform: scale(1); }
-    40%  { opacity: 0; transform: scale(0.85) rotate(-4deg); }
-    100% { opacity: 1; transform: scale(1); }
-  }
+  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
 }
 
 .proof-aarav-bubble {
@@ -450,10 +443,8 @@ h1 {
 }
 .live-btn-avatar {
   width: 32px; height: 42px; object-fit: contain;
+  transition: transform 0.22s var(--ease);
   filter: drop-shadow(0 1px 4px rgba(0,0,0,0.3));
-  animation: avatar-float 3.2s ease-in-out infinite;
-  transition: opacity 0.18s ease;
-  &.emotion-swap { animation: emotionSwap 0.3s ease; }
 }
 .live-btn-bubble {
   position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%) translateY(4px) scale(0.9);
@@ -759,8 +750,6 @@ h1 {
 .demo-guide-img {
   width: 72px; height: 96px; object-fit: contain;
   filter: drop-shadow(0 2px 8px rgba(124,58,237,0.25));
-  transition: opacity 0.2s ease;
-  &.emotion-swap { animation: emotionSwap 0.32s ease; }
   @media (max-width: 600px) { width: 52px; height: 70px; }
 }
 .demo-guide-bubble {
@@ -1049,8 +1038,6 @@ footer { border-top: 1px solid var(--border); padding: 2rem 0; }
   filter: drop-shadow(0 4px 16px rgba(124,58,237,0.5));
   animation: aarav-bob 2.6s ease-in-out infinite;
   position: relative; z-index: 1;
-  transition: opacity 0.18s ease;
-  &.emotion-swap { animation: emotionSwap 0.3s ease, aarav-bob 2.6s ease-in-out infinite 0.3s; }
 
   @media (max-width: 1024px) and (min-width: 601px) { width: 74px; height: 96px; }
   @media (max-width: 600px)  { width: 62px; height: 80px; }
@@ -1060,10 +1047,6 @@ footer { border-top: 1px solid var(--border); padding: 2rem 0; }
   0%,100% { transform: translateY(0) rotate(0deg); }
   38%     { transform: translateY(-8px) rotate(-3deg); }
   70%     { transform: translateY(-3px) rotate(2deg); }
-}
-@keyframes avatar-float {
-  0%,100% { transform: translateY(0); }
-  50%     { transform: translateY(-5px); }
 }
 
 /* Unread badge */
@@ -1177,7 +1160,7 @@ footer { border-top: 1px solid var(--border); padding: 2rem 0; }
   background: linear-gradient(135deg, rgba(124,58,237,0.1) 0%, var(--cb-bg) 60%);
   flex-shrink: 0;
 }
-.cb-header-avatar { width: 38px; height: 50px; object-fit: contain; flex-shrink: 0; transition: opacity 0.18s ease; &.emotion-swap { animation: emotionSwap 0.3s ease; } }
+.cb-header-avatar { width: 38px; height: 50px; object-fit: contain; flex-shrink: 0; }
 .cb-header-info {
   flex: 1;
   strong { display: block; font-size: 0.9rem; font-weight: 800; color: var(--cb-text); }
@@ -1207,7 +1190,7 @@ footer { border-top: 1px solid var(--border); padding: 2rem 0; }
   max-width: 88%; min-width: 0; overflow: hidden;
   .cb-msg--user & { align-items: flex-end; }
 }
-.cb-msg-avatar { width: 26px; height: 34px; object-fit: contain; flex-shrink: 0; margin-top: 4px; transition: opacity 0.18s ease; &.emotion-swap { animation: emotionSwap 0.28s ease; } }
+.cb-msg-avatar { width: 26px; height: 34px; object-fit: contain; flex-shrink: 0; margin-top: 4px; }
 .cb-msg-bubble {
   padding: 0.8rem 1rem;
   border-radius: 4px 14px 14px 14px;
@@ -1450,110 +1433,3 @@ footer { border-top: 1px solid var(--border); padding: 2rem 0; }
   transition: opacity 0.15s;
   &:hover { opacity: 0.85; }
 }
-
-/* ── Shared emotion-swap keyframe (used by all caricature img elements) ── */
-@keyframes emotionSwap {
-  0%   { opacity: 1;   transform: scale(1) rotate(0deg); }
-  35%  { opacity: 0;   transform: scale(0.82) rotate(-5deg); }
-  65%  { opacity: 0;   transform: scale(0.82) rotate(5deg); }
-  100% { opacity: 1;   transform: scale(1) rotate(0deg); }
-}
-
-/* ── DYNAMIC EXPRESSION CYCLING ─────────────────────────────────────────
-   expr-cycle: stacks all 4 expression images on top of each other.
-   CSS keyframes cycle through them with crossfade — the face expression
-   changes naturally over time, no bobbing/moving. Photo stays in place.
-   data-mood controls which expression leads and what sequence is used.
-   Total cycle: 12s. Each expression shows for ~3s, crossfades in 0.6s.
-──────────────────────────────────────────────────────────────────────── */
-.expr-cycle {
-  position: relative;
-  display: inline-block;
-  flex-shrink: 0;
-
-  img {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    object-fit: contain;
-    opacity: 0;
-  }
-}
-
-/* Each mood uses 4 separate keyframes — one per expression slot in the 16s cycle.
-   Slot A=0s, B=4s, C=8s, D=12s. Each is visible ~3s, crossfades 0.5s each side. */
-
-/* default mood: default(A) → happy(B) → thinking(C) → default(D) */
-.expr-cycle[data-mood="default"] {
-  .expr-default { animation: ec-A 16s ease-in-out infinite; }
-  .expr-happy   { animation: ec-B 16s ease-in-out infinite; }
-  .expr-think   { animation: ec-C 16s ease-in-out infinite; }
-  .expr-wow     { opacity: 0; }
-}
-
-/* happy mood: happy(A) → wow(B) → happy(C) → default(D) */
-.expr-cycle[data-mood="happy"] {
-  .expr-happy   { animation: ec-A 16s ease-in-out infinite; }
-  .expr-wow     { animation: ec-B 16s ease-in-out infinite; }
-  .expr-default { animation: ec-C 16s ease-in-out infinite; }
-  .expr-think   { opacity: 0; }
-}
-
-/* think mood: thinking(A) → default(B) → happy(C) → thinking(D implied by loop) */
-.expr-cycle[data-mood="think"] {
-  .expr-think   { animation: ec-A 16s ease-in-out infinite; }
-  .expr-default { animation: ec-B 16s ease-in-out infinite; }
-  .expr-happy   { animation: ec-C 16s ease-in-out infinite; }
-  .expr-wow     { opacity: 0; }
-}
-
-/* wow mood: wow(A) → happy(B) → wow(C via loop) → default(D) */
-.expr-cycle[data-mood="wow"] {
-  .expr-wow     { animation: ec-A 16s ease-in-out infinite; }
-  .expr-happy   { animation: ec-B 16s ease-in-out infinite; }
-  .expr-default { animation: ec-C 16s ease-in-out infinite; }
-  .expr-think   { opacity: 0; }
-}
-
-/* Slot A: visible 0–4s */
-@keyframes ec-A {
-  0%    { opacity: 0; }
-  3%    { opacity: 1; }
-  22%   { opacity: 1; }
-  25%   { opacity: 0; }
-  100%  { opacity: 0; }
-}
-/* Slot B: visible 4–8s */
-@keyframes ec-B {
-  0%    { opacity: 0; }
-  25%   { opacity: 0; }
-  28%   { opacity: 1; }
-  47%   { opacity: 1; }
-  50%   { opacity: 0; }
-  100%  { opacity: 0; }
-}
-/* Slot C: visible 8–12s */
-@keyframes ec-C {
-  0%    { opacity: 0; }
-  50%   { opacity: 0; }
-  53%   { opacity: 1; }
-  72%   { opacity: 1; }
-  75%   { opacity: 0; }
-  100%  { opacity: 0; }
-}
-
-/* Size overrides — all imgs fully absolute-stacked, no first-child special case */
-.proof-aarav-avatar.expr-cycle  { width: 42px;  height: 56px;  img { position: absolute; } }
-.live-btn-avatar.expr-cycle     { width: 32px;  height: 42px;  img { position: absolute; } }
-.cb-fab-avatar.expr-cycle       {
-  width: 86px; height: 112px; img { position: absolute; }
-  @media (max-width: 1024px) and (min-width: 601px) { width: 74px; height: 96px; }
-  @media (max-width: 600px)  { width: 62px; height: 80px; }
-}
-.cb-header-avatar.expr-cycle    { width: 38px;  height: 50px;  img { position: absolute; } }
-.cb-msg-avatar.expr-cycle       { width: 26px;  height: 34px;  img { position: absolute; } }
-.demo-guide-img.expr-cycle      {
-  width: 72px;  height: 96px;  img { position: absolute; }
-  @media (max-width: 600px) { width: 52px; height: 70px; }
-}
-

@@ -1,71 +1,46 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 150" width="120" height="150">
-  <defs>
-    <style>
-      .av{animation:tilt 3.5s ease-in-out infinite;}
-      .b1{animation:bf 2s ease-in-out infinite;}
-      .b2{animation:bf 2s .6s ease-in-out infinite;}
-      .b3{animation:bf 2s 1.2s ease-in-out infinite;}
-      @keyframes tilt{0%,100%{transform:rotate(0deg) translateY(0);}35%{transform:rotate(-2.5deg) translateY(-3px);}70%{transform:rotate(1deg) translateY(-1px);}}
-      @keyframes bf{0%,100%{opacity:.9;transform:translateY(0);}50%{opacity:.25;transform:translateY(-7px);}}
-    </style>
-  </defs>
-  <circle cx="102" cy="66" r="5"  fill="white" opacity="0.88" stroke="#9ca3af" stroke-width="1"   class="b1"/>
-  <circle cx="110" cy="46" r="9"  fill="white" opacity="0.9"  stroke="#9ca3af" stroke-width="1.2" class="b2"/>
-  <circle cx="114" cy="24" r="13" fill="white" opacity="0.92" stroke="#9ca3af" stroke-width="1.5" class="b3"/>
-  <text x="108" y="28" font-size="10" fill="#7c3aed" text-anchor="middle" class="b3">AI</text>
-  <g class="av">
-    <path d="M8 150 L8 114 Q8 101 22 96 L42 90 L60 106 L78 90 L98 96 Q112 101 112 114 L112 150 Z" fill="#2d3f5c"/>
-    <path d="M42 90 L60 108 L78 90 L72 101 L60 110 L48 101 Z" fill="#a8c8e8"/>
-    <path d="M42 90 L34 105 L8 114 L8 150 L44 150 L44 117 L48 101 Z" fill="#253450"/>
-    <path d="M78 90 L86 105 L112 114 L112 150 L76 150 L76 117 L72 101 Z" fill="#253450"/>
-    <path d="M52 90 L60 98 L68 90 L64 95 L60 99 L56 95 Z" fill="#c8dff0"/>
-    <rect x="52" y="82" width="16" height="12" rx="6" fill="#c08850"/>
-    <ellipse cx="60" cy="50" rx="32" ry="36" fill="#c88850"/>
-    <ellipse cx="28" cy="52" rx="5" ry="8"   fill="#b07040"/>
-    <ellipse cx="92" cy="52" rx="5" ry="8"   fill="#b07040"/>
-    <ellipse cx="28" cy="52" rx="2.2" ry="4" fill="#8a5028" opacity="0.4"/>
-    <ellipse cx="92" cy="52" rx="2.2" ry="4" fill="#8a5028" opacity="0.4"/>
-    <!-- Hair -->
-    <path d="M28 42 Q28 12 60 10 Q92 12 92 42 Q90 22 80 14 Q70 8 60 8 Q50 8 40 14 Q30 22 28 42 Z" fill="#18141a"/>
-    <path d="M30 29 Q36 21 43 24 Q48 17 55 20 Q59 14 65 17 Q71 12 77 16 Q83 20 88 26" fill="none" stroke="#0c0a10" stroke-width="5" stroke-linecap="round"/>
-    <path d="M32 22 Q39 15 46 19 Q51 12 58 15 Q63 10 69 13 Q75 10 81 14 Q87 19 90 25" fill="none" stroke="#18141a" stroke-width="3.5" stroke-linecap="round"/>
-    <path d="M47 15 Q54 10 61 13 Q59 17 54 18 Q49 18 47 15 Z" fill="#18141a"/>
-    <path d="M28 42 Q25 32 29 20 Q31 16 34 22 Q32 33 31 42 Z" fill="#18141a"/>
-    <path d="M92 42 Q95 32 91 20 Q89 16 86 22 Q88 33 89 42 Z" fill="#18141a"/>
-    <!-- Eyebrows: left neutral, right raised thinking -->
-    <path d="M31 40 Q42 35 53 40" stroke="#0e0c12" stroke-width="3.2" fill="none" stroke-linecap="round"/>
-    <path d="M67 38 Q78 33 89 38" stroke="#0e0c12" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-    <!-- Left eye open -->
-    <path d="M33 50 Q42 44 51 50 Q42 56 33 50 Z" fill="white"/>
-    <circle cx="42" cy="50" r="4.5" fill="#281004"/>
-    <circle cx="42" cy="50" r="2.4" fill="#060200"/>
-    <circle cx="44" cy="48" r="1.4" fill="white"/>
-    <!-- Right eye squinting/narrowed — thinking -->
-    <path d="M69 51 Q78 46 87 51 Q78 56 69 51 Z" fill="white"/>
-    <ellipse cx="78" cy="51" rx="4" ry="3.5" fill="#281004"/>
-    <ellipse cx="78" cy="51" rx="2.1" ry="1.9" fill="#060200"/>
-    <circle cx="80" cy="50" r="1.1" fill="white"/>
-    <path d="M69 51 Q78 46 87 51" stroke="#1a0804" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-    <!-- Glasses -->
-    <rect x="29" y="44" width="26" height="13" rx="3" fill="none" stroke="#a89880" stroke-width="1.9"/>
-    <rect x="65" y="44" width="26" height="13" rx="3" fill="none" stroke="#a89880" stroke-width="1.9"/>
-    <path d="M55 50 Q60 48 65 50" stroke="#a89880" stroke-width="1.7" fill="none"/>
-    <line x1="29" y1="50" x2="22" y2="48" stroke="#a89880" stroke-width="1.7"/>
-    <line x1="91" y1="50" x2="98" y2="48" stroke="#a89880" stroke-width="1.7"/>
-    <!-- Nose -->
-    <path d="M57 59 Q54 69 57 74 Q60 77 63 74 Q66 69 63 59" stroke="#9a5030" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-    <ellipse cx="56" cy="75" rx="2.8" ry="1.5" fill="#8a4020" opacity="0.35"/>
-    <ellipse cx="64" cy="75" rx="2.8" ry="1.5" fill="#8a4020" opacity="0.35"/>
-    <!-- Beard -->
-    <path d="M32 65 Q34 63 42 63 Q50 63 60 63 Q70 63 78 63 Q86 63 88 65
-             Q90 72 88 80 Q82 90 70 93 Q60 96 50 93 Q38 90 32 80 Q30 72 32 65 Z" fill="#1c1620" opacity="0.38"/>
-    <path d="M34 70 Q38 68 50 68 Q60 68 70 68 Q82 68 86 70
-             Q88 78 84 86 Q74 94 60 96 Q46 94 36 86 Q32 78 34 70 Z" fill="#1a1420" opacity="0.38"/>
-    <path d="M48 90 Q60 97 72 90 Q68 95 60 97 Q52 95 48 90 Z" fill="#0e0c12" opacity="0.45"/>
-    <!-- Moustache -->
-    <path d="M47 71 Q54 77 60 75" stroke="#0e0c14" stroke-width="3.2" fill="none" stroke-linecap="round"/>
-    <path d="M60 75 Q66 77 73 71" stroke="#0e0c14" stroke-width="3.2" fill="none" stroke-linecap="round"/>
-    <!-- Pursed thinking mouth -->
-    <path d="M50 81 Q60 85 70 81" stroke="#7a3820" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160" width="120" height="160">
+  <!-- Cartoon Chandan — thinking/reading, hand on chin -->
+  <!-- Body / blazer -->
+  <rect x="30" y="88" width="60" height="52" rx="8" fill="#2d4a7a"/>
+  <polygon points="52,88 60,103 68,88" fill="#a8c4e0"/>
+  <!-- Left arm at side -->
+  <rect x="18" y="90" width="20" height="12" rx="6" fill="#2d4a7a"/>
+  <!-- Right arm bent, hand at chin -->
+  <rect x="72" y="82" width="30" height="12" rx="6" fill="#2d4a7a" transform="rotate(-30 87 88)"/>
+  <!-- Hand at chin -->
+  <ellipse cx="72" cy="78" rx="7" ry="6" fill="#c8956c"/>
+  <!-- Thought bubbles -->
+  <circle cx="95" cy="45" r="10" fill="white" opacity="0.9" stroke="#e4e4e7" stroke-width="1"/>
+  <circle cx="108" cy="30" r="7" fill="white" opacity="0.8" stroke="#e4e4e7" stroke-width="1"/>
+  <circle cx="90" cy="62" r="4" fill="white" opacity="0.7" stroke="#e4e4e7" stroke-width="1"/>
+  <text x="86" y="49" font-size="9" fill="#7c3aed">🔮</text>
+  <!-- Neck -->
+  <rect x="52" y="75" width="16" height="16" rx="4" fill="#c8956c"/>
+  <!-- Head slightly tilted -->
+  <ellipse cx="60" cy="55" rx="28" ry="30" fill="#c8956c"/>
+  <!-- Hair -->
+  <ellipse cx="60" cy="32" rx="28" ry="16" fill="#1a1a2e"/>
+  <ellipse cx="40" cy="38" rx="10" ry="8" fill="#1a1a2e"/>
+  <ellipse cx="80" cy="38" rx="10" ry="8" fill="#1a1a2e"/>
+  <!-- Ears -->
+  <ellipse cx="32" cy="55" rx="5" ry="7" fill="#c8956c"/>
+  <ellipse cx="88" cy="55" rx="5" ry="7" fill="#c8956c"/>
+  <!-- Glasses -->
+  <rect x="38" y="50" width="18" height="12" rx="4" fill="none" stroke="#8b7355" stroke-width="1.5"/>
+  <rect x="64" y="50" width="18" height="12" rx="4" fill="none" stroke="#8b7355" stroke-width="1.5"/>
+  <line x1="56" y1="56" x2="64" y2="56" stroke="#8b7355" stroke-width="1.5"/>
+  <!-- Thinking eyes — one slightly squinted -->
+  <circle cx="47" cy="56" r="3.5" fill="#2c1810"/>
+  <circle cx="48.5" cy="55" r="1" fill="white"/>
+  <circle cx="73" cy="56" r="3" fill="#2c1810"/>
+  <circle cx="74" cy="55" r="0.8" fill="white"/>
+  <!-- One eyebrow up thinking -->
+  <path d="M40 48 Q47 45 54 48" stroke="#1a1a2e" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M66 46 Q73 43 80 47" stroke="#1a1a2e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <!-- Beard -->
+  <path d="M38 65 Q60 78 82 65 Q82 72 60 78 Q38 72 38 65 Z" fill="#2c2c3e" opacity="0.7"/>
+  <!-- Thoughtful expression -->
+  <path d="M50 70 Q60 72 70 70" stroke="#8b4513" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <!-- Nose -->
+  <path d="M57 60 Q55 66 60 67 Q65 66 63 60" stroke="#b07050" stroke-width="1" fill="none"/>
 </svg>

@@ -165,7 +165,7 @@ export class App implements OnInit, AfterViewInit {
       title: 'Tests. 3.6 seconds.',
       sub:   'Every line of production code is tested. No shortcuts, no flakiness.',
       askQuestion: 'How does Chandan achieve 637 tests in 3.6 seconds?',
-      aaravImg: 'guide-chandan-wow.png',
+      aaravImg: 'guide-chandan-wow.svg',
       aaravSay: '637 tests, zero flakes! 🤩',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect x="6" y="10" width="36" height="28" rx="4" stroke="currentColor" stroke-width="2"/>
@@ -180,7 +180,7 @@ export class App implements OnInit, AfterViewInit {
       title: 'Latency reduced 95%.',
       sub:   'Measured, optimised, and shipped — 3-tier cache + parallel agents.',
       askQuestion: 'How did Chandan reduce latency from 78 seconds to 4 seconds?',
-      aaravImg: 'guide-chandan-thinking.png',
+      aaravImg: 'guide-chandan-thinking.svg',
       aaravSay: '78s → 4s. Ask me how! ⚡',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="24" cy="24" r="16" stroke="currentColor" stroke-width="2" opacity="0.3"/>
@@ -196,7 +196,7 @@ export class App implements OnInit, AfterViewInit {
       title: 'AI agents coordinated.',
       sub:   'LangGraph StateGraph — parallel domain agents, conditional edges, human-in-loop.',
       askQuestion: 'How does Chandan coordinate 18+ AI agents without conflicts?',
-      aaravImg: 'guide-chandan.png',
+      aaravImg: 'guide-chandan.svg',
       aaravSay: '18 agents, zero conflicts! 🤖',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="24" cy="10" r="5" stroke="#a78bfa" stroke-width="2"/>
@@ -212,7 +212,7 @@ export class App implements OnInit, AfterViewInit {
       title: 'Per AI analysis.',
       sub:   'DeepSeek + semantic cache. 500× cheaper than GPT-4o. Tracked and proven.',
       askQuestion: 'How did Chandan achieve $0.000137 per AI analysis cost?',
-      aaravImg: 'guide-chandan-happy.png',
+      aaravImg: 'guide-chandan-happy.svg',
       aaravSay: '500× cheaper than GPT-4o! 💰',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M24 6 L28 18 L40 18 L30 26 L34 38 L24 30 L14 38 L18 26 L8 18 L20 18 Z" stroke="#f59e0b" stroke-width="2" stroke-linejoin="round" fill="rgba(245,158,11,0.1)"/>
@@ -225,7 +225,7 @@ export class App implements OnInit, AfterViewInit {
       title: 'Hallucinated commands.',
       sub:   'RunbookAI: RAGless architecture. Every kubectl command pulled from SQL, verbatim.',
       askQuestion: 'How does RunbookAI achieve zero hallucinated commands?',
-      aaravImg: 'guide-chandan-wow.png',
+      aaravImg: 'guide-chandan-wow.svg',
       aaravSay: 'Zero hallucinations. Real. 🎯',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="24" cy="24" r="16" stroke="#10b981" stroke-width="2"/>
@@ -240,7 +240,7 @@ export class App implements OnInit, AfterViewInit {
       title: 'Production guardrails.',
       sub:   'Rate limit · injection detection · PII filter · faithfulness gate · output validation.',
       askQuestion: 'What are the G1 to G5 production guardrails Chandan built?',
-      aaravImg: 'guide-chandan-thinking.png',
+      aaravImg: 'guide-chandan-thinking.svg',
       aaravSay: 'G1–G5 means battle-tested! 🛡️',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M24 4 L38 10 L38 24 C38 32 32 39 24 42 C16 39 10 32 10 24 L10 10 Z" stroke="#ef4444" stroke-width="2" stroke-linejoin="round" fill="rgba(239,68,68,0.08)"/>
@@ -340,7 +340,7 @@ export class App implements OnInit, AfterViewInit {
   // ── FLOATING GUIDE CHARACTER — AARAV ────────────────────────────
   fgVisible = signal(false);
   fgIntro   = signal(false);   // true only during the intro slide
-  fgImg     = signal('guide-chandan-happy.png');
+  fgImg     = signal('guide-chandan-happy.svg');
   fgQuote   = signal('');
   fgSub     = signal('');
   fgEntry   = signal('from-bottom-left');
@@ -353,12 +353,12 @@ export class App implements OnInit, AfterViewInit {
   private _fgDirIdx = 0;
 
   private readonly _fgScript: Record<string, { img: string; quote: string; sub: string }[]> = {
-    hero:       { img: 'guide-chandan-happy.png',   quote: 'Right person! 😄',    sub: 'Ships. For real.' },
-    skills:     { img: 'guide-chandan.png',          quote: 'All in prod. 💪',     sub: 'Zero tutorials.' },
-    projects:   { img: 'guide-chandan-wow.png',      quote: '4 systems! 🤩',       sub: 'Click Live Demo ↗' },
-    experience: { img: 'guide-chandan-thinking.png', quote: 'Self-made. 🎯',       sub: '4 companies. Real.' },
-    story:      { img: 'guide-chandan-happy.png',    quote: 'His why. ✨',         sub: 'Read this one.' },
-    contact:    { img: 'guide-chandan-wow.png',      quote: "Let's build! 🚀",     sub: 'Reach out now.' },
+    hero:       { img: 'guide-chandan-happy.svg',   quote: 'Right person! 😄',    sub: 'Ships. For real.' },
+    skills:     { img: 'guide-chandan.svg',          quote: 'All in prod. 💪',     sub: 'Zero tutorials.' },
+    projects:   { img: 'guide-chandan-wow.svg',      quote: '4 systems! 🤩',       sub: 'Click Live Demo ↗' },
+    experience: { img: 'guide-chandan-thinking.svg', quote: 'Self-made. 🎯',       sub: '4 companies. Real.' },
+    story:      { img: 'guide-chandan-happy.svg',    quote: 'His why. ✨',         sub: 'Read this one.' },
+    contact:    { img: 'guide-chandan-wow.svg',      quote: "Let's build! 🚀",     sub: 'Reach out now.' },
   } as any;
 
   initFloatingGuide() {
@@ -367,7 +367,7 @@ export class App implements OnInit, AfterViewInit {
     // ── INTRO: Aarav introduces himself 1.2s after page load ──────
     this._fgTimer = setTimeout(() => {
       this.fgIntro.set(true);
-      this.fgImg.set('guide-chandan-happy.png');
+      this.fgImg.set('guide-chandan-happy.svg');
       this.fgQuote.set("Namaste! 🙏 I'm Aarav");
       this.fgSub.set("Chandan's AI guide. Let's go!");
       this.fgEntry.set('from-bottom-left');
@@ -430,63 +430,63 @@ export class App implements OnInit, AfterViewInit {
   readonly guideBanners = [
     {
       id: 'gb-hero',
-      img: 'guide-chandan-happy.png',
+      img: 'guide-chandan-happy.svg',
       dir: 'left',
       quote: "Right person! 👋 Senior AI Engineer who actually ships.",
       sub:   "4+ years · 637 tests · Zero shortcuts",
     },
     {
       id: 'gb-skills',
-      img: 'guide-chandan.png',
+      img: 'guide-chandan.svg',
       dir: 'right',
       quote: "Every skill here? Battle-tested in production. No fluff. 💪",
       sub:   "LangGraph · FAISS · Kafka · Redis · Angular · FastAPI",
     },
     {
       id: 'gb-p01',
-      img: 'guide-chandan-wow.png',
+      img: 'guide-chandan-wow.svg',
       dir: 'left',
       quote: "18+ AI agents, 23 languages, 415 tests. Real engineering. 🔮",
       sub:   "Project 01 · Aura with Rav",
     },
     {
       id: 'gb-p02',
-      img: 'guide-chandan-thinking.png',
+      img: 'guide-chandan-thinking.svg',
       dir: 'right',
       quote: "Hybrid RAG + circuit breaker + episodic memory. Done right. ⚡",
       sub:   "Project 02 · Bench Resource Optimizer",
     },
     {
       id: 'gb-p03',
-      img: 'guide-chandan-happy.png',
+      img: 'guide-chandan-happy.svg',
       dir: 'left',
       quote: "5 agents. Auto-learning. ROI improves every run. 🚀",
       sub:   "Project 03 · Agentic Growth OS",
     },
     {
       id: 'gb-p04',
-      img: 'guide-chandan.png',
+      img: 'guide-chandan.svg',
       dir: 'right',
       quote: "RAGless SQL + dependency graph. Zero vectors. Zero hallucinations. 🧠",
       sub:   "Project 04 · RunbookAI",
     },
     {
       id: 'gb-exp',
-      img: 'guide-chandan-thinking.png',
+      img: 'guide-chandan-thinking.svg',
       dir: 'left',
       quote: "Kolkata → Masai bootcamp → 4 companies → production AI. 🏆",
       sub:   "Self-made. Every role levelled up the craft.",
     },
     {
       id: 'gb-story',
-      img: 'guide-chandan-happy.png',
+      img: 'guide-chandan-happy.svg',
       dir: 'right',
       quote: "From 'you can't spell console' to AI systems at scale. ✨",
       sub:   "The person behind the code",
     },
     {
       id: 'gb-contact',
-      img: 'guide-chandan-wow.png',
+      img: 'guide-chandan-wow.svg',
       dir: 'left',
       quote: "You're here. That means you're serious. So is Chandan. 🤝",
       sub:   "Let's build something real together.",
@@ -507,49 +507,49 @@ export class App implements OnInit, AfterViewInit {
         img: 'aura-step1-login.png',
         label: '🔐 Step 1 — Login Page',
         caption: 'The AURA with Rav platform — 360° Astro-Spiritual Intelligence. Secure JWT login with Sign In, Create Account, and OTP tab.',
-        guide: 'guide-chandan.png',
+        guide: 'guide-chandan.svg',
         speech: 'Welcome! 👋 This is the AURA platform I built. Let me show you the whole journey!',
       },
       {
         img: 'aura-step2-credentials.png',
         label: '✏️ Step 2 — Enter Credentials',
         caption: 'Admin credentials entered — email admin@aura.local and password filled. Single Sign In click launches the full authenticated session.',
-        guide: 'guide-chandan.png',
+        guide: 'guide-chandan.svg',
         speech: 'See? I\'m typing in the credentials right now. Email + Password → Sign In! Easy! 😄',
       },
       {
         img: 'aura-step3-form-empty.png',
         label: '📋 Step 3 — Birth Profile Form',
         caption: 'After login, the AI intake form loads. Fill Name, Date of Birth, Place of Birth, and your question for the Astrologer across 5 analysis modules.',
-        guide: 'guide-chandan-thinking.png',
+        guide: 'guide-chandan-thinking.svg',
         speech: 'Hmm... now let me fill in my birth details. This powers ALL 18+ agents! 🔮',
       },
       {
         img: 'aura-step4-form-filled.png',
         label: '✅ Step 4 — Form Filled',
         caption: 'Chandan Kumar · 15/08/1990 · Patna, Bihar, India. Question: "Will my career in AI engineering grow in 2026?" — Laser Sharp report style selected.',
-        guide: 'guide-chandan-happy.png',
+        guide: 'guide-chandan-happy.svg',
         speech: 'Done! All fields filled. Numerology selected. Laser Sharp mode. Let\'s GO! 🚀',
       },
       {
         img: 'aura-step5-reading-started.png',
         label: '🤖 Step 5 — AI Review (Findings)',
         caption: 'Agents complete the analysis. Admin Review panel shows AI findings with HIGH/MEDIUM priority tags. "Growth-oriented and positive period" — Numerology confidence.',
-        guide: 'guide-chandan-wow.png',
+        guide: 'guide-chandan-wow.svg',
         speech: 'WOW! The AI agents found insights! Life Path 33, Destiny 33 — this is REAL AI! 🤩',
       },
       {
         img: 'aura-step7-review.png',
         label: '📊 Step 6 — Review & Approve',
         caption: 'Admin Review workspace with Approve All, Generate Report buttons. Agent Log, Raw JSON, Astrology, Translations tabs for full transparency.',
-        guide: 'guide-chandan-thinking.png',
+        guide: 'guide-chandan-thinking.svg',
         speech: 'Now reviewing agent findings before generating the PDF report. Quality gate! 🎯',
       },
       {
         img: 'aura-step8-pipeline.png',
         label: '🔬 Step 7 — Agent Pipeline Graph',
         caption: 'Live AGENT PIPELINE · DYNAMIC GRAPH — 16 nodes including User Profile, Questions, Prompt Style, Tenant Persona Injection. 3/7 Features Active.',
-        guide: 'guide-chandan-wow.png',
+        guide: 'guide-chandan-wow.svg',
         speech: 'This is my LangGraph pipeline! Every node is an AI agent working together! 🧠⚡',
       },
     ],
@@ -558,56 +558,56 @@ export class App implements OnInit, AfterViewInit {
         img: 'bench-step1-login.png',
         label: '🔐 Step 1 — Enterprise Login',
         caption: 'Bench Resource Optimizer — enterprise HR AI platform. Role-based JWT auth: USER and ADMIN tiers. Injection-hardened from the very first request.',
-        guide: 'guide-chandan.png',
+        guide: 'guide-chandan.svg',
         speech: 'Welcome to Bench! This is the enterprise HR AI platform I built. Let me show you the whole story! ⚡',
       },
       {
         img: 'bench-step2-credentials.png',
         label: '✏️ Step 2 — Admin Signs In',
         caption: 'Admin credentials entered — user_id "admin" and password. JWT tokens stored in sessionStorage with 24h expiry. No hardcoded defaults — all env vars.',
-        guide: 'guide-chandan.png',
+        guide: 'guide-chandan.svg',
         speech: 'See the "ADMIN" badge? Role-based access control kicks in immediately after login! 🛡️',
       },
       {
         img: 'bench-step3-upload.png',
         label: '📄 Step 3 — Upload Employee CV',
         caption: 'Step 1 of the 3-step flow: drag & drop a PDF resume. The AI extracts skills, years, seniority — all processed locally. Raw bytes discarded instantly. G2 injection guard active.',
-        guide: 'guide-chandan-thinking.png',
+        guide: 'guide-chandan-thinking.svg',
         speech: 'Drop a CV here... AI will parse it with injection-hardened prompts. No raw data leaves the server! 🔒',
       },
       {
         img: 'bench-step4-mapping.png',
         label: '🎯 Step 4 — Role Mapping (Hybrid RAG)',
         caption: 'Step 2: select a target open role. AI compares employee skills vs. role requirements using FAISS + BM25 + HyDE + CRAG + cross-encoder reranker — the full hybrid stack.',
-        guide: 'guide-chandan-thinking.png',
+        guide: 'guide-chandan-thinking.svg',
         speech: 'First upload CV (step 1), then AI maps skills to open roles using 5-layer hybrid RAG! No shortcuts! 🧠',
       },
       {
         img: 'bench-step7-graph.png',
         label: '🤖 Step 5 — Agent Pipeline Graph',
         caption: '4-Layer Security visible at top: L1 Injection Guard → L2 Prompt Hardening → L3 Output Leak Detection → L4 Audit. Graph shows: Employee CV → Role Requirement → Security Gate → CV Parser Agent.',
-        guide: 'guide-chandan-wow.png',
+        guide: 'guide-chandan-wow.svg',
         speech: 'WOW! Look at this — Security Gate Node 0 runs BEFORE any LLM sees data. L1+L2+L3+L4 all firing! 🔥',
       },
       {
         img: 'bench-step6-memory.png',
         label: '🧠 Step 6 — Episodic Memory',
         caption: 'Module 4: Agent State Management. Episodic + Long-term + Context Injection tabs. Memory persists across restarts via SQLite WAL. Agent knows which roles you explored last session.',
-        guide: 'guide-chandan-happy.png',
+        guide: 'guide-chandan-happy.svg',
         speech: 'The agent REMEMBERS you! Past sessions, explored roles, readiness score — all injected into LLM context! 🎉',
       },
       {
         img: 'bench-step8-admin.png',
         label: '🔒 Step 7 — HR Admin Knowledge Base',
         caption: 'Company Confidential: internal training docs chunked & embedded on-premise with HuggingFace. LLM only sees skill names + text chunks — never raw CVs, never PII.',
-        guide: 'guide-chandan-thinking.png',
+        guide: 'guide-chandan-thinking.svg',
         speech: 'Only HR admins see this. Internal docs embedded locally — ZERO data sent to external APIs! 🏢',
       },
       {
         img: 'bench-step9-metrics.png',
         label: '📊 Step 8 — Production Metrics',
         caption: 'Live production metrics: request latency, cache hit rates (L1 exact < 1ms, L2 semantic), guardrail trigger counts, circuit breaker state, and SSE streaming TTFT.',
-        guide: 'guide-chandan-wow.png',
+        guide: 'guide-chandan-wow.svg',
         speech: '222 tests, 3.6s runtime, zero shortcuts — and now you can see it all live in production metrics! 🚀',
       },
     ],
@@ -616,42 +616,42 @@ export class App implements OnInit, AfterViewInit {
         img: 'agentic-step1-workflow.png',
         label: '🎨 Step 1 — Workflow Builder Canvas',
         caption: 'Drag-and-drop LangGraph canvas — 5 AI agent nodes ready: Audience Agent, Ad Copy Agent, Budget Optimizer, Campaign Agent. LangGraph Powered + Auto-Learning ON badges live.',
-        guide: 'guide-chandan.png',
+        guide: 'guide-chandan.svg',
         speech: 'Welcome to Agentic Growth OS! This drag-and-drop canvas lets you build autonomous marketing workflows! 🚀',
       },
       {
         img: 'agentic-step2-demo-loaded.png',
         label: '⚡ Step 2 — Demo Campaign Loaded',
         caption: 'One click loads a real estate campaign: "Premium Residences Launch" — Real Estate type, Skyline Heights brand, ₹50,000 budget, Google Ads platform. All agents show ✓ Completed.',
-        guide: 'guide-chandan-happy.png',
+        guide: 'guide-chandan-happy.svg',
         speech: 'Quick Load Demo Campaign — BOOM! Real campaign data filled automatically. All 5 agents ready to fire! 🎯',
       },
       {
         img: 'agentic-step3-executing.png',
         label: '🤖 Step 3 — Agents Executing',
         caption: 'LangGraph orchestrates all 5 agents in sequence — each node fires, processes, completes. Audience → Ad Copy → Budget Optimizer → Campaign Agent — all showing ✓ Completed status.',
-        guide: 'guide-chandan-wow.png',
+        guide: 'guide-chandan-wow.svg',
         speech: 'WOW! Watch the agents fire one by one — each node completes before passing to the next! Pure LangGraph! ⚡',
       },
       {
         img: 'agentic-step4-dashboard.png',
         label: '📊 Step 4 — Campaign Dashboard',
         caption: 'Campaign Dashboard with real-time metrics from the last workflow execution. Google Ads + Meta Ads simulated platforms. LangGraph Engine Active — 5 agent nodes ready, Auto-learning ON.',
-        guide: 'guide-chandan-thinking.png',
+        guide: 'guide-chandan-thinking.svg',
         speech: 'The dashboard shows ROI from every run. Run it again — the learning engine kicks in! 🧠',
       },
       {
         img: 'agentic-step5-learning.png',
         label: '🧠 Step 5 — Auto-Learning Engine',
         caption: 'HOW AUTO-LEARNING WORKS: Collect → Compare → Analyze → Improve. Each run stores campaign inputs + agent decisions. Similarity matching finds related past campaigns. Rule engine applies optimizations automatically.',
-        guide: 'guide-chandan-wow.png',
+        guide: 'guide-chandan-wow.svg',
         speech: 'This is the magic! The system LEARNS from every campaign run and improves the next one automatically! 🤩',
       },
       {
         img: 'agentic-step6-config.png',
         label: '⚙️ Step 6 — Agent Config + LangGraph Flow',
         caption: 'Campaign Config panel alongside the live agent graph — name, type, brand, budget, target audience, platform. Toggle Auto-Learning ON/OFF. Execute LangGraph Workflow to trigger all agents.',
-        guide: 'guide-chandan-happy.png',
+        guide: 'guide-chandan-happy.svg',
         speech: 'Configure any campaign here, hit Execute — and watch all 5 AI agents do the work for you! 40–80% ROI lift! 🎊',
       },
     ],
@@ -660,56 +660,56 @@ export class App implements OnInit, AfterViewInit {
         img: 'runbook-step1-dashboard.png',
         label: '📋 Step 1 — Command Center',
         caption: 'RunbookAI Dashboard: 22 runbooks, 1 category (Kubernetes), 3 severities (P1→P3), RAGless architecture. Zero vectors — pure SQL + dependency graph. v1.0.0 · Phase 6 · OK.',
-        guide: 'guide-chandan.png',
+        guide: 'guide-chandan.svg',
         speech: 'Welcome to RunbookAI — enterprise incident response. No vectors, no RAG. Just SQL + graphs! 📋',
       },
       {
         img: 'runbook-step2-list.png',
         label: '📚 Step 2 — Runbooks Library',
         caption: '22 runbooks tagged by source — [Official] K8s docs scraped from GitHub alongside internal runbooks. Each tagged: Source, Category, Severity P1/P2/P3, Steps count, Duration, and domain Tags.',
-        guide: 'guide-chandan-thinking.png',
+        guide: 'guide-chandan-thinking.svg',
         speech: 'See the "Official" badges? Those are real Kubernetes docs scraped from GitHub — live knowledge! 🔍',
       },
       {
         img: 'runbook-step3-detail.png',
         label: '🔧 Step 3 — Runbook Steps Detail',
         caption: 'Numbered dependency-linked steps with exact CLI commands, expected outputs, and "Depends on: step N" annotations. etcd compaction → defragment → NOSPACE alarm disarm — exact reproduction steps.',
-        guide: 'guide-chandan-thinking.png',
+        guide: 'guide-chandan-thinking.svg',
         speech: 'Every step has a dependency chain! Step 4 depends on steps 1,2 — this is a GRAPH, not a flat list! 🔗',
       },
       {
         img: 'runbook-step4-ingest.png',
         label: '📥 Step 4 — Ingest New Runbook',
         caption: 'Upload a PDF runbook — structured extraction pulls steps, commands, severity, dependencies. No vector embedding. Structured extraction writes directly to SQLite with graph edges.',
-        guide: 'guide-chandan-happy.png',
+        guide: 'guide-chandan-happy.svg',
         speech: 'Drop any incident PDF here and the AI extracts structured steps automatically. Zero vectors needed! 😄',
       },
       {
         img: 'runbook-step5-query-empty.png',
         label: '🔍 Step 5 — Query Interface',
         caption: 'Describe any incident in plain English — RAGless SQL + graph traversal finds the right runbook. Example incidents shown: CrashLoopBackOff, PostgreSQL connections, network flapping, CI/CD stuck.',
-        guide: 'guide-chandan.png',
+        guide: 'guide-chandan.svg',
         speech: 'Plain English → instant runbook. No cosine similarity, no embeddings. SQL + graph! Type your incident... ⌨️',
       },
       {
         img: 'runbook-step6-query-typed.png',
         label: '⌨️ Step 6 — Incident Described',
         caption: '"Kubernetes pods are crashlooping after a deployment — need to rollback immediately." Real-world P1 incident. The AI will match this to runbooks with conflict detection across sources.',
-        guide: 'guide-chandan-thinking.png',
+        guide: 'guide-chandan-thinking.svg',
         speech: 'A real P1 incident! Pods crashlooping post-deploy. Let\'s see what runbook the AI finds for us... 🚨',
       },
       {
         img: 'runbook-step7-results.png',
         label: '✅ Step 7 — Results + Conflict Flag',
         caption: 'Match found: [Official] HorizontalPodAutoscaler Walkthrough — P2, HIGH match, ~20m, 8 steps, ⚠️ 2 conflicts detected. Triage Summary + Steps + Execution Graph + Multi-Source tabs.',
-        guide: 'guide-chandan-wow.png',
+        guide: 'guide-chandan-wow.svg',
         speech: 'It found a match AND flagged 2 conflicts between internal and official docs! That\'s enterprise-grade! 🤩',
       },
       {
         img: 'runbook-step8-multi.png',
         label: '🔀 Step 8 — Multi-Runbook Reasoning',
         caption: 'Multi-Runbook page: merge runbooks, detect conflicts across sources, handle compound incidents requiring multiple runbooks. The system reasons across 22 runbooks simultaneously.',
-        guide: 'guide-chandan-happy.png',
+        guide: 'guide-chandan-happy.svg',
         speech: 'One incident, multiple runbooks merged — conflict detection across ALL 22 sources at once! This is the magic! 🎊',
       },
     ],
@@ -718,42 +718,42 @@ export class App implements OnInit, AfterViewInit {
         img: 'ua-step1-landing.png',
         label: '🚀 Step 1 — Landing: What It Is',
         caption: 'Universal Agent landing page — "One agent. Any domain. Any application. Configure once, plug in anywhere." Shows FastAPI integration (3 lines of code) and HTML embed (1 script tag) side by side with live stats: 4 LLM providers, 3 lines to integrate, 20 tests passing.',
-        guide: 'guide-chandan.png',
+        guide: 'guide-chandan.svg',
         speech: 'Welcome to Universal Agent! I built this so ANY app — portfolio, SaaS, enterprise — can have AI in 3 lines of code! 🚀',
       },
       {
         img: 'ua-step2-widget-open.png',
         label: '💬 Step 2 — Widget Opens',
         caption: 'The chat widget opens from the bottom-right corner. Agent name "Aarav" from config.yaml is displayed in the header. The widget is injected by a single <script> tag — no frontend framework required.',
-        guide: 'guide-chandan-thinking.png',
+        guide: 'guide-chandan-thinking.svg',
         speech: 'See this chat bubble? It appeared from just ONE script tag. No React, no Angular needed — just HTML! 🎯',
       },
       {
         img: 'ua-step3-first-response.png',
         label: '🤖 Step 3 — First AI Response',
         caption: 'Agent responds with deep knowledge of all 4 enterprise platforms. It knows AstroIntel (18+ agents, G1–G5 guardrails), Bench (Hybrid RAG, 222 tests), RunbookAI (RAGless SQL), and Agentic Growth OS (auto-learning). Cross-platform intelligence from a single configured agent.',
-        guide: 'guide-chandan-wow.png',
+        guide: 'guide-chandan-wow.svg',
         speech: 'WOW — the agent knows ALL 4 of my platforms! AstroIntel, Bench, RunbookAI, Agentic — one brain, four domains! 🤩',
       },
       {
         img: 'ua-step4-integration-response.png',
         label: '⚡ Step 4 — FastAPI Integration',
         caption: 'Agent explains how to integrate into a FastAPI app in real time. The answer comes from the configured persona — no hardcoded answers, pure LLM reasoning with domain context injected from YAML extra_facts.',
-        guide: 'guide-chandan-happy.png',
+        guide: 'guide-chandan-happy.svg',
         speech: 'The agent explains its own integration! It knows the exact 3-line FastAPI code because I put it in the config! 😄',
       },
       {
         img: 'ua-step5-llm-providers.png',
         label: '🔌 Step 5 — Multi-LLM Support',
         caption: 'Agent answers questions about LLM provider support — Claude, GPT-4, Gemini, DeepSeek, Ollama all supported. Swap providers by changing one line in config.yaml: provider: "claude" → provider: "openai". Zero code changes.',
-        guide: 'guide-chandan-thinking.png',
+        guide: 'guide-chandan-thinking.svg',
         speech: 'Claude, GPT-4, Gemini, Ollama — switch providers by changing ONE line in YAML. No code, no redeploy! 🔄',
       },
       {
         img: 'ua-step6-swagger.png',
         label: '📚 Step 6 — REST API (Swagger)',
         caption: 'Full REST API documented at /docs. Endpoints: POST /agent/chat (send message, get response), DELETE /agent/clear (reset session), GET /agent/health (status + model + tools + RAG state). Any frontend can call these directly.',
-        guide: 'guide-chandan-wow.png',
+        guide: 'guide-chandan-wow.svg',
         speech: 'Full Swagger docs! /agent/chat, /agent/clear, /agent/health — any frontend can call this REST API directly! 🔥',
       },
     ],
