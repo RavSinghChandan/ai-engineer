@@ -105,9 +105,40 @@ body{background:#0f0f13;font-family:-apple-system,'SF Pro Display','Segoe UI',sy
 #flowFrame{width:100%;height:100%;border:none;display:block}
 
 /* ── MIND MAP WRAPPER ── */
-.mindmap-wrap{flex:1;display:none;overflow:hidden;position:relative}
+.mindmap-wrap{flex:1;display:none;overflow-y:auto;background:#0f0f13}
 .mindmap-wrap.show{display:block}
-#mindmapFrame{width:100%;height:100%;border:none;display:block}
+.mindmap-wrap::-webkit-scrollbar{width:5px}
+.mindmap-wrap::-webkit-scrollbar-track{background:transparent}
+.mindmap-wrap::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px}
+.mm-inner{max-width:1100px;margin:0 auto;padding:32px 24px 60px}
+.mm-header{text-align:center;margin-bottom:32px}
+.mm-title{font-size:1.8rem;font-weight:900;color:#fff;letter-spacing:-.03em}
+.mm-title span{background:linear-gradient(135deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.mm-sub{font-size:.8rem;color:#555;margin-top:6px;font-family:'SF Mono',monospace}
+.mm-legend{display:flex;gap:18px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.ml{display:flex;align-items:center;gap:6px;font-size:.68rem;color:#666}
+.mld{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.mm-tier{margin-bottom:24px}
+.mm-tier-label{font-size:.65rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:10px;padding:0 4px}
+.mm-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.mm-card{background:#1a1a24;border:1.5px solid rgba(255,255,255,.08);border-radius:12px;padding:13px 14px;cursor:pointer;transition:all .15s}
+.mm-card:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,.3)}
+.t1c:hover{border-color:rgba(96,165,250,.4);box-shadow:0 6px 20px rgba(96,165,250,.12)}
+.t2c:hover{border-color:rgba(52,211,153,.4);box-shadow:0 6px 20px rgba(52,211,153,.12)}
+.t3c:hover{border-color:rgba(251,191,36,.4);box-shadow:0 6px 20px rgba(251,191,36,.12)}
+.t4c:hover{border-color:rgba(251,113,133,.4);box-shadow:0 6px 20px rgba(251,113,133,.12)}
+.mc-num{font-size:.6rem;font-weight:800;letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px}
+.mc-title{font-size:.8rem;font-weight:800;color:#e2e8f0;line-height:1.2;margin-bottom:4px}
+.mc-mem{font-size:.62rem;color:#555;font-family:'SF Mono',monospace;line-height:1.4;margin-bottom:7px}
+.mc-tags{display:flex;flex-wrap:wrap;gap:3px}
+.mct{font-size:.55rem;font-weight:700;padding:2px 6px;border-radius:5px}
+.mm-int-section{margin-top:32px;border-top:1px solid rgba(255,255,255,.06);padding-top:28px}
+.mm-int-title{font-size:.62rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#555;text-align:center;margin-bottom:16px}
+.mm-int-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.mm-int-card{background:#1a1a24;border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:12px 14px}
+.mic-q{font-size:.72rem;font-weight:700;color:#ccc;margin-bottom:7px;line-height:1.3}
+.mic-tags{display:flex;flex-wrap:wrap;gap:4px}
+.mic-tag{font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:6px;background:rgba(96,165,250,.1);color:#60a5fa}
 
 /* ── LOADING INDICATOR ── */
 .loader{
@@ -300,18 +331,167 @@ body{background:#0f0f13;font-family:-apple-system,'SF Pro Display','Segoe UI',sy
     <iframe id="flowFrame" title="Flow Diagram" onload="frameLoaded()"></iframe>
   </div>
 
-  <!-- Mind map iframe -->
+  <!-- Mind map — rendered natively, no separate file needed -->
   <div class="mindmap-wrap" id="mindmap-wrap">
-    <iframe id="mindmapFrame" src="mind-map.html" title="Mind Map"></iframe>
+    <div class="mm-inner">
+
+      <div class="mm-header">
+        <div class="mm-title">AI System Design <span>Mind Map</span></div>
+        <div class="mm-sub">15 patterns · 4 tiers · click any card to open its flow</div>
+        <div class="mm-legend">
+          <span class="ml"><span class="mld" style="background:#60a5fa"></span>Tier 1 — LLM Patterns</span>
+          <span class="ml"><span class="mld" style="background:#34d399"></span>Tier 2 — Data &amp; Retrieval</span>
+          <span class="ml"><span class="mld" style="background:#fbbf24"></span>Tier 3 — Production</span>
+          <span class="ml"><span class="mld" style="background:#fb7185"></span>Tier 4 — Security</span>
+        </div>
+      </div>
+
+      <!-- Tier 1 -->
+      <div class="mm-tier">
+        <div class="mm-tier-label" style="color:#60a5fa">▸ Tier 1 — LLM Application Patterns</div>
+        <div class="mm-cards">
+          <div class="mm-card t1c" onclick="loadFlow('P1-plain-llm/flow.html','P1 — Plain LLM Application','pb1');setMode('flows')">
+            <div class="mc-num" style="color:#60a5fa">P1</div>
+            <div class="mc-title">Plain LLM Application</div>
+            <div class="mc-mem">Request → Prompt → LLM → Parse → Response</div>
+            <div class="mc-tags"><span class="mct" style="background:rgba(96,165,250,.12);color:#93c5fd">FastAPI</span><span class="mct" style="background:rgba(96,165,250,.12);color:#93c5fd">AsyncOpenAI</span></div>
+          </div>
+          <div class="mm-card t1c" onclick="loadFlow('P2-rag/flow.html','P2 — RAG Application','pb2');setMode('flows')">
+            <div class="mc-num" style="color:#60a5fa">P2</div>
+            <div class="mc-title">RAG Application</div>
+            <div class="mc-mem">Retrieve → Rank → Augment → Generate</div>
+            <div class="mc-tags"><span class="mct" style="background:rgba(96,165,250,.12);color:#93c5fd">FAISS</span><span class="mct" style="background:rgba(96,165,250,.12);color:#93c5fd">CrossEncoder</span></div>
+          </div>
+          <div class="mm-card t1c" onclick="loadFlow('P3-agent-tool-calling/flow.html','P3 — Agent + Tool Calling','pb3');setMode('flows')">
+            <div class="mc-num" style="color:#60a5fa">P3</div>
+            <div class="mc-title">Agent + Tool Calling</div>
+            <div class="mc-mem">Think → Tool → Result → Think → Answer</div>
+            <div class="mc-tags"><span class="mct" style="background:rgba(96,165,250,.12);color:#93c5fd">tool_calls</span><span class="mct" style="background:rgba(96,165,250,.12);color:#93c5fd">ReAct loop</span></div>
+          </div>
+          <div class="mm-card t1c" onclick="loadFlow('P4-memory-based-ai/flow.html','P4 — Memory-Based AI','pb4');setMode('flows')">
+            <div class="mc-num" style="color:#60a5fa">P4</div>
+            <div class="mc-title">Memory-Based AI</div>
+            <div class="mc-mem">Retrieve → Context Build → LLM → Store</div>
+            <div class="mc-tags"><span class="mct" style="background:rgba(96,165,250,.12);color:#93c5fd">Redis</span><span class="mct" style="background:rgba(96,165,250,.12);color:#93c5fd">FAISS</span></div>
+          </div>
+          <div class="mm-card t1c" onclick="loadFlow('P5-streaming-async/flow.html','P5 — Streaming + Async Jobs','pb5');setMode('flows')">
+            <div class="mc-num" style="color:#60a5fa">P5</div>
+            <div class="mc-title">Streaming + Async Jobs</div>
+            <div class="mc-mem">Generate → Push Token · Accept → Queue → Worker</div>
+            <div class="mc-tags"><span class="mct" style="background:rgba(96,165,250,.12);color:#93c5fd">SSE</span><span class="mct" style="background:rgba(96,165,250,.12);color:#93c5fd">Celery</span></div>
+          </div>
+          <div class="mm-card t1c" onclick="loadFlow('P6-multi-agent-systems/flow.html','P6 — Multi-Agent Systems','pb6');setMode('flows')">
+            <div class="mc-num" style="color:#60a5fa">P6</div>
+            <div class="mc-title">Multi-Agent Systems</div>
+            <div class="mc-mem">Orchestrate → Dispatch → Synthesise → Critique</div>
+            <div class="mc-tags"><span class="mct" style="background:rgba(96,165,250,.12);color:#93c5fd">LangGraph</span><span class="mct" style="background:rgba(96,165,250,.12);color:#93c5fd">asyncio.gather</span></div>
+          </div>
+          <div class="mm-card t1c" onclick="loadFlow('P7-guardrails-safety/flow.html','P7 — Guardrails & Safety','pb7');setMode('flows')">
+            <div class="mc-num" style="color:#60a5fa">P7</div>
+            <div class="mc-title">Guardrails &amp; Safety</div>
+            <div class="mc-mem">Input Guard → LLM → Output Guard → Audit</div>
+            <div class="mc-tags"><span class="mct" style="background:rgba(96,165,250,.12);color:#93c5fd">G1–G5</span><span class="mct" style="background:rgba(96,165,250,.12);color:#93c5fd">hallucination</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tier 2 -->
+      <div class="mm-tier">
+        <div class="mm-tier-label" style="color:#34d399">▸ Tier 2 — Data &amp; Retrieval</div>
+        <div class="mm-cards">
+          <div class="mm-card t2c" onclick="loadFlow('P8-vector-database-design/flow.html','P8 — Vector Database Design','pb8');setMode('flows')">
+            <div class="mc-num" style="color:#34d399">P8</div>
+            <div class="mc-title">Vector Database Design</div>
+            <div class="mc-mem">Embed → Index → ANN Search → Rerank</div>
+            <div class="mc-tags"><span class="mct" style="background:rgba(52,211,153,.12);color:#6ee7b7">FAISS</span><span class="mct" style="background:rgba(52,211,153,.12);color:#6ee7b7">Pinecone</span><span class="mct" style="background:rgba(52,211,153,.12);color:#6ee7b7">pgvector</span></div>
+          </div>
+          <div class="mm-card t2c" onclick="loadFlow('P9-hybrid-search/flow.html','P9 — Hybrid Search','pb9');setMode('flows')">
+            <div class="mc-num" style="color:#34d399">P9</div>
+            <div class="mc-title">Hybrid Search</div>
+            <div class="mc-mem">BM25 + Vector → RRF Merge → Rerank</div>
+            <div class="mc-tags"><span class="mct" style="background:rgba(52,211,153,.12);color:#6ee7b7">BM25</span><span class="mct" style="background:rgba(52,211,153,.12);color:#6ee7b7">RRF</span><span class="mct" style="background:rgba(52,211,153,.12);color:#6ee7b7">CrossEncoder</span></div>
+          </div>
+          <div class="mm-card t2c" onclick="loadFlow('P10-fine-tuning-peft/flow.html','P10 — Fine-Tuning & PEFT','pb10');setMode('flows')">
+            <div class="mc-num" style="color:#34d399">P10</div>
+            <div class="mc-title">Fine-Tuning &amp; PEFT</div>
+            <div class="mc-mem">Dataset → LoRA/QLoRA → Train → Eval → Deploy</div>
+            <div class="mc-tags"><span class="mct" style="background:rgba(52,211,153,.12);color:#6ee7b7">LoRA</span><span class="mct" style="background:rgba(52,211,153,.12);color:#6ee7b7">QLoRA</span><span class="mct" style="background:rgba(52,211,153,.12);color:#6ee7b7">vLLM</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tier 3 -->
+      <div class="mm-tier">
+        <div class="mm-tier-label" style="color:#fbbf24">▸ Tier 3 — Production Infrastructure</div>
+        <div class="mm-cards">
+          <div class="mm-card t3c" onclick="loadFlow('P11-caching-strategy/flow.html','P11 — Caching Strategy','pb11');setMode('flows')">
+            <div class="mc-num" style="color:#fbbf24">P11</div>
+            <div class="mc-title">Caching Strategy</div>
+            <div class="mc-mem">L1 In-Memory → L2 Redis → L3 Semantic</div>
+            <div class="mc-tags"><span class="mct" style="background:rgba(251,191,36,.12);color:#fcd34d">LRU</span><span class="mct" style="background:rgba(251,191,36,.12);color:#fcd34d">Redis</span><span class="mct" style="background:rgba(251,191,36,.12);color:#fcd34d">500× savings</span></div>
+          </div>
+          <div class="mm-card t3c" onclick="loadFlow('P12-observability-evals/flow.html','P12 — Observability & Evals','pb12');setMode('flows')">
+            <div class="mc-num" style="color:#fbbf24">P12</div>
+            <div class="mc-title">Observability &amp; Evals</div>
+            <div class="mc-mem">Trace → Metrics → RAGAS → Alert</div>
+            <div class="mc-tags"><span class="mct" style="background:rgba(251,191,36,.12);color:#fcd34d">OTEL</span><span class="mct" style="background:rgba(251,191,36,.12);color:#fcd34d">Prometheus</span><span class="mct" style="background:rgba(251,191,36,.12);color:#fcd34d">RAGAS</span></div>
+          </div>
+          <div class="mm-card t3c" onclick="loadFlow('P13-cost-latency-optimisation/flow.html','P13 — Cost & Latency Optimisation','pb13');setMode('flows')">
+            <div class="mc-num" style="color:#fbbf24">P13</div>
+            <div class="mc-title">Cost &amp; Latency Optimisation</div>
+            <div class="mc-mem">Route → Budget Tokens → Batch → JSON Mode</div>
+            <div class="mc-tags"><span class="mct" style="background:rgba(251,191,36,.12);color:#fcd34d">DeepSeek</span><span class="mct" style="background:rgba(251,191,36,.12);color:#fcd34d">model routing</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tier 4 -->
+      <div class="mm-tier">
+        <div class="mm-tier-label" style="color:#fb7185">▸ Tier 4 — Security &amp; Compliance</div>
+        <div class="mm-cards">
+          <div class="mm-card t4c" onclick="loadFlow('P14-prompt-injection-defence/flow.html','P14 — Prompt Injection Defence','pb14');setMode('flows')">
+            <div class="mc-num" style="color:#fb7185">P14</div>
+            <div class="mc-title">Prompt Injection Defence</div>
+            <div class="mc-mem">Detect → Blocklist → LLM Judge → Isolate</div>
+            <div class="mc-tags"><span class="mct" style="background:rgba(251,113,133,.12);color:#fda4af">OWASP #1</span><span class="mct" style="background:rgba(251,113,133,.12);color:#fda4af">structural isolation</span></div>
+          </div>
+          <div class="mm-card t4c" onclick="loadFlow('P15-pii-data-privacy/flow.html','P15 — PII & Data Privacy','pb15');setMode('flows')">
+            <div class="mc-num" style="color:#fb7185">P15</div>
+            <div class="mc-title">PII &amp; Data Privacy</div>
+            <div class="mc-mem">Detect → Tokenise → LLM → Restore</div>
+            <div class="mc-tags"><span class="mct" style="background:rgba(251,113,133,.12);color:#fda4af">GDPR</span><span class="mct" style="background:rgba(251,113,133,.12);color:#fda4af">DPDP</span><span class="mct" style="background:rgba(251,113,133,.12);color:#fda4af">PII vault</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interview coverage -->
+      <div class="mm-int-section">
+        <div class="mm-int-title">Interview Coverage — which patterns answer which questions</div>
+        <div class="mm-int-grid">
+          <div class="mm-int-card"><div class="mic-q">"Design a chatbot"</div><div class="mic-tags"><span class="mic-tag">P1</span><span class="mic-tag">P4</span><span class="mic-tag">P11</span></div></div>
+          <div class="mm-int-card"><div class="mic-q">"Design a document Q&amp;A system"</div><div class="mic-tags"><span class="mic-tag">P2</span><span class="mic-tag">P8</span><span class="mic-tag">P9</span></div></div>
+          <div class="mm-int-card"><div class="mic-q">"Design an autonomous agent"</div><div class="mic-tags"><span class="mic-tag">P3</span><span class="mic-tag">P6</span></div></div>
+          <div class="mm-int-card"><div class="mic-q">"How do you make LLM apps safe?"</div><div class="mic-tags"><span class="mic-tag">P7</span><span class="mic-tag">P14</span><span class="mic-tag">P15</span></div></div>
+          <div class="mm-int-card"><div class="mic-q">"How do you reduce LLM costs?"</div><div class="mic-tags"><span class="mic-tag">P11</span><span class="mic-tag">P13</span></div></div>
+          <div class="mm-int-card"><div class="mic-q">"How do you measure LLM quality?"</div><div class="mic-tags"><span class="mic-tag">P12</span></div></div>
+          <div class="mm-int-card"><div class="mic-q">"When would you fine-tune?"</div><div class="mic-tags"><span class="mic-tag">P10</span></div></div>
+          <div class="mm-int-card"><div class="mic-q">"Design a production RAG system"</div><div class="mic-tags"><span class="mic-tag">P2</span><span class="mic-tag">P8</span><span class="mic-tag">P9</span><span class="mic-tag">P11</span><span class="mic-tag">P12</span><span class="mic-tag">P13</span></div></div>
+          <div class="mm-int-card"><div class="mic-q">"78s → 4s, how did you do it?"</div><div class="mic-tags"><span class="mic-tag">P6</span><span class="mic-tag">P11</span><span class="mic-tag">P13</span></div></div>
+          <div class="mm-int-card"><div class="mic-q">"How do you handle PII in AI?"</div><div class="mic-tags"><span class="mic-tag">P7</span><span class="mic-tag">P15</span></div></div>
+        </div>
+      </div>
+
+    </div><!-- mm-inner -->
   </div>
 
 </div>
 
 <script>
 // ── State ──
-let currentPath = null;
-let currentBtn  = null;
-let currentMode = 'flows';
+let currentPath  = null;
+let currentBtn   = null;
+let currentMode  = 'flows';
+let currentTitle = null;
 
 const ORDER = [
   'P1-plain-llm/flow.html',
@@ -337,11 +517,10 @@ function setMode(mode) {
   document.getElementById('btn-flows').classList.toggle('active', mode === 'flows');
   document.getElementById('btn-mindmap').classList.toggle('active', mode === 'mindmap');
 
-  document.getElementById('mindmap-wrap').classList.toggle('show', mode === 'mindmap');
-
   if (mode === 'mindmap') {
     document.getElementById('welcome').style.display = 'none';
     document.getElementById('frame-wrap').classList.remove('show');
+    document.getElementById('mindmap-wrap').classList.add('show');
     document.getElementById('topbar-title').textContent = 'Mind Map — All 15 Patterns';
   } else {
     document.getElementById('mindmap-wrap').classList.remove('show');
@@ -351,6 +530,7 @@ function setMode(mode) {
     } else {
       document.getElementById('welcome').style.display = 'flex';
     }
+    if (currentPath) document.getElementById('topbar-title').textContent = currentTitle || 'Flow Diagram';
   }
 }
 
@@ -361,8 +541,9 @@ function loadFlow(path, title, btnId) {
   // Update active button
   if (currentBtn) document.getElementById(currentBtn)?.classList.remove('active');
   document.getElementById(btnId)?.classList.add('active');
-  currentBtn  = btnId;
-  currentPath = path;
+  currentBtn   = btnId;
+  currentPath  = path;
+  currentTitle = title;
 
   // Update topbar
   document.getElementById('topbar-title').textContent = title;
