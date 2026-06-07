@@ -1,0 +1,144 @@
+@if (pattern(); as p) {
+
+<!-- Top nav -->
+<nav class="topnav">
+  <a class="home-link" routerLink="/">⚡ AI Blueprint</a>
+  <div class="nav-pills">
+    @for (pat of navPatterns(); track pat.id) {
+      <a class="nav-pill" [routerLink]="['/pattern', pat.id]"
+         [class.active]="pat.id === p.id">P{{ pat.number }}</a>
+    }
+  </div>
+</nav>
+
+<!-- Pattern header -->
+<header class="pat-header">
+  <div class="pat-header-inner">
+    <div class="pat-meta">
+      <span class="p-badge">P{{ p.number }}</span>
+      <div>
+        <h1>{{ p.title }}</h1>
+        <p class="subtitle">{{ p.subtitle }}</p>
+      </div>
+    </div>
+    <div class="nav-arrows">
+      @if (prev(); as prevId) {
+        <a class="arrow-btn" [routerLink]="['/pattern', prevId]">← Prev</a>
+      }
+      @if (next(); as nextId) {
+        <a class="arrow-btn" [routerLink]="['/pattern', nextId]">Next →</a>
+      }
+    </div>
+  </div>
+</header>
+
+<!-- Flow diagram -->
+<main class="flow-main">
+  <p class="click-hint">Click any node to see the code</p>
+
+  <div class="flow-canvas">
+    @for (node of p.nodes; track node.id; let i = $index) {
+
+      <!-- Arrow between nodes (not before first) -->
+      @if (i > 0 && !node.isGroup) {
+        <div class="arrow">↓</div>
+      }
+
+      <!-- Group box -->
+      @if (node.isGroup) {
+        <div class="group-box" [style.border-color]="node.groupBorderColor">
+          <div class="group-label" [style.color]="node.groupBorderColor">{{ node.groupLabel }}</div>
+          <div class="group-children">
+            @for (child of node.children; track child.id) {
+              <button class="node" [class]="'c-' + child.color"
+                      (click)="openPanel(child)"
+                      [class.active]="activeNode()?.id === child.id">
+                <span class="node-label">{{ child.label }}</span>
+                <span class="node-title">{{ child.title }}</span>
+                <span class="node-sub">{{ child.sub }}</span>
+              </button>
+            }
+          </div>
+        </div>
+
+      <!-- Diamond node -->
+      } @else if (node.isDiamond) {
+        <button class="diamond" [class]="'c-' + node.color"
+                (click)="openPanel(node)"
+                [class.active]="activeNode()?.id === node.id">
+          <div class="diamond-inner">
+            <span class="d-label">{{ node.label }}</span>
+            <span class="d-title">{{ node.title }}</span>
+            <span class="d-sub">{{ node.sub }}</span>
+          </div>
+        </button>
+
+      <!-- Regular node -->
+      } @else {
+        <button class="node" [class]="'c-' + node.color"
+                (click)="openPanel(node)"
+                [class.active]="activeNode()?.id === node.id">
+          <span class="node-label">{{ node.label }}</span>
+          <span class="node-title">{{ node.title }}</span>
+          <span class="node-sub">{{ node.sub }}</span>
+        </button>
+      }
+    }
+  </div>
+</main>
+
+<!-- Slide-up code panel -->
+@if (panelOpen()) {
+  <div class="code-panel" [style.height.px]="panelHeight()">
+    <div class="panel-header" (mousedown)="onDragStart($event)">
+      <div class="panel-title">
+        <span class="panel-label">{{ activeNode()?.label }}</span>
+        <span class="panel-name">{{ activeNode()?.title }}</span>
+      </div>
+      <button class="close-btn" (click)="closePanel()">✕</button>
+    </div>
+    <div class="panel-body">
+      <pre class="code-block"><code [innerHTML]="activeNode()?.code"></code></pre>
+    </div>
+  </div>
+  <div class="panel-backdrop" (click)="closePanel()"></div>
+}
+
+<!-- Aarav FAB -->
+<button class="fab" (click)="agentOpen.set(!agentOpen())">
+  {{ agentOpen() ? '✕' : '💬' }}
+</button>
+
+@if (agentOpen()) {
+  <div class="agent-panel">
+    <div class="agent-header">
+      <span>🤖 Ask Aarav — AI Architect</span>
+      <button (click)="agentOpen.set(false)">✕</button>
+    </div>
+    <div class="agent-messages">
+      @if (agentMessages().length === 0) {
+        <p class="agent-welcome">Ask anything about <strong>{{ p.title }}</strong> or any AI system design pattern.</p>
+      }
+      @for (msg of agentMessages(); track $index) {
+        <div class="agent-msg" [class.user]="msg.role === 'user'" [class.ai]="msg.role === 'ai'">
+          {{ msg.text }}
+        </div>
+      }
+      @if (agentLoading) {
+        <div class="agent-msg ai">Aarav is thinking…</div>
+      }
+    </div>
+    <div class="agent-input-row">
+      <input [(ngModel)]="agentInput" (keydown)="onAgentKey($event)"
+             placeholder="Ask about this pattern…" class="agent-input" />
+      <button (click)="sendAgent()" class="agent-send">→</button>
+    </div>
+  </div>
+}
+
+} @else {
+  <div class="not-found">
+    <p>Pattern not found.</p>
+    <a routerLink="/">← Back to dashboard</a>
+  </div>
+}

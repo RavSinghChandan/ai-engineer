@@ -156,6 +156,28 @@ export class App implements OnInit, AfterViewInit {
       ],
       imgSrc: 'project-universal-agent.png',
     },
+    {
+      num: '06', accent: 'blue',
+      liveUrl: 'https://ai-blueprint-rust.vercel.app',
+      title: 'AI System Design Blueprint',
+      subtitle: 'P1–P15 Production Patterns · Angular · Interactive Flow Diagrams',
+      desc: '15 production AI patterns — Plain LLM, RAG, Agents, Memory, Streaming, Multi-Agent, Guardrails, Vector DB, Hybrid Search, Fine-Tuning, Caching, Observability, Cost Optimisation, Prompt Injection Defence, and PII Privacy — each as an interactive flow diagram with real production code.',
+      github: 'https://github.com/RavSinghChandan/ai-engineer',
+      tags: [
+        { label: 'Angular 17', cls: 'tag-indigo' }, { label: 'TypeScript', cls: 'tag-indigo' },
+        { label: '15 Patterns', cls: 'tag-purple' }, { label: 'FastAPI', cls: 'tag-indigo' },
+        { label: 'LangGraph', cls: 'tag-indigo' }, { label: 'RAG', cls: 'tag-cyan' },
+        { label: 'Multi-Agent', cls: 'tag-cyan' }, { label: 'GDPR', cls: 'tag-green' },
+        { label: 'Vercel', cls: 'tag-amber' },
+      ],
+      challenges: [
+        { p: '15 complex flow diagrams with consistent design across all patterns', s: 'Single PatternFlowComponent driven by a data service — one template renders all 15 patterns identically' },
+        { p: 'Code snippets need to be readable during YouTube screen sharing', s: 'White background, dark text, light syntax highlight — no solid fills, diamond nodes use saturated tint backgrounds' },
+        { p: 'Code panel drag-to-resize must work identically on all 15 patterns', s: 'Shared HostListener mousemove/mouseup on the component — pixel-perfect symmetry guaranteed by a single implementation' },
+        { p: 'AI assistant needs to explain any pattern in context', s: 'Aarav FAB on every page — LangGraph ReAct agent at localhost:8000, per-session memory, answers questions scoped to P1–P15' },
+      ],
+      imgSrc: '',
+    },
   ];
 
   // ── 6 proof cards — each one a gut-punch stat readable in 2 seconds ──

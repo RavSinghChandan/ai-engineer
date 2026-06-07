@@ -1,0 +1,89 @@
+<!-- Header -->
+<header class="header">
+  <div class="header-inner">
+    <div class="header-title">
+      <span class="logo">&#x26A1;</span>
+      <div>
+        <h1>AI System Design Blueprint</h1>
+        <p>15 Production Patterns &middot; FastAPI &middot; LangChain &middot; LangGraph</p>
+      </div>
+    </div>
+    <div class="header-badges">
+      <span class="badge badge-blue">P1&ndash;P15</span>
+      <span class="badge badge-green">Production Ready</span>
+    </div>
+  </div>
+</header>
+
+<!-- Main content -->
+<main class="main">
+  <!-- Intro card -->
+  <div class="intro-card">
+    <div class="intro-text">
+      <h2>Senior AI Engineer Architect Bible</h2>
+      <p>Every pattern you need to design, build and deploy production AI systems &mdash; from plain LLM calls to multi-agent orchestration, vector databases, fine-tuning, guardrails, and GDPR compliance.</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><span class="stat-num">15</span><span class="stat-label">Patterns</span></div>
+      <div class="stat"><span class="stat-num">4</span><span class="stat-label">Tiers</span></div>
+      <div class="stat"><span class="stat-num">100+</span><span class="stat-label">Code Snippets</span></div>
+    </div>
+  </div>
+
+  <!-- Tiers -->
+  @for (tier of tiers; track tier.num) {
+    <section class="tier-section">
+      <div class="tier-header" [style.border-left-color]="tier.color">
+        <span class="tier-num" [style.background]="tier.color">Tier {{ tier.num }}</span>
+        <h2 class="tier-label">{{ tier.label }}</h2>
+      </div>
+      <div class="cards-grid">
+        @for (p of byTier(tier.num); track p.id) {
+          <a class="pattern-card" [routerLink]="['/pattern', p.id]" [style.border-top-color]="tier.color">
+            <div class="card-header">
+              <span class="p-num" [style.background]="tier.color">P{{ p.number }}</span>
+              <h3>{{ p.title }}</h3>
+            </div>
+            <p class="card-sub">{{ p.subtitle }}</p>
+            <div class="card-footer">
+              <span class="node-count">{{ p.nodes.length }} nodes</span>
+              <span class="go">View flow &#x2192;</span>
+            </div>
+          </a>
+        }
+      </div>
+    </section>
+  }
+</main>
+
+<!-- Aarav FAB -->
+<button class="fab" (click)="fabOpen = !fabOpen" title="Ask Aarav">
+  {{ fabOpen ? '✕' : '💬' }}
+</button>
+
+@if (fabOpen) {
+  <div class="agent-panel">
+    <div class="agent-header">
+      <span>🤖 Ask Aarav &mdash; AI Architect</span>
+      <button (click)="fabOpen = false">&#x2715;</button>
+    </div>
+    <div class="agent-messages">
+      @if (agentMessages.length === 0) {
+        <p class="agent-welcome">Ask anything about AI system design patterns &mdash; RAG, agents, guardrails, fine-tuning and more.</p>
+      }
+      @for (msg of agentMessages; track $index) {
+        <div class="agent-msg" [class.user]="msg.role === 'user'" [class.ai]="msg.role === 'ai'">
+          {{ msg.text }}
+        </div>
+      }
+      @if (agentLoading) {
+        <div class="agent-msg ai">Aarav is thinking&hellip;</div>
+      }
+    </div>
+    <div class="agent-input-row">
+      <input [(ngModel)]="agentInput" (keydown)="onAgentKey($event)"
+             placeholder="Ask about any pattern&hellip;" class="agent-input" />
+      <button (click)="sendAgent()" class="agent-send">&#x2192;</button>
+    </div>
+  </div>
+}

@@ -1,0 +1,182 @@
+@if (pattern(); as p) {
+
+<!-- ── Top bar ── -->
+<header class="view-header" [style.border-bottom-color]="tierColor(p.tier)">
+  <div class="header-left">
+    <span class="p-badge" [style.background]="tierColor(p.tier)">P{{ p.number }}</span>
+    <div>
+      <h1 class="view-title">{{ p.title }}</h1>
+      <p class="view-sub">{{ p.subtitle }}</p>
+    </div>
+  </div>
+  <div class="header-nav">
+    @if (prev(); as prevId) {
+      <a class="nav-arrow" [routerLink]="['/pattern', prevId]">← Prev</a>
+    }
+    @if (next(); as nextId) {
+      <a class="nav-arrow" [routerLink]="['/pattern', nextId]">Next →</a>
+    }
+  </div>
+</header>
+
+<!-- ── Flow canvas ── -->
+<div class="flow-page">
+  <p class="click-hint">Click any node to see the production code</p>
+
+  <div class="flow-tree">
+    @for (node of p.nodes; track node.id; let i = $index) {
+
+      <!-- connector line between nodes -->
+      @if (i > 0 && !node.isGroup) {
+        <div class="connector">
+          <div class="connector-line"></div>
+          <div class="connector-arrow">▼</div>
+        </div>
+      }
+
+      <!-- ── GROUP BOX ── -->
+      @if (node.isGroup && node.children) {
+        <div class="group-wrap">
+          @if (i > 0) {
+            <div class="connector">
+              <div class="connector-line"></div>
+              <div class="connector-arrow">▼</div>
+            </div>
+          }
+          <div class="group-box" [style.border-color]="node.groupBorderColor">
+            <div class="group-label" [style.color]="node.groupBorderColor">
+              {{ node.groupLabel }}
+            </div>
+            <div class="group-children">
+              @for (child of node.children; track child.id) {
+                <div class="node-with-status">
+                  <button class="node c-{{child.color}}"
+                          [class.active]="activeNode()?.id === child.id"
+                          (click)="openPanel(child)">
+                    <span class="node-label">{{ child.label }}</span>
+                    <span class="node-title">{{ child.title }}</span>
+                    <span class="node-sub">{{ child.sub }}</span>
+                    @if (child.code) { <span class="code-badge">&#60;/&#62;</span> }
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+      <!-- ── DIAMOND NODE ── -->
+      } @else if (node.isDiamond) {
+        <div class="diamond-row">
+          <button class="diamond c-{{node.color}}"
+                  [class.active]="activeNode()?.id === node.id"
+                  (click)="openPanel(node)">
+            <div class="diamond-inner">
+              <span class="d-label">{{ node.label }}</span>
+              <span class="d-title">{{ node.title }}</span>
+              <span class="d-sub">{{ node.sub }}</span>
+            </div>
+          </button>
+
+          @if (node.statusPaths && node.statusPaths.length > 0) {
+            <div class="status-branch-list diamond-branch">
+              @for (sp of node.statusPaths; track sp.code) {
+                <div class="status-branch"
+                     [style.background]="statusBg(sp.color)"
+                     [style.border-color]="statusBorder(sp.color)">
+                  <span class="status-code" [style.background]="statusColor(sp.color)">{{ sp.code }}</span>
+                  <div class="status-info">
+                    <span class="status-label">{{ sp.label }}</span>
+                    <span class="status-action">{{ sp.action }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+      <!-- ── REGULAR NODE ── -->
+      } @else {
+        <div class="node-row">
+          <button class="node c-{{node.color}}"
+                  [class.active]="activeNode()?.id === node.id"
+                  (click)="openPanel(node)">
+            <span class="node-label">{{ node.label }}</span>
+            <span class="node-title">{{ node.title }}</span>
+            <span class="node-sub">{{ node.sub }}</span>
+            @if (node.code) { <span class="code-badge">&#60;/&#62;</span> }
+          </button>
+
+          @if (node.statusPaths && node.statusPaths.length > 0) {
+            <div class="status-branch-connector">
+              <div class="branch-spine"></div>
+              <div class="status-branch-list">
+                @for (sp of node.statusPaths; track sp.code) {
+                  <div class="status-branch"
+                       [style.background]="statusBg(sp.color)"
+                       [style.border-color]="statusBorder(sp.color)">
+                    <span class="status-code" [style.background]="statusColor(sp.color)">{{ sp.code }}</span>
+                    <div class="status-info">
+                      <span class="status-label">{{ sp.label }}</span>
+                      <span class="status-action">{{ sp.action }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
+  </div>
+</div>
+
+<!-- ── Slide-up code panel ── -->
+@if (panelOpen() && activeNode()) {
+  <div class="code-panel" [style.height.px]="panelHeight()">
+    <div class="panel-drag-bar" (mousedown)="onDragStart($event)">
+      <div class="drag-handle"></div>
+    </div>
+    <div class="panel-header">
+      <div class="panel-meta">
+        <span class="panel-badge c-{{activeNode()!.color}}">{{ activeNode()!.label }}</span>
+        <span class="panel-title">{{ activeNode()!.title }}</span>
+        <span class="panel-sub">{{ activeNode()!.sub }}</span>
+      </div>
+      <button class="panel-close" (click)="closePanel()">✕</button>
+    </div>
+    <div class="panel-body">
+      @if (activeNode()!.code) {
+        <pre class="code-block"><code [innerHTML]="activeNode()!.code"></code></pre>
+      } @else {
+        <p class="no-code">No code snippet for this node.</p>
+      }
+
+      @if (activeNode()!.statusPaths && activeNode()!.statusPaths!.length > 0) {
+        <div class="panel-status-section">
+          <div class="panel-status-title">HTTP Status Paths</div>
+          <div class="panel-status-grid">
+            @for (sp of activeNode()!.statusPaths; track sp.code) {
+              <div class="panel-status-card"
+                   [style.border-left-color]="statusColor(sp.color)">
+                <span class="psc-code" [style.background]="statusColor(sp.color)">{{ sp.code }}</span>
+                <div class="psc-info">
+                  <span class="psc-label">{{ sp.label }}</span>
+                  <span class="psc-action">{{ sp.action }}</span>
+                  @if (sp.note) { <span class="psc-note">{{ sp.note }}</span> }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+  <div class="panel-backdrop" (click)="closePanel()"></div>
+}
+
+} @else {
+  <div class="not-found">
+    <p>Pattern not found.</p>
+    <a routerLink="/">← Back</a>
+  </div>
+}
