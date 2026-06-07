@@ -10,8 +10,8 @@ langchain-core>=0.3.0
 langgraph>=0.2.0
 
 # LLM Providers — install what you need
-langchain-anthropic>=0.3.0      # For Claude (Anthropic)
-# langchain-openai>=0.2.0       # Uncomment for OpenAI
+langchain-anthropic>=0.3.0
+langchain-openai>=0.2.0
 # langchain-google-genai>=2.0.0 # Uncomment for Gemini
 # langchain-ollama>=0.2.0       # Uncomment for local Ollama
 

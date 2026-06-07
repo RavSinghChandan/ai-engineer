@@ -3,7 +3,7 @@ Core LangGraph agent loop.
 Config drives all behavior — never change this file per domain.
 """
 import logging
-from typing import Annotated, AsyncGenerator, Tuple, TypedDict
+from typing import Annotated, AsyncGenerator, Optional, Tuple, TypedDict
 
 from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 from langgraph.graph import END, StateGraph
@@ -49,9 +49,9 @@ class UniversalAgent:
     def name(self) -> str:
         return self._cfg.agent.name
 
-    def chat(self, session_id: str, user_message: str) -> str:
+    def chat(self, session_id: str, user_message: str, system_prompt: Optional[str] = None) -> str:
         """Process one user message and return the full response."""
-        input_messages = self._build_input(session_id, user_message)
+        input_messages = self._build_input(session_id, user_message, system_prompt)
         result = self._graph.invoke({"messages": input_messages})
         ai_response = result["messages"][-1].content
         self._memory.append_turn(session_id, user_message, ai_response)
@@ -96,11 +96,12 @@ class UniversalAgent:
 
     # ── Internals ──────────────────────────────────────────────────────────────
 
-    def _build_input(self, session_id: str, user_message: str) -> list[BaseMessage]:
+    def _build_input(self, session_id: str, user_message: str, system_prompt: Optional[str] = None) -> list[BaseMessage]:
         history = self._memory.get_history(session_id)
         context = self._retrieve_context(user_message) if self._retriever else ""
 
-        messages: list[BaseMessage] = [SystemMessage(content=self._system_prompt)]
+        active_prompt = system_prompt if system_prompt else self._system_prompt
+        messages: list[BaseMessage] = [SystemMessage(content=active_prompt)]
         if context:
             messages.append(SystemMessage(content=f"Relevant context:\n{context}"))
         messages.extend(history)

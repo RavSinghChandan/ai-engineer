@@ -48,6 +48,7 @@ _registry_path = Path(__file__).parent.parent / "config" / "agents_registry.json
 class ChatRequest(BaseModel):
     message: str
     session_id: Optional[str] = None
+    system_prompt: Optional[str] = None
 
 
 class ChatResponse(BaseModel):
@@ -141,7 +142,7 @@ def _add_chat_routes(app: FastAPI, prefix: str, cfg, my_id: str) -> None:
         sid = request.session_id or str(uuid.uuid4())
         if _lock_store.get(my_id, False):
             return _locked_response(cfg.agent.name, sid)
-        response = _agent_instance.chat(sid, request.message)
+        response = _agent_instance.chat(sid, request.message, system_prompt=request.system_prompt)
         return ChatResponse(session_id=sid, message=response, agent_name=cfg.agent.name)
 
     @app.get(f"{prefix}/stream", tags=["Agent"])  # noqa: S8411
