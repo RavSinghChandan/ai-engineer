@@ -9,9 +9,22 @@ import { AstroAgentService } from '../../services/astro-agent.service';
 import { AuthService } from '../../services/auth.service';
 
 /** Convert markdown text from the LLM into safe readable HTML */
+// BUG FIX: LLM output was injected into HTML tags without escaping — a jailbroken or
+// compromised response containing <script>, onerror=, href=javascript: would execute.
+// Fix: escape HTML entities FIRST, then apply markdown patterns to the safe text.
+function _escapeHtml(s: string): string {
+  return s
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
 function renderMarkdown(text: string): string {
   if (!text) return '';
-  return text
+  const safe = _escapeHtml(text);
+  return safe
     .replace(/\|(.+)\|/g, (_: string, row: string) =>
       row.split('|').map((c: string) => c.trim()).filter(Boolean).join(' · ')
     )

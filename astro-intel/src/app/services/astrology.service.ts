@@ -486,7 +486,9 @@ export class AstrologyService {
   private _dashaPeriods(seed: number): { period: string; planet: string; from: string; to: string }[] {
     const planets = ['Moon','Mars','Rahu','Jupiter','Saturn','Mercury','Ketu','Venus','Sun'];
     const durations = [10,7,18,16,19,17,7,20,6];
-    let year = 2020;
+    // BUG FIX: hardcoded 2020 made dasha periods wrong for all users — use current year so
+    // the displayed window is always centred around now, regardless of when the app is run.
+    let year = new Date().getFullYear();
     return planets.map((p, i) => {
       const from = `${year}`;
       year += durations[i];

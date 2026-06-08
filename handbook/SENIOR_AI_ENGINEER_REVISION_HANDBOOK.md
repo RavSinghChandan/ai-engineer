@@ -4262,5 +4262,101 @@ try {
 
 ---
 
+## A.7 FIELD NAME MISMATCH — Silent Wrong Data (AstroIntel OrchestratorService, 2026-06-08)
+
+**Real bug:** `(this.currentInput() as any)?.profile?.full_name` — the model field is `user_profile`, not `profile`. The `as any` cast suppressed TypeScript's type checker, so the bug compiled silently and always returned `''`.
+
+```typescript
+// BROKEN — as any kills type safety, wrong field name
+const subject = (this.currentInput() as any)?.profile?.full_name ?? '';
+
+// FIXED — use typed access, correct field
+const subject = this.currentInput()?.user_profile?.full_name ?? '';
+```
+
+**Interview lesson:** "`as any` is a red flag in production code. It disables the type system — the only safety net catching field name bugs like this. When you see `as any`, ask why. Usually the model needs a proper interface, not a cast."
+
+---
+
+## A.8 HARDCODED DATES — Time-Bomb Bugs (AstroIntel AstrologyService, 2026-06-08)
+
+**Real bug:** `let year = 2020` — dasha period calculations were anchored to 2020. Every year this bug silently worsened: by 2026 the displayed periods were 6 years stale.
+
+```typescript
+// BROKEN — hardcoded, stale from day 2
+let year = 2020;
+
+// FIXED — always current
+let year = new Date().getFullYear();
+```
+
+**Interview lesson:** "Hardcoded dates are time-bombs — they compile fine, pass tests, and silently produce wrong output in production as time passes. Rule: any date that means 'now' or 'current' must be computed at runtime. Dates that mean 'epoch' or 'contract start' can be constants — but document why."
+
+**Common places this happens:** API version strings, expiry checks, feature flags, ML model training cutoff assumptions.
+
+---
+
+## A.9 OFF-BY-ONE IN INDEX MAPPING (AstroIntel OrchestratorService, 2026-06-08)
+
+**Real bug:** Assigning tradition labels used `traditions[i]` where `i` was the index in the full insight list, not the index among unresolved items only. The 3rd insight overall got `traditions[2]` instead of `traditions[0]`.
+
+```typescript
+// BROKEN — i is full-list index, wrong tradition assigned
+list.forEach((x, i) => {
+  if (!x.sub_agent) x.sub_agent = traditions[i]; // i=2 → traditions[2] WRONG
+});
+
+// FIXED — separate counter for unresolved only
+let unresolvedIdx = 0;
+for (const x of list) {
+  if (!x.sub_agent) {
+    x.sub_agent = traditions[unresolvedIdx++]; // always traditions[0,1,2...] CORRECT
+  }
+}
+```
+
+**Interview lesson:** "Whenever you filter a subset and then index into a separate array, maintain a separate counter. Never use the outer loop index to index into the filtered-subset's reference array — they have different lengths."
+
+---
+
+## A.10 CONSOLE.LOG IN PRODUCTION — Information Disclosure (AstroIntel OrchestratorService, 2026-06-08)
+
+**Real bug:** `console.log('[APPROVE] approvedIds count:', approvedIds.length, '| backendMode:', this.backendMode())` ran in production on every report approval. Anyone opening browser DevTools could see internal state.
+
+**Interview lesson:** "Console logs in production are an information disclosure vulnerability. They reveal architecture, state, counts, and mode details to anyone with DevTools open. In Angular: use `ng build --configuration=production` which strips `console.log` only if you use `build-optimizer` with `pure-top-level-functions`. Don't rely on build tools — remove debug logs before merge."
+
+**Rule:** Never commit `console.log` to main branch. Use a logger service with level control that is silent in production.
+
+---
+
+## A.11 XSS VIA LLM OUTPUT — Escape Before Inject (AstroIntel AstroAgentComponent, 2026-06-08)
+
+**Real bug:** LLM response text was fed directly into HTML tag bodies (`<h2>${text}</h2>`) before `bypassSecurityTrustHtml()`. A prompt-injected or jailbroken response like `# <img src=x onerror=alert(document.cookie)>` would execute JavaScript.
+
+```typescript
+// BROKEN — raw LLM text → HTML injection
+function renderMarkdown(text: string): string {
+  return text
+    .replace(/^# (.+)$/gm, '<h2>$1</h2>') // $1 = raw LLM text = XSS
+```
+
+```typescript
+// FIXED — escape first, then apply markdown patterns
+function _escapeHtml(s: string): string {
+  return s.replaceAll('&','&amp;').replaceAll('<','&lt;')
+          .replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
+}
+function renderMarkdown(text: string): string {
+  const safe = _escapeHtml(text); // entities first
+  return safe.replace(/^# (.+)$/gm, '<h2>$1</h2>'); // now safe
+}
+```
+
+**Interview lesson:** "The golden rule of XSS prevention: escape at the point of injection, not at the point of input. LLM outputs are untrusted user-controlled data — treat them exactly like form inputs. `bypassSecurityTrustHtml` tells Angular 'I already made this safe' — so YOU must actually make it safe first."
+
+**OWASP A03:2021 — Injection.** This is in the top 3 web vulnerabilities. Always sanitize before rendering HTML from any external source: user input, API response, LLM output.
+
+---
+
 **END OF SENIOR AI ENGINEER REVISION HANDBOOK**
 

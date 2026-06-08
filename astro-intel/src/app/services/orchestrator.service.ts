@@ -196,7 +196,7 @@ export class OrchestratorService {
   // ── Approve ────────────────────────────────────────────────────────────────
   async approveAndGenerate(approvedIds: string[], rejectedIds: string[]): Promise<FinalReport> {
     const input = this.currentInput()!;
-    console.log('[APPROVE] approvedIds count:', approvedIds.length, '| backendMode:', this.backendMode());
+    // BUG FIX: removed console.log that leaked approval counts and backend mode to browser console in production
 
     // Check if any insights have been edited locally
     const review = this.adminReview();
@@ -270,14 +270,19 @@ export class OrchestratorService {
       }
 
       // For insights without a tradition key, assign by position
+      // BUG FIX 1: old threshold (>= 50%) skipped lone unresolved items — assign any unresolved item
+      // BUG FIX 2: old index used full-list position i, so unresolved item #3 got traditions[2]
+      //            instead of traditions[0] — now track unresolved position separately
       for (const d of Object.keys(domainInsightList)) {
         const traditions = DOMAIN_TRADITIONS[d] ?? [];
+        if (!traditions.length) continue;
         const list = domainInsightList[d];
-        const unresolved = list.filter(x => !x.sub_agent).length;
-        if (traditions.length > 0 && unresolved >= list.length / 2) {
-          list.forEach((x, i) => {
-            if (!x.sub_agent) x.sub_agent = traditions[i] ?? `tradition_${i + 1}`;
-          });
+        let unresolvedIdx = 0;
+        for (const x of list) {
+          if (!x.sub_agent) {
+            x.sub_agent = traditions[unresolvedIdx] ?? `tradition_${unresolvedIdx + 1}`;
+            unresolvedIdx++;
+          }
         }
       }
 
@@ -293,7 +298,8 @@ export class OrchestratorService {
       if (this.backendMode() === 'backend' && domainInsightList['numerology']?.length > 1) {
         try {
           const numBullets = domainInsightList['numerology'].map(x => x.content);
-          const subject = (this.currentInput() as any)?.profile?.full_name ?? '';
+          // BUG FIX: field is user_profile, not profile — profile.full_name always returned ''
+          const subject = this.currentInput()?.user_profile?.full_name ?? '';
           const res = await firstValueFrom(
             this.api.mergeStory(numBullets, q.question, q.intent, subject, lifePathNum)
           );

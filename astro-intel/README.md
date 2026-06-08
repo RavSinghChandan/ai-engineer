@@ -597,6 +597,40 @@ Manual:
 
 ## Optimizations & Changelog
 
+### 2026-06-08 (Session 3) — 5 Critical/Medium Bug Fixes (Full Scan)
+
+**Bug 1 — orchestrator.service.ts: Wrong field name `profile` → `user_profile` (MEDIUM)**
+- **Bug:** `(this.currentInput() as any)?.profile?.full_name` — field is `user_profile`, not `profile`. `subject` was always `''`, so numerology story merge API never received the person's name. Narrative quality degraded silently.
+- **Fix:** `this.currentInput()?.user_profile?.full_name ?? ''` — correct field, no cast needed.
+- **Test positive:** Submit analysis for "Ravi Kumar" → story merge API receives `subject="Ravi Kumar"`.
+- **Test negative:** `currentInput()` null → `''` returned safely via optional chaining.
+
+**Bug 2 — astrology.service.ts: Dasha periods hardcoded to year 2020 (CRITICAL)**
+- **Bug:** `let year = 2020` made all local dasha period calculations start from 2020, showing stale/wrong periods for every user every year after 2020.
+- **Fix:** `let year = new Date().getFullYear()` — window always centred on the current year.
+- **Test positive:** Run in 2026 → first dasha period shows `2026–2036`. Run in 2030 → shows `2030–2040`.
+- **Test negative:** No change to the period durations or planet order — only the start anchor changes.
+
+**Bug 3 — orchestrator.service.ts: Tradition assignment — wrong threshold and wrong index (MEDIUM)**
+- **Bug 1:** Threshold `unresolved >= list.length / 2` skipped assignment when < 50% were unresolved (e.g., 1 of 3 insights missing a tradition label was silently left blank).
+- **Bug 2:** `traditions[i]` used full-list position `i` not position among unresolved items only, so the 3rd insight got `traditions[2]` instead of `traditions[0]`.
+- **Fix:** Removed threshold entirely. Track `unresolvedIdx` separately — only increments when an item is actually unresolved.
+- **Test positive:** 3 insights, 1 unresolved → gets `traditions[0]`. All 3 unresolved → get `traditions[0,1,2]`.
+- **Test negative:** All already resolved → loop skips every item, `unresolvedIdx` stays 0, no mutation.
+
+**Bug 4 — orchestrator.service.ts: `console.log` leaking internal state in production (MEDIUM)**
+- **Bug:** `console.log('[APPROVE] approvedIds count:', approvedIds.length, '| backendMode:', ...)` ran on every report approval. Exposed internal backend mode and approval counts in browser DevTools to any curious user.
+- **Fix:** Line removed. Comment explains why.
+- **Test:** Open DevTools → approve report → no `[APPROVE]` log appears.
+
+**Bug 5 — astro-agent.component.ts: XSS in markdown renderer (CRITICAL)**
+- **Bug:** `renderMarkdown()` injected raw LLM text directly into HTML tag bodies (`<h2>${text}</h2>`) then called `bypassSecurityTrustHtml()`. A jailbroken LLM response like `# <img src=x onerror=alert(1)>` would execute JavaScript.
+- **Fix:** Added `_escapeHtml()` step first — escapes `& < > " '` to HTML entities before any markdown pattern is applied. Markdown patterns then operate on safe text.
+- **Test positive:** LLM returns `# Hello **world**` → renders `<h2>Hello <strong>world</strong></h2>` correctly.
+- **Test negative:** LLM returns `<script>alert(1)</script>` → renders as literal visible text `&lt;script&gt;alert(1)&lt;/script&gt;`, no execution.
+
+---
+
 ### 2026-06-08 (Session 2) — 5 Bug Fixes
 
 **Fix 1 — GrammarService: Safari-incompatible lookbehind regex**
