@@ -4,8 +4,11 @@ Extracts structured fields from a free-text incident description.
 No embeddings — LLM produces JSON, we query SQL with exact fields.
 """
 import json
+import logging
 import re
 from utils.llm import call_llm
+
+logger = logging.getLogger(__name__)
 
 
 def _strip_fences(text: str) -> str:
@@ -46,8 +49,11 @@ def classify_incident(incident_text: str) -> dict:
             "affected_component": parsed.get("affected_component", ""),
             "search_terms": parsed.get("search_terms", []),
         }
-    except (json.JSONDecodeError, Exception):
-        # Fallback: extract keywords from text directly
+    except Exception as exc:
+        # BUG FIX: (json.JSONDecodeError, Exception) is redundant — JSONDecodeError is a subclass
+        # of Exception, so the first clause was dead code. Catching bare Exception also silently
+        # swallowed LLM auth errors, timeouts, etc. Log the actual error so operators can see it.
+        logger.warning("classify_incident fallback: %s", exc)
         words = [w.strip(".,;:!?") for w in incident_text.lower().split() if len(w) > 3]
         return {
             "keywords": words[:5],

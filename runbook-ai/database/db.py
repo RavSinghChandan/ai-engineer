@@ -53,5 +53,10 @@ def get_conn():
     conn = _connect()
     try:
         yield conn
+    except Exception:
+        # BUG FIX: without explicit rollback, an exception mid-transaction left SQLite in a
+        # dirty state — subsequent connections on WAL could read partial writes
+        conn.rollback()
+        raise
     finally:
         conn.close()

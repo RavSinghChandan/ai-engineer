@@ -4,8 +4,25 @@ Uses structured SQL queries (category, severity, keyword search in title/descrip
 to find matching runbooks. No vector similarity — deterministic, explainable.
 """
 import json
+import logging
 from typing import List
 from database.db import get_conn
+
+logger = logging.getLogger(__name__)
+
+
+def _safe_tags(raw) -> list:
+    # BUG FIX: raw json.loads() crashed with ValueError on corrupt/null tags from DB;
+    # use defensive parse matching the pattern in runbooks_store._safe_json
+    if not raw:
+        return []
+    if isinstance(raw, list):
+        return raw
+    try:
+        return json.loads(raw)
+    except (json.JSONDecodeError, TypeError):
+        logger.warning("Corrupt tags in runbook row, defaulting to []. Value: %.60r", raw)
+        return []
 
 
 def match_runbooks(
@@ -36,7 +53,7 @@ def match_runbooks(
         ).fetchall()
         for row in rows:
             rb = dict(row)
-            rb["tags"] = json.loads(rb["tags"])
+            rb["tags"] = _safe_tags(rb.get("tags"))
             rb["match_reason"] = f"Exact match: category={category}, severity={severity}"
             rb["confidence"] = "HIGH"
             rb["step_count"] = _get_step_count(conn, rb["id"])
@@ -55,7 +72,7 @@ def match_runbooks(
         ).fetchall()
         for row in rows:
             rb = dict(row)
-            rb["tags"] = json.loads(rb["tags"])
+            rb["tags"] = _safe_tags(rb.get("tags"))
             rb["match_reason"] = f"Category match: {category}"
             rb["confidence"] = "MEDIUM"
             rb["step_count"] = _get_step_count(conn, rb["id"])
@@ -79,7 +96,7 @@ def match_runbooks(
             ).fetchall()
             for row in rows:
                 rb = dict(row)
-                rb["tags"] = json.loads(rb["tags"])
+                rb["tags"] = _safe_tags(rb.get("tags"))
                 rb["match_reason"] = f"Keyword match: '{term}' in title/description"
                 rb["confidence"] = "LOW"
                 rb["step_count"] = _get_step_count(conn, rb["id"])

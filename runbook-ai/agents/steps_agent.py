@@ -52,11 +52,16 @@ Respond with JSON only:
 }"""
 
 
+_MAX_CHARS = 12000
+
+
 def steps_agent(state: ExtractionState) -> ExtractionState:
     text = state.get("raw_text", "")
 
-    # Send in chunks if text is long — process up to 12000 chars
-    text_chunk = text[:12000]
+    # BUG FIX: silent truncation meant runbooks longer than 12000 chars lost steps with no
+    # indication in the agent_log — operators had no way to know the extraction was partial
+    truncated = len(text) > _MAX_CHARS
+    text_chunk = text[:_MAX_CHARS]
     prompt = f"Runbook title: {state.get('title', '')}\n\nRunbook text:\n\n{text_chunk}"
 
     try:
@@ -84,9 +89,10 @@ def steps_agent(state: ExtractionState) -> ExtractionState:
         state["steps"] = sorted(validated_steps, key=lambda x: x["step_number"])
         state["rollback_steps"] = rollback
         state["prerequisites"] = prereqs
+        truncation_note = f" [WARNING: input truncated at {_MAX_CHARS} chars — steps may be incomplete]" if truncated else ""
         state["agent_log"] = state.get("agent_log", []) + [
             f"steps_agent: extracted {len(validated_steps)} steps, "
-            f"{len(rollback)} rollback steps, {len(prereqs)} prerequisites"
+            f"{len(rollback)} rollback steps, {len(prereqs)} prerequisites{truncation_note}"
         ]
 
     except (json.JSONDecodeError, ValueError, KeyError) as exc:

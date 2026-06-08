@@ -26,17 +26,22 @@ def validate_agent(state: ExtractionState) -> ExtractionState:
     # Check for dependency cycles (simple check)
     step_set = set(step_numbers)
     for step in steps:
+        # BUG FIX: original code iterated `step["depends_on"]` while mutating it mid-loop —
+        # list comprehension replacements ran multiple times on already-filtered lists, silently
+        # skipping some invalid deps. Build the clean list in one pass instead.
+        clean_deps = []
         for dep in step.get("depends_on", []):
             if dep not in step_set:
                 warnings.append(
                     f"Step {step['step_number']} depends on non-existent step {dep} — removing"
                 )
-                step["depends_on"] = [d for d in step["depends_on"] if d in step_set]
-            if dep >= step["step_number"]:
+            elif dep >= step["step_number"]:
                 warnings.append(
                     f"Step {step['step_number']} depends on future step {dep} — removing"
                 )
-                step["depends_on"] = [d for d in step["depends_on"] if d < step["step_number"]]
+            else:
+                clean_deps.append(dep)
+        step["depends_on"] = clean_deps
 
     # Check commands are not empty strings
     for step in steps:

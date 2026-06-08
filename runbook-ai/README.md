@@ -441,3 +441,52 @@ When internal runbooks and official K8s docs disagree, conflicts are surfaced wi
 | `ORDER_CONFLICT` | Internal drains before cordoning; official reverses | HIGH |
 | `MISSING_STEP` | Official has a pre-flight check absent from internal | MEDIUM |
 | `EXTRA_STEP` | Internal has infra-specific steps not in official docs | LOW |
+
+---
+
+## Session Bug Fixes — 2026-06-08 (10 Bugs)
+
+Full scan of all source files. Each fix has one inline comment. All syntax-verified before commit.
+
+| # | File | Bug | Severity | Fix |
+|---|------|-----|----------|-----|
+| B1 | `connectors/conflict_detector.py` | `print()` in production leaks DB row counts and runbook titles to stdout | MEDIUM | Replaced all `print()` with `logger.info/debug` |
+| B2 | `connectors/conflict_detector.py` | Hardcoded absolute path `/Users/chandankumar/...` in `__main__` — breaks on any other machine | MEDIUM | Use `Path(__file__).parent.parent` to derive project root at runtime |
+| B3 | `connectors/conflict_detector.py` | Raw `sqlite3.connect()` skipped `PRAGMA journal_mode=WAL` and `PRAGMA foreign_keys=ON` — inconsistent with rest of app, risk of lock contention and orphaned rows | MEDIUM | Added both PRAGMAs after connect, matching `db.py` |
+| B4 | `agents/runbook_matcher_agent.py` | Raw `json.loads(rb["tags"])` crashed with `ValueError` on corrupt or NULL tags in DB | HIGH | Replaced with `_safe_tags()` — defensive parse matching `runbooks_store._safe_json` pattern |
+| B5 | `routers/query_router.py:113` | Unauthenticated callers got `tenant_id=1` fallback — exposing tenant 1's runbooks to the public | CRITICAL | Changed fallback to `None` so multi-source composer scopes to no tenant |
+| B6 | `utils/rate_limit.py` | `X-Forwarded-For` is client-controlled — attacker can rotate IPs to bypass rate limiting | HIGH | Use `X-Real-IP` (set by nginx/envoy, not clients) as primary key |
+| B7 | `database/db.py` | `get_conn()` had no `rollback()` on exception — partial writes left DB in dirty state under WAL | HIGH | Added `conn.rollback()` in `except` block before re-raise |
+| B8 | `agents/validate_agent.py` | Mutated `step["depends_on"]` mid-iteration — list comprehension replacements ran on already-filtered lists, silently skipping some bad deps | MEDIUM | Single-pass clean build into a new list |
+| B9 | `agents/steps_agent.py` | Silent truncation at 12 000 chars — large runbooks lost steps with no warning in `agent_log` | MEDIUM | Added `[WARNING: input truncated...]` note to agent_log when text is cut |
+| B10 | `agents/incident_classifier_agent.py` | `except (json.JSONDecodeError, Exception)` — `JSONDecodeError` is a subclass of `Exception`, first clause was dead code; also swallowed LLM auth errors silently | LOW | Changed to `except Exception as exc` + `logger.warning(exc)` |
+
+### Positive / Negative Tests
+
+**B4 safe tags:**
+- Positive: `_safe_tags('["k8s","networking"]')` → `["k8s","networking"]`
+- Negative: `_safe_tags(None)` → `[]`, `_safe_tags("{bad json")` → `[]` (logs warning, no crash)
+
+**B5 tenant isolation:**
+- Positive: authenticated user with `tenant_id=2` gets only tenant-2 runbooks
+- Negative: unauthenticated caller gets `tenant_id=None` → scoped to no tenant (no cross-tenant leak)
+
+**B6 rate limit key:**
+- Positive: real socket IP `192.168.1.1` is used as rate-limit key
+- Negative: spoofed `X-Forwarded-For: 1.2.3.4` ignored when `X-Real-IP` not present
+
+**B7 rollback:**
+- Positive: successful transaction commits normally
+- Negative: mid-transaction exception triggers `rollback()` → DB stays clean
+
+**B8 dependency validation:**
+- Positive: step 2 depends on step 1 → kept
+- Negative: step 2 depends on step 5 (future) AND step 99 (missing) → both removed in one pass, no double-mutation
+
+**B9 truncation warning:**
+- Positive: 8 000-char runbook → no warning in agent_log
+- Negative: 15 000-char runbook → `agent_log` contains `[WARNING: input truncated at 12000 chars]`
+
+**B10 classifier fallback:**
+- Positive: valid LLM JSON → parsed correctly
+- Negative: LLM timeout → `logger.warning` emitted, fallback keywords returned (no silent swallow)

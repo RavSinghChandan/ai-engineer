@@ -5,7 +5,9 @@ Detects VALUE_CONFLICT, ORDER_CONFLICT, COMMAND_CONFLICT, EXTRA_STEP, MISSING_ST
 Populates the runbook_conflicts table.
 """
 from __future__ import annotations
-import json, re, sqlite3, time
+import json, logging, re, sqlite3, time
+
+logger = logging.getLogger(__name__)
 
 CONFLICT_KEYWORDS = {
     "timeout": r"timeout[_-]?seconds?|--timeout|TimeoutSeconds",
@@ -211,8 +213,12 @@ def _topic_similarity(title_a: str, title_b: str) -> float:
 
 
 def run_conflict_detection(db_path: str = "runbookai.db", tenant_id: int = 1) -> dict:
-    conn = sqlite3.connect(db_path)
+    # BUG FIX: plain sqlite3.connect() skipped WAL mode and foreign_key enforcement used everywhere
+    # else in the app — inconsistency could cause lock contention and orphaned rows
+    conn = sqlite3.connect(db_path, check_same_thread=False)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA foreign_keys=ON")
 
     internals = conn.execute(
         "SELECT id, title, category FROM runbooks WHERE source_type='internal' AND tenant_id=? AND status='active'",
@@ -224,7 +230,8 @@ def run_conflict_detection(db_path: str = "runbookai.db", tenant_id: int = 1) ->
         (tenant_id,)
     ).fetchall()
 
-    print(f"Comparing {len(internals)} internal vs {len(officials)} official runbooks")
+    # BUG FIX: replaced print() with logger — print() in production leaks internal DB structure to stdout/logs in plaintext
+    logger.info("Comparing %d internal vs %d official runbooks", len(internals), len(officials))
 
     total_conflicts = 0
     pairs_checked = 0
@@ -249,16 +256,17 @@ def run_conflict_detection(db_path: str = "runbookai.db", tenant_id: int = 1) ->
             if existing:
                 continue
 
-            print(f"\n  Comparing:")
-            print(f"    INT  [{internal_row['id']}] {internal_row['title'][:50]}")
-            print(f"    OFF  [{official_row['id']}] {official_row['title'][:50]}")
-            print(f"    similarity={sim:.2f}")
+            logger.debug(
+                "Comparing INT[%d] '%s' vs OFF[%d] '%s' sim=%.2f",
+                internal_row["id"], internal_row["title"][:50],
+                official_row["id"], official_row["title"][:50], sim,
+            )
 
             internal = _load_runbook_with_steps(conn, internal_row["id"])
             official = _load_runbook_with_steps(conn, official_row["id"])
 
             if not internal.get("steps") or not official.get("steps"):
-                print("    SKIP — missing steps")
+                logger.debug("SKIP pair (%d, %d) — missing steps", internal_row["id"], official_row["id"])
                 continue
 
             pairs_checked += 1
@@ -277,17 +285,21 @@ def run_conflict_detection(db_path: str = "runbookai.db", tenant_id: int = 1) ->
                      c["description"], c["recommendation"],
                      c["tenant_id"], c["created_at"])
                 )
-                print(f"    CONFLICT [{c['conflict_type']}] {c['severity']} — {c['description'][:60]}")
+                logger.info("CONFLICT [%s] %s — %s", c["conflict_type"], c["severity"], c["description"][:60])
                 total_conflicts += 1
 
             conn.commit()
 
     conn.close()
-    print(f"\n=== Conflict detection done === pairs={pairs_checked} conflicts={total_conflicts}")
+    logger.info("Conflict detection done — pairs=%d conflicts=%d", pairs_checked, total_conflicts)
     return {"pairs_checked": pairs_checked, "total_conflicts": total_conflicts}
 
 
 if __name__ == "__main__":
     import os
-    os.chdir("/Users/chandankumar/Desktop/workspace/ai-engineer/runbook-ai")
+    from pathlib import Path
+    logging.basicConfig(level=logging.INFO)
+    # BUG FIX: removed hardcoded absolute path — use project root relative to this file instead
+    project_root = Path(__file__).parent.parent
+    os.chdir(project_root)
     run_conflict_detection()

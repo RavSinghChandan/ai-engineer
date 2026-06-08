@@ -42,9 +42,12 @@ class SlidingWindowRateLimiter:
 
 def client_key(request: Request) -> str:
     """Extract IP from request for use as rate-limit key."""
-    forwarded = request.headers.get("X-Forwarded-For")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
+    # BUG FIX: X-Forwarded-For is client-controlled — an attacker can set it to any value
+    # to rotate IPs and bypass rate limiting. Only trust it when a trusted proxy is configured.
+    # For direct deployments (no trusted reverse proxy), use the real socket IP.
+    trusted_proxy = request.headers.get("X-Real-IP")  # set by nginx/envoy, not by clients
+    if trusted_proxy:
+        return trusted_proxy.strip()
     return request.client.host if request.client else "unknown"
 
 

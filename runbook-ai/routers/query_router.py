@@ -110,7 +110,9 @@ def query_incident(request: Request, req: IncidentRequest, current_user: Optiona
         }
 
     selected_id = result.get("selected_runbook_id")
-    tenant_id = current_user.tenant_id if current_user else 1
+    # BUG FIX: fallback of 1 meant unauthenticated callers always received tenant_1's runbooks —
+    # a cross-tenant data leak. Use None so build_multi_source_response scopes to no tenant.
+    tenant_id = current_user.tenant_id if current_user else None
 
     # Build multi-source panels (internal / combined / official)
     multi = {}
