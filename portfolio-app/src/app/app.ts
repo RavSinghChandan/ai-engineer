@@ -23,8 +23,6 @@ export class App implements OnInit, AfterViewInit {
   // PDF resume — user to replace with actual hosted PDF URL
   readonly RESUME_PDF = 'AI_Engineer_Chandan_Kumar_4_Yrs.pdf';
 
-  // Your photo
-  readonly PHOTO = 'https://i.imgur.com/placeholder.jpg'; // replace with imgur link
 
   @ViewChildren('fadeEl') fadeEls!: QueryList<ElementRef>;
 
@@ -809,9 +807,9 @@ export class App implements OnInit, AfterViewInit {
   @HostListener('window:keydown', ['$event'])
   onKeyDown(e: KeyboardEvent) {
     if (!this.demoOpen()) return;
-    if (e.key === 'Escape')     this.closeDemo();
-    if (e.key === 'ArrowRight') this.demoNext();
-    if (e.key === 'ArrowLeft')  this.demoPrev();
+    if (e.key === 'Escape')     { this.closeDemo(); return; }
+    if (e.key === 'ArrowRight') { e.preventDefault(); this.demoNext(); }
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); this.demoPrev(); }
   }
 
   // ── ANIMATED STAT COUNTERS ───────────────────────────────────────
@@ -860,6 +858,7 @@ export class App implements OnInit, AfterViewInit {
       statsObs.observe(heroEl);
     }
 
+    this.initFloatingGuide();
   }
 
   private animateCount(sig: ReturnType<typeof signal<number>>, target: number, duration: number) {

@@ -1,5 +1,5 @@
 <!-- NAV -->
-<nav [class.scrolled]="scrolled()" [class.nav-mobile-open]="mobileNavOpen()">
+<nav [class.scrolled]="scrolled()" [class.nav-mobile-open]="mobileNavOpen()" aria-label="Main navigation">
   <div class="nav-inner container">
     <a href="#" class="nav-logo">ck<span>.</span></a>
     <div class="nav-links">
@@ -35,7 +35,7 @@
 </nav>
 
 <!-- HERO -->
-<section class="hero" data-guide="hero">
+<section class="hero" data-guide="hero" aria-label="Hero introduction">
   <div class="container hero-inner">
 
     <div class="hero-text">
@@ -276,7 +276,7 @@
 
         @if (project.imgSrc) {
           <div class="project-img">
-            <img [src]="project.imgSrc" [alt]="project.title"
+            <img [src]="project.imgSrc" [alt]="project.title" loading="lazy" decoding="async"
               onerror="this.parentElement.style.display='none'"/>
           </div>
         }
@@ -516,7 +516,7 @@
           <span class="story-link-label">Verified by</span>
           <a href="https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/" target="_blank" class="story-link">LinkedIn Profile ↗</a>
           <a href="https://www.youtube.com/@aiwithrav" target="_blank" class="story-link">YouTube — AI with Rav ↗</a>
-          <a href="https://www.linkedin.com/in/chandan-kumar-rav" target="_blank" class="story-link">LinkedIn ↗</a>
+          <a href="https://github.com/RavSinghChandan" target="_blank" class="story-link">GitHub — RavSinghChandan ↗</a>
         </div>
       </div>
     </div>
@@ -581,7 +581,7 @@
 </section>
 
 <!-- AARAV CHATBOT FAB -->
-<div class="cb-fab" (click)="cbToggle()" [class.cb-fab--open]="cbOpen()" title="Chat with Aarav">
+<button class="cb-fab" (click)="cbToggle()" [class.cb-fab--open]="cbOpen()" [attr.aria-pressed]="cbOpen()" aria-label="Chat with Aarav — AI guide" type="button">
   <!-- Spinning aura ring + avatar -->
   <div class="cb-fab-ring-wrap">
     <div class="cb-fab-ring"></div>
@@ -596,10 +596,10 @@
   </div>
   <!-- Agent tag -->
   <div class="cb-fab-tag">✦ Aarav AI</div>
-</div>
+</button>
 
 @if (cbOpen()) {
-<div class="cb-panel" role="dialog" aria-label="Aarav chatbot" #cbPanel
+<div class="cb-panel" role="dialog" aria-label="Aarav chatbot" aria-modal="true" #cbPanel
      [style.width.px]="cbPanelW()" [style.height.px]="cbPanelH()">
   <!-- Resize handle (top-left corner) -->
   <div class="cb-resize-handle" (mousedown)="cbResizeStart($event)" title="Drag to resize">⤡</div>
@@ -677,7 +677,7 @@
   <div class="demo-overlay"
        (click)="closeDemo()"
        (keydown.escape)="closeDemo()">
-    <dialog class="demo-modal" open
+    <dialog class="demo-modal" open aria-modal="true"
             (click)="$event.stopPropagation()"
             (keydown.arrowRight)="demoNext()"
             (keydown.arrowLeft)="demoPrev()">
