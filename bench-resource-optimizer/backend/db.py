@@ -23,7 +23,8 @@ import aiosqlite
 
 DB_PATH = Path(__file__).parent / "data" / "bench.db"
 
-_PRAGMAS = "PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;"
+# BUG FIX: _PRAGMAS was defined but never used — misleading readers into thinking WAL+NORMAL
+# were both applied as one call. Only _WAL_PRAGMA is actually executed per connection.
 _WAL_PRAGMA = "PRAGMA journal_mode=WAL"
 
 

@@ -545,3 +545,49 @@ bench-resource-optimizer/
 ├── FLOW.md                       Plain-English flow explanation
 └── SONARQUBE_REPORT.md           Full SonarQube scan details
 ```
+
+
+---
+
+## Session Bug Fixes — 2026-06-08 (10 Bugs)
+
+Full source scan. Each fix has one inline comment. All files syntax-verified before commit.
+
+| # | File | Bug | Severity | Fix |
+|---|------|-----|----------|-----|
+| B1 | `backend/main.py` | `print()` in lifespan leaks startup sequence to stdout, bypasses structured log pipeline | MEDIUM | Replaced all `print()` with `logger.info()` |
+| B2 | `backend/main.py` | `asyncio.get_event_loop().create_task()` deprecated in Python 3.10+ — can attach to wrong/closed loop | MEDIUM | Changed to `asyncio.ensure_future()` which always uses the running loop |
+| B3 | `backend/middleware/rate_limit.py` | `X-Forwarded-For` is client-controlled — attacker rotates IPs to bypass rate limiter | HIGH | Use `X-Real-IP` (set by nginx/envoy, not clients) as primary key |
+| B4 | `backend/auth/jwt_handler.py` | Plain `==` password comparison vulnerable to timing attacks — attacker can measure response time to brute-force passwords | HIGH | Use `hmac.compare_digest()` for constant-time comparison |
+| B5 | `backend/agents/tracking_agent.py` | `t["skill"]` raises `KeyError` when LLM returns task without `skill` field — crashes `/update-progress` | HIGH | Use `t.get("skill", "unknown")` defensive access |
+| B6 | `backend/db.py` | `_PRAGMAS` constant defined but never used — misleads readers into thinking both WAL+NORMAL pragmas were applied | LOW | Removed dead constant, kept `_WAL_PRAGMA` which is actually used |
+| B7 | `backend/utils/file_parser.py` | No exception handling on `PyPDF2.PdfReader` — corrupt/encrypted PDFs propagated as unhandled 500 instead of 400 | HIGH | Wrap in `try/except`, raise `ValueError` → maps to HTTP 400 |
+| B8 | `backend/main.py` | Upload CV checked extension only (`.pdf`) — any file renamed to `.pdf` bypassed the check | MEDIUM | Added `%PDF` magic bytes validation after reading file content |
+| B9 | `backend/agents/cv_parser_agent.py` | Silent truncation at 1200 chars — audit log showed misleading short input snippet with no warning | MEDIUM | Added `logger.warning` when CV is truncated, showing original vs truncated length |
+| B10 | `backend/main.py` | `is_cache_hit = (time.time() - cache_before) < 0.05` — timing heuristic unreliable, fast LLM calls falsely counted as cache hits inflating metrics | MEDIUM | Use `plan.pop("_cache_hit", False)` — the explicit flag `generate_plan` already sets |
+
+### Positive / Negative Tests
+
+**B3 rate-limit key:**
+- Positive: Real socket IP used as key when no `X-Real-IP` header
+- Negative: `X-Forwarded-For: 1.2.3.4` ignored — actual socket IP used
+
+**B4 timing-safe password:**
+- Positive: `hmac.compare_digest("correct", "correct")` → `True`
+- Negative: `hmac.compare_digest("correct", "wrong")` → `False` in constant time, no timing leak
+
+**B5 missing skill key:**
+- Positive: Task with `{"id":"t1","skill":"Python"}` → `covered_skills: ["Python"]`
+- Negative: Task with `{"id":"t1","title":"Learn Docker"}` (no `skill`) → `covered_skills: ["unknown"]`, no crash
+
+**B7 corrupt PDF:**
+- Positive: Valid PDF bytes → text extracted normally
+- Negative: Random bytes with `.pdf` extension → `ValueError` → HTTP 400 (not 500)
+
+**B8 magic bytes:**
+- Positive: Real PDF starting with `%PDF` → accepted
+- Negative: `echo "fake content" > test.pdf` → rejected with "File does not appear to be a valid PDF"
+
+**B10 cache hit flag:**
+- Positive: Cached plan (returns `_cache_hit: True`) → `is_cache_hit=True` correctly recorded in metrics
+- Negative: Fresh LLM call (no `_cache_hit` key) → `is_cache_hit=False`, no false cache-hit inflation

@@ -7,6 +7,7 @@ JWT authentication handler.
 """
 from __future__ import annotations
 
+import hmac
 import os
 import time
 from typing import Optional
@@ -70,10 +71,12 @@ DEFAULT_USER_PASSWORD = _user_password
 
 def _check_credentials(user_id: str, password: str) -> Optional[str]:
     """Return role string if credentials valid, else None."""
+    # BUG FIX: plain == comparison for passwords is vulnerable to timing attacks —
+    # an attacker measures response time to guess password character by character.
+    # hmac.compare_digest runs in constant time regardless of where strings diverge.
     if user_id in ADMIN_CREDENTIALS:
-        return "admin" if ADMIN_CREDENTIALS[user_id] == password else None
-    # Any other user_id is a regular user
-    return "user" if password == DEFAULT_USER_PASSWORD else None
+        return "admin" if hmac.compare_digest(ADMIN_CREDENTIALS[user_id], password) else None
+    return "user" if hmac.compare_digest(DEFAULT_USER_PASSWORD, password) else None
 
 
 # ── Token operations ─────────────────────────────────────────────────────────

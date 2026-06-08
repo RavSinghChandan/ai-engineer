@@ -29,8 +29,15 @@ def parse_cv(resume_text: str, llm: ChatOpenAI, request_id: str = "") -> dict:
     """
     t0 = time.time()
 
-    # Trim to avoid huge prompts; first 1200 chars capture name/skills/titles
-    trimmed = resume_text[:1200]
+    # BUG FIX: silent truncation — CVs longer than 1200 chars were cut with no audit trail,
+    # so the audit_llm_call below showed a misleading short input snippet without any warning
+    _MAX_CV_CHARS = 1200
+    trimmed = resume_text[:_MAX_CV_CHARS]
+    if len(resume_text) > _MAX_CV_CHARS:
+        logger.warning(
+            "cv_parser: resume truncated from %d to %d chars for request_id=%s",
+            len(resume_text), _MAX_CV_CHARS, request_id,
+        )
 
     prompt_def = get_active("cv_parser")
     tracker = get_tracker()

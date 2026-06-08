@@ -19,9 +19,11 @@ def calculate_readiness(
     completed = sum(1 for t in all_tasks if t["id"] in completed_task_ids)
     score = round((completed / total * 100) if total else 0)
 
-    covered = list({t["skill"].split(",")[0].strip()
+    # BUG FIX: t["skill"] raised KeyError when LLM returned tasks without a "skill" field —
+    # use .get() with a fallback so a missing key returns "unknown" instead of crashing
+    covered = list({t.get("skill", "unknown").split(",")[0].strip()
                     for t in all_tasks if t["id"] in completed_task_ids})
-    pending = list({t["skill"].split(",")[0].strip()
+    pending = list({t.get("skill", "unknown").split(",")[0].strip()
                     for t in all_tasks if t["id"] not in completed_task_ids})
     next_task = next(
         (t["title"] for t in all_tasks if t["id"] not in completed_task_ids),

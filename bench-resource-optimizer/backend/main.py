@@ -91,6 +91,9 @@ from guardrails.production import (
 
 load_dotenv()
 
+# BUG FIX: moved logger to module level so lifespan uses structured logging not print()
+logger = logging.getLogger("bench.main")
+
 _llm = None
 _vector_store = None
 
@@ -120,44 +123,41 @@ async def lifespan(app: FastAPI):
     # G3: register LLM for Level-4 JSON repair
     register_repair_llm(_llm)
 
-    print("⏳ Initialising SQLite database...")
+    # BUG FIX: replaced print() with logger.info — print() bypasses the structured logging
+    # pipeline, doesn't appear in log aggregators (CloudWatch/Splunk), and leaks startup
+    # sequence to anyone with stdout access in containerised deployments
+    logger.info("Initialising SQLite database...")
     await init_db()
-    print("✅ Database ready.")
+    logger.info("Database ready.")
 
-    # Guardrail persistence: create table + load saved counters into memory
     init_guardrail_persistence()
-    print("✅ Guardrail counters loaded from SQLite.")
+    logger.info("Guardrail counters loaded from SQLite.")
 
-    # Phase 2: sweep expired episodic memory sessions from SQLite
     deleted = await sweep_expired_sessions()
-    print(f"✅ Memory sweep: {deleted} expired session(s) removed.")
+    logger.info("Memory sweep: %d expired session(s) removed.", deleted)
 
-    # Phase 2: restore RAGAS results from SQLite into in-memory store
     restored = await get_ragas_store().load_from_db()
-    print(f"✅ RAGAS store restored: {restored} record(s) from DB.")
+    logger.info("RAGAS store restored: %d record(s) from DB.", restored)
 
-    # Phase 3: seed roles from JSON into SQLite (idempotent migration)
     roles_json = Path(__file__).parent / "data" / "roles_knowledge.json"
     seeded = await seed_roles_from_json(roles_json)
     if seeded:
-        print(f"✅ Seeded {seeded} role(s) from roles_knowledge.json into SQLite.")
+        logger.info("Seeded %d role(s) from roles_knowledge.json into SQLite.", seeded)
     else:
-        print("✅ Roles already in SQLite — skipping seed.")
+        logger.info("Roles already in SQLite — skipping seed.")
 
-    print("⏳ Loading embeddings + building vector stores...")
+    logger.info("Loading embeddings + building vector stores...")
     embeddings = get_embeddings()
     _vector_store = build_vector_store(embeddings)
 
-    # Phase 3: BM25 index now uses SQLite as source of truth
     roles = await get_all_roles_async()
     init_bm25_from_roles(roles)
-    print(f"✅ FAISS + BM25 hybrid index ready ({len(roles)} roles).")
-    print("✅ Enterprise backend v3.0 ready.")
+    logger.info("FAISS + BM25 hybrid index ready (%d roles).", len(roles))
+    logger.info("Enterprise backend v3.0 ready.")
     yield
 
-    # Shutdown: flush final guardrail counters to SQLite
     flush_guardrail_stats()
-    print("✅ Guardrail counters flushed to SQLite.")
+    logger.info("Guardrail counters flushed to SQLite.")
 
 
 # ── App ───────────────────────────────────────────────────────────────────────
@@ -536,7 +536,10 @@ async def admin_create_role(req: CreateRoleRequest, _claims: Annotated[object, D
         created = await create_role_db(req.model_dump())
     except ValueError as exc:
         raise HTTPException(409, str(exc))
-    asyncio.get_event_loop().create_task(_rebuild_indexes())
+    # BUG FIX: get_event_loop() is deprecated in Python 3.10+ and can attach the task to a
+    # closed or wrong loop in async contexts — use asyncio.ensure_future() which always uses
+    # the running loop when called from inside an async handler
+    asyncio.ensure_future(_rebuild_indexes())
     return created
 
 
@@ -561,7 +564,10 @@ async def admin_update_role(role_id: str, req: UpdateRoleRequest, _claims: Annot
     updated = await update_role_db(role_id, updates)
     if not updated:
         raise HTTPException(404, f"Role '{role_id}' not found.")
-    asyncio.get_event_loop().create_task(_rebuild_indexes())
+    # BUG FIX: get_event_loop() is deprecated in Python 3.10+ and can attach the task to a
+    # closed or wrong loop in async contexts — use asyncio.ensure_future() which always uses
+    # the running loop when called from inside an async handler
+    asyncio.ensure_future(_rebuild_indexes())
     return updated
 
 
@@ -575,7 +581,10 @@ async def admin_delete_role(role_id: str, _claims: Annotated[object, Depends(req
     deleted = await delete_role_db(role_id)
     if not deleted:
         raise HTTPException(404, f"Role '{role_id}' not found.")
-    asyncio.get_event_loop().create_task(_rebuild_indexes())
+    # BUG FIX: get_event_loop() is deprecated in Python 3.10+ and can attach the task to a
+    # closed or wrong loop in async contexts — use asyncio.ensure_future() which always uses
+    # the running loop when called from inside an async handler
+    asyncio.ensure_future(_rebuild_indexes())
     return {"deleted": role_id}
 
 
@@ -603,6 +612,11 @@ async def upload_cv(request: Request, _claims: Annotated[object, Depends(get_cur
 
         raw_bytes = await file.read()
         check_pdf_size(raw_bytes)
+
+        # BUG FIX: extension check alone can be spoofed (rename any file to .pdf).
+        # Validate the PDF magic bytes header to confirm actual file type.
+        if not raw_bytes.startswith(b"%PDF"):
+            raise GuardrailError("File does not appear to be a valid PDF.")
 
         resume_text = extract_text_from_pdf(raw_bytes)
         check_resume_content(resume_text)
@@ -783,15 +797,16 @@ async def generate_plan_endpoint(request: Request, req: GeneratePlanRequest,
         if not user:
             raise HTTPException(404, f"User '{req.user_id}' not found.")
 
-        cache_before = time.time()
-
         # G2: wrap plan generation with named planner circuit breaker
         plan = await with_retry(
             generate_plan,
             req.target_role, req.missing_skills, _llm, req.num_days,
             breaker_name="planner",
         )
-        is_cache_hit = (time.time() - cache_before) < 0.05
+        # BUG FIX: timing heuristic (< 0.05s = cache hit) was unreliable — fast servers or
+        # warm CPU caches could make real LLM calls appear as cache hits, inflating cache stats.
+        # Use the explicit _cache_hit flag that generate_plan already sets in the return dict.
+        is_cache_hit = bool(plan.pop("_cache_hit", False))
 
         await save_progress(req.user_id, req.target_role, plan, [])
 

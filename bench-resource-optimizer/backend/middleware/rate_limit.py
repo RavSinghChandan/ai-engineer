@@ -30,10 +30,11 @@ _store: DefaultDict[str, Deque[float]] = defaultdict(deque)
 
 
 def _client_ip(request: Request) -> str:
-    # Respect X-Forwarded-For when behind a proxy/load balancer
-    forwarded = request.headers.get("x-forwarded-for")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
+    # BUG FIX: X-Forwarded-For is client-controlled — attacker sets it to rotate IPs and
+    # bypass rate limiting. X-Real-IP is set by nginx/envoy and cannot be forged by clients.
+    real_ip = request.headers.get("x-real-ip")
+    if real_ip:
+        return real_ip.strip()
     return request.client.host if request.client else "unknown"
 
 
