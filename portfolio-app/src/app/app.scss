@@ -10,7 +10,7 @@
 }
 
 /* ── NAV ── */
-nav {
+nav[aria-label="Main navigation"] {
   position: fixed; top: 0; left: 0; right: 0; z-index: 200;
   transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
   border-bottom: 1px solid transparent;
