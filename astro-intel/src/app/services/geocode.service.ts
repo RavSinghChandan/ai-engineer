@@ -52,8 +52,15 @@ const FALLBACK: Record<string, GeoResult> = {
   'moscow':        { lat:55.7558, lon:37.6173, timezone:'Europe/Moscow',      display_name:'Moscow, Russia',          source:'builtin' },
 };
 
-// Session-level memory cache: city → result (cleared on page refresh)
+// In-memory cache: cleared on page refresh
 const _sessionCache = new Map<string, GeoResult>();
+
+// localStorage key prefix for persistent geocode cache
+const LS_PREFIX = 'astro_geo_';
+// Cache TTL: 30 days in ms (matches backend cache)
+const CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
+interface StoredGeo { result: GeoResult; expiresAt: number; }
 
 @Injectable({ providedIn: 'root' })
 export class GeocodeService {
@@ -63,13 +70,20 @@ export class GeocodeService {
     if (!city?.trim()) return null;
     const key = city.trim().toLowerCase();
 
-    // 1. Session cache (instant)
+    // 1. In-memory cache (fastest — same session)
     if (_sessionCache.has(key)) return _sessionCache.get(key)!;
 
-    // 2. Built-in table (instant fallback)
+    // 2. localStorage persistent cache (survives page refresh, 30-day TTL)
+    const persisted = this._readPersisted(key);
+    if (persisted) {
+      _sessionCache.set(key, persisted);
+      return persisted;
+    }
+
+    // 3. Built-in table (instant offline fallback)
     const builtin = this._builtinLookup(key);
 
-    // 3. Backend (Nominatim via server, cached 30 days)
+    // 4. Backend (Nominatim via server)
     try {
       const result = await firstValueFrom(
         this.http.get<GeoResult>(`/api/v1/geocode?city=${encodeURIComponent(city.trim())}`)
@@ -77,17 +91,41 @@ export class GeocodeService {
       );
       if (result?.lat) {
         _sessionCache.set(key, result);
+        this._writePersisted(key, result);
         return result;
       }
     } catch { /* backend offline — fall through */ }
 
-    // 4. Builtin fallback when backend unreachable
+    // 5. Builtin fallback when backend unreachable
     if (builtin) {
       _sessionCache.set(key, builtin);
+      this._writePersisted(key, builtin);
       return builtin;
     }
 
     return null;
+  }
+
+  private _readPersisted(key: string): GeoResult | null {
+    try {
+      const raw = localStorage.getItem(LS_PREFIX + key);
+      if (!raw) return null;
+      const stored: StoredGeo = JSON.parse(raw);
+      if (Date.now() > stored.expiresAt) {
+        localStorage.removeItem(LS_PREFIX + key);
+        return null;
+      }
+      return stored.result;
+    } catch {
+      return null;
+    }
+  }
+
+  private _writePersisted(key: string, result: GeoResult): void {
+    try {
+      const stored: StoredGeo = { result, expiresAt: Date.now() + CACHE_TTL_MS };
+      localStorage.setItem(LS_PREFIX + key, JSON.stringify(stored));
+    } catch { /* localStorage quota exceeded — skip silently */ }
   }
 
   private _builtinLookup(lower: string): GeoResult | null {

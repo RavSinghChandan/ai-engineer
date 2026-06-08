@@ -4097,5 +4097,58 @@ Context: GPT-4=128k, Claude 3.5=200k, LLaMA 3.1=128k
 *Read Section 1-4 for foundations. Section 5-8 for production. Section 9 for research context. Section 10 for interview prep. Section 11 before any interview.*
 
 ---
+---
+
+# APPENDIX: REAL-WORLD PRODUCTION PATTERNS (From Live Projects)
+
+---
+
+## A.1 MULTI-LAYER CACHING — AstroIntel GeocodeService (2026-06-08)
+
+**Real problem solved:** GeocodeService resolved city → lat/lon using an in-memory Map. On every page refresh, the cache was lost, forcing a backend API call for cities already resolved in a prior session.
+
+**Production fix applied:**
+```typescript
+// Layer 1: In-memory (fastest — same session, zero latency)
+const _sessionCache = new Map<string, GeoResult>();
+
+// Layer 2: localStorage with TTL (cross-session, survives refresh)
+const LS_PREFIX = 'astro_geo_';
+const CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+// Lookup order:
+// in-memory → localStorage (TTL check) → backend API → built-in fallback table
+```
+
+**What this teaches — the L1/L2/L3 caching pattern:**
+```
+L1: In-memory (Map / object)
+    Speed: <1ms
+    Scope: current process/session only
+    Eviction: process restart, TTL, explicit clear
+
+L2: Persistent local storage (localStorage, Redis, Memcached)
+    Speed: 1-5ms
+    Scope: cross-session, same client/server
+    Eviction: TTL, LRU, explicit clear
+
+L3: Network / authoritative source (backend API, database)
+    Speed: 50-200ms
+    Scope: global, always fresh
+    Eviction: N/A — source of truth
+
+L4: Hardcoded fallback (built-in table)
+    Speed: <1ms
+    Scope: static, ships with code
+    Eviction: code deploy only
+    Use for: offline resilience, known-good values
+```
+
+**Interview explanation:** "Multi-layer caching reduces latency by serving from the fastest available source. Each layer is a fallback for the one above. TTL ensures data freshness. This is identical to how feature stores work: L1=in-memory dict, L2=Redis online store, L3=offline warehouse query."
+
+**Common mistake:** Forgetting TTL on persistent cache → serving stale data indefinitely. Always store `expiresAt` alongside the cached value and check it on read.
+
+---
+
 **END OF SENIOR AI ENGINEER REVISION HANDBOOK**
 

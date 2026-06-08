@@ -595,6 +595,17 @@ Manual:
 
 ---
 
+## Optimizations & Changelog
+
+### 2026-06-08
+**GeocodeService — Persistent localStorage Cache**
+- **Problem:** `GeocodeService` used an in-memory `Map` as its session cache. Every page refresh discarded all previously resolved city coordinates, forcing a backend roundtrip (or fallback lookup) on every new session — even for cities already resolved recently.
+- **Fix:** Added a `localStorage` persistence layer with 30-day TTL (matching backend cache TTL). Lookup order is now: in-memory → localStorage → backend API → built-in fallback.
+- **Impact:** Zero network calls for repeat city lookups across sessions. Geocode data persists until TTL expires or storage is cleared. Fully backward-compatible — existing fallback chain unchanged.
+- **What this teaches:** Multi-layer caching strategy. In-memory (fastest, session-only) → persistent storage (cross-session, TTL-gated) → network (authoritative) → hardcoded fallback (offline resilience). This is the same pattern used in production feature stores: L1 in-memory, L2 Redis, L3 database.
+
+---
+
 ## About the Builder
 
 **Rav Singh Chandan** — Senior AI Engineer
