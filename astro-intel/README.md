@@ -597,7 +597,37 @@ Manual:
 
 ## Optimizations & Changelog
 
-### 2026-06-08
+### 2026-06-08 (Session 2) — 5 Bug Fixes
+
+**Fix 1 — GrammarService: Safari-incompatible lookbehind regex**
+- **Bug:** Rule 10 used `(?<=[.!?])` lookbehind — unsupported in Safari < 16.4. Grammar corrections silently skipped on iOS/macOS Safari.
+- **Fix:** Replaced with two-pass: capitalise `^[a-z]` first, then `([.!?]\s+)([a-z])` — works in all browsers.
+- **Test:** `"hello world. next sentence"` → `"Hello world. Next sentence."` on Safari and Chrome.
+
+**Fix 2 — LoginPage: `setInterval` memory leak on navigation**
+- **Bug:** OTP countdown timer (`setInterval`) was never cleared when user navigated away from login page. Timer kept firing in background, accumulating with each visit.
+- **Fix:** Implemented `OnDestroy` interface, calls `_stopCountdown()` in `ngOnDestroy()`.
+- **Test:** Navigate to login → start OTP flow → navigate away → timer stops (verified via console).
+
+**Fix 3 — NumerologyService: Wrong Chaldean letter map**
+- **Bug:** `_letterValueChaldean` was an exact copy of `_letterValueIndian`. In Chaldean numerology, 9 is sacred and never assigned to any letter, and Q maps to 8 (not 1). This produced incorrect name numbers for Chaldean readings.
+- **Fix:** Corrected Chaldean map — Q moved from 1 → 8, no letter maps to 9.
+- **Test:** Name "QUEEN" — Indian: Q=1, Chaldean: Q=8. Distinct correct results now.
+
+**Fix 4 — AstroAgentService: Question quota burned on failed stream**
+- **Bug:** `qCount` was incremented before `_readStream()` completed. A network failure still counted against the user's 10-question session limit.
+- **Fix:** Moved increment + `sessionStorage` write to inside the `try` block, after `_readStream()` resolves successfully. Failed requests no longer consume quota.
+- **Test:** Kill the agent server → send message → error shown → qCount unchanged.
+
+**Fix 5 — AuthService: Corrupt meta wiped valid token**
+- **Bug:** If only `astro_meta` was corrupt (invalid JSON), the `catch` block removed BOTH token and meta. On next load the user was forced to log in again even though their token was valid.
+- **Fix:** Separated parse failure path — corrupt meta removes only `META_KEY`, token preserved. Expired session still clears both correctly.
+- **Bonus:** Added `readonly` to `_token`, `_meta`, `http`, `router` — eliminated 4 pre-existing static analysis warnings.
+- **Test:** Manually corrupt `astro_meta` in DevTools → refresh → page stays logged out gracefully, no crash.
+
+---
+
+### 2026-06-08 (Session 1)
 **GeocodeService — Persistent localStorage Cache**
 - **Problem:** `GeocodeService` used an in-memory `Map` as its session cache. Every page refresh discarded all previously resolved city coordinates, forcing a backend roundtrip (or fallback lookup) on every new session — even for cities already resolved recently.
 - **Fix:** Added a `localStorage` persistence layer with 30-day TTL (matching backend cache TTL). Lookup order is now: in-memory → localStorage → backend API → built-in fallback.

@@ -102,16 +102,15 @@ export class AstroAgentService {
     this.isStreaming.set(true);
     this.error.set(null);
 
-    // Increment and persist count
-    const newCount = this.qCount() + 1;
-    this.qCount.set(newCount);
-    sessionStorage.setItem('astrointel_agent_qcount', String(newCount));
-
     const agentMsgIndex = this.messages().length;
     this._addMessage({ role: 'agent', content: '', streaming: true });
 
     try {
       await this._readStream(userMessage, agentMsgIndex);
+      // Only count after a successful stream — failed requests do not burn quota
+      const newCount = this.qCount() + 1;
+      this.qCount.set(newCount);
+      sessionStorage.setItem('astrointel_agent_qcount', String(newCount));
     } catch (err: any) {
       this.error.set(err?.message || 'Streaming failed');
       this.messages.update(msgs => msgs.filter((_, i) => i !== agentMsgIndex));

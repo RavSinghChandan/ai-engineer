@@ -43,7 +43,9 @@ export class GrammarService {
     t = t.replace(/[ \t]+$/gm, '');
 
     // 10. Capitalise first letter of each sentence
-    t = t.replace(/(^|(?<=[.!?])\s+)([a-z])/g, (m) => m.toUpperCase());
+    // Lookbehind (?<=[.!?]) is unsupported in Safari < 16.4 — use two-pass instead
+    t = t.replace(/^([a-z])/, (c) => c.toUpperCase());
+    t = t.replace(/([.!?]\s+)([a-z])/g, (_, punct, letter) => punct + letter.toUpperCase());
 
     // 11. Add period if bare sentence (single line, no period at end)
     const stripped = t.trim();

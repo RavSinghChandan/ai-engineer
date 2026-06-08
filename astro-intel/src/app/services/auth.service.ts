@@ -23,8 +23,8 @@ export interface AuthMeta {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private _token = signal<string | null>(null);
-  private _meta  = signal<AuthMeta | null>(null);
+  private readonly _token = signal<string | null>(null);
+  private readonly _meta  = signal<AuthMeta | null>(null);
 
   readonly isLoggedIn   = computed(() => !!this._token() && !this._isExpired());
   readonly role         = computed(() => this._meta()?.role ?? null);
@@ -34,7 +34,7 @@ export class AuthService {
   readonly isAdmin      = computed(() => ['admin','superadmin'].includes(this.role() ?? ''));
   readonly isSuperAdmin = computed(() => this.role() === 'superadmin');
 
-  constructor(private http: HttpClient, private router: Router) {
+  constructor(private readonly http: HttpClient, private readonly router: Router) {
     this._restore();
   }
 
@@ -155,16 +155,21 @@ export class AuthService {
     const token = _storage.getItem(TOKEN_KEY);
     const raw   = _storage.getItem(META_KEY);
     if (!token || !raw) return;
+
+    let meta: AuthMeta;
     try {
-      const meta: AuthMeta = JSON.parse(raw);
-      if (Date.now() < meta.expires_at) {
-        this._token.set(token);
-        this._meta.set(meta);
-      } else {
-        _storage.removeItem(TOKEN_KEY);
-        _storage.removeItem(META_KEY);
-      }
+      meta = JSON.parse(raw);
     } catch {
+      // Meta JSON is corrupt — clear only meta, keep token for re-auth attempt
+      _storage.removeItem(META_KEY);
+      return;
+    }
+
+    if (Date.now() < meta.expires_at) {
+      this._token.set(token);
+      this._meta.set(meta);
+    } else {
+      // Expired — clear both
       _storage.removeItem(TOKEN_KEY);
       _storage.removeItem(META_KEY);
     }

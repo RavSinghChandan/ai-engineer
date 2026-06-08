@@ -1,4 +1,4 @@
-import { Component, signal, inject, computed } from '@angular/core';
+import { Component, signal, inject, computed, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -42,7 +42,7 @@ function validateConfirm(pass: string, confirm: string): string {
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.css'],
 })
-export class LoginPage {
+export class LoginPage implements OnDestroy {
   private auth   = inject(AuthService);
   private router = inject(Router);
 
@@ -249,6 +249,10 @@ export class LoginPage {
       if (this.otpSent()) this.verifyOtp();
       else this.sendOtp();
     }
+  }
+
+  ngOnDestroy(): void {
+    this._stopCountdown();
   }
 
   private _startCountdown(seconds: number) {

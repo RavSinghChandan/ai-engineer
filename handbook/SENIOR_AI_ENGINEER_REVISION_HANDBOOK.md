@@ -4150,5 +4150,117 @@ L4: Hardcoded fallback (built-in table)
 
 ---
 
+## A.2 BROWSER COMPATIBILITY — Safari Lookbehind Bug (AstroIntel GrammarService, 2026-06-08)
+
+**Real bug:** JavaScript lookbehind assertions `(?<=...)` are unsupported in Safari < 16.4. Silent failures — no error thrown, regex just doesn't match.
+
+```javascript
+// BROKEN on Safari < 16.4
+t = t.replace(/(^|(?<=[.!?])\s+)([a-z])/g, m => m.toUpperCase());
+
+// FIXED — two-pass, works everywhere
+t = t.replace(/^([a-z])/, c => c.toUpperCase());
+t = t.replace(/([.!?]\s+)([a-z])/g, (_, p, l) => p + l.toUpperCase());
+```
+
+**Interview lesson:** "Always check MDN browser compatibility for regex features. Lookbehind, named groups, and `\d` in Unicode mode have Safari gaps. Two-pass replacements are universally safe."
+
+---
+
+## A.3 MEMORY LEAKS — Angular `setInterval` Without `OnDestroy` (AstroIntel LoginPage, 2026-06-08)
+
+**Real bug:** OTP countdown used `setInterval` but `LoginPage` never implemented `OnDestroy`. Timer kept firing after navigation, accumulating on each login page visit.
+
+```typescript
+// BROKEN — timer leaks after navigation
+export class LoginPage {
+  private _timer = setInterval(() => { ... }, 1000);
+}
+
+// FIXED — implement OnDestroy
+export class LoginPage implements OnDestroy {
+  ngOnDestroy(): void { this._stopTimer(); }
+}
+```
+
+**Interview lesson:** "Any `setInterval`, `setTimeout`, `EventListener`, or RxJS `subscription` not cleaned up is a memory leak. In Angular: implement `OnDestroy`. In React: return cleanup from `useEffect`. In vanilla JS: store the handle and call `clearInterval`."
+
+**Common mistake:** Thinking Angular destroys timers automatically. It does NOT. Angular destroys the component — the JS runtime keeps the timer alive.
+
+---
+
+## A.4 DATA CORRECTNESS — Domain-Specific Lookup Tables (AstroIntel NumerologyService, 2026-06-08)
+
+**Real bug:** Chaldean numerology letter map was a copy-paste of the Indian Vedic map. In Chaldean, 9 is sacred and unassigned — Q maps to 8, not 1. Every Chaldean name number was wrong.
+
+```typescript
+// WRONG — copy of Indian map, Q=1, 9 assigned
+const chaldean = { A:1,I:1,J:1,Q:1,Y:1, B:2,K:2,R:2, ... }
+
+// CORRECT — Q=8, no letter maps to 9
+const chaldean = {
+  A:1,I:1,J:1,Y:1,   // 1  (Q removed from here)
+  B:2,K:2,R:2,        // 2
+  ...
+  F:8,P:8,Q:8,        // 8  (Q moved here)
+                      // 9 intentionally absent
+}
+```
+
+**Interview lesson:** "Copy-paste bugs in lookup tables are silent and dangerous. Each tradition/system/locale has its own rules. Always verify domain-specific logic against authoritative sources — don't assume two similar-looking tables are identical."
+
+---
+
+## A.5 QUOTA / RATE LIMIT DESIGN — Count Only Successful Operations (AstroIntel AstroAgentService, 2026-06-08)
+
+**Real bug:** User's 10-question session quota was decremented BEFORE the streaming request completed. A network failure still burned a question.
+
+```typescript
+// WRONG — quota burned before success
+this.qCount.set(this.qCount() + 1);           // decremented here
+try {
+  await this._readStream(userMessage, idx);   // may fail
+} catch { ... }
+
+// CORRECT — quota only burns on success
+try {
+  await this._readStream(userMessage, idx);
+  this.qCount.set(this.qCount() + 1);         // only here, after success
+} catch { ... }
+```
+
+**Interview lesson:** "Rate limits, quotas, and credits should only be consumed on confirmed success. This is the same principle as database transactions — commit only when the operation completes. Idempotency keys in payment systems apply the same pattern."
+
+---
+
+## A.6 DEFENSIVE PARSING — Granular Error Recovery (AstroIntel AuthService, 2026-06-08)
+
+**Real bug:** A corrupt `astro_meta` JSON string caused `catch` to delete BOTH the token AND meta. Valid token lost, user forced to re-login unnecessarily.
+
+```typescript
+// WRONG — one catch block removes both keys
+try {
+  const meta = JSON.parse(raw);
+  ...
+} catch {
+  localStorage.removeItem(TOKEN_KEY);  // overkill
+  localStorage.removeItem(META_KEY);
+}
+
+// CORRECT — surgical recovery
+let meta: AuthMeta;
+try {
+  meta = JSON.parse(raw);
+} catch {
+  localStorage.removeItem(META_KEY);   // remove only what's corrupt
+  return;                              // token preserved
+}
+// expiry check proceeds with valid token
+```
+
+**Interview lesson:** "Error handling should be as granular as the operation. Don't nuke everything because one piece is corrupt. Identify exactly what failed and recover only that. This is the same principle as partial rollbacks in distributed transactions — only roll back the failing leg."
+
+---
+
 **END OF SENIOR AI ENGINEER REVISION HANDBOOK**
 
