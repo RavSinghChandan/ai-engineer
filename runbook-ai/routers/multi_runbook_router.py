@@ -6,7 +6,7 @@ All reasoning is RAGless: SQL matching + graph traversal + structural conflict d
 """
 from __future__ import annotations
 from typing import List, Optional
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 from agents.conflict_detector_agent import detect_conflicts
 from agents.compound_incident_agent import analyze_compound_incident
@@ -14,6 +14,7 @@ from agents.multi_runbook_merger_agent import merge_runbooks
 from agents.runbook_matcher_agent import match_runbooks
 from agents.incident_classifier_agent import classify_incident
 from database.runbooks_store import get_runbook
+from utils.rate_limit import query_limiter, client_key
 
 router = APIRouter(prefix="/multi", tags=["multi-runbook"])
 
@@ -41,9 +42,13 @@ class ConflictCheckRequest(BaseModel):
 
 @router.post(
     "/merge",
-    responses={400: {"description": "Invalid runbook IDs or merge failed"}},
+    responses={
+        400: {"description": "Invalid runbook IDs or merge failed"},
+        404: {"description": "One or more runbook IDs not found"},
+        429: {"description": "Rate limit exceeded — 20 requests/minute per IP"},
+    },
 )
-def merge_runbook_plans(req: MultiRunbookRequest):
+def merge_runbook_plans(request: Request, req: MultiRunbookRequest):
     """
     Merge multiple runbooks into a single ordered composite execution plan.
 
@@ -54,6 +59,9 @@ def merge_runbook_plans(req: MultiRunbookRequest):
     - rollback_sequence: unified rollback in reverse domain order
     - execution_strategy: recommended approach given conflict severity
     """
+    # BUG FIX: no rate limiting — unauthenticated callers could exhaust LLM quota in a loop.
+    query_limiter.check(client_key(request), "Multi-runbook rate limit: 20 requests/minute per IP")
+
     # Validate all IDs exist
     missing = [rid for rid in req.runbook_ids if not get_runbook(rid)]
     if missing:
@@ -71,13 +79,19 @@ def merge_runbook_plans(req: MultiRunbookRequest):
 
 @router.post(
     "/conflicts",
-    responses={404: {"description": "One or more runbooks not found"}},
+    responses={
+        404: {"description": "One or more runbooks not found"},
+        429: {"description": "Rate limit exceeded — 20 requests/minute per IP"},
+    },
 )
-def check_conflicts(req: ConflictCheckRequest):
+def check_conflicts(request: Request, req: ConflictCheckRequest):
     """
     Check for conflicting commands between runbooks without merging.
     Fast conflict-only check — useful before deciding execution order.
     """
+    # BUG FIX: no rate limiting — DB-heavy conflict scan was unthrottled.
+    query_limiter.check(client_key(request), "Conflict-check rate limit: 20 requests/minute per IP")
+
     missing = [rid for rid in req.runbook_ids if not get_runbook(rid)]
     if missing:
         raise HTTPException(status_code=404, detail=f"Runbooks not found: {missing}")
@@ -106,9 +120,12 @@ def check_conflicts(req: ConflictCheckRequest):
 
 @router.post(
     "/compound",
-    responses={400: {"description": "Incident analysis failed"}},
+    responses={
+        400: {"description": "Incident analysis failed"},
+        429: {"description": "Rate limit exceeded — 20 requests/minute per IP"},
+    },
 )
-def handle_compound_incident(req: CompoundIncidentRequest):
+def handle_compound_incident(request: Request, req: CompoundIncidentRequest):
     """
     Full compound incident handler.
 
@@ -119,6 +136,10 @@ def handle_compound_incident(req: CompoundIncidentRequest):
 
     Returns a complete multi-domain execution plan.
     """
+    # BUG FIX: /multi/compound made multiple LLM calls per request with no rate limiting —
+    # an unauthenticated caller could exhaust the entire LLM API quota in seconds.
+    query_limiter.check(client_key(request), "Compound incident rate limit: 20 requests/minute per IP")
+
     # Step 1: Decompose the incident
     decomposition = analyze_compound_incident(req.incident)
 

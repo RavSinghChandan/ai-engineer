@@ -5,6 +5,12 @@ Production decisions:
 - httpx replaces urllib.request (connection pooling, cleaner error types)
 - 20s read timeout (down from 60s) — incident response demands fast failure
 - 2 retries with 1s backoff on transient network errors
+
+Async boundary note:
+  call_llm() is synchronous. FastAPI async route handlers must call it via
+  asyncio.to_thread(call_llm, ...) to avoid blocking the event loop during
+  retry sleeps. BackgroundTasks run in a thread pool so time.sleep() is safe
+  there, but direct await-chain callers must use to_thread().
 """
 from __future__ import annotations
 import logging
@@ -87,6 +93,9 @@ def _post_with_retry(url: str, payload: dict, headers: dict, extract) -> str:
             last_exc = exc
             if attempt <= _MAX_RETRIES:
                 logger.warning("LLM attempt %d/%d failed (%s), retrying…", attempt, _MAX_RETRIES + 1, exc)
+                # BUG FIX: time.sleep() blocks the event loop when called from an async
+                # FastAPI handler. All async callers must wrap call_llm via asyncio.to_thread().
+                # BackgroundTasks run in a thread pool so sleep is safe there.
                 time.sleep(_RETRY_DELAY)
         except RuntimeError:
             raise

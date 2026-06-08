@@ -5,8 +5,11 @@ this agent decomposes the incident into sub-problems and maps each to
 the right runbook category — using structured reasoning, not similarity.
 """
 import json
+import logging
 import re
 from typing import List
+
+logger = logging.getLogger(__name__)
 
 
 def _strip_fences(text: str) -> str:
@@ -59,8 +62,11 @@ def analyze_compound_incident(incident_text: str) -> dict:
             "total_domains": len(sub_incidents),
         }
 
-    except Exception:
-        # Fallback: treat as single incident
+    except Exception as exc:
+        # BUG FIX: bare except with no logging meant LLM auth errors, timeouts, and
+        # malformed JSON all silently returned a misleading single-domain fallback
+        # with no operator visibility. Now logs before falling back.
+        logger.warning("analyze_compound_incident fallback (LLM/parse error): %s", exc)
         return {
             "is_compound": False,
             "sub_incidents": [{

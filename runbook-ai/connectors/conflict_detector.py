@@ -288,9 +288,15 @@ def run_conflict_detection(db_path: str = "runbookai.db", tenant_id: int = 1) ->
                 logger.info("CONFLICT [%s] %s — %s", c["conflict_type"], c["severity"], c["description"][:60])
                 total_conflicts += 1
 
-            conn.commit()
+            try:
+                conn.commit()
+            except Exception as exc:
+                # BUG FIX: an INSERT failure (e.g. UNIQUE constraint) left the connection
+                # in a dirty state; without rollback the next commit could mix partial data.
+                conn.rollback()
+                logger.warning("Conflict INSERT failed for pair (%d, %d), rolled back: %s",
+                               internal_row["id"], official_row["id"], exc)
 
-    conn.close()
     logger.info("Conflict detection done — pairs=%d conflicts=%d", pairs_checked, total_conflicts)
     return {"pairs_checked": pairs_checked, "total_conflicts": total_conflicts}
 

@@ -83,16 +83,19 @@ def match_runbooks(
         for term in search_terms[:3]:
             if len(results) >= limit:
                 break
+            # BUG FIX: LLM-generated terms can contain SQLite LIKE wildcards (% and _).
+            # Without escaping, a term like "100%" matches every row; "_" matches any char.
+            safe_term = term.lower().replace("\\", "\\\\").replace("%", r"\%").replace("_", r"\_")
             rows = conn.execute(
                 """SELECT id, title, description, category, severity, tags
                    FROM runbooks
                    WHERE status='active'
-                     AND (LOWER(title) LIKE ? OR LOWER(description) LIKE ?)
+                     AND (LOWER(title) LIKE ? ESCAPE '\\' OR LOWER(description) LIKE ? ESCAPE '\\')
                      AND id NOT IN ({})
                    ORDER BY created_at DESC LIMIT ?""".format(
                     ",".join("?" * len(seen_ids)) if seen_ids else "0"
                 ),
-                (f"%{term.lower()}%", f"%{term.lower()}%", *seen_ids, limit),
+                (f"%{safe_term}%", f"%{safe_term}%", *seen_ids, limit),
             ).fetchall()
             for row in rows:
                 rb = dict(row)

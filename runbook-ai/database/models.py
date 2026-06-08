@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS runbooks (
     source_type                 TEXT    NOT NULL DEFAULT 'internal',
     source_name                 TEXT    NOT NULL DEFAULT 'Internal Runbook',
     source_url                  TEXT    NOT NULL DEFAULT '',
+    ingested_at                 REAL    NOT NULL DEFAULT 0,
     tenant_id                   INTEGER REFERENCES tenants(id) ON DELETE CASCADE,
     created_at                  REAL    NOT NULL,
     updated_at                  REAL    NOT NULL
@@ -88,14 +89,34 @@ CREATE TABLE IF NOT EXISTS graph_cache (
 );
 """
 
+# BUG FIX: runbook_conflicts was queried by multi_source_composer and written by
+# conflict_detector but never created — every access silently failed with
+# "no such table: runbook_conflicts" (caught by bare except → returned []).
+CREATE_RUNBOOK_CONFLICTS = """
+CREATE TABLE IF NOT EXISTS runbook_conflicts (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    runbook_a_id    INTEGER NOT NULL REFERENCES runbooks(id) ON DELETE CASCADE,
+    runbook_b_id    INTEGER NOT NULL REFERENCES runbooks(id) ON DELETE CASCADE,
+    step_a          INTEGER,
+    step_b          INTEGER,
+    conflict_type   TEXT    NOT NULL DEFAULT 'VALUE_CONFLICT',
+    severity        TEXT    NOT NULL DEFAULT 'MEDIUM',
+    description     TEXT    NOT NULL DEFAULT '',
+    recommendation  TEXT    NOT NULL DEFAULT '',
+    tenant_id       INTEGER REFERENCES tenants(id) ON DELETE CASCADE,
+    created_at      REAL    NOT NULL
+);
+"""
+
 # Indexes — applied after table creation; IF NOT EXISTS makes them idempotent
 CREATE_INDEXES = """
-CREATE INDEX IF NOT EXISTS idx_runbooks_tenant_status    ON runbooks(tenant_id, status);
-CREATE INDEX IF NOT EXISTS idx_runbooks_category_status  ON runbooks(category, status);
-CREATE INDEX IF NOT EXISTS idx_runbooks_severity_status  ON runbooks(severity, status);
-CREATE INDEX IF NOT EXISTS idx_steps_runbook_rollback    ON steps(runbook_id, is_rollback);
-CREATE INDEX IF NOT EXISTS idx_ingest_jobs_tenant        ON ingest_jobs(tenant_id);
-CREATE INDEX IF NOT EXISTS idx_users_tenant              ON users(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_runbooks_tenant_status       ON runbooks(tenant_id, status);
+CREATE INDEX IF NOT EXISTS idx_runbooks_category_status     ON runbooks(category, status);
+CREATE INDEX IF NOT EXISTS idx_runbooks_severity_status     ON runbooks(severity, status);
+CREATE INDEX IF NOT EXISTS idx_steps_runbook_rollback       ON steps(runbook_id, is_rollback);
+CREATE INDEX IF NOT EXISTS idx_ingest_jobs_tenant           ON ingest_jobs(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_users_tenant                 ON users(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_conflicts_runbook_pair       ON runbook_conflicts(runbook_a_id, runbook_b_id, tenant_id);
 """
 
 # Tables ordered so FK dependencies are created first
@@ -106,4 +127,5 @@ ALL_TABLES = [
     CREATE_STEPS,
     CREATE_INGEST_JOBS,
     CREATE_GRAPH_CACHE,
+    CREATE_RUNBOOK_CONFLICTS,
 ]

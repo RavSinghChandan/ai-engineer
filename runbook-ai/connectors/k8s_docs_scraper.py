@@ -7,7 +7,9 @@ Run from the runbook-ai/ directory:
   DEEPSEEK_API_KEY=sk-xxx python3 connectors/k8s_docs_scraper.py
 """
 from __future__ import annotations
-import json, os, re, sqlite3, sys, time, urllib.request
+import json, logging, os, re, sqlite3, sys, time, urllib.request
+
+logger = logging.getLogger(__name__)
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.llm import call_llm
@@ -83,7 +85,7 @@ def _fetch(url: str) -> str | None:
         with urllib.request.urlopen(req, timeout=20) as r:
             return r.read().decode("utf-8")
     except Exception as e:
-        print(f"  FETCH ERR: {e}")
+        logger.warning("FETCH ERR for %s: %s", url, e)
         return None
 
 
@@ -160,18 +162,22 @@ def _save_runbook(conn, title, desc, category, severity, tags, steps, rollback,
 
 def run_scraper(db_path: str = "runbookai.db", tenant_id: int = 1):
     conn = sqlite3.connect(db_path)
+    # BUG FIX: without WAL, concurrent reads during scraping block on write locks;
+    # without FK enforcement, orphaned steps for non-existent runbooks can be silently inserted.
+    conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA foreign_keys=ON")
     conn.row_factory = sqlite3.Row
     ok, fail, skip = [], [], []
 
     for page in K8S_DOCS_PAGES:
         hint = page["hint"]
         web_url = page["web_url"]
-        print(f"\n{'=' * 60}\n{hint}")
+        logger.info("\n%s\n%s", "=" * 60, hint)
 
         # Skip if already ingested
         if conn.execute("SELECT id FROM runbooks WHERE source_url=? AND tenant_id=?",
                         (web_url, tenant_id)).fetchone():
-            print("  SKIP (already ingested)")
+            logger.info("  SKIP (already ingested): %s", hint)
             skip.append(hint)
             continue
 
@@ -182,7 +188,7 @@ def run_scraper(db_path: str = "runbookai.db", tenant_id: int = 1):
 
         text = _clean_md(raw)
         chunk = text[:5000]
-        print(f"  chars: {len(text)} → LLM chunk: {len(chunk)}")
+        logger.info("  chars: %d → LLM chunk: %d", len(text), len(chunk))
 
         # Classify
         try:
@@ -194,9 +200,9 @@ def run_scraper(db_path: str = "runbookai.db", tenant_id: int = 1):
             severity = cls.get("severity", "P2")
             tags = cls.get("tags", ["kubernetes"])
             duration = int(cls.get("estimated_duration_minutes", 20))
-            print(f"  classified: {category}/{severity} — {title}")
+            logger.info("  classified: %s/%s — %s", category, severity, title)
         except Exception as e:
-            print(f"  CLASSIFY ERR: {e}")
+            logger.warning("  CLASSIFY ERR: %s", e)
             title, desc, category, severity, tags, duration = hint, hint, "kubernetes", "P2", ["kubernetes"], 20
 
         # Extract steps
@@ -205,31 +211,30 @@ def run_scraper(db_path: str = "runbookai.db", tenant_id: int = 1):
             steps_data = json.loads(_strip_fences(steps_raw))
             steps = steps_data.get("steps", [])
             rollback = steps_data.get("rollback_steps", [])
-            print(f"  steps: {len(steps)} exec + {len(rollback)} rollback")
+            logger.info("  steps: %d exec + %d rollback", len(steps), len(rollback))
         except Exception as e:
-            print(f"  STEPS ERR: {e}")
+            logger.warning("  STEPS ERR: %s", e)
             steps, rollback = [], []
 
         if not steps:
-            print("  SKIP — no steps extracted")
+            logger.warning("  SKIP — no steps extracted: %s", hint)
             fail.append(hint)
             continue
 
         rb_id = _save_runbook(conn, f"[Official] {title}", desc, category, severity,
                               tags, steps, rollback, "Kubernetes Official Docs",
                               web_url, tenant_id, duration)
-        print(f"  SAVED → id={rb_id}")
+        logger.info("  SAVED → id=%d", rb_id)
         ok.append({"hint": hint, "id": rb_id, "title": title})
         time.sleep(1.5)
 
     conn.close()
     sep = "=" * 60
-    print(f"\n{sep}")
-    print(f"Done  success={len(ok)}  failed={len(fail)}  skipped={len(skip)}")
+    logger.info("\n%s\nDone  success=%d  failed=%d  skipped=%d", sep, len(ok), len(fail), len(skip))
     for r in ok:
-        print(f"  ✓ id={r['id']}  {r['title'][:55]}")
+        logger.info("  ✓ id=%d  %s", r["id"], r["title"][:55])
     for f in fail:
-        print(f"  ✗ {f}")
+        logger.warning("  ✗ %s", f)
     return ok
 
 

@@ -74,7 +74,7 @@ def _load_steps(conn: sqlite3.Connection, runbook_id: int, is_rollback: bool = F
     return result
 
 
-def _load_conflicts(conn: sqlite3.Connection, rb_a: int, rb_b: int, tenant_id: int) -> list[dict]:
+def _load_conflicts(conn: sqlite3.Connection, rb_a: int, rb_b: int, tenant_id: int | None) -> list[dict]:
     try:
         rows = conn.execute(
             """SELECT conflict_type, severity, description, recommendation, step_a, step_b
@@ -164,7 +164,7 @@ def _build_combined_steps(
 
 # ── Public API ────────────────────────────────────────────────────────────────
 
-def build_multi_source_response(runbook_id: int, tenant_id: int) -> dict:
+def build_multi_source_response(runbook_id: int, tenant_id: int | None) -> dict:
     """
     Build three clean, non-mixed panels for the given runbook.
 

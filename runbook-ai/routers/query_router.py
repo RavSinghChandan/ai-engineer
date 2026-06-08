@@ -50,7 +50,7 @@ class QuickMatchRequest(BaseModel):
         429: {"description": "Rate limit exceeded — 20 queries/minute per IP"},
     },
 )
-def query_incident(request: Request, req: IncidentRequest, current_user: OptionalUser = None):
+def query_incident(request: Request, req: IncidentRequest, current_user: OptionalUser):
     """
     Main endpoint: describe an incident → get ordered runbook steps.
 
