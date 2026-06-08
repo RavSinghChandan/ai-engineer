@@ -55,12 +55,14 @@ nav {
   }
   @media (max-width: 768px) { display: none; }
 }
-/* Mobile nav drawer */
-.nav-mobile-open .nav-links {
-  display: flex; flex-direction: column; gap: 0; position: fixed; top: 60px; left: 0; right: 0;
-  background: var(--card); border-bottom: 1px solid var(--border); padding: 0.5rem 0; z-index: 199;
-  a { padding: 0.9rem 1.5rem; font-size: 0.95rem; border-bottom: 1px solid var(--border); display: block;
-      &:last-child { border-bottom: none; } }
+/* Mobile nav drawer — only shown when hamburger is active AND viewport is mobile */
+@media (max-width: 768px) {
+  .nav-mobile-open .nav-links {
+    display: flex; flex-direction: column; gap: 0; position: fixed; top: 60px; left: 0; right: 0;
+    background: var(--card); border-bottom: 1px solid var(--border); padding: 0.5rem 0; z-index: 199;
+    a { padding: 0.9rem 1.5rem; font-size: 0.95rem; border-bottom: 1px solid var(--border); display: block;
+        &:last-child { border-bottom: none; } }
+  }
 }
 .nav-actions { display: flex; align-items: center; gap: 0.75rem; }
 .theme-btn {
