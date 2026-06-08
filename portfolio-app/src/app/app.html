@@ -34,8 +34,73 @@
   </div>
 </nav>
 
+<!-- GLOBAL NEURAL MESH BACKGROUND — persistent across all sections -->
+<canvas id="neural-canvas" aria-hidden="true"></canvas>
+
 <!-- HERO -->
 <section class="hero" data-guide="hero" aria-label="Hero introduction">
+
+  <!-- AI Neural Network Background (decorative, pointer-events:none) -->
+  <div class="hero-ai-bg" aria-hidden="true">
+    <svg class="hero-ai-svg" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <!-- Layer 1: connection lines (animated, very faint) -->
+      <g class="ai-edges" opacity="0.18">
+        <line x1="120" y1="180" x2="320" y2="280" class="ai-edge ai-edge--1"/>
+        <line x1="320" y1="280" x2="520" y2="160" class="ai-edge ai-edge--2"/>
+        <line x1="520" y1="160" x2="720" y2="320" class="ai-edge ai-edge--3"/>
+        <line x1="720" y1="320" x2="920" y2="180" class="ai-edge ai-edge--4"/>
+        <line x1="920" y1="180" x2="1100" y2="300" class="ai-edge ai-edge--5"/>
+        <line x1="120" y1="180" x2="220" y2="420" class="ai-edge ai-edge--2"/>
+        <line x1="220" y1="420" x2="480" y2="500" class="ai-edge ai-edge--3"/>
+        <line x1="480" y1="500" x2="720" y2="320" class="ai-edge ai-edge--1"/>
+        <line x1="720" y1="320" x2="900" y2="520" class="ai-edge ai-edge--4"/>
+        <line x1="900" y1="520" x2="1100" y2="300" class="ai-edge ai-edge--2"/>
+        <line x1="320" y1="280" x2="480" y2="500" class="ai-edge ai-edge--5"/>
+        <line x1="520" y1="160" x2="480" y2="500" class="ai-edge ai-edge--1"/>
+        <line x1="220" y1="420" x2="120" y2="600" class="ai-edge ai-edge--3"/>
+        <line x1="480" y1="500" x2="660" y2="620" class="ai-edge ai-edge--2"/>
+        <line x1="660" y1="620" x2="900" y2="520" class="ai-edge ai-edge--4"/>
+        <line x1="60" y1="350" x2="220" y2="420" class="ai-edge ai-edge--5"/>
+        <line x1="1050" y1="480" x2="900" y2="520" class="ai-edge ai-edge--1"/>
+        <line x1="820" y1="100" x2="920" y2="180" class="ai-edge ai-edge--3"/>
+        <line x1="820" y1="100" x2="720" y2="320" class="ai-edge ai-edge--2"/>
+        <line x1="380" y1="80" x2="520" y2="160" class="ai-edge ai-edge--4"/>
+      </g>
+      <!-- Layer 2: pulse signal travelling along one edge -->
+      <circle class="ai-pulse" r="4" fill="url(#pulse-grad)">
+        <animateMotion dur="4s" repeatCount="indefinite" calcMode="linear">
+          <mpath href="#ai-main-path"/>
+        </animateMotion>
+      </circle>
+      <path id="ai-main-path" d="M120,180 L320,280 L520,160 L720,320 L920,180 L1100,300" fill="none"/>
+      <!-- Layer 3: neuron nodes -->
+      <g class="ai-nodes">
+        <circle cx="120"  cy="180" r="6"  class="ai-node ai-node--purple ai-float--1"/>
+        <circle cx="320"  cy="280" r="5"  class="ai-node ai-node--cyan   ai-float--2"/>
+        <circle cx="520"  cy="160" r="7"  class="ai-node ai-node--purple ai-float--3"/>
+        <circle cx="720"  cy="320" r="6"  class="ai-node ai-node--amber  ai-float--1"/>
+        <circle cx="920"  cy="180" r="5"  class="ai-node ai-node--cyan   ai-float--2"/>
+        <circle cx="1100" cy="300" r="7"  class="ai-node ai-node--purple ai-float--3"/>
+        <circle cx="220"  cy="420" r="5"  class="ai-node ai-node--green  ai-float--2"/>
+        <circle cx="480"  cy="500" r="6"  class="ai-node ai-node--cyan   ai-float--1"/>
+        <circle cx="900"  cy="520" r="5"  class="ai-node ai-node--amber  ai-float--3"/>
+        <circle cx="660"  cy="620" r="4"  class="ai-node ai-node--purple ai-float--2"/>
+        <circle cx="60"   cy="350" r="4"  class="ai-node ai-node--cyan   ai-float--1"/>
+        <circle cx="120"  cy="600" r="4"  class="ai-node ai-node--green  ai-float--3"/>
+        <circle cx="1050" cy="480" r="5"  class="ai-node ai-node--purple ai-float--2"/>
+        <circle cx="820"  cy="100" r="5"  class="ai-node ai-node--amber  ai-float--1"/>
+        <circle cx="380"  cy="80"  r="4"  class="ai-node ai-node--cyan   ai-float--3"/>
+      </g>
+      <!-- Gradient defs -->
+      <defs>
+        <radialGradient id="pulse-grad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#a78bfa" stop-opacity="1"/>
+          <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+    </svg>
+  </div>
+
   <div class="container hero-inner">
 
     <div class="hero-text">
@@ -167,6 +232,112 @@
     <h2>What I Engineer</h2>
     <p class="section-sub">Full-stack AI — from embedding models to Angular UIs — production guardrails at every layer.</p>
 
+    <!-- Animated Skill Orbit + Bars -->
+    <div class="skills-orbit-wrap fade-up" #fadeEl aria-hidden="true" #skillsOrbit>
+      <!-- Orbit SVG -->
+      <svg class="skills-orbit-svg" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="orbit-core" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.9"/>
+            <stop offset="100%" stop-color="#7c3aed" stop-opacity="0.4"/>
+          </radialGradient>
+        </defs>
+        <!-- Orbit rings -->
+        <circle cx="120" cy="120" r="45"  class="orbit-ring orbit-ring--1"/>
+        <circle cx="120" cy="120" r="72"  class="orbit-ring orbit-ring--2"/>
+        <circle cx="120" cy="120" r="100" class="orbit-ring orbit-ring--3"/>
+        <!-- Core brain — neural net icon -->
+        <circle cx="120" cy="120" r="24" fill="url(#orbit-core)" opacity="0.9"/>
+        <!-- brain SVG paths centered at 120,120 (scale ~18px) -->
+        <g transform="translate(108,108)" fill="white" opacity="0.92">
+          <circle cx="4" cy="6" r="2.5"/>
+          <circle cx="12" cy="6" r="2.5"/>
+          <circle cx="8" cy="14" r="2.5"/>
+          <line x1="4" y1="6" x2="12" y2="6" stroke="white" stroke-width="1.2"/>
+          <line x1="4" y1="6" x2="8" y2="14" stroke="white" stroke-width="1.2"/>
+          <line x1="12" y1="6" x2="8" y2="14" stroke="white" stroke-width="1.2"/>
+          <circle cx="0" cy="12" r="1.8" fill="white" opacity="0.6"/>
+          <line x1="0" y1="12" x2="4" y2="6" stroke="white" stroke-width="1" opacity="0.6"/>
+          <circle cx="16" cy="12" r="1.8" fill="white" opacity="0.6"/>
+          <line x1="16" y1="12" x2="12" y2="6" stroke="white" stroke-width="1" opacity="0.6"/>
+        </g>
+        <!-- Orbiting tech dots — text labels replace emojis -->
+        <g class="orbit-dot orbit-dot--1">
+          <circle cx="120" cy="75" r="10" fill="#22d3ee" opacity="0.85"/>
+          <text x="120" y="79" text-anchor="middle" font-size="7" font-family="'Fira Code',monospace" font-weight="700" fill="white">PY</text>
+        </g>
+        <g class="orbit-dot orbit-dot--1" style="animation-delay:-2.5s">
+          <circle cx="165" cy="120" r="9" fill="#a78bfa" opacity="0.85"/>
+          <text x="165" y="124" text-anchor="middle" font-size="6" font-family="'Fira Code',monospace" font-weight="700" fill="white">API</text>
+        </g>
+        <g class="orbit-dot orbit-dot--1" style="animation-delay:-5s">
+          <circle cx="120" cy="165" r="10" fill="#fbbf24" opacity="0.85"/>
+          <text x="120" y="169" text-anchor="middle" font-size="5.5" font-family="'Fira Code',monospace" font-weight="700" fill="white">LG</text>
+        </g>
+        <g class="orbit-dot orbit-dot--2">
+          <circle cx="48"  cy="120" r="8" fill="#34d399" opacity="0.85"/>
+          <text x="48" y="124" text-anchor="middle" font-size="5.5" font-family="'Fira Code',monospace" font-weight="700" fill="white">NG</text>
+        </g>
+        <g class="orbit-dot orbit-dot--2" style="animation-delay:-6s">
+          <circle cx="96"  cy="48"  r="7" fill="#22d3ee" opacity="0.8"/>
+          <text x="96" y="52" text-anchor="middle" font-size="5" font-family="'Fira Code',monospace" font-weight="700" fill="white">RAG</text>
+        </g>
+        <g class="orbit-dot orbit-dot--3">
+          <circle cx="20"  cy="90"  r="6" fill="#a78bfa" opacity="0.7"/>
+          <!-- shield shape -->
+          <path d="M20,84 L25,87 L25,92 Q20,96 20,96 Q15,96 15,92 L15,87 Z" fill="white" opacity="0.85" transform="scale(0.6) translate(13,56)"/>
+        </g>
+        <g class="orbit-dot orbit-dot--3" style="animation-delay:-9s">
+          <circle cx="220" cy="150" r="6" fill="#fbbf24" opacity="0.7"/>
+          <!-- arrow-up / deploy icon -->
+          <polyline points="220,154 220,147 224,151 220,147 216,151" stroke="white" stroke-width="1.4" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+        </g>
+      </svg>
+      <!-- Skill bars -->
+      <div class="skills-bars" #skillBars>
+        <div class="skb-row">
+          <div class="skb-head">
+            <span class="skb-name"><span class="skb-svg-icon"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 2C5.5 2 4 3 4 4.5V6h4v.5H3C1.5 6.5 1 7.5 1 9s.8 2.5 2 2.5h1v-1.5c0-1 .8-1.5 2-1.5h3.5c1 0 1.5-.6 1.5-1.5V4.5C11 3 9.5 2 8 2zM6.5 4a.75.75 0 110 1.5.75.75 0 010-1.5z" fill="currentColor" opacity="0.9"/><path d="M8 14c2.5 0 4-1 4-2.5V10H8v-.5h5c1.5 0 2-1 2-2.5s-.8-2.5-2-2.5h-1v1.5c0 1-.8 1.5-2 1.5H6.5c-1 0-1.5.6-1.5 1.5v3C5 13 6.5 14 8 14zm1.5-2a.75.75 0 110-1.5.75.75 0 010 1.5z" fill="currentColor" opacity="0.7"/></svg></span>Python</span>
+            <span class="skb-pct" style="color:#a78bfa">97%</span>
+          </div>
+          <div class="skb-track"><div class="skb-fill skb-fill--purple" [style.width]="skillsVisible() ? '97%' : '0'"></div></div>
+          <span class="skb-tag">Breathing it since 2023</span>
+        </div>
+        <div class="skb-row">
+          <div class="skb-head">
+            <span class="skb-name"><span class="skb-svg-icon"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="2" fill="currentColor"/><circle cx="8" cy="2" r="1.5" fill="currentColor" opacity="0.8"/><circle cx="8" cy="14" r="1.5" fill="currentColor" opacity="0.8"/><circle cx="2" cy="5" r="1.5" fill="currentColor" opacity="0.8"/><circle cx="14" cy="5" r="1.5" fill="currentColor" opacity="0.8"/><circle cx="2" cy="11" r="1.5" fill="currentColor" opacity="0.8"/><circle cx="14" cy="11" r="1.5" fill="currentColor" opacity="0.8"/><line x1="8" y1="6" x2="8" y2="3.5" stroke="currentColor" stroke-width="1" opacity="0.6"/><line x1="8" y1="10" x2="8" y2="12.5" stroke="currentColor" stroke-width="1" opacity="0.6"/><line x1="6.3" y1="7" x2="3.2" y2="5.8" stroke="currentColor" stroke-width="1" opacity="0.6"/><line x1="9.7" y1="7" x2="12.8" y2="5.8" stroke="currentColor" stroke-width="1" opacity="0.6"/><line x1="6.3" y1="9" x2="3.2" y2="10.2" stroke="currentColor" stroke-width="1" opacity="0.6"/><line x1="9.7" y1="9" x2="12.8" y2="10.2" stroke="currentColor" stroke-width="1" opacity="0.6"/></svg></span>LangGraph</span>
+            <span class="skb-pct" style="color:#22d3ee">92%</span>
+          </div>
+          <div class="skb-track"><div class="skb-fill skb-fill--cyan" [style.width]="skillsVisible() ? '92%' : '0'"></div></div>
+          <span class="skb-tag">State machine poet 🎭</span>
+        </div>
+        <div class="skb-row">
+          <div class="skb-head">
+            <span class="skb-name"><span class="skb-svg-icon"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><polygon points="9,2 4,9 8,9 7,14 12,7 8,7" fill="currentColor" opacity="0.95"/></svg></span>FastAPI</span>
+            <span class="skb-pct" style="color:#fbbf24">95%</span>
+          </div>
+          <div class="skb-track"><div class="skb-fill skb-fill--amber" [style.width]="skillsVisible() ? '95%' : '0'"></div></div>
+          <span class="skb-tag">Auto-docs everything 📄</span>
+        </div>
+        <div class="skb-row">
+          <div class="skb-head">
+            <span class="skb-name"><span class="skb-svg-icon"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><polygon points="8,1 15,4 13,13 8,15 3,13 1,4" stroke="currentColor" stroke-width="1.2" fill="none" opacity="0.9"/><polygon points="8,3.5 11.5,12.5 10,12.5 9,10 7,10 6,12.5 4.5,12.5" fill="currentColor" opacity="0.85"/><line x1="6.5" y1="8.5" x2="9.5" y2="8.5" stroke="currentColor" stroke-width="1" opacity="0.6"/></svg></span>Angular</span>
+            <span class="skb-pct" style="color:#34d399">88%</span>
+          </div>
+          <div class="skb-track"><div class="skb-fill skb-fill--green" [style.width]="skillsVisible() ? '88%' : '0'"></div></div>
+          <span class="skb-tag">Signals believer since v17</span>
+        </div>
+        <div class="skb-row">
+          <div class="skb-head">
+            <span class="skb-name"><span class="skb-svg-icon"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="6.5" cy="6.5" r="4" stroke="currentColor" stroke-width="1.5" opacity="0.9"/><line x1="9.5" y1="9.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity="0.85"/><line x1="4" y1="6.5" x2="9" y2="6.5" stroke="currentColor" stroke-width="1" opacity="0.5"/><line x1="6.5" y1="4" x2="6.5" y2="9" stroke="currentColor" stroke-width="1" opacity="0.5"/></svg></span>Hybrid RAG</span>
+            <span class="skb-pct" style="color:#f87171">90%</span>
+          </div>
+          <div class="skb-track"><div class="skb-fill skb-fill--red" [style.width]="skillsVisible() ? '90%' : '0'"></div></div>
+          <span class="skb-tag">FAISS + BM25 + HyDE + CRAG</span>
+        </div>
+      </div>
+    </div>
+
     <div class="skills-grid">
       @for (skill of skills; track skill.title) {
         <div class="skill-card fade-up" #fadeEl>
@@ -189,6 +360,119 @@
     <div class="eyebrow">Engineering Evidence</div>
     <h2>Production AI Systems</h2>
     <p class="section-sub">Not demos. Not tutorials. Systems built, tested, and hardened for production.</p>
+
+    <!-- Animated AI Agent Constellation -->
+    <div class="projects-constellation fade-up" #fadeEl aria-hidden="true">
+      <svg class="pcon-svg" viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="pg1" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#a78bfa" stop-opacity="0.9"/><stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/></radialGradient>
+          <radialGradient id="pg2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#22d3ee" stop-opacity="0.9"/><stop offset="100%" stop-color="#0891b2" stop-opacity="0"/></radialGradient>
+          <radialGradient id="pg3" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fbbf24" stop-opacity="0.9"/><stop offset="100%" stop-color="#d97706" stop-opacity="0"/></radialGradient>
+          <radialGradient id="pg4" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#34d399" stop-opacity="0.9"/><stop offset="100%" stop-color="#059669" stop-opacity="0"/></radialGradient>
+        </defs>
+        <!-- Edges -->
+        <line x1="110" y1="90"  x2="50"  y2="40"  class="pcon-edge" style="stroke:#a78bfa;animation-delay:-1s"/>
+        <line x1="110" y1="90"  x2="170" y2="40"  class="pcon-edge" style="stroke:#22d3ee;animation-delay:-2s"/>
+        <line x1="110" y1="90"  x2="30"  y2="110" class="pcon-edge" style="stroke:#fbbf24;animation-delay:-3s"/>
+        <line x1="110" y1="90"  x2="190" y2="110" class="pcon-edge" style="stroke:#34d399;animation-delay:-0.5s"/>
+        <line x1="110" y1="90"  x2="70"  y2="155" class="pcon-edge" style="stroke:#a78bfa;animation-delay:-1.5s"/>
+        <line x1="110" y1="90"  x2="150" y2="155" class="pcon-edge" style="stroke:#22d3ee;animation-delay:-2.5s"/>
+        <line x1="110" y1="90"  x2="110" y2="20"  class="pcon-edge" style="stroke:#fbbf24;animation-delay:-0.8s"/>
+        <line x1="110" y1="90"  x2="200" y2="70"  class="pcon-edge" style="stroke:#34d399;animation-delay:-1.8s"/>
+        <!-- Center node — orchestrator gear -->
+        <circle cx="110" cy="90" r="22" fill="url(#pg1)" opacity="0.85"/>
+        <g transform="translate(98,78)" stroke="white" fill="none" stroke-width="1.8" opacity="0.92">
+          <circle cx="12" cy="12" r="4.5"/>
+          <line x1="12" y1="2"  x2="12" y2="5"/>  <line x1="12" y1="19" x2="12" y2="22"/>
+          <line x1="2"  y1="12" x2="5"  y2="12"/> <line x1="19" y1="12" x2="22" y2="12"/>
+          <line x1="4.9" y1="4.9" x2="7" y2="7"/> <line x1="17" y1="17" x2="19.1" y2="19.1"/>
+          <line x1="19.1" y1="4.9" x2="17" y2="7"/> <line x1="7" y1="17" x2="4.9" y2="19.1"/>
+        </g>
+        <!-- Satellite nodes — each with a clean SVG symbol -->
+        <!-- node 0: AI agent (robot head) -->
+        <g class="pcon-node">
+          <circle cx="50"  cy="40"  r="14" fill="url(#pg2)" class="pcon-node-circle pcon-n--0"/>
+          <g transform="translate(41,31)" fill="none" stroke="white" stroke-width="1.3" opacity="0.92">
+            <rect x="2" y="3" width="14" height="11" rx="3"/>
+            <circle cx="6" cy="8" r="1.5" fill="white" stroke="none"/>
+            <circle cx="12" cy="8" r="1.5" fill="white" stroke="none"/>
+            <line x1="9" y1="3" x2="9" y2="1"/>
+            <line x1="2" y1="14" x2="4" y2="17"/> <line x1="16" y1="14" x2="14" y2="17"/>
+          </g>
+        </g>
+        <!-- node 1: brain / LLM -->
+        <g class="pcon-node">
+          <circle cx="170" cy="40"  r="14" fill="url(#pg3)" class="pcon-node-circle pcon-n--1"/>
+          <g transform="translate(162,33)" fill="white" opacity="0.9">
+            <circle cx="4" cy="4" r="2.2"/><circle cx="12" cy="4" r="2.2"/><circle cx="8" cy="11" r="2.2"/>
+            <line x1="4" y1="4" x2="12" y2="4" stroke="white" stroke-width="1.1"/><line x1="4" y1="4" x2="8" y2="11" stroke="white" stroke-width="1.1"/><line x1="12" y1="4" x2="8" y2="11" stroke="white" stroke-width="1.1"/>
+          </g>
+        </g>
+        <!-- node 2: guardrail shield -->
+        <g class="pcon-node">
+          <circle cx="30"  cy="110" r="13" fill="url(#pg4)" class="pcon-node-circle pcon-n--2"/>
+          <g transform="translate(22,102)" fill="none" stroke="white" stroke-width="1.4" opacity="0.92">
+            <path d="M8,1 L15,4 L15,9 Q8,16 8,16 Q1,16 1,9 L1,4 Z"/>
+            <path d="M5,8 L7,10 L11,6" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+          </g>
+        </g>
+        <!-- node 3: lightning / fast -->
+        <g class="pcon-node">
+          <circle cx="190" cy="110" r="13" fill="url(#pg1)" class="pcon-node-circle pcon-n--3"/>
+          <polygon points="190,98 185,109 190,109 190,122 195,111 190,111" fill="white" opacity="0.92"/>
+        </g>
+        <!-- node 4: search / RAG -->
+        <g class="pcon-node">
+          <circle cx="70"  cy="155" r="12" fill="url(#pg2)" class="pcon-node-circle pcon-n--4"/>
+          <g transform="translate(62,147)" fill="none" stroke="white" stroke-width="1.4" opacity="0.92">
+            <circle cx="7" cy="7" r="4.5"/>
+            <line x1="10.5" y1="10.5" x2="15" y2="15" stroke-linecap="round"/>
+          </g>
+        </g>
+        <!-- node 5: chart / metrics -->
+        <g class="pcon-node">
+          <circle cx="150" cy="155" r="12" fill="url(#pg3)" class="pcon-node-circle pcon-n--5"/>
+          <g transform="translate(142,147)" fill="white" opacity="0.88">
+            <rect x="2" y="10" width="3" height="5" rx="0.5"/>
+            <rect x="6.5" y="6" width="3" height="9" rx="0.5"/>
+            <rect x="11" y="3" width="3" height="12" rx="0.5"/>
+            <line x1="1" y1="16" x2="16" y2="16" stroke="white" stroke-width="1"/>
+          </g>
+        </g>
+        <!-- node 6: lock / security -->
+        <g class="pcon-node">
+          <circle cx="110" cy="20"  r="12" fill="url(#pg4)" class="pcon-node-circle pcon-n--6"/>
+          <g transform="translate(103,12)" fill="none" stroke="white" stroke-width="1.4" opacity="0.92">
+            <rect x="2" y="7" width="10" height="8" rx="1.5"/>
+            <path d="M4,7 L4,4.5 Q7,1 10,4.5 L10,7"/>
+            <circle cx="7" cy="11" r="1.2" fill="white" stroke="none"/>
+          </g>
+        </g>
+        <!-- node 7: database / memory -->
+        <g class="pcon-node">
+          <circle cx="200" cy="70"  r="11" fill="url(#pg1)" class="pcon-node-circle pcon-n--7"/>
+          <g transform="translate(193,62)" fill="none" stroke="white" stroke-width="1.3" opacity="0.92">
+            <ellipse cx="7" cy="3.5" rx="5" ry="2"/>
+            <line x1="2" y1="3.5" x2="2" y2="13.5"/><line x1="12" y1="3.5" x2="12" y2="13.5"/>
+            <ellipse cx="7" cy="8.5" rx="5" ry="2"/>
+            <ellipse cx="7" cy="13.5" rx="5" ry="2"/>
+          </g>
+        </g>
+      </svg>
+      <div class="pcon-legend">
+        <div class="pcon-title">Every project ships with:</div>
+        <div class="pcon-items">
+          <div class="pcon-item"><span class="pcon-dot" style="background:#a78bfa"></span>Orchestrator</div>
+          <div class="pcon-item"><span class="pcon-dot" style="background:#22d3ee;animation-delay:.3s"></span>RAG Brain</div>
+          <div class="pcon-item"><span class="pcon-dot" style="background:#fbbf24;animation-delay:.6s"></span>Guardrails</div>
+          <div class="pcon-item"><span class="pcon-dot" style="background:#34d399;animation-delay:.9s"></span>Streaming</div>
+          <div class="pcon-item"><span class="pcon-dot" style="background:#a78bfa;animation-delay:1.2s"></span>Retriever</div>
+          <div class="pcon-item"><span class="pcon-dot" style="background:#22d3ee;animation-delay:1.5s"></span>Evaluator</div>
+          <div class="pcon-item"><span class="pcon-dot" style="background:#fbbf24;animation-delay:1.8s"></span>Auth Gate</div>
+          <div class="pcon-item"><span class="pcon-dot" style="background:#34d399;animation-delay:2.1s"></span>Memory</div>
+        </div>
+      </div>
+    </div>
 
     @for (project of projects; track project.num) {
       <div class="project-card fade-up" #fadeEl [ngClass]="'accent-' + project.accent" [id]="'project-' + project.num">
@@ -291,6 +575,118 @@
     <div class="eyebrow">Career Timeline</div>
     <h2>Professional Experience</h2>
 
+    <!-- Animated career rocket strip -->
+    <div class="exp-rocket-strip fade-up" #fadeEl aria-hidden="true">
+
+      <!-- Step 1: Flyboard Ventures — seed sprout / growth -->
+      <div class="ers-step ers-step--1">
+        <span class="ers-svg-icon">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- ground -->
+            <line x1="8" y1="40" x2="40" y2="40" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+            <!-- stem -->
+            <path d="M24 40 Q24 28 24 20" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <!-- left leaf -->
+            <path d="M24 30 Q16 26 12 18 Q18 16 24 24" fill="currentColor" opacity="0.7"/>
+            <!-- right leaf -->
+            <path d="M24 26 Q32 20 36 12 Q30 11 24 20" fill="currentColor" opacity="0.85"/>
+            <!-- bud at top -->
+            <circle cx="24" cy="17" r="3.5" fill="currentColor" opacity="0.9"/>
+            <circle cx="24" cy="17" r="1.5" fill="currentColor"/>
+          </svg>
+        </span>
+        <div class="ers-role">Junior Dev</div>
+        <div class="ers-co">Flyboard Ventures</div>
+        <div class="ers-year">Aug 2022</div>
+      </div>
+
+      <!-- Step 2: Texala — gear / backend engineering -->
+      <div class="ers-step ers-step--2">
+        <span class="ers-svg-icon">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- outer gear ring -->
+            <circle cx="24" cy="24" r="10" stroke="currentColor" stroke-width="2.5"/>
+            <!-- inner hub -->
+            <circle cx="24" cy="24" r="4" fill="currentColor" opacity="0.85"/>
+            <!-- 8 gear teeth -->
+            <g stroke="currentColor" stroke-width="3" stroke-linecap="round">
+              <line x1="24" y1="8"  x2="24" y2="12"/>
+              <line x1="24" y1="36" x2="24" y2="40"/>
+              <line x1="8"  y1="24" x2="12" y2="24"/>
+              <line x1="36" y1="24" x2="40" y2="24"/>
+              <line x1="12.7" y1="12.7" x2="15.5" y2="15.5"/>
+              <line x1="32.5" y1="32.5" x2="35.3" y2="35.3"/>
+              <line x1="35.3" y1="12.7" x2="32.5" y2="15.5"/>
+              <line x1="15.5" y1="32.5" x2="12.7" y2="35.3"/>
+            </g>
+          </svg>
+        </span>
+        <div class="ers-role">Software Engineer</div>
+        <div class="ers-co">Texala</div>
+        <div class="ers-year">Jul 2023</div>
+      </div>
+
+      <!-- Step 3: Accelya — aviation / circuit board hybrid -->
+      <div class="ers-step ers-step--3">
+        <span class="ers-svg-icon">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- fuselage -->
+            <path d="M6 26 Q14 20 24 20 Q34 20 42 24 Q38 28 24 28 Q14 28 6 26Z" fill="currentColor" opacity="0.85"/>
+            <!-- left wing -->
+            <path d="M18 24 L8 38 L24 30Z" fill="currentColor" opacity="0.7"/>
+            <!-- right wing -->
+            <path d="M28 22 L38 10 L32 22Z" fill="currentColor" opacity="0.7"/>
+            <!-- tail fin -->
+            <path d="M40 24 L44 16 L42 24Z" fill="currentColor" opacity="0.75"/>
+            <!-- cockpit window -->
+            <ellipse cx="38" cy="24" rx="2.5" ry="2" fill="currentColor" opacity="0.3"/>
+            <!-- circuit dots on fuselage -->
+            <circle cx="20" cy="24" r="1.2" fill="currentColor" opacity="0.5"/>
+            <circle cx="25" cy="24" r="1.2" fill="currentColor" opacity="0.5"/>
+            <circle cx="30" cy="24" r="1.2" fill="currentColor" opacity="0.5"/>
+          </svg>
+        </span>
+        <div class="ers-role">SWE · Aviation AI</div>
+        <div class="ers-co">Nexsys — Accelya</div>
+        <div class="ers-year">Dec 2023</div>
+      </div>
+
+      <!-- Step 4: Infosys / BoA — AI brain / neural network -->
+      <div class="ers-step ers-step--4">
+        <span class="ers-svg-icon">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- central node -->
+            <circle cx="24" cy="24" r="5" fill="currentColor"/>
+            <!-- ring glow -->
+            <circle cx="24" cy="24" r="8" stroke="currentColor" stroke-width="1" opacity="0.35" stroke-dasharray="3 2"/>
+            <!-- 6 satellite nodes -->
+            <circle cx="24" cy="10" r="3" fill="currentColor" opacity="0.85"/>
+            <circle cx="24" cy="38" r="3" fill="currentColor" opacity="0.85"/>
+            <circle cx="10" cy="17" r="3" fill="currentColor" opacity="0.85"/>
+            <circle cx="38" cy="17" r="3" fill="currentColor" opacity="0.85"/>
+            <circle cx="10" cy="31" r="3" fill="currentColor" opacity="0.85"/>
+            <circle cx="38" cy="31" r="3" fill="currentColor" opacity="0.85"/>
+            <!-- edges to center -->
+            <g stroke="currentColor" stroke-width="1.5" opacity="0.55">
+              <line x1="24" y1="19" x2="24" y2="13"/>
+              <line x1="24" y1="29" x2="24" y2="35"/>
+              <line x1="19" y1="21" x2="13" y2="19"/>
+              <line x1="29" y1="21" x2="35" y2="19"/>
+              <line x1="19" y1="27" x2="13" y2="29"/>
+              <line x1="29" y1="27" x2="35" y2="29"/>
+            </g>
+            <!-- pulse ring -->
+            <circle cx="24" cy="24" r="13" stroke="currentColor" stroke-width="0.8" opacity="0.2"/>
+          </svg>
+        </span>
+        <div class="ers-role">Senior AI Engineer</div>
+        <div class="ers-co">Infosys — Bank of America</div>
+        <div class="ers-year">NOW ✦</div>
+      </div>
+
+      <div class="ers-quip">Plot twist: mechanical engineer → AI Engineer. No CS degree required.</div>
+    </div>
+
     <div class="timeline">
       @for (job of experience; track job.company) {
         <div class="tl-item fade-up" #fadeEl>
@@ -312,121 +708,147 @@
                   <li>{{ pt }}</li>
                 }
               </ul>
-              <!-- City skyline silhouette -->
-              <div class="tl-city" [attr.aria-label]="job.location">
-                @if (job.location === 'Pune, India') {
-                  <!-- Pune skyline: Shaniwar Wada + modern towers -->
-                  <svg viewBox="0 0 220 90" width="100%" height="80" preserveAspectRatio="xMidYMid meet" fill="none" xmlns="http://www.w3.org/2000/svg" class="city-svg">
-                    <!-- Ground -->
-                    <line x1="0" y1="85" x2="220" y2="85" stroke="currentColor" stroke-width="1.5" opacity="0.4"/>
-                    <!-- Shaniwar Wada fort gate (left) -->
-                    <rect x="10" y="50" width="30" height="35" rx="1" fill="currentColor" opacity="0.18"/>
-                    <polygon points="10,50 25,35 40,50" fill="currentColor" opacity="0.25"/>
-                    <rect x="22" y="38" width="6" height="12" rx="1" fill="currentColor" opacity="0.35"/>
-                    <rect x="18" y="55" width="5" height="10" fill="currentColor" opacity="0.35"/>
-                    <rect x="27" y="55" width="5" height="10" fill="currentColor" opacity="0.35"/>
-                    <!-- Mid buildings -->
-                    <rect x="50" y="40" width="18" height="45" rx="2" fill="currentColor" opacity="0.15"/>
-                    <rect x="54" y="36" width="10" height="4" rx="1" fill="currentColor" opacity="0.2"/>
-                    <rect x="72" y="55" width="14" height="30" rx="2" fill="currentColor" opacity="0.12"/>
-                    <!-- Tall IT towers (Hinjewadi vibe) -->
-                    <rect x="95" y="25" width="20" height="60" rx="2" fill="currentColor" opacity="0.18"/>
-                    <rect x="99" y="20" width="12" height="5" rx="1" fill="currentColor" opacity="0.22"/>
-                    <line x1="105" y1="20" x2="105" y2="14" stroke="currentColor" stroke-width="1.5" opacity="0.3"/>
-                    <rect x="120" y="35" width="18" height="50" rx="2" fill="currentColor" opacity="0.15"/>
-                    <rect x="142" y="30" width="22" height="55" rx="2" fill="currentColor" opacity="0.18"/>
-                    <rect x="146" y="25" width="14" height="5" rx="1" fill="currentColor" opacity="0.22"/>
-                    <!-- Sinhagad hill silhouette (right) -->
-                    <path d="M170,85 Q185,45 200,40 Q210,38 220,55 L220,85 Z" fill="currentColor" opacity="0.1"/>
-                    <rect x="196" y="35" width="4" height="10" fill="currentColor" opacity="0.25"/>
-                    <!-- Windows dots -->
-                    <rect x="99" y="30" width="3" height="2" rx="0.5" fill="currentColor" opacity="0.4"/>
-                    <rect x="106" y="30" width="3" height="2" rx="0.5" fill="currentColor" opacity="0.4"/>
-                    <rect x="99" y="38" width="3" height="2" rx="0.5" fill="currentColor" opacity="0.4"/>
-                    <rect x="106" y="38" width="3" height="2" rx="0.5" fill="currentColor" opacity="0.4"/>
-                    <rect x="146" y="35" width="3" height="2" rx="0.5" fill="currentColor" opacity="0.4"/>
-                    <rect x="153" y="35" width="3" height="2" rx="0.5" fill="currentColor" opacity="0.4"/>
-                    <!-- City label -->
-                    <text x="110" y="82" text-anchor="middle" font-size="8" font-family="'Fira Code', monospace" font-weight="600" fill="currentColor" opacity="0.55" letter-spacing="2">PUNE</text>
-                  </svg>
-                }
-                @if (job.location === 'Mumbai, India') {
-                  <!-- Mumbai skyline: Bandra-Worli sea link + towers -->
-                  <svg viewBox="0 0 220 90" width="100%" height="80" preserveAspectRatio="xMidYMid meet" fill="none" xmlns="http://www.w3.org/2000/svg" class="city-svg">
-                    <!-- Sea / water -->
-                    <path d="M0,75 Q55,70 110,75 Q165,80 220,75 L220,90 L0,90 Z" fill="currentColor" opacity="0.07"/>
-                    <!-- Sea Link cables left tower -->
-                    <rect x="15" y="30" width="8" height="55" rx="1" fill="currentColor" opacity="0.2"/>
-                    <line x1="19" y1="30" x2="19" y2="22" stroke="currentColor" stroke-width="1.5" opacity="0.3"/>
-                    <!-- Sea Link cables -->
-                    <path d="M19,28 Q40,55 60,75" stroke="currentColor" stroke-width="1" opacity="0.2" fill="none"/>
-                    <path d="M19,28 Q30,50 45,75" stroke="currentColor" stroke-width="1" opacity="0.15" fill="none"/>
-                    <!-- Sea Link right tower -->
-                    <rect x="60" y="35" width="8" height="50" rx="1" fill="currentColor" opacity="0.2"/>
-                    <line x1="64" y1="35" x2="64" y2="27" stroke="currentColor" stroke-width="1.5" opacity="0.3"/>
-                    <path d="M64,33 Q80,55 95,75" stroke="currentColor" stroke-width="1" opacity="0.2" fill="none"/>
-                    <path d="M64,33 Q76,52 88,75" stroke="currentColor" stroke-width="1" opacity="0.15" fill="none"/>
-                    <!-- Antilia-style supertall -->
-                    <rect x="100" y="10" width="22" height="65" rx="2" fill="currentColor" opacity="0.18"/>
-                    <rect x="104" y="6" width="14" height="4" rx="1" fill="currentColor" opacity="0.22"/>
-                    <!-- BKC towers -->
-                    <rect x="128" y="28" width="16" height="47" rx="2" fill="currentColor" opacity="0.15"/>
-                    <rect x="148" y="35" width="14" height="40" rx="2" fill="currentColor" opacity="0.13"/>
-                    <rect x="166" y="20" width="18" height="55" rx="2" fill="currentColor" opacity="0.18"/>
-                    <rect x="170" y="15" width="10" height="5" rx="1" fill="currentColor" opacity="0.22"/>
-                    <line x1="175" y1="15" x2="175" y2="8" stroke="currentColor" stroke-width="1.5" opacity="0.3"/>
-                    <!-- Gateway of India hint (far right small) -->
-                    <rect x="196" y="55" width="20" height="30" rx="1" fill="currentColor" opacity="0.12"/>
-                    <path d="M196,55 Q206,45 216,55" fill="currentColor" opacity="0.18"/>
-                    <!-- Windows -->
-                    <rect x="104" y="15" width="3" height="2" rx="0.5" fill="currentColor" opacity="0.4"/>
-                    <rect x="111" y="15" width="3" height="2" rx="0.5" fill="currentColor" opacity="0.4"/>
-                    <rect x="104" y="24" width="3" height="2" rx="0.5" fill="currentColor" opacity="0.4"/>
-                    <rect x="111" y="24" width="3" height="2" rx="0.5" fill="currentColor" opacity="0.4"/>
-                    <rect x="170" y="25" width="3" height="2" rx="0.5" fill="currentColor" opacity="0.4"/>
-                    <rect x="177" y="25" width="3" height="2" rx="0.5" fill="currentColor" opacity="0.4"/>
-                    <!-- Ground -->
-                    <line x1="0" y1="85" x2="220" y2="85" stroke="currentColor" stroke-width="1.5" opacity="0.4"/>
-                    <!-- City label -->
-                    <text x="110" y="82" text-anchor="middle" font-size="8" font-family="'Fira Code', monospace" font-weight="600" fill="currentColor" opacity="0.55" letter-spacing="2">MUMBAI</text>
-                  </svg>
-                }
-                @if (job.location === 'Chandigarh, India') {
-                  <!-- Chandigarh: Capitol Complex + grid city + Rose Garden -->
-                  <svg viewBox="0 0 220 90" width="100%" height="80" preserveAspectRatio="xMidYMid meet" fill="none" xmlns="http://www.w3.org/2000/svg" class="city-svg">
-                    <!-- Ground -->
-                    <line x1="0" y1="85" x2="220" y2="85" stroke="currentColor" stroke-width="1.5" opacity="0.4"/>
-                    <!-- Capitol Complex (Le Corbusier style flat roof) -->
-                    <rect x="8" y="45" width="55" height="40" rx="1" fill="currentColor" opacity="0.13"/>
-                    <rect x="5" y="42" width="61" height="6" rx="1" fill="currentColor" opacity="0.22"/>
-                    <rect x="14" y="35" width="12" height="10" rx="1" fill="currentColor" opacity="0.2"/>
-                    <rect x="44" y="35" width="12" height="10" rx="1" fill="currentColor" opacity="0.2"/>
-                    <line x1="14" y1="35" x2="56" y2="35" stroke="currentColor" stroke-width="1" opacity="0.15"/>
-                    <!-- Open Hand Monument -->
-                    <line x1="90" y1="85" x2="90" y2="30" stroke="currentColor" stroke-width="2" opacity="0.25"/>
-                    <path d="M83,34 Q90,22 97,34" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.3"/>
-                    <path d="M87,34 Q84,28 88,26" stroke="currentColor" stroke-width="1" fill="none" opacity="0.25"/>
-                    <path d="M93,34 Q96,28 92,26" stroke="currentColor" stroke-width="1" fill="none" opacity="0.25"/>
-                    <!-- Sukhna Lake hint -->
-                    <path d="M105,80 Q130,74 160,78 Q185,81 210,78 L210,85 L105,85 Z" fill="currentColor" opacity="0.08"/>
-                    <!-- Grid city buildings (planned city symmetry) -->
-                    <rect x="108" y="50" width="14" height="35" rx="2" fill="currentColor" opacity="0.15"/>
-                    <rect x="126" y="42" width="14" height="43" rx="2" fill="currentColor" opacity="0.15"/>
-                    <rect x="144" y="55" width="14" height="30" rx="2" fill="currentColor" opacity="0.12"/>
-                    <rect x="162" y="45" width="14" height="40" rx="2" fill="currentColor" opacity="0.15"/>
-                    <rect x="180" y="38" width="14" height="47" rx="2" fill="currentColor" opacity="0.15"/>
-                    <!-- Sector grid lines (subtle) -->
-                    <line x1="108" y1="62" x2="194" y2="62" stroke="currentColor" stroke-width="0.5" opacity="0.08"/>
-                    <!-- Windows -->
-                    <rect x="112" y="55" width="3" height="2" rx="0.5" fill="currentColor" opacity="0.4"/>
-                    <rect x="130" y="47" width="3" height="2" rx="0.5" fill="currentColor" opacity="0.4"/>
-                    <rect x="166" y="50" width="3" height="2" rx="0.5" fill="currentColor" opacity="0.4"/>
-                    <rect x="184" y="43" width="3" height="2" rx="0.5" fill="currentColor" opacity="0.4"/>
-                    <!-- City label -->
-                    <text x="110" y="82" text-anchor="middle" font-size="8" font-family="'Fira Code', monospace" font-weight="600" fill="currentColor" opacity="0.55" letter-spacing="2">CHANDIGARH</text>
-                  </svg>
-                }
-              </div>
+            </div>
+            <!-- City skyline — full width below bullet points -->
+            <div class="tl-city-strip" [attr.aria-label]="job.location">
+              @if (job.location === 'Pune, India') {
+                <!-- Ground=65, all buildings terminate at y=65, text at y=78, viewBox height=82 -->
+                <svg viewBox="0 0 600 82" width="100%" height="82" preserveAspectRatio="xMidYMid meet" fill="none" xmlns="http://www.w3.org/2000/svg" class="city-svg city-svg-strip">
+                  <!-- Shaniwar Wada fort (left) -->
+                  <rect x="10" y="38" width="36" height="27" rx="1" fill="currentColor" opacity="0.18"/>
+                  <polygon points="10,38 28,22 46,38" fill="currentColor" opacity="0.28"/>
+                  <rect x="24" y="26" width="8" height="12" rx="1" fill="currentColor" opacity="0.38"/>
+                  <rect x="16" y="44" width="5" height="9" fill="currentColor" opacity="0.35"/>
+                  <rect x="35" y="44" width="5" height="9" fill="currentColor" opacity="0.35"/>
+                  <!-- Mid buildings — all bottom at y=65 -->
+                  <rect x="55"  y="38" width="20" height="27" rx="2" fill="currentColor" opacity="0.15"/>
+                  <rect x="80"  y="48" width="18" height="17" rx="2" fill="currentColor" opacity="0.12"/>
+                  <rect x="103" y="42" width="16" height="23" rx="2" fill="currentColor" opacity="0.14"/>
+                  <!-- Hinjewadi IT towers -->
+                  <rect x="130" y="18" width="22" height="47" rx="2" fill="currentColor" opacity="0.20"/>
+                  <rect x="135" y="12" width="12" height="6" rx="1" fill="currentColor" opacity="0.24"/>
+                  <line x1="141" y1="12" x2="141" y2="5" stroke="currentColor" stroke-width="1.8" opacity="0.3"/>
+                  <rect x="157" y="28" width="20" height="37" rx="2" fill="currentColor" opacity="0.17"/>
+                  <rect x="182" y="14" width="24" height="51" rx="2" fill="currentColor" opacity="0.20"/>
+                  <rect x="187" y="8"  width="14" height="6" rx="1" fill="currentColor" opacity="0.25"/>
+                  <rect x="211" y="26" width="20" height="39" rx="2" fill="currentColor" opacity="0.15"/>
+                  <!-- Central towers -->
+                  <rect x="240" y="20" width="22" height="45" rx="2" fill="currentColor" opacity="0.18"/>
+                  <rect x="267" y="30" width="18" height="35" rx="2" fill="currentColor" opacity="0.15"/>
+                  <rect x="290" y="14" width="24" height="51" rx="2" fill="currentColor" opacity="0.20"/>
+                  <rect x="319" y="32" width="18" height="33" rx="2" fill="currentColor" opacity="0.14"/>
+                  <rect x="342" y="22" width="22" height="43" rx="2" fill="currentColor" opacity="0.17"/>
+                  <rect x="369" y="36" width="16" height="29" rx="2" fill="currentColor" opacity="0.13"/>
+                  <rect x="390" y="26" width="20" height="39" rx="2" fill="currentColor" opacity="0.16"/>
+                  <!-- Sinhagad hill (right) — terminates at y=65 -->
+                  <path d="M420,65 Q450,30 480,24 Q505,18 540,36 Q560,46 600,42 L600,65 Z" fill="currentColor" opacity="0.10"/>
+                  <rect x="476" y="18" width="5" height="10" fill="currentColor" opacity="0.28"/>
+                  <!-- Windows -->
+                  <rect x="135" y="24" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.45"/>
+                  <rect x="145" y="24" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.45"/>
+                  <rect x="188" y="18" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.45"/>
+                  <rect x="198" y="18" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.45"/>
+                  <rect x="245" y="26" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.4"/>
+                  <rect x="295" y="20" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.4"/>
+                  <!-- Ground line at y=65 -->
+                  <line x1="0" y1="65" x2="600" y2="65" stroke="currentColor" stroke-width="1.5" opacity="0.35"/>
+                  <text x="300" y="78" text-anchor="middle" font-size="8" font-family="'Fira Code', monospace" font-weight="700" fill="currentColor" opacity="0.65" letter-spacing="3">PUNE</text>
+                </svg>
+              }
+              @if (job.location === 'Mumbai, India') {
+                <!-- Ground=65, all buildings terminate at y=65, text at y=78 -->
+                <svg viewBox="0 0 600 82" width="100%" height="82" preserveAspectRatio="xMidYMid meet" fill="none" xmlns="http://www.w3.org/2000/svg" class="city-svg city-svg-strip">
+                  <!-- Sea water hint -->
+                  <path d="M0,58 Q150,52 300,56 Q450,60 600,56 L600,65 L0,65 Z" fill="currentColor" opacity="0.06"/>
+                  <!-- Bandra-Worli Sea Link left tower -->
+                  <rect x="8"  y="18" width="9" height="47" rx="1" fill="currentColor" opacity="0.22"/>
+                  <line x1="12" y1="18" x2="12" y2="8" stroke="currentColor" stroke-width="2" opacity="0.3"/>
+                  <path d="M12,16 Q50,38 88,60"  stroke="currentColor" stroke-width="1.2" opacity="0.22" fill="none"/>
+                  <path d="M12,16 Q44,36 72,60"  stroke="currentColor" stroke-width="1"   opacity="0.16" fill="none"/>
+                  <path d="M12,16 Q36,34 58,60"  stroke="currentColor" stroke-width="0.8" opacity="0.12" fill="none"/>
+                  <!-- Sea Link right tower -->
+                  <rect x="88" y="24" width="9" height="41" rx="1" fill="currentColor" opacity="0.22"/>
+                  <line x1="92" y1="24" x2="92" y2="14" stroke="currentColor" stroke-width="2" opacity="0.3"/>
+                  <path d="M92,22 Q118,40 142,60" stroke="currentColor" stroke-width="1.2" opacity="0.22" fill="none"/>
+                  <path d="M92,22 Q114,38 132,60" stroke="currentColor" stroke-width="1"   opacity="0.16" fill="none"/>
+                  <!-- Antilia supertall — bottom at 65 -->
+                  <rect x="162" y="4"  width="26" height="61" rx="2" fill="currentColor" opacity="0.20"/>
+                  <rect x="167" y="0"  width="16" height="4"  rx="1" fill="currentColor" opacity="0.25"/>
+                  <!-- BKC cluster -->
+                  <rect x="195" y="18" width="18" height="47" rx="2" fill="currentColor" opacity="0.17"/>
+                  <rect x="218" y="26" width="16" height="39" rx="2" fill="currentColor" opacity="0.15"/>
+                  <rect x="239" y="12" width="20" height="53" rx="2" fill="currentColor" opacity="0.20"/>
+                  <rect x="244" y="6"  width="10" height="6"  rx="1" fill="currentColor" opacity="0.25"/>
+                  <line x1="249" y1="6" x2="249" y2="0" stroke="currentColor" stroke-width="1.5" opacity="0.3"/>
+                  <!-- Central towers -->
+                  <rect x="265" y="24" width="18" height="41" rx="2" fill="currentColor" opacity="0.16"/>
+                  <rect x="288" y="32" width="16" height="33" rx="2" fill="currentColor" opacity="0.14"/>
+                  <rect x="309" y="16" width="20" height="49" rx="2" fill="currentColor" opacity="0.18"/>
+                  <rect x="334" y="28" width="16" height="37" rx="2" fill="currentColor" opacity="0.15"/>
+                  <rect x="355" y="20" width="18" height="45" rx="2" fill="currentColor" opacity="0.17"/>
+                  <!-- Gateway of India -->
+                  <rect x="390" y="38" width="28" height="27" rx="1" fill="currentColor" opacity="0.14"/>
+                  <path d="M390,38 Q404,24 418,38" fill="currentColor" opacity="0.20"/>
+                  <rect x="402" y="22" width="6" height="16" rx="1" fill="currentColor" opacity="0.22"/>
+                  <!-- More skyline -->
+                  <rect x="428" y="30" width="18" height="35" rx="2" fill="currentColor" opacity="0.15"/>
+                  <rect x="451" y="22" width="18" height="43" rx="2" fill="currentColor" opacity="0.16"/>
+                  <rect x="474" y="34" width="16" height="31" rx="2" fill="currentColor" opacity="0.13"/>
+                  <rect x="495" y="26" width="18" height="39" rx="2" fill="currentColor" opacity="0.15"/>
+                  <rect x="518" y="18" width="20" height="47" rx="2" fill="currentColor" opacity="0.16"/>
+                  <rect x="543" y="30" width="16" height="35" rx="2" fill="currentColor" opacity="0.14"/>
+                  <rect x="564" y="22" width="20" height="43" rx="2" fill="currentColor" opacity="0.15"/>
+                  <!-- Windows -->
+                  <rect x="167" y="10" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.45"/>
+                  <rect x="177" y="10" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.45"/>
+                  <rect x="244" y="14" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.45"/>
+                  <rect x="254" y="14" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.45"/>
+                  <rect x="314" y="22" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.4"/>
+                  <rect x="455" y="28" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.4"/>
+                  <!-- Ground line at y=65 -->
+                  <line x1="0" y1="65" x2="600" y2="65" stroke="currentColor" stroke-width="1.5" opacity="0.35"/>
+                  <text x="300" y="78" text-anchor="middle" font-size="8" font-family="'Fira Code', monospace" font-weight="700" fill="currentColor" opacity="0.65" letter-spacing="3">MUMBAI</text>
+                </svg>
+              }
+              @if (job.location === 'Chandigarh, India') {
+                <!-- Ground=65, all buildings terminate at y=65, text at y=78 -->
+                <svg viewBox="0 0 600 82" width="100%" height="82" preserveAspectRatio="xMidYMid meet" fill="none" xmlns="http://www.w3.org/2000/svg" class="city-svg city-svg-strip">
+                  <!-- Capitol Complex flat roof — bottom at y=65 -->
+                  <rect x="8"  y="34" width="70" height="31" rx="1" fill="currentColor" opacity="0.13"/>
+                  <rect x="5"  y="30" width="76" height="6"  rx="1" fill="currentColor" opacity="0.22"/>
+                  <rect x="14" y="22" width="14" height="10" rx="1" fill="currentColor" opacity="0.22"/>
+                  <rect x="54" y="22" width="14" height="10" rx="1" fill="currentColor" opacity="0.22"/>
+                  <!-- Open Hand Monument — pole terminates at y=65 -->
+                  <line x1="108" y1="65" x2="108" y2="18" stroke="currentColor" stroke-width="2.5" opacity="0.28"/>
+                  <path d="M99,22 Q108,8 117,22"  stroke="currentColor" stroke-width="2"   fill="none" opacity="0.35"/>
+                  <path d="M103,22 Q100,14 104,11" stroke="currentColor" stroke-width="1.2" fill="none" opacity="0.28"/>
+                  <path d="M113,22 Q116,14 112,11" stroke="currentColor" stroke-width="1.2" fill="none" opacity="0.28"/>
+                  <!-- Sukhna Lake — flush with ground -->
+                  <path d="M140,60 Q200,54 270,58 Q340,62 410,58 L410,65 L140,65 Z" fill="currentColor" opacity="0.07"/>
+                  <!-- Grid city — all bottom at y=65 -->
+                  <rect x="145" y="40" width="18" height="25" rx="2" fill="currentColor" opacity="0.16"/>
+                  <rect x="168" y="30" width="18" height="35" rx="2" fill="currentColor" opacity="0.16"/>
+                  <rect x="191" y="44" width="18" height="21" rx="2" fill="currentColor" opacity="0.13"/>
+                  <rect x="214" y="32" width="18" height="33" rx="2" fill="currentColor" opacity="0.16"/>
+                  <rect x="237" y="22" width="20" height="43" rx="2" fill="currentColor" opacity="0.18"/>
+                  <rect x="262" y="36" width="18" height="29" rx="2" fill="currentColor" opacity="0.15"/>
+                  <rect x="285" y="26" width="20" height="39" rx="2" fill="currentColor" opacity="0.17"/>
+                  <rect x="310" y="40" width="16" height="25" rx="2" fill="currentColor" opacity="0.14"/>
+                  <rect x="331" y="30" width="20" height="35" rx="2" fill="currentColor" opacity="0.16"/>
+                  <rect x="356" y="18" width="22" height="47" rx="2" fill="currentColor" opacity="0.19"/>
+                  <rect x="383" y="32" width="18" height="33" rx="2" fill="currentColor" opacity="0.15"/>
+                  <!-- Shivalik hills — terminate at y=65 -->
+                  <path d="M415,65 Q445,28 472,20 Q496,14 522,30 Q542,40 580,36 L600,38 L600,65 Z" fill="currentColor" opacity="0.09"/>
+                  <!-- Windows -->
+                  <rect x="149" y="46" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.4"/>
+                  <rect x="241" y="28" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.4"/>
+                  <rect x="289" y="32" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.4"/>
+                  <rect x="360" y="24" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.4"/>
+                  <!-- Ground line at y=65 -->
+                  <line x1="0" y1="65" x2="600" y2="65" stroke="currentColor" stroke-width="1.5" opacity="0.35"/>
+                  <text x="300" y="78" text-anchor="middle" font-size="8" font-family="'Fira Code', monospace" font-weight="700" fill="currentColor" opacity="0.65" letter-spacing="3">CHANDIGARH</text>
+                </svg>
+              }
             </div>
           </div>
         </div>
@@ -494,6 +916,99 @@
 <!-- STORY -->
 <section id="story" class="story-section" data-guide="story">
   <div class="container">
+
+    <!-- Animated Journey Timeline -->
+    <div class="story-timeline fade-up" #fadeEl aria-hidden="true">
+      <div class="stl-step stl-step--1">
+        <!-- confused / error state: terminal with X -->
+        <span class="stl-svg-icon">
+          <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="7" width="32" height="24" rx="4" stroke="currentColor" stroke-width="2"/>
+            <rect x="4" y="7" width="32" height="7" rx="4" fill="currentColor" opacity="0.2"/>
+            <circle cx="10" cy="10.5" r="1.5" fill="currentColor" opacity="0.6"/>
+            <circle cx="15" cy="10.5" r="1.5" fill="currentColor" opacity="0.4"/>
+            <line x1="14" y1="19" x2="22" y2="27" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.85"/>
+            <line x1="22" y1="19" x2="14" y2="27" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.85"/>
+          </svg>
+        </span>
+        <div class="stl-label">Day 1: NPE??</div>
+        <div class="stl-sub">Mechanical engineer<br>zero coding</div>
+        <div class="stl-year">2018</div>
+      </div>
+      <div class="stl-step stl-step--2">
+        <!-- first API: server with arrow -->
+        <span class="stl-svg-icon">
+          <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="5" y="8" width="30" height="10" rx="3" stroke="currentColor" stroke-width="2"/>
+            <rect x="5" y="22" width="30" height="10" rx="3" stroke="currentColor" stroke-width="2"/>
+            <circle cx="30" cy="13" r="2" fill="currentColor" opacity="0.7"/>
+            <circle cx="30" cy="27" r="2" fill="currentColor" opacity="0.7"/>
+            <line x1="20" y1="18" x2="20" y2="22" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity="0.6"/>
+            <polyline points="17,21 20,24 23,21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.6"/>
+          </svg>
+        </span>
+        <div class="stl-label">Java + Spring Boot</div>
+        <div class="stl-sub">First backend API<br>first StackOverflow save</div>
+        <div class="stl-year">2020</div>
+      </div>
+      <div class="stl-step stl-step--3">
+        <!-- open book / bootcamp learning -->
+        <span class="stl-svg-icon">
+          <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 32 Q20 10 6 8 L6 30 Q20 28 20 32Z" fill="currentColor" opacity="0.25" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M20 32 Q20 10 34 8 L34 30 Q20 28 20 32Z" fill="currentColor" opacity="0.18" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <line x1="9" y1="14" x2="17" y2="14" stroke="currentColor" stroke-width="1.2" opacity="0.5"/>
+            <line x1="9" y1="18" x2="17" y2="18" stroke="currentColor" stroke-width="1.2" opacity="0.5"/>
+            <line x1="23" y1="14" x2="31" y2="14" stroke="currentColor" stroke-width="1.2" opacity="0.5"/>
+            <line x1="23" y1="18" x2="31" y2="18" stroke="currentColor" stroke-width="1.2" opacity="0.5"/>
+          </svg>
+        </span>
+        <div class="stl-label">Masai Bootcamp</div>
+        <div class="stl-sub">Bootcamp grind<br>full-stack shipped</div>
+        <div class="stl-year">2022</div>
+      </div>
+      <div class="stl-step stl-step--4">
+        <!-- LLM discovery: neural nodes -->
+        <span class="stl-svg-icon">
+          <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="20" cy="20" r="5" fill="currentColor"/>
+            <circle cx="20" cy="7"  r="3" fill="currentColor" opacity="0.8"/>
+            <circle cx="20" cy="33" r="3" fill="currentColor" opacity="0.8"/>
+            <circle cx="8"  cy="13" r="3" fill="currentColor" opacity="0.8"/>
+            <circle cx="32" cy="13" r="3" fill="currentColor" opacity="0.8"/>
+            <circle cx="8"  cy="27" r="3" fill="currentColor" opacity="0.8"/>
+            <circle cx="32" cy="27" r="3" fill="currentColor" opacity="0.8"/>
+            <line x1="20" y1="15" x2="20" y2="10"  stroke="currentColor" stroke-width="1.4" opacity="0.55"/>
+            <line x1="20" y1="25" x2="20" y2="30"  stroke="currentColor" stroke-width="1.4" opacity="0.55"/>
+            <line x1="15" y1="17" x2="11" y2="15"  stroke="currentColor" stroke-width="1.4" opacity="0.55"/>
+            <line x1="25" y1="17" x2="29" y2="15"  stroke="currentColor" stroke-width="1.4" opacity="0.55"/>
+            <line x1="15" y1="23" x2="11" y2="25"  stroke="currentColor" stroke-width="1.4" opacity="0.55"/>
+            <line x1="25" y1="23" x2="29" y2="25"  stroke="currentColor" stroke-width="1.4" opacity="0.55"/>
+            <circle cx="20" cy="20" r="9" stroke="currentColor" stroke-width="1" stroke-dasharray="3 2" opacity="0.25"/>
+          </svg>
+        </span>
+        <div class="stl-label">Discovered LLMs</div>
+        <div class="stl-sub">GPT-3 moment<br>everything changed</div>
+        <div class="stl-year">2023</div>
+      </div>
+      <div class="stl-step stl-step--5">
+        <!-- shipped: rocket with check -->
+        <span class="stl-svg-icon">
+          <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 5 C20 5 28 10 28 22 L20 34 L12 22 C12 10 20 5 20 5Z" fill="currentColor" opacity="0.2" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            <circle cx="20" cy="20" r="3.5" fill="currentColor" opacity="0.9"/>
+            <path d="M12 26 L8 30 L10 35 L14 31" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.7"/>
+            <path d="M28 26 L32 30 L30 35 L26 31" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.7"/>
+            <circle cx="30" cy="10" r="4.5" fill="currentColor" opacity="0.15" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M28 10 L30 12 L33 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <div class="stl-label">637 Tests · Ship it.</div>
+        <div class="stl-sub">18+ agents · 4 systems<br>zero shortcuts</div>
+        <div class="stl-year">NOW ✦</div>
+      </div>
+    </div>
+
     <div class="story-inner fade-up" #fadeEl>
       <div class="story-photo-col">
         <img src="chandan-photo.jpg" alt="Chandan Kumar" class="story-photo"
@@ -744,8 +1259,23 @@
 
 <footer>
   <div class="container footer-inner">
-    <div class="footer-logo">ck<span>.</span></div>
-    <div class="footer-text">Made with <span class="footer-heart">❤️</span> by Chandan Kumar</div>
-    <div class="footer-stack">Python · FastAPI · LangGraph · Angular · Java · Kafka · FAISS · Redis</div>
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="footer-logo">ck<span>.</span></div>
+        <div class="footer-tagline">Senior AI Engineer · Building production-grade AI systems</div>
+      </div>
+      <nav class="footer-nav" aria-label="Footer navigation">
+        <a href="#story">Story</a>
+        <a href="#skills">Skills</a>
+        <a href="#projects">Projects</a>
+        <a href="#experience">Experience</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </div>
+    <div class="footer-divider"></div>
+    <div class="footer-bottom">
+      <div class="footer-copy">&copy; 2026 Chandan Kumar. All rights reserved.</div>
+      <div class="footer-stack">Python · FastAPI · LangGraph · Angular · Kafka · FAISS · Redis</div>
+    </div>
   </div>
 </footer>

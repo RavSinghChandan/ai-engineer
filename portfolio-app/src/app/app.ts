@@ -812,6 +812,9 @@ export class App implements OnInit, AfterViewInit {
     if (e.key === 'ArrowLeft')  { e.preventDefault(); this.demoPrev(); }
   }
 
+  // ── SKILL BARS VISIBILITY (scroll-triggered) ─────────────────────
+  skillsVisible = signal(false);
+
   // ── ANIMATED STAT COUNTERS ───────────────────────────────────────
   statTests  = signal(0);
   statAgents = signal(0);
@@ -825,6 +828,229 @@ export class App implements OnInit, AfterViewInit {
     @Inject(PLATFORM_ID) private platformId: Object,
     private sanitizer: DomSanitizer
   ) {}
+
+  private initNeuralCanvas() {
+    if (!isPlatformBrowser(this.platformId)) return;
+    const canvas = document.getElementById('neural-canvas') as HTMLCanvasElement;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // ── tuning ──────────────────────────────────────────────────────────────
+    const NODE_COUNT      = 90;   // neurons
+    const CLUSTER_COUNT   = 7;    // brain-region clusters
+    const AXON_PER_NODE   = 3;    // each neuron connects to at most N others (sparse)
+    const MAX_AXON_LEN    = 260;  // long-range axons, like real brain fibres
+    const DRIFT_SPEED     = 0.08; // very slow — neurons barely move
+    const SIGNAL_SPEED    = 0.012;// fraction of edge traversed per frame
+    const SIGNAL_INTERVAL = 90;   // frames between spontaneous signals
+    // ────────────────────────────────────────────────────────────────────────
+
+    const rgb = (hex: string) => ({
+      r: parseInt(hex.slice(1,3),16),
+      g: parseInt(hex.slice(3,5),16),
+      b: parseInt(hex.slice(5,7),16),
+    });
+
+    // Cluster centres — spread across viewport like cortical regions
+    interface Cluster { cx: number; cy: number; color: string; }
+    const CLUSTER_COLORS = ['#7c3aed','#0891b2','#6366f1','#0f766e','#5b21b6','#1e40af','#6d28d9'];
+
+    let clusters: Cluster[] = [];
+    const buildClusters = () => {
+      clusters = Array.from({ length: CLUSTER_COUNT }, (_, i) => ({
+        cx: (0.1 + 0.8 * Math.random()) * canvas.width,
+        cy: (0.1 + 0.8 * Math.random()) * canvas.height,
+        color: CLUSTER_COLORS[i % CLUSTER_COLORS.length],
+      }));
+    };
+
+    // Neuron nodes
+    interface Neuron {
+      x: number; y: number; vx: number; vy: number;
+      r: number; clusterId: number;
+      glow: number; glowDir: number; // slow soma glow breathe
+    }
+    let neurons: Neuron[] = [];
+
+    // Directed axon edges (sparse, pre-computed)
+    interface Axon { from: number; to: number; }
+    let axons: Axon[] = [];
+
+    // Active signals travelling along axons
+    interface Signal { axonIdx: number; t: number; }// t 0→1
+    let signals: Signal[] = [];
+    let frameCount = 0;
+
+    const resize = () => {
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+      buildClusters();
+      init();
+    };
+
+    const init = () => {
+      // Seed neurons near cluster centres with gaussian-ish spread
+      neurons = Array.from({ length: NODE_COUNT }, (_, i) => {
+        const cid = i % CLUSTER_COUNT;
+        const cl  = clusters[cid];
+        const spread = 80 + Math.random() * 120;
+        const angle  = Math.random() * Math.PI * 2;
+        return {
+          x: cl.cx + Math.cos(angle) * spread * Math.random(),
+          y: cl.cy + Math.sin(angle) * spread * Math.random(),
+          vx: (Math.random() - 0.5) * DRIFT_SPEED,
+          vy: (Math.random() - 0.5) * DRIFT_SPEED,
+          r:  1.2 + Math.random() * 2,
+          clusterId: cid,
+          glow: Math.random(),
+          glowDir: Math.random() > 0.5 ? 1 : -1,
+        };
+      });
+
+      // Build sparse axons: each neuron connects to nearest AXON_PER_NODE within MAX_AXON_LEN
+      axons = [];
+      for (let i = 0; i < neurons.length; i++) {
+        const candidates: { j: number; d: number }[] = [];
+        for (let j = 0; j < neurons.length; j++) {
+          if (i === j) continue;
+          const dx = neurons[i].x - neurons[j].x;
+          const dy = neurons[i].y - neurons[j].y;
+          const d  = Math.sqrt(dx*dx + dy*dy);
+          if (d < MAX_AXON_LEN) candidates.push({ j, d });
+        }
+        candidates.sort((a,b) => a.d - b.d);
+        // prefer same-cluster neighbours, occasionally cross-cluster (long-range)
+        const sameCluster = candidates.filter(c => neurons[c.j].clusterId === neurons[i].clusterId);
+        const diffCluster = candidates.filter(c => neurons[c.j].clusterId !== neurons[i].clusterId);
+        const chosen = [
+          ...sameCluster.slice(0, AXON_PER_NODE - 1),
+          ...diffCluster.slice(0, 1),
+        ].slice(0, AXON_PER_NODE);
+        for (const c of chosen) axons.push({ from: i, to: c.j });
+      }
+
+      signals = [];
+    };
+
+    window.addEventListener('resize', resize);
+    resize();
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      frameCount++;
+
+      // Drift neurons
+      for (const n of neurons) {
+        n.x += n.vx; n.y += n.vy;
+        // soft boundary — nudge back gently instead of hard bounce
+        if (n.x < 20)  n.vx += 0.02;
+        if (n.x > canvas.width  - 20) n.vx -= 0.02;
+        if (n.y < 20)  n.vy += 0.02;
+        if (n.y > canvas.height - 20) n.vy -= 0.02;
+        // soma glow breathe
+        n.glow += n.glowDir * 0.005;
+        if (n.glow > 1) { n.glow = 1; n.glowDir = -1; }
+        if (n.glow < 0) { n.glow = 0; n.glowDir =  1; }
+      }
+
+      // Spawn new signal occasionally
+      if (frameCount % SIGNAL_INTERVAL === 0 && axons.length > 0) {
+        const ax = axons[Math.floor(Math.random() * axons.length)];
+        signals.push({ axonIdx: axons.indexOf(ax), t: 0 });
+      }
+
+      // Advance signals; when they arrive, trigger neighbours
+      const done: number[] = [];
+      for (let s = 0; s < signals.length; s++) {
+        signals[s].t += SIGNAL_SPEED;
+        if (signals[s].t >= 1) {
+          done.push(s);
+          // cascade: fire one outgoing axon from arrival neuron
+          const arrivedAt = axons[signals[s].axonIdx].to;
+          const outgoing = axons
+            .map((a,i) => ({ a, i }))
+            .filter(({ a }) => a.from === arrivedAt);
+          if (outgoing.length > 0 && Math.random() > 0.35) {
+            const pick = outgoing[Math.floor(Math.random() * outgoing.length)];
+            signals.push({ axonIdx: pick.i, t: 0 });
+          }
+        }
+      }
+      for (let i = done.length - 1; i >= 0; i--) signals.splice(done[i], 1);
+      if (signals.length > 60) signals.splice(0, signals.length - 60); // cap
+
+      // Draw axons (dendrites / axon fibres) — very thin, very dim
+      for (const ax of axons) {
+        const a = neurons[ax.from]; const b = neurons[ax.to];
+        const cl = clusters[a.clusterId];
+        const { r, g, b: bl } = rgb(cl.color);
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        // slight curve — axons are not perfectly straight
+        const mx = (a.x + b.x) / 2 + (b.y - a.y) * 0.15;
+        const my = (a.y + b.y) / 2 - (b.x - a.x) * 0.15;
+        ctx.quadraticCurveTo(mx, my, b.x, b.y);
+        ctx.strokeStyle = `rgba(${r},${g},${bl},0.12)`;
+        ctx.lineWidth = 0.6;
+        ctx.stroke();
+      }
+
+      // Draw travelling signals as bright dots on axon path
+      for (const sig of signals) {
+        const ax  = axons[sig.axonIdx];
+        if (!ax) continue;
+        const a   = neurons[ax.from]; const b = neurons[ax.to];
+        const t   = sig.t;
+        const mx  = (a.x + b.x) / 2 + (b.y - a.y) * 0.15;
+        const my  = (a.y + b.y) / 2 - (b.x - a.x) * 0.15;
+        // quadratic bezier point at t
+        const px  = (1-t)*(1-t)*a.x + 2*(1-t)*t*mx + t*t*b.x;
+        const py  = (1-t)*(1-t)*a.y + 2*(1-t)*t*my + t*t*b.y;
+        const cl  = clusters[neurons[ax.from].clusterId];
+        const { r, g, b: bl } = rgb(cl.color);
+        // bright glow dot
+        const sg  = ctx.createRadialGradient(px, py, 0, px, py, 6);
+        sg.addColorStop(0,   `rgba(${r},${g},${bl},0.9)`);
+        sg.addColorStop(0.4, `rgba(${r},${g},${bl},0.4)`);
+        sg.addColorStop(1,   `rgba(${r},${g},${bl},0)`);
+        ctx.beginPath();
+        ctx.arc(px, py, 6, 0, Math.PI*2);
+        ctx.fillStyle = sg;
+        ctx.fill();
+        // tiny bright core
+        ctx.beginPath();
+        ctx.arc(px, py, 1.5, 0, Math.PI*2);
+        ctx.fillStyle = `rgba(255,255,255,0.95)`;
+        ctx.fill();
+      }
+
+      // Draw soma (neuron cell bodies)
+      for (const n of neurons) {
+        const cl = clusters[n.clusterId];
+        const { r, g, b: bl } = rgb(cl.color);
+        const gAlpha = 0.15 + n.glow * 0.25;
+
+        // soft soma halo
+        const sg = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r * 4);
+        sg.addColorStop(0, `rgba(${r},${g},${bl},${gAlpha})`);
+        sg.addColorStop(1, `rgba(${r},${g},${bl},0)`);
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r * 4, 0, Math.PI*2);
+        ctx.fillStyle = sg;
+        ctx.fill();
+
+        // soma core dot
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r, 0, Math.PI*2);
+        ctx.fillStyle = `rgba(${r},${g},${bl},0.75)`;
+        ctx.fill();
+      }
+
+      requestAnimationFrame(draw);
+    };
+    draw();
+  }
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
@@ -859,6 +1085,16 @@ export class App implements OnInit, AfterViewInit {
     }
 
     this.initFloatingGuide();
+    this.initNeuralCanvas();
+
+    // Trigger skill bars when the orbit section scrolls into view
+    const skillsEl = document.querySelector('.skills-orbit-wrap');
+    if (skillsEl) {
+      const skillsObs = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting) { this.skillsVisible.set(true); skillsObs.disconnect(); }
+      }, { threshold: 0.2 });
+      skillsObs.observe(skillsEl);
+    }
   }
 
   private animateCount(sig: ReturnType<typeof signal<number>>, target: number, duration: number) {
