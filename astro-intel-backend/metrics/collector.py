@@ -220,6 +220,68 @@ class MetricsCollector:
         self._agent_error_counts: Dict[str, int] = defaultdict(int)
         self._request_timestamps: deque[float] = deque(maxlen=1000)
 
+    # ── Per-agent performance breakdown ──────────────────────────────────────
+    def per_agent_performance(self) -> Dict[str, Any]:
+        """
+        Optimisation: returns P50/P95/P99 per agent, not just averages.
+
+        Useful for pinpointing which agent is the bottleneck across runs.
+        The existing dashboard() only provides avg per agent — this gives the
+        full latency distribution so slow outliers are visible.
+
+        Returns a dict keyed by agent name:
+          {
+            "astrology_agent": {
+              "p50_ms": 120.0, "p95_ms": 450.0, "p99_ms": 900.0,
+              "avg_ms": 150.0, "min_ms": 80.0, "max_ms": 1100.0,
+              "run_count": 42, "error_count": 1
+            },
+            ...
+          }
+        """
+        runs = list(self._runs)
+        if not runs:
+            return {}
+
+        # Collect all latency samples per agent
+        agent_samples: Dict[str, List[float]] = defaultdict(list)
+        for r in runs:
+            for ag, ms in r.agent_latencies.items():
+                agent_samples[ag].append(ms)
+
+        def _pct(data: List[float], p: float) -> float:
+            if not data:
+                return 0.0
+            sorted_data = sorted(data)
+            idx = max(0, int(p / 100 * len(sorted_data)) - 1)
+            return round(sorted_data[idx], 1)
+
+        result: Dict[str, Any] = {}
+        for ag, samples in sorted(agent_samples.items()):
+            result[ag] = {
+                "p50_ms":    _pct(samples, 50),
+                "p95_ms":    _pct(samples, 95),
+                "p99_ms":    _pct(samples, 99),
+                "avg_ms":    round(statistics.mean(samples), 1),
+                "min_ms":    round(min(samples), 1),
+                "max_ms":    round(max(samples), 1),
+                "run_count": len(samples),
+                "error_count": self._agent_error_counts.get(ag, 0),
+            }
+
+        # Add slowest-agent summary for quick triage
+        if result:
+            slowest = max(result.items(), key=lambda x: x[1]["p95_ms"])
+            n_agents = len(result)  # capture before _summary is added
+            result["_summary"] = {
+                "slowest_agent_p95": slowest[0],
+                "slowest_p95_ms": slowest[1]["p95_ms"],
+                "total_agents_tracked": n_agents,
+                "total_runs_in_window": len(runs),
+            }
+
+        return result
+
     # ── Record a completed pipeline run ─────────────────────────────────────
     def record(self, record: RunRecord) -> None:
         self._runs.append(record)
