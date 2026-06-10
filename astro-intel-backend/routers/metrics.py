@@ -58,34 +58,6 @@ async def get_ragas_session(
     return JSONResponse(content=record)
 
 
-@router.get("/agents/performance")
-async def get_agent_performance(
-    ctx: TenantContext = Depends(can(Permission.METRICS__VIEW)),
-) -> JSONResponse:
-    """
-    Per-agent latency performance breakdown — Optimisation.
-
-    Returns P50/P95/P99 latency per agent (not just averages).
-    Useful for identifying pipeline bottlenecks at the agent level.
-
-    Example response:
-      {
-        "astrology_agent": { "p50_ms": 120, "p95_ms": 450, "p99_ms": 900, ... },
-        "meta_agent":      { "p50_ms": 80,  "p95_ms": 200, "p99_ms": 400, ... },
-        "_summary": { "slowest_agent_p95": "astrology_agent", ... }
-      }
-
-    Requires ADMIN or SUPERADMIN.
-    """
-    breakdown = get_collector().per_agent_performance()
-    if not breakdown:
-        return JSONResponse(content={
-            "message": "No pipeline runs recorded yet. Run a few analyses to populate agent metrics.",
-            "agents": {}
-        })
-    return JSONResponse(content=breakdown)
-
-
 @router.get("/prometheus")
 async def get_metrics_prometheus(
     ctx: TenantContext = Depends(can(Permission.METRICS__VIEW)),

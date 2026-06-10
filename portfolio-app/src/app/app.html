@@ -474,7 +474,35 @@
       </div>
     </div>
 
-    @for (project of projects; track project.num) {
+    <!-- Tag filter bar — Optimisation: filter projects by tech stack -->
+    <div class="tag-filter-bar">
+      <span class="tag-filter-label">Filter by tech:</span>
+      <div class="tag-filter-chips">
+        <button
+          class="tag-chip"
+          [class.tag-chip--active]="activeTagFilter() === null"
+          (click)="clearTagFilter()"
+          aria-label="Show all projects">
+          All
+        </button>
+        @for (tag of filterTags; track tag) {
+          <button
+            class="tag-chip"
+            [class.tag-chip--active]="activeTagFilter() === tag"
+            (click)="setTagFilter(tag)"
+            [attr.aria-label]="'Filter by ' + tag">
+            {{ tag }}
+          </button>
+        }
+      </div>
+      @if (activeTagFilter() !== null) {
+        <span class="tag-filter-count">
+          {{ filteredProjects.length }} project{{ filteredProjects.length === 1 ? '' : 's' }}
+        </span>
+      }
+    </div>
+
+    @for (project of filteredProjects; track project.num) {
       <div class="project-card fade-up" #fadeEl [ngClass]="'accent-' + project.accent" [id]="'project-' + project.num">
         <div class="project-top">
           <div class="project-left">
