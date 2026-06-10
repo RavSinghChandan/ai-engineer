@@ -16,6 +16,9 @@ export class App implements OnInit, AfterViewInit {
   typedText = signal('');
   scrolled = signal(false);
   mobileNavOpen = signal(false);
+  scrollProgress = signal(0);       // 0–100, drives the top progress bar
+  activeSection = signal('');       // current section id for nav highlight
+  showBackToTop = signal(false);    // show back-to-top button after 40% scroll
 
   toggleMobileNav() { this.mobileNavOpen.update(v => !v); }
   closeMobileNav() { this.mobileNavOpen.set(false); }
@@ -1165,7 +1168,27 @@ export class App implements OnInit, AfterViewInit {
   }
 
   @HostListener('window:scroll')
-  onScroll() { this.scrolled.set(window.scrollY > 40); }
+  onScroll() {
+    const sy = window.scrollY;
+    this.scrolled.set(sy > 40);
+    // scroll progress bar
+    const docH = document.documentElement.scrollHeight - window.innerHeight;
+    this.scrollProgress.set(docH > 0 ? Math.round((sy / docH) * 100) : 0);
+    // back-to-top threshold
+    this.showBackToTop.set(sy > document.documentElement.scrollHeight * 0.35);
+    // active nav section
+    const sections = ['story','skills','projects','by-numbers','experience','contact'];
+    let current = '';
+    for (const id of sections) {
+      const el = document.getElementById(id);
+      if (el && el.getBoundingClientRect().top <= 100) current = id;
+    }
+    this.activeSection.set(current);
+  }
+
+  scrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
   private startTyping() {
     const lines = this.typingLines;

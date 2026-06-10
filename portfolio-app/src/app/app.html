@@ -1,14 +1,17 @@
+<!-- SCROLL PROGRESS BAR -->
+<div class="scroll-progress-bar" [style.width.%]="scrollProgress()" aria-hidden="true"></div>
+
 <!-- NAV -->
 <nav [class.scrolled]="scrolled()" [class.nav-mobile-open]="mobileNavOpen()" aria-label="Main navigation">
   <div class="nav-inner container">
     <a href="#" class="nav-logo">ck<span>.</span></a>
     <div class="nav-links">
-      <a href="#story" (click)="closeMobileNav()">Story</a>
-      <a href="#skills" (click)="closeMobileNav()">Skills</a>
-      <a href="#projects" (click)="closeMobileNav()">Projects</a>
-      <a href="#by-numbers" (click)="closeMobileNav()">By The Numbers</a>
-      <a href="#experience" (click)="closeMobileNav()">Experience</a>
-      <a href="#contact" (click)="closeMobileNav()">Contact</a>
+      <a href="#story"      [class.nav-active]="activeSection()==='story'"      (click)="closeMobileNav()">Story</a>
+      <a href="#skills"     [class.nav-active]="activeSection()==='skills'"     (click)="closeMobileNav()">Skills</a>
+      <a href="#projects"   [class.nav-active]="activeSection()==='projects'"   (click)="closeMobileNav()">Projects</a>
+      <a href="#by-numbers" [class.nav-active]="activeSection()==='by-numbers'" (click)="closeMobileNav()">By The Numbers</a>
+      <a href="#experience" [class.nav-active]="activeSection()==='experience'" (click)="closeMobileNav()">Experience</a>
+      <a href="#contact"    [class.nav-active]="activeSection()==='contact'"    (click)="closeMobileNav()">Contact</a>
     </div>
     <div class="nav-actions">
       <button class="theme-btn" (click)="toggleTheme()" [title]="theme() === 'dark' ? 'Light mode' : 'Dark mode'">
@@ -1307,3 +1310,14 @@
     </div>
   </div>
 </footer>
+
+<!-- BACK TO TOP -->
+<button
+  class="back-to-top"
+  [class.back-to-top--visible]="showBackToTop()"
+  (click)="scrollToTop()"
+  aria-label="Back to top">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="18 15 12 9 6 15"/>
+  </svg>
+</button>

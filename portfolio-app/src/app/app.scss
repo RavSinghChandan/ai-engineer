@@ -1,3 +1,45 @@
+/* ── SCROLL PROGRESS BAR ── */
+.scroll-progress-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--purple) 0%, var(--cyan) 100%);
+  z-index: 300;
+  transition: width 0.1s linear;
+  pointer-events: none;
+  border-radius: 0 2px 2px 0;
+}
+
+/* ── BACK TO TOP ── */
+.back-to-top {
+  position: fixed;
+  bottom: 2rem; right: 2rem;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: var(--purple);
+  border: none;
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  z-index: 190;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.3s, transform 0.3s, box-shadow 0.2s;
+  pointer-events: none;
+  box-shadow: 0 4px 16px rgba(124,58,237,0.4);
+  &.back-to-top--visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  &:hover {
+    background: var(--purple-lt);
+    box-shadow: 0 6px 24px rgba(124,58,237,0.6);
+    transform: translateY(-2px);
+  }
+  @media (max-width: 560px) { bottom: 1.25rem; right: 1.25rem; }
+}
+
 /* ── GLOBAL NEURAL MESH CANVAS ── */
 #neural-canvas {
   position: fixed;
@@ -52,6 +94,7 @@ nav[aria-label="Main navigation"] {
       transition: width 0.2s var(--ease);
     }
     &:hover { color: var(--text); &::after { width: 100%; } }
+    &.nav-active { color: var(--text); &::after { width: 100%; background: var(--purple); } }
   }
   @media (max-width: 768px) { display: none; }
 }
@@ -128,7 +171,17 @@ h1 {
 .stat-num { font-size: 1.9rem; font-weight: 900; letter-spacing: -0.04em; line-height: 1; span { color: var(--purple); } }
 .stat-label { font-size: 0.68rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 0.15rem; }
 .stat-sep { width: 1px; height: 36px; background: var(--border); }
-.hero-cta { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.hero-cta {
+  display: flex; gap: 0.75rem; flex-wrap: wrap;
+  .btn {
+    transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease), background 0.2s;
+    &:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(124,58,237,0.35); }
+    &:active { transform: translateY(0); }
+  }
+  .btn-ghost {
+    &:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(0,0,0,0.2); }
+  }
+}
 
 .hero-visual {
   display: flex; flex-direction: column; align-items: center; gap: 1.25rem;
@@ -867,7 +920,69 @@ footer {
   display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;
 }
 .footer-copy { font-size: 0.75rem; color: var(--text3); }
-.footer-stack { font-size: 0.68rem; color: var(--text3); font-family: 'Fira Code', monospace; }
+.footer-stack { font-size: 0.75rem; color: var(--text2); font-family: 'Fira Code', monospace; }
+
+/* ── SECTION ENTRANCE ANIMATIONS ── */
+/* fade-up — used by #fadeEl elements throughout the template */
+.fade-up {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.6s cubic-bezier(0.16,1,0.3,1), transform 0.6s cubic-bezier(0.16,1,0.3,1);
+  &.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Any element with data-fade gets a slide-up fade-in when .visible is added via IntersectionObserver */
+[data-fade] {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.55s var(--ease), transform 0.55s var(--ease);
+  &.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/* Stagger children inside a fade-stagger parent */
+[data-fade-stagger] > * {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.45s var(--ease), transform 0.45s var(--ease);
+  @for $i from 1 through 12 {
+    &:nth-child(#{$i}) { transition-delay: #{($i - 1) * 0.08}s; }
+  }
+  .visible > & { opacity: 1; transform: translateY(0); }
+}
+
+/* Skill category cards — lift on hover */
+.skb-card {
+  transition: transform 0.22s var(--ease), border-color 0.22s, box-shadow 0.22s;
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.25);
+    border-color: var(--border2);
+  }
+}
+
+/* Proof/numbers stat cards — lift + glow on hover */
+.metric-card {
+  transition: transform 0.22s var(--ease), border-color 0.22s, box-shadow 0.22s;
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 28px rgba(124,58,237,0.18);
+    border-color: var(--purple);
+  }
+}
+
+/* Project cards — lift on hover */
+.proj-card {
+  transition: transform 0.22s var(--ease), border-color 0.22s, box-shadow 0.22s;
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 36px rgba(0,0,0,0.3);
+  }
+}
 
 /* ── FLOATING GUIDE CHARACTER ────────────────────────────────── */
 
