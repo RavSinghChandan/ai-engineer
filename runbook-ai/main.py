@@ -12,6 +12,7 @@ from routers.query_router import router as query_router
 from routers.multi_runbook_router import router as multi_router
 from routers.auth_router import router as auth_router
 from routers.tenant_router import router as tenant_router
+from routers.metrics_router import router as metrics_router
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s — %(message)s")
 logger = logging.getLogger(__name__)
@@ -61,6 +62,7 @@ app.include_router(runbooks_router)
 app.include_router(graph_router)
 app.include_router(query_router)
 app.include_router(multi_router)
+app.include_router(metrics_router)
 
 
 @app.get("/health")

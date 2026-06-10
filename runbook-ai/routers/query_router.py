@@ -7,6 +7,7 @@ RAGless: classify → SQL match → graph traversal → structured response.
 Zero vectors. Every command pulled from database verbatim.
 """
 from __future__ import annotations
+import time
 from typing import Annotated, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
@@ -17,6 +18,7 @@ from agents.response_composer_agent import compose_response
 from agents.multi_source_composer import build_multi_source_response
 from routers.deps import optional_auth, CurrentUser
 from utils.rate_limit import query_limiter, client_key
+from utils.metrics import collector as metrics_collector
 
 router = APIRouter(prefix="/query", tags=["query"])
 
@@ -67,16 +69,31 @@ def query_incident(request: Request, req: IncidentRequest, current_user: Optiona
     - Triage summary (LLM-generated prose — clearly labelled)
     - All commands pulled verbatim from DB — source: 'database'
     """
-    query_limiter.check(client_key(request), "Query rate limit: 20 requests/minute per IP")
+    try:
+        query_limiter.check(client_key(request), "Query rate limit: 20 requests/minute per IP")
+    except Exception:
+        metrics_collector.record_rate_limit_hit()
+        raise
 
     if not req.incident.strip():
         raise HTTPException(status_code=400, detail="Incident description cannot be empty")
+
+    _t0 = time.monotonic()
 
     if req.runbook_id:
         # Pinned runbook — skip classification and matching
         response = compose_response(req.incident, req.runbook_id)
         if "error" in response:
             raise HTTPException(status_code=404, detail=response["error"])
+        latency_ms = (time.monotonic() - _t0) * 1000
+        metrics_collector.record_query(
+            incident=req.incident,
+            category="pinned",
+            severity="unknown",
+            confidence="PINNED",
+            latency_ms=latency_ms,
+            runbooks_matched=1,
+        )
         return {
             "incident": req.incident,
             "match_strategy": "pinned",
@@ -92,8 +109,18 @@ def query_incident(request: Request, req: IncidentRequest, current_user: Optiona
         "incident_text": req.incident,
         "agent_log": [],
     })
+    latency_ms = (time.monotonic() - _t0) * 1000
 
     if "error" in result.get("response", {}):
+        metrics_collector.record_query(
+            incident=req.incident,
+            category=result.get("category", "unknown"),
+            severity=result.get("severity", "unknown"),
+            confidence="NONE",
+            latency_ms=latency_ms,
+            runbooks_matched=0,
+            error=True,
+        )
         return {
             "incident": req.incident,
             "match_strategy": "full_pipeline",
@@ -121,6 +148,16 @@ def query_incident(request: Request, req: IncidentRequest, current_user: Optiona
             multi = build_multi_source_response(selected_id, tenant_id)
         except Exception:
             multi = {}
+
+    # Record metrics for successful query
+    metrics_collector.record_query(
+        incident=req.incident,
+        category=result.get("category", "unknown"),
+        severity=result.get("severity", "unknown"),
+        confidence=result.get("match_confidence", "NONE"),
+        latency_ms=latency_ms,
+        runbooks_matched=len(result.get("matched_runbooks", [])),
+    )
 
     return {
         "incident": req.incident,
