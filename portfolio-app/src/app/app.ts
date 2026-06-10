@@ -20,6 +20,43 @@ export class App implements OnInit, AfterViewInit {
   toggleMobileNav() { this.mobileNavOpen.update(v => !v); }
   closeMobileNav() { this.mobileNavOpen.set(false); }
 
+  // ── Project tag filtering — Optimisation ─────────────────────────────────
+  // Lets visitors filter projects by tech stack tag with a single click.
+  // Builds the unique tag list lazily on first access so no maintenance overhead.
+  activeTagFilter = signal<string | null>(null);
+
+  get filterTags(): string[] {
+    const seen = new Set<string>();
+    const tags: string[] = [];
+    for (const project of this.projects) {
+      for (const t of project.tags) {
+        const norm = t.label.toLowerCase();
+        if (!seen.has(norm)) {
+          seen.add(norm);
+          tags.push(t.label);
+        }
+      }
+    }
+    return tags;
+  }
+
+  get filteredProjects() {
+    const tag = this.activeTagFilter();
+    if (!tag) return this.projects;
+    const norm = tag.toLowerCase();
+    return this.projects.filter(p =>
+      p.tags.some(t => t.label.toLowerCase() === norm)
+    );
+  }
+
+  setTagFilter(tag: string | null) {
+    this.activeTagFilter.set(tag === this.activeTagFilter() ? null : tag);
+  }
+
+  clearTagFilter() {
+    this.activeTagFilter.set(null);
+  }
+
   // PDF resume — user to replace with actual hosted PDF URL
   readonly RESUME_PDF = 'AI_Engineer_Chandan_Kumar_4_Yrs.pdf';
 
