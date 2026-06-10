@@ -9,7 +9,9 @@
 
 **AstroIntel 360°** is a personalised spiritual intelligence platform that combines **Vedic Astrology, KP Astrology, Western Astrology, Numerology (3 traditions), Palmistry, Tarot, and Vastu** into a single coherent reading — powered by a 12-agent LangGraph AI pipeline, a human-in-the-loop admin review workflow, and a branded PDF report engine.
 
+
 A user submits their birth profile. Within seconds, 5 domain AI agents run in parallel, a meta-agent synthesises cross-domain consensus, an admin reviews and approves insights, and a branded 20-page PDF report is generated — with multi-language translation support.
+
 
 **This is not a demo. Every layer is production-grade:**
 
