@@ -1163,6 +1163,104 @@ async def list_internal_resources(_claims: Annotated[object, Depends(require_adm
     }
 
 
+# ── Export & Prediction ───────────────────────────────────────────────────────
+
+@app.get("/export-plan/{user_id}", tags=["Export"])
+async def export_plan(
+    request: Request,
+    user_id: str,
+    format: str = "csv",
+    _claims: Annotated[object, Depends(get_current_user)] = None,
+):
+    """
+    Export a user's training plan.
+
+    Optimisation: managers need to share progress reports outside the app.
+    Two formats:
+      - ?format=csv  → CSV for Excel/Sheets (default)
+      - ?format=json → lightweight JSON summary for dashboards / email digests
+
+    Returns:
+      CSV: text/csv attachment ready to open in Excel
+      JSON: plan summary with skills breakdown
+    """
+    from utils.export import plan_to_csv, plan_to_summary
+
+    progress = await get_progress(user_id)
+    if not progress or not progress.get("plan"):
+        raise HTTPException(status_code=404, detail=f"No plan found for user {user_id}")
+
+    plan = progress["plan"]
+    role = progress.get("role", "unknown")
+    completed_ids = progress.get("completed_task_ids", [])
+    readiness_score = progress.get("readiness_score", 0.0)
+
+    if format.lower() == "csv":
+        from fastapi.responses import Response as FastAPIResponse
+        csv_text = plan_to_csv(user_id, role, plan, completed_ids)
+        return FastAPIResponse(
+            content=csv_text,
+            media_type="text/csv",
+            headers={
+                "Content-Disposition": f'attachment; filename="training_plan_{user_id}.csv"'
+            },
+        )
+
+    # JSON summary
+    summary = plan_to_summary(user_id, role, plan, completed_ids, readiness_score)
+    return summary
+
+
+@app.get("/predict-readiness/{user_id}", tags=["Export"])
+async def predict_readiness(
+    request: Request,
+    user_id: str,
+    _claims: Annotated[object, Depends(get_current_user)] = None,
+):
+    """
+    Predict when a user will reach 100% readiness based on task completion velocity.
+
+    Optimisation: managers need a forward-looking view, not just current score.
+    Algorithm:
+      - Fetch readiness score history (up to 30 data points)
+      - Compute score-gain-per-day from the history
+      - Extrapolate linearly to 100%
+      - Return predicted completion date + confidence band
+
+    Confidence levels:
+      HIGH   — 5+ history data points
+      MEDIUM — 3–4 history data points
+      LOW    — < 3 data points (falls back to industry average of 2 tasks/day)
+    """
+    from utils.export import predict_completion
+
+    progress = await get_progress(user_id)
+    if not progress:
+        raise HTTPException(status_code=404, detail=f"No progress found for user {user_id}")
+
+    history = await get_readiness_history(user_id, limit=30)
+    plan = progress.get("plan", {})
+    tasks = plan.get("tasks", [])
+    completed_ids = progress.get("completed_task_ids", [])
+    current_score = progress.get("readiness_score", 0.0)
+
+    prediction = predict_completion(
+        history=history,
+        current_score=current_score,
+        total_tasks=len(tasks),
+        completed_tasks=len(completed_ids),
+    )
+
+    return {
+        "user_id": user_id,
+        "role": progress.get("role", "unknown"),
+        "current_readiness_score": current_score,
+        "total_tasks": len(tasks),
+        "completed_tasks": len(completed_ids),
+        "prediction": prediction,
+    }
+
+
 # ── Root ──────────────────────────────────────────────────────────────────────
 
 @app.get("/", tags=["Root"])
@@ -1180,6 +1278,8 @@ def root():
             "update_progress": "POST /update-progress",
             "get_progress": "GET  /progress/{user_id}",
             "evaluate": "POST /evaluate  (LLM-as-judge)",
+            "export_plan": "GET  /export-plan/{user_id}?format=csv|json",
+            "predict_readiness": "GET  /predict-readiness/{user_id}",
             "metrics": "GET  /metrics",
             "health_live": "GET  /health/live",
             "health_ready": "GET  /health/ready",
