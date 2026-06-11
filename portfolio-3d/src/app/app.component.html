@@ -1,0 +1,41 @@
+<!-- 3D CANVAS -->
+<canvas #canvas class="main-canvas"></canvas>
+
+<!-- ZONE NAV -->
+<nav class="zone-nav">
+  @for (zone of zones; track zone.id) {
+    <button
+      class="zone-btn"
+      [class.active]="activeZone() === zone.id"
+      [style.--zc]="getZoneColor(zone.id)"
+      (click)="flyTo(zone.id); openModal(zone.id)">
+      {{ zone.label }}
+    </button>
+  }
+</nav>
+
+<!-- HEADER -->
+<div class="hud-header">
+  <div class="hud-logo">ck<span>.</span></div>
+  <a href="https://chandan-kumar-ai-engineer.vercel.app" class="hud-2d-link" target="_blank">
+    ← 2D Version
+  </a>
+</div>
+
+<!-- HINT -->
+<div class="hud-hint">Click a zone sphere or nav button · Drag to orbit</div>
+
+<!-- MODAL -->
+@if (showModal()) {
+  <div class="modal-backdrop" (click)="closeModal()">
+    <div class="modal-card" [style.--zc]="getZoneColor(modalZone())" (click)="$event.stopPropagation()">
+      <button class="modal-close" (click)="closeModal()">✕</button>
+      <h2 class="modal-title">{{ content[modalZone()].title }}</h2>
+      <ul class="modal-body">
+        @for (line of content[modalZone()].body; track line) {
+          <li>{{ line }}</li>
+        }
+      </ul>
+    </div>
+  </div>
+}
