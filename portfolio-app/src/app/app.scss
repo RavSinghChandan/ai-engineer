@@ -10,46 +10,6 @@
   border-radius: 0 2px 2px 0;
 }
 
-/* ── FLOATING CONTACT CTA ── */
-.float-contact {
-  position: fixed;
-  bottom: 2rem; left: 2rem;
-  display: flex; align-items: center; gap: 0.5rem;
-  padding: 0.6rem 1.1rem;
-  border-radius: 999px;
-  background: var(--card);
-  border: 1px solid var(--purple);
-  color: var(--purple-lt);
-  font-size: 0.8rem; font-weight: 700;
-  text-decoration: none;
-  z-index: 190;
-  opacity: 0;
-  transform: translateY(12px);
-  transition: opacity 0.3s, transform 0.3s, background 0.2s, box-shadow 0.2s;
-  pointer-events: none;
-  box-shadow: 0 4px 16px rgba(124,58,237,0.2);
-  white-space: nowrap;
-  &.float-contact--visible {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
-  }
-  &:hover {
-    background: var(--purple);
-    color: #fff;
-    box-shadow: 0 6px 24px rgba(124,58,237,0.5);
-    transform: translateY(-2px);
-  }
-  svg { flex-shrink: 0; }
-  @media (max-width: 560px) {
-    bottom: 1.25rem; left: 1.25rem;
-    span { display: none; }
-    padding: 0.7rem;
-    border-radius: 50%;
-    width: 44px; height: 44px; justify-content: center;
-  }
-}
-
 /* ── BACK TO TOP ── */
 .back-to-top {
   position: fixed;
@@ -676,17 +636,25 @@ h1 {
 /* ── CONTACT ── */
 .contact-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
   margin-top: 2rem;
-  max-width: 700px;
-  @media (max-width: 560px) { grid-template-columns: 1fr; }
-}
-/* 5th card (mobile) — center it alone on its row */
-.contact-card:last-child:nth-child(odd) {
-  grid-column: 1 / -1;
-  max-width: calc(50% - 0.5rem);
-  @media (max-width: 560px) { max-width: 100%; }
+  max-width: 860px;
+  /* Row 2: 2 cards — centre them spanning all 3 cols */
+  .contact-card:nth-child(4),
+  .contact-card:nth-child(5) {
+    grid-column: auto;
+  }
+  /* Push the 4th and 5th into the middle on their row */
+  .contact-card:nth-child(4) { grid-column: 1 / 2; }
+  .contact-card:nth-child(5) { grid-column: 2 / 3; }
+  @media (max-width: 700px) { grid-template-columns: repeat(2, 1fr);
+    .contact-card:nth-child(4) { grid-column: auto; }
+    .contact-card:nth-child(5) { grid-column: 1 / -1; max-width: calc(50% - 0.5rem); margin: 0 auto; width: 100%; }
+  }
+  @media (max-width: 480px) { grid-template-columns: 1fr;
+    .contact-card:nth-child(5) { grid-column: auto; max-width: 100%; }
+  }
 }
 .contact-card {
   background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem 1.5rem;
