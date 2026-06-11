@@ -9,10 +9,66 @@ import * as THREE from 'three';
   selector: 'app-scene3d',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `<canvas #canvas class="scene3d-canvas"></canvas>`,
+  template: `
+    <div class="s3d-wrap">
+      <canvas #canvas class="s3d-canvas"></canvas>
+      <div class="s3d-label">
+        <div class="s3d-name">Chandan Kumar</div>
+        <div class="s3d-role">Senior AI Engineer · Neural Intelligence</div>
+        <a href="/" class="s3d-back">← Back to Portfolio</a>
+      </div>
+      <div class="s3d-hint">Drag to orbit</div>
+    </div>
+  `,
   styles: [`
-    :host { display: block; width: 100%; height: 100%; }
-    .scene3d-canvas { display: block; width: 100%; height: 100%; outline: none; }
+    :host { display: block; }
+    .s3d-wrap {
+      position: fixed; inset: 0;
+      background: #09090b;
+      overflow: hidden;
+    }
+    .s3d-canvas {
+      display: block;
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      outline: none;
+    }
+    .s3d-label {
+      position: absolute; top: 2.5rem; left: 50%;
+      transform: translateX(-50%);
+      text-align: center; pointer-events: none; z-index: 10;
+    }
+    .s3d-name {
+      font-family: system-ui, sans-serif;
+      font-size: clamp(1.6rem, 4vw, 2.6rem);
+      font-weight: 900; letter-spacing: -0.04em;
+      background: linear-gradient(135deg, #a78bfa 0%, #06b6d4 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .s3d-role {
+      font-family: system-ui, sans-serif;
+      font-size: 0.8rem; color: #71717a;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      margin-top: 0.4rem;
+    }
+    .s3d-back {
+      display: inline-block; margin-top: 1rem;
+      font-family: system-ui, sans-serif;
+      font-size: 0.78rem; color: #7c3aed;
+      text-decoration: none; pointer-events: auto;
+      border: 1px solid rgba(124,58,237,0.4);
+      padding: 0.3rem 0.9rem; border-radius: 999px;
+      transition: background 0.2s;
+      &:hover { background: rgba(124,58,237,0.15); }
+    }
+    .s3d-hint {
+      position: absolute; bottom: 1.5rem; left: 50%;
+      transform: translateX(-50%);
+      font-family: system-ui, sans-serif;
+      font-size: 0.7rem; color: #3f3f46;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      pointer-events: none;
+    }
   `],
 })
 export class Scene3dComponent implements AfterViewInit, OnDestroy {
@@ -39,13 +95,19 @@ export class Scene3dComponent implements AfterViewInit, OnDestroy {
 
   private initScene() {
     const canvas = this.canvasRef.nativeElement;
-    const w = canvas.clientWidth  || 800;
-    const h = canvas.clientHeight || 600;
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+
+    // Set canvas pixel dimensions explicitly before WebGL context creation
+    canvas.width  = w * window.devicePixelRatio;
+    canvas.height = h * window.devicePixelRatio;
+    canvas.style.width  = w + 'px';
+    canvas.style.height = h + 'px';
 
     // Renderer
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     this.renderer.setPixelRatio(window.devicePixelRatio);
-    this.renderer.setSize(w, h, false);
+    this.renderer.setSize(w, h);
 
     // Scene
     this.scene = new THREE.Scene();
@@ -220,11 +282,11 @@ export class Scene3dComponent implements AfterViewInit, OnDestroy {
     canvas.addEventListener('touchend',   onUp);
 
     const onResize = () => {
-      const w = canvas.clientWidth;
-      const h = canvas.clientHeight;
+      const w = window.innerWidth;
+      const h = window.innerHeight;
       this.camera.aspect = w / h;
       this.camera.updateProjectionMatrix();
-      this.renderer.setSize(w, h, false);
+      this.renderer.setSize(w, h);
     };
     window.addEventListener('resize', onResize);
     (this as any)._onResize = onResize;
