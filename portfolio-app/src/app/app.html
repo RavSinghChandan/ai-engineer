@@ -1321,3 +1321,15 @@
     <polyline points="18 15 12 9 6 15"/>
   </svg>
 </button>
+
+<!-- FLOATING CONTACT CTA — visible once user scrolls past hero -->
+<a
+  href="#contact"
+  class="float-contact"
+  [class.float-contact--visible]="showBackToTop()"
+  aria-label="Jump to contact section">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+  </svg>
+  <span>Let's Talk</span>
+</a>

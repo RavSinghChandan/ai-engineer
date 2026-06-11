@@ -10,6 +10,46 @@
   border-radius: 0 2px 2px 0;
 }
 
+/* ── FLOATING CONTACT CTA ── */
+.float-contact {
+  position: fixed;
+  bottom: 2rem; left: 2rem;
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.6rem 1.1rem;
+  border-radius: 999px;
+  background: var(--card);
+  border: 1px solid var(--purple);
+  color: var(--purple-lt);
+  font-size: 0.8rem; font-weight: 700;
+  text-decoration: none;
+  z-index: 190;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.3s, transform 0.3s, background 0.2s, box-shadow 0.2s;
+  pointer-events: none;
+  box-shadow: 0 4px 16px rgba(124,58,237,0.2);
+  white-space: nowrap;
+  &.float-contact--visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  &:hover {
+    background: var(--purple);
+    color: #fff;
+    box-shadow: 0 6px 24px rgba(124,58,237,0.5);
+    transform: translateY(-2px);
+  }
+  svg { flex-shrink: 0; }
+  @media (max-width: 560px) {
+    bottom: 1.25rem; left: 1.25rem;
+    span { display: none; }
+    padding: 0.7rem;
+    border-radius: 50%;
+    width: 44px; height: 44px; justify-content: center;
+  }
+}
+
 /* ── BACK TO TOP ── */
 .back-to-top {
   position: fixed;
