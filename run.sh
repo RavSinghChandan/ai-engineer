@@ -145,6 +145,7 @@ propagate_env "$ROOT/langraph_project"
 propagate_env "$ROOT/agentic-growth-os/backend"
 propagate_env "$ROOT/ai-report-app/backend"
 propagate_env "$ROOT/bench-resource-optimizer/backend"
+propagate_env "$ROOT/runbook-ai"
 
 # =============================================================================
 #  4. INSTALL PYTHON DEPENDENCIES
@@ -177,6 +178,7 @@ setup_python "$ROOT/langraph_project"           "langraph-project"
 setup_python "$ROOT/agentic-growth-os/backend"  "agentic-growth-os-backend"
 setup_python "$ROOT/ai-report-app/backend"      "ai-report-app-backend"
 setup_python "$ROOT/bench-resource-optimizer/backend" "bench-resource-optimizer-backend"
+setup_python "$ROOT/runbook-ai"                 "runbook-ai-backend"
 
 # =============================================================================
 #  5. INSTALL NODE DEPENDENCIES
@@ -212,6 +214,7 @@ setup_node "$ROOT/agentic-growth-os/frontend"           "agentic-growth-os-front
 setup_node "$ROOT/ai-report-app/frontend"               "ai-report-app-frontend"
 setup_node "$ROOT/bench-resource-optimizer/frontend"    "bench-resource-optimizer-frontend"
 setup_node "$ROOT/graph-visualizer"                     "graph-visualizer"
+setup_node "$ROOT/runbook-ai/ui"                        "runbook-ai-frontend"
 
 # =============================================================================
 #  6. START BACKENDS
@@ -241,6 +244,10 @@ start_bg "ai-report-app-backend" \
 # Bench Resource Optimizer Backend → port 8004
 start_bg "bench-resource-optimizer-backend" \
   bash -c "cd '$ROOT/bench-resource-optimizer/backend' && source venv/bin/activate && uvicorn main:app --host 0.0.0.0 --port 8004 --reload"
+
+# Runbook AI Backend → port 8005
+start_bg "runbook-ai-backend" \
+  bash -c "cd '$ROOT/runbook-ai' && source venv/bin/activate && uvicorn main:app --host 0.0.0.0 --port 8005 --reload"
 
 info "Waiting 5s for backends to bind ..."
 sleep 5
@@ -278,6 +285,10 @@ start_bg "bench-resource-optimizer-frontend" \
 start_bg "graph-visualizer" \
   bash -c "cd '$ROOT/graph-visualizer' && $(ng_serve_cmd '$ROOT/graph-visualizer' 4206)"
 
+# Runbook AI Frontend → port 4207
+start_bg "runbook-ai-frontend" \
+  bash -c "cd '$ROOT/runbook-ai/ui' && npx ng serve --port 4207 --proxy-config proxy.conf.json"
+
 # =============================================================================
 #  8. SUMMARY
 # =============================================================================
@@ -295,6 +306,7 @@ echo -e "  Agentic Growth OS            http://localhost:4203      http://localh
 echo -e "  AI Report App                http://localhost:4204      http://localhost:8003/docs"
 echo -e "  Bench Resource Optimizer     http://localhost:4205      http://localhost:8004/docs"
 echo -e "  Graph Visualizer             http://localhost:4206      (no backend)"
+echo -e "  Runbook AI                   http://localhost:4207      http://localhost:8005/docs"
 echo ""
 echo -e "  Note: Angular frontends take 30-60s to compile on first start."
 echo ""
