@@ -201,7 +201,7 @@
         <div class="team-photo-wrap" [attr.data-color]="member.color">
           <img [src]="member.photo" [alt]="member.name" class="team-photo"
                onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-          <div class="team-photo-fallback" [attr.data-color]="member.color">
+          <div class="team-photo-fallback" [attr.data-color]="member.color" style="display:none">
             {{ member.name.charAt(0) }}
           </div>
           <div class="team-focus-badge" [attr.data-color]="member.color">{{ member.focus }}</div>
