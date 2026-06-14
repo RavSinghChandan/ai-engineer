@@ -5,7 +5,7 @@
 <nav class="navbar" [class.scrolled]="scrolled()">
   <div class="nav-inner">
     <a href="#hero" class="brand">
-      <img src="logo-with-text.png" alt="AI with Rav" class="brand-logo brand-logo-animated">
+      <img src="logo-with-text.png" alt="AI with Rav" class="brand-logo">
     </a>
 
     <div class="nav-links" [class.open]="mobileNavOpen()">
@@ -55,24 +55,36 @@
     </div>
 
     <div class="hero-right" #fadeEl>
-      <!-- Full background: both founder photos side by side, faded -->
       <div class="hero-visual">
-        <!-- Background photos -->
-        <div class="hero-photos-bg">
-          <img src="chandan-photo.jpg" alt="" class="hero-bg-photo">
-          <img src="ankita-photo.jpg" alt="" class="hero-bg-photo">
+        <!-- Subtle purple glow blob behind photos -->
+        <div class="hero-blob"></div>
+
+        <!-- Chandan – left card, slightly higher -->
+        <div class="hv-card hv-card-left">
+          <img src="chandan-photo.jpg" alt="Chandan Kumar" class="hv-photo"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="hv-fallback" style="display:none">CK</div>
+          <div class="hv-name-tag">
+            <span class="hv-name">Chandan Kumar</span>
+            <span class="hv-role">Founder · AI Engineer</span>
+          </div>
         </div>
-        <!-- Overlay gradient -->
-        <div class="hero-photo-overlay"></div>
-        <!-- Logo in foreground center -->
-        <div class="hero-logo-foreground">
-          <img src="logo-with-text.png" alt="AI with Rav" class="hero-logo-img brand-logo-animated">
-          <p class="hero-logo-tagline">AI for Business Growth</p>
+
+        <!-- Anita – right card, slightly lower -->
+        <div class="hv-card hv-card-right">
+          <img src="ankita-photo.jpg" alt="Anita Basu" class="hv-photo"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="hv-fallback" style="display:none">AB</div>
+          <div class="hv-name-tag">
+            <span class="hv-name">Anita Basu</span>
+            <span class="hv-role">Co-Founder · Strategist</span>
+          </div>
         </div>
-        <!-- Founder name chips at bottom -->
-        <div class="hero-founder-chips">
-          <span class="hero-chip">Chandan Kumar · Founder & AI Engineer</span>
-          <span class="hero-chip">Anita Basu · Co-Founder & Strategist</span>
+
+        <!-- Brand tagline pill below cards -->
+        <div class="hv-brand-pill">
+          <img src="logo-with-text.png" alt="" class="hv-brand-icon">
+          <span class="hv-brand-text">AI for Business Growth</span>
         </div>
       </div>
     </div>
