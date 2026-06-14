@@ -1,0 +1,434 @@
+<!-- Scroll progress bar -->
+<div class="scroll-bar" [style.width.%]="scrollProgress()"></div>
+
+<!-- ── NAVBAR ────────────────────────────────────────────────────────── -->
+<nav class="navbar" [class.scrolled]="scrolled()">
+  <div class="nav-inner">
+    <a href="#hero" class="brand">
+      <img src="logo-with-text.png" alt="AI with Rav" class="brand-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <span class="brand-fallback" style="display:none">
+        <span class="brand-ai">AI</span><span class="brand-with"> with </span><span class="brand-rav">Rav</span>
+      </span>
+    </a>
+
+    <div class="nav-links" [class.open]="mobileNavOpen()">
+      <a href="#services"  [class.active]="activeSection()==='services'"  (click)="closeMobileNav()">Services</a>
+      <a href="#solutions" [class.active]="activeSection()==='solutions'" (click)="closeMobileNav()">Solutions</a>
+      <a href="#numbers"   [class.active]="activeSection()==='numbers'"   (click)="closeMobileNav()">Results</a>
+      <a href="#team"      [class.active]="activeSection()==='team'"      (click)="closeMobileNav()">Team</a>
+      <a href="#contact"   [class.active]="activeSection()==='contact'"   (click)="closeMobileNav()">Contact</a>
+    </div>
+
+    <div class="nav-actions">
+      <button class="theme-btn" (click)="toggleTheme()" [attr.aria-label]="'Switch to ' + (theme()==='dark'?'light':'dark') + ' mode'">
+        <span *ngIf="theme()==='dark'">☀️</span><span *ngIf="theme()==='light'">🌙</span>
+      </button>
+      <a href="#contact" class="cta-nav-btn">Free Consultation</a>
+      <button class="hamburger" (click)="toggleMobileNav()" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- ── HERO ──────────────────────────────────────────────────────────── -->
+<section id="hero" class="hero-section" data-guide="hero">
+  <canvas id="neural-canvas" class="neural-canvas"></canvas>
+  <div class="hero-content">
+    <div class="hero-badge" #fadeEl>AI Consulting · AI Agents · RAG Systems · Automation</div>
+
+    <h1 class="hero-title" #fadeEl>
+      Transform Your Business Into an<br>
+      <span class="hero-accent">AI-First Organisation</span>
+    </h1>
+
+    <div class="hero-typed" #fadeEl>
+      <span class="typed-prefix">We build → </span>
+      <span class="typed-text">{{ typedText() }}</span>
+      <span class="typed-cursor">|</span>
+    </div>
+
+    <p class="hero-sub" #fadeEl>
+      We help ambitious businesses automate operations, accelerate growth, and outcompete
+      rivals using production-grade AI — not demos, not prototypes, real systems.
+    </p>
+
+    <div class="hero-ctas" #fadeEl>
+      <a href="#contact" class="cta-primary">Book Free AI Audit →</a>
+      <a href="#solutions" class="cta-secondary">See Our Solutions</a>
+    </div>
+
+    <div class="hero-stats" #fadeEl>
+      <div class="stat-item">
+        <span class="stat-num">{{ statClients() }}+</span>
+        <span class="stat-label">Businesses Served</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-num">{{ statAutomated() }}+</span>
+        <span class="stat-label">Hours Automated / Week</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-num">{{ statAgents() }}+</span>
+        <span class="stat-label">AI Agents Deployed</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-num">{{ statROI() }}%</span>
+        <span class="stat-label">Avg. Cost Reduction</span>
+      </div>
+    </div>
+
+    <div class="hero-trust" #fadeEl>
+      <span class="trust-label">Built with</span>
+      <div class="trust-logos">
+        <span class="trust-pill">LangGraph</span>
+        <span class="trust-pill">FastAPI</span>
+        <span class="trust-pill">FAISS</span>
+        <span class="trust-pill">OpenAI</span>
+        <span class="trust-pill">Claude API</span>
+        <span class="trust-pill">Angular</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-scroll-hint">
+    <span>Scroll to explore</span>
+    <div class="scroll-arrow"></div>
+  </div>
+</section>
+
+<!-- ── SERVICES ───────────────────────────────────────────────────────── -->
+<section id="services" class="section services-section" data-guide="services">
+  <div class="section-inner">
+    <div class="section-header" #fadeEl>
+      <span class="section-tag">What We Do</span>
+      <h2 class="section-title">AI Services for <span class="accent-text">Real Business Outcomes</span></h2>
+      <p class="section-sub">Every service is production-proven — built and deployed in real enterprise environments, not just prototyped.</p>
+    </div>
+
+    <div class="services-grid">
+      <div class="service-card" *ngFor="let svc of services" #fadeEl [attr.data-color]="svc.color">
+        <div class="svc-icon" [attr.data-color]="svc.color" [innerHTML]="safeIcon(svc.icon)"></div>
+        <h3 class="svc-title">{{ svc.title }}</h3>
+        <p class="svc-desc">{{ svc.desc }}</p>
+        <ul class="svc-points">
+          <li *ngFor="let pt of svc.points">{{ pt }}</li>
+        </ul>
+        <a href="#contact" class="svc-cta">Get Started →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── SOLUTIONS ─────────────────────────────────────────────────────── -->
+<section id="solutions" class="section solutions-section" data-guide="solutions">
+  <div class="section-inner">
+    <div class="section-header" #fadeEl>
+      <span class="section-tag">AI Solutions</span>
+      <h2 class="section-title">Business Problems We <span class="accent-text">Solve with AI</span></h2>
+      <p class="section-sub">Each solution is a real system we have built and deployed. See the challenge, solution, and outcome.</p>
+    </div>
+
+    <div class="solutions-list">
+      <div class="solution-card" *ngFor="let sol of solutions" #fadeEl [attr.data-accent]="sol.accent">
+        <div class="sol-header">
+          <span class="sol-num" [attr.data-accent]="sol.accent">{{ sol.num }}</span>
+          <div class="sol-meta">
+            <h3 class="sol-title">{{ sol.title }}</h3>
+            <p class="sol-subtitle">{{ sol.subtitle }}</p>
+          </div>
+          <div class="sol-outcome" [attr.data-accent]="sol.accent">{{ sol.outcome }}</div>
+        </div>
+
+        <p class="sol-desc">{{ sol.desc }}</p>
+
+        <div class="sol-tags">
+          <span class="tag" *ngFor="let t of sol.tags" [class]="t.cls">{{ t.label }}</span>
+        </div>
+
+        <div class="sol-challenges">
+          <div class="challenge-row" *ngFor="let ch of sol.challenges">
+            <div class="ch-problem">
+              <span class="ch-icon ch-problem-icon">✗</span>
+              <span>{{ ch.p }}</span>
+            </div>
+            <div class="ch-arrow">→</div>
+            <div class="ch-solution">
+              <span class="ch-icon ch-solution-icon">✓</span>
+              <span>{{ ch.s }}</span>
+            </div>
+          </div>
+        </div>
+
+        <a href="#contact" class="sol-cta">Book This Solution →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── BY THE NUMBERS ─────────────────────────────────────────────────── -->
+<section id="numbers" class="section numbers-section" data-guide="numbers">
+  <div class="section-inner">
+    <div class="section-header" #fadeEl>
+      <span class="section-tag">Proven Results</span>
+      <h2 class="section-title">The Numbers That <span class="accent-text">Actually Matter</span></h2>
+      <p class="section-sub">Real outcomes from real clients. Not marketing estimates.</p>
+    </div>
+
+    <div class="proof-grid">
+      <div class="proof-card" *ngFor="let p of proofStats" #fadeEl>
+        <div class="proof-icon" [innerHTML]="safeIcon(p.svgIcon)"></div>
+        <div class="proof-stat">{{ p.stat }}</div>
+        <div class="proof-title">{{ p.title }}</div>
+        <div class="proof-sub">{{ p.sub }}</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── TEAM ───────────────────────────────────────────────────────────── -->
+<section id="team" class="section team-section" data-guide="team">
+  <div class="section-inner">
+    <div class="section-header" #fadeEl>
+      <span class="section-tag">The Team</span>
+      <h2 class="section-title">Technical Depth + <span class="accent-text">Business Execution</span></h2>
+      <p class="section-sub">We don't just advise — we build, deploy, and own outcomes alongside you.</p>
+    </div>
+
+    <div class="team-grid">
+      <div class="team-card" *ngFor="let member of team" #fadeEl [attr.data-color]="member.color">
+        <div class="team-photo-wrap" [attr.data-color]="member.color">
+          <img [src]="member.photo" [alt]="member.name" class="team-photo"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="team-photo-fallback" [attr.data-color]="member.color">
+            {{ member.name.charAt(0) }}
+          </div>
+          <div class="team-focus-badge" [attr.data-color]="member.color">{{ member.focus }}</div>
+        </div>
+
+        <div class="team-info">
+          <h3 class="team-name">{{ member.name }}</h3>
+          <p class="team-role" [attr.data-color]="member.color">{{ member.role }}</p>
+          <p class="team-desc">{{ member.desc }}</p>
+
+          <div class="team-tags">
+            <span class="team-tag" *ngFor="let t of member.tags">{{ t }}</span>
+          </div>
+
+          <div class="team-links">
+            <a [href]="member.linkedin" target="_blank" class="team-link team-link-li" *ngIf="member.linkedin">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+              LinkedIn
+            </a>
+            <a [href]="member.github" target="_blank" class="team-link team-link-gh" *ngIf="member.github">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+              GitHub
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="team-mission" #fadeEl>
+      <div class="mission-content">
+        <h3>Our Promise to You</h3>
+        <p>We don't hand you a slide deck and disappear. We build alongside your team, train your people, and measure success in business outcomes — not deliverables ticked off a list.</p>
+        <a href="#contact" class="cta-primary">Work With Us →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CONTACT ────────────────────────────────────────────────────────── -->
+<section id="contact" class="section contact-section" data-guide="contact">
+  <div class="section-inner">
+    <div class="section-header" #fadeEl>
+      <span class="section-tag">Let's Talk</span>
+      <h2 class="section-title">Book Your Free <span class="accent-text">AI Consultation</span></h2>
+      <p class="section-sub">30-minute call. Zero sales pitch. We'll identify your top 3 AI opportunities and give you a clear path forward.</p>
+    </div>
+
+    <div class="contact-layout">
+      <div class="contact-form-wrap" #fadeEl>
+        <div class="form-success" *ngIf="formSubmitted()">
+          <div class="success-icon">🎉</div>
+          <h3>We'll be in touch within 24 hours!</h3>
+          <p>Check your inbox — including spam — for our calendar invite.</p>
+        </div>
+
+        <form *ngIf="!formSubmitted()" (ngSubmit)="submitForm()" class="contact-form">
+          <div class="form-row">
+            <div class="form-field">
+              <label>Your Name *</label>
+              <input type="text" [(ngModel)]="contactForm.name" name="name" placeholder="John Smith" required>
+            </div>
+            <div class="form-field">
+              <label>Company *</label>
+              <input type="text" [(ngModel)]="contactForm.company" name="company" placeholder="Acme Corp" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label>Work Email *</label>
+              <input type="email" [(ngModel)]="contactForm.email" name="email" placeholder="john@acme.com" required>
+            </div>
+            <div class="form-field">
+              <label>Phone (optional)</label>
+              <input type="tel" [(ngModel)]="contactForm.phone" name="phone" placeholder="+1 555 000 0000">
+            </div>
+          </div>
+          <div class="form-field">
+            <label>Biggest AI challenge or opportunity *</label>
+            <textarea [(ngModel)]="contactForm.challenge" name="challenge" rows="4"
+              placeholder="e.g. We process 500 invoices a day manually. We want AI to handle it..." required></textarea>
+          </div>
+          <button type="submit" class="form-submit-btn" [disabled]="formSending()">
+            <span *ngIf="!formSending()">Book My Free Consultation →</span>
+            <span *ngIf="formSending()" class="sending-dots">Sending<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></span>
+          </button>
+          <p class="form-note">Or email us directly: <a href="mailto:ravchandan15@gmail.com">ravchandan15&#64;gmail.com</a></p>
+        </form>
+      </div>
+
+      <div class="contact-info" #fadeEl>
+        <div class="ci-card">
+          <h3>What happens next?</h3>
+          <ol class="next-steps">
+            <li>
+              <span class="step-num">1</span>
+              <div>
+                <strong>We review your submission</strong>
+                <p>Within 4 business hours we'll review your challenge and prepare relevant questions.</p>
+              </div>
+            </li>
+            <li>
+              <span class="step-num">2</span>
+              <div>
+                <strong>30-minute discovery call</strong>
+                <p>We'll map your processes, identify AI opportunities, and size the ROI potential.</p>
+              </div>
+            </li>
+            <li>
+              <span class="step-num">3</span>
+              <div>
+                <strong>Receive your AI roadmap</strong>
+                <p>Within 48 hours you'll have a prioritised AI roadmap with effort and ROI estimates.</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+
+        <div class="ci-direct">
+          <a href="mailto:ravchandan15@gmail.com" class="direct-link">
+            <span class="di-icon">📧</span>
+            <span>ravchandan15&#64;gmail.com</span>
+          </a>
+          <a href="https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/" target="_blank" class="direct-link">
+            <span class="di-icon">💼</span>
+            <span>Connect on LinkedIn</span>
+          </a>
+          <a href="https://github.com/RavSinghChandan" target="_blank" class="direct-link">
+            <span class="di-icon">💻</span>
+            <span>See our work on GitHub</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ─────────────────────────────────────────────────────────── -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <span class="footer-logo">AI with Rav</span>
+      <p>AI Consulting · AI Agents · RAG Systems · Business Automation</p>
+    </div>
+    <div class="footer-links">
+      <a href="#services">Services</a>
+      <a href="#solutions">Solutions</a>
+      <a href="#numbers">Results</a>
+      <a href="#team">Team</a>
+      <a href="#contact">Contact</a>
+    </div>
+    <div class="footer-copy">© 2025 AI with Rav. All rights reserved.</div>
+  </div>
+</footer>
+
+<!-- ── BACK TO TOP ────────────────────────────────────────────────────── -->
+<button class="back-to-top" [class.visible]="showBackToTop()" (click)="scrollToTop()" aria-label="Back to top">↑</button>
+
+<!-- ── FLOATING GUIDE ─────────────────────────────────────────────────── -->
+<div class="fg-wrap" [class.visible]="fgVisible()">
+  <div class="fg-bubble">
+    <div class="fg-avatar">🤖</div>
+    <div class="fg-text">
+      <p class="fg-quote">{{ fgQuote() }}</p>
+      <p class="fg-sub">{{ fgSub() }}</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── RAV AI CHATBOT ─────────────────────────────────────────────────── -->
+<div class="cb-fab-wrap">
+  <button class="cb-fab" (click)="cbToggle()" aria-label="Open AI Assistant">
+    <span class="cb-fab-icon" *ngIf="!cbOpen()">🤖</span>
+    <span class="cb-fab-icon" *ngIf="cbOpen()">✕</span>
+    <span class="cb-unread" *ngIf="cbUnread() > 0">{{ cbUnread() }}</span>
+  </button>
+</div>
+
+<div class="cb-panel" *ngIf="cbOpen()"
+     [style.width.px]="cbPanelW()"
+     [style.height.px]="cbPanelH()">
+
+  <div class="cb-resize-handle" (mousedown)="cbResizeStart($event)"></div>
+
+  <div class="cb-head">
+    <div class="cb-head-left">
+      <span class="cb-head-avatar">🤖</span>
+      <div>
+        <div class="cb-head-name">Rav AI Assistant</div>
+        <div class="cb-head-status">
+          <span class="cb-status-dot"></span> AI for Business Growth
+        </div>
+      </div>
+    </div>
+    <button class="cb-close-btn" (click)="cbToggle()">✕</button>
+  </div>
+
+  <div class="cb-messages" #cbScroll>
+    <div *ngFor="let msg of cbMessages()"
+         class="cb-msg" [class.cb-msg-user]="msg.role==='user'" [class.cb-msg-bot]="msg.role==='bot'">
+      <div *ngIf="msg.role==='bot'" class="cb-msg-avatar">🤖</div>
+      <div class="cb-msg-bubble">
+        <span *ngIf="msg.role==='user'">{{ msg.html }}</span>
+        <span *ngIf="msg.role==='bot'" [innerHTML]="msg.safeHtml"></span>
+      </div>
+    </div>
+
+    <div class="cb-msg cb-msg-bot" *ngIf="cbTyping()">
+      <div class="cb-msg-avatar">🤖</div>
+      <div class="cb-msg-bubble cb-typing-bubble">
+        <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="cb-quickprompts" *ngIf="cbMessages().length <= 1">
+    <button class="cb-qp" *ngFor="let qp of cbQuickPrompts" (click)="cbSend(qp)">{{ qp }}</button>
+  </div>
+
+  <div class="cb-followups" *ngIf="cbMessages().length > 1 && cbMessages()[cbMessages().length-1]?.followups?.length">
+    <button class="cb-fp" *ngFor="let fp of cbMessages()[cbMessages().length-1]?.followups" (click)="cbSend(fp)">{{ fp }}</button>
+  </div>
+
+  <div class="cb-input-row">
+    <input class="cb-input" type="text" [(ngModel)]="cbDraft"
+           placeholder="Ask about our AI services..."
+           (keydown.enter)="cbSend(cbDraft)">
+    <button class="cb-send" (click)="cbSend(cbDraft)" [disabled]="!cbDraft.trim()">→</button>
+  </div>
+</div>

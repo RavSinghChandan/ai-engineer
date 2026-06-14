@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160" width="120" height="160">
+  <!-- Cartoon Chandan Kumar — pointing pose -->
+  <!-- Body / blazer -->
+  <rect x="30" y="85" width="60" height="55" rx="8" fill="#2d4a7a"/>
+  <!-- Shirt collar -->
+  <polygon points="52,85 60,100 68,85" fill="#a8c4e0"/>
+  <!-- Left arm pointing right -->
+  <rect x="10" y="90" width="28" height="12" rx="6" fill="#2d4a7a"/>
+  <!-- Hand pointing -->
+  <ellipse cx="8" cy="96" rx="8" ry="6" fill="#c8956c"/>
+  <!-- Finger point -->
+  <rect x="0" y="94" width="12" height="4" rx="2" fill="#c8956c"/>
+  <!-- Right arm normal -->
+  <rect x="82" y="90" width="22" height="12" rx="6" fill="#2d4a7a"/>
+  <!-- Neck -->
+  <rect x="52" y="72" width="16" height="16" rx="4" fill="#c8956c"/>
+  <!-- Head -->
+  <ellipse cx="60" cy="55" rx="28" ry="30" fill="#c8956c"/>
+  <!-- Hair — dark messy -->
+  <ellipse cx="60" cy="32" rx="28" ry="16" fill="#1a1a2e"/>
+  <ellipse cx="40" cy="38" rx="10" ry="8" fill="#1a1a2e"/>
+  <ellipse cx="80" cy="38" rx="10" ry="8" fill="#1a1a2e"/>
+  <ellipse cx="60" cy="28" rx="20" ry="10" fill="#1a1a2e"/>
+  <!-- Ears -->
+  <ellipse cx="32" cy="55" rx="5" ry="7" fill="#c8956c"/>
+  <ellipse cx="88" cy="55" rx="5" ry="7" fill="#c8956c"/>
+  <!-- Eyes with glasses -->
+  <!-- Glasses frame left -->
+  <rect x="38" y="50" width="18" height="12" rx="4" fill="none" stroke="#8b7355" stroke-width="1.5"/>
+  <!-- Glasses frame right -->
+  <rect x="64" y="50" width="18" height="12" rx="4" fill="none" stroke="#8b7355" stroke-width="1.5"/>
+  <!-- Glasses bridge -->
+  <line x1="56" y1="56" x2="64" y2="56" stroke="#8b7355" stroke-width="1.5"/>
+  <!-- Eye pupils left -->
+  <circle cx="47" cy="56" r="3.5" fill="#2c1810"/>
+  <circle cx="48.5" cy="55" r="1" fill="white"/>
+  <!-- Eye pupils right -->
+  <circle cx="73" cy="56" r="3.5" fill="#2c1810"/>
+  <circle cx="74.5" cy="55" r="1" fill="white"/>
+  <!-- Eyebrows -->
+  <path d="M40 48 Q47 45 54 48" stroke="#1a1a2e" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M66 48 Q73 45 80 48" stroke="#1a1a2e" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- Beard -->
+  <path d="M38 65 Q60 78 82 65 Q82 72 60 78 Q38 72 38 65 Z" fill="#2c2c3e" opacity="0.7"/>
+  <!-- Mustache -->
+  <path d="M50 65 Q60 70 70 65" stroke="#1a1a2e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <!-- Smile -->
+  <path d="M50 68 Q60 76 70 68" stroke="#8b4513" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <!-- Nose -->
+  <path d="M57 60 Q55 66 60 67 Q65 66 63 60" stroke="#b07050" stroke-width="1" fill="none"/>
+</svg>
