@@ -778,6 +778,99 @@ img { max-width: 100%; }
   line-height: 1.5;
 }
 
+/* ── TESTIMONIALS ─────────────────────────────────────────────────── */
+.testimonials-header {
+  margin-top: 4rem;
+  text-align: center;
+  margin-bottom: 2rem;
+
+  .testimonials-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin-top: 0.5rem;
+  }
+}
+
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+
+  @media (max-width: 900px) { grid-template-columns: 1fr 1fr; }
+  @media (max-width: 600px) { grid-template-columns: 1fr; }
+}
+
+.testimonial-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2rem 1.75rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  position: relative;
+  transition: transform 0.25s, border-color 0.25s;
+
+  &:hover {
+    transform: translateY(-4px);
+    border-color: rgba(124,58,237,0.35);
+  }
+}
+
+.testimonial-quote-mark {
+  font-size: 4rem;
+  line-height: 1;
+  color: var(--purple2);
+  opacity: 0.4;
+  font-family: Georgia, serif;
+  position: absolute;
+  top: 0.75rem;
+  left: 1.5rem;
+}
+
+.testimonial-text {
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--text2);
+  padding-top: 1.5rem;
+  flex: 1;
+}
+
+.testimonial-author {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.testimonial-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 800;
+  flex-shrink: 0;
+
+  &[data-color='purple'] { background: rgba(124,58,237,0.2); color: var(--purple2); border: 1px solid rgba(124,58,237,0.3); }
+  &[data-color='cyan']   { background: rgba(8,145,178,0.2);  color: var(--cyan2);   border: 1px solid rgba(8,145,178,0.3); }
+  &[data-color='green']  { background: rgba(16,185,129,0.2); color: #10b981;        border: 1px solid rgba(16,185,129,0.3); }
+}
+
+.testimonial-meta { display: flex; flex-direction: column; gap: 0.1rem; }
+.testimonial-name  { font-size: 0.88rem; font-weight: 700; }
+.testimonial-title { font-size: 0.78rem; color: var(--text2); }
+.testimonial-industry {
+  font-size: 0.72rem;
+  color: var(--purple2);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
 /* ── TEAM ─────────────────────────────────────────────────────────── */
 .team-grid {
   display: grid;

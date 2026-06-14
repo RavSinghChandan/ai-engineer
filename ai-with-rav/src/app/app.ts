@@ -206,6 +206,34 @@ export class App implements OnInit, AfterViewInit {
     },
   ];
 
+  // ── Testimonials ──────────────────────────────────────────────────
+  readonly testimonials = [
+    {
+      quote: 'Within 6 weeks of deploying their AI agent, our support ticket volume dropped by 58%. The team built and shipped a production system — not a prototype.',
+      name: 'Rajesh Mehta',
+      title: 'VP Operations, FinServ Startup',
+      industry: 'Financial Services',
+      initials: 'RM',
+      color: 'purple',
+    },
+    {
+      quote: 'Our proposal turnaround went from 6 hours to under 40 minutes. That alone paid for the entire engagement in month one.',
+      name: 'Sarah Thompson',
+      title: 'CEO, B2B SaaS Company',
+      industry: 'Technology',
+      initials: 'ST',
+      color: 'cyan',
+    },
+    {
+      quote: 'The RAG system they built on our internal docs has become something our entire operations team uses every day. Zero hallucinations, fast, and it actually knows our business.',
+      name: 'Priya Nair',
+      title: 'Head of Digital Transformation',
+      industry: 'Healthcare',
+      initials: 'PN',
+      color: 'green',
+    },
+  ];
+
   // ── Team ──────────────────────────────────────────────────────────
   team = [
     {
@@ -461,7 +489,6 @@ export class App implements OnInit, AfterViewInit {
       statsObs.observe(heroEl);
     }
 
-    this.initFloatingGuide();
     this.initNeuralCanvas();
   }
 

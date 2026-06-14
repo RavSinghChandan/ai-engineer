@@ -54,7 +54,6 @@
 
     <div class="hero-ctas" #fadeEl>
       <a href="#contact" class="cta-primary">Book Free AI Audit →</a>
-      <a href="#solutions" class="cta-secondary">See Our Solutions</a>
     </div>
 
     <div class="hero-stats" #fadeEl>
@@ -182,6 +181,26 @@
         <div class="proof-stat">{{ p.stat }}</div>
         <div class="proof-title">{{ p.title }}</div>
         <div class="proof-sub">{{ p.sub }}</div>
+      </div>
+    </div>
+
+    <div class="testimonials-header" #fadeEl>
+      <span class="section-tag">Client Voices</span>
+      <h3 class="testimonials-title">What Our Clients Say</h3>
+    </div>
+
+    <div class="testimonials-grid">
+      <div class="testimonial-card" *ngFor="let t of testimonials" #fadeEl>
+        <div class="testimonial-quote-mark">"</div>
+        <p class="testimonial-text">{{ t.quote }}</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" [attr.data-color]="t.color">{{ t.initials }}</div>
+          <div class="testimonial-meta">
+            <div class="testimonial-name">{{ t.name }}</div>
+            <div class="testimonial-title">{{ t.title }}</div>
+            <div class="testimonial-industry">{{ t.industry }}</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -442,21 +461,15 @@
 <!-- ── BACK TO TOP ────────────────────────────────────────────────────── -->
 <button class="back-to-top" [class.visible]="showBackToTop()" (click)="scrollToTop()" aria-label="Back to top">↑</button>
 
-<!-- ── FLOATING GUIDE ─────────────────────────────────────────────────── -->
-<div class="fg-wrap" [class.visible]="fgVisible()">
-  <div class="fg-bubble">
-    <div class="fg-avatar">🤖</div>
-    <div class="fg-text">
-      <p class="fg-quote">{{ fgQuote() }}</p>
-      <p class="fg-sub">{{ fgSub() }}</p>
-    </div>
-  </div>
-</div>
-
 <!-- ── RAV AI CHATBOT ─────────────────────────────────────────────────── -->
 <div class="cb-fab-wrap">
   <button class="cb-fab" (click)="cbToggle()" aria-label="Open AI Assistant">
-    <span class="cb-fab-icon" *ngIf="!cbOpen()">🤖</span>
+    <span class="cb-fab-icon" *ngIf="!cbOpen()">
+      <svg viewBox="0 0 24 24" fill="none" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="9" cy="10" r="1" fill="currentColor"/><circle cx="12" cy="10" r="1" fill="currentColor"/><circle cx="15" cy="10" r="1" fill="currentColor"/>
+      </svg>
+    </span>
     <span class="cb-fab-icon" *ngIf="cbOpen()">✕</span>
     <span class="cb-unread" *ngIf="cbUnread() > 0">{{ cbUnread() }}</span>
   </button>
@@ -470,7 +483,11 @@
 
   <div class="cb-head">
     <div class="cb-head-left">
-      <span class="cb-head-avatar">🤖</span>
+      <span class="cb-head-avatar">
+        <svg viewBox="0 0 24 24" fill="none" width="18" height="18" xmlns="http://www.w3.org/2000/svg">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
       <div>
         <div class="cb-head-name">Rav AI Assistant</div>
         <div class="cb-head-status">
@@ -484,7 +501,9 @@
   <div class="cb-messages" #cbScroll>
     <div *ngFor="let msg of cbMessages()"
          class="cb-msg" [class.cb-msg-user]="msg.role==='user'" [class.cb-msg-bot]="msg.role==='bot'">
-      <div *ngIf="msg.role==='bot'" class="cb-msg-avatar">🤖</div>
+      <div *ngIf="msg.role==='bot'" class="cb-msg-avatar">
+        <svg viewBox="0 0 24 24" fill="none" width="14" height="14" xmlns="http://www.w3.org/2000/svg"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
       <div class="cb-msg-bubble">
         <span *ngIf="msg.role==='user'">{{ msg.html }}</span>
         <span *ngIf="msg.role==='bot'" [innerHTML]="msg.safeHtml"></span>
@@ -492,7 +511,9 @@
     </div>
 
     <div class="cb-msg cb-msg-bot" *ngIf="cbTyping()">
-      <div class="cb-msg-avatar">🤖</div>
+      <div class="cb-msg-avatar">
+        <svg viewBox="0 0 24 24" fill="none" width="14" height="14" xmlns="http://www.w3.org/2000/svg"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
       <div class="cb-msg-bubble cb-typing-bubble">
         <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
       </div>
