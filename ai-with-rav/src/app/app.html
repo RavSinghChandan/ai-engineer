@@ -81,22 +81,20 @@
           </div>
         </div>
 
-        <!-- Rotating SVG badge between/below cards -->
+        <!-- Spinning watermark logo badge — inspired by Astro Intel brand-avatar -->
         <div class="hv-badge">
-          <svg class="hv-badge-svg" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Outer rotating dashed ring -->
-            <circle cx="80" cy="80" r="74" stroke="#7C3AED" stroke-width="1.5" stroke-dasharray="6 5" class="hv-ring-spin"/>
-            <!-- Inner static ring -->
-            <circle cx="80" cy="80" r="62" stroke="#e8e4f0" stroke-width="1"/>
-            <!-- White circle background -->
-            <circle cx="80" cy="80" r="54" fill="white"/>
-            <!-- Rotating text on outer path -->
-            <path id="hv-text-path" d="M80,80 m-68,0 a68,68 0 1,1 136,0 a68,68 0 1,1 -136,0" fill="none"/>
-            <text font-size="9.5" font-weight="700" fill="#7C3AED" letter-spacing="3.2" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" class="hv-text-spin">
-              <textPath href="#hv-text-path">AI WITH RAV · AI FOR BUSINESS GROWTH · </textPath>
+          <!-- Outer spinning ring with dashes -->
+          <div class="hv-badge-ring"></div>
+          <!-- Inner circle: logo as background, spins slowly -->
+          <div class="hv-badge-inner">
+            <img src="logo-with-text.png" alt="AI with Rav" class="hv-badge-logo-img"/>
+          </div>
+          <!-- "AI FOR BUSINESS GROWTH" text on circular SVG path, counter-spins -->
+          <svg class="hv-badge-text-svg" viewBox="0 0 160 160">
+            <path id="hv-tp" d="M80,80 m-70,0 a70,70 0 1,1 140,0 a70,70 0 1,1 -140,0" fill="none"/>
+            <text font-size="10" font-weight="700" letter-spacing="4" fill="#7C3AED" font-family="-apple-system,sans-serif">
+              <textPath href="#hv-tp">AI WITH RAV · AI FOR BUSINESS GROWTH ·</textPath>
             </text>
-            <!-- Logo image in center -->
-            <image href="logo-with-text.png" x="26" y="26" width="108" height="108" preserveAspectRatio="xMidYMid meet" class="hv-badge-logo"/>
           </svg>
         </div>
       </div>

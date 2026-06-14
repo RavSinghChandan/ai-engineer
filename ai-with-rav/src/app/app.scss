@@ -270,38 +270,56 @@ button { cursor: pointer; border: none; background: none; font: inherit; }
 .hv-name { font-size: 0.82rem; font-weight: 800; color: #0f0a1e; }
 .hv-role { font-size: 0.68rem; color: #7C3AED; font-weight: 600; }
 
-/* Rotating SVG badge */
+/* ── Spinning watermark badge (Astro Intel brand-avatar style) ── */
 .hv-badge {
   position: absolute;
-  bottom: -10px; left: 50%;
+  bottom: -12px; left: 50%;
   transform: translateX(-50%);
-  width: 130px; height: 130px;
+  width: 140px; height: 140px;
   z-index: 3;
-  filter: drop-shadow(0 8px 24px rgba(124,58,237,0.2));
 }
-.hv-badge-svg { width: 100%; height: 100%; }
 
-/* Outer dashed ring spins */
-.hv-ring-spin {
-  animation: badge-spin 12s linear infinite;
-  transform-origin: 80px 80px;
+/* Outer dashed border ring — spins clockwise */
+.hv-badge-ring {
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  border: 2px dashed rgba(124,58,237,0.5);
+  animation: badge-ring-spin 8s linear infinite;
 }
-/* Circular text spins opposite direction */
-.hv-text-spin {
-  animation: badge-spin-rev 20s linear infinite;
-  transform-origin: 80px 80px;
-}
-/* Logo pulses gently */
-.hv-badge-logo {
+
+/* Inner white circle with logo — brand-avatar pattern from Astro Intel */
+.hv-badge-inner {
+  position: absolute;
+  inset: 10px;
+  border-radius: 50%;
+  background: #fff center / 80% no-repeat;
+  border: 2px solid rgba(124,58,237,0.2);
+  box-shadow: 0 4px 24px rgba(124,58,237,0.18), 0 2px 8px rgba(0,0,0,0.08);
   animation: badge-pulse 3s ease-in-out infinite;
-  transform-origin: 80px 80px;
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
 }
 
-@keyframes badge-spin     { to { transform: rotate(360deg); } }
-@keyframes badge-spin-rev { to { transform: rotate(-360deg); } }
+/* Logo image fills the inner circle */
+.hv-badge-logo-img {
+  display: block;
+  width: 82%; height: 82%;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+}
+
+/* Circular text SVG — counter-spins */
+.hv-badge-text-svg {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  animation: badge-text-spin 18s linear infinite;
+}
+
+@keyframes badge-ring-spin { to { transform: rotate(360deg); } }
+@keyframes badge-text-spin { to { transform: rotate(-360deg); } }
 @keyframes badge-pulse {
-  0%,100% { opacity: 0.95; transform: scale(0.97); }
-  50%      { opacity: 1;    transform: scale(1.03); }
+  0%,100% { box-shadow: 0 4px 24px rgba(124,58,237,0.18), 0 2px 8px rgba(0,0,0,0.08); transform: scale(1); }
+  50%      { box-shadow: 0 6px 32px rgba(124,58,237,0.35), 0 2px 12px rgba(0,0,0,0.1); transform: scale(1.04); }
 }
 
 /* ── TEAM ─────────────────────────────────────────────────────────── */
