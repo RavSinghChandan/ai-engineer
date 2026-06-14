@@ -220,7 +220,7 @@ export class App implements OnInit, AfterViewInit {
       color: 'purple',
     },
     {
-      name: 'Ankita Basu',
+      name: 'Anita Basu',
       role: 'Co-Founder & Head of Operations',
       focus: 'Business',
       desc: 'Leads HR, client management, and business operations. Ensures every client engagement runs smoothly from discovery to delivery — the bridge between business needs and technical solutions.',
