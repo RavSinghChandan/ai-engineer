@@ -5,11 +5,7 @@
 <nav class="navbar" [class.scrolled]="scrolled()">
   <div class="nav-inner">
     <a href="#hero" class="brand">
-      <img src="logo-with-text.png" alt="AI with Rav" class="brand-logo"
-           onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-      <span class="brand-fallback" style="display:none">
-        <span class="brand-ai">AI</span><span class="brand-with"> with </span><span class="brand-rav">Rav</span>
-      </span>
+      <img src="logo-with-text.png" alt="AI with Rav" class="brand-logo brand-logo-animated">
     </a>
 
     <div class="nav-links" [class.open]="mobileNavOpen()">
@@ -59,78 +55,26 @@
     </div>
 
     <div class="hero-right" #fadeEl>
-      <!-- Animated AI workflow SVG -->
-      <svg class="hero-svg" viewBox="0 0 420 380" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- Background circles -->
-        <circle cx="210" cy="190" r="160" stroke="#7C3AED" stroke-width="1" stroke-dasharray="6 4" opacity="0.15" class="svg-orbit"/>
-        <circle cx="210" cy="190" r="115" stroke="#7C3AED" stroke-width="1" stroke-dasharray="4 6" opacity="0.1" class="svg-orbit-rev"/>
-
-        <!-- Center brain/AI node -->
-        <circle cx="210" cy="190" r="44" fill="#7C3AED" opacity="0.12"/>
-        <circle cx="210" cy="190" r="32" fill="#7C3AED" opacity="0.2"/>
-        <circle cx="210" cy="190" r="22" fill="#7C3AED"/>
-        <text x="210" y="196" text-anchor="middle" font-size="16" font-weight="800" fill="white">AI</text>
-
-        <!-- Nodes around orbit -->
-        <!-- Data node -->
-        <circle cx="210" cy="75" r="22" fill="#F8F6FF" stroke="#7C3AED" stroke-width="2"/>
-        <rect x="199" y="66" width="22" height="18" rx="3" fill="#7C3AED" opacity="0.7"/>
-        <line x1="203" y1="71" x2="217" y2="71" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-        <line x1="203" y1="75" x2="213" y2="75" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-        <text x="210" y="109" text-anchor="middle" font-size="9" fill="#7C3AED" font-weight="700">Your Data</text>
-
-        <!-- Automation node -->
-        <circle cx="335" cy="140" r="22" fill="#F8F6FF" stroke="#7C3AED" stroke-width="2"/>
-        <path d="M323 140 a12 12 0 0 1 24 0" stroke="#7C3AED" stroke-width="2" fill="none" stroke-linecap="round"/>
-        <path d="M335 128 l3 5 l-6 0 z" fill="#7C3AED"/>
-        <line x1="335" y1="140" x2="335" y2="150" stroke="#7C3AED" stroke-width="2" stroke-linecap="round"/>
-        <text x="335" y="174" text-anchor="middle" font-size="9" fill="#7C3AED" font-weight="700">Automation</text>
-
-        <!-- Agent node -->
-        <circle cx="335" cy="250" r="22" fill="#F8F6FF" stroke="#06b6d4" stroke-width="2"/>
-        <circle cx="335" cy="244" r="6" fill="#06b6d4" opacity="0.7"/>
-        <path d="M322 260 q13-8 26 0" stroke="#06b6d4" stroke-width="2" fill="none" stroke-linecap="round"/>
-        <text x="335" y="284" text-anchor="middle" font-size="9" fill="#06b6d4" font-weight="700">AI Agent</text>
-
-        <!-- Results node -->
-        <circle cx="210" cy="305" r="22" fill="#F8F6FF" stroke="#10b981" stroke-width="2"/>
-        <polyline points="200,315 207,305 213,310 221,296" stroke="#10b981" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-        <text x="210" y="338" text-anchor="middle" font-size="9" fill="#10b981" font-weight="700">Results</text>
-
-        <!-- Integration node -->
-        <circle cx="85" cy="250" r="22" fill="#F8F6FF" stroke="#f59e0b" stroke-width="2"/>
-        <rect x="78" y="243" width="14" height="14" rx="2" stroke="#f59e0b" stroke-width="2"/>
-        <path d="M92 250 h10 l5-5" stroke="#f59e0b" stroke-width="2" fill="none" stroke-linecap="round"/>
-        <text x="85" y="284" text-anchor="middle" font-size="9" fill="#f59e0b" font-weight="700">Integrate</text>
-
-        <!-- Knowledge node -->
-        <circle cx="85" cy="140" r="22" fill="#F8F6FF" stroke="#8b5cf6" stroke-width="2"/>
-        <path d="M76 135 q9-10 18 0 q-9 10-18 0" stroke="#8b5cf6" stroke-width="2" fill="none"/>
-        <line x1="85" y1="135" x2="85" y2="148" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"/>
-        <text x="85" y="174" text-anchor="middle" font-size="9" fill="#8b5cf6" font-weight="700">Knowledge</text>
-
-        <!-- Connecting lines -->
-        <line x1="210" y1="168" x2="210" y2="97" stroke="#7C3AED" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.5" class="svg-line"/>
-        <line x1="232" y1="175" x2="315" y2="148" stroke="#7C3AED" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.5" class="svg-line"/>
-        <line x1="232" y1="205" x2="315" y2="240" stroke="#06b6d4" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.5" class="svg-line"/>
-        <line x1="210" y1="212" x2="210" y2="283" stroke="#10b981" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.5" class="svg-line"/>
-        <line x1="188" y1="205" x2="107" y2="240" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.5" class="svg-line"/>
-        <line x1="188" y1="175" x2="107" y2="148" stroke="#8b5cf6" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.5" class="svg-line"/>
-
-        <!-- Pulse dots on lines -->
-        <circle r="4" fill="#7C3AED" opacity="0.8" class="svg-pulse-1">
-          <animateMotion dur="2.5s" repeatCount="indefinite">
-            <mpath href="#path-top"/>
-          </animateMotion>
-        </circle>
-        <circle r="4" fill="#10b981" opacity="0.8" class="svg-pulse-2">
-          <animateMotion dur="3s" repeatCount="indefinite">
-            <mpath href="#path-bottom"/>
-          </animateMotion>
-        </circle>
-        <path id="path-top" d="M210 168 L210 97" fill="none"/>
-        <path id="path-bottom" d="M210 212 L210 283" fill="none"/>
-      </svg>
+      <!-- Full background: both founder photos side by side, faded -->
+      <div class="hero-visual">
+        <!-- Background photos -->
+        <div class="hero-photos-bg">
+          <img src="chandan-photo.jpg" alt="" class="hero-bg-photo">
+          <img src="ankita-photo.jpg" alt="" class="hero-bg-photo">
+        </div>
+        <!-- Overlay gradient -->
+        <div class="hero-photo-overlay"></div>
+        <!-- Logo in foreground center -->
+        <div class="hero-logo-foreground">
+          <img src="logo-with-text.png" alt="AI with Rav" class="hero-logo-img brand-logo-animated">
+          <p class="hero-logo-tagline">AI for Business Growth</p>
+        </div>
+        <!-- Founder name chips at bottom -->
+        <div class="hero-founder-chips">
+          <span class="hero-chip">Chandan Kumar · Founder & AI Engineer</span>
+          <span class="hero-chip">Anita Basu · Co-Founder & Strategist</span>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -327,9 +271,9 @@
 <footer class="footer">
   <div class="footer-inner">
     <div class="footer-brand-col">
-      <img src="logo-with-text.png" alt="AI with Rav" class="footer-logo"
-           onerror="this.style.display='none';this.nextElementSibling.style.display='inline'">
-      <span class="footer-brand-text" style="display:none">AI with Rav</span>
+      <div class="footer-brand-name">
+        <span class="fbn-ai">AI</span><span class="fbn-with"> with </span><span class="fbn-rav">Rav</span>
+      </div>
       <p class="footer-tagline">Transforming businesses into AI-first organisations.</p>
       <div class="footer-socials">
         <a href="https://www.linkedin.com/company/ai-with-rav/" target="_blank" rel="noopener" aria-label="LinkedIn">
@@ -361,7 +305,8 @@
   </div>
 
   <div class="footer-bottom">
-    <span class="footer-copy">© 2025 AI with Rav. All rights reserved.</span>
+    <span class="footer-copy">© 2026 AI with Rav. All rights reserved.</span>
+    <span class="footer-love">Made with <span class="heart">❤️</span> by AI with Rav</span>
     <a href="mailto:aiwithravofficial@gmail.com" class="footer-email">aiwithravofficial&#64;gmail.com</a>
   </div>
 </footer>

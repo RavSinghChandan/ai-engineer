@@ -75,17 +75,20 @@ button { cursor: pointer; border: none; background: none; font: inherit; }
 .nav-inner {
   max-width: 1200px; margin: 0 auto;
   display: flex; align-items: center;
-  padding: 0 2rem; height: 64px; gap: 2rem;
+  padding: 0 2rem; height: 80px; gap: 2rem;
 }
 
-.brand { display: flex; align-items: center; gap: 0.5rem; }
-.brand-logo { height: 40px; width: auto; }
-.brand-fallback {
-  display: flex; align-items: center; gap: 0.2rem;
-  font-weight: 900; font-size: 1.1rem;
-  .brand-ai { color: var(--purple); }
-  .brand-with { color: var(--text2); font-weight: 400; }
-  .brand-rav { color: var(--text1); }
+.brand { display: flex; align-items: center; }
+.brand-logo { height: 60px; width: auto; }
+
+/* Dynamic logo: original image + CSS animation (glow pulse) */
+.brand-logo-animated {
+  animation: logo-glow 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 0px rgba(124,58,237,0));
+}
+@keyframes logo-glow {
+  0%,100% { filter: drop-shadow(0 0 0px rgba(124,58,237,0)); transform: scale(1); }
+  50%      { filter: drop-shadow(0 0 14px rgba(124,58,237,0.35)) drop-shadow(0 0 6px rgba(245,158,11,0.2)); transform: scale(1.03); }
 }
 
 .nav-links {
@@ -208,16 +211,80 @@ button { cursor: pointer; border: none; background: none; font: inherit; }
   width: 1px; height: 36px; background: var(--border); flex-shrink: 0; margin: 0 0.5rem;
 }
 
-/* Hero SVG */
+/* Hero right — visual panel */
 .hero-right { display: flex; align-items: center; justify-content: center; }
-.hero-svg { width: 100%; max-width: 420px; filter: drop-shadow(0 8px 32px rgba(124,58,237,0.12)); }
 
-.svg-orbit { animation: spin 30s linear infinite; transform-origin: 210px 190px; }
-.svg-orbit-rev { animation: spin 20s linear infinite reverse; transform-origin: 210px 190px; }
-.svg-line { stroke-dashoffset: 0; animation: dash 3s linear infinite; }
+.hero-visual {
+  position: relative;
+  width: 100%; max-width: 460px;
+  height: 520px;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(124,58,237,0.2);
+}
 
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes dash { to { stroke-dashoffset: -20; } }
+/* Two founder photos filling the full background */
+.hero-photos-bg {
+  position: absolute; inset: 0;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+.hero-bg-photo {
+  width: 100%; height: 100%; object-fit: cover; object-position: center top;
+  display: block;
+}
+
+/* Dark gradient overlay so logo pops */
+.hero-photo-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(15,10,30,0.55) 0%,
+    rgba(15,10,30,0.35) 40%,
+    rgba(15,10,30,0.72) 100%
+  );
+}
+
+/* Logo centered in foreground */
+.hero-logo-foreground {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 0.5rem; z-index: 2;
+}
+
+.hero-logo-img {
+  width: 220px; height: auto;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.92);
+  padding: 1rem 1.25rem;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+  animation: logo-glow-card 3s ease-in-out infinite;
+}
+
+@keyframes logo-glow-card {
+  0%,100% { box-shadow: 0 8px 40px rgba(0,0,0,0.4), 0 0 0px rgba(124,58,237,0); transform: scale(1); }
+  50%      { box-shadow: 0 8px 48px rgba(0,0,0,0.5), 0 0 32px rgba(124,58,237,0.4), 0 0 16px rgba(245,158,11,0.2); transform: scale(1.04); }
+}
+
+.hero-logo-tagline {
+  font-size: 0.78rem; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: rgba(255,255,255,0.7);
+}
+
+/* Founder name chips at bottom */
+.hero-founder-chips {
+  position: absolute; bottom: 1.25rem; left: 0; right: 0;
+  display: flex; justify-content: center; gap: 0.75rem;
+  flex-wrap: wrap; padding: 0 1rem; z-index: 2;
+}
+
+.hero-chip {
+  font-size: 0.72rem; font-weight: 600; color: rgba(255,255,255,0.9);
+  background: rgba(124,58,237,0.7); backdrop-filter: blur(8px);
+  padding: 0.3rem 0.85rem; border-radius: 100px;
+  border: 1px solid rgba(255,255,255,0.15);
+}
 
 /* ── TEAM ─────────────────────────────────────────────────────────── */
 .team-section { background: var(--bg); }
@@ -498,7 +565,7 @@ button { cursor: pointer; border: none; background: none; font: inherit; }
 
 /* ── FOOTER ───────────────────────────────────────────────────────── */
 .footer {
-  background: var(--text1); color: rgba(255,255,255,0.85);
+  background: #0f0a1e; color: rgba(255,255,255,0.85);
   padding: 3.5rem 0 0;
 }
 
@@ -507,9 +574,13 @@ button { cursor: pointer; border: none; background: none; font: inherit; }
   display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 3rem;
 }
 
-.footer-logo { height: 38px; width: auto; filter: brightness(0) invert(1); }
-.footer-brand-text { color: #fff; font-weight: 800; font-size: 1.1rem; }
-.footer-tagline { font-size: 0.84rem; color: rgba(255,255,255,0.5); margin: 0.75rem 0 1.25rem; max-width: 260px; line-height: 1.6; }
+.footer-brand-name {
+  font-size: 1.6rem; font-weight: 900; letter-spacing: -0.5px; margin-bottom: 0.75rem;
+  .fbn-ai  { color: var(--purple); }
+  .fbn-with { color: rgba(255,255,255,0.4); font-weight: 400; font-size: 1.3rem; }
+  .fbn-rav { color: #fff; }
+}
+.footer-tagline { font-size: 0.84rem; color: rgba(255,255,255,0.5); margin-bottom: 1.25rem; max-width: 260px; line-height: 1.6; }
 
 .footer-socials {
   display: flex; gap: 0.75rem;
@@ -555,10 +626,18 @@ button { cursor: pointer; border: none; background: none; font: inherit; }
   border-top: 1px solid rgba(255,255,255,0.08);
   padding: 1.25rem 2rem;
   max-width: 1180px; margin: 0 auto;
-  display: flex; justify-content: space-between; align-items: center;
+  display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .footer-copy { font-size: 0.78rem; color: rgba(255,255,255,0.35); }
+
+.footer-love {
+  font-size: 0.82rem; color: rgba(255,255,255,0.5);
+  display: flex; align-items: center; gap: 0.3rem;
+  .heart { font-size: 1rem; }
+}
+
 .footer-email {
   font-size: 0.78rem; color: rgba(255,255,255,0.5);
   transition: color 0.2s; &:hover { color: #fff; }
