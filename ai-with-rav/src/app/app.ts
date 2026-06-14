@@ -213,7 +213,7 @@ export class App implements OnInit, AfterViewInit {
       role: 'Founder & AI Engineer',
       focus: 'Technical',
       desc: 'Senior AI Engineer with 4+ years building production LLM systems. LangGraph, Hybrid RAG, FastAPI, multi-agent orchestration. The technical brain behind every AI solution we deliver.',
-      photo: 'rav-photo.jpg',
+      photo: 'chandan-photo.jpg',
       linkedin: 'https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/',
       github: 'https://github.com/RavSinghChandan',
       tags: ['AI Engineering', 'LangGraph', 'RAG Systems', 'FastAPI'],
