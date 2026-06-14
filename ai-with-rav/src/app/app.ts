@@ -268,7 +268,28 @@ export class App implements OnInit, AfterViewInit {
   submitForm() {
     if (this.formSending()) return;
     this.formSending.set(true);
-    setTimeout(() => { this.formSending.set(false); this.formSubmitted.set(true); }, 1200);
+    const f = this.contactForm;
+    const payload = {
+      from_name:    f.name,
+      from_company: f.company,
+      from_email:   f.email,
+      from_phone:   f.phone || 'Not provided',
+      message:      f.challenge,
+      to_email:     'aiwithravofficial@gmail.com',
+    };
+    (window as any)['emailjs']
+      .send('YOUR_EMAILJS_SERVICE_ID', 'YOUR_EMAILJS_TEMPLATE_ID', payload)
+      .then(() => {
+        this.formSending.set(false);
+        this.formSubmitted.set(true);
+      })
+      .catch(() => {
+        this.formSending.set(false);
+        // fallback: open mailto so the lead is never lost
+        const body = `Name: ${f.name}%0ACompany: ${f.company}%0AEmail: ${f.email}%0APhone: ${f.phone}%0A%0AChallenge:%0A${encodeURIComponent(f.challenge)}`;
+        window.open(`mailto:aiwithravofficial@gmail.com?subject=Free AI Consultation Request — ${encodeURIComponent(f.company)}&body=${body}`);
+        this.formSubmitted.set(true);
+      });
   }
 
   // ── Neural canvas ─────────────────────────────────────────────────
