@@ -5,24 +5,21 @@
 <nav class="navbar" [class.scrolled]="scrolled()">
   <div class="nav-inner">
     <a href="#hero" class="brand">
-      <img src="logo-with-text.png" alt="AI with Rav" class="brand-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <img src="logo-with-text.png" alt="AI with Rav" class="brand-logo"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
       <span class="brand-fallback" style="display:none">
         <span class="brand-ai">AI</span><span class="brand-with"> with </span><span class="brand-rav">Rav</span>
       </span>
     </a>
 
     <div class="nav-links" [class.open]="mobileNavOpen()">
-      <a href="#services"  [class.active]="activeSection()==='services'"  (click)="closeMobileNav()">Services</a>
-      <a href="#solutions" [class.active]="activeSection()==='solutions'" (click)="closeMobileNav()">Solutions</a>
-      <a href="#numbers"   [class.active]="activeSection()==='numbers'"   (click)="closeMobileNav()">Results</a>
-      <a href="#team"      [class.active]="activeSection()==='team'"      (click)="closeMobileNav()">Team</a>
-      <a href="#contact"   [class.active]="activeSection()==='contact'"   (click)="closeMobileNav()">Contact</a>
+      <a href="#team"    [class.active]="activeSection()==='team'"    (click)="closeMobileNav()">Team</a>
+      <a href="#services" [class.active]="activeSection()==='services'" (click)="closeMobileNav()">Services</a>
+      <a href="#numbers" [class.active]="activeSection()==='numbers'"  (click)="closeMobileNav()">Results</a>
+      <a href="#contact" [class.active]="activeSection()==='contact'"  (click)="closeMobileNav()">Contact</a>
     </div>
 
     <div class="nav-actions">
-      <button class="theme-btn" (click)="toggleTheme()" [attr.aria-label]="'Switch to ' + (theme()==='dark'?'light':'dark') + ' mode'">
-        <span *ngIf="theme()==='dark'">☀️</span><span *ngIf="theme()==='light'">🌙</span>
-      </button>
       <a href="#contact" class="cta-nav-btn">Free Consultation</a>
       <button class="hamburger" (click)="toggleMobileNav()" aria-label="Toggle menu">
         <span></span><span></span><span></span>
@@ -32,161 +29,231 @@
 </nav>
 
 <!-- ── HERO ──────────────────────────────────────────────────────────── -->
-<section id="hero" class="hero-section" data-guide="hero">
-  <canvas id="neural-canvas" class="neural-canvas"></canvas>
+<section id="hero" class="hero-section">
   <div class="hero-content">
-    <div class="hero-badge" #fadeEl>AI Consulting · AI Agents · RAG Systems · Automation</div>
-
-    <h1 class="hero-title" #fadeEl>
-      Transform Your Business Into an <span class="hero-accent">AI-First Organisation</span>
-    </h1>
-
-    <div class="hero-typed" #fadeEl>
-      <span class="typed-prefix">We build → </span>
-      <span class="typed-text">{{ typedText() }}</span>
-      <span class="typed-cursor">|</span>
-    </div>
-
-    <p class="hero-sub" #fadeEl>
-      We help ambitious businesses automate operations, accelerate growth, and outcompete
-      rivals using production-grade AI — not demos, not prototypes, real systems.
-    </p>
-
-    <div class="hero-ctas" #fadeEl>
+    <div class="hero-left" #fadeEl>
+      <p class="hero-eyebrow">AI Consulting · AI Agents · Automation</p>
+      <h1 class="hero-title">
+        Turn Your Business Into an<br>
+        <span class="hero-accent">AI-First Company</span>
+      </h1>
+      <p class="hero-sub">We build AI systems that work — not demos, not slides. Real automation. Real results.</p>
       <a href="#contact" class="cta-primary">Book Free AI Audit →</a>
-    </div>
 
-    <div class="hero-stats" #fadeEl>
-      <div class="stat-item">
-        <span class="stat-num">{{ statClients() }}+</span>
-        <span class="stat-label">Businesses Served</span>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat-item">
-        <span class="stat-num">{{ statAutomated() }}+</span>
-        <span class="stat-label">Hours Automated / Week</span>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat-item">
-        <span class="stat-num">{{ statAgents() }}+</span>
-        <span class="stat-label">AI Agents Deployed</span>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat-item">
-        <span class="stat-num">{{ statROI() }}%</span>
-        <span class="stat-label">Avg. Cost Reduction</span>
+      <div class="hero-stats">
+        <div class="stat-item">
+          <span class="stat-num">{{ statClients() }}+</span>
+          <span class="stat-label">Businesses</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-num">{{ statAutomated() }}+</span>
+          <span class="stat-label">Hours Saved/Week</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-num">{{ statROI() }}%</span>
+          <span class="stat-label">Cost Reduction</span>
+        </div>
       </div>
     </div>
 
-    <div class="hero-trust" #fadeEl>
-      <span class="trust-label">Built with</span>
-      <div class="trust-logos">
-        <span class="trust-pill">LangGraph</span>
-        <span class="trust-pill">FastAPI</span>
-        <span class="trust-pill">FAISS</span>
-        <span class="trust-pill">OpenAI</span>
-        <span class="trust-pill">Claude API</span>
-        <span class="trust-pill">Angular</span>
-      </div>
+    <div class="hero-right" #fadeEl>
+      <!-- Animated AI workflow SVG -->
+      <svg class="hero-svg" viewBox="0 0 420 380" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Background circles -->
+        <circle cx="210" cy="190" r="160" stroke="#7C3AED" stroke-width="1" stroke-dasharray="6 4" opacity="0.15" class="svg-orbit"/>
+        <circle cx="210" cy="190" r="115" stroke="#7C3AED" stroke-width="1" stroke-dasharray="4 6" opacity="0.1" class="svg-orbit-rev"/>
+
+        <!-- Center brain/AI node -->
+        <circle cx="210" cy="190" r="44" fill="#7C3AED" opacity="0.12"/>
+        <circle cx="210" cy="190" r="32" fill="#7C3AED" opacity="0.2"/>
+        <circle cx="210" cy="190" r="22" fill="#7C3AED"/>
+        <text x="210" y="196" text-anchor="middle" font-size="16" font-weight="800" fill="white">AI</text>
+
+        <!-- Nodes around orbit -->
+        <!-- Data node -->
+        <circle cx="210" cy="75" r="22" fill="#F8F6FF" stroke="#7C3AED" stroke-width="2"/>
+        <rect x="199" y="66" width="22" height="18" rx="3" fill="#7C3AED" opacity="0.7"/>
+        <line x1="203" y1="71" x2="217" y2="71" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="203" y1="75" x2="213" y2="75" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+        <text x="210" y="109" text-anchor="middle" font-size="9" fill="#7C3AED" font-weight="700">Your Data</text>
+
+        <!-- Automation node -->
+        <circle cx="335" cy="140" r="22" fill="#F8F6FF" stroke="#7C3AED" stroke-width="2"/>
+        <path d="M323 140 a12 12 0 0 1 24 0" stroke="#7C3AED" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M335 128 l3 5 l-6 0 z" fill="#7C3AED"/>
+        <line x1="335" y1="140" x2="335" y2="150" stroke="#7C3AED" stroke-width="2" stroke-linecap="round"/>
+        <text x="335" y="174" text-anchor="middle" font-size="9" fill="#7C3AED" font-weight="700">Automation</text>
+
+        <!-- Agent node -->
+        <circle cx="335" cy="250" r="22" fill="#F8F6FF" stroke="#06b6d4" stroke-width="2"/>
+        <circle cx="335" cy="244" r="6" fill="#06b6d4" opacity="0.7"/>
+        <path d="M322 260 q13-8 26 0" stroke="#06b6d4" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <text x="335" y="284" text-anchor="middle" font-size="9" fill="#06b6d4" font-weight="700">AI Agent</text>
+
+        <!-- Results node -->
+        <circle cx="210" cy="305" r="22" fill="#F8F6FF" stroke="#10b981" stroke-width="2"/>
+        <polyline points="200,315 207,305 213,310 221,296" stroke="#10b981" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="210" y="338" text-anchor="middle" font-size="9" fill="#10b981" font-weight="700">Results</text>
+
+        <!-- Integration node -->
+        <circle cx="85" cy="250" r="22" fill="#F8F6FF" stroke="#f59e0b" stroke-width="2"/>
+        <rect x="78" y="243" width="14" height="14" rx="2" stroke="#f59e0b" stroke-width="2"/>
+        <path d="M92 250 h10 l5-5" stroke="#f59e0b" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <text x="85" y="284" text-anchor="middle" font-size="9" fill="#f59e0b" font-weight="700">Integrate</text>
+
+        <!-- Knowledge node -->
+        <circle cx="85" cy="140" r="22" fill="#F8F6FF" stroke="#8b5cf6" stroke-width="2"/>
+        <path d="M76 135 q9-10 18 0 q-9 10-18 0" stroke="#8b5cf6" stroke-width="2" fill="none"/>
+        <line x1="85" y1="135" x2="85" y2="148" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"/>
+        <text x="85" y="174" text-anchor="middle" font-size="9" fill="#8b5cf6" font-weight="700">Knowledge</text>
+
+        <!-- Connecting lines -->
+        <line x1="210" y1="168" x2="210" y2="97" stroke="#7C3AED" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.5" class="svg-line"/>
+        <line x1="232" y1="175" x2="315" y2="148" stroke="#7C3AED" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.5" class="svg-line"/>
+        <line x1="232" y1="205" x2="315" y2="240" stroke="#06b6d4" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.5" class="svg-line"/>
+        <line x1="210" y1="212" x2="210" y2="283" stroke="#10b981" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.5" class="svg-line"/>
+        <line x1="188" y1="205" x2="107" y2="240" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.5" class="svg-line"/>
+        <line x1="188" y1="175" x2="107" y2="148" stroke="#8b5cf6" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.5" class="svg-line"/>
+
+        <!-- Pulse dots on lines -->
+        <circle r="4" fill="#7C3AED" opacity="0.8" class="svg-pulse-1">
+          <animateMotion dur="2.5s" repeatCount="indefinite">
+            <mpath href="#path-top"/>
+          </animateMotion>
+        </circle>
+        <circle r="4" fill="#10b981" opacity="0.8" class="svg-pulse-2">
+          <animateMotion dur="3s" repeatCount="indefinite">
+            <mpath href="#path-bottom"/>
+          </animateMotion>
+        </circle>
+        <path id="path-top" d="M210 168 L210 97" fill="none"/>
+        <path id="path-bottom" d="M210 212 L210 283" fill="none"/>
+      </svg>
     </div>
   </div>
+</section>
 
-  <div class="hero-scroll-hint">
-    <span>Scroll to explore</span>
-    <div class="scroll-arrow"></div>
+<!-- ── TEAM ───────────────────────────────────────────────────────────── -->
+<section id="team" class="section team-section">
+  <div class="section-inner">
+    <div class="section-header" #fadeEl>
+      <span class="section-tag">The Team</span>
+      <h2 class="section-title">People Behind <span class="accent-text">Every Outcome</span></h2>
+    </div>
+
+    <div class="team-grid">
+      <div class="team-card" *ngFor="let member of team" #fadeEl>
+        <div class="team-photo-wrap">
+          <img [src]="member.photo" [alt]="member.name" class="team-photo"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="team-photo-fallback" [attr.data-color]="member.color" style="display:none">
+            {{ member.name.charAt(0) }}
+          </div>
+          <span class="team-focus-chip" [attr.data-color]="member.color">{{ member.focus }}</span>
+        </div>
+        <div class="team-info">
+          <h3 class="team-name">{{ member.name }}</h3>
+          <p class="team-role">{{ member.role }}</p>
+          <p class="team-desc">{{ member.desc }}</p>
+          <div class="team-links">
+            <a [href]="member.linkedin" target="_blank" class="team-link" *ngIf="member.linkedin">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+              LinkedIn
+            </a>
+            <a [href]="member.github" target="_blank" class="team-link" *ngIf="member.github">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+              GitHub
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
 <!-- ── SERVICES ───────────────────────────────────────────────────────── -->
-<section id="services" class="section services-section" data-guide="services">
+<section id="services" class="section services-section">
   <div class="section-inner">
     <div class="section-header" #fadeEl>
-      <span class="section-tag">What We Do</span>
-      <h2 class="section-title">AI Services for <span class="accent-text">Real Business Outcomes</span></h2>
-      <p class="section-sub">Every service is production-proven — built and deployed in real enterprise environments, not just prototyped.</p>
+      <span class="section-tag">What We Build</span>
+      <h2 class="section-title">Six Ways AI <span class="accent-text">Transforms Your Business</span></h2>
     </div>
 
     <div class="services-grid">
       <div class="service-card" *ngFor="let svc of services" #fadeEl [attr.data-color]="svc.color">
-        <div class="svc-icon" [attr.data-color]="svc.color" [innerHTML]="safeIcon(svc.icon)"></div>
+        <div class="svc-icon-wrap" [attr.data-color]="svc.color">
+          <div class="svc-icon" [innerHTML]="safeIcon(svc.icon)"></div>
+        </div>
         <h3 class="svc-title">{{ svc.title }}</h3>
         <p class="svc-desc">{{ svc.desc }}</p>
-        <ul class="svc-points">
-          <li *ngFor="let pt of svc.points">{{ pt }}</li>
-        </ul>
-        <a href="#contact" class="svc-cta">Get Started →</a>
+        <a href="#contact" class="svc-link">Get started →</a>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ── SOLUTIONS ─────────────────────────────────────────────────────── -->
-<section id="solutions" class="section solutions-section" data-guide="solutions">
+<!-- ── SOLUTIONS — visual problem→outcome strips ──────────────────────── -->
+<section id="solutions" class="section solutions-section">
   <div class="section-inner">
     <div class="section-header" #fadeEl>
-      <span class="section-tag">AI Solutions</span>
-      <h2 class="section-title">Business Problems We <span class="accent-text">Solve with AI</span></h2>
-      <p class="section-sub">Each solution is a real system we have built and deployed. See the challenge, solution, and outcome.</p>
+      <span class="section-tag">Problems We Solve</span>
+      <h2 class="section-title">Before AI. <span class="accent-text">After AI.</span></h2>
     </div>
 
-    <div class="solutions-list">
-      <div class="solution-card" *ngFor="let sol of solutions" #fadeEl [attr.data-accent]="sol.accent">
-        <div class="sol-header">
-          <span class="sol-num" [attr.data-accent]="sol.accent">{{ sol.num }}</span>
-          <div class="sol-meta">
-            <h3 class="sol-title">{{ sol.title }}</h3>
-            <p class="sol-subtitle">{{ sol.subtitle }}</p>
+    <div class="ba-grid">
+      <div class="ba-card" *ngFor="let sol of solutions" #fadeEl>
+        <div class="ba-outcome-chip">{{ sol.outcome }}</div>
+        <div class="ba-icon" [innerHTML]="safeIcon(sol.svgIcon)"></div>
+        <h3 class="ba-title">{{ sol.title }}</h3>
+        <div class="ba-strip">
+          <div class="ba-before">
+            <span class="ba-label before-label">Before</span>
+            <span class="ba-text">{{ sol.before }}</span>
           </div>
-          <div class="sol-outcome" [attr.data-accent]="sol.accent">{{ sol.outcome }}</div>
-        </div>
-
-        <p class="sol-desc">{{ sol.desc }}</p>
-
-        <div class="sol-tags">
-          <span class="tag" *ngFor="let t of sol.tags" [class]="t.cls">{{ t.label }}</span>
-        </div>
-
-        <div class="sol-challenges">
-          <div class="challenge-row" *ngFor="let ch of sol.challenges">
-            <div class="ch-problem">
-              <span class="ch-icon ch-problem-icon">✗</span>
-              <span>{{ ch.p }}</span>
-            </div>
-            <div class="ch-arrow">→</div>
-            <div class="ch-solution">
-              <span class="ch-icon ch-solution-icon">✓</span>
-              <span>{{ ch.s }}</span>
-            </div>
+          <div class="ba-arrow">
+            <svg viewBox="0 0 40 16" fill="none" width="40"><path d="M0 8h36M28 2l8 6-8 6" stroke="#7C3AED" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="ba-after">
+            <span class="ba-label after-label">After</span>
+            <span class="ba-text">{{ sol.after }}</span>
           </div>
         </div>
-
-        <a href="#contact" class="sol-cta">Book This Solution →</a>
       </div>
+    </div>
+
+    <div class="solutions-more" #fadeEl>
+      <a href="#contact" class="cta-primary">See How It Works For Your Business →</a>
     </div>
   </div>
 </section>
 
-<!-- ── BY THE NUMBERS ─────────────────────────────────────────────────── -->
-<section id="numbers" class="section numbers-section" data-guide="numbers">
+<!-- ── RESULTS ────────────────────────────────────────────────────────── -->
+<section id="numbers" class="section numbers-section">
   <div class="section-inner">
     <div class="section-header" #fadeEl>
       <span class="section-tag">Proven Results</span>
-      <h2 class="section-title">The Numbers That <span class="accent-text">Actually Matter</span></h2>
-      <p class="section-sub">Real outcomes from real clients. Not marketing estimates.</p>
+      <h2 class="section-title">Numbers That <span class="accent-text">Speak</span></h2>
     </div>
 
-    <div class="proof-grid">
-      <div class="proof-card" *ngFor="let p of proofStats" #fadeEl>
-        <div class="proof-icon" [innerHTML]="safeIcon(p.svgIcon)"></div>
-        <div class="proof-stat">{{ p.stat }}</div>
-        <div class="proof-title">{{ p.title }}</div>
-        <div class="proof-sub">{{ p.sub }}</div>
+    <div class="results-stats" #fadeEl>
+      <div class="rs-item">
+        <span class="rs-num">90%</span>
+        <span class="rs-label">Faster proposals</span>
       </div>
-    </div>
-
-    <div class="testimonials-header" #fadeEl>
-      <span class="section-tag">Client Voices</span>
-      <h3 class="testimonials-title">What Our Clients Say</h3>
+      <div class="rs-item">
+        <span class="rs-num">80%</span>
+        <span class="rs-label">Leads auto-qualified</span>
+      </div>
+      <div class="rs-item">
+        <span class="rs-num">60%</span>
+        <span class="rs-label">Cost reduction</span>
+      </div>
+      <div class="rs-item">
+        <span class="rs-num">24/7</span>
+        <span class="rs-label">AI agents running</span>
+      </div>
     </div>
 
     <div class="testimonials-grid">
@@ -197,7 +264,7 @@
           <div class="testimonial-avatar" [attr.data-color]="t.color">{{ t.initials }}</div>
           <div class="testimonial-meta">
             <div class="testimonial-name">{{ t.name }}</div>
-            <div class="testimonial-title">{{ t.title }}</div>
+            <div class="testimonial-title-role">{{ t.title }}</div>
             <div class="testimonial-industry">{{ t.industry }}</div>
           </div>
         </div>
@@ -206,254 +273,103 @@
   </div>
 </section>
 
-<!-- ── TEAM ───────────────────────────────────────────────────────────── -->
-<section id="team" class="section team-section" data-guide="team">
-  <div class="section-inner">
-    <div class="section-header" #fadeEl>
-      <span class="section-tag">The Team</span>
-      <h2 class="section-title">Technical Depth + <span class="accent-text">Business Execution</span></h2>
-      <p class="section-sub">We don't just advise — we build, deploy, and own outcomes alongside you.</p>
-    </div>
-
-    <div class="team-grid">
-      <div class="team-card" *ngFor="let member of team" #fadeEl [attr.data-color]="member.color">
-        <div class="team-photo-wrap" [attr.data-color]="member.color">
-          <img [src]="member.photo" [alt]="member.name" class="team-photo"
-               onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-          <div class="team-photo-fallback" [attr.data-color]="member.color" style="display:none">
-            {{ member.name.charAt(0) }}
-          </div>
-          <div class="team-focus-badge" [attr.data-color]="member.color">{{ member.focus }}</div>
-        </div>
-
-        <div class="team-info">
-          <h3 class="team-name">{{ member.name }}</h3>
-          <p class="team-role" [attr.data-color]="member.color">{{ member.role }}</p>
-          <p class="team-desc">{{ member.desc }}</p>
-
-          <div class="team-tags">
-            <span class="team-tag" *ngFor="let t of member.tags">{{ t }}</span>
-          </div>
-
-          <div class="team-links">
-            <a [href]="member.linkedin" target="_blank" class="team-link team-link-li" *ngIf="member.linkedin">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-              LinkedIn
-            </a>
-            <a [href]="member.github" target="_blank" class="team-link team-link-gh" *ngIf="member.github">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
-              GitHub
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="team-mission" #fadeEl>
-      <div class="mission-content">
-        <h3>Our Promise to You</h3>
-        <p>We don't hand you a slide deck and disappear. We build alongside your team, train your people, and measure success in business outcomes — not deliverables ticked off a list.</p>
-        <a href="#contact" class="cta-primary">Work With Us →</a>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- ── CONTACT ────────────────────────────────────────────────────────── -->
-<section id="contact" class="section contact-section" data-guide="contact">
+<section id="contact" class="section contact-section">
   <div class="section-inner">
     <div class="section-header" #fadeEl>
       <span class="section-tag">Let's Talk</span>
-      <h2 class="section-title">Book Your Free <span class="accent-text">AI Consultation</span></h2>
-      <p class="section-sub">30-minute call. Zero sales pitch. We'll identify your top 3 AI opportunities and give you a clear path forward.</p>
+      <h2 class="section-title">30 Minutes. <span class="accent-text">Zero Sales Pitch.</span></h2>
+      <p class="section-sub">Tell us your biggest operational challenge. We'll show you exactly how AI solves it.</p>
     </div>
 
-    <div class="contact-layout">
-      <div class="contact-form-wrap" #fadeEl>
-        <div class="form-success" *ngIf="formSubmitted()">
-          <div class="success-icon">🎉</div>
-          <h3>We'll be in touch within 24 hours!</h3>
-          <p>Check your inbox — including spam — for our calendar invite.</p>
-        </div>
+    <div class="contact-wrap" #fadeEl>
+      <div class="form-success" *ngIf="formSubmitted()">
+        <svg viewBox="0 0 64 64" fill="none" width="56" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="32" cy="32" r="30" fill="#10b981" opacity="0.12"/>
+          <circle cx="32" cy="32" r="22" fill="#10b981" opacity="0.2"/>
+          <path d="M20 32l8 8 16-16" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <h3>We'll be in touch within 24 hours!</h3>
+        <p>Check your inbox — including spam — for our calendar invite.</p>
+      </div>
 
-        <form *ngIf="!formSubmitted()" (ngSubmit)="submitForm()" class="contact-form">
-          <div class="form-row">
-            <div class="form-field">
-              <label>Your Name *</label>
-              <input type="text" [(ngModel)]="contactForm.name" name="name" placeholder="John Smith" required>
-            </div>
-            <div class="form-field">
-              <label>Company *</label>
-              <input type="text" [(ngModel)]="contactForm.company" name="company" placeholder="Acme Corp" required>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-field">
-              <label>Work Email *</label>
-              <input type="email" [(ngModel)]="contactForm.email" name="email" placeholder="john@acme.com" required>
-            </div>
-            <div class="form-field">
-              <label>Phone (optional)</label>
-              <input type="tel" [(ngModel)]="contactForm.phone" name="phone" placeholder="+1 555 000 0000">
-            </div>
+      <form *ngIf="!formSubmitted()" (ngSubmit)="submitForm()" class="contact-form">
+        <div class="form-row">
+          <div class="form-field">
+            <label>Name *</label>
+            <input type="text" [(ngModel)]="contactForm.name" name="name" placeholder="John Smith" required>
           </div>
           <div class="form-field">
-            <label>Biggest AI challenge or opportunity *</label>
-            <textarea [(ngModel)]="contactForm.challenge" name="challenge" rows="4"
-              placeholder="e.g. We process 500 invoices a day manually. We want AI to handle it..." required></textarea>
+            <label>Company *</label>
+            <input type="text" [(ngModel)]="contactForm.company" name="company" placeholder="Acme Corp" required>
           </div>
-          <button type="submit" class="form-submit-btn" [disabled]="formSending()">
-            <span *ngIf="!formSending()">Book My Free Consultation →</span>
-            <span *ngIf="formSending()" class="sending-dots">Sending<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></span>
-          </button>
-          <p class="form-note">Or email us directly: <a href="mailto:aiwithravofficial@gmail.com">aiwithravofficial&#64;gmail.com</a></p>
-        </form>
-      </div>
-
-      <div class="contact-info" #fadeEl>
-        <div class="ci-card">
-          <h3>What happens next?</h3>
-          <ol class="next-steps">
-            <li>
-              <span class="step-num">1</span>
-              <div>
-                <strong>We review your submission</strong>
-                <p>Within 4 business hours we'll review your challenge and prepare relevant questions.</p>
-              </div>
-            </li>
-            <li>
-              <span class="step-num">2</span>
-              <div>
-                <strong>30-minute discovery call</strong>
-                <p>We'll map your processes, identify AI opportunities, and size the ROI potential.</p>
-              </div>
-            </li>
-            <li>
-              <span class="step-num">3</span>
-              <div>
-                <strong>Receive your AI roadmap</strong>
-                <p>Within 48 hours you'll have a prioritised AI roadmap with effort and ROI estimates.</p>
-              </div>
-            </li>
-          </ol>
         </div>
-
-        <div class="ci-direct">
-          <a href="mailto:aiwithravofficial@gmail.com" class="direct-link">
-            <span class="di-icon">📧</span>
-            <span>aiwithravofficial&#64;gmail.com</span>
-          </a>
-          <a href="https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/" target="_blank" class="direct-link">
-            <span class="di-icon">💼</span>
-            <span>Connect on LinkedIn</span>
-          </a>
-          <a href="https://github.com/RavSinghChandan" target="_blank" class="direct-link">
-            <span class="di-icon">💻</span>
-            <span>See our work on GitHub</span>
-          </a>
+        <div class="form-field">
+          <label>Work Email *</label>
+          <input type="email" [(ngModel)]="contactForm.email" name="email" placeholder="john@acme.com" required>
         </div>
-      </div>
+        <div class="form-field">
+          <label>What's your biggest AI opportunity or challenge? *</label>
+          <textarea [(ngModel)]="contactForm.challenge" name="challenge" rows="4"
+            placeholder="e.g. We process 500 invoices a day manually. We want AI to handle it..." required></textarea>
+        </div>
+        <button type="submit" class="form-submit-btn" [disabled]="formSending()">
+          <span *ngIf="!formSending()">Book My Free Consultation →</span>
+          <span *ngIf="formSending()" class="sending-dots">Sending<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></span>
+        </button>
+        <p class="form-note">Or email us: <a href="mailto:aiwithravofficial@gmail.com">aiwithravofficial&#64;gmail.com</a></p>
+      </form>
     </div>
   </div>
 </section>
 
 <!-- ── FOOTER ─────────────────────────────────────────────────────────── -->
 <footer class="footer">
-  <div class="footer-top">
-    <div class="footer-grid">
-
-      <!-- Brand column -->
-      <div class="footer-col footer-col-brand">
-        <a href="#hero" class="footer-brand-link">
-          <img src="logo-with-text.png" alt="AI with Rav" class="footer-brand-logo"
-               onerror="this.style.display='none';this.nextElementSibling.style.display='inline'">
-          <span class="footer-brand-text" style="display:none">AI with Rav</span>
+  <div class="footer-inner">
+    <div class="footer-brand-col">
+      <img src="logo-with-text.png" alt="AI with Rav" class="footer-logo"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='inline'">
+      <span class="footer-brand-text" style="display:none">AI with Rav</span>
+      <p class="footer-tagline">Transforming businesses into AI-first organisations.</p>
+      <div class="footer-socials">
+        <a href="https://www.linkedin.com/company/tech-with-rav/" target="_blank" rel="noopener" aria-label="LinkedIn">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
         </a>
-        <p class="footer-tagline">Transforming businesses into AI-first organisations — one production system at a time.</p>
-        <div class="footer-socials">
-          <a href="https://www.linkedin.com/company/tech-with-rav/" target="_blank" rel="noopener" class="social-link social-li" aria-label="LinkedIn">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-          </a>
-          <a href="https://www.youtube.com/@aiwithrav" target="_blank" rel="noopener" class="social-link social-yt" aria-label="YouTube">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-          </a>
-          <a href="https://www.instagram.com/ai_with_rav/" target="_blank" rel="noopener" class="social-link social-ig" aria-label="Instagram">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
-          </a>
-          <a href="https://github.com/RavSinghChandan" target="_blank" rel="noopener" class="social-link social-gh" aria-label="GitHub">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
-          </a>
-        </div>
+        <a href="https://www.youtube.com/@aiwithrav" target="_blank" rel="noopener" aria-label="YouTube">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+        </a>
+        <a href="https://www.instagram.com/ai_with_rav/" target="_blank" rel="noopener" aria-label="Instagram">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
+        </a>
       </div>
+    </div>
 
-      <!-- Services column -->
-      <div class="footer-col">
-        <h4 class="footer-col-title">Services</h4>
-        <ul class="footer-col-links">
-          <li><a href="#services">AI Audit & Roadmap</a></li>
-          <li><a href="#services">AI Automation</a></li>
-          <li><a href="#services">AI Agents</a></li>
-          <li><a href="#services">RAG Systems</a></li>
-          <li><a href="#services">AI Transformation</a></li>
-          <li><a href="#services">LLM Applications</a></li>
-        </ul>
-      </div>
+    <div class="footer-links-col">
+      <h4>Company</h4>
+      <a href="#team">Team</a>
+      <a href="#services">Services</a>
+      <a href="#numbers">Results</a>
+      <a href="#contact">Contact</a>
+    </div>
 
-      <!-- Company column -->
-      <div class="footer-col">
-        <h4 class="footer-col-title">Company</h4>
-        <ul class="footer-col-links">
-          <li><a href="#solutions">Solutions</a></li>
-          <li><a href="#numbers">Results</a></li>
-          <li><a href="#team">Team</a></li>
-          <li><a href="#contact">Contact</a></li>
-          <li><a href="https://www.linkedin.com/company/tech-with-rav/" target="_blank" rel="noopener">About Us</a></li>
-          <li><a href="https://www.youtube.com/@aiwithrav" target="_blank" rel="noopener">AI Learning Hub</a></li>
-        </ul>
-      </div>
-
-      <!-- Careers column -->
-      <div class="footer-col">
-        <h4 class="footer-col-title">Careers</h4>
-        <div class="footer-careers">
-          <div class="careers-badge">
-            <span class="careers-dot"></span>
-            We're Hiring
-          </div>
-          <p class="careers-desc">We're building the future of AI for business. If you're passionate about AI engineering, solutions architecture, or business development — we'd love to hear from you.</p>
-          <div class="careers-roles">
-            <div class="career-role">
-              <span class="role-tag role-tag-open">Open</span>
-              <span class="role-name">AI Engineer (Remote)</span>
-            </div>
-            <div class="career-role">
-              <span class="role-tag role-tag-open">Open</span>
-              <span class="role-name">Solutions Consultant</span>
-            </div>
-            <div class="career-role">
-              <span class="role-tag role-tag-soon">Soon</span>
-              <span class="role-name">ML Engineer</span>
-            </div>
-          </div>
-          <a href="mailto:aiwithravofficial@gmail.com?subject=Career%20Application%20-%20AI%20with%20Rav" class="careers-cta">Apply Now →</a>
-        </div>
-      </div>
-
+    <div class="footer-links-col">
+      <h4>Careers</h4>
+      <p class="footer-hiring">We're Hiring</p>
+      <p class="footer-roles">AI Engineer (Remote) · Solutions Consultant</p>
+      <a href="mailto:aiwithravofficial@gmail.com?subject=Career%20Application%20-%20AI%20with%20Rav" class="careers-cta">Apply Now →</a>
     </div>
   </div>
 
   <div class="footer-bottom">
-    <div class="footer-bottom-inner">
-      <span class="footer-copy">© 2025 AI with Rav. All rights reserved.</span>
-      <a href="mailto:aiwithravofficial@gmail.com" class="footer-email">aiwithravofficial&#64;gmail.com</a>
-    </div>
+    <span class="footer-copy">© 2025 AI with Rav. All rights reserved.</span>
+    <a href="mailto:aiwithravofficial@gmail.com" class="footer-email">aiwithravofficial&#64;gmail.com</a>
   </div>
 </footer>
 
 <!-- ── BACK TO TOP ────────────────────────────────────────────────────── -->
 <button class="back-to-top" [class.visible]="showBackToTop()" (click)="scrollToTop()" aria-label="Back to top">↑</button>
 
-<!-- ── RAV AI CHATBOT ─────────────────────────────────────────────────── -->
+<!-- ── AI CHATBOT ─────────────────────────────────────────────────────── -->
 <div class="cb-fab-wrap">
   <button class="cb-fab" (click)="cbToggle()" aria-label="Open AI Assistant">
     <span class="cb-fab-icon" *ngIf="!cbOpen()">
@@ -467,12 +383,8 @@
   </button>
 </div>
 
-<div class="cb-panel" *ngIf="cbOpen()"
-     [style.width.px]="cbPanelW()"
-     [style.height.px]="cbPanelH()">
-
+<div class="cb-panel" *ngIf="cbOpen()" [style.width.px]="cbPanelW()" [style.height.px]="cbPanelH()">
   <div class="cb-resize-handle" (mousedown)="cbResizeStart($event)"></div>
-
   <div class="cb-head">
     <div class="cb-head-left">
       <span class="cb-head-avatar">
@@ -482,29 +394,25 @@
       </span>
       <div>
         <div class="cb-head-name">Rav AI Assistant</div>
-        <div class="cb-head-status">
-          <span class="cb-status-dot"></span> AI for Business Growth
-        </div>
+        <div class="cb-head-status"><span class="cb-status-dot"></span> Online</div>
       </div>
     </div>
     <button class="cb-close-btn" (click)="cbToggle()">✕</button>
   </div>
 
   <div class="cb-messages" #cbScroll>
-    <div *ngFor="let msg of cbMessages()"
-         class="cb-msg" [class.cb-msg-user]="msg.role==='user'" [class.cb-msg-bot]="msg.role==='bot'">
+    <div *ngFor="let msg of cbMessages()" class="cb-msg" [class.cb-msg-user]="msg.role==='user'" [class.cb-msg-bot]="msg.role==='bot'">
       <div *ngIf="msg.role==='bot'" class="cb-msg-avatar">
-        <svg viewBox="0 0 24 24" fill="none" width="14" height="14" xmlns="http://www.w3.org/2000/svg"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" width="14" height="14"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
       <div class="cb-msg-bubble">
         <span *ngIf="msg.role==='user'">{{ msg.html }}</span>
         <span *ngIf="msg.role==='bot'" [innerHTML]="msg.safeHtml"></span>
       </div>
     </div>
-
     <div class="cb-msg cb-msg-bot" *ngIf="cbTyping()">
       <div class="cb-msg-avatar">
-        <svg viewBox="0 0 24 24" fill="none" width="14" height="14" xmlns="http://www.w3.org/2000/svg"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" width="14" height="14"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
       <div class="cb-msg-bubble cb-typing-bubble">
         <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
@@ -515,11 +423,9 @@
   <div class="cb-quickprompts" *ngIf="cbMessages().length <= 1">
     <button class="cb-qp" *ngFor="let qp of cbQuickPrompts" (click)="cbSend(qp)">{{ qp }}</button>
   </div>
-
   <div class="cb-followups" *ngIf="cbMessages().length > 1 && cbMessages()[cbMessages().length-1]?.followups?.length">
     <button class="cb-fp" *ngFor="let fp of cbMessages()[cbMessages().length-1]?.followups" (click)="cbSend(fp)">{{ fp }}</button>
   </div>
-
   <div class="cb-input-row">
     <input class="cb-input" type="text" [(ngModel)]="cbDraft"
            placeholder="Ask about our AI services..."
