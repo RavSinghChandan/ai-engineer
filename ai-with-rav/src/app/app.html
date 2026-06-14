@@ -1,6 +1,15 @@
 <!-- Scroll progress bar -->
 <div class="scroll-bar" [style.width.%]="scrollProgress()"></div>
 
+<!-- ── LOGO SPIN PORTAL (exact Astro Intel chakra-spin pattern) ── -->
+@if (logoSpinning()) {
+  <div class="logo-spin-portal" aria-hidden="true">
+    <div class="logo-spin-circle">
+      <img src="logo-with-text.png" class="logo-spin-img" alt=""/>
+    </div>
+  </div>
+}
+
 <!-- ── NAVBAR ────────────────────────────────────────────────────────── -->
 <nav class="navbar" [class.scrolled]="scrolled()">
   <div class="nav-inner">
@@ -34,7 +43,7 @@
         <span class="hero-accent">AI-First Company</span>
       </h1>
       <p class="hero-sub">We build AI systems that work — not demos, not slides. Real automation. Real results.</p>
-      <a href="#contact" class="cta-primary">Book Free AI Audit →</a>
+      <a href="#contact" class="cta-primary" (click)="triggerLogoSpin()">Book Free AI Audit →</a>
 
       <div class="hero-stats">
         <div class="stat-item">

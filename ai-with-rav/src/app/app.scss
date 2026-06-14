@@ -34,6 +34,35 @@ a { text-decoration: none; color: inherit; }
 img { max-width: 100%; display: block; }
 button { cursor: pointer; border: none; background: none; font: inherit; }
 
+/* ── LOGO SPIN PORTAL (Astro Intel chakra-spin pattern) ──────────── */
+.logo-spin-portal {
+  position: fixed; inset: 0; z-index: 9998;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(3px);
+  animation: portal-fadein 0.3s ease;
+}
+.logo-spin-circle {
+  width: 420px; height: 420px;
+  border-radius: 50%;
+  overflow: hidden;
+  animation: logo-chakra-spin 5s linear infinite;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  /* multiply removes white background of PNG — only coloured logo shows */
+  mix-blend-mode: multiply;
+}
+.logo-spin-img {
+  width: 420px; height: 420px;
+  object-fit: contain;
+  display: block;
+  opacity: 0.55;
+  mix-blend-mode: multiply;
+}
+@keyframes logo-chakra-spin { to { transform: rotate(360deg); } }
+@keyframes portal-fadein { from { opacity: 0; } to { opacity: 1; } }
+
 /* ── SCROLL BAR ───────────────────────────────────────────────────── */
 .scroll-bar {
   position: fixed; top: 0; left: 0; height: 3px;

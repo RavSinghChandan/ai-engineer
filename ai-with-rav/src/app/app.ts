@@ -18,6 +18,12 @@ export class App implements OnInit, AfterViewInit {
   scrollProgress = signal(0);
   activeSection = signal('');
   showBackToTop = signal(false);
+  logoSpinning = signal(false);
+
+  triggerLogoSpin() {
+    this.logoSpinning.set(true);
+    setTimeout(() => this.logoSpinning.set(false), 3000);
+  }
 
   toggleMobileNav() { this.mobileNavOpen.update(v => !v); }
   closeMobileNav() { this.mobileNavOpen.set(false); }
