@@ -819,7 +819,7 @@ img { max-width: 100%; }
 .team-photo-fallback {
   position: absolute;
   inset: 0;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   font-size: 5rem;
