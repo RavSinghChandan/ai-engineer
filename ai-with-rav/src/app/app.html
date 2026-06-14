@@ -81,10 +81,23 @@
           </div>
         </div>
 
-        <!-- Brand tagline pill below cards -->
-        <div class="hv-brand-pill">
-          <img src="logo-with-text.png" alt="" class="hv-brand-icon">
-          <span class="hv-brand-text">AI for Business Growth</span>
+        <!-- Rotating SVG badge between/below cards -->
+        <div class="hv-badge">
+          <svg class="hv-badge-svg" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Outer rotating dashed ring -->
+            <circle cx="80" cy="80" r="74" stroke="#7C3AED" stroke-width="1.5" stroke-dasharray="6 5" class="hv-ring-spin"/>
+            <!-- Inner static ring -->
+            <circle cx="80" cy="80" r="62" stroke="#e8e4f0" stroke-width="1"/>
+            <!-- White circle background -->
+            <circle cx="80" cy="80" r="54" fill="white"/>
+            <!-- Rotating text on outer path -->
+            <path id="hv-text-path" d="M80,80 m-68,0 a68,68 0 1,1 136,0 a68,68 0 1,1 -136,0" fill="none"/>
+            <text font-size="9.5" font-weight="700" fill="#7C3AED" letter-spacing="3.2" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" class="hv-text-spin">
+              <textPath href="#hv-text-path">AI WITH RAV · AI FOR BUSINESS GROWTH · </textPath>
+            </text>
+            <!-- Logo image in center -->
+            <image href="logo-with-text.png" x="26" y="26" width="108" height="108" preserveAspectRatio="xMidYMid meet" class="hv-badge-logo"/>
+          </svg>
         </div>
       </div>
     </div>

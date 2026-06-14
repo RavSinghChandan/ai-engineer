@@ -81,6 +81,7 @@ button { cursor: pointer; border: none; background: none; font: inherit; }
 .brand { display: flex; align-items: center; }
 .brand-logo {
   height: 52px; width: auto;
+  mix-blend-mode: multiply; /* makes white PNG background transparent on white navbar */
   animation: logo-glow 4s ease-in-out infinite;
 }
 @keyframes logo-glow {
@@ -269,27 +270,38 @@ button { cursor: pointer; border: none; background: none; font: inherit; }
 .hv-name { font-size: 0.82rem; font-weight: 800; color: #0f0a1e; }
 .hv-role { font-size: 0.68rem; color: #7C3AED; font-weight: 600; }
 
-/* Brand pill — sits below the two cards */
-.hv-brand-pill {
-  position: absolute; bottom: 0; left: 50%;
+/* Rotating SVG badge */
+.hv-badge {
+  position: absolute;
+  bottom: -10px; left: 50%;
   transform: translateX(-50%);
-  display: flex; align-items: center; gap: 0.5rem;
-  background: #fff;
-  border: 1px solid rgba(124,58,237,0.15);
-  border-radius: 100px;
-  padding: 0.4rem 1rem 0.4rem 0.4rem;
-  box-shadow: 0 4px 20px rgba(124,58,237,0.1);
-  white-space: nowrap;
+  width: 130px; height: 130px;
+  z-index: 3;
+  filter: drop-shadow(0 8px 24px rgba(124,58,237,0.2));
+}
+.hv-badge-svg { width: 100%; height: 100%; }
+
+/* Outer dashed ring spins */
+.hv-ring-spin {
+  animation: badge-spin 12s linear infinite;
+  transform-origin: 80px 80px;
+}
+/* Circular text spins opposite direction */
+.hv-text-spin {
+  animation: badge-spin-rev 20s linear infinite;
+  transform-origin: 80px 80px;
+}
+/* Logo pulses gently */
+.hv-badge-logo {
+  animation: badge-pulse 3s ease-in-out infinite;
+  transform-origin: 80px 80px;
 }
 
-.hv-brand-icon {
-  height: 28px; width: auto;
-  border-radius: 50%; object-fit: contain;
-}
-
-.hv-brand-text {
-  font-size: 0.78rem; font-weight: 700;
-  color: #1e3a8a; letter-spacing: 0.2px;
+@keyframes badge-spin     { to { transform: rotate(360deg); } }
+@keyframes badge-spin-rev { to { transform: rotate(-360deg); } }
+@keyframes badge-pulse {
+  0%,100% { opacity: 0.95; transform: scale(0.97); }
+  50%      { opacity: 1;    transform: scale(1.03); }
 }
 
 /* ── TEAM ─────────────────────────────────────────────────────────── */
