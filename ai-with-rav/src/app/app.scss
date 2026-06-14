@@ -223,17 +223,20 @@ img { max-width: 100%; }
     position: fixed;
     top: 64px; left: 0; right: 0;
     flex-direction: column;
-    background: rgba(9,9,11,0.97);
+    background: rgba(9,9,11,0.98);
+    backdrop-filter: blur(16px);
     padding: 1.5rem;
     gap: 0.5rem;
     border-bottom: 1px solid var(--border);
-    transform: translateY(-100%);
+    transform: translateY(-110%);
     opacity: 0;
     pointer-events: none;
-    transition: transform 0.3s, opacity 0.3s;
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.3s;
+    z-index: 999;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
 
     &.open { transform: none; opacity: 1; pointer-events: all; }
-    a { width: 100%; padding: 0.65rem 1rem; font-size: 1rem; }
+    a { width: 100%; padding: 0.75rem 1rem; font-size: 1rem; border-radius: 8px; }
   }
   .cta-nav-btn { display: none; }
 }
@@ -287,15 +290,13 @@ img { max-width: 100%; }
 .hero-title {
   font-size: clamp(2rem, 5vw, 3.8rem);
   font-weight: 900;
-  line-height: 1.1;
+  line-height: 1.2;
   letter-spacing: -1.5px;
+  overflow: visible;
 }
 
 .hero-accent {
-  background: linear-gradient(135deg, var(--purple2), var(--cyan2));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--purple2);
 }
 
 .hero-typed {
@@ -374,10 +375,8 @@ img { max-width: 100%; }
   font-size: 1.8rem;
   font-weight: 900;
   letter-spacing: -1px;
-  background: linear-gradient(135deg, var(--purple2), var(--cyan2));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--purple2);
+  line-height: 1.2;
 }
 
 .stat-label {
@@ -488,14 +487,12 @@ img { max-width: 100%; }
   font-size: clamp(1.6rem, 4vw, 2.6rem);
   font-weight: 900;
   letter-spacing: -1px;
-  line-height: 1.15;
+  line-height: 1.25;
+  overflow: visible;
 }
 
 .accent-text {
-  background: linear-gradient(135deg, var(--purple2), var(--cyan2));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--purple2);
 }
 
 .section-sub {
@@ -766,10 +763,8 @@ img { max-width: 100%; }
   font-size: 2rem;
   font-weight: 900;
   letter-spacing: -1px;
-  background: linear-gradient(135deg, var(--purple2), var(--cyan2));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--purple2);
+  line-height: 1.2;
 }
 
 .proof-title {
@@ -1134,16 +1129,13 @@ img { max-width: 100%; }
 
 .footer-brand {
   .footer-logo {
-    display: block;
     font-size: 1.1rem;
     font-weight: 900;
-    background: linear-gradient(135deg, var(--purple2), var(--cyan2));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--purple2);
     margin-bottom: 0.35rem;
+    display: block;
   }
-  p { font-size: 0.8rem; color: var(--text3); }
+  p { font-size: 0.8rem; color: var(--text3); margin-top: 0.2rem; }
 }
 
 .footer-links {
@@ -1210,6 +1202,8 @@ img { max-width: 100%; }
   transition: opacity 0.4s, transform 0.4s;
 
   &.visible { opacity: 1; transform: none; pointer-events: all; }
+
+  @media (max-width: 768px) { display: none; }
 }
 
 .fg-bubble {
@@ -1507,17 +1501,28 @@ img { max-width: 100%; }
   .sol-header { flex-direction: column; gap: 0.75rem; }
   .sol-outcome { align-self: auto; }
 
+  /* Back-to-top: move to left on mobile so it doesn't clash with chatbot FAB */
+  .back-to-top {
+    left: 1.5rem;
+    right: auto;
+    bottom: 1.5rem;
+  }
+
   .cb-panel {
-    bottom: calc(1.5rem + 64px);
+    bottom: calc(1rem + 64px);
     right: 0.75rem;
     left: 0.75rem;
     width: auto !important;
-    height: 70vh !important;
+    height: 72vh !important;
     min-height: 360px;
   }
+
+  /* Hero title: prevent line break pushing accent off-screen */
+  .hero-title br { display: none; }
 }
 
 @media (max-width: 480px) {
   .proof-grid { grid-template-columns: 1fr; }
   .hero-ctas { flex-direction: column; width: 100%; a { text-align: center; } }
+  .section { padding: 4rem 0; }
 }

@@ -444,16 +444,20 @@ export class App implements OnInit, AfterViewInit {
     });
 
     const heroEl = document.querySelector('.hero-stats');
+    const runStats = () => {
+      if (this.statsAnimated) return;
+      this.statsAnimated = true;
+      this.animateCount(this.statClients,   50,  1200);
+      this.animateCount(this.statAutomated, 200, 1400);
+      this.animateCount(this.statAgents,    18,  900);
+      this.animateCount(this.statROI,       60,  1000);
+    };
+    // Always fire after 600ms — hero stats are always above the fold
+    setTimeout(runStats, 600);
     if (heroEl) {
       const statsObs = new IntersectionObserver(entries => {
-        if (entries[0].isIntersecting && !this.statsAnimated) {
-          this.statsAnimated = true;
-          this.animateCount(this.statClients,   50,  1200);
-          this.animateCount(this.statAutomated, 200, 1400);
-          this.animateCount(this.statAgents,    18,  900);
-          this.animateCount(this.statROI,       60,  1000);
-        }
-      }, { threshold: 0.5 });
+        if (entries[0].isIntersecting) runStats();
+      }, { threshold: 0.05 });
       statsObs.observe(heroEl);
     }
 
