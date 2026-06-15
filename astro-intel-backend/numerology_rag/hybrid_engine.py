@@ -118,7 +118,7 @@ def hybrid_numerology_answer(
         with ThreadPoolExecutor(max_workers=1) as _ex:
             _fut = _ex.submit(ds_call,
                 system=system, user=user_prompt,
-                temperature=0.20, max_tokens=250,
+                temperature=0.20, max_tokens=530,
             )
             result = _fut.result(timeout=timeout_seconds)
         answer = (result or "").strip()
