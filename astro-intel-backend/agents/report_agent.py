@@ -174,16 +174,32 @@ def _consolidate_section(
     # Numerology: weave all tradition answers into one storytelling narrative
     raw_breakdown = _domain_breakdown(approved_insights)
     merged_breakdown: Dict[str, List[str]] = {}
+
+    # Pull RAG remedy text to pass into storytelling [REMEDIES] paragraph
+    _rag_remedy_text = ""
+    try:
+        _num_remedies = (remedies or {}).get("numerology", {})
+        if isinstance(_num_remedies, dict):
+            _rag_parts = []
+            for k in ("habits", "mantras", "colors"):
+                items = _num_remedies.get(k, [])
+                if items:
+                    _rag_parts.append("; ".join(str(x) for x in items[:3]))
+            _rag_remedy_text = " | ".join(_rag_parts)
+    except Exception:
+        pass
+
     for domain, bullets in raw_breakdown.items():
-        if domain == "numerology" and len(bullets) > 1:
+        if domain == "numerology" and len(bullets) >= 1:
             from agents.storytelling_agent import numerology_story
             story = numerology_story(
                 bullets=bullets,
                 question=question,
                 intent=intent,
                 subject=subject,
+                rag_remedy_text=_rag_remedy_text,
             )
-            merged_breakdown[domain] = [story] if story else bullets[:1]
+            merged_breakdown[domain] = [story] if story else bullets
         else:
             merged_breakdown[domain] = bullets
 

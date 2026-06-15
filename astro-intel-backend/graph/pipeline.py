@@ -114,7 +114,7 @@ def domain_agents_parallel(state: Dict[str, Any]) -> Dict[str, Any]:
     Results (memory updates + agent_log entries) are merged back safely.
     One failure never kills the others — graceful degradation stays intact.
     """
-    selected = set(state.get("selected_modules", ["numerology","astrology","palmistry","tarot","vastu"]))
+    selected = set(state.get("selected_modules", ["numerology"]))
     agent_map = {
         "numerology": numerology_agent_node,
         "astrology":  astrology_agent_node,

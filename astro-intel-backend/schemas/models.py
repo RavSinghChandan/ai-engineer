@@ -24,7 +24,7 @@ class AnalysisRequest(BaseModel):
     user_question: str = ""
     questions: List[str] = Field(default_factory=list)
     selected_modules: List[str] = Field(
-        default=["astrology", "numerology", "palmistry", "tarot", "vastu"]
+        default=["numerology"]
     )
     module_inputs: Dict[str, Any] = Field(default_factory=dict)
     # Optional geocoded coordinates for precise astronomical computation
