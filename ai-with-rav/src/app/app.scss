@@ -34,34 +34,6 @@ a { text-decoration: none; color: inherit; }
 img { max-width: 100%; display: block; }
 button { cursor: pointer; border: none; background: none; font: inherit; }
 
-/* ── LOGO SPIN PORTAL (Astro Intel chakra-spin pattern) ──────────── */
-.logo-spin-portal {
-  position: fixed; inset: 0; z-index: 9998;
-  display: flex; align-items: center; justify-content: center;
-  pointer-events: none;
-  background: rgba(255,255,255,0.15);
-  backdrop-filter: blur(3px);
-  animation: portal-fadein 0.3s ease;
-}
-.logo-spin-circle {
-  width: 420px; height: 420px;
-  border-radius: 50%;
-  overflow: hidden;
-  animation: logo-chakra-spin 5s linear infinite;
-  flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  /* multiply removes white background of PNG — only coloured logo shows */
-  mix-blend-mode: multiply;
-}
-.logo-spin-img {
-  width: 420px; height: 420px;
-  object-fit: contain;
-  display: block;
-  opacity: 0.55;
-  mix-blend-mode: multiply;
-}
-@keyframes logo-chakra-spin { to { transform: rotate(360deg); } }
-@keyframes portal-fadein { from { opacity: 0; } to { opacity: 1; } }
 
 /* ── SCROLL BAR ───────────────────────────────────────────────────── */
 .scroll-bar {
@@ -107,11 +79,11 @@ button { cursor: pointer; border: none; background: none; font: inherit; }
   padding: 0 2rem; height: 80px; gap: 2rem;
 }
 
-.brand { display: flex; align-items: center; }
+.brand { display: flex; align-items: center; background: none; border: none; padding: 0; line-height: 0; }
 .brand-logo {
-  height: 52px; width: auto;
-  mix-blend-mode: multiply; /* makes white PNG background transparent on white navbar */
-  animation: logo-glow 4s ease-in-out infinite;
+  height: 72px; width: auto;
+  display: block;
+  mix-blend-mode: multiply;
 }
 @keyframes logo-glow {
   0%,100% { filter: drop-shadow(0 2px 4px rgba(124,58,237,0.0)); }
@@ -299,57 +271,6 @@ button { cursor: pointer; border: none; background: none; font: inherit; }
 .hv-name { font-size: 0.82rem; font-weight: 800; color: #0f0a1e; }
 .hv-role { font-size: 0.68rem; color: #7C3AED; font-weight: 600; }
 
-/* ── Spinning watermark badge (Astro Intel brand-avatar style) ── */
-.hv-badge {
-  position: absolute;
-  bottom: -12px; left: 50%;
-  transform: translateX(-50%);
-  width: 140px; height: 140px;
-  z-index: 3;
-}
-
-/* Outer dashed border ring — spins clockwise */
-.hv-badge-ring {
-  position: absolute; inset: 0;
-  border-radius: 50%;
-  border: 2px dashed rgba(124,58,237,0.5);
-  animation: badge-ring-spin 8s linear infinite;
-}
-
-/* Inner white circle with logo — brand-avatar pattern from Astro Intel */
-.hv-badge-inner {
-  position: absolute;
-  inset: 10px;
-  border-radius: 50%;
-  background: #fff center / 80% no-repeat;
-  border: 2px solid rgba(124,58,237,0.2);
-  box-shadow: 0 4px 24px rgba(124,58,237,0.18), 0 2px 8px rgba(0,0,0,0.08);
-  animation: badge-pulse 3s ease-in-out infinite;
-  overflow: hidden;
-  display: flex; align-items: center; justify-content: center;
-}
-
-/* Logo image fills the inner circle */
-.hv-badge-logo-img {
-  display: block;
-  width: 82%; height: 82%;
-  object-fit: contain;
-  mix-blend-mode: multiply;
-}
-
-/* Circular text SVG — counter-spins */
-.hv-badge-text-svg {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
-  animation: badge-text-spin 18s linear infinite;
-}
-
-@keyframes badge-ring-spin { to { transform: rotate(360deg); } }
-@keyframes badge-text-spin { to { transform: rotate(-360deg); } }
-@keyframes badge-pulse {
-  0%,100% { box-shadow: 0 4px 24px rgba(124,58,237,0.18), 0 2px 8px rgba(0,0,0,0.08); transform: scale(1); }
-  50%      { box-shadow: 0 6px 32px rgba(124,58,237,0.35), 0 2px 12px rgba(0,0,0,0.1); transform: scale(1.04); }
-}
 
 /* ── TEAM ─────────────────────────────────────────────────────────── */
 .team-section { background: var(--bg); }
@@ -841,33 +762,143 @@ button { cursor: pointer; border: none; background: none; font: inherit; }
 }
 
 /* ── RESPONSIVE ───────────────────────────────────────────────────── */
-@media (max-width: 900px) {
-  .hero-content { grid-template-columns: 1fr; gap: 2.5rem; }
-  .hero-right { display: none; }
-  .team-grid { grid-template-columns: 1fr 1fr; }
+
+/* Tablet — 768px to 1024px */
+@media (max-width: 1024px) {
+  .hero-content { gap: 2.5rem; }
+  .hero-visual { max-width: 380px; height: 460px; }
+  .hv-card { width: 160px; }
   .services-grid { grid-template-columns: 1fr 1fr; }
   .ba-grid { grid-template-columns: 1fr 1fr; }
   .results-stats { grid-template-columns: 1fr 1fr; }
-  .testimonials-grid { grid-template-columns: 1fr; }
-  .footer-inner { grid-template-columns: 1fr 1fr; }
+  .testimonials-grid { grid-template-columns: 1fr 1fr; }
+  .footer-inner { grid-template-columns: 1fr 1fr; gap: 2rem; }
 }
 
-@media (max-width: 640px) {
-  .nav-links { display: none; flex-direction: column; gap: 1.25rem;
-    position: fixed; inset: 64px 0 0 0;
-    background: #fff; padding: 2rem;
+/* Small tablet — up to 900px */
+@media (max-width: 900px) {
+  .section { padding: 4.5rem 0; }
+
+  /* Navbar */
+  .nav-links {
+    display: none; flex-direction: column; gap: 1.5rem;
+    position: fixed; inset: 72px 0 0 0;
+    background: rgba(255,255,255,0.97); backdrop-filter: blur(12px);
+    padding: 2rem 1.5rem; z-index: 99;
     &.open { display: flex; }
+    a { font-size: 1.05rem; }
   }
+  .nav-actions .cta-nav-btn { display: none; }
   .hamburger { display: flex; }
-  .hero-stats { flex-direction: column; gap: 1rem; }
-  .stat-divider { width: 80%; height: 1px; }
-  .team-grid { grid-template-columns: 1fr; }
-  .services-grid { grid-template-columns: 1fr; }
-  .ba-grid { grid-template-columns: 1fr; }
+
+  /* Hero */
+  .hero { padding: 5rem 1.25rem 3rem; }
+  .hero-content { grid-template-columns: 1fr; gap: 2.5rem; }
+  .hero-left { align-items: center; text-align: center; }
+  .hero-sub { max-width: 100%; }
+  .cta-primary { width: 100%; text-align: center; }
+  .hero-right {
+    display: flex;
+    justify-content: center;
+  }
+  .hero-visual { max-width: 340px; height: 400px; width: 100%; }
+  .hv-card { width: 148px; }
+  .hv-card-left  { left: 4px;  top: 20px; }
+  .hv-card-right { right: 4px; top: 80px; }
+
+  /* Grids */
+  .team-grid { grid-template-columns: 1fr 1fr; }
+  .services-grid { grid-template-columns: 1fr 1fr; }
+  .ba-grid { grid-template-columns: 1fr 1fr; }
   .results-stats { grid-template-columns: 1fr 1fr; gap: 1rem; }
-  .footer-inner { grid-template-columns: 1fr; gap: 2rem; }
-  .footer-bottom { flex-direction: column; gap: 0.5rem; text-align: center; }
+  .testimonials-grid { grid-template-columns: 1fr; }
+  .footer-inner { grid-template-columns: 1fr 1fr; gap: 2rem; }
+}
+
+/* Mobile — up to 640px */
+@media (max-width: 640px) {
+  .section { padding: 3.5rem 0; }
+  .section-inner { padding: 0 1rem; }
+  .section-title { font-size: clamp(1.5rem, 6vw, 2rem); }
+
+  /* Navbar */
+  .nav-inner { padding: 0 1rem; height: 64px; }
+  .brand-logo { height: 52px; }
+  .nav-links {
+    display: none; flex-direction: column; gap: 1.5rem;
+    position: fixed; inset: 64px 0 0 0;
+    background: rgba(255,255,255,0.97); backdrop-filter: blur(12px);
+    padding: 2rem 1.5rem; z-index: 99;
+    &.open { display: flex; }
+    a { font-size: 1.05rem; }
+  }
+  .nav-actions .cta-nav-btn { display: none; }
+  .hamburger { display: flex; }
+
+  /* Hero */
+  .hero-section { min-height: auto; }
+  .hero { padding: 5rem 1rem 2.5rem; min-height: auto; }
+  .hero-content { grid-template-columns: 1fr; gap: 2rem; }
+  .hero-left { align-items: center; text-align: center; }
+  .hero-title { font-size: clamp(1.9rem, 8vw, 2.6rem); }
+  .hero-sub { font-size: 0.95rem; max-width: 100%; }
+  .hero-eyebrow { font-size: 0.72rem; }
+  .cta-primary { width: 100%; text-align: center; padding: 0.9rem 1.5rem; }
+  .hero-right {
+    display: flex;
+    justify-content: center;
+  }
+  .hero-visual { max-width: 300px; height: 360px; width: 100%; }
+  .hv-card { width: 130px; border-radius: 16px; }
+  .hv-card-left  { left: 0;  top: 10px; }
+  .hv-card-right { right: 0; top: 70px; }
+  .hv-name { font-size: 0.74rem; }
+  .hv-role { font-size: 0.62rem; }
+  .hv-name-tag { padding: 0.5rem 0.65rem 0.6rem; }
+
+  /* Stats */
+  .hero-stats { flex-direction: column; gap: 0; padding: 1rem 1.25rem; }
+  .stat-divider { width: 80%; height: 1px; margin: 0.6rem auto; }
+  .stat-item { padding: 0.25rem 0; }
+  .stat-num { font-size: 1.4rem; }
+
+  /* Team */
+  .team-grid { grid-template-columns: 1fr; gap: 1.25rem; }
+  .team-info { padding: 1.1rem; }
+
+  /* Services */
+  .services-grid { grid-template-columns: 1fr; gap: 1rem; }
+  .service-card { padding: 1.5rem 1.25rem; }
+
+  /* Solutions */
+  .ba-grid { grid-template-columns: 1fr; gap: 1rem; }
+  .ba-card { padding: 1.25rem; }
+
+  /* Results */
+  .results-stats { grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 2rem; }
+  .rs-item { padding: 1.25rem 1rem; }
+  .rs-num { font-size: 1.8rem; }
+
+  /* Testimonials */
+  .testimonials-grid { grid-template-columns: 1fr; gap: 1rem; }
+  .testimonial-card { padding: 1.5rem 1.25rem 1.25rem; }
+
+  /* Contact */
+  .contact-wrap { padding: 1.5rem 1rem; margin: 0 0.5rem; }
   .form-row { grid-template-columns: 1fr; }
-  .contact-wrap { padding: 1.5rem; }
-  .cb-panel { right: 0.5rem; left: 0.5rem; min-width: unset; }
+  .form-submit-btn { width: 100%; }
+
+  /* Footer */
+  .footer { padding-top: 2.5rem; padding-bottom: 0; }
+  .footer-inner { grid-template-columns: 1fr; gap: 1.5rem; padding: 0 1rem 2rem; }
+  .footer-bottom {
+    flex-direction: column; gap: 0.5rem; text-align: center;
+    padding: 1rem 1rem 1.5rem;
+  }
+  .footer-tagline { max-width: 100%; }
+
+  /* Chatbot */
+  .cb-panel { right: 0.5rem; left: 0.5rem; min-width: unset; bottom: 80px; }
+  .cb-fab-wrap { bottom: 1.25rem; right: 1.25rem; }
+  .back-to-top { right: 4.5rem; bottom: 1.25rem; }
 }

@@ -2,51 +2,67 @@
   {
     "id": "jyoti",
     "name": "Jyoti",
-    "app": "AstroIntel 360°",
-    "description": "AI spiritual intelligence guide — Vedic Astrology, Numerology, Palmistry, Tarot & Vastu Shastra across 23 Indian languages.",
+    "app": "AstroIntel 360\u00b0",
+    "description": "AI spiritual intelligence guide \u2014 Vedic Astrology, Numerology, Palmistry, Tarot & Vastu Shastra across 23 Indian languages.",
     "config": "astrointel.config.yaml",
     "port": 8010,
     "color": "#6366f1",
-    "icon": "🔮"
+    "icon": "\ud83d\udd2e",
+    "locked": true
   },
   {
     "id": "nova",
     "name": "Nova",
     "app": "Bench Resource Optimizer",
-    "description": "Enterprise HR AI guide — skill gap analysis, role mapping, 7-day training plans, episodic memory.",
+    "description": "Enterprise HR AI guide \u2014 skill gap analysis, role mapping, 7-day training plans, episodic memory.",
     "config": "bench.config.yaml",
     "port": 8011,
     "color": "#f59e0b",
-    "icon": "⚡"
+    "icon": "\u26a1",
+    "locked": true
   },
   {
     "id": "rex",
     "name": "Rex",
     "app": "RunbookAI",
-    "description": "IT incident response expert — RAGless SQL architecture, kubectl commands from database, conflict detection.",
+    "description": "IT incident response expert \u2014 RAGless SQL architecture, kubectl commands from database, conflict detection.",
     "config": "runbookai.config.yaml",
     "port": 8012,
     "color": "#10b981",
-    "icon": "🛡️"
+    "icon": "\ud83d\udee1\ufe0f",
+    "locked": true
   },
   {
     "id": "luna",
     "name": "Luna",
     "app": "Agentic Growth OS",
-    "description": "Autonomous marketing AI — 5 LangGraph agents, drag-and-drop canvas, auto-learning ROI engine.",
+    "description": "Autonomous marketing AI \u2014 5 LangGraph agents, drag-and-drop canvas, auto-learning ROI engine.",
     "config": "agentic.config.yaml",
     "port": 8013,
     "color": "#06b6d4",
-    "icon": "🚀"
+    "icon": "\ud83d\ude80",
+    "locked": true
   },
   {
     "id": "aarav",
     "name": "Aarav (Universal)",
     "app": "Universal Agent",
-    "description": "Multi-domain AI assistant — plug-and-play across all 4 enterprise platforms, YAML-configured persona.",
+    "description": "Multi-domain AI assistant \u2014 plug-and-play across all 4 enterprise platforms, YAML-configured persona.",
     "config": "universal.config.yaml",
     "port": 8001,
     "color": "#2563eb",
-    "icon": "🤖"
+    "icon": "\ud83e\udd16",
+    "locked": true
+  },
+  {
+    "id": "aarav-portfolio",
+    "name": "Aarav (Portfolio)",
+    "app": "Portfolio \u2014 Chandan Kumar",
+    "description": "Portfolio AI assistant \u2014 answers questions about Chandan's projects, skills, experience, and story. Hardcoded local knowledge, zero LLM calls.",
+    "config": "portfolio.config.yaml",
+    "port": 8014,
+    "color": "#7C3AED",
+    "icon": "\ud83e\udde0",
+    "locked": true
   }
 ]

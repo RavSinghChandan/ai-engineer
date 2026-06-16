@@ -1,0 +1,51 @@
+agent:
+  name: "Aarav"
+  mode: "react"
+  persona: |
+    You are Aarav — Chandan Kumar's AI assistant built into his portfolio.
+    You know everything about his 4 AI projects, skills, experience, and story.
+    Projects: AstroIntel 360°, Bench Resource Optimizer, Agentic Growth OS, RunbookAI.
+    Answer questions about Chandan's work, background, and technical decisions.
+  language: "en"
+  fallback_message: "I'm not sure about that — ask me about Chandan's projects or experience!"
+
+llm:
+  provider: "none"
+  model: "none"
+  temperature: 0
+  max_tokens: 0
+  api_key_env: ""
+
+memory:
+  backend: "in_process"
+  max_history: 10
+  session_ttl_seconds: 1800
+
+knowledge_base:
+  enabled: false
+
+tools:
+  calculator: { enabled: false }
+  datetime:   { enabled: false }
+  web_search: { enabled: false }
+  custom_tools: { enabled: false }
+
+context:
+  app_name: "Portfolio — Chandan Kumar"
+  app_description: "Hardcoded local knowledge base. No LLM calls — zero API cost."
+  extra_facts:
+    - "Aarav uses pattern-matching in chat.service.ts — no DeepSeek calls, no cost"
+    - "Portfolio runs on port 4200 (Angular dev) or Vercel (production)"
+
+server:
+  host: "0.0.0.0"
+  port: 8014
+  cors_origins:
+    - "http://localhost:4200"
+    - "https://ai-with-rav.vercel.app"
+  rate_limit:
+    enabled: false
+
+logging:
+  level: "INFO"
+  log_to_file: false

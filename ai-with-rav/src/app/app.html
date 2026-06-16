@@ -1,15 +1,6 @@
 <!-- Scroll progress bar -->
 <div class="scroll-bar" [style.width.%]="scrollProgress()"></div>
 
-<!-- ── LOGO SPIN PORTAL (exact Astro Intel chakra-spin pattern) ── -->
-@if (logoSpinning()) {
-  <div class="logo-spin-portal" aria-hidden="true">
-    <div class="logo-spin-circle">
-      <img src="logo-with-text.png" class="logo-spin-img" alt=""/>
-    </div>
-  </div>
-}
-
 <!-- ── NAVBAR ────────────────────────────────────────────────────────── -->
 <nav class="navbar" [class.scrolled]="scrolled()">
   <div class="nav-inner">
@@ -43,7 +34,7 @@
         <span class="hero-accent">AI-First Company</span>
       </h1>
       <p class="hero-sub">We build AI systems that work — not demos, not slides. Real automation. Real results.</p>
-      <a href="#contact" class="cta-primary" (click)="triggerLogoSpin()">Book Free AI Audit →</a>
+      <a href="#contact" class="cta-primary">Book Free AI Audit →</a>
 
       <div class="hero-stats">
         <div class="stat-item">
@@ -90,22 +81,6 @@
           </div>
         </div>
 
-        <!-- Spinning watermark logo badge — inspired by Astro Intel brand-avatar -->
-        <div class="hv-badge">
-          <!-- Outer spinning ring with dashes -->
-          <div class="hv-badge-ring"></div>
-          <!-- Inner circle: logo as background, spins slowly -->
-          <div class="hv-badge-inner">
-            <img src="logo-with-text.png" alt="AI with Rav" class="hv-badge-logo-img"/>
-          </div>
-          <!-- "AI FOR BUSINESS GROWTH" text on circular SVG path, counter-spins -->
-          <svg class="hv-badge-text-svg" viewBox="0 0 160 160">
-            <path id="hv-tp" d="M80,80 m-70,0 a70,70 0 1,1 140,0 a70,70 0 1,1 -140,0" fill="none"/>
-            <text font-size="10" font-weight="700" letter-spacing="4" fill="#7C3AED" font-family="-apple-system,sans-serif">
-              <textPath href="#hv-tp">AI WITH RAV · AI FOR BUSINESS GROWTH ·</textPath>
-            </text>
-          </svg>
-        </div>
       </div>
     </div>
   </div>

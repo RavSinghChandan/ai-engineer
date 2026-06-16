@@ -45,6 +45,20 @@ _agent_instance: Optional[UniversalAgent] = None
 _registry_path = Path(__file__).parent.parent / "config" / "agents_registry.json"
 
 
+def _persist_lock(agent_id: str, locked: bool) -> None:
+    """Write lock state back to agents_registry.json so it survives restarts."""
+    try:
+        registry = _load_registry()
+        for entry in registry:
+            if entry.get("id") == agent_id:
+                entry["locked"] = locked
+                break
+        with open(_registry_path, "w") as f:
+            json.dump(registry, f, indent=2)
+    except Exception:
+        logger.warning("Could not persist lock state for '%s'", agent_id)
+
+
 class ChatRequest(BaseModel):
     message: str
     session_id: Optional[str] = None
@@ -206,6 +220,7 @@ def _add_lock_routes(app: FastAPI, prefix: str, cfg, my_id: str) -> None:
     @app.post(f"{prefix}/lock", tags=["Agent"])  # noqa: S8411
     async def lock_agent():
         _lock_store[my_id] = True
+        _persist_lock(my_id, True)
         logger.warning("Agent '%s' LOCKED.", cfg.agent.name)
         return {"id": my_id, "agent": cfg.agent.name, "locked": True,
                 "message": f"{cfg.agent.name} locked. No LLM calls will be made."}
@@ -213,6 +228,7 @@ def _add_lock_routes(app: FastAPI, prefix: str, cfg, my_id: str) -> None:
     @app.post(f"{prefix}/unlock", tags=["Agent"])  # noqa: S8411
     async def unlock_agent():
         _lock_store[my_id] = False
+        _persist_lock(my_id, False)
         logger.info("Agent '%s' UNLOCKED.", cfg.agent.name)
         return {"id": my_id, "agent": cfg.agent.name, "locked": False,
                 "message": f"{cfg.agent.name} unlocked. LLM calls resumed."}
@@ -254,18 +270,24 @@ def _add_registry_routes(app: FastAPI, my_id: str) -> None:
 
 
 async def _toggle_one(entry: Dict[str, Any], action: str, my_id: str) -> Dict[str, Any]:
-    """Lock or unlock one agent — locally if it's us, remotely otherwise."""
+    """Lock or unlock one agent — locally if it's us, remotely otherwise.
+    Always persists to registry JSON so offline agents start locked next time."""
     aid   = entry["id"]
     name  = entry["name"]
     port  = entry["port"]
     want  = action == "lock"
     if aid == my_id:
         _lock_store[my_id] = want
+        _persist_lock(my_id, want)
         return {"id": aid, "agent": name, "locked": want}
     try:
-        return await _call_remote(port, action)
+        result = await _call_remote(port, action)
+        _persist_lock(aid, want)
+        return result
     except Exception:
-        return {"id": aid, "agent": name, "locked": not want, "error": "unreachable"}
+        # Agent offline — persist the desired state anyway so it boots locked
+        _persist_lock(aid, want)
+        return {"id": aid, "agent": name, "locked": want, "note": "offline — will start locked"}
 
 
 async def _toggle_by_id(agent_id: str, action: str, my_id: str) -> Dict[str, Any]:
@@ -293,7 +315,11 @@ def mount_agent(
     cfg = load_config(config_path)
     _agent_instance = UniversalAgent(cfg)
     my_id = _resolve_agent_id(cfg)
-    _lock_store.setdefault(my_id, False)
+
+    # Initialise lock state from registry (persists across restarts via JSON)
+    registry = _load_registry()
+    entry = next((e for e in registry if e.get("id") == my_id), {})
+    _lock_store.setdefault(my_id, entry.get("locked", False))
 
     origins = cfg.server.cors_origins or ["*"]
     app.add_middleware(CORSMiddleware, allow_origins=origins,
