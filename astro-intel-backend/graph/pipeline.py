@@ -11,6 +11,7 @@ Flow (multi-tenant episodic memory + security gate):
       ↓
   [numerology || astrology || palmistry || tarot || vastu]  ← parallel fan-out
       ↓
+      
   meta_agent
       ↓
   hallucination_check     ← Layer 2/3 hallucination detection (Module 1)
