@@ -57,7 +57,47 @@ export class AstroAgentService {
 
   private _recognition: any = null;
   private _synth: SpeechSynthesis | null =
-    typeof window !== 'undefined' ? window.speechSynthesis : null;
+    typeof globalThis !== 'undefined' ? (globalThis as any).speechSynthesis ?? null : null;
+  private _femaleVoice: SpeechSynthesisVoice | null = null;
+
+  private _pickFemaleVoice(): void {
+    if (!this._synth) return;
+    const voices = this._synth.getVoices();
+    if (!voices.length) return;
+
+    // Priority list — most natural female voices across macOS / Windows / Android / iOS
+    const PRIORITY = [
+      // macOS — best quality
+      'Samantha', 'Karen', 'Moira', 'Tessa', 'Veena',
+      // iOS
+      'Siri Female', 'Nicky',
+      // Windows / Edge neural voices
+      'Microsoft Zira', 'Microsoft Jenny', 'Microsoft Aria', 'Microsoft Emma',
+      // Google (Chrome / Android)
+      'Google UK English Female', 'Google US English Female', 'Google हिन्दी',
+      // Generic fallback — any English female
+    ];
+
+    // 1. Try priority names (case-insensitive)
+    for (const name of PRIORITY) {
+      const v = voices.find(v => v.name.toLowerCase().includes(name.toLowerCase()));
+      if (v) { this._femaleVoice = v; return; }
+    }
+
+    // 2. Any voice with "female" in the name
+    const byLabel = voices.find(v => v.name.toLowerCase().includes('female'));
+    if (byLabel) { this._femaleVoice = byLabel; return; }
+
+    // 3. Any English voice — avoid picking a male-named voice
+    const MALE_NAMES = ['daniel','alex','fred','ralph','bruce','albert','junior','bad','whisper','bubbles','deranged','hysterical','zarvox'];
+    const engFemale = voices.find(v =>
+      v.lang.startsWith('en') && !MALE_NAMES.some(m => v.name.toLowerCase().includes(m))
+    );
+    if (engFemale) { this._femaleVoice = engFemale; return; }
+
+    // 4. Any voice at all (last resort)
+    this._femaleVoice = voices[0] ?? null;
+  }
 
   readonly quickPrompts = [
     '🪐 What does HIGH confidence mean in my report?',
@@ -73,7 +113,13 @@ export class AstroAgentService {
   constructor(private http: HttpClient) {
     this.sessionId = sessionStorage.getItem('astrointel_agent_session');
     const saved = sessionStorage.getItem('astrointel_agent_qcount');
-    if (saved) this.qCount.set(parseInt(saved, 10) || 0);
+    if (saved) this.qCount.set(Number.parseInt(saved, 10) || 0);
+
+    // Voices load asynchronously — pick female voice as soon as they're ready
+    if (this._synth) {
+      this._pickFemaleVoice();
+      this._synth.onvoiceschanged = () => this._pickFemaleVoice();
+    }
   }
 
   toggle() { this.isOpen.update(v => !v); }
@@ -258,17 +304,33 @@ export class AstroAgentService {
 
   speak(text: string): void {
     if (!this._synth) return;
-    this._synth.cancel();                        // stop any in-progress speech
-    const stripped = text
-      .replace(/<[^>]+>/g, '')                   // strip HTML tags
-      .replace(/[*_`#~]/g, '')                   // strip markdown punctuation
-      .slice(0, 500);                            // cap length for TTS
+    this._synth.cancel();
 
-    const utt  = new SpeechSynthesisUtterance(stripped);
-    utt.lang   = 'en-IN';
-    utt.rate   = 0.95;
-    utt.pitch  = 1.05;
-    utt.volume = 1;
+    // Strip markdown/HTML — keep natural sentence flow
+    const stripped = text
+      .replace(/<[^>]+>/g, '')
+      .replace(/[*_`#~]/g, '')
+      .replace(/([.!?])\s*/g, '$1 ')   // pause after sentences
+      .replace(/\s{2,}/g, ' ')
+      .trim()
+      .slice(0, 600);
+
+    if (!stripped) return;
+
+    const utt = new SpeechSynthesisUtterance(stripped);
+
+    // Apply female voice if found
+    if (this._femaleVoice) {
+      utt.voice = this._femaleVoice;
+      utt.lang  = this._femaleVoice.lang;
+    } else {
+      utt.lang  = 'en-IN';
+    }
+
+    // Natural female voice tuning — warm, calm, conversational
+    utt.rate   = 0.88;   // slightly slower than default — feels more human
+    utt.pitch  = 1.25;   // feminine pitch lift
+    utt.volume = 1.0;
 
     utt.onstart = () => this.isSpeaking.set(true);
     utt.onend   = () => this.isSpeaking.set(false);
