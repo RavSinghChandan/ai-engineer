@@ -110,22 +110,87 @@ class UniversalAgent:
 
     def _build_system_prompt(self) -> str:
         cfg = self._cfg
-        parts = [cfg.agent.persona.strip()]
+        p = cfg.persona
+        e = cfg.enterprise
+        parts: list[str] = []
+
+        # ── 1. Core persona ────────────────────────────────────────────────────
+        parts.append(cfg.agent.persona.strip())
+
+        # ── 2. Identity & gender ───────────────────────────────────────────────
+        identity_lines: list[str] = []
+        if p.gender != "neutral":
+            identity_lines.append(f"You identify as {p.gender}.")
+        if p.age > 0:
+            identity_lines.append(f"You present yourself as approximately {p.age} years old.")
+        if identity_lines:
+            parts.append("IDENTITY:\n" + " ".join(identity_lines))
+
+        # ── 3. Tone & communication style ─────────────────────────────────────
+        style_block = (
+            f"TONE & STYLE:\n"
+            f"- Overall tone: {p.tone}\n"
+            f"- Communication style: {p.communication_style}\n"
+            f"- Emotional tone: {p.emotional_tone}\n"
+            f"- Response length: {p.response_length} (avoid one-liners; avoid walls of text)\n"
+            f"- Expertise: present yourself as an {p.expertise_level}\n"
+            f"- Language style: {p.language_style}"
+        )
+        if p.always_greet_with:
+            style_block += f"\n- Always open your response with: \"{p.always_greet_with}\""
+        parts.append(style_block)
+
+        # ── 4. App context ─────────────────────────────────────────────────────
         if cfg.context.app_name:
-            parts.append(f"You are the AI assistant for: {cfg.context.app_name}.")
+            parts.append(f"APPLICATION: You are the AI assistant for {cfg.context.app_name}.")
         if cfg.context.app_description:
-            parts.append(cfg.context.app_description)
+            parts.append(f"PLATFORM CONTEXT:\n{cfg.context.app_description.strip()}")
         if cfg.context.extra_facts:
-            parts.append("Key facts:")
-            parts.extend(f"- {fact}" for fact in cfg.context.extra_facts)
+            parts.append("KEY PLATFORM FACTS:\n" + "\n".join(f"- {f}" for f in cfg.context.extra_facts))
+
+        # ── 5. Knowledge file ──────────────────────────────────────────────────
         if cfg.context.knowledge_file:
             from pathlib import Path
             kf = Path(cfg.context.knowledge_file)
             if kf.exists():
-                parts.append("\nDomain knowledge:")
-                parts.append(kf.read_text(encoding="utf-8"))
-        parts.append(f"\nAlways respond in {cfg.agent.language} language.")
-        parts.append(f"If you cannot answer confidently, say: {cfg.agent.fallback_message}")
+                parts.append("DOMAIN KNOWLEDGE:\n" + kf.read_text(encoding="utf-8"))
+
+        # ── 6. Enterprise guardrails ───────────────────────────────────────────
+        guardrail_lines: list[str] = []
+        if e.domain_strict:
+            guardrail_lines.append(
+                "DOMAIN BOUNDARY (STRICT): Only answer questions within your defined domain. "
+                f"For anything outside it, say: \"{cfg.agent.fallback_message}\""
+            )
+        if e.safe_topics_only:
+            guardrail_lines.append(
+                "SAFETY: Never give medical diagnoses, legal advice, financial investment advice, "
+                "specific predictions about death or serious illness, or criminal matter guidance."
+            )
+        if e.require_disclaimer:
+            guardrail_lines.append(
+                f"DISCLAIMER: When a user's question touches health, legal, or financial matters, "
+                f"append this at the end of your reply:\n\"{e.disclaimer_text}\""
+            )
+        if e.always_identify_as_ai:
+            guardrail_lines.append(
+                "AI TRANSPARENCY: If a user asks whether you are human or AI, always truthfully "
+                "say you are an AI assistant. Never claim to be a real human."
+            )
+        if e.escalation_keywords:
+            kw_list = ", ".join(f'"{k}"' for k in e.escalation_keywords)
+            guardrail_lines.append(
+                f"CRISIS ESCALATION: If the user's message contains any of [{kw_list}], "
+                f"immediately respond with:\n\"{e.escalation_response}\"\nDo not continue with other content."
+            )
+        if e.watermark:
+            guardrail_lines.append(f"BRANDING: Sign every response with: \"{e.watermark}\"")
+        if guardrail_lines:
+            parts.append("ENTERPRISE RULES:\n" + "\n\n".join(guardrail_lines))
+
+        # ── 7. Response language ───────────────────────────────────────────────
+        parts.append(f"LANGUAGE: Always respond in {cfg.agent.language} unless the user writes in another language, in which case mirror their language.")
+
         return "\n\n".join(parts)
 
     def _build_graph(self):

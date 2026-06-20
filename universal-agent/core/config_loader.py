@@ -102,15 +102,60 @@ class LoggingConfig(BaseModel):
     log_file: str = "./logs/agent.log"
 
 
+class PersonaConfig(BaseModel):
+    """Controls HOW the agent presents itself — gender, age, tone, style."""
+    gender: str = "neutral"            # "female" | "male" | "neutral"
+    age: int = 0                       # 0 = not specified
+    tone: str = "professional"         # "warm" | "professional" | "spiritual" | "formal" | "casual"
+    communication_style: str = "clear" # "poetic" | "clear" | "concise" | "empathetic"
+    greeting_style: str = "namaste"    # "namaste" | "hello" | "hey" | custom string
+    language_style: str = "bilingual"  # "english_only" | "bilingual" | "multilingual"
+    expertise_level: str = "expert"    # "expert" | "guide" | "assistant"
+    emotional_tone: str = "warm"       # "warm" | "neutral" | "empathetic" | "authoritative"
+    response_length: str = "medium"    # "short" | "medium" | "detailed"
+    always_greet_with: str = ""        # if set, every response opens with this phrase
+
+
+class EnterpriseConfig(BaseModel):
+    """Controls enterprise-grade guardrails, limits, and compliance rules."""
+    # Session / rate limits
+    max_questions_per_session: int = 10      # 0 = unlimited
+    max_tokens_per_response: int = 1024
+    session_timeout_seconds: int = 7200
+
+    # Guardrails
+    domain_strict: bool = True               # refuse off-topic questions hard
+    safe_topics_only: bool = True            # block harmful/sensitive advice
+    require_disclaimer: bool = True          # append disclaimer to medical/legal queries
+    disclaimer_text: str = (
+        "⚠️ This reading is for spiritual guidance only — not medical, legal, or financial advice."
+    )
+
+    # Branding & compliance
+    always_identify_as_ai: bool = True       # never claim to be human when asked
+    watermark: str = ""                      # e.g. "Powered by AstroIntel 360°"
+
+    # Escalation
+    escalation_keywords: list[str] = Field(default_factory=lambda: [
+        "suicide", "self-harm", "kill", "abuse", "emergency"
+    ])
+    escalation_response: str = (
+        "I'm here for you 🙏. If you're in crisis please reach out to a mental health professional or call a helpline immediately."
+    )
+
+
 class AgentMeta(BaseModel):
     name: str = "Assistant"
     persona: str = "You are a helpful assistant."
+    mode: str = "react"
     language: str = "en"
     fallback_message: str = "I'm not sure about that. Can you rephrase?"
 
 
 class AgentConfig(BaseModel):
     agent: AgentMeta = Field(default_factory=AgentMeta)
+    persona: PersonaConfig = Field(default_factory=PersonaConfig)
+    enterprise: EnterpriseConfig = Field(default_factory=EnterpriseConfig)
     llm: LLMConfig = Field(default_factory=LLMConfig)
     memory: MemoryConfig = Field(default_factory=MemoryConfig)
     knowledge_base: KnowledgeBaseConfig = Field(default_factory=KnowledgeBaseConfig)

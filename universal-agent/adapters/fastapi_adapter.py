@@ -40,8 +40,10 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 # ── Shared state ───────────────────────────────────────────────────────────────
-_lock_store: Dict[str, bool] = {}   # agent_id → locked
+_lock_store: Dict[str, bool] = {}        # agent_id → locked
+_session_counters: Dict[str, int] = {}   # session_id → question count (enterprise rate limit)
 _agent_instance: Optional[UniversalAgent] = None
+_agent_cfg = None                        # cached config (set in mount_agent)
 _registry_path = Path(__file__).parent.parent / "config" / "agents_registry.json"
 
 
@@ -149,6 +151,17 @@ async def _call_remote(port: int, action: str) -> Dict[str, Any]:
 
 # ── Route factories (one function per route group) ─────────────────────────────
 
+def _session_limit_response(agent_name: str, session_id: str, limit: int) -> ChatResponse:
+    return ChatResponse(
+        session_id=session_id,
+        message=(
+            f"🔒 You've reached the {limit}-question limit for this session with {agent_name}. "
+            "Please start a new session to continue."
+        ),
+        agent_name=agent_name,
+    )
+
+
 def _add_chat_routes(app: FastAPI, prefix: str, cfg, my_id: str) -> None:
 
     @app.post(f"{prefix}/chat", response_model=ChatResponse, tags=["Agent"])  # noqa: S8411
@@ -156,6 +169,15 @@ def _add_chat_routes(app: FastAPI, prefix: str, cfg, my_id: str) -> None:
         sid = request.session_id or str(uuid.uuid4())
         if _lock_store.get(my_id, False):
             return _locked_response(cfg.agent.name, sid)
+
+        # Enterprise session question limit
+        limit = cfg.enterprise.max_questions_per_session if hasattr(cfg, "enterprise") else 0
+        if limit > 0:
+            count = _session_counters.get(sid, 0)
+            if count >= limit:
+                return _session_limit_response(cfg.agent.name, sid, limit)
+            _session_counters[sid] = count + 1
+
         response = _agent_instance.chat(sid, request.message, system_prompt=request.system_prompt)
         return ChatResponse(session_id=sid, message=response, agent_name=cfg.agent.name)
 
@@ -163,14 +185,31 @@ def _add_chat_routes(app: FastAPI, prefix: str, cfg, my_id: str) -> None:
     async def stream_chat(message: str, session_id: Optional[str] = None):
         sid = session_id or str(uuid.uuid4())
 
+        async def _send_token(text: str):
+            return f"data: {json.dumps({'type': 'token', 'token': text})}\n\n"
+
         async def _gen():
             yield f"data: {json.dumps({'type': 'session', 'session_id': sid})}\n\n"
+
             if _lock_store.get(my_id, False):
-                msg = f"🔒 {cfg.agent.name} is locked. Unlock from the Agent Dashboard to resume."
-                yield f"data: {json.dumps({'type': 'token', 'token': msg})}\n\n"
+                yield await _send_token(f"🔒 {cfg.agent.name} is locked. Unlock from the Agent Dashboard.")
                 yield f"data: {json.dumps({'type': 'done'})}\n\n"
                 yield "data: [DONE]\n\n"
                 return
+
+            limit = cfg.enterprise.max_questions_per_session if hasattr(cfg, "enterprise") else 0
+            if limit > 0:
+                count = _session_counters.get(sid, 0)
+                if count >= limit:
+                    yield await _send_token(
+                        f"🔒 You've reached the {limit}-question limit for this session with {cfg.agent.name}. "
+                        "Please start a new session to continue."
+                    )
+                    yield f"data: {json.dumps({'type': 'done'})}\n\n"
+                    yield "data: [DONE]\n\n"
+                    return
+                _session_counters[sid] = count + 1
+
             try:
                 async for ev, data in _agent_instance.stream(sid, message):
                     if ev == "token":
