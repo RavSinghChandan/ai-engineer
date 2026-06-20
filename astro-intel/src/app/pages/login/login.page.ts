@@ -1,4 +1,4 @@
-import { Component, signal, inject, computed, OnDestroy } from '@angular/core';
+import { Component, signal, inject, computed, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -42,9 +42,13 @@ function validateConfirm(pass: string, confirm: string): string {
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.css'],
 })
-export class LoginPage implements OnDestroy {
+export class LoginPage implements OnInit, OnDestroy {
   private auth   = inject(AuthService);
   private router = inject(Router);
+
+  // On localhost auto-fill superadmin credentials so no manual typing needed
+  private readonly _isLocal = typeof location !== 'undefined' &&
+    (location.hostname === 'localhost' || location.hostname === '127.0.0.1');
 
   tab      = signal<'signin' | 'signup' | 'otp'>('signin');
   loading  = signal(false);
@@ -52,8 +56,8 @@ export class LoginPage implements OnDestroy {
   showPass = signal(false);
 
   // ── Sign In ──────────────────────────────────────────────────────────────
-  siEmail    = signal('');
-  siPassword = signal('');
+  siEmail    = signal(this._isLocal ? 'admin@aura.local' : '');
+  siPassword = signal(this._isLocal ? 'AuraAdmin2024!' : '');
   siTouched  = signal<Record<string, boolean>>({});
 
   siEmailErr    = computed(() => this.siTouched()['email']    ? validateEmail(this.siEmail())    : '');
@@ -249,6 +253,10 @@ export class LoginPage implements OnDestroy {
       if (this.otpSent()) this.verifyOtp();
       else this.sendOtp();
     }
+  }
+
+  ngOnInit(): void {
+    if (this._isLocal) this.signIn();
   }
 
   ngOnDestroy(): void {
