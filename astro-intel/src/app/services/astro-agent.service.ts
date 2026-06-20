@@ -267,9 +267,13 @@ export class AstroAgentService {
 
   // ── Voice: STT (browser SpeechRecognition) ────────────────────────────────
 
+  // Accumulates interim words so the user can speak as long as they want
+  readonly interimTranscript = signal('');
+
   /**
-   * Start microphone listening. Resolves with the transcript string.
-   * Rejects with an error message if the browser doesn't support Web Speech.
+   * Start continuous microphone recording.
+   * Interim words appear live in interimTranscript.
+   * Call stopListening() when done — resolves with the full transcript.
    */
   startListening(): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -284,86 +288,127 @@ export class AstroAgentService {
       }
 
       this.voiceError.set('');
+      this.interimTranscript.set('');
+
       const rec = new SR();
-      rec.lang         = 'en-IN';
-      rec.interimResults = false;
-      rec.maxAlternatives = 1;
-      rec.continuous   = false;
+      rec.lang             = 'en-IN';
+      rec.interimResults   = true;   // show words as user speaks
+      rec.maxAlternatives  = 1;
+      rec.continuous       = true;   // keep mic open — user taps Done to stop
 
       this.isListening.set(true);
       this._recognition = rec;
 
+      let finalParts: string[] = [];
+
       rec.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript as string;
-        resolve(transcript.trim());
+        let interim = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const t = event.results[i][0].transcript as string;
+          if (event.results[i].isFinal) {
+            finalParts.push(t.trim());
+          } else {
+            interim += t;
+          }
+        }
+        // Show live preview in the input box
+        this.interimTranscript.set([...finalParts, interim].join(' ').trim());
       };
 
       rec.onerror = (event: any) => {
+        if (event.error === 'no-speech') return; // silence — keep listening
         const msg = event.error === 'not-allowed'
           ? 'Microphone access denied. Please allow mic in browser settings.'
           : `Voice error: ${event.error}`;
         this.voiceError.set(msg);
+        this.isListening.set(false);
         reject(msg);
       };
 
       rec.onend = () => {
+        // Called after stopListening() — resolve with everything collected
         this.isListening.set(false);
         this._recognition = null;
+        const full = finalParts.join(' ').trim() || this.interimTranscript().trim();
+        this.interimTranscript.set('');
+        resolve(full);
       };
 
       rec.start();
     });
   }
 
+  /** User taps Done — stops recording and triggers resolve() via onend */
   stopListening(): void {
     try { this._recognition?.stop(); } catch { /* already stopped */ }
-    this.isListening.set(false);
-    this._recognition = null;
+    // onend will fire and resolve the promise
   }
 
   // ── Voice: TTS (browser SpeechSynthesis) ──────────────────────────────────
 
-  // Matches all Unicode emoji blocks — safe non-overlapping alternation
+  // All Unicode emoji ranges — non-overlapping alternation
   private static readonly EMOJI_RE =
     /[\u{1F300}-\u{1F9FF}]|[\u{1FA00}-\u{1FAFF}]|[\u{1F000}-\u{1F02F}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{2B00}-\u{2BFF}]|[\u{FE00}-\u{FE0F}]|[\u{E0000}-\u{E007F}]/gu;
 
+  private _clean(text: string): string {
+    let s = text
+      .replace(/<[^>]+>/g, '')          // strip HTML tags
+      .replace(/#{1,6}\s/g, '')         // strip markdown headings
+      .replace(/[*_`~]/g, '')           // strip bold/italic/code markers
+      .replace(/\n{2,}/g, '. ')         // paragraph breaks → sentence pause
+      .replace(/\n/g, ' ');             // single newlines → space
+
+    if (this._stripEmojis) {
+      s = s.replace(AstroAgentService.EMOJI_RE, '');
+    }
+
+    return s.replace(/\s{2,}/g, ' ').trim();
+  }
+
+  /**
+   * Speak text naturally by splitting into sentence chunks.
+   * Each chunk is queued as a separate utterance — the browser engine
+   * inserts micro-pauses between them, making it sound like natural speech
+   * rather than one flat robotic monologue.
+   */
   speak(text: string): void {
     if (!this._synth) return;
     this._synth.cancel();
 
-    let clean = text
-      .replace(/<[^>]+>/g, '')                        // strip HTML
-      .replace(/[*_`#~]/g, '')                        // strip markdown symbols
-      .replace(/([.!?])\s*/g, '$1 ')                  // natural pause after sentences
-      .replace(/\s{2,}/g, ' ')
-      .trim();
-
-    if (this._stripEmojis) {
-      clean = clean.replace(AstroAgentService.EMOJI_RE, ''); // remove ALL emoji
-    }
-
-    clean = clean.replace(/\s{2,}/g, ' ').trim().slice(0, 600);
+    const clean = this._clean(text);
     if (!clean) return;
 
-    const utt = new SpeechSynthesisUtterance(clean);
+    // Split on sentence boundaries — keeps the delimiter attached
+    const sentences = clean
+      .split(/(?<=[.!?])\s+/)
+      .map(s => s.trim())
+      .filter(s => s.length > 1);
 
-    if (this._femaleVoice) {
-      utt.voice = this._femaleVoice;
-      utt.lang  = this._femaleVoice.lang;
-    } else {
-      utt.lang = 'en-IN';
-    }
+    // Cap total spoken length to ~3 sentences to keep responses concise
+    const chunks = sentences.slice(0, 4);
 
-    // Spiritual guide delivery — slow, soft, empathetic
-    utt.rate   = this._ttsRate;
-    utt.pitch  = this._ttsPitch;
-    utt.volume = this._ttsVolume;
+    chunks.forEach((chunk, i) => {
+      const utt = new SpeechSynthesisUtterance(chunk);
 
-    utt.onstart = () => this.isSpeaking.set(true);
-    utt.onend   = () => this.isSpeaking.set(false);
-    utt.onerror = () => this.isSpeaking.set(false);
+      if (this._femaleVoice) {
+        utt.voice = this._femaleVoice;
+        utt.lang  = this._femaleVoice.lang;
+      } else {
+        utt.lang = 'en-IN';
+      }
 
-    this._synth.speak(utt);
+      utt.rate   = this._ttsRate;
+      utt.pitch  = this._ttsPitch;
+      utt.volume = this._ttsVolume;
+
+      if (i === 0)              utt.onstart = () => this.isSpeaking.set(true);
+      if (i === chunks.length - 1) {
+        utt.onend   = () => this.isSpeaking.set(false);
+        utt.onerror = () => this.isSpeaking.set(false);
+      }
+
+      this._synth!.speak(utt);
+    });
   }
 
   stopSpeaking(): void {

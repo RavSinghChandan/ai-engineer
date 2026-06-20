@@ -167,50 +167,57 @@ function renderMarkdown(text: string): string {
               <button class="limit-new-btn" (click)="newSession()">Start new session</button>
             </div>
           } @else {
-            <!-- Mic button (voice input) — always visible, disabled if unsupported -->
-            <button class="mic-btn"
-                    [class.mic-listening]="agent.isListening()"
-                    (click)="toggleMic()"
-                    [disabled]="agent.isLoading() || agent.isStreaming()"
-                    [title]="agent.isListening() ? 'Stop listening' : (agent.voiceSupported() ? 'Speak your question' : 'Voice not supported in this browser')">
-              @if (agent.isListening()) {
-                <span class="mic-wave"><i></i><i></i><i></i></span>
-              } @else {
+            @if (agent.isListening()) {
+              <!-- LISTENING MODE: full-width voice bar with live transcript + Done button -->
+              <div class="voice-bar">
+                <span class="voice-bar-wave"><i></i><i></i><i></i><i></i><i></i></span>
+                <span class="voice-bar-text">
+                  {{ agent.interimTranscript() || 'Listening… speak your question' }}
+                </span>
+                <button class="voice-done-btn" (click)="doneListening()" title="Done — send">
+                  Done
+                </button>
+              </div>
+            } @else {
+              <!-- NORMAL MODE: mic + input + send/stop -->
+              <button class="mic-btn"
+                      (click)="toggleMic()"
+                      [disabled]="agent.isLoading() || agent.isStreaming()"
+                      [title]="agent.voiceSupported() ? 'Speak your question' : 'Voice not supported in this browser'">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4z"/>
                   <path d="M19 10a1 1 0 0 0-2 0 5 5 0 0 1-10 0 1 1 0 0 0-2 0 7 7 0 0 0 6 6.92V19H9a1 1 0 0 0 0 2h6a1 1 0 0 0 0-2h-2v-2.08A7 7 0 0 0 19 10z"/>
                 </svg>
+              </button>
+
+              <input
+                #inputRef
+                class="chat-input"
+                type="text"
+                [placeholder]="'Ask about your reading… (' + agent.qRemaining() + ' left)'"
+                [(ngModel)]="draft"
+                (keydown.enter)="send(draft)"
+                [disabled]="agent.isLoading() || agent.isStreaming()"
+                maxlength="500"
+              />
+
+              @if (agent.isSpeaking()) {
+                <button class="stop-speak-btn" (click)="agent.stopSpeaking()" title="Stop speaking">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="4" y="4" width="16" height="16" rx="2"/>
+                  </svg>
+                </button>
+              } @else {
+                <button class="send-btn"
+                        (click)="send(draft)"
+                        [disabled]="!draft.trim() || agent.isLoading() || agent.isStreaming()"
+                        aria-label="Send">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                    <line x1="22" y1="2" x2="11" y2="13"/>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                  </svg>
+                </button>
               }
-            </button>
-
-            <input
-              #inputRef
-              class="chat-input"
-              type="text"
-              [placeholder]="agent.isListening() ? '🎙️ Listening…' : 'Ask about your reading… (' + agent.qRemaining() + ' left)'"
-              [(ngModel)]="draft"
-              (keydown.enter)="send(draft)"
-              [disabled]="agent.isLoading() || agent.isStreaming() || agent.isListening()"
-              maxlength="500"
-            />
-
-            <!-- Stop-speaking button (shown while Jyoti is talking) -->
-            @if (agent.isSpeaking()) {
-              <button class="stop-speak-btn" (click)="agent.stopSpeaking()" title="Stop speaking">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                  <rect x="4" y="4" width="16" height="16" rx="2"/>
-                </svg>
-              </button>
-            } @else {
-              <button class="send-btn"
-                      (click)="send(draft)"
-                      [disabled]="!draft.trim() || agent.isLoading() || agent.isStreaming()"
-                      aria-label="Send">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-                  <line x1="22" y1="2" x2="11" y2="13"/>
-                  <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                </svg>
-              </button>
             }
           }
         </div>
@@ -526,6 +533,46 @@ function renderMarkdown(text: string): string {
       50%      { box-shadow: 0 0 0 5px rgba(220,38,38,0); }
     }
 
+    /* ── Voice bar (listening mode — replaces input row) ────── */
+    .voice-bar {
+      display: flex; align-items: center; gap: 8px;
+      flex: 1; padding: 6px 8px 6px 10px;
+      background: linear-gradient(135deg, #fdf4ff, #ede9fe);
+      border: 1.5px solid rgba(139,92,246,0.35);
+      border-radius: 12px; overflow: hidden;
+    }
+    .voice-bar-wave {
+      display: flex; gap: 2px; align-items: center;
+      height: 20px; flex-shrink: 0;
+    }
+    .voice-bar-wave i {
+      display: block; width: 3px; border-radius: 2px;
+      background: #7c3aed; animation: wave-bar 0.6s ease-in-out infinite;
+    }
+    .voice-bar-wave i:nth-child(1) { height: 5px;  animation-delay: 0s; }
+    .voice-bar-wave i:nth-child(2) { height: 12px; animation-delay: 0.1s; }
+    .voice-bar-wave i:nth-child(3) { height: 18px; animation-delay: 0.2s; }
+    .voice-bar-wave i:nth-child(4) { height: 10px; animation-delay: 0.3s; }
+    .voice-bar-wave i:nth-child(5) { height: 6px;  animation-delay: 0.4s; }
+    @keyframes wave-bar {
+      0%,100% { transform: scaleY(0.5); opacity: 0.7; }
+      50%      { transform: scaleY(1.3); opacity: 1; }
+    }
+    .voice-bar-text {
+      flex: 1; font-size: 12.5px; color: #4c1d95;
+      font-style: italic; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    .voice-done-btn {
+      flex-shrink: 0;
+      padding: 5px 13px; border-radius: 8px;
+      background: #7c3aed; color: #fff;
+      border: none; font-size: 12px; font-weight: 700;
+      cursor: pointer; transition: opacity 0.15s;
+      white-space: nowrap;
+    }
+    .voice-done-btn:hover { opacity: 0.85; }
+
     /* Voice error toast */
     .voice-error-bar {
       display: flex; align-items: center; justify-content: space-between; gap: 8px;
@@ -632,15 +679,14 @@ export class AstroAgentComponent implements AfterViewChecked, OnDestroy {
     if (!this.agent.isOpen()) this.unread.update(n => n + 1);
   }
 
+  private _listenResolve: ((t: string) => void) | null = null;
+
   async toggleMic() {
-    if (this.agent.isListening()) {
-      this.agent.stopListening();
-      return;
-    }
     if (!this.agent.voiceSupported()) {
       this.agent.voiceError.set('Voice not supported in this browser. Please use Chrome or Edge.');
       return;
     }
+    // Start continuous listening — promise resolves when user taps Done
     try {
       const transcript = await this.agent.startListening();
       if (transcript) {
@@ -650,6 +696,13 @@ export class AstroAgentComponent implements AfterViewChecked, OnDestroy {
     } catch {
       // voiceError signal already set inside the service
     }
+  }
+
+  /** User taps Done — stops mic, sends whatever was captured */
+  async doneListening() {
+    this.agent.stopListening();
+    // stopListening triggers onend → resolves the promise in startListening
+    // Give onend a tick to fire and set the draft via the promise chain above
   }
 
   // ── Resize ──────────────────────────────────────────────────────────────────
