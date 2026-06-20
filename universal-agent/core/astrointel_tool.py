@@ -94,39 +94,57 @@ def _parse_dob(raw: str) -> str:
 # ── Format report into spoken verdict ────────────────────────────────────────
 
 def _format_verdict(report: Dict[str, Any], user_name: str, question: str) -> str:
-    """Turn the final report JSON into a warm, spoken summary for Jyoti."""
-    sections = report.get("sections", [])
-    if not sections:
-        return "I ran your reading but the report came back empty. Please try again."
+    """
+    Distil the full report into a short spoken verdict — 3-4 sentences max.
+    Insights are dicts with a 'content' key. Remedies live at report top-level.
+    """
+    first_name = user_name.split()[0] if user_name else user_name
 
-    lines: list[str] = [
-        f"I have completed your 360-degree spiritual reading, {user_name}.",
-        f"Here is what the stars, numbers, and ancient sciences reveal about: {question}",
-        "",
-    ]
+    # ── Pick the single strongest insight ─────────────────────────────────────
+    best_insight = ""
+    for sec in report.get("sections", []):
+        for ins in sec.get("insights", []):
+            content = ins.get("content", "") if isinstance(ins, dict) else str(ins)
+            content = re.sub(r"\*+", "", content).strip()
+            # Take first sentence only — insights can be very long
+            first_sent = re.split(r"(?<=[.!?])\s+", content)[0].strip()
+            if len(first_sent) > 20:
+                best_insight = first_sent
+                break
+        if best_insight:
+            break
 
-    for sec in sections[:2]:   # speak first 2 questions max — keep it focused
-        insights = sec.get("insights", [])
-        if insights:
-            # Take the strongest 2 insights
-            for ins in insights[:2]:
-                clean = re.sub(r"\*+", "", ins).strip()
-                if clean:
-                    lines.append(clean)
+    if not best_insight:
+        return (
+            f"The stars have spoken for you, {first_name}. "
+            "The reading was completed but the core insight was unclear — "
+            "please try asking again with a more specific question."
+        )
 
-        remedy = sec.get("remedy") or {}
-        mantras = remedy.get("mantras", [])
-        if mantras:
-            lines.append(f"For your remedy, I recommend chanting: {mantras[0]}")
-        habits = remedy.get("habits", [])
+    # ── Pick one remedy ────────────────────────────────────────────────────────
+    remedies = report.get("remedies", {}) or {}
+    remedy_line = ""
+
+    mantras = remedies.get("mantras", [])
+    if mantras:
+        m = mantras[0]
+        mantra_text = m.get("mantra", m) if isinstance(m, dict) else str(m)
+        remedy_line = f"For your remedy, chant: {mantra_text}."
+
+    if not remedy_line:
+        habits = remedies.get("daily_habits", [])
         if habits:
-            lines.append(f"Daily practice: {habits[0]}")
+            remedy_line = f"A practice for you: {habits[0]}"
 
-    lines.append(
-        "This reading is generated from the full AstroIntel 360-degree pipeline "
-        "combining Vedic Astrology, Numerology, Palmistry, Tarot, and Vastu Shastra."
-    )
-    return "\n\n".join(l for l in lines if l)
+    # ── Assemble the spoken verdict (3-4 sentences, voice-friendly) ───────────
+    parts = [
+        f"The reading is complete, {first_name}.",
+        best_insight,
+    ]
+    if remedy_line:
+        parts.append(remedy_line)
+
+    return " ".join(parts)
 
 
 # ── The actual LangChain tool ─────────────────────────────────────────────────
