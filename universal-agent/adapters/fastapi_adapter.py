@@ -356,6 +356,10 @@ def _add_voice_routes(app: FastAPI, prefix: str, cfg) -> None:
             "tts_provider":    v.tts_provider,
             "language":        v.language,
             "speak_responses": v.speak_responses,
+            "tts_rate":        v.tts_rate,
+            "tts_pitch":       v.tts_pitch,
+            "tts_volume":      v.tts_volume,
+            "strip_emojis":    v.strip_emojis,
         }
 
     @app.post(f"{prefix}/voice/stt", tags=["Voice"])  # noqa: S8411

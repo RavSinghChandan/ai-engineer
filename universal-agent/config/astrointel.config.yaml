@@ -171,6 +171,10 @@ voice:
   tts_provider: "browser"
   language: "en-IN"
   speak_responses: true
+  tts_rate: 0.78        # slow, meditative — spiritual guide pace
+  tts_pitch: 1.20       # soft feminine, not sharp
+  tts_volume: 0.88      # gentle, not loud
+  strip_emojis: true    # never read "cherry blossom" or icon names
 
 # ── Logging ───────────────────────────────────────────────────
 logging:

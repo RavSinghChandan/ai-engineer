@@ -60,6 +60,12 @@ export class AstroAgentService {
     typeof globalThis !== 'undefined' ? (globalThis as any).speechSynthesis ?? null : null;
   private _femaleVoice: SpeechSynthesisVoice | null = null;
 
+  // TTS delivery params — loaded from /agent/voice/config on init
+  private _ttsRate   = 0.78;
+  private _ttsPitch  = 1.2;
+  private _ttsVolume = 0.88;
+  private _stripEmojis = true;
+
   private _pickFemaleVoice(): void {
     if (!this._synth) return;
     const voices = this._synth.getVoices();
@@ -120,6 +126,21 @@ export class AstroAgentService {
       this._pickFemaleVoice();
       this._synth.onvoiceschanged = () => this._pickFemaleVoice();
     }
+
+    // Load TTS delivery params from backend config
+    this._loadVoiceConfig();
+  }
+
+  private _loadVoiceConfig(): void {
+    this.http.get<any>(`${this.agentUrl}/voice/config`).subscribe({
+      next: (cfg) => {
+        if (typeof cfg.tts_rate   === 'number') this._ttsRate   = cfg.tts_rate;
+        if (typeof cfg.tts_pitch  === 'number') this._ttsPitch  = cfg.tts_pitch;
+        if (typeof cfg.tts_volume === 'number') this._ttsVolume = cfg.tts_volume;
+        if (typeof cfg.strip_emojis === 'boolean') this._stripEmojis = cfg.strip_emojis;
+      },
+      error: () => { /* keep defaults if backend unreachable */ }
+    });
   }
 
   toggle() { this.isOpen.update(v => !v); }
@@ -302,35 +323,41 @@ export class AstroAgentService {
 
   // ── Voice: TTS (browser SpeechSynthesis) ──────────────────────────────────
 
+  // Matches all Unicode emoji blocks — safe non-overlapping alternation
+  private static readonly EMOJI_RE =
+    /[\u{1F300}-\u{1F9FF}]|[\u{1FA00}-\u{1FAFF}]|[\u{1F000}-\u{1F02F}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{2B00}-\u{2BFF}]|[\u{FE00}-\u{FE0F}]|[\u{E0000}-\u{E007F}]/gu;
+
   speak(text: string): void {
     if (!this._synth) return;
     this._synth.cancel();
 
-    // Strip markdown/HTML — keep natural sentence flow
-    const stripped = text
-      .replace(/<[^>]+>/g, '')
-      .replace(/[*_`#~]/g, '')
-      .replace(/([.!?])\s*/g, '$1 ')   // pause after sentences
+    let clean = text
+      .replace(/<[^>]+>/g, '')                        // strip HTML
+      .replace(/[*_`#~]/g, '')                        // strip markdown symbols
+      .replace(/([.!?])\s*/g, '$1 ')                  // natural pause after sentences
       .replace(/\s{2,}/g, ' ')
-      .trim()
-      .slice(0, 600);
+      .trim();
 
-    if (!stripped) return;
+    if (this._stripEmojis) {
+      clean = clean.replace(AstroAgentService.EMOJI_RE, ''); // remove ALL emoji
+    }
 
-    const utt = new SpeechSynthesisUtterance(stripped);
+    clean = clean.replace(/\s{2,}/g, ' ').trim().slice(0, 600);
+    if (!clean) return;
 
-    // Apply female voice if found
+    const utt = new SpeechSynthesisUtterance(clean);
+
     if (this._femaleVoice) {
       utt.voice = this._femaleVoice;
       utt.lang  = this._femaleVoice.lang;
     } else {
-      utt.lang  = 'en-IN';
+      utt.lang = 'en-IN';
     }
 
-    // Natural female voice tuning — warm, calm, conversational
-    utt.rate   = 0.88;   // slightly slower than default — feels more human
-    utt.pitch  = 1.25;   // feminine pitch lift
-    utt.volume = 1.0;
+    // Spiritual guide delivery — slow, soft, empathetic
+    utt.rate   = this._ttsRate;
+    utt.pitch  = this._ttsPitch;
+    utt.volume = this._ttsVolume;
 
     utt.onstart = () => this.isSpeaking.set(true);
     utt.onend   = () => this.isSpeaking.set(false);

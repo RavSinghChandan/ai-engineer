@@ -89,11 +89,16 @@ class WidgetConfig(BaseModel):
 
 class VoiceConfig(BaseModel):
     enabled: bool = False
-    stt_provider: str = "browser"      # "browser" (Web Speech API) | "whisper" (OpenAI Whisper)
-    tts_provider: str = "browser"      # "browser" (Web Speech Synthesis) — extensible
+    stt_provider: str = "browser"      # "browser" | "whisper"
+    tts_provider: str = "browser"
     whisper_model: str = "whisper-1"
-    language: str = "en"               # BCP-47 hint for STT
-    speak_responses: bool = True       # auto-read agent replies aloud
+    language: str = "en"
+    speak_responses: bool = True
+    # TTS delivery — tune per agent persona
+    tts_rate: float = 0.88             # 0.1–2.0 (1.0 = normal, <1 = slower)
+    tts_pitch: float = 1.25            # 0.0–2.0 (1.0 = normal, >1 = higher)
+    tts_volume: float = 0.92           # 0.0–1.0
+    strip_emojis: bool = True          # remove emoji before speaking
 
 
 class LoggingConfig(BaseModel):
