@@ -139,7 +139,10 @@ Every user request flows through a stateful directed graph — each node is an i
   report_agent          ← Builds structured FinalReportPayload
          │
          ▼
-  translation_agent     ← 30+ language support via LLM translation
+  translation_agent     ← 22 Indian Constitutional languages via DeepSeek
+                           story-arc markers [HOOK]/[TENSION]/[TURN]/[RESOLUTION]/[CLOSING]/[REMEDIES] preserved
+                           newline-escape prevents multi-section bullet truncation
+                           parallel ThreadPoolExecutor (~5–8s full report)
          │
          ▼
   [Branded 20-page PDF] ← Angular @media print CSS — no external PDF library
@@ -327,7 +330,7 @@ Pages generated:
 - Watermarks as CSS `::after` pseudo-elements (never interfere with page flow)
 - Cross-page break prevention with `break-inside: avoid`
 - All font sizes doubled for print legibility without breaking screen layout
-- 30+ language translation with RTL layout support planned
+- 22 Indian Constitutional languages via `translation_agent`; story-arc markers and mantra script preserved; report page auto-detects translated language and displays in Hindi (or chosen language) without reload
 
 ---
 
@@ -443,7 +446,7 @@ astro-intel-backend/                  ← FastAPI + LangGraph Backend
 │   ├── admin_review_agent.py         ← Human-in-the-loop packaging
 │   ├── plain_english_agent.py        ← Jargon → plain English (2-stage)
 │   ├── report_agent.py               ← FinalReportPayload builder
-│   ├── translation_agent.py          ← 30+ language translation
+│   ├── translation_agent.py          ← 22 Indian languages; story-arc marker-safe; newline-escape fix
 │   └── simplify_agent.py             ← Narrative simplification
 ├── auth/                             ← JWT + RBAC + OTP
 ├── guardrails/

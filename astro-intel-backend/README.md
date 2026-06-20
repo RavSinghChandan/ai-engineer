@@ -124,7 +124,7 @@ TEST_LIVE_API_KEY=your-key python -m pytest tests/test_live_pipeline.py -v
 | GET | `/api/v1/analysis/jobs/stats` | Job queue statistics |
 | GET | `/api/v1/analysis/session/{id}` | Retrieve stored session |
 | GET | `/api/v1/analysis/memory/{id}` | Raw memory dump (admin) |
-| POST | `/api/v1/analysis/translate` | Translate report to 22 Indian languages |
+| POST | `/api/v1/analysis/translate` | Translate full report to any of 22 Indian languages; story-arc markers preserved; ~5–8s via parallel DeepSeek |
 | POST | `/api/v1/analysis/simplify-bullets` | Plain-English bullet rewriter |
 | POST | `/api/v1/analysis/remedies` | RAG-grounded numerology remedies |
 | POST | `/api/v1/analysis/story` | Storytelling narrative merge |
@@ -188,7 +188,7 @@ The LangGraph pipeline runs 15 agents in sequence/parallel:
 11. **plain_english_agent** — Jargon replacement
 12. **grammar_agent** — Prose polish
 13. **simplify_agent** — Plain-language rewrite with birth-month WHEN windows
-14. **translation_agent** — 22 Indian Constitutional languages
+14. **translation_agent** — 22 Indian Constitutional languages via DeepSeek; story-arc markers (`[HOOK]`, `[TENSION]`, `[TURN]`, `[RESOLUTION]`, `[CLOSING]`, `[REMEDIES]`) preserved exactly; newline-escape technique prevents LLM truncation of multi-section bullets; mantras transliterated to target script (e.g. Devanagari for Hindi); parallel `ThreadPoolExecutor(max_workers=10)` for ~5–8s full-report translation
 15. **final_report_agent** — PDF-ready structured report
 
 ---

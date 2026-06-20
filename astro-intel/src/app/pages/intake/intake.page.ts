@@ -2987,7 +2987,7 @@ export class IntakePage {
             language_code: lang,
             report,
           }));
-          this.orch.setFinalReport(res.final_report ?? report);
+          this.orch.setFinalReport(res.final_report ?? report, report);
         } catch {
           // Translation failed — use English report rather than blocking the user
           this.orch.setFinalReport(report);

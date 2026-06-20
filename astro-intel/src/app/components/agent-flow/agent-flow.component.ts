@@ -104,7 +104,7 @@ const NODES: GNode[] = [
     stepIds: ['simplify'], color: '#ec4899', x: CX + 120, y: Y_NODE6B, r: 38 },
 
   /* ── Post-approve HTTP: translation_agent ────────── */
-  { id: 'translate', label: 'Translation Agent', sub: '22 Languages · Parallel · DeepSeek', icon: '🌐',
+  { id: 'translate', label: 'Translation Agent', sub: '22 Indian Languages · Story-Arc Aware · Mantra-Safe · DeepSeek', icon: '🌐',
     stepIds: ['translate'], color: '#0891b2', x: CX, y: Y_NODE7, r: 42 },
 
   /* ── END — Final Report ───────────────────────────── */
@@ -162,6 +162,7 @@ const FEATURE_BADGES: FeatureBadge[] = [
   { key: 'kafka',         label: 'Kafka Async',     icon: '📨', desc: 'Job Queue',             color: '#10b981', disabledColor: '#94a3b8' },
   { key: 'ragas',         label: 'RAGAS Eval',      icon: '📊', desc: 'Quality Scores',       color: '#6366f1', disabledColor: '#94a3b8' },
   { key: 'prometheus',    label: 'Prometheus',      icon: '🔥', desc: 'Metrics Export',       color: '#dc2626', disabledColor: '#94a3b8' },
+  { key: 'multilingual', label: 'Multilingual',    icon: '🌐', desc: '22 Indian Languages',   color: '#0891b2', disabledColor: '#94a3b8' },
 ];
 
 /* Backend node labels in execution order (for the live ticker) */
@@ -177,7 +178,7 @@ const PIPELINE_STEPS: { id: string; label: string }[] = [
   { id: 'grammar',       label: 'Node 7 · Grammar Agent — polishing all insight bullets for grammar, tone & clarity' },
   { id: 'report',        label: 'Node 8 · Report Agent — assembling narrative 360° report (POST /approve)' },
   { id: 'simplify',      label: 'Node 8 · Simplify Agent — structuring WHO/WHAT/WHEN/WHERE bullets (POST /approve)' },
-  { id: 'translate',     label: 'Node 9 · Translation Agent — translating to target language via DeepSeek (POST /translate)' },
+  { id: 'translate',     label: 'Node 9 · Translation Agent — 22 Indian languages via DeepSeek · story-arc markers [HOOK]/[TENSION]/[TURN] preserved · mantra-safe · parallel ThreadPoolExecutor (POST /translate)' },
 ];
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -195,7 +196,7 @@ const PIPELINE_STEPS: { id: string; label: string }[] = [
     <div class="af-bar-left">
       <span class="af-dot" [class.af-dot-live]="anyRunning()"></span>
       <span class="af-title">Agent Pipeline</span>
-      <span class="af-sub">10 Nodes · 4-Layer Security · Hallucination Check · Grammar Agent · Multi-Query RAG · 5 Traditions · 22 Languages · LangGraph</span>
+      <span class="af-sub">10 Nodes · 4-Layer Security · Hallucination Check · Grammar Agent · Multi-Query RAG · 5 Traditions · 22 Indian Languages · Story-Arc Aware Translation · LangGraph</span>
     </div>
     <div class="af-bar-right">
       <span class="af-feat-count" [title]="activeFeatureCount() + ' production features active'">
@@ -357,7 +358,7 @@ const PIPELINE_STEPS: { id: string; label: string }[] = [
             stroke-width="1" stroke-dasharray="5 4"/>
       <text [attr.x]="CX" [attr.y]="Y_NODE7 + 58" class="zone-lbl"
             text-anchor="middle" style="fill:rgba(8,145,178,0.45)">
-        22 languages · parallel DeepSeek calls (POST /translate)
+        22 Indian languages · story-arc aware · mantra-safe · parallel DeepSeek (POST /translate)
       </text>
 
       <!-- Node lane labels -->
@@ -693,7 +694,7 @@ export class AgentFlowComponent implements OnInit, OnDestroy {
   /* Feature enabled states — fetched from backend metrics */
   readonly featureStates = signal<Record<string, boolean>>({
     episodic: true, reranker: false, semantic: false, redis: false,
-    kafka: false, ragas: false, prometheus: true,
+    kafka: false, ragas: false, prometheus: true, multilingual: true,
   });
 
   readonly zoomPct  = computed(() => Math.round(this.zoom() * 100) + '%');
@@ -739,6 +740,7 @@ export class AgentFlowComponent implements OnInit, OnDestroy {
         kafka:      jobStats?.kafka_enabled           ?? false,
         ragas:      true,  /* always wired — runs on every /approve call */
         prometheus: true,
+        multilingual: true, /* always active — 22 Indian languages via DeepSeek */
       };
       this.featureStates.set(states);
     });
@@ -748,10 +750,10 @@ export class AgentFlowComponent implements OnInit, OnDestroy {
     Object.values(this.featureStates()).filter(Boolean).length
   );
 
-  /* Feature badge x-position: 6 badges evenly spaced across W=820 */
+  /* Feature badge x-position: badges evenly spaced across W=820 */
   featPos(i: number): { x: number; bgFill: string } {
     const badge = FEATURE_BADGES[i];
-    const cols = 7;
+    const cols = FEATURE_BADGES.length;
     const step = W / cols;
     const x = step * i + step / 2;
     const on = this.featureStates()[badge.key] ?? false;

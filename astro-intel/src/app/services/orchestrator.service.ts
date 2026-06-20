@@ -455,8 +455,9 @@ export class OrchestratorService {
     });
   }
 
-  setFinalReport(report: any): void {
+  setFinalReport(report: any, englishSource?: any): void {
     this.finalReport.set(report);
+    if (englishSource) this.englishReport.set(englishSource);
     this.isDone.set(true);
   }
 

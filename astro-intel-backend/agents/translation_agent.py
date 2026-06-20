@@ -86,6 +86,9 @@ def _build_translation_prompt(
         "Additional rules:\n"
         "  • Mantras (e.g. Om Namah Shivaya) — keep exactly as-is, do not translate\n"
         "  • Numbers, dates, proper nouns (person names, city names) — keep exactly as-is\n"
+        "  • Story arc markers [HOOK], [TENSION], [TURN], [RESOLUTION], [CLOSING], [REMEDIES] — "
+        "keep these EXACTLY as-is in uppercase square brackets. Only translate the text after them.\n"
+        "  • The ⏎ character is a newline placeholder — preserve every ⏎ exactly as-is in output.\n"
         "  • Do not add new content or explanations not in the original\n\n"
         "CRITICAL: Output ONLY raw JSON — no markdown, no code fences, no commentary. "
         "The response must start with { and end with }. "
@@ -204,7 +207,13 @@ def translation_agent(
 
     def _translate_one(text: str) -> str:
         """Translate a single string. Returns original on any failure."""
-        prompt = _build_translation_prompt([text], code, lang_info)
+        # Encode real newlines as literal \\n so the LLM sees the full text as one
+        # line. Story arc bullets contain [HOOK]...\n[TENSION]...\n[TURN]... —
+        # without this, the numbered-list prompt splits at each \n and the LLM
+        # returns only the first section. Decoded back after translation.
+        SENTINEL = "⏎"
+        escaped = text.replace("\n", SENTINEL)
+        prompt = _build_translation_prompt([escaped], code, lang_info)
         try:
             raw = llm_caller(prompt)  # type: ignore[misc]
             raw = raw.strip()
@@ -220,7 +229,8 @@ def translation_agent(
             parsed = json.loads(raw)
             items = parsed.get("translations", [])
             if isinstance(items, list) and items:
-                return str(items[0])
+                result = str(items[0])
+                return result.replace(SENTINEL, "\n")
         except Exception as exc:
             print(f"[translation_agent] failed on: {text[:60]!r} — {exc}", file=sys.stderr)
         return text  # fallback: keep original
