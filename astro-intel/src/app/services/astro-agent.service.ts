@@ -26,7 +26,7 @@ export interface AstroMessage {
 @Injectable({ providedIn: 'root' })
 export class AstroAgentService {
 
-  private readonly agentUrl = 'http://localhost:8001/agent';
+  private readonly agentUrl = 'http://localhost:8010/agent';
 
   // Rate limit — 10 questions per session
   private readonly QUESTION_LIMIT = 10;
