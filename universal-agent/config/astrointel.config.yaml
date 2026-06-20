@@ -129,6 +129,14 @@ widget:
   placeholder_text: "Ask about your reading..."
   show_branding: false
 
+# --- Voice ---
+voice:
+  enabled: true
+  stt_provider: "browser"       # Web Speech API — no API cost
+  tts_provider: "browser"       # Web Speech Synthesis — no API cost
+  language: "en-IN"             # Indian English accent hint
+  speak_responses: true         # Jyoti reads her replies aloud
+
 # --- Logging ---
 logging:
   level: "INFO"

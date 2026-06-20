@@ -2,10 +2,20 @@
  * AstroIntel AI Assistant Service
  * Powered by Universal Agent (DeepSeek + LangGraph)
  * Agent URL: http://localhost:8001/agent
+ *
+ * Voice: browser Web Speech API (SpeechRecognition + SpeechSynthesis).
+ * No extra API key needed. Whisper backend fallback available via
+ * POST /agent/voice/stt for browsers without Web Speech support.
  */
 import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+
+// Browser SpeechRecognition — vendor-prefixed in some browsers
+declare const webkitSpeechRecognition: any;
+type SpeechRecognitionType = typeof SpeechRecognition extends undefined
+  ? typeof webkitSpeechRecognition
+  : typeof SpeechRecognition;
 
 export interface AstroMessage {
   role: 'user' | 'agent';
@@ -36,6 +46,19 @@ export class AstroAgentService {
     const msgs = this.messages();
     return msgs.length > 0 ? msgs[msgs.length - 1] : null;
   });
+
+  // ── Voice state ───────────────────────────────────────────────────────────
+  readonly isListening   = signal(false);   // mic is recording
+  readonly isSpeaking    = signal(false);   // TTS is playing back
+  readonly voiceError    = signal('');      // last voice error
+  readonly voiceSupported = signal(        // Web Speech API available?
+    typeof window !== 'undefined' &&
+    ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)
+  );
+
+  private _recognition: any = null;
+  private _synth: SpeechSynthesis | null =
+    typeof window !== 'undefined' ? window.speechSynthesis : null;
 
   readonly quickPrompts = [
     '🪐 What does HIGH confidence mean in my report?',
@@ -174,6 +197,90 @@ export class AstroAgentService {
         this.error.set(ev.message || 'Stream error');
       }
     } catch { /* ignore malformed lines */ }
+  }
+
+  // ── Voice: STT (browser SpeechRecognition) ────────────────────────────────
+
+  /**
+   * Start microphone listening. Resolves with the transcript string.
+   * Rejects with an error message if the browser doesn't support Web Speech.
+   */
+  startListening(): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const SR: SpeechRecognitionType =
+        (globalThis as any).SpeechRecognition ??
+        (globalThis as any).webkitSpeechRecognition;
+
+      if (!SR) {
+        this.voiceError.set('Voice not supported in this browser. Try Chrome or Edge.');
+        reject('unsupported');
+        return;
+      }
+
+      this.voiceError.set('');
+      const rec = new SR();
+      rec.lang         = 'en-IN';
+      rec.interimResults = false;
+      rec.maxAlternatives = 1;
+      rec.continuous   = false;
+
+      this.isListening.set(true);
+      this._recognition = rec;
+
+      rec.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript as string;
+        resolve(transcript.trim());
+      };
+
+      rec.onerror = (event: any) => {
+        const msg = event.error === 'not-allowed'
+          ? 'Microphone access denied. Please allow mic in browser settings.'
+          : `Voice error: ${event.error}`;
+        this.voiceError.set(msg);
+        reject(msg);
+      };
+
+      rec.onend = () => {
+        this.isListening.set(false);
+        this._recognition = null;
+      };
+
+      rec.start();
+    });
+  }
+
+  stopListening(): void {
+    try { this._recognition?.stop(); } catch { /* already stopped */ }
+    this.isListening.set(false);
+    this._recognition = null;
+  }
+
+  // ── Voice: TTS (browser SpeechSynthesis) ──────────────────────────────────
+
+  speak(text: string): void {
+    if (!this._synth) return;
+    this._synth.cancel();                        // stop any in-progress speech
+    const stripped = text
+      .replace(/<[^>]+>/g, '')                   // strip HTML tags
+      .replace(/[*_`#~]/g, '')                   // strip markdown punctuation
+      .slice(0, 500);                            // cap length for TTS
+
+    const utt  = new SpeechSynthesisUtterance(stripped);
+    utt.lang   = 'en-IN';
+    utt.rate   = 0.95;
+    utt.pitch  = 1.05;
+    utt.volume = 1;
+
+    utt.onstart = () => this.isSpeaking.set(true);
+    utt.onend   = () => this.isSpeaking.set(false);
+    utt.onerror = () => this.isSpeaking.set(false);
+
+    this._synth.speak(utt);
+  }
+
+  stopSpeaking(): void {
+    this._synth?.cancel();
+    this.isSpeaking.set(false);
   }
 
   // ── Clear ──────────────────────────────────────────────────────────────────

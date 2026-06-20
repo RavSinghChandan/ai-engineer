@@ -87,6 +87,15 @@ class WidgetConfig(BaseModel):
     show_branding: bool = False
 
 
+class VoiceConfig(BaseModel):
+    enabled: bool = False
+    stt_provider: str = "browser"      # "browser" (Web Speech API) | "whisper" (OpenAI Whisper)
+    tts_provider: str = "browser"      # "browser" (Web Speech Synthesis) — extensible
+    whisper_model: str = "whisper-1"
+    language: str = "en"               # BCP-47 hint for STT
+    speak_responses: bool = True       # auto-read agent replies aloud
+
+
 class LoggingConfig(BaseModel):
     level: str = "INFO"
     log_to_file: bool = False
@@ -109,6 +118,7 @@ class AgentConfig(BaseModel):
     context: ContextConfig = Field(default_factory=ContextConfig)
     server: ServerConfig = Field(default_factory=ServerConfig)
     widget: WidgetConfig = Field(default_factory=WidgetConfig)
+    voice: VoiceConfig = Field(default_factory=VoiceConfig)
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
 
 

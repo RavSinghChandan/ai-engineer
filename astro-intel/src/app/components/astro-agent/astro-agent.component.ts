@@ -151,6 +151,14 @@ function renderMarkdown(text: string): string {
           </div>
         }
 
+        <!-- Voice error toast -->
+        @if (agent.voiceError()) {
+          <div class="voice-error-bar">
+            🎙️ {{ agent.voiceError() }}
+            <button (click)="agent.voiceError.set('')">✕</button>
+          </div>
+        }
+
         <!-- Input row -->
         <div class="panel-input">
           @if (agent.isLimited()) {
@@ -159,25 +167,55 @@ function renderMarkdown(text: string): string {
               <button class="limit-new-btn" (click)="newSession()">Start new session</button>
             </div>
           } @else {
+            <!-- Mic button (voice input) -->
+            @if (agent.voiceSupported()) {
+              <button class="mic-btn"
+                      [class.mic-listening]="agent.isListening()"
+                      (click)="toggleMic()"
+                      [disabled]="agent.isLoading() || agent.isStreaming()"
+                      [title]="agent.isListening() ? 'Stop listening' : 'Speak your question'">
+                @if (agent.isListening()) {
+                  <!-- Waveform bars while recording -->
+                  <span class="mic-wave"><i></i><i></i><i></i></span>
+                } @else {
+                  <!-- Mic icon at rest -->
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4z"/>
+                    <path d="M19 10a1 1 0 0 0-2 0 5 5 0 0 1-10 0 1 1 0 0 0-2 0 7 7 0 0 0 6 6.92V19H9a1 1 0 0 0 0 2h6a1 1 0 0 0 0-2h-2v-2.08A7 7 0 0 0 19 10z"/>
+                  </svg>
+                }
+              </button>
+            }
+
             <input
               #inputRef
               class="chat-input"
               type="text"
-              placeholder="Ask about your reading… ({{ agent.qRemaining() }} left)"
+              [placeholder]="agent.isListening() ? '🎙️ Listening…' : 'Ask about your reading… (' + agent.qRemaining() + ' left)'"
               [(ngModel)]="draft"
               (keydown.enter)="send(draft)"
-              [disabled]="agent.isLoading() || agent.isStreaming()"
+              [disabled]="agent.isLoading() || agent.isStreaming() || agent.isListening()"
               maxlength="500"
             />
-            <button class="send-btn"
-                    (click)="send(draft)"
-                    [disabled]="!draft.trim() || agent.isLoading() || agent.isStreaming()"
-                    aria-label="Send">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-                <line x1="22" y1="2" x2="11" y2="13"/>
-                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-              </svg>
-            </button>
+
+            <!-- Stop-speaking button (shown while Jyoti is talking) -->
+            @if (agent.isSpeaking()) {
+              <button class="stop-speak-btn" (click)="agent.stopSpeaking()" title="Stop speaking">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <rect x="4" y="4" width="16" height="16" rx="2"/>
+                </svg>
+              </button>
+            } @else {
+              <button class="send-btn"
+                      (click)="send(draft)"
+                      [disabled]="!draft.trim() || agent.isLoading() || agent.isStreaming()"
+                      aria-label="Send">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                  <line x1="22" y1="2" x2="11" y2="13"/>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+              </button>
+            }
           }
         </div>
       </div>
@@ -441,6 +479,65 @@ function renderMarkdown(text: string): string {
     .send-btn:hover:not(:disabled) { opacity: 0.85; transform: scale(1.07); }
     .send-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
+    /* ── Voice: mic button ───────────────────────────────── */
+    .mic-btn {
+      width: 38px; height: 38px; flex-shrink: 0;
+      border-radius: 10px;
+      background: #f1f5f9;
+      border: 1.5px solid rgba(99,102,241,0.2);
+      color: #6366f1; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, border-color 0.15s, transform 0.15s;
+    }
+    .mic-btn:hover:not(:disabled) { background: #e0e7ff; border-color: #6366f1; transform: scale(1.07); }
+    .mic-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .mic-btn.mic-listening {
+      background: linear-gradient(135deg, #dc2626, #ef4444);
+      border-color: #dc2626; color: #fff;
+      animation: mic-pulse 1.2s ease-in-out infinite;
+    }
+    @keyframes mic-pulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.4); }
+      50%      { box-shadow: 0 0 0 7px rgba(220,38,38,0); }
+    }
+
+    /* Waveform bars inside mic button while recording */
+    .mic-wave { display: flex; gap: 2px; align-items: center; height: 16px; }
+    .mic-wave i {
+      display: block; width: 3px; border-radius: 2px;
+      background: #fff; animation: wave-bar 0.7s ease-in-out infinite;
+    }
+    .mic-wave i:nth-child(1) { height: 6px;  animation-delay: 0s; }
+    .mic-wave i:nth-child(2) { height: 12px; animation-delay: 0.15s; }
+    .mic-wave i:nth-child(3) { height: 7px;  animation-delay: 0.3s; }
+    @keyframes wave-bar {
+      0%,100% { transform: scaleY(0.6); }
+      50%      { transform: scaleY(1.3); }
+    }
+
+    /* Stop-speaking button */
+    .stop-speak-btn {
+      width: 38px; height: 38px; flex-shrink: 0;
+      border-radius: 10px;
+      background: #fef2f2; border: 1.5px solid #fca5a5;
+      color: #dc2626; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s; animation: speak-pulse 1.4s ease-in-out infinite;
+    }
+    .stop-speak-btn:hover { background: #fee2e2; }
+    @keyframes speak-pulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.3); }
+      50%      { box-shadow: 0 0 0 5px rgba(220,38,38,0); }
+    }
+
+    /* Voice error toast */
+    .voice-error-bar {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 6px 12px; font-size: 11.5px; color: #7c2d12;
+      background: #fff7ed; border-top: 1px solid rgba(249,115,22,0.2); flex-shrink: 0;
+    }
+    .voice-error-bar button { background: none; border: none; color: #c2410c; cursor: pointer; font-size: 13px; }
+
     /* Rate limit bar */
     .limit-bar {
       display: flex; align-items: center; gap: 6px;
@@ -533,7 +630,26 @@ export class AstroAgentComponent implements AfterViewChecked, OnDestroy {
     if (!text.trim()) return;
     this.draft = '';
     await this.agent.chatStream(text);
+    // Auto-speak the last agent reply if TTS is available
+    const last = this.agent.lastMessage();
+    if (last?.role === 'agent' && last.content) this.agent.speak(last.content);
     if (!this.agent.isOpen()) this.unread.update(n => n + 1);
+  }
+
+  async toggleMic() {
+    if (this.agent.isListening()) {
+      this.agent.stopListening();
+      return;
+    }
+    try {
+      const transcript = await this.agent.startListening();
+      if (transcript) {
+        this.draft = transcript;
+        await this.send(transcript);
+      }
+    } catch {
+      // voiceError signal already set inside the service
+    }
   }
 
   // ── Resize ──────────────────────────────────────────────────────────────────
@@ -573,6 +689,8 @@ export class AstroAgentComponent implements AfterViewChecked, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.agent.stopListening();
+    this.agent.stopSpeaking();
     if (this._onMove) globalThis.removeEventListener('mousemove', this._onMove);
     if (this._onUp)   globalThis.removeEventListener('mouseup',   this._onUp);
   }

@@ -27,7 +27,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
 import httpx
-from fastapi import FastAPI
+from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -299,6 +299,53 @@ async def _toggle_by_id(agent_id: str, action: str, my_id: str) -> Dict[str, Any
     return await _toggle_one(entry, action, my_id)
 
 
+# ── Voice routes (STT backend + config endpoint) ──────────────────────────────
+
+def _add_voice_routes(app: FastAPI, prefix: str, cfg) -> None:
+    """
+    Mount voice routes only when voice.enabled = true in config.
+    POST {prefix}/voice/stt  — Whisper fallback STT for browsers without Web Speech API
+    GET  {prefix}/voice/config — returns voice settings so the frontend can configure itself
+    """
+
+    @app.get(f"{prefix}/voice/config", tags=["Voice"])  # noqa: S8411
+    async def voice_config():
+        v = cfg.voice
+        return {
+            "enabled":         v.enabled,
+            "stt_provider":    v.stt_provider,
+            "tts_provider":    v.tts_provider,
+            "language":        v.language,
+            "speak_responses": v.speak_responses,
+        }
+
+    @app.post(f"{prefix}/voice/stt", tags=["Voice"])  # noqa: S8411
+    async def speech_to_text(audio: UploadFile = File(...)):
+        """
+        Whisper STT fallback — accepts a WebM/WAV audio blob and returns the transcript.
+        Only called when the browser does not support the Web Speech API.
+        """
+        try:
+            from ..core.voice import transcribe_audio  # type: ignore[import]
+        except ImportError:
+            try:
+                from core.voice import transcribe_audio  # type: ignore[no-redef]
+            except ImportError:
+                return {"transcript": "", "error": "voice module not available"}
+
+        audio_bytes = await audio.read()
+        try:
+            transcript = transcribe_audio(
+                audio_bytes,
+                language=cfg.voice.language,
+                model=cfg.voice.whisper_model,
+            )
+            return {"transcript": transcript}
+        except Exception as exc:
+            logger.warning("Whisper STT failed: %s", exc)
+            return {"transcript": "", "error": str(exc)}
+
+
 # ── Public entry point ─────────────────────────────────────────────────────────
 
 def mount_agent(
@@ -330,6 +377,10 @@ def mount_agent(
     _add_health_routes(app, prefix, cfg, my_id)
     _add_lock_routes(app, prefix, cfg, my_id)
     _add_registry_routes(app, my_id)
+    if cfg.voice.enabled:
+        _add_voice_routes(app, prefix, cfg)
+        logger.info("Voice routes enabled for '%s' (stt=%s tts=%s)",
+                    cfg.agent.name, cfg.voice.stt_provider, cfg.voice.tts_provider)
 
     logger.info("Universal Agent '%s' (id=%s) mounted at '%s'", cfg.agent.name, my_id, prefix)
     return _agent_instance
