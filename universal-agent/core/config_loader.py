@@ -46,10 +46,18 @@ class WebSearchToolConfig(BaseModel):
     api_key_env: str = "TAVILY_API_KEY"
 
 
+class AstroIntelToolConfig(BaseModel):
+    enabled: bool = False
+    backend_url: str = "http://localhost:8080"
+    api_key_env: str = "ASTROINTEL_API_KEY"
+    superadmin_password_env: str = "SUPERADMIN_PASSWORD"
+
+
 class ToolsConfig(BaseModel):
     web_search: WebSearchToolConfig = Field(default_factory=WebSearchToolConfig)
     calculator: dict = Field(default_factory=lambda: {"enabled": True})
     datetime: dict = Field(default_factory=lambda: {"enabled": True})
+    astrointel: AstroIntelToolConfig = Field(default_factory=AstroIntelToolConfig)
     custom_tools: dict = Field(default_factory=lambda: {"enabled": False})
 
 

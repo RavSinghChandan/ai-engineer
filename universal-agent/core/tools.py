@@ -70,6 +70,18 @@ def build_tools(cfg: ToolsConfig) -> list[BaseTool]:
         tools.append(get_current_datetime)
         logger.debug("Tool enabled: datetime")
 
+    if getattr(cfg, "astrointel", None) and cfg.astrointel.enabled:
+        try:
+            import os
+            from .astrointel_tool import run_astrointel_reading
+            os.environ.setdefault("ASTROINTEL_BACKEND_URL", cfg.astrointel.backend_url)
+            os.environ.setdefault("ASTROINTEL_API_KEY",
+                os.environ.get(cfg.astrointel.api_key_env, "sk-master-astrointel-change-me"))
+            tools.append(run_astrointel_reading)
+            logger.info("Tool enabled: run_astrointel_reading (backend=%s)", cfg.astrointel.backend_url)
+        except Exception as e:
+            logger.warning("AstroIntel tool failed to load: %s", e)
+
     if cfg.web_search.enabled:
         try:
             web_tool = _build_web_search_tool(cfg.web_search)
