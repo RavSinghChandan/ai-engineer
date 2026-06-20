@@ -34,11 +34,12 @@ export class AstroAgentService {
   readonly isLimited = computed(() => this.qCount() >= this.QUESTION_LIMIT);
   readonly qRemaining = computed(() => Math.max(0, this.QUESTION_LIMIT - this.qCount()));
 
-  readonly messages    = signal<AstroMessage[]>([]);
-  readonly isLoading   = signal(false);
-  readonly isStreaming = signal(false);
-  readonly error       = signal<string | null>(null);
-  readonly isOpen      = signal(false);
+  readonly messages      = signal<AstroMessage[]>([]);
+  readonly isLoading     = signal(false);
+  readonly isStreaming   = signal(false);
+  readonly isThinking    = signal(false);   // true while waiting for the first token
+  readonly error         = signal<string | null>(null);
+  readonly isOpen        = signal(false);
 
   readonly hasMessages = computed(() => this.messages().length > 0);
   readonly lastMessage = computed(() => {
@@ -189,6 +190,7 @@ export class AstroAgentService {
 
     this._addMessage({ role: 'user', content: userMessage });
     this.isStreaming.set(true);
+    this.isThinking.set(true);
     this.error.set(null);
 
     const agentMsgIndex = this.messages().length;
@@ -205,6 +207,7 @@ export class AstroAgentService {
       this.messages.update(msgs => msgs.filter((_, i) => i !== agentMsgIndex));
     } finally {
       this.isStreaming.set(false);
+      this.isThinking.set(false);
     }
   }
 
@@ -248,6 +251,7 @@ export class AstroAgentService {
       if (ev.type === 'session') {
         this._saveSession(ev.session_id);
       } else if (ev.type === 'token') {
+        this.isThinking.set(false);   // first token arrived — hide thinking bubble
         this.messages.update(msgs => {
           const updated = [...msgs];
           updated[idx] = { ...updated[idx], content: updated[idx].content + ev.token };

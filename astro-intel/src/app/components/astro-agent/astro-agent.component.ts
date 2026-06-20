@@ -126,18 +126,16 @@ function renderMarkdown(text: string): string {
             </div>
           }
 
-          @if (agent.isLoading() || agent.isStreaming()) {
-            @if (!agent.hasMessages() || agent.messages()[agent.messages().length - 1]?.role !== 'agent' || !agent.messages()[agent.messages().length - 1]?.content) {
-              <div class="msg msg-agent thinking-row">
-                <img src="jyoti-thinking.svg" class="msg-avatar thinking-avatar" alt="Jyoti thinking"/>
-                <div class="thinking-bubble">
-                  <span class="thinking-dot"></span>
-                  <span class="thinking-dot"></span>
-                  <span class="thinking-dot"></span>
-                  <span class="thinking-phrase">{{ thinkingPhrase() }}</span>
-                </div>
+          @if (agent.isThinking()) {
+            <div class="msg msg-agent thinking-row">
+              <img src="jyoti-thinking.svg" class="msg-avatar thinking-avatar" alt="Jyoti thinking"/>
+              <div class="thinking-bubble">
+                <span class="thinking-dot"></span>
+                <span class="thinking-dot"></span>
+                <span class="thinking-dot"></span>
+                <span class="thinking-phrase">{{ thinkingPhrase() }}</span>
               </div>
-            }
+            </div>
           }
 
           @if (agent.error()) {
@@ -742,6 +740,7 @@ export class AstroAgentComponent implements AfterViewChecked, OnDestroy {
       await this.agent.chatStream(text);
     } finally {
       this._stopThinking();
+      // isThinking is cleared by the service, but make sure phrase timer stops
     }
     // Auto-speak the last agent reply if TTS is available
     const last = this.agent.lastMessage();

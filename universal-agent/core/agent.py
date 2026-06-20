@@ -2,6 +2,7 @@
 Core LangGraph agent loop.
 Config drives all behavior — never change this file per domain.
 """
+import asyncio
 import logging
 from typing import Annotated, AsyncGenerator, Optional, Tuple, TypedDict
 
@@ -59,32 +60,30 @@ class UniversalAgent:
 
     async def stream(self, session_id: str, user_message: str) -> AsyncGenerator[Tuple[str, str], None]:
         """
-        Stream tokens as they arrive from the LLM.
-        Yields (event_type, data) tuples:
-          ("token", "word")
-          ("done",  "")
+        Stream the agent response word-by-word.
+        Runs the full LangGraph graph (with tool execution) first, then
+        trickles the final text so the frontend sees a live typing effect.
+        This is more reliable than raw llm.astream() which silently drops
+        tool-call chunks and leaves the conversation hanging.
         """
-        input_messages = self._build_input(session_id, user_message)
-
-        # Bind tools to streaming LLM
-        llm = self._llm
-        if self._tools:
-            llm = llm.bind_tools(self._tools)
-
-        full_response: list[str] = []
         try:
-            async for chunk in llm.astream(input_messages):
-                token = chunk.content
-                if token:
-                    full_response.append(token)
-                    yield ("token", token)
+            # Run full graph — this handles tool calls correctly
+            ai_response = await asyncio.get_event_loop().run_in_executor(
+                None,
+                lambda: self.chat(session_id, user_message),
+            )
         except Exception as e:
-            logger.exception(f"Streaming error: {e}")
+            logger.exception("Stream (via graph) error: %s", e)
             yield ("error", str(e))
             return
 
-        ai_response = "".join(full_response)
-        self._memory.append_turn(session_id, user_message, ai_response)
+        # Trickle word-by-word so the UI shows a live typing effect
+        words = ai_response.split(" ")
+        for i, word in enumerate(words):
+            token = word if i == 0 else " " + word
+            yield ("token", token)
+            await asyncio.sleep(0.018)   # ~55 words/sec — feels natural
+
         yield ("done", ai_response)
 
     def clear_session(self, session_id: str) -> None:
