@@ -167,25 +167,21 @@ function renderMarkdown(text: string): string {
               <button class="limit-new-btn" (click)="newSession()">Start new session</button>
             </div>
           } @else {
-            <!-- Mic button (voice input) -->
-            @if (agent.voiceSupported()) {
-              <button class="mic-btn"
-                      [class.mic-listening]="agent.isListening()"
-                      (click)="toggleMic()"
-                      [disabled]="agent.isLoading() || agent.isStreaming()"
-                      [title]="agent.isListening() ? 'Stop listening' : 'Speak your question'">
-                @if (agent.isListening()) {
-                  <!-- Waveform bars while recording -->
-                  <span class="mic-wave"><i></i><i></i><i></i></span>
-                } @else {
-                  <!-- Mic icon at rest -->
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4z"/>
-                    <path d="M19 10a1 1 0 0 0-2 0 5 5 0 0 1-10 0 1 1 0 0 0-2 0 7 7 0 0 0 6 6.92V19H9a1 1 0 0 0 0 2h6a1 1 0 0 0 0-2h-2v-2.08A7 7 0 0 0 19 10z"/>
-                  </svg>
-                }
-              </button>
-            }
+            <!-- Mic button (voice input) — always visible, disabled if unsupported -->
+            <button class="mic-btn"
+                    [class.mic-listening]="agent.isListening()"
+                    (click)="toggleMic()"
+                    [disabled]="agent.isLoading() || agent.isStreaming()"
+                    [title]="agent.isListening() ? 'Stop listening' : (agent.voiceSupported() ? 'Speak your question' : 'Voice not supported in this browser')">
+              @if (agent.isListening()) {
+                <span class="mic-wave"><i></i><i></i><i></i></span>
+              } @else {
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4z"/>
+                  <path d="M19 10a1 1 0 0 0-2 0 5 5 0 0 1-10 0 1 1 0 0 0-2 0 7 7 0 0 0 6 6.92V19H9a1 1 0 0 0 0 2h6a1 1 0 0 0 0-2h-2v-2.08A7 7 0 0 0 19 10z"/>
+                </svg>
+              }
+            </button>
 
             <input
               #inputRef
@@ -639,6 +635,10 @@ export class AstroAgentComponent implements AfterViewChecked, OnDestroy {
   async toggleMic() {
     if (this.agent.isListening()) {
       this.agent.stopListening();
+      return;
+    }
+    if (!this.agent.voiceSupported()) {
+      this.agent.voiceError.set('Voice not supported in this browser. Please use Chrome or Edge.');
       return;
     }
     try {

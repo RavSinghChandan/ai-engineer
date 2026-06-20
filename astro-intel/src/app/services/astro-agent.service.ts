@@ -13,9 +13,8 @@ import { firstValueFrom } from 'rxjs';
 
 // Browser SpeechRecognition — vendor-prefixed in some browsers
 declare const webkitSpeechRecognition: any;
-type SpeechRecognitionType = typeof SpeechRecognition extends undefined
-  ? typeof webkitSpeechRecognition
-  : typeof SpeechRecognition;
+declare const SpeechRecognition: any;
+type SpeechRecognitionType = any;
 
 export interface AstroMessage {
   role: 'user' | 'agent';
@@ -52,8 +51,8 @@ export class AstroAgentService {
   readonly isSpeaking    = signal(false);   // TTS is playing back
   readonly voiceError    = signal('');      // last voice error
   readonly voiceSupported = signal(        // Web Speech API available?
-    typeof window !== 'undefined' &&
-    ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)
+    typeof globalThis !== 'undefined' &&
+    ('SpeechRecognition' in globalThis || 'webkitSpeechRecognition' in globalThis)
   );
 
   private _recognition: any = null;
