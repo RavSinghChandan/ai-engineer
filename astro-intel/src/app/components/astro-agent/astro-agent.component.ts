@@ -126,13 +126,18 @@ function renderMarkdown(text: string): string {
             </div>
           }
 
-          @if (agent.isLoading()) {
-            <div class="msg msg-agent">
-              <img src="jyoti-thinking.svg" class="msg-avatar" alt="Jyoti thinking"/>
-              <div class="msg-bubble bubble-agent typing">
-                <span></span><span></span><span></span>
+          @if (agent.isLoading() || agent.isStreaming()) {
+            @if (!agent.hasMessages() || agent.messages()[agent.messages().length - 1]?.role !== 'agent' || !agent.messages()[agent.messages().length - 1]?.content) {
+              <div class="msg msg-agent thinking-row">
+                <img src="jyoti-thinking.svg" class="msg-avatar thinking-avatar" alt="Jyoti thinking"/>
+                <div class="thinking-bubble">
+                  <span class="thinking-dot"></span>
+                  <span class="thinking-dot"></span>
+                  <span class="thinking-dot"></span>
+                  <span class="thinking-phrase">{{ thinkingPhrase() }}</span>
+                </div>
               </div>
-            </div>
+            }
           }
 
           @if (agent.error()) {
@@ -439,6 +444,38 @@ function renderMarkdown(text: string): string {
       40%          { transform: translateY(-6px); }
     }
 
+    /* ── Thinking bubble (rotating phrase) ───────────────── */
+    .thinking-row { align-items: center; }
+    .thinking-avatar { animation: avatar-pulse 2s ease-in-out infinite; }
+    @keyframes avatar-pulse {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: 0.75; transform: scale(1.06); }
+    }
+    .thinking-bubble {
+      display: flex; align-items: center; gap: 7px;
+      padding: 10px 14px;
+      background: linear-gradient(135deg, #f5f3ff, #ede9fe);
+      border: 1px solid rgba(99,102,241,0.18);
+      border-radius: 14px; border-bottom-left-radius: 4px;
+      box-shadow: 0 1px 4px rgba(99,102,241,0.1);
+    }
+    .thinking-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #7c3aed; flex-shrink: 0;
+      animation: bounce 1.1s infinite;
+    }
+    .thinking-dot:nth-child(2) { animation-delay: 0.18s; }
+    .thinking-dot:nth-child(3) { animation-delay: 0.36s; }
+    .thinking-phrase {
+      font-size: 12px; color: #5b21b6; font-style: italic;
+      animation: phrase-fade 0.5s ease-in-out;
+      white-space: nowrap;
+    }
+    @keyframes phrase-fade {
+      from { opacity: 0; transform: translateX(4px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
     .cursor-blink { animation: blink 0.7s step-end infinite; color: #6366f1; margin-left: 1px; }
     @keyframes blink { 50% { opacity: 0; } }
 
@@ -629,6 +666,34 @@ export class AstroAgentComponent implements AfterViewChecked, OnDestroy {
   panelW   = signal(390);
   panelH   = signal(560);
 
+  // Rotating thinking phrases — so the wait never feels like dead silence
+  private readonly _THINKING = [
+    'Consulting the stars…',
+    'Reading the cosmic patterns…',
+    'Checking planetary positions…',
+    'Feeling the energy…',
+    'The universe is speaking…',
+    'Tuning into your vibration…',
+    'Scanning the celestial map…',
+    'Listening to the cosmos…',
+  ];
+  thinkingPhrase = signal(this._THINKING[0]);
+  private _thinkingTimer: ReturnType<typeof setInterval> | null = null;
+  private _thinkingIdx = 0;
+
+  private _startThinking() {
+    this._thinkingIdx = 0;
+    this.thinkingPhrase.set(this._THINKING[0]);
+    this._thinkingTimer = setInterval(() => {
+      this._thinkingIdx = (this._thinkingIdx + 1) % this._THINKING.length;
+      this.thinkingPhrase.set(this._THINKING[this._thinkingIdx]);
+    }, 2000);
+  }
+
+  private _stopThinking() {
+    if (this._thinkingTimer) { clearInterval(this._thinkingTimer); this._thinkingTimer = null; }
+  }
+
   private _lastMsgCount = 0;
   private _resizing = false;
   private _startX = 0; private _startY = 0;
@@ -672,7 +737,12 @@ export class AstroAgentComponent implements AfterViewChecked, OnDestroy {
   async send(text: string) {
     if (!text.trim()) return;
     this.draft = '';
-    await this.agent.chatStream(text);
+    this._startThinking();
+    try {
+      await this.agent.chatStream(text);
+    } finally {
+      this._stopThinking();
+    }
     // Auto-speak the last agent reply if TTS is available
     const last = this.agent.lastMessage();
     if (last?.role === 'agent' && last.content) this.agent.speak(last.content);
@@ -742,6 +812,7 @@ export class AstroAgentComponent implements AfterViewChecked, OnDestroy {
   }
 
   ngOnDestroy() {
+    this._stopThinking();
     this.agent.stopListening();
     this.agent.stopSpeaking();
     if (this._onMove) globalThis.removeEventListener('mousemove', this._onMove);
