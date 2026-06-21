@@ -8,17 +8,10 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AstroAgentService } from '../../services/astro-agent.service';
 import { AuthService } from '../../services/auth.service';
 
-/** Convert markdown text from the LLM into safe readable HTML */
-// BUG FIX: LLM output was injected into HTML tags without escaping — a jailbroken or
-// compromised response containing <script>, onerror=, href=javascript: would execute.
-// Fix: escape HTML entities FIRST, then apply markdown patterns to the safe text.
 function _escapeHtml(s: string): string {
   return s
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;');
+    .replaceAll('&', '&amp;').replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
 }
 
 function renderMarkdown(text: string): string {
@@ -26,8 +19,7 @@ function renderMarkdown(text: string): string {
   const safe = _escapeHtml(text);
   return safe
     .replace(/\|(.+)\|/g, (_: string, row: string) =>
-      row.split('|').map((c: string) => c.trim()).filter(Boolean).join(' · ')
-    )
+      row.split('|').map((c: string) => c.trim()).filter(Boolean).join(' · '))
     .replace(/^---+$/gm, '<hr/>')
     .replace(/^### (.+)$/gm, '<h4>$1</h4>')
     .replace(/^## (.+)$/gm, '<h3>$1</h3>')
@@ -47,610 +39,474 @@ function renderMarkdown(text: string): string {
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <!-- Only render for logged-in users -->
-    @if (auth.isLoggedIn()) {
+@if (auth.isLoggedIn()) {
 
-    <!-- FAB -->
-    <button class="aarav-fab" (click)="togglePanel()" [class.open]="agent.isOpen()" aria-label="Ask Jyoti">
-      <div class="fab-avatar-wrap">
-        <img src="jyoti-happy.svg" class="fab-avatar" alt="Jyoti"/>
-        <span class="fab-pulse"></span>
-      </div>
-      <div class="fab-text">
-        <span class="fab-name">Jyoti</span>
-        <span class="fab-sub">Cosmic Guide · Ask me!</span>
-      </div>
-      @if (unread() > 0 && !agent.isOpen()) {
-        <span class="fab-badge">{{ unread() }}</span>
-      }
+<!-- ── FAB ─────────────────────────────────────── -->
+<button class="j-fab" (click)="togglePanel()" [class.open]="agent.isOpen()" aria-label="Ask Jyoti">
+  <div class="j-fab-avatar">
+    <img src="jyoti-happy.svg" alt="Jyoti"/>
+    <span class="j-online"></span>
+  </div>
+  <div class="j-fab-text">
+    <span class="j-fab-name">Jyoti</span>
+    <span class="j-fab-sub">Cosmic Guide</span>
+  </div>
+  @if (unread() > 0 && !agent.isOpen()) {
+    <span class="j-badge">{{ unread() }}</span>
+  }
+</button>
+
+<!-- ── Panel ────────────────────────────────────── -->
+@if (agent.isOpen()) {
+<div class="j-panel" role="dialog" aria-label="Jyoti AI">
+
+  <!-- Header -->
+  <div class="j-header">
+    <img src="jyoti-happy.svg" class="j-hdr-avatar" alt="Jyoti"/>
+    <div class="j-hdr-info">
+      <strong>Jyoti</strong>
+      <span>AstroIntel · Spiritual Guide</span>
+    </div>
+    <button class="j-hdr-btn" (click)="newSession()" title="New session" aria-label="New session">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
     </button>
+    <button class="j-hdr-btn j-close" (click)="agent.close()" aria-label="Close">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
 
-    <!-- Panel -->
-    @if (agent.isOpen()) {
-      <div class="aarav-panel"
-           [style.width.px]="panelW()"
-           [style.height.px]="panelH()"
-           role="dialog"
-           aria-label="Aarav AI Assistant">
+  <!-- Messages -->
+  <div class="j-messages" #scrollRef>
 
-        <!-- Resize handle (top-left) -->
-        <div class="resize-handle" (mousedown)="resizeStart($event)" title="Drag to resize">⤡</div>
-
-        <!-- Header -->
-        <div class="panel-header">
-          <img src="jyoti-happy.svg" class="header-avatar" alt="Jyoti"/>
-          <div class="header-info">
-            <strong>Jyoti</strong>
-            <span>AstroIntel AI · Always on ✦</span>
-          </div>
-          <button class="hdr-btn" (click)="newSession()" title="New conversation">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-          </button>
-          <button class="hdr-btn hdr-close" (click)="agent.close()" aria-label="Close">✕</button>
-        </div>
-
-        <!-- Messages -->
-        <div class="panel-messages" #scrollRef>
-
-          @if (!agent.hasMessages()) {
-            <div class="welcome">
-              <img src="jyoti-happy.svg" class="welcome-avatar" alt="Jyoti"/>
-              <p class="welcome-title">Namaste! I'm Jyoti 🙏</p>
-              <p class="welcome-sub">Your AI guide for AstroIntel 360°. Ask me about your reading, the platform, or any spiritual concept.</p>
-              <div class="quick-grid">
-                @for (p of quickPrompts; track p) {
-                  <button class="quick-btn" (click)="send(p)">{{ p }}</button>
-                }
-              </div>
-            </div>
-          }
-
-          @for (msg of agent.messages(); track $index) {
-            <div class="msg" [class.msg-user]="msg.role==='user'" [class.msg-agent]="msg.role==='agent'">
-              @if (msg.role === 'agent') {
-                <img [src]="agentAvatar($index)" class="msg-avatar" alt="Jyoti"/>
-              }
-              <div class="msg-col">
-                <div class="msg-bubble"
-                     [class.bubble-user]="msg.role==='user'"
-                     [class.bubble-agent]="msg.role==='agent'">
-                  @if (msg.role === 'agent') {
-                    <span class="bubble-html" [innerHTML]="safeHtml(msg.content)"></span>
-                    @if (msg.streaming) { <span class="cursor-blink">▌</span> }
-                  } @else {
-                    {{ msg.content }}
-                  }
-                </div>
-                <span class="msg-time">{{ msg.timestamp | date:'HH:mm' }}</span>
-              </div>
-            </div>
-          }
-
-          @if (agent.isThinking()) {
-            <div class="msg msg-agent thinking-row">
-              <img src="jyoti-thinking.svg" class="msg-avatar thinking-avatar" alt="Jyoti thinking"/>
-              <div class="thinking-bubble">
-                <span class="thinking-dot"></span>
-                <span class="thinking-dot"></span>
-                <span class="thinking-dot"></span>
-                <span class="thinking-phrase">{{ thinkingPhrase() }}</span>
-              </div>
-            </div>
-          }
-
-          @if (agent.error()) {
-            <div class="error-bar">⚠️ {{ agent.error() }}
-              <button (click)="agent.error.set(null)">✕</button>
-            </div>
-          }
-
-        </div>
-
-        <!-- Rate limit bar -->
-        @if (agent.qCount() > 0 && !agent.isLimited()) {
-          <div class="limit-bar">
-            <span class="limit-dot"></span>
-            {{ agent.qRemaining() }} question{{ agent.qRemaining() === 1 ? '' : 's' }} remaining this session
-          </div>
-        }
-
-        <!-- Voice error toast -->
-        @if (agent.voiceError()) {
-          <div class="voice-error-bar">
-            🎙️ {{ agent.voiceError() }}
-            <button (click)="agent.voiceError.set('')">✕</button>
-          </div>
-        }
-
-        <!-- Input row -->
-        <div class="panel-input">
-          @if (agent.isLimited()) {
-            <div class="limit-locked">
-              🔒 Session limit reached &nbsp;·&nbsp;
-              <button class="limit-new-btn" (click)="newSession()">Start new session</button>
-            </div>
-          } @else {
-            @if (agent.isListening()) {
-              <!-- LISTENING MODE: full-width voice bar with live transcript + Done button -->
-              <div class="voice-bar">
-                <span class="voice-bar-wave"><i></i><i></i><i></i><i></i><i></i></span>
-                <span class="voice-bar-text">
-                  {{ agent.interimTranscript() || 'Listening… speak your question' }}
-                </span>
-                <button class="voice-done-btn" (click)="doneListening()" title="Done — send">
-                  Done
-                </button>
-              </div>
-            } @else {
-              <!-- NORMAL MODE: mic + input + send/stop -->
-              <button class="mic-btn"
-                      (click)="toggleMic()"
-                      [disabled]="agent.isLoading() || agent.isStreaming()"
-                      [title]="agent.voiceSupported() ? 'Speak your question' : 'Voice not supported in this browser'">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4z"/>
-                  <path d="M19 10a1 1 0 0 0-2 0 5 5 0 0 1-10 0 1 1 0 0 0-2 0 7 7 0 0 0 6 6.92V19H9a1 1 0 0 0 0 2h6a1 1 0 0 0 0-2h-2v-2.08A7 7 0 0 0 19 10z"/>
-                </svg>
-              </button>
-
-              <input
-                #inputRef
-                class="chat-input"
-                type="text"
-                [placeholder]="'Ask about your reading… (' + agent.qRemaining() + ' left)'"
-                [(ngModel)]="draft"
-                (keydown.enter)="send(draft)"
-                [disabled]="agent.isLoading() || agent.isStreaming()"
-                maxlength="500"
-              />
-
-              @if (agent.isSpeaking()) {
-                <button class="stop-speak-btn" (click)="agent.stopSpeaking()" title="Stop speaking">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                    <rect x="4" y="4" width="16" height="16" rx="2"/>
-                  </svg>
-                </button>
-              } @else {
-                <button class="send-btn"
-                        (click)="send(draft)"
-                        [disabled]="!draft.trim() || agent.isLoading() || agent.isStreaming()"
-                        aria-label="Send">
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-                    <line x1="22" y1="2" x2="11" y2="13"/>
-                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                  </svg>
-                </button>
-              }
-            }
+    @if (!agent.hasMessages()) {
+      <div class="j-welcome">
+        <img src="jyoti-happy.svg" class="j-welcome-img" alt="Jyoti"/>
+        <p class="j-welcome-title">Namaste, I'm Jyoti</p>
+        <p class="j-welcome-sub">Your AstroIntel spiritual guide. Ask me anything.</p>
+        <div class="j-chips">
+          @for (p of quickPrompts; track p) {
+            <button class="j-chip" (click)="send(p)">{{ p }}</button>
           }
         </div>
       </div>
     }
 
-    } <!-- end @if (auth.isLoggedIn()) -->
+    @for (msg of agent.messages(); track $index) {
+      <div class="j-msg" [class.j-user]="msg.role==='user'" [class.j-agent]="msg.role==='agent'">
+        @if (msg.role === 'agent') {
+          <img src="jyoti.svg" class="j-avatar" alt="Jyoti"/>
+        }
+        <div class="j-col">
+          <div class="j-bubble" [class.j-bubble-user]="msg.role==='user'" [class.j-bubble-agent]="msg.role==='agent'">
+            @if (msg.role === 'agent') {
+              <span [innerHTML]="safeHtml(msg.content)"></span>
+              @if (msg.streaming && msg.content) { <span class="j-cursor">▌</span> }
+            } @else {
+              {{ msg.content }}
+            }
+          </div>
+          <span class="j-time">{{ msg.timestamp | date:'HH:mm' }}</span>
+        </div>
+      </div>
+    }
+
+    <!-- Thinking indicator — shows from send until first token -->
+    @if (agent.isThinking()) {
+      <div class="j-msg j-agent j-thinking-row">
+        <img src="jyoti-thinking.svg" class="j-avatar j-thinking-avatar" alt=""/>
+        <div class="j-thinking">
+          <span class="j-dot"></span>
+          <span class="j-dot"></span>
+          <span class="j-dot"></span>
+          <span class="j-thinking-text">{{ thinkingPhrase() }}</span>
+        </div>
+      </div>
+    }
+
+    @if (agent.error()) {
+      <div class="j-error">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        {{ agent.error() }}
+        <button (click)="agent.error.set(null)">✕</button>
+      </div>
+    }
+  </div>
+
+  <!-- Input area -->
+  <div class="j-input-wrap">
+
+    <!-- Session limit -->
+    @if (agent.isLimited()) {
+      <div class="j-limit">
+        Session limit reached &nbsp;·&nbsp;
+        <button (click)="newSession()">Start new</button>
+      </div>
+    } @else if (agent.isListening()) {
+      <!-- Listening mode -->
+      <div class="j-listen-bar">
+        <span class="j-listen-wave"><i></i><i></i><i></i><i></i><i></i></span>
+        <span class="j-listen-text">{{ agent.interimTranscript() || 'Listening…' }}</span>
+        <button class="j-done-btn" (click)="doneListening()">Done</button>
+      </div>
+    } @else {
+      <!-- Normal input -->
+      <div class="j-input-row">
+        <button class="j-mic"
+                (click)="toggleMic()"
+                [class.j-mic-active]="agent.isListening()"
+                [attr.aria-label]="'Voice input'"
+                title="Speak your question">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4z"/>
+            <path d="M19 10a1 1 0 0 0-2 0 5 5 0 0 1-10 0 1 1 0 0 0-2 0 7 7 0 0 0 6 6.92V19H9a1 1 0 0 0 0 2h6a1 1 0 0 0 0-2h-2v-2.08A7 7 0 0 0 19 10z"/>
+          </svg>
+        </button>
+
+        <input #inputRef
+               class="j-input"
+               type="text"
+               placeholder="Ask Jyoti…"
+               [(ngModel)]="draft"
+               (keydown.enter)="send(draft)"
+               [disabled]="agent.isStreaming()"
+               maxlength="200"
+               autocomplete="off"/>
+
+        @if (agent.isSpeaking()) {
+          <button class="j-stop" (click)="agent.stopSpeaking()" title="Stop speaking" aria-label="Stop speaking">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+          </button>
+        } @else {
+          <button class="j-send"
+                  (click)="send(draft)"
+                  [disabled]="!draft.trim() || agent.isStreaming()"
+                  aria-label="Send">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        }
+      </div>
+
+      <!-- Voice error -->
+      @if (agent.voiceError()) {
+        <div class="j-voice-err">
+          {{ agent.voiceError() }}
+          <button (click)="agent.voiceError.set('')">✕</button>
+        </div>
+      }
+    }
+  </div>
+
+</div>
+}
+
+} <!-- end auth guard -->
   `,
   styles: [`
-    /* ── FAB — light theme ────────────────────────────────── */
-    .aarav-fab {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      z-index: 10000;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 16px 8px 8px;
+    /* ── FAB ──────────────────────────────────────────────── */
+    .j-fab {
+      position: fixed; bottom: 24px; right: 24px; z-index: 10000;
+      display: flex; align-items: center; gap: 9px;
+      padding: 7px 14px 7px 7px;
       border-radius: 50px;
-      background: #ffffff;
-      border: 1.5px solid rgba(99,102,241,0.3);
-      color: #1a2540;
-      cursor: pointer;
-      box-shadow: 0 4px 16px rgba(99,102,241,0.2), 0 1px 4px rgba(0,0,0,0.08);
-      transition: transform 0.2s, box-shadow 0.2s;
+      background: #fff;
+      border: 1.5px solid rgba(99,102,241,0.25);
+      box-shadow: 0 4px 20px rgba(99,102,241,0.18);
+      cursor: pointer; transition: transform 0.18s, box-shadow 0.18s;
     }
-    .aarav-fab:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99,102,241,0.3); }
-    .aarav-fab.open  { background: #eef2ff; border-color: #6366f1; }
+    .j-fab:hover  { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(99,102,241,0.26); }
+    .j-fab.open   { border-color: #6366f1; background: #f5f3ff; }
 
-    .fab-avatar-wrap { position: relative; width: 40px; height: 40px; flex-shrink: 0; }
-    .fab-avatar      { width: 40px; height: 40px; border-radius: 50%; object-fit: contain; background: #f0f7ff; padding: 2px; }
-    .fab-pulse {
-      position: absolute; bottom: 0; right: 0;
-      width: 11px; height: 11px; border-radius: 50%;
-      background: #10b981;
-      border: 2px solid #fff;
-      animation: pulse 2s infinite;
+    .j-fab-avatar { position: relative; width: 38px; height: 38px; flex-shrink: 0; }
+    .j-fab-avatar img { width: 38px; height: 38px; border-radius: 50%; object-fit: contain; background: #eef2ff; }
+    .j-online {
+      position: absolute; bottom: 1px; right: 1px;
+      width: 9px; height: 9px; border-radius: 50%;
+      background: #10b981; border: 2px solid #fff;
+      animation: j-pulse 2s infinite;
     }
-    @keyframes pulse {
+    @keyframes j-pulse {
       0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.5); }
-      50%      { box-shadow: 0 0 0 5px rgba(16,185,129,0); }
+      50%      { box-shadow: 0 0 0 4px rgba(16,185,129,0); }
     }
-    .fab-text   { display: flex; flex-direction: column; line-height: 1.2; }
-    .fab-name   { font-size: 13px; font-weight: 800; color: #1a2540; }
-    .fab-sub    { font-size: 10px; color: #6366f1; }
-    .fab-badge  {
-      position: absolute; top: -6px; right: -6px;
+    .j-fab-text { display: flex; flex-direction: column; line-height: 1.2; }
+    .j-fab-name { font-size: 12px; font-weight: 700; color: #1e1b4b; }
+    .j-fab-sub  { font-size: 10px; color: #6366f1; }
+    .j-badge {
+      position: absolute; top: -5px; right: -5px;
       background: #ef4444; color: #fff;
-      font-size: 10px; font-weight: 800;
-      width: 18px; height: 18px; border-radius: 50%;
+      font-size: 10px; font-weight: 700;
+      width: 16px; height: 16px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
     }
 
-    /* ── Panel — LIGHT THEME matching AstroIntel (#f0f7ff) ── */
-    .aarav-panel {
-      position: fixed;
-      bottom: 90px;
-      right: 24px;
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      border-radius: 18px;
-      background: #ffffff;
-      border: 1px solid rgba(99,102,241,0.2);
-      box-shadow: 0 12px 40px rgba(99,102,241,0.15), 0 2px 8px rgba(0,0,0,0.08);
+    /* ── Panel ─────────────────────────────────────────────── */
+    .j-panel {
+      position: fixed; bottom: 86px; right: 24px; z-index: 9999;
+      width: 360px; height: 540px;
+      display: flex; flex-direction: column;
+      border-radius: 20px;
+      background: #fff;
+      border: 1px solid rgba(99,102,241,0.16);
+      box-shadow: 0 16px 48px rgba(99,102,241,0.14), 0 2px 8px rgba(0,0,0,0.07);
       overflow: hidden;
-      animation: slideUp 0.22s ease;
-      min-width: 300px; min-height: 340px;
-      max-width: 90vw;  max-height: 90vh;
+      animation: j-up 0.2s cubic-bezier(.16,1,.3,1);
     }
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(14px) scale(0.98); }
-      to   { opacity: 1; transform: translateY(0) scale(1); }
+    @keyframes j-up {
+      from { opacity: 0; transform: translateY(12px) scale(0.97); }
+      to   { opacity: 1; transform: none; }
     }
 
-    /* Resize handle */
-    .resize-handle {
-      position: absolute;
-      top: 6px; left: 8px;
-      font-size: 14px;
-      color: rgba(99,102,241,0.35);
-      cursor: nw-resize;
-      user-select: none;
-      z-index: 10;
-      line-height: 1;
-      transition: color 0.15s;
-    }
-    .resize-handle:hover { color: rgba(99,102,241,0.8); }
-
-    /* ── Header ───────────────────────────────────────────── */
-    .panel-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 14px 12px 28px;
-      background: linear-gradient(135deg, #f0f7ff, #ede9fe);
-      border-bottom: 1px solid rgba(99,102,241,0.15);
+    /* ── Header ────────────────────────────────────────────── */
+    .j-header {
+      display: flex; align-items: center; gap: 9px;
+      padding: 11px 12px;
+      background: linear-gradient(135deg, #eef2ff 0%, #ede9fe 100%);
+      border-bottom: 1px solid rgba(99,102,241,0.12);
       flex-shrink: 0;
     }
-    .header-avatar { width: 36px; height: 36px; border-radius: 50%; background: #f5f3ff; flex-shrink: 0; border: 2px solid rgba(99,102,241,0.2); }
-    .header-info   { flex: 1; }
-    .header-info strong { display: block; color: #1a2540; font-size: 13px; font-weight: 800; }
-    .header-info span   { color: #6366f1; font-size: 10px; }
-    .hdr-btn {
-      background: none; border: none; color: #6366f1;
-      font-size: 14px; cursor: pointer; padding: 5px 7px;
-      border-radius: 7px; transition: background 0.15s, color 0.15s;
-      line-height: 1; display: flex; align-items: center;
+    .j-hdr-avatar { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; border: 2px solid rgba(99,102,241,0.2); }
+    .j-hdr-info   { flex: 1; }
+    .j-hdr-info strong { display: block; font-size: 13px; font-weight: 700; color: #1e1b4b; }
+    .j-hdr-info span   { font-size: 10px; color: #6366f1; }
+    .j-hdr-btn {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: none; border: none; color: #6366f1; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.14s;
     }
-    .hdr-btn:hover   { background: rgba(99,102,241,0.1); color: #4f46e5; }
-    .hdr-close { font-size: 16px; }
+    .j-hdr-btn:hover { background: rgba(99,102,241,0.1); }
+    .j-close { color: #94a3b8; }
+    .j-close:hover { color: #ef4444; background: #fef2f2; }
 
-    /* ── Messages ─────────────────────────────────────────── */
-    .panel-messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 14px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      background: #f8faff;
+    /* ── Messages ───────────────────────────────────────────── */
+    .j-messages {
+      flex: 1; overflow-y: auto;
+      padding: 12px 10px;
+      display: flex; flex-direction: column; gap: 10px;
+      background: #f9fafb;
       scrollbar-width: thin;
-      scrollbar-color: rgba(99,102,241,0.25) transparent;
+      scrollbar-color: rgba(99,102,241,0.2) transparent;
     }
 
     /* Welcome */
-    .welcome        { text-align: center; padding: 16px 8px 8px; }
-    .welcome-avatar {
-      width: 80px; height: 80px;
-      margin: 0 auto 12px;
-      display: block;
-      border-radius: 50%;
-      background: #f0f7ff;
-      border: 3px solid rgba(99,102,241,0.2);
-      padding: 4px;
-      object-fit: contain;
+    .j-welcome { text-align: center; padding: 20px 8px 8px; }
+    .j-welcome-img {
+      width: 72px; height: 72px; border-radius: 50%;
+      margin: 0 auto 10px; display: block;
+      background: #eef2ff; padding: 4px; object-fit: contain;
+      border: 2px solid rgba(99,102,241,0.18);
     }
-    .welcome-title  { color: #1a2540; font-weight: 800; margin: 0 0 5px; font-size: 15px; }
-    .welcome-sub    { color: #64748b; font-size: 11.5px; margin: 0 0 14px; line-height: 1.6; }
-    .quick-grid     { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-    .quick-btn {
-      padding: 8px 10px;
-      border-radius: 10px;
-      background: #ffffff;
-      border: 1px solid rgba(99,102,241,0.25);
-      color: #4338ca; font-size: 11px;
-      cursor: pointer; text-align: left;
-      transition: background 0.15s, border-color 0.15s;
-      line-height: 1.35; font-weight: 500;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    .quick-btn:hover { background: #eef2ff; border-color: #6366f1; }
-
-    /* Message rows */
-    .msg        { display: flex; align-items: flex-end; gap: 7px; }
-    .msg-user   { flex-direction: row-reverse; }
-    .msg-agent  { flex-direction: row; }
-    .msg-avatar {
-      width: 30px; height: 30px;
-      border-radius: 50%; flex-shrink: 0;
-      margin-bottom: 16px;
-      background: #f0f7ff;
-      border: 2px solid rgba(99,102,241,0.15);
-      padding: 2px;
-      object-fit: contain;
-    }
-
-    .msg-col    { display: flex; flex-direction: column; max-width: 80%; }
-    .msg-user .msg-col { align-items: flex-end; }
-
-    .msg-bubble {
-      padding: 10px 13px;
-      border-radius: 14px;
-      font-size: 13px;
-      line-height: 1.6;
-      word-break: break-word;
-    }
-    .bubble-user  {
-      background: linear-gradient(135deg, #6366f1, #4f46e5);
-      color: #fff;
-      border-bottom-right-radius: 4px;
-    }
-    .bubble-agent {
-      background: #ffffff;
-      color: #1a2540;
-      border-bottom-left-radius: 4px;
-      border: 1px solid rgba(99,102,241,0.12);
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-    }
-
-    /* Rendered markdown inside agent bubbles */
-    .bubble-html { display: block; }
-    .bubble-html h2 { color: #4338ca; font-size: 13px; font-weight: 800; margin: 8px 0 4px; }
-    .bubble-html h3 { color: #4338ca; font-size: 12.5px; font-weight: 700; margin: 6px 0 3px; }
-    .bubble-html h4 { color: #6366f1; font-size: 12px; font-weight: 700; margin: 4px 0 2px; }
-    .bubble-html strong { color: #1a2540; font-weight: 700; }
-    .bubble-html em { color: #6366f1; font-style: italic; }
-    .bubble-html code {
-      background: #eef2ff; color: #4338ca;
-      padding: 1px 5px; border-radius: 4px; font-size: 11.5px;
-    }
-    .bubble-html ul { margin: 4px 0 4px 16px; padding: 0; }
-    .bubble-html li { margin: 3px 0; color: #374151; }
-    .bubble-html hr { border: none; border-top: 1px solid rgba(99,102,241,0.15); margin: 8px 0; }
-
-    .msg-time { font-size: 10px; color: #94a3b8; margin-top: 3px; }
-
-    /* Typing */
-    .typing { display: flex !important; gap: 5px; align-items: center; padding: 12px 16px !important; }
-    .typing span {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: #6366f1; animation: bounce 1.2s infinite;
-    }
-    .typing span:nth-child(2) { animation-delay: 0.2s; }
-    .typing span:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes bounce {
-      0%,80%,100% { transform: translateY(0); }
-      40%          { transform: translateY(-6px); }
-    }
-
-    /* ── Thinking bubble (rotating phrase) ───────────────── */
-    .thinking-row { align-items: center; }
-    .thinking-avatar { animation: avatar-pulse 2s ease-in-out infinite; }
-    @keyframes avatar-pulse {
-      0%,100% { opacity: 1; transform: scale(1); }
-      50%      { opacity: 0.75; transform: scale(1.06); }
-    }
-    .thinking-bubble {
-      display: flex; align-items: center; gap: 7px;
-      padding: 10px 14px;
-      background: linear-gradient(135deg, #f5f3ff, #ede9fe);
-      border: 1px solid rgba(99,102,241,0.18);
-      border-radius: 14px; border-bottom-left-radius: 4px;
-      box-shadow: 0 1px 4px rgba(99,102,241,0.1);
-    }
-    .thinking-dot {
-      width: 6px; height: 6px; border-radius: 50%;
-      background: #7c3aed; flex-shrink: 0;
-      animation: bounce 1.1s infinite;
-    }
-    .thinking-dot:nth-child(2) { animation-delay: 0.18s; }
-    .thinking-dot:nth-child(3) { animation-delay: 0.36s; }
-    .thinking-phrase {
-      font-size: 12px; color: #5b21b6; font-style: italic;
-      animation: phrase-fade 0.5s ease-in-out;
+    .j-welcome-title { font-size: 15px; font-weight: 700; color: #1e1b4b; margin: 0 0 4px; }
+    .j-welcome-sub   { font-size: 12px; color: #64748b; margin: 0 0 14px; line-height: 1.5; }
+    .j-chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+    .j-chip {
+      padding: 6px 11px; border-radius: 20px;
+      background: #fff; border: 1px solid rgba(99,102,241,0.22);
+      color: #4338ca; font-size: 11px; font-weight: 500;
+      cursor: pointer; transition: background 0.13s, border-color 0.13s;
       white-space: nowrap;
     }
-    @keyframes phrase-fade {
-      from { opacity: 0; transform: translateX(4px); }
-      to   { opacity: 1; transform: translateX(0); }
+    .j-chip:hover { background: #eef2ff; border-color: #6366f1; }
+
+    /* Messages */
+    .j-msg   { display: flex; align-items: flex-end; gap: 6px; }
+    .j-user  { flex-direction: row-reverse; }
+    .j-agent { flex-direction: row; }
+    .j-avatar {
+      width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+      background: #eef2ff; padding: 2px; object-fit: contain;
+      border: 1.5px solid rgba(99,102,241,0.14); margin-bottom: 14px;
     }
+    .j-col { display: flex; flex-direction: column; max-width: 82%; }
+    .j-user .j-col { align-items: flex-end; }
 
-    .cursor-blink { animation: blink 0.7s step-end infinite; color: #6366f1; margin-left: 1px; }
-    @keyframes blink { 50% { opacity: 0; } }
+    .j-bubble {
+      padding: 9px 12px; border-radius: 14px;
+      font-size: 13px; line-height: 1.55; word-break: break-word;
+    }
+    .j-bubble-user  {
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: #fff; border-bottom-right-radius: 3px;
+    }
+    .j-bubble-agent {
+      background: #fff; color: #1e1b4b;
+      border: 1px solid rgba(99,102,241,0.11);
+      border-bottom-left-radius: 3px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .j-bubble-agent strong { color: #1e1b4b; font-weight: 600; }
+    .j-bubble-agent em     { color: #6366f1; font-style: italic; }
+    .j-bubble-agent h2,
+    .j-bubble-agent h3,
+    .j-bubble-agent h4     { color: #4338ca; font-size: 12.5px; font-weight: 700; margin: 6px 0 2px; }
+    .j-bubble-agent code   { background: #eef2ff; color: #4338ca; padding: 1px 4px; border-radius: 3px; font-size: 11.5px; }
+    .j-bubble-agent ul     { margin: 3px 0 3px 14px; padding: 0; }
+    .j-bubble-agent li     { margin: 2px 0; }
 
-    .error-bar {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 7px 11px; border-radius: 8px;
+    .j-time   { font-size: 10px; color: #94a3b8; margin-top: 2px; }
+    .j-cursor { animation: j-blink 0.7s step-end infinite; color: #6366f1; }
+    @keyframes j-blink { 50% { opacity: 0; } }
+
+    /* Thinking */
+    .j-thinking-row { align-items: center; }
+    .j-thinking-avatar { animation: j-avatar-pulse 1.8s ease-in-out infinite; }
+    @keyframes j-avatar-pulse {
+      0%,100% { opacity: 1; }
+      50%      { opacity: 0.65; }
+    }
+    .j-thinking {
+      display: flex; align-items: center; gap: 6px;
+      padding: 9px 13px;
+      background: linear-gradient(135deg, #f5f3ff, #ede9fe);
+      border: 1px solid rgba(99,102,241,0.15);
+      border-radius: 14px; border-bottom-left-radius: 3px;
+    }
+    .j-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: #7c3aed; flex-shrink: 0;
+      animation: j-bounce 1.1s infinite;
+    }
+    .j-dot:nth-child(2) { animation-delay: 0.16s; }
+    .j-dot:nth-child(3) { animation-delay: 0.32s; }
+    @keyframes j-bounce {
+      0%,80%,100% { transform: translateY(0); }
+      40%          { transform: translateY(-5px); }
+    }
+    .j-thinking-text {
+      font-size: 11.5px; color: #6d28d9; font-style: italic;
+      animation: j-fade 0.4s ease;
+    }
+    @keyframes j-fade { from { opacity: 0; } to { opacity: 1; } }
+
+    /* Error */
+    .j-error {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 10px; border-radius: 8px;
       background: #fef2f2; border: 1px solid #fecaca;
       color: #dc2626; font-size: 11.5px;
     }
-    .error-bar button { background: none; border: none; color: #dc2626; cursor: pointer; font-size: 13px; }
+    .j-error button { margin-left: auto; background: none; border: none; color: #dc2626; cursor: pointer; }
 
-    /* ── Input ────────────────────────────────────────────── */
-    .panel-input {
-      display: flex; gap: 7px;
-      padding: 10px 12px;
-      border-top: 1px solid rgba(99,102,241,0.12);
-      background: #ffffff;
-      flex-shrink: 0;
+    /* ── Input ─────────────────────────────────────────────── */
+    .j-input-wrap {
+      padding: 8px 10px;
+      border-top: 1px solid rgba(99,102,241,0.1);
+      background: #fff; flex-shrink: 0;
     }
-    .chat-input {
-      flex: 1; padding: 9px 13px;
+    .j-input-row { display: flex; gap: 6px; align-items: center; }
+
+    .j-input {
+      flex: 1; padding: 8px 12px;
       border-radius: 10px;
       background: #f8faff;
-      border: 1px solid rgba(99,102,241,0.25);
-      color: #1a2540; font-size: 13px;
-      outline: none; transition: border-color 0.2s;
-      font-family: inherit;
+      border: 1px solid rgba(99,102,241,0.2);
+      color: #1e1b4b; font-size: 13px;
+      outline: none; font-family: inherit;
+      transition: border-color 0.15s, background 0.15s;
     }
-    .chat-input::placeholder { color: #94a3b8; }
-    .chat-input:focus { border-color: #6366f1; background: #fff; }
-    .chat-input:disabled { opacity: 0.45; }
+    .j-input::placeholder { color: #94a3b8; }
+    .j-input:focus { border-color: #6366f1; background: #fff; }
+    .j-input:disabled { opacity: 0.4; }
 
-    .send-btn {
-      width: 38px; height: 38px; flex-shrink: 0;
-      border-radius: 10px;
+    .j-mic {
+      width: 36px; height: 36px; flex-shrink: 0; border-radius: 10px;
+      background: #f1f5f9; border: 1.5px solid rgba(99,102,241,0.18);
+      color: #6366f1; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.14s, transform 0.14s;
+    }
+    .j-mic:hover { background: #e0e7ff; transform: scale(1.06); }
+    .j-mic-active {
+      background: #ef4444; border-color: #ef4444; color: #fff;
+      animation: j-mic-pulse 1.2s infinite;
+    }
+    @keyframes j-mic-pulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+      50%      { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
+    }
+
+    .j-send {
+      width: 36px; height: 36px; flex-shrink: 0; border-radius: 10px;
       background: linear-gradient(135deg, #6366f1, #4f46e5);
       border: none; color: #fff; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      transition: opacity 0.15s, transform 0.15s;
+      transition: opacity 0.14s, transform 0.14s;
     }
-    .send-btn:hover:not(:disabled) { opacity: 0.85; transform: scale(1.07); }
-    .send-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .j-send:hover:not(:disabled) { opacity: 0.88; transform: scale(1.06); }
+    .j-send:disabled { opacity: 0.28; cursor: not-allowed; }
 
-    /* ── Voice: mic button ───────────────────────────────── */
-    .mic-btn {
-      width: 38px; height: 38px; flex-shrink: 0;
-      border-radius: 10px;
-      background: #f1f5f9;
-      border: 1.5px solid rgba(99,102,241,0.2);
-      color: #6366f1; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: background 0.15s, border-color 0.15s, transform 0.15s;
-    }
-    .mic-btn:hover:not(:disabled) { background: #e0e7ff; border-color: #6366f1; transform: scale(1.07); }
-    .mic-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-    .mic-btn.mic-listening {
-      background: linear-gradient(135deg, #dc2626, #ef4444);
-      border-color: #dc2626; color: #fff;
-      animation: mic-pulse 1.2s ease-in-out infinite;
-    }
-    @keyframes mic-pulse {
-      0%,100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.4); }
-      50%      { box-shadow: 0 0 0 7px rgba(220,38,38,0); }
-    }
-
-    /* Waveform bars inside mic button while recording */
-    .mic-wave { display: flex; gap: 2px; align-items: center; height: 16px; }
-    .mic-wave i {
-      display: block; width: 3px; border-radius: 2px;
-      background: #fff; animation: wave-bar 0.7s ease-in-out infinite;
-    }
-    .mic-wave i:nth-child(1) { height: 6px;  animation-delay: 0s; }
-    .mic-wave i:nth-child(2) { height: 12px; animation-delay: 0.15s; }
-    .mic-wave i:nth-child(3) { height: 7px;  animation-delay: 0.3s; }
-    @keyframes wave-bar {
-      0%,100% { transform: scaleY(0.6); }
-      50%      { transform: scaleY(1.3); }
-    }
-
-    /* Stop-speaking button */
-    .stop-speak-btn {
-      width: 38px; height: 38px; flex-shrink: 0;
-      border-radius: 10px;
+    .j-stop {
+      width: 36px; height: 36px; flex-shrink: 0; border-radius: 10px;
       background: #fef2f2; border: 1.5px solid #fca5a5;
       color: #dc2626; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      transition: background 0.15s; animation: speak-pulse 1.4s ease-in-out infinite;
+      animation: j-speak-pulse 1.4s infinite;
     }
-    .stop-speak-btn:hover { background: #fee2e2; }
-    @keyframes speak-pulse {
+    @keyframes j-speak-pulse {
       0%,100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.3); }
-      50%      { box-shadow: 0 0 0 5px rgba(220,38,38,0); }
+      50%      { box-shadow: 0 0 0 4px rgba(220,38,38,0); }
     }
 
-    /* ── Voice bar (listening mode — replaces input row) ────── */
-    .voice-bar {
+    /* Listening bar */
+    .j-listen-bar {
       display: flex; align-items: center; gap: 8px;
-      flex: 1; padding: 6px 8px 6px 10px;
+      padding: 7px 10px;
       background: linear-gradient(135deg, #fdf4ff, #ede9fe);
-      border: 1.5px solid rgba(139,92,246,0.35);
-      border-radius: 12px; overflow: hidden;
+      border: 1.5px solid rgba(139,92,246,0.3);
+      border-radius: 12px;
     }
-    .voice-bar-wave {
-      display: flex; gap: 2px; align-items: center;
-      height: 20px; flex-shrink: 0;
-    }
-    .voice-bar-wave i {
+    .j-listen-wave { display: flex; gap: 2px; align-items: center; height: 18px; flex-shrink: 0; }
+    .j-listen-wave i {
       display: block; width: 3px; border-radius: 2px;
-      background: #7c3aed; animation: wave-bar 0.6s ease-in-out infinite;
+      background: #7c3aed; animation: j-wave 0.6s ease-in-out infinite;
     }
-    .voice-bar-wave i:nth-child(1) { height: 5px;  animation-delay: 0s; }
-    .voice-bar-wave i:nth-child(2) { height: 12px; animation-delay: 0.1s; }
-    .voice-bar-wave i:nth-child(3) { height: 18px; animation-delay: 0.2s; }
-    .voice-bar-wave i:nth-child(4) { height: 10px; animation-delay: 0.3s; }
-    .voice-bar-wave i:nth-child(5) { height: 6px;  animation-delay: 0.4s; }
-    @keyframes wave-bar {
+    .j-listen-wave i:nth-child(1) { height: 5px; }
+    .j-listen-wave i:nth-child(2) { height: 12px; animation-delay: 0.1s; }
+    .j-listen-wave i:nth-child(3) { height: 18px; animation-delay: 0.2s; }
+    .j-listen-wave i:nth-child(4) { height: 10px; animation-delay: 0.3s; }
+    .j-listen-wave i:nth-child(5) { height: 6px;  animation-delay: 0.4s; }
+    @keyframes j-wave {
       0%,100% { transform: scaleY(0.5); opacity: 0.7; }
       50%      { transform: scaleY(1.3); opacity: 1; }
     }
-    .voice-bar-text {
-      flex: 1; font-size: 12.5px; color: #4c1d95;
-      font-style: italic; white-space: nowrap;
-      overflow: hidden; text-overflow: ellipsis;
+    .j-listen-text {
+      flex: 1; font-size: 12px; color: #4c1d95;
+      font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
-    .voice-done-btn {
-      flex-shrink: 0;
-      padding: 5px 13px; border-radius: 8px;
+    .j-done-btn {
+      padding: 4px 12px; border-radius: 7px;
       background: #7c3aed; color: #fff;
-      border: none; font-size: 12px; font-weight: 700;
-      cursor: pointer; transition: opacity 0.15s;
-      white-space: nowrap;
+      border: none; font-size: 12px; font-weight: 600;
+      cursor: pointer; flex-shrink: 0;
     }
-    .voice-done-btn:hover { opacity: 0.85; }
+    .j-done-btn:hover { opacity: 0.88; }
 
-    /* Voice error toast */
-    .voice-error-bar {
-      display: flex; align-items: center; justify-content: space-between; gap: 8px;
-      padding: 6px 12px; font-size: 11.5px; color: #7c2d12;
-      background: #fff7ed; border-top: 1px solid rgba(249,115,22,0.2); flex-shrink: 0;
+    /* Voice error */
+    .j-voice-err {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 5px; padding: 5px 8px; border-radius: 7px;
+      background: #fff7ed; border: 1px solid rgba(249,115,22,0.2);
+      font-size: 11px; color: #92400e;
     }
-    .voice-error-bar button { background: none; border: none; color: #c2410c; cursor: pointer; font-size: 13px; }
+    .j-voice-err button { background: none; border: none; color: #c2410c; cursor: pointer; font-size: 12px; }
 
-    /* Rate limit bar */
-    .limit-bar {
-      display: flex; align-items: center; gap: 6px;
-      padding: 5px 14px;
-      background: #fffbeb;
-      border-top: 1px solid rgba(245,158,11,0.2);
-      font-size: 11px; color: #92400e; font-weight: 500;
-      flex-shrink: 0;
-    }
-    .limit-dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: #f59e0b; flex-shrink: 0;
-    }
-
-    /* Locked state */
-    .limit-locked {
-      flex: 1; display: flex; align-items: center; justify-content: center;
-      gap: 6px; padding: 8px 12px;
-      background: #fef2f2;
-      border-radius: 10px; border: 1px solid #fecaca;
+    /* Session limit */
+    .j-limit {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 9px 12px;
+      background: #fef2f2; border-radius: 10px; border: 1px solid #fecaca;
       font-size: 12px; color: #dc2626; font-weight: 600;
     }
-    .limit-new-btn {
+    .j-limit button {
       background: #dc2626; color: #fff; border: none;
-      padding: 4px 10px; border-radius: 6px;
-      font-size: 11px; font-weight: 700; cursor: pointer;
-      transition: opacity 0.15s;
+      padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;
     }
-    .limit-new-btn:hover { opacity: 0.85; }
 
     /* Mobile */
     @media (max-width: 480px) {
-      .aarav-panel { width: calc(100vw - 20px) !important; right: 10px; bottom: 80px; }
-      .aarav-fab   { right: 10px; bottom: 10px; padding: 8px 12px 8px 8px; }
-      .quick-grid  { grid-template-columns: 1fr; }
+      .j-panel { width: calc(100vw - 16px); right: 8px; bottom: 76px; height: 70vh; }
+      .j-fab   { right: 10px; bottom: 10px; }
+      .j-chips { flex-direction: column; }
     }
   `]
 })
@@ -659,21 +515,16 @@ export class AstroAgentComponent implements AfterViewChecked, OnDestroy {
   auth      = inject(AuthService);
   sanitizer = inject(DomSanitizer);
 
-  draft    = '';
-  unread   = signal(0);
-  panelW   = signal(390);
-  panelH   = signal(560);
+  draft  = '';
+  unread = signal(0);
 
-  // Rotating thinking phrases — so the wait never feels like dead silence
   private readonly _THINKING = [
     'Consulting the stars…',
-    'Reading the cosmic patterns…',
+    'Reading cosmic patterns…',
     'Checking planetary positions…',
-    'Feeling the energy…',
+    'Tuning into your energy…',
     'The universe is speaking…',
-    'Tuning into your vibration…',
-    'Scanning the celestial map…',
-    'Listening to the cosmos…',
+    'Feeling the vibration…',
   ];
   thinkingPhrase = signal(this._THINKING[0]);
   private _thinkingTimer: ReturnType<typeof setInterval> | null = null;
@@ -687,37 +538,24 @@ export class AstroAgentComponent implements AfterViewChecked, OnDestroy {
       this.thinkingPhrase.set(this._THINKING[this._thinkingIdx]);
     }, 2000);
   }
-
   private _stopThinking() {
     if (this._thinkingTimer) { clearInterval(this._thinkingTimer); this._thinkingTimer = null; }
   }
 
   private _lastMsgCount = 0;
-  private _resizing = false;
-  private _startX = 0; private _startY = 0;
-  private _startW = 390; private _startH = 560;
-  private _onMove!: (e: MouseEvent) => void;
-  private _onUp!: () => void;
 
   @ViewChild('scrollRef') private readonly scrollRef!: ElementRef<HTMLDivElement>;
 
+  // No emoji in quick prompts — TTS reads them as words
   readonly quickPrompts = [
-    '🪐 What does HIGH confidence mean?',
-    '🔢 Explain my Life Path number',
-    '✋ What does my Heart Line mean?',
-    '🃏 How to read a 3-card spread?',
-    '🏠 What is Vastu Shastra?',
-    '💊 What remedies does the report give?',
+    'How is my day today?',
+    'What is my Life Path number?',
+    'What does Heart Line mean?',
+    'Tell me about Vastu Shastra',
+    'What is Aries compatibility?',
+    'What do remedies include?',
   ];
 
-  /** Alternate avatar based on message index */
-  agentAvatar(index: number): string {
-    const avatars = ['jyoti-happy.svg', 'jyoti.svg', 'jyoti-thinking.svg', 'jyoti-wow.svg'];
-    return ['jyoti-happy.svg','jyoti.svg','jyoti-thinking.svg','jyoti-wow.svg'][index % 4];
-  }
-
-  // Safe: renderMarkdown output is generated from hardcoded patterns applied
-  // to LLM text — no user-controlled HTML tags pass through
   safeHtml(text: string): SafeHtml {
     return this.sanitizer.bypassSecurityTrustHtml(renderMarkdown(text)); // NOSONAR
   }
@@ -727,76 +565,34 @@ export class AstroAgentComponent implements AfterViewChecked, OnDestroy {
     this.agent.toggle();
   }
 
-  async newSession() {
-    await this.agent.clearSession();
-    // clearSession resets messages — welcome screen shows automatically
-  }
+  async newSession() { await this.agent.clearSession(); }
 
   async send(text: string) {
-    if (!text.trim()) return;
+    if (!text.trim() || this.agent.isStreaming()) return;
     this.draft = '';
     this._startThinking();
     try {
       await this.agent.chatStream(text);
     } finally {
       this._stopThinking();
-      // isThinking is cleared by the service, but make sure phrase timer stops
     }
-    // Auto-speak the last agent reply if TTS is available
     const last = this.agent.lastMessage();
     if (last?.role === 'agent' && last.content) this.agent.speak(last.content);
     if (!this.agent.isOpen()) this.unread.update(n => n + 1);
   }
 
-  private _listenResolve: ((t: string) => void) | null = null;
-
   async toggleMic() {
     if (!this.agent.voiceSupported()) {
-      this.agent.voiceError.set('Voice not supported in this browser. Please use Chrome or Edge.');
+      this.agent.voiceError.set('Voice needs Chrome or Edge.');
       return;
     }
-    // Start continuous listening — promise resolves when user taps Done
     try {
       const transcript = await this.agent.startListening();
-      if (transcript) {
-        this.draft = transcript;
-        await this.send(transcript);
-      }
-    } catch {
-      // voiceError signal already set inside the service
-    }
+      if (transcript) await this.send(transcript);
+    } catch { /* voiceError set in service */ }
   }
 
-  /** User taps Done — stops mic, sends whatever was captured */
-  async doneListening() {
-    this.agent.stopListening();
-    // stopListening triggers onend → resolves the promise in startListening
-    // Give onend a tick to fire and set the draft via the promise chain above
-  }
-
-  // ── Resize ──────────────────────────────────────────────────────────────────
-
-  resizeStart(e: MouseEvent) {
-    this._resizing = true;
-    this._startX = e.clientX; this._startY = e.clientY;
-    this._startW = this.panelW(); this._startH = this.panelH();
-    e.preventDefault();
-
-    this._onMove = (ev: MouseEvent) => {
-      if (!this._resizing) return;
-      const dw = this._startX - ev.clientX;
-      const dh = this._startY - ev.clientY;
-      this.panelW.set(Math.max(300, Math.min(700, this._startW + dw)));
-      this.panelH.set(Math.max(340, Math.min(860, this._startH + dh)));
-    };
-    this._onUp = () => {
-      this._resizing = false;
-      globalThis.removeEventListener('mousemove', this._onMove);
-      globalThis.removeEventListener('mouseup', this._onUp);
-    };
-    globalThis.addEventListener('mousemove', this._onMove);
-    globalThis.addEventListener('mouseup', this._onUp);
-  }
+  async doneListening() { this.agent.stopListening(); }
 
   @HostListener('window:keydown.escape')
   onEsc() { if (this.agent.isOpen()) this.agent.close(); }
@@ -805,8 +601,7 @@ export class AstroAgentComponent implements AfterViewChecked, OnDestroy {
     const count = this.agent.messages().length;
     if (count !== this._lastMsgCount && this.scrollRef?.nativeElement) {
       this._lastMsgCount = count;
-      const el = this.scrollRef.nativeElement;
-      el.scrollTop = el.scrollHeight;
+      this.scrollRef.nativeElement.scrollTop = this.scrollRef.nativeElement.scrollHeight;
     }
   }
 
@@ -814,7 +609,5 @@ export class AstroAgentComponent implements AfterViewChecked, OnDestroy {
     this._stopThinking();
     this.agent.stopListening();
     this.agent.stopSpeaking();
-    if (this._onMove) globalThis.removeEventListener('mousemove', this._onMove);
-    if (this._onUp)   globalThis.removeEventListener('mouseup',   this._onUp);
   }
 }
