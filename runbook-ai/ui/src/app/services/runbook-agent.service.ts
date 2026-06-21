@@ -25,13 +25,13 @@ export class RunbookAgentService {
   readonly qRemaining  = computed(() => Math.max(0, this.LIMIT - this.qCount()));
   readonly hasMessages = computed(() => this.messages().length > 0);
 
-  readonly quickPrompts = [
-    { label: '📋 Query runbook', text: 'How do I query a runbook in RunbookAI?' },
-    '🔗 What is the dependency graph?',
-    '⚠️ How are conflicts detected?',
-    '🚨 How to triage a P1 incident?',
-    '📥 How do I ingest a new runbook?',
-    '🔀 What is the RAGless architecture?',
+  readonly quickPrompts: string[] = [
+    'How do I query a runbook?',
+    'What is the dependency graph?',
+    'How are conflicts detected?',
+    'How to triage a P1 incident?',
+    'How do I ingest a new runbook?',
+    'What is the RAGless architecture?',
   ];
 
   private sessionId: string | null = null;
