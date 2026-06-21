@@ -41,48 +41,76 @@ function renderMarkdown(text: string): string {
   template: `
 @if (auth.isLoggedIn()) {
 
-<!-- ── FAB ─────────────────────────────────────── -->
-<button class="j-fab" (click)="togglePanel()" [class.open]="agent.isOpen()" aria-label="Ask Jyoti">
-  <div class="j-fab-avatar">
-    <img src="jyoti-happy.svg" alt="Jyoti"/>
-    <span class="j-online"></span>
+<!-- ════════════════════════════════════════
+     FAB — cosmic orb with Jyoti avatar
+     ════════════════════════════════════════ -->
+<button class="j-fab" (click)="togglePanel()" [class.j-fab-open]="agent.isOpen()" aria-label="Ask Jyoti">
+  <div class="j-fab-orb">
+    <div class="j-fab-glow"></div>
+    <img src="jyoti-happy.svg" class="j-fab-img" alt="Jyoti"/>
+    <span class="j-fab-online"></span>
   </div>
-  <div class="j-fab-text">
+  <div class="j-fab-label">
     <span class="j-fab-name">Jyoti</span>
-    <span class="j-fab-sub">Cosmic Guide</span>
+    <span class="j-fab-tagline">Spiritual Guide ✦</span>
   </div>
   @if (unread() > 0 && !agent.isOpen()) {
-    <span class="j-badge">{{ unread() }}</span>
+    <span class="j-unread">{{ unread() }}</span>
   }
 </button>
 
-<!-- ── Panel ────────────────────────────────────── -->
+<!-- ════════════════════════════════════════
+     Panel — cosmic night-sky chat widget
+     ════════════════════════════════════════ -->
 @if (agent.isOpen()) {
-<div class="j-panel" role="dialog" aria-label="Jyoti AI">
+<div class="j-panel" role="dialog" aria-label="Jyoti — Cosmic Guide">
 
-  <!-- Header -->
+  <!-- Stars background layer -->
+  <div class="j-stars" aria-hidden="true">
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+  <!-- ── Header ── -->
   <div class="j-header">
-    <img src="jyoti-happy.svg" class="j-hdr-avatar" alt="Jyoti"/>
+    <div class="j-hdr-avatar-wrap">
+      <img src="jyoti-happy.svg" class="j-hdr-img" alt="Jyoti"/>
+      <span class="j-hdr-aura"></span>
+    </div>
     <div class="j-hdr-info">
       <strong>Jyoti</strong>
       <span>AstroIntel · Spiritual Guide</span>
     </div>
-    <button class="j-hdr-btn" (click)="newSession()" title="New session" aria-label="New session">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-    </button>
-    <button class="j-hdr-btn j-close" (click)="agent.close()" aria-label="Close">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>
+    <div class="j-hdr-actions">
+      <button class="j-icon-btn" (click)="newSession()" title="New session" aria-label="New session">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+          <path d="M3 3v5h5"/>
+        </svg>
+      </button>
+      <button class="j-icon-btn j-icon-close" (click)="agent.close()" aria-label="Close">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
   </div>
 
-  <!-- Messages -->
+  <!-- ── Messages ── -->
   <div class="j-messages" #scrollRef>
 
     @if (!agent.hasMessages()) {
+      <!-- Welcome screen -->
       <div class="j-welcome">
-        <img src="jyoti-happy.svg" class="j-welcome-img" alt="Jyoti"/>
-        <p class="j-welcome-title">Namaste, I'm Jyoti</p>
-        <p class="j-welcome-sub">Your AstroIntel spiritual guide. Ask me anything.</p>
+        <div class="j-welcome-avatar">
+          <img src="jyoti-happy.svg" alt="Jyoti"/>
+          <div class="j-welcome-ring j-ring-1"></div>
+          <div class="j-welcome-ring j-ring-2"></div>
+        </div>
+        <p class="j-welcome-name">Namaste, I'm Jyoti</p>
+        <p class="j-welcome-desc">Your cosmic guide across the five ancient sciences.<br/>Ask me anything about your stars, numbers, or path.</p>
+        <div class="j-divider"><span>✦ begin here ✦</span></div>
         <div class="j-chips">
           @for (p of quickPrompts; track p) {
             <button class="j-chip" (click)="send(p)">{{ p }}</button>
@@ -92,71 +120,80 @@ function renderMarkdown(text: string): string {
     }
 
     @for (msg of agent.messages(); track $index) {
-      <div class="j-msg" [class.j-user]="msg.role==='user'" [class.j-agent]="msg.role==='agent'">
+      <div class="j-msg" [class.j-msg-user]="msg.role==='user'" [class.j-msg-agent]="msg.role==='agent'">
+
         @if (msg.role === 'agent') {
-          <img src="jyoti.svg" class="j-avatar" alt="Jyoti"/>
+          <div class="j-msg-avatar">
+            <img src="jyoti.svg" alt="Jyoti"/>
+          </div>
         }
-        <div class="j-col">
+
+        <div class="j-msg-col" [class.j-msg-col-user]="msg.role==='user'">
           <div class="j-bubble" [class.j-bubble-user]="msg.role==='user'" [class.j-bubble-agent]="msg.role==='agent'">
             @if (msg.role === 'agent') {
               <span [innerHTML]="safeHtml(msg.content)"></span>
-              @if (msg.streaming && msg.content) { <span class="j-cursor">▌</span> }
+              @if (msg.streaming && msg.content) {
+                <span class="j-cursor">▌</span>
+              }
             } @else {
               {{ msg.content }}
             }
           </div>
-          <span class="j-time">{{ msg.timestamp | date:'HH:mm' }}</span>
+          <span class="j-ts">{{ msg.timestamp | date:'HH:mm' }}</span>
         </div>
+
       </div>
     }
 
-    <!-- Thinking indicator — shows from send until first token -->
+    <!-- Thinking indicator -->
     @if (agent.isThinking()) {
-      <div class="j-msg j-agent j-thinking-row">
-        <img src="jyoti-thinking.svg" class="j-avatar j-thinking-avatar" alt=""/>
-        <div class="j-thinking">
+      <div class="j-msg j-msg-agent j-thinking-row">
+        <div class="j-msg-avatar j-thinking-avatar">
+          <img src="jyoti-thinking.svg" alt=""/>
+        </div>
+        <div class="j-thinking-bubble">
           <span class="j-dot"></span>
           <span class="j-dot"></span>
           <span class="j-dot"></span>
-          <span class="j-thinking-text">{{ thinkingPhrase() }}</span>
+          <span class="j-thinking-phrase">{{ thinkingPhrase() }}</span>
         </div>
       </div>
     }
 
+    <!-- Error -->
     @if (agent.error()) {
-      <div class="j-error">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <div class="j-error-bar">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         {{ agent.error() }}
         <button (click)="agent.error.set(null)">✕</button>
       </div>
     }
   </div>
 
-  <!-- Input area -->
-  <div class="j-input-wrap">
+  <!-- ── Input zone ── -->
+  <div class="j-input-zone">
 
-    <!-- Session limit -->
     @if (agent.isLimited()) {
-      <div class="j-limit">
-        Session limit reached &nbsp;·&nbsp;
-        <button (click)="newSession()">Start new</button>
+      <div class="j-limit-banner">
+        Session complete &nbsp;·&nbsp;
+        <button (click)="newSession()">Begin anew</button>
       </div>
+
     } @else if (agent.isListening()) {
-      <!-- Listening mode -->
       <div class="j-listen-bar">
-        <span class="j-listen-wave"><i></i><i></i><i></i><i></i><i></i></span>
-        <span class="j-listen-text">{{ agent.interimTranscript() || 'Listening…' }}</span>
+        <div class="j-listen-orb">
+          <span></span><span></span><span></span>
+        </div>
+        <span class="j-listen-text">{{ agent.interimTranscript() || 'Listening to you…' }}</span>
         <button class="j-done-btn" (click)="doneListening()">Done</button>
       </div>
+
     } @else {
-      <!-- Normal input -->
       <div class="j-input-row">
-        <button class="j-mic"
-                (click)="toggleMic()"
+        <button class="j-mic-btn" (click)="toggleMic()"
                 [class.j-mic-active]="agent.isListening()"
-                [attr.aria-label]="'Voice input'"
-                title="Speak your question">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                title="Speak your question" aria-label="Voice input">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4z"/>
             <path d="M19 10a1 1 0 0 0-2 0 5 5 0 0 1-10 0 1 1 0 0 0-2 0 7 7 0 0 0 6 6.92V19H9a1 1 0 0 0 0 2h6a1 1 0 0 0 0-2h-2v-2.08A7 7 0 0 0 19 10z"/>
           </svg>
@@ -165,7 +202,7 @@ function renderMarkdown(text: string): string {
         <input #inputRef
                class="j-input"
                type="text"
-               placeholder="Ask Jyoti…"
+               placeholder="Ask Jyoti anything…"
                [(ngModel)]="draft"
                (keydown.enter)="send(draft)"
                [disabled]="agent.isStreaming()"
@@ -173,340 +210,546 @@ function renderMarkdown(text: string): string {
                autocomplete="off"/>
 
         @if (agent.isSpeaking()) {
-          <button class="j-stop" (click)="agent.stopSpeaking()" title="Stop speaking" aria-label="Stop speaking">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+          <button class="j-action-btn j-stop-btn" (click)="agent.stopSpeaking()" title="Stop speaking" aria-label="Stop speaking">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
           </button>
         } @else {
-          <button class="j-send"
+          <button class="j-action-btn j-send-btn"
                   (click)="send(draft)"
                   [disabled]="!draft.trim() || agent.isStreaming()"
                   aria-label="Send">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"/>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
           </button>
         }
       </div>
 
-      <!-- Voice error -->
       @if (agent.voiceError()) {
         <div class="j-voice-err">
           {{ agent.voiceError() }}
           <button (click)="agent.voiceError.set('')">✕</button>
         </div>
       }
+
+      <p class="j-footer-tag">✦ Powered by AstroIntel 360°</p>
     }
+
   </div>
 
 </div>
 }
 
-} <!-- end auth guard -->
+} <!-- /auth guard -->
   `,
   styles: [`
-    /* ── FAB ──────────────────────────────────────────────── */
+    /* ═══════════════════════════════════════════════
+       DESIGN TOKENS — cosmic palette
+       ═══════════════════════════════════════════════ */
+    :host {
+      --j-night:    #0d0b1e;
+      --j-deep:     #13103a;
+      --j-cosmos:   #1a1642;
+      --j-panel-bg: #0f0d2b;
+      --j-gold:     #f5c842;
+      --j-gold-dim: #c9a227;
+      --j-violet:   #9b59f5;
+      --j-lavender: #c4b5fd;
+      --j-rose:     #f472b6;
+      --j-white:    #f0eeff;
+      --j-muted:    #7c6ea8;
+      --j-border:   rgba(155,89,245,0.22);
+      --j-glow:     rgba(155,89,245,0.35);
+    }
+
+    /* ═══════════════════════════════════════════════
+       FAB — floating orb
+       ═══════════════════════════════════════════════ */
     .j-fab {
       position: fixed; bottom: 24px; right: 24px; z-index: 10000;
-      display: flex; align-items: center; gap: 9px;
-      padding: 7px 14px 7px 7px;
+      display: flex; align-items: center; gap: 10px;
+      padding: 6px 16px 6px 6px;
       border-radius: 50px;
-      background: #fff;
-      border: 1.5px solid rgba(99,102,241,0.25);
-      box-shadow: 0 4px 20px rgba(99,102,241,0.18);
-      cursor: pointer; transition: transform 0.18s, box-shadow 0.18s;
+      background: linear-gradient(135deg, #1a1642 0%, #0d0b1e 100%);
+      border: 1.5px solid var(--j-border);
+      box-shadow: 0 4px 24px rgba(155,89,245,0.28), 0 0 0 0 rgba(155,89,245,0);
+      cursor: pointer;
+      transition: transform 0.2s cubic-bezier(.16,1,.3,1), box-shadow 0.2s;
     }
-    .j-fab:hover  { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(99,102,241,0.26); }
-    .j-fab.open   { border-color: #6366f1; background: #f5f3ff; }
+    .j-fab:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 32px rgba(155,89,245,0.42), 0 0 0 0 rgba(155,89,245,0);
+    }
+    .j-fab-open {
+      border-color: var(--j-violet);
+      box-shadow: 0 0 0 3px rgba(155,89,245,0.18), 0 8px 32px rgba(155,89,245,0.3);
+    }
 
-    .j-fab-avatar { position: relative; width: 38px; height: 38px; flex-shrink: 0; }
-    .j-fab-avatar img { width: 38px; height: 38px; border-radius: 50%; object-fit: contain; background: #eef2ff; }
-    .j-online {
-      position: absolute; bottom: 1px; right: 1px;
+    .j-fab-orb {
+      position: relative; width: 40px; height: 40px; flex-shrink: 0;
+    }
+    .j-fab-glow {
+      position: absolute; inset: -4px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(155,89,245,0.4) 0%, transparent 70%);
+      animation: j-orb-glow 2.5s ease-in-out infinite;
+    }
+    @keyframes j-orb-glow {
+      0%,100% { opacity: 0.6; transform: scale(1); }
+      50%      { opacity: 1;   transform: scale(1.12); }
+    }
+    .j-fab-img {
+      width: 40px; height: 40px; border-radius: 50%;
+      object-fit: contain; position: relative; z-index: 1;
+      background: radial-gradient(circle at 40% 35%, #2e1f6e, #0d0b1e);
+      border: 1.5px solid rgba(155,89,245,0.5);
+    }
+    .j-fab-online {
+      position: absolute; bottom: 2px; right: 2px; z-index: 2;
       width: 9px; height: 9px; border-radius: 50%;
-      background: #10b981; border: 2px solid #fff;
-      animation: j-pulse 2s infinite;
+      background: #34d399; border: 2px solid #0d0b1e;
+      animation: j-online-pulse 2s infinite;
     }
-    @keyframes j-pulse {
-      0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.5); }
-      50%      { box-shadow: 0 0 0 4px rgba(16,185,129,0); }
+    @keyframes j-online-pulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(52,211,153,0.5); }
+      50%      { box-shadow: 0 0 0 4px rgba(52,211,153,0); }
     }
-    .j-fab-text { display: flex; flex-direction: column; line-height: 1.2; }
-    .j-fab-name { font-size: 12px; font-weight: 700; color: #1e1b4b; }
-    .j-fab-sub  { font-size: 10px; color: #6366f1; }
-    .j-badge {
-      position: absolute; top: -5px; right: -5px;
-      background: #ef4444; color: #fff;
-      font-size: 10px; font-weight: 700;
+    .j-fab-label { display: flex; flex-direction: column; line-height: 1.25; }
+    .j-fab-name    { font-size: 12px; font-weight: 700; color: var(--j-white); letter-spacing: 0.02em; }
+    .j-fab-tagline { font-size: 10px; color: var(--j-gold); opacity: 0.9; }
+
+    .j-unread {
+      position: absolute; top: -4px; right: -4px;
+      background: var(--j-rose); color: #fff;
+      font-size: 10px; font-weight: 800;
       width: 16px; height: 16px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
+      border: 2px solid #0d0b1e;
     }
 
-    /* ── Panel ─────────────────────────────────────────────── */
+    /* ═══════════════════════════════════════════════
+       PANEL — cosmic window
+       ═══════════════════════════════════════════════ */
     .j-panel {
-      position: fixed; bottom: 86px; right: 24px; z-index: 9999;
-      width: 360px; height: 540px;
+      position: fixed; bottom: 84px; right: 24px; z-index: 9999;
+      width: 370px; height: 580px;
       display: flex; flex-direction: column;
-      border-radius: 20px;
-      background: #fff;
-      border: 1px solid rgba(99,102,241,0.16);
-      box-shadow: 0 16px 48px rgba(99,102,241,0.14), 0 2px 8px rgba(0,0,0,0.07);
-      overflow: hidden;
-      animation: j-up 0.2s cubic-bezier(.16,1,.3,1);
+      border-radius: 22px; overflow: hidden;
+      background: var(--j-panel-bg);
+      border: 1.5px solid var(--j-border);
+      box-shadow:
+        0 24px 64px rgba(0,0,0,0.55),
+        0 0 0 1px rgba(155,89,245,0.1),
+        inset 0 1px 0 rgba(255,255,255,0.06);
+      animation: j-open 0.28s cubic-bezier(.16,1,.3,1);
     }
-    @keyframes j-up {
-      from { opacity: 0; transform: translateY(12px) scale(0.97); }
+    @keyframes j-open {
+      from { opacity: 0; transform: translateY(16px) scale(0.96); }
       to   { opacity: 1; transform: none; }
     }
 
-    /* ── Header ────────────────────────────────────────────── */
+    /* Twinkling stars background */
+    .j-stars {
+      position: absolute; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+    }
+    .j-stars span {
+      position: absolute; border-radius: 50%;
+      background: #fff; opacity: 0;
+      animation: j-twinkle var(--d, 3s) var(--del, 0s) infinite;
+    }
+    .j-stars span:nth-child(1)  { width:2px; height:2px; top:8%;  left:15%; --d:2.8s; --del:0.2s;  }
+    .j-stars span:nth-child(2)  { width:1px; height:1px; top:14%; left:72%; --d:3.5s; --del:0.8s;  }
+    .j-stars span:nth-child(3)  { width:2px; height:2px; top:22%; left:42%; --d:2.2s; --del:1.4s;  }
+    .j-stars span:nth-child(4)  { width:1px; height:1px; top:6%;  left:88%; --d:4.0s; --del:0.5s;  }
+    .j-stars span:nth-child(5)  { width:2px; height:2px; top:32%; left:8%;  --d:3.1s; --del:1.8s;  }
+    .j-stars span:nth-child(6)  { width:1px; height:1px; top:5%;  left:55%; --d:2.6s; --del:0.3s;  }
+    .j-stars span:nth-child(7)  { width:2px; height:2px; top:18%; left:28%; --d:3.8s; --del:2.1s;  }
+    .j-stars span:nth-child(8)  { width:1px; height:1px; top:28%; left:63%; --d:2.4s; --del:0.9s;  }
+    .j-stars span:nth-child(9)  { width:2px; height:2px; top:12%; left:5%;  --d:3.3s; --del:1.1s;  }
+    .j-stars span:nth-child(10) { width:1px; height:1px; top:38%; left:80%; --d:4.2s; --del:0.6s;  }
+    .j-stars span:nth-child(11) { width:2px; height:2px; top:3%;  left:38%; --d:2.9s; --del:1.6s;  }
+    .j-stars span:nth-child(12) { width:1px; height:1px; top:25%; left:92%; --d:3.6s; --del:2.4s;  }
+    .j-stars span:nth-child(13) { width:2px; height:2px; top:42%; left:22%; --d:2.7s; --del:0.7s;  }
+    .j-stars span:nth-child(14) { width:1px; height:1px; top:9%;  left:48%; --d:3.9s; --del:1.3s;  }
+    .j-stars span:nth-child(15) { width:2px; height:2px; top:35%; left:58%; --d:2.5s; --del:2.0s;  }
+    @keyframes j-twinkle {
+      0%,100% { opacity: 0; transform: scale(0.5); }
+      50%      { opacity: 0.8; transform: scale(1.2); }
+    }
+
+    /* ═══════════════════════════════════════════════
+       HEADER
+       ═══════════════════════════════════════════════ */
     .j-header {
-      display: flex; align-items: center; gap: 9px;
-      padding: 11px 12px;
-      background: linear-gradient(135deg, #eef2ff 0%, #ede9fe 100%);
-      border-bottom: 1px solid rgba(99,102,241,0.12);
-      flex-shrink: 0;
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 14px;
+      background: linear-gradient(180deg, rgba(26,22,66,0.98) 0%, rgba(15,13,43,0.95) 100%);
+      border-bottom: 1px solid var(--j-border);
+      flex-shrink: 0; position: relative; z-index: 2;
     }
-    .j-hdr-avatar { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; border: 2px solid rgba(99,102,241,0.2); }
-    .j-hdr-info   { flex: 1; }
-    .j-hdr-info strong { display: block; font-size: 13px; font-weight: 700; color: #1e1b4b; }
-    .j-hdr-info span   { font-size: 10px; color: #6366f1; }
-    .j-hdr-btn {
+    .j-hdr-avatar-wrap { position: relative; width: 36px; height: 36px; flex-shrink: 0; }
+    .j-hdr-img {
+      width: 36px; height: 36px; border-radius: 50%;
+      object-fit: contain;
+      background: radial-gradient(circle at 40% 35%, #2e1f6e, #0d0b1e);
+      border: 1.5px solid rgba(155,89,245,0.5);
+    }
+    .j-hdr-aura {
+      position: absolute; inset: -3px; border-radius: 50%;
+      border: 1.5px solid rgba(245,200,66,0.4);
+      animation: j-aura-spin 6s linear infinite;
+    }
+    @keyframes j-aura-spin {
+      from { transform: rotate(0deg) scale(1); opacity: 0.6; }
+      50%  { opacity: 1; transform: rotate(180deg) scale(1.05); }
+      to   { transform: rotate(360deg) scale(1); opacity: 0.6; }
+    }
+
+    .j-hdr-info { flex: 1; }
+    .j-hdr-info strong {
+      display: block; font-size: 13px; font-weight: 700;
+      color: var(--j-white); letter-spacing: 0.02em;
+    }
+    .j-hdr-info span { font-size: 10px; color: var(--j-gold); opacity: 0.85; }
+
+    .j-hdr-actions { display: flex; gap: 4px; }
+    .j-icon-btn {
       width: 28px; height: 28px; border-radius: 8px;
-      background: none; border: none; color: #6366f1; cursor: pointer;
+      background: rgba(155,89,245,0.1); border: 1px solid rgba(155,89,245,0.2);
+      color: var(--j-lavender); cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      transition: background 0.14s;
+      transition: background 0.15s, color 0.15s;
     }
-    .j-hdr-btn:hover { background: rgba(99,102,241,0.1); }
-    .j-close { color: #94a3b8; }
-    .j-close:hover { color: #ef4444; background: #fef2f2; }
+    .j-icon-btn:hover { background: rgba(155,89,245,0.22); color: #fff; }
+    .j-icon-close:hover { background: rgba(244,114,182,0.18); color: var(--j-rose); border-color: rgba(244,114,182,0.3); }
 
-    /* ── Messages ───────────────────────────────────────────── */
+    /* ═══════════════════════════════════════════════
+       MESSAGES AREA
+       ═══════════════════════════════════════════════ */
     .j-messages {
-      flex: 1; overflow-y: auto;
-      padding: 12px 10px;
-      display: flex; flex-direction: column; gap: 10px;
-      background: #f9fafb;
+      flex: 1; overflow-y: auto; overflow-x: hidden;
+      padding: 16px 12px 10px;
+      display: flex; flex-direction: column; gap: 12px;
+      position: relative; z-index: 1;
       scrollbar-width: thin;
-      scrollbar-color: rgba(99,102,241,0.2) transparent;
+      scrollbar-color: rgba(155,89,245,0.25) transparent;
     }
 
-    /* Welcome */
-    .j-welcome { text-align: center; padding: 20px 8px 8px; }
-    .j-welcome-img {
+    /* ── Welcome screen ── */
+    .j-welcome { text-align: center; padding: 12px 8px 4px; }
+
+    .j-welcome-avatar {
+      position: relative; width: 80px; height: 80px;
+      margin: 0 auto 14px; display: flex; align-items: center; justify-content: center;
+    }
+    .j-welcome-avatar img {
       width: 72px; height: 72px; border-radius: 50%;
-      margin: 0 auto 10px; display: block;
-      background: #eef2ff; padding: 4px; object-fit: contain;
-      border: 2px solid rgba(99,102,241,0.18);
+      object-fit: contain; position: relative; z-index: 2;
+      background: radial-gradient(circle at 40% 35%, #2e1f6e, #0d0b1e);
+      border: 2px solid rgba(155,89,245,0.5);
+      box-shadow: 0 0 20px rgba(155,89,245,0.4);
     }
-    .j-welcome-title { font-size: 15px; font-weight: 700; color: #1e1b4b; margin: 0 0 4px; }
-    .j-welcome-sub   { font-size: 12px; color: #64748b; margin: 0 0 14px; line-height: 1.5; }
-    .j-chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
-    .j-chip {
-      padding: 6px 11px; border-radius: 20px;
-      background: #fff; border: 1px solid rgba(99,102,241,0.22);
-      color: #4338ca; font-size: 11px; font-weight: 500;
-      cursor: pointer; transition: background 0.13s, border-color 0.13s;
-      white-space: nowrap;
+    .j-welcome-ring {
+      position: absolute; border-radius: 50%;
+      border: 1.5px solid rgba(245,200,66,0.35);
+      animation: j-ring-pulse 2.5s ease-in-out infinite;
     }
-    .j-chip:hover { background: #eef2ff; border-color: #6366f1; }
+    .j-ring-1 { width: 84px; height: 84px; animation-delay: 0s; }
+    .j-ring-2 { width: 100px; height: 100px; animation-delay: 0.6s; opacity: 0.5; }
+    @keyframes j-ring-pulse {
+      0%,100% { transform: scale(0.95); opacity: 0.4; }
+      50%      { transform: scale(1.05); opacity: 0.9; }
+    }
 
-    /* Messages */
-    .j-msg   { display: flex; align-items: flex-end; gap: 6px; }
-    .j-user  { flex-direction: row-reverse; }
-    .j-agent { flex-direction: row; }
-    .j-avatar {
-      width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
-      background: #eef2ff; padding: 2px; object-fit: contain;
-      border: 1.5px solid rgba(99,102,241,0.14); margin-bottom: 14px;
+    .j-welcome-name {
+      font-size: 17px; font-weight: 700; color: var(--j-white);
+      margin: 0 0 6px; letter-spacing: 0.02em;
     }
-    .j-col { display: flex; flex-direction: column; max-width: 82%; }
-    .j-user .j-col { align-items: flex-end; }
+    .j-welcome-desc {
+      font-size: 12px; color: var(--j-muted); margin: 0 0 16px;
+      line-height: 1.6;
+    }
+    .j-divider {
+      display: flex; align-items: center; gap: 8px;
+      margin: 0 0 14px;
+    }
+    .j-divider::before, .j-divider::after {
+      content: ''; flex: 1; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(155,89,245,0.3), transparent);
+    }
+    .j-divider span { font-size: 10px; color: var(--j-gold); opacity: 0.7; white-space: nowrap; }
+
+    .j-chips { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; }
+    .j-chip {
+      padding: 7px 13px; border-radius: 20px;
+      background: rgba(155,89,245,0.1);
+      border: 1px solid rgba(155,89,245,0.28);
+      color: var(--j-lavender); font-size: 11.5px; font-weight: 500;
+      cursor: pointer; transition: all 0.16s; white-space: nowrap;
+    }
+    .j-chip:hover {
+      background: rgba(155,89,245,0.22);
+      border-color: var(--j-violet);
+      color: #fff;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(155,89,245,0.25);
+    }
+
+    /* ── Message bubbles ── */
+    .j-msg {
+      display: flex; align-items: flex-end; gap: 8px;
+      animation: j-msg-in 0.22s cubic-bezier(.16,1,.3,1);
+    }
+    @keyframes j-msg-in {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: none; }
+    }
+    .j-msg-user  { flex-direction: row-reverse; }
+    .j-msg-agent { flex-direction: row; }
+
+    .j-msg-avatar {
+      width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+      background: radial-gradient(circle at 40% 35%, #2e1f6e, #0d0b1e);
+      border: 1.5px solid rgba(155,89,245,0.4);
+      margin-bottom: 16px; overflow: hidden;
+      box-shadow: 0 0 8px rgba(155,89,245,0.3);
+    }
+    .j-msg-avatar img { width: 100%; height: 100%; object-fit: contain; }
+
+    .j-msg-col { display: flex; flex-direction: column; max-width: 80%; gap: 3px; }
+    .j-msg-col-user { align-items: flex-end; }
 
     .j-bubble {
-      padding: 9px 12px; border-radius: 14px;
-      font-size: 13px; line-height: 1.55; word-break: break-word;
+      padding: 10px 14px; border-radius: 16px;
+      font-size: 13px; line-height: 1.6; word-break: break-word;
     }
-    .j-bubble-user  {
-      background: linear-gradient(135deg, #6366f1, #4f46e5);
-      color: #fff; border-bottom-right-radius: 3px;
+    .j-bubble-user {
+      background: linear-gradient(135deg, #7c3aed, #5b21b6);
+      color: #f0eeff;
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 2px 12px rgba(124,58,237,0.35);
     }
     .j-bubble-agent {
-      background: #fff; color: #1e1b4b;
-      border: 1px solid rgba(99,102,241,0.11);
-      border-bottom-left-radius: 3px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      background: rgba(26,22,66,0.85);
+      color: var(--j-white);
+      border: 1px solid rgba(155,89,245,0.2);
+      border-bottom-left-radius: 4px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
     }
-    .j-bubble-agent strong { color: #1e1b4b; font-weight: 600; }
-    .j-bubble-agent em     { color: #6366f1; font-style: italic; }
+    .j-bubble-agent strong { color: var(--j-gold); font-weight: 600; }
+    .j-bubble-agent em     { color: var(--j-lavender); font-style: italic; }
     .j-bubble-agent h2,
     .j-bubble-agent h3,
-    .j-bubble-agent h4     { color: #4338ca; font-size: 12.5px; font-weight: 700; margin: 6px 0 2px; }
-    .j-bubble-agent code   { background: #eef2ff; color: #4338ca; padding: 1px 4px; border-radius: 3px; font-size: 11.5px; }
-    .j-bubble-agent ul     { margin: 3px 0 3px 14px; padding: 0; }
-    .j-bubble-agent li     { margin: 2px 0; }
+    .j-bubble-agent h4 { color: var(--j-gold); font-size: 12.5px; font-weight: 700; margin: 6px 0 2px; }
+    .j-bubble-agent code {
+      background: rgba(155,89,245,0.15); color: var(--j-lavender);
+      padding: 1px 5px; border-radius: 4px; font-size: 11.5px;
+    }
+    .j-bubble-agent ul { margin: 4px 0 4px 14px; padding: 0; }
+    .j-bubble-agent li { margin: 3px 0; color: var(--j-white); }
+    .j-bubble-agent hr { border: none; border-top: 1px solid var(--j-border); margin: 6px 0; }
 
-    .j-time   { font-size: 10px; color: #94a3b8; margin-top: 2px; }
-    .j-cursor { animation: j-blink 0.7s step-end infinite; color: #6366f1; }
+    .j-ts { font-size: 10px; color: var(--j-muted); opacity: 0.7; }
+
+    .j-cursor {
+      display: inline-block;
+      color: var(--j-violet);
+      animation: j-blink 0.65s step-end infinite;
+    }
     @keyframes j-blink { 50% { opacity: 0; } }
 
-    /* Thinking */
+    /* ── Thinking bubble ── */
     .j-thinking-row { align-items: center; }
-    .j-thinking-avatar { animation: j-avatar-pulse 1.8s ease-in-out infinite; }
-    @keyframes j-avatar-pulse {
-      0%,100% { opacity: 1; }
-      50%      { opacity: 0.65; }
+    .j-thinking-avatar {
+      animation: j-think-avatar 1.6s ease-in-out infinite;
     }
-    .j-thinking {
-      display: flex; align-items: center; gap: 6px;
-      padding: 9px 13px;
-      background: linear-gradient(135deg, #f5f3ff, #ede9fe);
-      border: 1px solid rgba(99,102,241,0.15);
-      border-radius: 14px; border-bottom-left-radius: 3px;
+    @keyframes j-think-avatar {
+      0%,100% { opacity: 1; box-shadow: 0 0 8px rgba(155,89,245,0.3); }
+      50%      { opacity: 0.7; box-shadow: 0 0 16px rgba(155,89,245,0.6); }
+    }
+    .j-thinking-bubble {
+      display: flex; align-items: center; gap: 7px;
+      padding: 10px 14px;
+      background: rgba(26,22,66,0.85);
+      border: 1px solid rgba(155,89,245,0.2);
+      border-radius: 16px; border-bottom-left-radius: 4px;
+      backdrop-filter: blur(8px);
     }
     .j-dot {
       width: 5px; height: 5px; border-radius: 50%;
-      background: #7c3aed; flex-shrink: 0;
-      animation: j-bounce 1.1s infinite;
+      background: var(--j-violet); flex-shrink: 0;
+      animation: j-dots 1.2s ease-in-out infinite;
     }
-    .j-dot:nth-child(2) { animation-delay: 0.16s; }
-    .j-dot:nth-child(3) { animation-delay: 0.32s; }
-    @keyframes j-bounce {
-      0%,80%,100% { transform: translateY(0); }
-      40%          { transform: translateY(-5px); }
+    .j-dot:nth-child(2) { animation-delay: 0.18s; }
+    .j-dot:nth-child(3) { animation-delay: 0.36s; }
+    @keyframes j-dots {
+      0%,80%,100% { transform: translateY(0); opacity: 0.4; }
+      40%          { transform: translateY(-6px); opacity: 1; }
     }
-    .j-thinking-text {
-      font-size: 11.5px; color: #6d28d9; font-style: italic;
-      animation: j-fade 0.4s ease;
+    .j-thinking-phrase {
+      font-size: 11.5px; color: var(--j-lavender); font-style: italic;
+      animation: j-phrase-in 0.4s ease;
     }
-    @keyframes j-fade { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes j-phrase-in { from { opacity: 0; } to { opacity: 1; } }
 
-    /* Error */
-    .j-error {
-      display: flex; align-items: center; gap: 6px;
-      padding: 7px 10px; border-radius: 8px;
-      background: #fef2f2; border: 1px solid #fecaca;
-      color: #dc2626; font-size: 11.5px;
+    /* ── Error ── */
+    .j-error-bar {
+      display: flex; align-items: center; gap: 7px;
+      padding: 8px 12px; border-radius: 10px;
+      background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3);
+      color: #fca5a5; font-size: 11.5px;
     }
-    .j-error button { margin-left: auto; background: none; border: none; color: #dc2626; cursor: pointer; }
+    .j-error-bar button { margin-left: auto; background: none; border: none; color: #fca5a5; cursor: pointer; }
 
-    /* ── Input ─────────────────────────────────────────────── */
-    .j-input-wrap {
-      padding: 8px 10px;
-      border-top: 1px solid rgba(99,102,241,0.1);
-      background: #fff; flex-shrink: 0;
+    /* ═══════════════════════════════════════════════
+       INPUT ZONE
+       ═══════════════════════════════════════════════ */
+    .j-input-zone {
+      padding: 10px 12px 12px;
+      background: linear-gradient(180deg, rgba(15,13,43,0.95) 0%, rgba(13,11,30,0.98) 100%);
+      border-top: 1px solid var(--j-border);
+      flex-shrink: 0; position: relative; z-index: 2;
     }
-    .j-input-row { display: flex; gap: 6px; align-items: center; }
+
+    .j-input-row { display: flex; gap: 7px; align-items: center; }
 
     .j-input {
-      flex: 1; padding: 8px 12px;
-      border-radius: 10px;
-      background: #f8faff;
-      border: 1px solid rgba(99,102,241,0.2);
-      color: #1e1b4b; font-size: 13px;
+      flex: 1; padding: 9px 14px;
+      border-radius: 12px;
+      background: rgba(155,89,245,0.08);
+      border: 1px solid rgba(155,89,245,0.22);
+      color: var(--j-white); font-size: 13px;
       outline: none; font-family: inherit;
-      transition: border-color 0.15s, background 0.15s;
+      transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
     }
-    .j-input::placeholder { color: #94a3b8; }
-    .j-input:focus { border-color: #6366f1; background: #fff; }
-    .j-input:disabled { opacity: 0.4; }
+    .j-input::placeholder { color: var(--j-muted); }
+    .j-input:focus {
+      border-color: var(--j-violet);
+      background: rgba(155,89,245,0.13);
+      box-shadow: 0 0 0 3px rgba(155,89,245,0.12);
+    }
+    .j-input:disabled { opacity: 0.3; }
 
-    .j-mic {
-      width: 36px; height: 36px; flex-shrink: 0; border-radius: 10px;
-      background: #f1f5f9; border: 1.5px solid rgba(99,102,241,0.18);
-      color: #6366f1; cursor: pointer;
+    /* Mic button */
+    .j-mic-btn {
+      width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
+      background: rgba(155,89,245,0.12);
+      border: 1.5px solid rgba(155,89,245,0.3);
+      color: var(--j-lavender); cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      transition: background 0.14s, transform 0.14s;
+      transition: all 0.16s;
     }
-    .j-mic:hover { background: #e0e7ff; transform: scale(1.06); }
+    .j-mic-btn:hover { background: rgba(155,89,245,0.22); color: #fff; transform: scale(1.05); }
     .j-mic-active {
-      background: #ef4444; border-color: #ef4444; color: #fff;
-      animation: j-mic-pulse 1.2s infinite;
+      background: rgba(239,68,68,0.2) !important;
+      border-color: rgba(239,68,68,0.6) !important;
+      color: #fca5a5 !important;
+      animation: j-mic-live 1.1s infinite;
     }
-    @keyframes j-mic-pulse {
+    @keyframes j-mic-live {
       0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
       50%      { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
     }
 
-    .j-send {
-      width: 36px; height: 36px; flex-shrink: 0; border-radius: 10px;
-      background: linear-gradient(135deg, #6366f1, #4f46e5);
-      border: none; color: #fff; cursor: pointer;
+    /* Send / Stop buttons */
+    .j-action-btn {
+      width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
+      border: none; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      transition: opacity 0.14s, transform 0.14s;
+      transition: all 0.16s;
     }
-    .j-send:hover:not(:disabled) { opacity: 0.88; transform: scale(1.06); }
-    .j-send:disabled { opacity: 0.28; cursor: not-allowed; }
-
-    .j-stop {
-      width: 36px; height: 36px; flex-shrink: 0; border-radius: 10px;
-      background: #fef2f2; border: 1.5px solid #fca5a5;
-      color: #dc2626; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      animation: j-speak-pulse 1.4s infinite;
+    .j-send-btn {
+      background: linear-gradient(135deg, #7c3aed, #5b21b6);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(124,58,237,0.4);
     }
-    @keyframes j-speak-pulse {
-      0%,100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.3); }
-      50%      { box-shadow: 0 0 0 4px rgba(220,38,38,0); }
+    .j-send-btn:hover:not(:disabled) { transform: scale(1.06); box-shadow: 0 6px 18px rgba(124,58,237,0.55); }
+    .j-send-btn:disabled { opacity: 0.25; cursor: not-allowed; box-shadow: none; }
+    .j-stop-btn {
+      background: rgba(239,68,68,0.15);
+      border: 1.5px solid rgba(239,68,68,0.4);
+      color: #fca5a5;
+      animation: j-stop-pulse 1.4s infinite;
+    }
+    @keyframes j-stop-pulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.3); }
+      50%      { box-shadow: 0 0 0 4px rgba(239,68,68,0); }
     }
 
     /* Listening bar */
     .j-listen-bar {
-      display: flex; align-items: center; gap: 8px;
-      padding: 7px 10px;
-      background: linear-gradient(135deg, #fdf4ff, #ede9fe);
-      border: 1.5px solid rgba(139,92,246,0.3);
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px;
+      background: rgba(155,89,245,0.1);
+      border: 1.5px solid rgba(155,89,245,0.35);
       border-radius: 12px;
     }
-    .j-listen-wave { display: flex; gap: 2px; align-items: center; height: 18px; flex-shrink: 0; }
-    .j-listen-wave i {
-      display: block; width: 3px; border-radius: 2px;
-      background: #7c3aed; animation: j-wave 0.6s ease-in-out infinite;
+    .j-listen-orb {
+      display: flex; gap: 3px; align-items: center; height: 20px; flex-shrink: 0;
     }
-    .j-listen-wave i:nth-child(1) { height: 5px; }
-    .j-listen-wave i:nth-child(2) { height: 12px; animation-delay: 0.1s; }
-    .j-listen-wave i:nth-child(3) { height: 18px; animation-delay: 0.2s; }
-    .j-listen-wave i:nth-child(4) { height: 10px; animation-delay: 0.3s; }
-    .j-listen-wave i:nth-child(5) { height: 6px;  animation-delay: 0.4s; }
-    @keyframes j-wave {
-      0%,100% { transform: scaleY(0.5); opacity: 0.7; }
-      50%      { transform: scaleY(1.3); opacity: 1; }
+    .j-listen-orb span {
+      display: block; width: 3px; border-radius: 2px;
+      background: var(--j-violet);
+      animation: j-bar 0.65s ease-in-out infinite;
+    }
+    .j-listen-orb span:nth-child(1) { height: 8px; }
+    .j-listen-orb span:nth-child(2) { height: 18px; animation-delay: 0.1s; }
+    .j-listen-orb span:nth-child(3) { height: 10px; animation-delay: 0.2s; }
+    @keyframes j-bar {
+      0%,100% { transform: scaleY(0.5); opacity: 0.6; }
+      50%      { transform: scaleY(1.4); opacity: 1; }
     }
     .j-listen-text {
-      flex: 1; font-size: 12px; color: #4c1d95;
-      font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      flex: 1; font-size: 12px; color: var(--j-lavender); font-style: italic;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
     .j-done-btn {
-      padding: 4px 12px; border-radius: 7px;
-      background: #7c3aed; color: #fff;
-      border: none; font-size: 12px; font-weight: 600;
-      cursor: pointer; flex-shrink: 0;
+      padding: 5px 14px; border-radius: 8px;
+      background: linear-gradient(135deg, #7c3aed, #5b21b6);
+      color: #fff; border: none; font-size: 12px; font-weight: 700;
+      cursor: pointer; flex-shrink: 0; transition: opacity 0.14s;
     }
     .j-done-btn:hover { opacity: 0.88; }
 
     /* Voice error */
     .j-voice-err {
       display: flex; align-items: center; justify-content: space-between;
-      margin-top: 5px; padding: 5px 8px; border-radius: 7px;
-      background: #fff7ed; border: 1px solid rgba(249,115,22,0.2);
-      font-size: 11px; color: #92400e;
+      margin-top: 6px; padding: 5px 10px; border-radius: 8px;
+      background: rgba(249,115,22,0.1); border: 1px solid rgba(249,115,22,0.25);
+      font-size: 11px; color: #fdba74;
     }
-    .j-voice-err button { background: none; border: none; color: #c2410c; cursor: pointer; font-size: 12px; }
+    .j-voice-err button { background: none; border: none; color: #fb923c; cursor: pointer; }
 
     /* Session limit */
-    .j-limit {
-      display: flex; align-items: center; justify-content: center; gap: 6px;
-      padding: 9px 12px;
-      background: #fef2f2; border-radius: 10px; border: 1px solid #fecaca;
-      font-size: 12px; color: #dc2626; font-weight: 600;
+    .j-limit-banner {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 10px 14px;
+      background: rgba(245,200,66,0.08); border-radius: 11px;
+      border: 1px solid rgba(245,200,66,0.25);
+      font-size: 12px; color: var(--j-gold); font-weight: 600;
     }
-    .j-limit button {
-      background: #dc2626; color: #fff; border: none;
-      padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;
+    .j-limit-banner button {
+      background: rgba(245,200,66,0.18); color: var(--j-gold);
+      border: 1px solid rgba(245,200,66,0.3);
+      padding: 3px 11px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;
+    }
+    .j-limit-banner button:hover { background: rgba(245,200,66,0.28); }
+
+    /* Footer tag */
+    .j-footer-tag {
+      text-align: center; font-size: 9.5px; color: var(--j-muted);
+      opacity: 0.55; margin: 6px 0 0; letter-spacing: 0.04em;
     }
 
-    /* Mobile */
+    /* ═══════════════════════════════════════════════
+       MOBILE
+       ═══════════════════════════════════════════════ */
     @media (max-width: 480px) {
-      .j-panel { width: calc(100vw - 16px); right: 8px; bottom: 76px; height: 70vh; }
+      .j-panel { width: calc(100vw - 16px); right: 8px; bottom: 74px; height: 72vh; border-radius: 18px; }
       .j-fab   { right: 10px; bottom: 10px; }
-      .j-chips { flex-direction: column; }
+      .j-chips { flex-direction: column; align-items: stretch; }
+      .j-chip  { text-align: center; }
     }
   `]
 })
@@ -521,10 +764,11 @@ export class AstroAgentComponent implements AfterViewChecked, OnDestroy {
   private readonly _THINKING = [
     'Consulting the stars…',
     'Reading cosmic patterns…',
-    'Checking planetary positions…',
+    'Aligning the planets…',
     'Tuning into your energy…',
     'The universe is speaking…',
-    'Feeling the vibration…',
+    'Feeling your vibration…',
+    'The cosmos is answering…',
   ];
   thinkingPhrase = signal(this._THINKING[0]);
   private _thinkingTimer: ReturnType<typeof setInterval> | null = null;
@@ -543,17 +787,15 @@ export class AstroAgentComponent implements AfterViewChecked, OnDestroy {
   }
 
   private _lastMsgCount = 0;
-
   @ViewChild('scrollRef') private readonly scrollRef!: ElementRef<HTMLDivElement>;
 
-  // No emoji in quick prompts — TTS reads them as words
   readonly quickPrompts = [
     'How is my day today?',
     'What is my Life Path number?',
     'What does Heart Line mean?',
     'Tell me about Vastu Shastra',
-    'What is Aries compatibility?',
-    'What do remedies include?',
+    'Is Aries compatible with Scorpio?',
+    'What remedies does my reading include?',
   ];
 
   safeHtml(text: string): SafeHtml {
