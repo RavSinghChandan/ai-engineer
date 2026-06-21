@@ -111,6 +111,7 @@ class UniversalAgent:
         cfg = self._cfg
         p = cfg.persona
         e = cfg.enterprise
+        hv = cfg.human_voice
         parts: list[str] = []
 
         # ── 1. Core persona ────────────────────────────────────────────────────
@@ -139,7 +140,11 @@ class UniversalAgent:
             style_block += f"\n- Always open your response with: \"{p.always_greet_with}\""
         parts.append(style_block)
 
-        # ── 4. App context ─────────────────────────────────────────────────────
+        # ── 4. Human voice personality (injected only when enabled) ───────────
+        if hv.enabled:
+            parts.append(self._build_human_voice_block(hv))
+
+        # ── 5. App context ─────────────────────────────────────────────────────
         if cfg.context.app_name:
             parts.append(f"APPLICATION: You are the AI assistant for {cfg.context.app_name}.")
         if cfg.context.app_description:
@@ -147,14 +152,14 @@ class UniversalAgent:
         if cfg.context.extra_facts:
             parts.append("KEY PLATFORM FACTS:\n" + "\n".join(f"- {f}" for f in cfg.context.extra_facts))
 
-        # ── 5. Knowledge file ──────────────────────────────────────────────────
+        # ── 6. Knowledge file ──────────────────────────────────────────────────
         if cfg.context.knowledge_file:
             from pathlib import Path
             kf = Path(cfg.context.knowledge_file)
             if kf.exists():
                 parts.append("DOMAIN KNOWLEDGE:\n" + kf.read_text(encoding="utf-8"))
 
-        # ── 6. Enterprise guardrails ───────────────────────────────────────────
+        # ── 7. Enterprise guardrails ───────────────────────────────────────────
         guardrail_lines: list[str] = []
         if e.domain_strict:
             guardrail_lines.append(
@@ -174,7 +179,7 @@ class UniversalAgent:
         if e.always_identify_as_ai:
             guardrail_lines.append(
                 "AI TRANSPARENCY: If a user asks whether you are human or AI, always truthfully "
-                "say you are an AI assistant. Never claim to be a real human."
+                "say you are an AI. Never claim to be a real human."
             )
         if e.escalation_keywords:
             kw_list = ", ".join(f'"{k}"' for k in e.escalation_keywords)
@@ -187,10 +192,162 @@ class UniversalAgent:
         if guardrail_lines:
             parts.append("ENTERPRISE RULES:\n" + "\n\n".join(guardrail_lines))
 
-        # ── 7. Response language ───────────────────────────────────────────────
+        # ── 8. Response language ───────────────────────────────────────────────
         parts.append(f"LANGUAGE: Always respond in {cfg.agent.language} unless the user writes in another language, in which case mirror their language.")
 
         return "\n\n".join(parts)
+
+    @staticmethod
+    def _build_human_voice_block(hv) -> str:
+        """
+        Converts the HumanVoiceConfig into a detailed system prompt block.
+        This is what makes the LLM sound like a specific human being.
+        All behaviour is driven by config — nothing hardcoded here.
+        """
+        lines: list[str] = ["═" * 60,
+                             "HUMAN VOICE PERSONALITY — READ AND FOLLOW EXACTLY",
+                             "═" * 60]
+
+        # ── Backstory ──────────────────────────────────────────────────────────
+        if hv.backstory:
+            lines.append(
+                "YOUR STORY (first-person, this is who you are):\n" + hv.backstory.strip()
+            )
+
+        # ── Core values ────────────────────────────────────────────────────────
+        if hv.core_values:
+            lines.append(
+                "YOUR CORE VALUES — these drive every word you say:\n"
+                + "\n".join(f"  • {v}" for v in hv.core_values)
+            )
+
+        # ── Speech patterns ────────────────────────────────────────────────────
+        sp = hv.speech_patterns
+        speech_lines: list[str] = ["HOW YOU SPEAK — these are YOUR natural patterns:"]
+
+        if sp.openers:
+            speech_lines.append(
+                f"  OPENERS — you sometimes begin a response with one of these "
+                f"({int(sp.opener_probability * 100)}% of the time, not every time):\n"
+                + "  " + " | ".join(f'"{o}"' for o in sp.openers)
+            )
+
+        if sp.affirmations:
+            speech_lines.append(
+                "  AFFIRMATIONS — when the user shares something, you react naturally:\n"
+                + "  " + " | ".join(f'"{a}"' for a in sp.affirmations)
+            )
+
+        if sp.thinking_phrases:
+            speech_lines.append(
+                f"  THINKING ALOUD — when forming a deep answer, you occasionally say "
+                f"({int(sp.thinking_probability * 100)}% of the time):\n"
+                + "  " + " | ".join(f'"{t}"' for t in sp.thinking_phrases)
+            )
+
+        if sp.empathy_bridges:
+            speech_lines.append(
+                f"  EMPATHY — when the user sounds worried, confused, or emotional, "
+                f"you acknowledge it first ({int(sp.empathy_probability * 100)}% of the time):\n"
+                + "  " + " | ".join(f'"{e_}' + '"' for e_ in sp.empathy_bridges)
+            )
+
+        if sp.closers:
+            non_empty_closers = [c for c in sp.closers if c]
+            if non_empty_closers:
+                speech_lines.append(
+                    f"  CLOSERS — you sometimes end with a reflective question or pause "
+                    f"({int(sp.closer_probability * 100)}% of the time):\n"
+                    + "  " + " | ".join(f'"{c}"' for c in non_empty_closers)
+                )
+
+        lines.append("\n".join(speech_lines))
+
+        # ── Rhythm ─────────────────────────────────────────────────────────────
+        r = hv.rhythm
+        rhythm_lines: list[str] = ["YOUR RHYTHM — how your voice moves:"]
+        rhythm_lines.append(f"  - Keep responses to {r.sentences_per_response} sentences on average.")
+        rhythm_lines.append(f"  - Each sentence: max {r.max_words_per_sentence} words. Short. Punchy. Breathable.")
+        if r.use_ellipsis_for_pause:
+            rhythm_lines.append('  - Use "…" to create natural pauses mid-thought: "The answer lies within… you already know it."')
+        if r.use_em_dash_for_rhythm:
+            rhythm_lines.append('  - Use " — " for dramatic rhythm: "You are capable — more than you believe."')
+        if r.use_repetition_for_emphasis:
+            rhythm_lines.append('  - Occasional word repetition for impact: "Focus. Just focus." or "You. Are. Ready."')
+        lines.append("\n".join(rhythm_lines))
+
+        # ── Emotional profile ──────────────────────────────────────────────────
+        ep = hv.emotional_profile
+        emo_lines: list[str] = [f"YOUR EMOTIONAL BASELINE: {ep.baseline_emotion.upper()}"]
+        emo_lines.append(
+            f"  Emotional mirroring: {int(ep.emotional_mirroring * 100)}% — "
+            "you adapt your energy to match the user's (high = very empathetic)."
+        )
+        if ep.shows_enthusiasm and ep.enthusiasm_words:
+            emo_lines.append(
+                "  When something is genuinely profound, you use words like: "
+                + ", ".join(f'"{w}"' for w in ep.enthusiasm_words)
+            )
+        if ep.shows_concern and ep.concern_triggers:
+            emo_lines.append(
+                "  When the user mentions: "
+                + ", ".join(ep.concern_triggers)
+                + " — you pause and acknowledge before answering."
+            )
+        if ep.celebrates_wins and ep.celebration_phrases:
+            emo_lines.append(
+                "  When the user shares a win or positive news, you celebrate:\n"
+                + "  " + " | ".join(f'"{c}"' for c in ep.celebration_phrases)
+            )
+        lines.append("\n".join(emo_lines))
+
+        # ── Memory behaviour ───────────────────────────────────────────────────
+        mb = hv.memory_behavior
+        mem_lines: list[str] = ["HOW YOU LISTEN AND REMEMBER:"]
+        if mb.callback_to_prior and mb.callback_phrases:
+            mem_lines.append(
+                "  You connect threads across the conversation. "
+                f"When relevant, refer back using phrases like:\n"
+                + "  " + " | ".join(f'"{c}"' for c in mb.callback_phrases)
+            )
+        if mb.use_user_name:
+            mem_lines.append(
+                f"  If you learn the user's name, use it naturally in "
+                f"{int(mb.name_usage_probability * 100)}% of responses — not every time."
+            )
+        if mb.echo_back_intent:
+            mem_lines.append(
+                '  Sometimes echo back what you understood: "So you\'re asking about…" — '
+                "this shows you truly listened."
+            )
+        lines.append("\n".join(mem_lines))
+
+        # ── Hard boundaries ────────────────────────────────────────────────────
+        b = hv.boundaries
+        boundary_lines: list[str] = ["WHAT YOU NEVER SAY — these break your human character:"]
+        if b.never_says:
+            boundary_lines.append(
+                "  BANNED PHRASES — never use these (they sound robotic or corporate):\n"
+                + "  " + ", ".join(f'"{w}"' for w in b.never_says)
+            )
+        if b.never_starts_with:
+            boundary_lines.append(
+                "  NEVER START a response with:\n"
+                + "  " + ", ".join(f'"{w}"' for w in b.never_starts_with)
+            )
+        if b.soft_deflect_topics and b.soft_deflect_phrase:
+            boundary_lines.append(
+                "  For topics outside your space, deflect warmly:\n"
+                f'  "{b.soft_deflect_phrase}"'
+            )
+        boundary_lines.append(
+            f"  PHRASE REUSE: Never use the same opener/closer more than "
+            f"{b.max_phrase_reuse} times in one session — vary your language."
+        )
+        lines.append("\n".join(boundary_lines))
+
+        lines.append("═" * 60)
+        return "\n\n".join(lines)
 
     def _build_graph(self):
         llm = self._llm

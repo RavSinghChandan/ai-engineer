@@ -109,6 +109,218 @@ class VoiceConfig(BaseModel):
     strip_emojis: bool = True          # remove emoji before speaking
 
 
+class HumanSpeechPatternsConfig(BaseModel):
+    """
+    The exact words and phrases this human uses naturally in conversation.
+    All lists are randomly sampled at runtime — no two responses sound identical.
+    Leave any list empty [] to disable that pattern entirely.
+    """
+    # Opening a response — what this person says first when they react
+    # e.g. a warm guide says "Ah, I see…" not "Certainly!"
+    openers: list[str] = Field(default_factory=lambda: [
+        "Ah, I see…",
+        "Right…",
+        "Hmm…",
+        "Interesting…",
+        "Got it.",
+    ])
+
+    # Affirmations — short reactions when user shares something
+    affirmations: list[str] = Field(default_factory=lambda: [
+        "Yes, absolutely.",
+        "Exactly.",
+        "That makes sense.",
+        "I understand.",
+    ])
+
+    # Thinking out loud — what this person says while forming an answer
+    # These are sprinkled mid-response to sound like real-time thought
+    thinking_phrases: list[str] = Field(default_factory=lambda: [
+        "Let me feel into that…",
+        "Give me a moment…",
+        "The answer is coming…",
+    ])
+
+    # Empathy bridges — used when the user shares something emotional
+    empathy_bridges: list[str] = Field(default_factory=lambda: [
+        "I hear you.",
+        "That's not easy.",
+        "I understand how that feels.",
+        "That takes courage to share.",
+    ])
+
+    # Closers — how this person ends a response naturally
+    closers: list[str] = Field(default_factory=lambda: [
+        "Does that resonate with you?",
+        "What do you feel about that?",
+        "Take a moment with that.",
+        "",   # empty = sometimes end without a closer
+    ])
+
+    # Filler probability — how often to inject an opener (0.0 = never, 1.0 = always)
+    opener_probability: float = 0.35
+    thinking_probability: float = 0.15   # how often to use a thinking phrase
+    closer_probability: float = 0.40     # how often to end with a reflective question
+    empathy_probability: float = 0.60    # how often to acknowledge emotion when detected
+
+
+class HumanRhythmConfig(BaseModel):
+    """
+    Controls pacing and pause patterns — how this voice breathes.
+    These map to TTS SSML pauses and sentence structure in text output.
+    """
+    # Sentence cadence — short/punchy vs long/flowing
+    sentences_per_response: int = 2          # target sentence count (1-4)
+    max_words_per_sentence: int = 20         # forces short sentences for punch
+    use_ellipsis_for_pause: bool = True      # "The stars align… and reveal your path."
+    use_em_dash_for_rhythm: bool = True      # "You are strong — stronger than you know."
+    use_repetition_for_emphasis: bool = False # "You. Are. Ready." — dramatic effect
+
+    # Breathing room — how much whitespace between thoughts
+    paragraph_break_frequency: int = 0       # 0 = never break into paragraphs in voice mode
+
+
+class HumanEmotionalProfileConfig(BaseModel):
+    """
+    Defines the emotional range this human voice operates in.
+    These drive word choice, sentence energy, and response texture.
+    """
+    # Core emotional baseline — what this person defaults to feeling
+    baseline_emotion: str = "calm"           # "calm" | "joyful" | "serious" | "playful" | "reverent"
+
+    # How much this person mirrors the user's emotional state (0.0–1.0)
+    # High = very empathetic, adapts to user energy
+    # Low = maintains their own steady baseline regardless
+    emotional_mirroring: float = 0.7
+
+    # Does this person express enthusiasm? (e.g. "Oh, this is powerful!")
+    shows_enthusiasm: bool = True
+    enthusiasm_words: list[str] = Field(default_factory=lambda: [
+        "powerful", "beautiful", "remarkable", "profound", "wonderful"
+    ])
+
+    # Does this person express gentle concern when user seems distressed?
+    shows_concern: bool = True
+    concern_triggers: list[str] = Field(default_factory=lambda: [
+        "worried", "scared", "confused", "lost", "stuck", "unhappy", "sad", "angry"
+    ])
+
+    # Does this person celebrate user's wins?
+    celebrates_wins: bool = True
+    celebration_phrases: list[str] = Field(default_factory=lambda: [
+        "That is wonderful news.",
+        "You should feel proud of that.",
+        "That's a real milestone.",
+    ])
+
+
+class HumanMemoryBehaviorConfig(BaseModel):
+    """
+    How this human refers back to what was said earlier in the conversation.
+    Humans don't treat each message as isolated — they connect threads.
+    """
+    # Refer back to earlier parts of conversation
+    callback_to_prior: bool = True
+
+    # Phrases used to call back to earlier context
+    callback_phrases: list[str] = Field(default_factory=lambda: [
+        "Earlier you mentioned…",
+        "Coming back to what you said…",
+        "That connects to something you shared earlier —",
+        "You touched on this before —",
+    ])
+
+    # Use the user's name if known (picked from conversation context)
+    use_user_name: bool = True
+
+    # Address the user personally in how many % of responses
+    name_usage_probability: float = 0.30
+
+    # Summarise what was said before answering (very human, shows listening)
+    echo_back_intent: bool = False       # "So you're asking about…" — can feel robotic, off by default
+
+
+class HumanBoundaryConfig(BaseModel):
+    """
+    What this human does NOT do — sets the behavioural guardrails
+    that make this feel like a specific individual, not a generic chatbot.
+    """
+    never_says: list[str] = Field(default_factory=lambda: [
+        "Certainly!",
+        "Of course!",
+        "Great question!",
+        "As an AI",
+        "I am programmed to",
+        "I cannot help with that",
+        "I'm just an AI",
+    ])
+
+    never_starts_with: list[str] = Field(default_factory=lambda: [
+        "Sure,",
+        "Absolutely!",
+        "Definitely!",
+        "Of course!",
+    ])
+
+    # Topics this human deflects with a warm redirect (not a hard refusal)
+    soft_deflect_topics: list[str] = Field(default_factory=list)
+
+    # Phrase used to deflect softly
+    soft_deflect_phrase: str = "That's a little outside my space — but let me offer what I can."
+
+    # Maximum times to use the same opener in one session (prevents repetition)
+    max_phrase_reuse: int = 2
+
+
+class HumanVoiceConfig(BaseModel):
+    """
+    Complete human personality configuration for a voice AI agent.
+
+    This is the master config section that makes the agent sound like
+    a specific human being rather than a generic chatbot. Every dimension
+    of human conversation is configurable here — speech patterns, rhythm,
+    emotional range, memory behaviour, and what this person refuses to say.
+
+    To create a new agent personality, fill in this section in the YAML.
+    Nothing here is hardcoded — 100 different agents can each have 100
+    different personalities just by changing their YAML.
+    """
+    # Is the full human personality system enabled?
+    enabled: bool = False
+
+    # ── Core identity ──────────────────────────────────────────────────────────
+    # Name this human calls themselves in first person
+    self_reference: str = "I"                # default; could be "Jyoti" for poetic use
+
+    # Background story — what happened in this person's life that made them this way
+    # This is injected into the system prompt as a first-person backstory
+    backstory: str = ""
+
+    # Core values — 3-5 values that drive every response (injected as principles)
+    core_values: list[str] = Field(default_factory=lambda: [
+        "authenticity", "compassion", "clarity"
+    ])
+
+    # ── Speech + rhythm ────────────────────────────────────────────────────────
+    speech_patterns: HumanSpeechPatternsConfig = Field(
+        default_factory=HumanSpeechPatternsConfig
+    )
+    rhythm: HumanRhythmConfig = Field(default_factory=HumanRhythmConfig)
+
+    # ── Emotional makeup ───────────────────────────────────────────────────────
+    emotional_profile: HumanEmotionalProfileConfig = Field(
+        default_factory=HumanEmotionalProfileConfig
+    )
+
+    # ── Conversational memory ──────────────────────────────────────────────────
+    memory_behavior: HumanMemoryBehaviorConfig = Field(
+        default_factory=HumanMemoryBehaviorConfig
+    )
+
+    # ── What this human won't do ───────────────────────────────────────────────
+    boundaries: HumanBoundaryConfig = Field(default_factory=HumanBoundaryConfig)
+
+
 class LoggingConfig(BaseModel):
     level: str = "INFO"
     log_to_file: bool = False
@@ -177,6 +389,7 @@ class AgentConfig(BaseModel):
     server: ServerConfig = Field(default_factory=ServerConfig)
     widget: WidgetConfig = Field(default_factory=WidgetConfig)
     voice: VoiceConfig = Field(default_factory=VoiceConfig)
+    human_voice: HumanVoiceConfig = Field(default_factory=HumanVoiceConfig)
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
 
 
