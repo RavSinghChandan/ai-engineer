@@ -94,12 +94,12 @@
       <div class="card">
         <div class="card__body">
           @for (step of r.steps; track step.step_number) {
-            <div class="step-item" [class.step-item--critical]="r.critical_path.includes(step.step_number)">
+            <div class="step-item" [class.step-item--critical]="r.critical_path?.includes(step.step_number)">
               <div class="step-item__number">{{ step.step_number }}</div>
               <div class="step-item__body">
                 <div class="step-item__title">
                   {{ step.title }}
-                  @if (r.critical_path.includes(step.step_number)) {
+                  @if (r.critical_path?.includes(step.step_number)) {
                     <span class="badge badge--red" style="margin-left:8px">Critical</span>
                   }
                 </div>
@@ -119,7 +119,7 @@
           <div class="card__body">
             <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
               @for (n of r.execution_order; track n; let last = $last) {
-                <span class="badge" [class]="r.critical_path.includes(n) ? 'badge--red' : 'badge--blue'">Step {{ n }}</span>
+                <span class="badge" [class]="r.critical_path?.includes(n) ? 'badge--red' : 'badge--blue'">Step {{ n }}</span>
                 @if (!last) { <span style="color:var(--color-text-tertiary)">→</span> }
               }
             </div>
@@ -128,13 +128,21 @@
         <div class="card">
           <div class="card__header"><h3>Parallel Groups</h3></div>
           <div class="card__body">
-            @for (wave of r.parallel_groups; track $index) {
+            @for (wave of r.parallel_execution_plan; track wave.wave) {
               <div style="margin-bottom:10px">
-                <div style="font-size:0.75rem;font-weight:600;color:var(--color-text-tertiary);text-transform:uppercase;margin-bottom:6px">Wave {{ $index + 1 }}</div>
+                <div style="font-size:0.75rem;font-weight:600;color:var(--color-text-tertiary);text-transform:uppercase;margin-bottom:6px">
+                  Wave {{ wave.wave }}
+                  @if (wave.can_run_in_parallel) { <span style="color:var(--color-success);font-weight:500;text-transform:none;margin-left:6px">· parallel</span> }
+                </div>
                 <div style="display:flex;flex-wrap:wrap;gap:6px">
-                  @for (s of wave; track s) { <span class="badge badge--blue">Step {{ s }}</span> }
+                  @for (s of wave.steps; track s.step_number) {
+                    <span class="badge badge--blue" [title]="s.title">Step {{ s.step_number }}</span>
+                  }
                 </div>
               </div>
+            }
+            @if (!r.parallel_execution_plan.length) {
+              <div style="color:var(--color-text-tertiary);font-size:0.875rem">No parallel groups available.</div>
             }
           </div>
         </div>

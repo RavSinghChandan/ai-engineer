@@ -66,6 +66,12 @@ export interface GraphAnalysis {
   estimated_parallel_duration_minutes: number;
 }
 
+export interface ParallelWave {
+  wave: number;
+  can_run_in_parallel: boolean;
+  steps: { step_number: number; title: string }[];
+}
+
 export interface QueryResponse {
   runbook_id: number;
   runbook_title: string;
@@ -73,11 +79,12 @@ export interface QueryResponse {
   severity: string;
   estimated_duration_minutes: number;
   triage_summary: string;
+  prerequisites: string[];
   execution_order: number[];
   steps: RunbookStep[];
   rollback_steps: RunbookStep[];
-  critical_path: number[];
-  parallel_groups: number[][];
+  critical_path: number[] | null;
+  parallel_execution_plan: ParallelWave[];
   total_steps: number;
   commands_source: string;
   source: string;
