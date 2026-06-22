@@ -1,3 +1,109 @@
+/* ── Hero search area ── */
+.query-hero {
+  margin-bottom: 32px;
+  text-align: center;
+
+  &__heading {
+    margin-bottom: 20px;
+
+    .page-title {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--color-text-primary);
+    }
+
+    .page-subtitle {
+      margin-top: 6px;
+      font-size: 1rem;
+      color: var(--color-text-secondary);
+    }
+  }
+}
+
+.query-search-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl, 24px);
+  border: 1.5px solid rgba(0,0,0,0.10);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 8px 32px rgba(0,0,0,0.04);
+  padding: 20px 24px 18px;
+  text-align: left;
+  transition: border-color 200ms, box-shadow 200ms;
+
+  &:focus-within {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 4px rgba(0,113,227,0.12), 0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  &__inner {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  &__icon {
+    flex-shrink: 0;
+    margin-top: 14px;
+  }
+}
+
+.query-textarea {
+  flex: 1;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  color: var(--color-text-primary);
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  min-height: 52px;
+  line-height: 1.6;
+  padding: 8px 0;
+  width: 100%;
+
+  &::placeholder {
+    color: var(--color-text-tertiary);
+  }
+}
+
+.query-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(0,0,0,0.06);
+}
+
+.query-chips__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+}
+
+.query-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  justify-content: flex-end;
+}
+
+.query-submit {
+  padding: 10px 24px;
+  font-size: 0.9rem;
+}
+
+.query-hint {
+  font-size: 0.78rem;
+  color: var(--color-text-tertiary);
+}
+
+/* ── Example chips ── */
 .example-chip {
   background: var(--color-surface-secondary);
   border: 1px solid var(--color-border);

@@ -4,6 +4,7 @@ from typing import List, Optional, TypedDict
 class QueryState(TypedDict, total=False):
     # Input
     incident_text: str
+    tenant_id: Optional[int]
 
     # After incident classification
     category: str

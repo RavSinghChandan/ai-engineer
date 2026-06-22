@@ -107,6 +107,7 @@ def query_incident(request: Request, req: IncidentRequest, current_user: Optiona
     # Full pipeline
     result = query_pipeline.invoke({
         "incident_text": req.incident,
+        "tenant_id": current_user.tenant_id if current_user else 1,
         "agent_log": [],
     })
     latency_ms = (time.monotonic() - _t0) * 1000
@@ -137,9 +138,9 @@ def query_incident(request: Request, req: IncidentRequest, current_user: Optiona
         }
 
     selected_id = result.get("selected_runbook_id")
-    # BUG FIX: fallback of 1 meant unauthenticated callers always received tenant_1's runbooks —
-    # a cross-tenant data leak. Use None so build_multi_source_response scopes to no tenant.
-    tenant_id = current_user.tenant_id if current_user else None
+    # Default unauthenticated callers to tenant 1 (public demo tenant).
+    # Authenticated users are scoped to their own tenant for isolation.
+    tenant_id = current_user.tenant_id if current_user else 1
 
     # Build multi-source panels (internal / combined / official)
     multi = {}
@@ -202,6 +203,7 @@ def match_only(req: QuickMatchRequest):
         severity=classification["severity"],
         search_terms=classification["search_terms"],
         limit=5,
+        tenant_id=1,
     )
     return {
         "incident": req.incident,

@@ -36,6 +36,7 @@ def _match_node(state: QueryState) -> QueryState:
         severity=state.get("severity", "P3"),
         search_terms=state.get("search_terms", []),
         limit=5,
+        tenant_id=state.get("tenant_id", 1),
     )
     state["matched_runbooks"] = matches
     state["selected_runbook_id"] = matches[0]["id"] if matches else None

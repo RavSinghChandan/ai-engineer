@@ -1,33 +1,45 @@
 <div class="page">
-  <div class="page-header">
-    <h1 class="page-title">Query Incident</h1>
-    <p class="page-subtitle">Describe the incident — get the right runbook steps instantly (RAGless SQL + graph)</p>
-  </div>
 
-  <!-- Query input -->
-  <div class="card" style="margin-bottom:24px">
-    <div class="card__body">
-      <div class="form-group" style="margin-bottom:16px">
-        <label for="incident-input">Describe the incident</label>
-        <textarea id="incident-input" class="textarea" rows="3" placeholder="e.g. Kubernetes pods are crashlooping after a deployment…"
-          [(ngModel)]="incident" (keydown.control.enter)="query()"></textarea>
+  <!-- Hero search area -->
+  <div class="query-hero">
+    <div class="query-hero__heading">
+      <h1 class="page-title">Query Incident</h1>
+      <p class="page-subtitle">Describe the incident — get the right runbook steps instantly</p>
+    </div>
+
+    <div class="query-search-card">
+      <div class="query-search-card__inner">
+        <!-- Search icon -->
+        <svg class="query-search-card__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" stroke="var(--color-text-tertiary)" stroke-width="2"/>
+          <path d="M20 20l-3-3" stroke="var(--color-text-tertiary)" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+
+        <textarea
+          id="incident-input"
+          class="query-textarea"
+          rows="2"
+          placeholder="e.g. Kubernetes pods are crashlooping after a deployment…"
+          [(ngModel)]="incident"
+          (keydown.control.enter)="query()"
+        ></textarea>
       </div>
-      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-        <button class="btn btn--primary" (click)="query()" [disabled]="loading || !incident.trim()">
+
+      <!-- Example chips -->
+      <div class="query-chips">
+        <span class="query-chips__label">Try:</span>
+        @for (ex of examples; track ex) {
+          <button class="example-chip" (click)="useExample(ex)">{{ ex }}</button>
+        }
+      </div>
+
+      <!-- Action row -->
+      <div class="query-actions">
+        <button class="btn btn--primary query-submit" (click)="query()" [disabled]="loading || !incident.trim()">
           @if (loading) { <span class="spinner" style="width:16px;height:16px;border-width:2px"></span> }
           {{ loading ? 'Querying…' : 'Find Runbook' }}
         </button>
-        <span style="font-size:0.8rem;color:var(--color-text-tertiary)">Ctrl+Enter to submit</span>
-      </div>
-
-      <!-- Examples -->
-      <div style="margin-top:16px">
-        <div style="font-size:0.75rem;font-weight:600;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Examples</div>
-        <div style="display:flex;flex-wrap:wrap;gap:8px">
-          @for (ex of examples; track ex) {
-            <button class="example-chip" (click)="useExample(ex)">{{ ex }}</button>
-          }
-        </div>
+        <span class="query-hint">Ctrl+Enter to submit</span>
       </div>
     </div>
   </div>

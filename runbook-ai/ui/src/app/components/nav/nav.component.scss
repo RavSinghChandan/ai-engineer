@@ -2,19 +2,20 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(255,255,255,0.85);
-  backdrop-filter: saturate(180%) blur(20px);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
-  border-bottom: 1px solid var(--color-border);
+  height: 56px;
+  background: var(--color-surface-glass, rgba(255,255,255,0.82));
+  backdrop-filter: var(--blur, saturate(180%) blur(24px));
+  -webkit-backdrop-filter: var(--blur, saturate(180%) blur(24px));
+  border-bottom: 1px solid rgba(0,0,0,0.08);
 
   &__inner {
-    max-width: 1200px;
+    max-width: 960px;
     margin: 0 auto;
-    padding: 0 32px;
-    height: 60px;
+    padding: 0 24px;
+    height: 56px;
     display: flex;
     align-items: center;
-    gap: 32px;
+    gap: 24px;
   }
 
   &__brand {
@@ -26,72 +27,130 @@
     flex-shrink: 0;
   }
 
-  &__logo { font-size: 1.25rem; }
+  &__shield {
+    display: block;
+    flex-shrink: 0;
+  }
 
   &__name {
     font-size: 1rem;
     font-weight: 700;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.025em;
     color: var(--color-text-primary);
-  }
-
-  &__phase {
-    font-size: 0.7rem;
-    font-weight: 600;
-    background: var(--color-accent-light);
-    color: var(--color-accent);
-    padding: 2px 8px;
-    border-radius: 999px;
-  }
-
-  &__user {
     display: flex;
     align-items: center;
-    gap: 12px;
-    flex-shrink: 0;
+    gap: 0;
   }
 
-  &__tenant {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-  }
-
-  &__tenant-name {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--color-text-primary);
-    max-width: 140px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  &__role {
-    font-size: 0.7rem;
-    color: var(--color-text-tertiary);
-    text-transform: uppercase;
+  &__ai-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-accent);
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 700;
     letter-spacing: 0.04em;
+    padding: 1px 5px;
+    border-radius: 4px;
+    margin-left: 3px;
+    vertical-align: middle;
+    line-height: 1.4;
   }
 
   &__links {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
     list-style: none;
     flex: 1;
+    margin: 0;
+    padding: 0;
 
     a {
-      padding: 6px 14px;
-      border-radius: var(--radius-sm);
-      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 12px;
+      border-radius: 980px;
+      font-size: 0.875rem;
       font-weight: 500;
       color: var(--color-text-secondary);
       text-decoration: none;
-      transition: all var(--transition);
+      transition: color 200ms var(--ease-standard, cubic-bezier(0.2,0,0,1)),
+                  background 200ms var(--ease-standard, cubic-bezier(0.2,0,0,1));
 
-      &:hover { color: var(--color-text-primary); background: var(--color-surface-secondary); }
-      &.active { color: var(--color-accent); background: var(--color-accent-light); }
+      &:hover {
+        color: var(--color-text-primary);
+        background: rgba(0,0,0,0.05);
+      }
+
+      &.active {
+        color: var(--color-accent);
+        background: var(--color-accent-light);
+        font-weight: 600;
+      }
+    }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  &__user-chip {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: rgba(0,0,0,0.04);
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 980px;
+    padding: 4px 12px 4px 4px;
+  }
+
+  &__avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  &__user-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__role-badge {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--color-accent-light);
+    color: var(--color-accent);
+  }
+
+  &__logout {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+
+    &:hover {
+      color: var(--color-danger);
+      background: var(--color-danger-light);
     }
   }
 }

@@ -1,8 +1,13 @@
 <nav class="nav">
   <div class="nav__inner">
+
     <a class="nav__brand" routerLink="/">
-      <span class="nav__logo">📋</span>
-      <span class="nav__name">RunbookAI</span>
+      <svg class="nav__shield" width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M12 2L3 6v6c0 5.25 3.75 10.17 9 11.25C17.25 22.17 21 17.25 21 12V6l-9-4z" fill="var(--color-accent)" opacity="0.15"/>
+        <path d="M12 2L3 6v6c0 5.25 3.75 10.17 9 11.25C17.25 22.17 21 17.25 21 12V6l-9-4z" stroke="var(--color-accent)" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M9 12l2 2 4-4" stroke="var(--color-accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="nav__name">Runbook<span class="nav__ai-badge">AI</span></span>
     </a>
 
     <ul class="nav__links">
@@ -12,5 +17,19 @@
       <li><a routerLink="/query" routerLinkActive="active">Query</a></li>
       <li><a routerLink="/multi" routerLinkActive="active">Multi-Runbook</a></li>
     </ul>
+
+    <div class="nav__actions">
+      @if (auth.user(); as u) {
+        <div class="nav__user-chip">
+          <span class="nav__avatar">{{ u.full_name[0]?.toUpperCase() }}</span>
+          <span class="nav__user-name">{{ u.full_name }}</span>
+          <span class="nav__role-badge">{{ u.role }}</span>
+        </div>
+        <button class="btn btn--ghost btn--sm nav__logout" (click)="logout()">Sign out</button>
+      } @else {
+        <a routerLink="/login" class="btn btn--primary btn--sm">Sign in</a>
+      }
+    </div>
+
   </div>
 </nav>

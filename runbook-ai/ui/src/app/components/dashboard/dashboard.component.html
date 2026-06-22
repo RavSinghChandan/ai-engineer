@@ -97,20 +97,37 @@
     <div class="quick-actions">
       <h3>Quick Actions</h3>
       <div class="grid grid--3" style="margin-top:16px">
-        <a routerLink="/ingest" class="action-card">
-          <div class="action-card__icon">📄</div>
+        <a routerLink="/ingest" class="action-card action-card--blue">
+          <div class="action-card__icon-wrap action-card__icon-wrap--blue">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+              <line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
+            </svg>
+          </div>
           <div class="action-card__title">Upload PDF</div>
           <div class="action-card__desc">Ingest a new runbook PDF for structured extraction</div>
+          <span class="action-card__arrow">→</span>
         </a>
-        <a routerLink="/query" class="action-card">
-          <div class="action-card__icon">🔍</div>
+        <a routerLink="/query" class="action-card action-card--green">
+          <div class="action-card__icon-wrap action-card__icon-wrap--green">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </div>
           <div class="action-card__title">Query Incident</div>
-          <div class="action-card__desc">Describe an incident and get the right runbook steps</div>
+          <div class="action-card__desc">Describe an incident and get the right runbook steps instantly</div>
+          <span class="action-card__arrow">→</span>
         </a>
-        <a routerLink="/multi" class="action-card">
-          <div class="action-card__icon">🔀</div>
+        <a routerLink="/multi" class="action-card action-card--purple">
+          <div class="action-card__icon-wrap action-card__icon-wrap--purple">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/>
+              <polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/>
+            </svg>
+          </div>
           <div class="action-card__title">Multi-Runbook</div>
           <div class="action-card__desc">Merge runbooks, detect conflicts, handle compound incidents</div>
+          <span class="action-card__arrow">→</span>
         </a>
       </div>
     </div>
