@@ -9,8 +9,28 @@
 
 ---
 
-## 1.1 LINEAR ALGEBRA
+```
+MATHEMATICS FOR AI
+├── 1.1 Linear Algebra
+│   ├── Vectors & Dot Product
+│   ├── Matrix Operations
+│   ├── Eigenvalues & Eigenvectors
+│   └── SVD & PCA
+├── 1.2 Calculus
+│   ├── Derivatives & Chain Rule
+│   ├── Partial Derivatives
+│   ├── Gradient Descent
+│   └── Jacobian & Hessian
+└── 1.3 Probability & Statistics
+    ├── Bayes' Theorem
+    ├── Distributions (Normal, Bernoulli, Poisson)
+    ├── MLE & MAP
+    └── Hypothesis Testing
+```
 
+**Indian Analogy:** Like the three pillars of a Civil Engineering degree — Structures (Linear Algebra), Fluid Mechanics (Calculus), and Soil Testing (Probability) — you cannot build an AI bridge without all three working together.
+
+## 1.1 LINEAR ALGEBRA
 ### Vectors
 
 **Intuition:** A vector is a direction and magnitude in space. In AI, it represents a data point, a word, an image — anything you can embed.
@@ -202,7 +222,6 @@ cumulative variance tells you how many components to keep
 ---
 
 ## 1.2 CALCULUS
-
 ### Derivatives
 
 **Intuition:** Rate of change. How much does output change when input changes slightly?
@@ -313,7 +332,6 @@ w = w - α · m̂ / (sqrt(v̂) + ε)
 ---
 
 ## 1.3 PROBABILITY & STATISTICS
-
 ### Bayes' Theorem
 
 **Intuition:** Update your belief about something given new evidence.
@@ -459,9 +477,30 @@ Learning rate schedules:
 # SECTION 2: MACHINE LEARNING
 
 ---
+```
+MACHINE LEARNING
+├── 2.1 Supervised Learning
+├── 2.2 Unsupervised Learning
+├── 2.3 Reinforcement Learning
+├── Algorithms
+│   ├── 2.4 Linear Regression
+│   ├── 2.5 Logistic Regression
+│   ├── 2.6 Decision Trees
+│   ├── 2.7 Random Forest
+│   ├── 2.8 XGBoost
+│   ├── 2.9 SVM
+│   └── 2.10 KNN
+├── Clustering & Features
+│   ├── 2.11 Clustering (K-Means, DBSCAN)
+│   └── 2.12 Feature Engineering
+└── Model Health
+    ├── 2.13 Bias-Variance Tradeoff
+    └── 2.14 Evaluation Metrics
+```
+
+**Indian Analogy:** Like learning to drive in India — first you learn the rules (supervised), then you discover shortcuts no instructor taught you (unsupervised), and then you navigate chaotic traffic by trial and error every day (reinforcement), picking the best vehicle (algorithm) for each road.
 
 ## 2.1 SUPERVISED LEARNING
-
 **Intuition:** Learn a mapping from inputs X to outputs Y using labeled examples.
 
 **Why it exists:** Most real-world problems have historical data with known answers. Supervised learning exploits that.
@@ -484,7 +523,6 @@ Classification: Y is discrete (spam/not-spam, digit 0-9)
 ---
 
 ## 2.2 UNSUPERVISED LEARNING
-
 **Intuition:** Find hidden structure in data without labels.
 
 **Why it exists:** Most data is unlabeled. Unsupervised learning extracts patterns anyway.
@@ -507,7 +545,6 @@ Anomaly Detection: find outliers (Isolation Forest, Autoencoders)
 ---
 
 ## 2.3 REINFORCEMENT LEARNING
-
 **Intuition:** Agent takes actions in environment. Gets rewards/penalties. Learns policy to maximize cumulative reward.
 
 **Key Components:**
@@ -547,7 +584,6 @@ A3C/A2C: actor-critic methods
 ---
 
 ## 2.4 LINEAR REGRESSION
-
 **Intuition:** Fit a straight line through data. Predict continuous output.
 
 **Formula:**
@@ -584,7 +620,6 @@ Gradient:
 ---
 
 ## 2.5 LOGISTIC REGRESSION
-
 **Intuition:** Linear model for classification. Apply sigmoid to squash output to [0,1] = probability.
 
 **Formula:**
@@ -613,7 +648,6 @@ softmax(zi) = e^zi / Σ e^zj
 ---
 
 ## 2.6 DECISION TREES
-
 **Intuition:** Recursively split data on feature thresholds. Each leaf = prediction. Like a flowchart.
 
 **Splitting Criteria:**
@@ -648,7 +682,6 @@ MSE reduction: split to minimize variance in children
 ---
 
 ## 2.7 RANDOM FOREST
-
 **Intuition:** Grow many decision trees on random subsets of data and features. Average predictions. Variance drops, bias stays low.
 
 **Why it works — Bagging (Bootstrap Aggregating):**
@@ -689,7 +722,6 @@ Permutation importance: shuffle feature values, measure performance drop (more r
 ---
 
 ## 2.8 XGBOOST
-
 **Intuition:** Sequentially build trees where each tree corrects the errors of the previous ensemble. Gradient boosting with engineering optimizations.
 
 **How it works:**
@@ -732,7 +764,6 @@ T = number of leaves, w = leaf weights
 ---
 
 ## 2.9 SVM (Support Vector Machine)
-
 **Intuition:** Find the hyperplane that maximizes margin between classes. Only the points closest to the boundary (support vectors) matter.
 
 **Formula:**
@@ -769,7 +800,6 @@ C small: large margin, allows some misclassifications (better generalization)
 ---
 
 ## 2.10 KNN (K-Nearest Neighbors)
-
 **Intuition:** Classify a point by majority vote of its K nearest neighbors. No training — just memorize data.
 
 **Formula:**
@@ -805,7 +835,6 @@ Rule of thumb: K = sqrt(n)
 ---
 
 ## 2.11 CLUSTERING
-
 ### K-Means
 ```
 1. Initialize K centroids randomly
@@ -839,7 +868,6 @@ Disadvantages: struggles with varying density
 ---
 
 ## 2.12 FEATURE ENGINEERING
-
 **Key Techniques:**
 ```
 Numerical:
@@ -874,7 +902,6 @@ Time Series:
 ---
 
 ## 2.13 BIAS-VARIANCE TRADEOFF
-
 **Intuition:**
 ```
 Bias: error from wrong assumptions (model too simple)
@@ -915,7 +942,6 @@ Reduce Variance (overfitting):
 ---
 
 ## 2.14 EVALUATION METRICS
-
 ### Classification Metrics
 ```
 Confusion Matrix:
@@ -957,9 +983,26 @@ MAPE = (1/n) Σ|yi - ŷi|/yi × 100 ← percentage error
 # SECTION 3: DEEP LEARNING
 
 ---
+```
+DEEP LEARNING
+├── Foundations
+│   ├── 3.1 Perceptron
+│   ├── 3.2 Neural Networks (MLP)
+│   ├── 3.3 Activation Functions
+│   └── 3.4 Backpropagation
+├── Computer Vision
+│   └── 3.5 CNN
+├── Sequential Models
+│   ├── 3.6 RNN
+│   ├── 3.7 LSTM
+│   └── 3.8 GRU
+└── 3.9 Attention Mechanism
+    └── Bridge to Transformers
+```
+
+**Indian Analogy:** Like building the Delhi Metro — you start with one simple line (perceptron), layer more lines with transfer stations (hidden layers), add feedback loops for crowd management (RNN/LSTM), and finally a smart attention-based control system that knows exactly which train to prioritize at peak hour.
 
 ## 3.1 PERCEPTRON
-
 **Why it was invented:** Frank Rosenblatt, 1957. First model of a biological neuron. Could learn linear decision boundaries.
 
 **What problem it solves:** Binary classification with linearly separable data.
@@ -982,7 +1025,6 @@ wi = wi + α·(y - ŷ)·xi
 ---
 
 ## 3.2 NEURAL NETWORKS (MULTILAYER PERCEPTRON)
-
 **Why it was invented:** Stack perceptrons in layers. Add non-linear activations. Can approximate any function (Universal Approximation Theorem).
 
 **Architecture:**
@@ -1018,7 +1060,6 @@ Multiclass: softmax + categorical cross-entropy
 ---
 
 ## 3.3 ACTIVATION FUNCTIONS
-
 **Why they exist:** Without non-linearity, stacking layers = single linear transformation. Activations enable learning complex patterns.
 
 ```
@@ -1064,7 +1105,6 @@ Output - regression: Linear (no activation)
 ---
 
 ## 3.4 BACKPROPAGATION
-
 **Why it was invented:** Efficiently compute gradients of loss w.r.t. ALL weights using chain rule. Without it, training deep networks is impossible.
 
 **What problem it solves:** Computing ∂L/∂w for millions of parameters efficiently in O(n) not O(n²).
@@ -1110,7 +1150,6 @@ He initialization: w ~ N(0, sqrt(2/nin))   for ReLU
 ---
 
 ## 3.5 CNN (CONVOLUTIONAL NEURAL NETWORK)
-
 **Why it was invented:** Images have spatial structure. Fully connected layers don't exploit it and are computationally infeasible (1000x1000 image → 1M inputs → billions of weights).
 
 **What problem it solves:** Image recognition, object detection, any task with spatial/temporal locality.
@@ -1164,7 +1203,6 @@ EfficientNet: neural architecture search, best accuracy/efficiency tradeoff
 ---
 
 ## 3.6 RNN (RECURRENT NEURAL NETWORK)
-
 **Why it was invented:** Sequences have temporal dependency. Standard NNs treat each input independently. RNNs maintain hidden state across timesteps.
 
 **What problem it solves:** Sequential data: text, time series, speech, video.
@@ -1295,6 +1333,24 @@ Decoder uses c instead of just last encoder state
 # SECTION 4: TRANSFORMERS
 
 ---
+```
+TRANSFORMERS
+├── 4.1 Attention Is All You Need (origin paper)
+├── Core Mechanism
+│   ├── 4.2 Self-Attention
+│   ├── 4.3 Query, Key, Value
+│   └── 4.4 Multi-Head Attention
+├── Architecture Blocks
+│   ├── 4.5 Positional Encoding
+│   ├── 4.6 Transformer Encoder
+│   └── 4.7 Transformer Decoder
+└── Landmark Models
+    ├── 4.8 BERT (encoder-only)
+    ├── 4.9 GPT (decoder-only)
+    └── 4.10 T5 (encoder-decoder)
+```
+
+**Indian Analogy:** Like the Supreme Court — every judge (attention head) reads the entire case file (full sequence) simultaneously, each highlighting different relevant precedents (keys), and the final verdict (output) is a weighted combination of all their opinions, not just one judge's reading.
 
 ## 4.1 ATTENTION IS ALL YOU NEED (2017)
 
@@ -1605,6 +1661,30 @@ T5:   encoder-decoder → best for conditional generation (translation, summariz
 # SECTION 5: LARGE LANGUAGE MODELS
 
 ---
+```
+LARGE LANGUAGE MODELS
+├── Input Processing
+│   ├── 5.1 Tokenization
+│   ├── 5.2 Embeddings
+│   └── 5.3 Vector Databases
+├── Making LLMs Useful
+│   ├── 5.4 Prompt Engineering
+│   ├── 5.5 Fine-Tuning
+│   ├── 5.6 LoRA
+│   └── 5.7 QLoRA
+├── Alignment & Retrieval
+│   ├── 5.8 RLHF
+│   └── 5.9 RAG
+├── Agentic Use
+│   ├── 5.10 Agents & Tool Calling
+│   └── 5.11 MCP
+└── Quality & Safety
+    ├── 5.12 Context Windows
+    ├── 5.13 Hallucinations
+    └── 5.14 LLM Evaluation
+```
+
+**Indian Analogy:** Like a fresh IAS officer joining the government — he already knows everything from UPSC prep (pre-training), gets department-specific training (fine-tuning), learns to consult official files when unsure (RAG), uses peons and assistants for tasks (tool calling), and is constantly audited for correct, unbiased decisions (RLHF + evaluation).
 
 ## 5.1 TOKENIZATION
 
@@ -2185,6 +2265,22 @@ Golden dataset: curated (prompt, ideal_response) pairs for regression testing
 # SECTION 6: MLOPS
 
 ---
+```
+MLOPS
+├── Data Layer
+│   ├── 6.1 Data Pipelines
+│   └── 6.3 Feature Stores
+├── Training Layer
+│   ├── 6.2 Training Pipelines
+│   └── 6.4 Model Registry
+├── Deployment & Quality
+│   ├── 6.5 Monitoring & Drift Detection
+│   ├── 6.6 CI/CD for ML
+│   └── 6.7 A/B Testing
+└── 6.8 Observability
+```
+
+**Indian Analogy:** Like the IRCTC railway operations — data pipelines are the tracks, feature stores are the booking database, the model registry is the train schedule board, CI/CD is the maintenance depot releasing trains on time, and monitoring is the control room watching for delays, derailments, and passenger complaints.
 
 ## 6.1 DATA PIPELINES
 
@@ -2485,6 +2581,23 @@ Key dashboards:
 # SECTION 7: DISTRIBUTED SYSTEMS
 
 ---
+```
+DISTRIBUTED SYSTEMS
+├── Fundamentals
+│   ├── 7.1 CAP Theorem
+│   ├── 7.2 Consistency Models
+│   └── 7.3 Sharding
+├── Reliability
+│   ├── 7.4 Replication
+│   └── 7.5 Consensus Algorithms (Raft, Paxos)
+├── Messaging
+│   └── 7.6 Kafka (Event-Driven)
+└── Performance
+    ├── 7.7 Distributed Caching
+    └── 7.8 Load Balancing
+```
+
+**Indian Analogy:** Like running a chain of 500 Haldiram branches across India — you can't have every branch wait for Delhi HQ approval (CAP: consistency vs availability), so some branches run independently (eventual consistency), orders are sharded by region (sharding), and a Kafka-like WhatsApp group broadcasts stock updates to all outlets simultaneously.
 
 ## 7.1 CAP THEOREM
 
@@ -2774,6 +2887,22 @@ Canary: route 5% to new model version
 # SECTION 8: AI ENGINEERING
 
 ---
+```
+AI ENGINEERING
+├── Design
+│   ├── 8.1 AI System Design
+│   └── 8.2 Agentic AI Architecture
+├── Orchestration
+│   ├── 8.3 LangGraph
+│   └── 8.4 RAG Architectures
+├── Search & Safety
+│   ├── 8.5 Hybrid Search
+│   ├── 8.6 Guardrails
+│   └── 8.7 AI Security
+└── 8.8 AI Cost Optimization
+```
+
+**Indian Analogy:** Like setting up a multi-specialty hospital in India — you need a head doctor (orchestrator/LangGraph), specialized departments (agents), a patient record system (RAG + vector DB), security guards at entry (guardrails), and a billing department that keeps costs from exploding (cost optimization).
 
 ## 8.1 AI SYSTEM DESIGN
 
@@ -3141,6 +3270,27 @@ Cost attribution per feature/team
 # SECTION 9: RESEARCH PAPERS
 
 ---
+```
+KEY RESEARCH PAPERS
+├── Foundation
+│   ├── 9.1 Attention Is All You Need (2017)
+│   └── 9.2 GPT-1 (2018)
+├── Scaling Era
+│   ├── 9.3 GPT-2 (2019)
+│   └── 9.4 GPT-3 (2020)
+├── Alignment
+│   └── 9.5 InstructGPT (2022)
+├── Open Source
+│   ├── 9.6 LLaMA (2023)
+│   ├── 9.7 LLaMA 2 (2023)
+│   └── 9.8 LLaMA 3 (2024)
+└── Reasoning & Agency
+    ├── 9.9 Chain of Thought (2022)
+    ├── 9.10 ReAct (2022)
+    └── 9.11 Toolformer (2023)
+```
+
+**Indian Analogy:** Like reading the history of ISRO — each paper is a mission (Aryabhata → Chandrayaan → Mangalyaan → Chandrayaan-3), building on the previous launch's learnings, each one more capable, until you reach the moon and beyond.
 
 ## 9.1 ATTENTION IS ALL YOU NEED (2017)
 **Authors:** Vaswani et al. (Google Brain)
