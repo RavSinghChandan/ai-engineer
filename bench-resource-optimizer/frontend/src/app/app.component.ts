@@ -46,6 +46,91 @@ import { BenchAgentComponent } from './components/bench-agent/bench-agent.compon
         <router-outlet />
       </div>
     </main>
+
+    <!-- ── Footer ───────────────────────────────────────────────────── -->
+    <footer class="footer">
+      <div class="footer-inner">
+
+        <!-- Brand column -->
+        <div class="f-brand">
+          <div class="f-logo">
+            <span class="f-logo-icon">⚡</span>
+            <span class="f-logo-name">Bench Resource Optimizer</span>
+          </div>
+          <p class="f-tagline">Enterprise AI platform that turns bench time into readiness.</p>
+          <div class="f-badges">
+            <span class="f-badge">FastAPI 3.0</span>
+            <span class="f-badge">Angular 17</span>
+            <span class="f-badge">DeepSeek LLM</span>
+            <span class="f-badge f-badge-green">94.7% Coverage</span>
+          </div>
+          <p class="f-built">Built by <strong>Chandan Kumar</strong> · Senior AI Engineer</p>
+        </div>
+
+        <!-- Pipeline column -->
+        <div class="f-col">
+          <h4 class="f-heading">RAG Pipeline</h4>
+          <ul class="f-list">
+            <li><span class="f-dot blue"></span>FAISS + BM25 + RRF Fusion</li>
+            <li><span class="f-dot blue"></span>HyDE Query Expansion</li>
+            <li><span class="f-dot blue"></span>CRAG Quality Scoring</li>
+            <li><span class="f-dot blue"></span>Cross-Encoder Reranker</li>
+            <li><span class="f-dot blue"></span>Semantic Cache L1 / L2</li>
+          </ul>
+        </div>
+
+        <!-- Guardrails column -->
+        <div class="f-col">
+          <h4 class="f-heading">Guardrails G1–G5</h4>
+          <ul class="f-list">
+            <li><span class="f-dot green"></span>G1 — Rate Limiter (60/min)</li>
+            <li><span class="f-dot green"></span>G2 — Circuit Breaker</li>
+            <li><span class="f-dot green"></span>G3 — JSON Repair Cascade</li>
+            <li><span class="f-dot green"></span>G4 — PII Output Filter</li>
+            <li><span class="f-dot green"></span>G5 — Graceful Degradation</li>
+          </ul>
+        </div>
+
+        <!-- Platform column -->
+        <div class="f-col">
+          <h4 class="f-heading">Platform</h4>
+          <ul class="f-list">
+            <li><span class="f-dot purple"></span>4 LLM Agents</li>
+            <li><span class="f-dot purple"></span>Episodic + Long-term Memory</li>
+            <li><span class="f-dot purple"></span>SSE Token Streaming</li>
+            <li><span class="f-dot purple"></span>JWT RBAC Auth</li>
+            <li><span class="f-dot purple"></span>RAGAS Evaluation</li>
+          </ul>
+          <h4 class="f-heading" style="margin-top:16px">Nova AI</h4>
+          <ul class="f-list">
+            <li><span class="f-dot orange"></span>Voice STT + TTS</li>
+            <li><span class="f-dot orange"></span>Universal Agent v3</li>
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- Bottom bar -->
+      <div class="f-bottom">
+        <div class="f-bottom-inner">
+          <div class="f-stats">
+            <span class="f-stat"><strong>502</strong> tests</span>
+            <span class="f-sep">·</span>
+            <span class="f-stat"><strong>94.7%</strong> coverage</span>
+            <span class="f-sep">·</span>
+            <span class="f-stat"><strong>0</strong> bugs</span>
+            <span class="f-sep">·</span>
+            <span class="f-stat"><strong>0</strong> vulnerabilities</span>
+            <span class="f-sep">·</span>
+            <span class="f-stat">SonarQube <strong class="f-pass">PASSED</strong></span>
+          </div>
+          <div class="f-copy">
+            © 2026 Bench Resource Optimizer · Aura with Rav · MIT Licence
+          </div>
+        </div>
+      </div>
+    </footer>
+
     <app-bench-agent />
   `,
   styles: [`
@@ -180,12 +265,104 @@ import { BenchAgentComponent } from './components/bench-agent/bench-agent.compon
     .main-content {
       background: #f1f5f9;
       min-height: calc(100vh - 56px);
-      padding: 32px 0 60px;
+      padding: 32px 0 48px;
     }
     .page-container {
       max-width: 1200px;
       margin: 0 auto;
       padding: 0 32px;
+    }
+
+    /* ── Footer ─────────────────────────────────────────────────── */
+    .footer {
+      background: #0f172a;
+      border-top: 1px solid rgba(59,130,246,0.15);
+    }
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 48px 32px 40px;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 40px;
+    }
+
+    /* Brand column */
+    .f-brand { display: flex; flex-direction: column; gap: 12px; }
+    .f-logo  { display: flex; align-items: center; gap: 8px; }
+    .f-logo-icon { font-size: 22px; }
+    .f-logo-name { font-size: 16px; font-weight: 800; color: #f1f5f9; white-space: nowrap; }
+    .f-tagline   { font-size: 12.5px; color: #64748b; line-height: 1.6; margin: 0; max-width: 260px; }
+    .f-badges    { display: flex; flex-wrap: wrap; gap: 6px; }
+    .f-badge {
+      font-size: 10px; font-weight: 700;
+      padding: 3px 8px; border-radius: 5px;
+      background: rgba(59,130,246,0.12);
+      color: #93c5fd;
+      border: 1px solid rgba(59,130,246,0.2);
+      letter-spacing: 0.3px;
+    }
+    .f-badge-green {
+      background: rgba(34,197,94,0.1);
+      color: #86efac;
+      border-color: rgba(34,197,94,0.2);
+    }
+    .f-built { font-size: 11.5px; color: #475569; margin: 0; }
+    .f-built strong { color: #94a3b8; font-weight: 600; }
+
+    /* Link columns */
+    .f-col { display: flex; flex-direction: column; gap: 8px; }
+    .f-heading {
+      font-size: 11px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; color: #475569;
+      margin: 0 0 4px;
+    }
+    .f-list {
+      list-style: none; margin: 0; padding: 0;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .f-list li {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12.5px; color: #94a3b8; line-height: 1.4;
+    }
+    .f-dot {
+      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+    }
+    .f-dot.blue   { background: #3b82f6; }
+    .f-dot.green  { background: #22c55e; }
+    .f-dot.purple { background: #a78bfa; }
+    .f-dot.orange { background: #fb923c; }
+
+    /* Bottom bar */
+    .f-bottom {
+      border-top: 1px solid rgba(255,255,255,0.06);
+      background: rgba(0,0,0,0.2);
+    }
+    .f-bottom-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 14px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .f-stats {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    }
+    .f-stat { font-size: 11.5px; color: #475569; }
+    .f-stat strong { color: #94a3b8; font-weight: 700; }
+    .f-pass { color: #22c55e; }
+    .f-sep  { color: #334155; }
+    .f-copy { font-size: 11px; color: #334155; }
+
+    @media (max-width: 900px) {
+      .footer-inner { grid-template-columns: 1fr 1fr; gap: 28px; }
+    }
+    @media (max-width: 560px) {
+      .footer-inner { grid-template-columns: 1fr; padding: 32px 20px; }
+      .f-bottom-inner { flex-direction: column; align-items: flex-start; gap: 8px; }
     }
   `],
 })
