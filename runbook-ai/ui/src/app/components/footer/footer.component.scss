@@ -1,0 +1,141 @@
+.footer {
+  background: var(--color-surface);
+  border-top: 1px solid rgba(0,0,0,0.08);
+  margin-top: auto;
+
+  &__inner {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 48px 24px 32px;
+    display: flex;
+    gap: 48px;
+    align-items: flex-start;
+  }
+
+  &__brand {
+    flex: 0 0 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: var(--color-text-primary);
+  }
+
+  &__logo-name {
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: var(--color-text-primary);
+    display: flex;
+    align-items: center;
+  }
+
+  &__ai-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-accent);
+    color: #fff;
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 1px 5px;
+    border-radius: 4px;
+    margin-left: 3px;
+    line-height: 1.4;
+  }
+
+  &__tagline {
+    font-size: 0.8rem;
+    color: var(--color-text-tertiary);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  &__cols {
+    flex: 1;
+    display: flex;
+    gap: 40px;
+  }
+
+  &__col {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+  }
+
+  &__col-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-primary);
+    margin-bottom: 4px;
+  }
+
+  &__link {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: color 150ms;
+
+    &:hover { color: var(--color-accent); }
+  }
+
+  &__spec {
+    font-size: 0.82rem;
+    color: var(--color-text-tertiary);
+    line-height: 1.5;
+  }
+
+  &__bottom {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 16px 24px;
+    border-top: 1px solid rgba(0,0,0,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    color: var(--color-text-tertiary);
+  }
+
+  &__status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    color: var(--color-text-tertiary);
+  }
+
+  &__status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--color-success);
+    animation: fp 2s ease-in-out infinite;
+  }
+}
+
+@keyframes fp {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@media (max-width: 768px) {
+  .footer__inner {
+    flex-direction: column;
+    gap: 32px;
+    padding: 36px 16px 24px;
+  }
+  .footer__brand { flex: none; }
+  .footer__cols { flex-wrap: wrap; gap: 28px; }
+  .footer__bottom { flex-direction: column; gap: 8px; text-align: center; padding: 16px; }
+}
