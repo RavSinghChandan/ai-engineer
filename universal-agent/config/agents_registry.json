@@ -19,7 +19,7 @@
     "port": 8011,
     "color": "#f59e0b",
     "icon": "\u26a1",
-    "locked": true
+    "locked": false
   },
   {
     "id": "rex",
