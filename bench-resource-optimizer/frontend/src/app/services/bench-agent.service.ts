@@ -13,7 +13,7 @@ export interface AgentMessage {
 export class BenchAgentService {
 
   private readonly agentUrl = 'http://localhost:8011/agent';
-  private readonly LIMIT = 10;
+  private readonly LIMIT = 15;
 
   readonly messages    = signal<AgentMessage[]>([]);
   readonly isLoading   = signal(false);
@@ -26,20 +26,24 @@ export class BenchAgentService {
   readonly hasMessages = computed(() => this.messages().length > 0);
 
   readonly quickPrompts = [
-    { label: '📊 Match score',        text: 'What does my match score mean?' },
-    { label: '🔍 Hybrid RAG',         text: 'How does Hybrid RAG work in Bench?' },
-    { label: '🧠 Agent memory',       text: 'Why does the agent remember my past sessions?' },
-    { label: '⚡ Semantic cache',     text: 'How fast is the semantic cache?' },
-    { label: '🛡️ CV security',       text: 'How is my CV protected from injection?' },
-    { label: '📅 7-day plan',         text: 'How is the 7-day preparation plan generated?' },
+    { label: 'Match score',        text: 'What does my match score mean?' },
+    { label: 'Hybrid RAG pipeline', text: 'How does Hybrid RAG work in Bench Optimizer?' },
+    { label: 'Agent memory',       text: 'Why does the agent remember my past sessions?' },
+    { label: 'Semantic cache',     text: 'How fast is the semantic cache?' },
+    { label: 'CV security',        text: 'How is my CV protected from injection attacks?' },
+    { label: '7-day training plan', text: 'How is the 7-day preparation plan generated?' },
   ];
 
   private sessionId: string | null = null;
 
-  constructor(private http: HttpClient) {
+  constructor(private readonly http: HttpClient) {
     this.sessionId = sessionStorage.getItem('bench_agent_session');
     const saved = sessionStorage.getItem('bench_agent_qcount');
-    if (saved) this.qCount.set(parseInt(saved, 10) || 0);
+    if (saved) this.qCount.set(Number.parseInt(saved, 10) || 0);
+  }
+
+  unlock(): void {
+    fetch(`${this.agentUrl}/unlock`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }).catch(() => {});
   }
 
   toggle() { this.isOpen.update(v => !v); }
