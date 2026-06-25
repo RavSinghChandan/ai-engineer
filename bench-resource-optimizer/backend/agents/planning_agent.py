@@ -9,15 +9,19 @@ In-memory cache: same (role, skills, num_days) returns instantly on repeat.
 
 Privacy: LLM only receives skill names, role title, and day themes.
 It never receives raw CV text, employee PII, or internal document content.
+
+Multi-model routing: uses 'generation' task LLM from registry.
+  Current: deepseek-chat  |  Future: gpt-4o (creative long-form) or gemini-1.5-pro (1M context)
 """
 import asyncio
 import re
-from typing import List
+from typing import List, Optional
 
 from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 from utils.json_parser import parse_llm_json
 from rag.document_store import get_internal_resource, resource_location_for
+from llm import get_llm
 
 
 def _resource_for(skill: str) -> str:
@@ -145,16 +149,19 @@ def _cache_key(role: str, missing: List[str], num_days: int) -> str:
 async def generate_plan(
     role: str,
     missing_skills: List[str],
-    llm: ChatOpenAI,
+    llm: Optional[ChatOpenAI] = None,
     num_days: int = 7,
 ) -> dict:
+    # Use generation model from registry; fall back to injected llm
+    effective_llm = llm or get_llm("generation")
+
     key = _cache_key(role, missing_skills, num_days)
     if key in _cache:
         return _cache[key]
 
-    outline = await _get_outline(role, missing_skills, num_days, llm)
+    outline = await _get_outline(role, missing_skills, num_days, effective_llm)
     day_results = await asyncio.gather(
-        *[_generate_one_day(d, role, llm) for d in outline]
+        *[_generate_one_day(d, role, effective_llm) for d in outline]
     )
 
     focus_skills = list(dict.fromkeys(d["skill"] for d in outline))[:5]

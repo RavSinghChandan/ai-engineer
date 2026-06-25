@@ -90,6 +90,8 @@ from guardrails.production import (
     flush_guardrail_stats,
 )
 
+from llm import get_registry, get_llm
+
 load_dotenv()
 
 # BUG FIX: moved logger to module level so lifespan uses structured logging not print()
@@ -421,6 +423,19 @@ async def health_ready():
 @app.get("/health", tags=["Health"])
 def health():
     return {"status": "ok", "version": "3.0.0"}
+
+
+@app.get("/llm/status", tags=["LLM Registry"])
+def llm_status():
+    """
+    Multi-model registry status.
+    Shows which model is active for each pipeline task and which providers
+    are ready (API key present) vs pending (key not yet configured).
+    Task routing: reasoning → deepseek-reasoner, parsing → deepseek-chat,
+    generation → deepseek-chat, judging → deepseek-chat.
+    Future: swap provider per task once you have the key.
+    """
+    return get_registry().status()
 
 
 # ── Authentication ────────────────────────────────────────────────────────────

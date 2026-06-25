@@ -4,11 +4,14 @@ CV Parser Agent — upgraded with:
   - Token tracking via callback (Module 1)
   - Security: injection check on resume text + audit log (Module 2)
   - Output faithfulness proxy: ensure skills are plausible tech terms (Module 1)
+  - Multi-model routing: uses 'parsing' task LLM from registry
+    Current: deepseek-chat  |  Future: claude-haiku-4-5 (fastest structured extraction)
 """
 from __future__ import annotations
 
 import time
 import logging
+from typing import Optional
 
 from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
@@ -17,11 +20,20 @@ from utils.json_parser import parse_llm_json
 from utils.prompts import get_active
 from utils.token_tracker import get_tracker
 from utils.security import audit_llm_call
+from llm import get_llm
 
 logger = logging.getLogger("bench.cv_parser")
 
 
-def parse_cv(resume_text: str, llm: ChatOpenAI, request_id: str = "") -> dict:
+def parse_cv(resume_text: str, llm: Optional[ChatOpenAI] = None, request_id: str = "") -> dict:
+    """
+    Parse CV text into structured JSON profile.
+    Uses 'parsing' task model from LLM registry (fast structured extraction).
+    Falls back to passed-in llm for backwards compatibility.
+    Current model: deepseek-chat  |  Future: claude-haiku-4-5
+    """
+    # Use task-specific model from registry; fall back to injected llm
+    effective_llm = llm or get_llm("parsing")
     """
     Parse CV text into structured JSON profile.
     Uses prompt v2 (injection-hardened system prompt).
@@ -46,7 +58,7 @@ def parse_cv(resume_text: str, llm: ChatOpenAI, request_id: str = "") -> dict:
         ("system", prompt_def.system),
         ("human", prompt_def.user),
     ])
-    bounded = llm.bind(max_tokens=420)
+    bounded = effective_llm.bind(max_tokens=420)
     chain = prompt | bounded
 
     result = chain.invoke(

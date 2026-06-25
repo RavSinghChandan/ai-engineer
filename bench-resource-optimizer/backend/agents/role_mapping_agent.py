@@ -8,15 +8,19 @@ Role Mapping Agent — upgraded with:
   - Token tracking via callback (Module 1)
   - Security: audit log (Module 2)
   - Semantic cache: L1 exact + L2 similarity (Module 5)
+  - Multi-model routing: uses 'reasoning' task LLM for gap analysis
+    Current: deepseek-reasoner (R1)  |  Future: same (R1 is already best-in-class)
 """
 from __future__ import annotations
 
 import time
 import logging
+from typing import Optional
 
 from langchain_community.vectorstores import FAISS
 from langchain.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
+from llm import get_llm
 
 from utils.json_parser import parse_llm_json
 from utils.prompts import get_active
@@ -67,7 +71,7 @@ def map_role(
     parsed_cv: dict,
     target_role: str,
     vector_store: FAISS,
-    llm: ChatOpenAI,
+    llm: Optional[ChatOpenAI] = None,
     request_id: str = "",
     use_hyde: bool = True,
     use_hybrid: bool = True,
@@ -78,11 +82,15 @@ def map_role(
       2. HyDE: generate hypothetical doc for better retrieval
       3. Hybrid search: BM25 + dense + RRF
       4. CRAG: score retrieval quality, fallback if poor
+    Uses 'reasoning' task model (deepseek-reasoner / future: stays R1)
       5. LLM call (prompt v2) with token tracking
       6. Faithfulness check on output
       7. Audit log + cache write
     """
     t0 = time.time()
+
+    # Use reasoning model from registry; fall back to injected llm
+    effective_llm = llm or get_llm("reasoning")
 
     # ── L1 exact cache ────────────────────────────────────────────────────────
     cache_key = f"{target_role}|{','.join(sorted(parsed_cv.get('skills', [])))}"
@@ -95,7 +103,7 @@ def map_role(
     experience_years = parsed_cv.get("experience_years", 0)
 
     # ── HyDE + retrieval ──────────────────────────────────────────────────────
-    retrieval_query = _build_retrieval_query(target_role, llm, use_hyde, request_id)
+    retrieval_query = _build_retrieval_query(target_role, effective_llm, use_hyde, request_id)
     role_context, role_metadata = _retrieve_context(retrieval_query, target_role, vector_store, use_hybrid)
 
     # ── LLM call with prompt versioning + token tracking ─────────────────────
@@ -106,7 +114,7 @@ def map_role(
         ("system", prompt_def.system),
         ("human", prompt_def.user),
     ])
-    bounded = llm.bind(max_tokens=280)
+    bounded = effective_llm.bind(max_tokens=280)
     chain = prompt | bounded
 
     result = chain.invoke(
