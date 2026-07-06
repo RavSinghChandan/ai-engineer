@@ -50,7 +50,7 @@ from agents.role_mapping_agent import map_role
 from agents.tracking_agent import calculate_readiness
 from cache.semantic_cache import cache_stats
 from db import (
-    get_progress, get_user, init_db, save_progress,
+    get_progress, get_user, get_all_users, init_db, save_progress,
     save_user, update_completed_tasks,
     get_all_roles_db, get_role_db, create_role_db, update_role_db, delete_role_db,
     seed_roles_from_json,
@@ -1278,12 +1278,51 @@ async def predict_readiness(
 
 # ── Root ──────────────────────────────────────────────────────────────────────
 
+@app.get("/candidates", tags=["MCP"])
+async def search_candidates(
+    skill: Optional[str] = None,
+    role: Optional[str] = None,
+    min_readiness: int = 0,
+    _user=Depends(get_current_user),
+):
+    """
+    Search bench candidates by skill keyword or target role.
+    Used by the MCP server so AI clients can query the bench directly.
+    Returns user_id, matched skills, role, and readiness score.
+    """
+    rows = await get_all_users()
+    results = []
+    for row in rows:
+        profile = row.get("profile", {})
+        skills = [s.lower() for s in profile.get("skills", [])]
+        user_role = row.get("role", "")
+        readiness = row.get("readiness_score", 0)
+
+        if skill and skill.lower() not in skills:
+            continue
+        if role and role.lower() not in user_role.lower():
+            continue
+        if readiness < min_readiness:
+            continue
+
+        results.append({
+            "user_id": row["user_id"],
+            "name": profile.get("name", ""),
+            "role": user_role,
+            "skills": profile.get("skills", []),
+            "readiness_score": readiness,
+        })
+
+    return {"candidates": results, "total": len(results)}
+
+
 @app.get("/", tags=["Root"])
 def root():
     return {
         "service": "Bench Resource Optimization API — Enterprise",
         "version": "3.0.0",
         "docs": "/docs",
+        "mcp_server": "python mcp_server.py  (stdio — for Claude Desktop / Cursor)",
         "endpoints": {
             "roles": "GET  /roles",
             "upload_cv": "POST /upload-cv",
@@ -1295,6 +1334,7 @@ def root():
             "evaluate": "POST /evaluate  (LLM-as-judge)",
             "export_plan": "GET  /export-plan/{user_id}?format=csv|json",
             "predict_readiness": "GET  /predict-readiness/{user_id}",
+            "candidates": "GET  /candidates?skill=&role=&min_readiness=  (MCP)",
             "metrics": "GET  /metrics",
             "health_live": "GET  /health/live",
             "health_ready": "GET  /health/ready",

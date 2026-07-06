@@ -14,12 +14,13 @@
 3. [Architecture Diagram](#3-architecture-diagram)
 4. [Flow Diagram](#4-flow-diagram)
 5. [Technical Design](#5-technical-design)
-6. [Demo — Screenshots](#6-demo--screenshots)
-7. [Quick Start](#7-quick-start)
-8. [API Reference](#8-api-reference)
-9. [SonarQube Quality Report](#9-sonarqube-quality-report)
-10. [Test Results](#10-test-results)
-11. [Project Structure](#11-project-structure)
+6. [MCP Server — Claude Desktop Integration](#6-mcp-server--claude-desktop-integration)
+7. [Demo — Screenshots](#7-demo--screenshots)
+8. [Quick Start](#8-quick-start)
+9. [API Reference](#9-api-reference)
+10. [SonarQube Quality Report](#10-sonarqube-quality-report)
+11. [Test Results](#11-test-results)
+12. [Project Structure](#12-project-structure)
 
 ---
 
@@ -59,6 +60,7 @@ Manager sees dashboard → Real-time bench visibility
 | **Tests** | pytest · **502 tests · 94.7% coverage** · SonarQube Quality Gate PASSED |
 | **CI/CD** | GitHub Actions — pytest + ng build on every push |
 | **Container** | Docker multi-stage build · non-root user · docker-compose |
+| **MCP** | MCP server (stdio) — 5 tools for Claude Desktop / Cursor / Windsurf |
 
 ---
 
@@ -238,7 +240,73 @@ Every request:
 
 ---
 
-## 6. Demo — Complete Flow (Live Screenshots)
+## 6. MCP Server — Claude Desktop Integration
+
+The platform ships a **Model Context Protocol (MCP) server** (`backend/mcp_server.py`) that exposes bench operations as tools directly inside Claude Desktop, Cursor, Windsurf, or any MCP-compatible AI client.
+
+Once connected, an AI assistant can answer questions like:
+
+> *"Who on the bench can be deployed as an ML Engineer with at least 60% readiness?"*
+> *"Parse this CV and generate a 7-day plan to close the gaps for a Python Backend role."*
+
+### Tools exposed
+
+| Tool | Description |
+|------|-------------|
+| `parse_cv` | Extract structured profile from raw CV text |
+| `map_role` | Compare candidate skills vs a target role — returns gaps and readiness % |
+| `generate_plan` | Build a personalised day-by-day upskilling roadmap |
+| `get_readiness` | Current readiness score + completed / remaining tasks for a user |
+| `search_candidates` | Filter bench candidates by skill, role, or minimum readiness score |
+
+### Quick setup — Claude Desktop
+
+1. Start the backend: `uvicorn main:app --port 8000`
+2. Get a JWT token from `POST /auth/login`
+3. Add to `~/.config/claude/claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "bench-resource-optimizer": {
+      "command": "python",
+      "args": ["/path/to/bench-resource-optimizer/backend/mcp_server.py"],
+      "env": {
+        "BENCH_BACKEND_URL": "http://localhost:8000",
+        "BENCH_API_TOKEN": "<your-jwt-token>"
+      }
+    }
+  }
+}
+```
+
+4. Restart Claude Desktop — the 5 bench tools appear in the tool panel.
+
+### Architecture
+
+```
+Claude Desktop / Cursor / Windsurf
+        │
+        │  MCP stdio protocol
+        ▼
+  mcp_server.py  (Python, stdio transport)
+        │
+        │  HTTP + JWT
+        ▼
+  FastAPI backend :8000
+        │
+        ├── /candidates    ← search_candidates tool
+        ├── /parse-cv      ← parse_cv tool
+        ├── /map-role      ← map_role tool
+        ├── /generate-plan ← generate_plan tool
+        └── /progress/:id  ← get_readiness tool
+```
+
+> MCP server is **read-through only** — it calls existing REST endpoints. No business logic lives in the MCP layer. Existing functionality and tests are unaffected.
+
+---
+
+## 7. Demo — Complete Flow (Live Screenshots)
 
 > Every screenshot below is taken from the **live running application** using a real dummy PDF resume (`docs/dummy_resume.pdf`). The complete flow is shown end-to-end.
 

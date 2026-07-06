@@ -142,6 +142,36 @@ async def get_user(user_id: str) -> Optional[dict]:
     }
 
 
+async def get_all_users() -> list:
+    """Return all bench candidates joined with their latest progress/readiness."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            """
+            SELECT u.user_id, u.profile_json,
+                   p.role, p.completed_task_ids, p.plan_json
+            FROM users u
+            LEFT JOIN progress p ON u.user_id = p.user_id
+            """
+        ) as cur:
+            rows = await cur.fetchall()
+
+    results = []
+    for row in rows:
+        profile = json.loads(row["profile_json"])
+        plan = json.loads(row["plan_json"]) if row["plan_json"] else {}
+        completed = json.loads(row["completed_task_ids"]) if row["completed_task_ids"] else []
+        total_tasks = sum(len(d.get("tasks", [])) for d in plan.get("days", []))
+        readiness = round(len(completed) / total_tasks * 100, 1) if total_tasks else 0.0
+        results.append({
+            "user_id": row["user_id"],
+            "profile": profile,
+            "role": row["role"] or "",
+            "readiness_score": readiness,
+        })
+    return results
+
+
 # ── Progress CRUD ─────────────────────────────────────────────────────────────
 
 async def save_progress(user_id: str, role: str, plan: dict, completed_task_ids: list) -> None:
