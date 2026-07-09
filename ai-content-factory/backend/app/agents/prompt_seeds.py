@@ -111,9 +111,15 @@ PROMPT_SEEDS: dict[str, dict[str, str]] = {
             '- "pillars": parallel concepts side by side, items = 2-4 labels\n'
             '- "comparison": two sides, left/right titles + left_items/right_items (1-3 each)\n'
             '- "none": only when a diagram truly adds nothing (avoid this)\n\n'
+            "Also direct the on-slide presenter (a caricature of the creator) for each slide: "
+            'pose is "point_diagram" (pointing at the diagram), "point_text" (pointing at the '
+            'narration lines) or "celebrate"; mood is "excited", "happy", "serious" or "warning" '
+            "matching the slide's emotional tone; callout is a punchy 2-4 word thing they would "
+            "shout at this moment.\n\n"
             'Return JSON: {{"diagrams": [{{"slide": int, "type": str, "title": str, '
             '"items": [str], "left_title": str, "right_title": str, '
-            '"left_items": [str], "right_items": [str]}}]}} '
+            '"left_items": [str], "right_items": [str], '
+            '"pose": str, "mood": str, "callout": str}}]}} '
             "(comparison fields only for comparison type; keep every label 1-3 words)"
         ),
     },

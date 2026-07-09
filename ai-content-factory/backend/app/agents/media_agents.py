@@ -274,6 +274,7 @@ class VideoAgent(Agent):
             bg_to=concept.get("bg_to", "#1e3a8a"),
             accent=concept.get("accent", "#38bdf8"),
             diagrams=diagrams,
+            presenter_photo=Path(ctx.profile.photo_path) if ctx.profile.photo_path else None,
         )
         if not deck:
             raise ValueError("script produced no slides")
