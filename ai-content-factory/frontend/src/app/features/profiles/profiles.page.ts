@@ -77,7 +77,9 @@ const EMPTY_DRAFT: CreatorProfileDraft = {
               <select id="vprov" class="input" [(ngModel)]="draft.voice_provider" name="voice_provider">
                 <option value="kokoro">Kokoro — natural neural voice (FREE, offline)</option>
                 <option value="macos_say">macOS say (free, robotic)</option>
+                <!-- Paid provider disabled per cost policy; re-enable with the .env key:
                 <option value="elevenlabs">ElevenLabs (paid — your cloned voice)</option>
+                -->
               </select>
             </div>
             <div>
@@ -102,9 +104,11 @@ const EMPTY_DRAFT: CreatorProfileDraft = {
             <div>
               <label class="label" for="aprov">Avatar provider</label>
               <select id="aprov" class="input" [(ngModel)]="draft.avatar_provider" name="avatar_provider" (ngModelChange)="onAvatarProviderChange()">
-                <option value="none">None — slideshow video</option>
+                <option value="none">None — dynamic slides video (FREE)</option>
+                <!-- Paid providers disabled per cost policy; re-enable with the .env key:
                 <option value="heygen">HeyGen — studio avatar / digital twin</option>
                 <option value="heygen_photo">HeyGen — talking photo (from one image)</option>
+                -->
               </select>
             </div>
             <div>
