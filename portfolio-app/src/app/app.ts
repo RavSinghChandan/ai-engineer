@@ -147,7 +147,31 @@ export class App implements OnInit, AfterViewInit {
       imgSrc: 'project-agentic.png',
     },
     {
-      num: '04', accent: 'green',
+      num: '04', accent: 'amber',
+      liveUrl: 'demo',
+      title: 'AI Content Factory',
+      subtitle: 'Multi-Agent YouTube Video Production — Near-Zero Cost',
+      desc: 'Topic or script in, finished YouTube video out. 11 LangGraph agents research, write, review, voice and assemble complete videos — content-adaptive diagram slides, AI-designed thumbnails, captions, SEO metadata and Shorts ideas — narrated by a free on-device neural voice. Cost per video: DeepSeek tokens only (~₹1).',
+      github: 'https://github.com/RavSinghChandan/ai-engineer',
+      tags: [
+        { label: 'Python', cls: 'tag-amber' }, { label: 'FastAPI', cls: 'tag-amber' },
+        { label: 'LangGraph', cls: 'tag-amber' }, { label: 'DeepSeek LLM', cls: 'tag-amber' },
+        { label: 'Kokoro TTS (free)', cls: 'tag-green' }, { label: 'FFmpeg', cls: 'tag-green' },
+        { label: 'Angular 20', cls: 'tag-cyan' }, { label: 'WebSocket Live', cls: 'tag-cyan' },
+        { label: 'Creator Profiles', cls: 'tag-purple' }, { label: 'Zero-Cost Stack', cls: 'tag-red' },
+      ],
+      challenges: [
+        { p: '11 production stages must run as one reliable pipeline', s: 'LangGraph StateGraph — conditional entry (own-script bypasses research/review), review loop with revision budget, per-agent runs persisted with live WebSocket events' },
+        { p: 'Voice APIs bill per character — costs spiral with daily videos', s: 'Kokoro ONNX neural TTS runs fully on-device: model downloads once (~330MB), unlimited natural narration at ₹0 forever' },
+        { p: 'Static slide videos bore viewers — engagement dies', s: 'LLM designs a content-specific diagram for every slide (flow / steps / pillars / comparison) from that slide\'s own words — rendered locally with Pillow, synced to narration' },
+        { p: 'Creator identity hardcoded into the pipeline', s: 'Creator Profiles: per-person voice + avatar + photo, selectable per project. In-app training studio records audio/video in the browser — no external dashboards' },
+        { p: 'Long renders with zero visibility — did it crash or is it working?', s: 'Every agent event persisted to SQLite AND broadcast over WebSocket — page refresh replays history then continues live, gap-free' },
+        { p: 'Thumbnails looked amateur next to real YouTube content', s: 'LLM designs headline / kicker / colors honoring creator instructions; Pillow composites the creator\'s photo with a soft fade — real CTR-grade thumbnails' },
+      ],
+      imgSrc: 'project-content-factory.png',
+    },
+    {
+      num: '05', accent: 'green',
       liveUrl: 'https://portfolio-quyi2c8kj-ravsinghchandans-projects.vercel.app',
       title: 'RunbookAI',
       subtitle: 'Enterprise IT Incident Response — RAGless + Multi-Source',
@@ -171,7 +195,7 @@ export class App implements OnInit, AfterViewInit {
       imgSrc: 'project-runbookai.png',
     },
     {
-      num: '05', accent: 'blue',
+      num: '06', accent: 'blue',
       liveUrl: 'demo',
       title: 'Universal Agent',
       subtitle: 'Plug-and-Play AI Agent — Any App, Any Domain, One Config',
@@ -195,7 +219,7 @@ export class App implements OnInit, AfterViewInit {
       imgSrc: 'project-universal-agent.png',
     },
     {
-      num: '06', accent: 'blue',
+      num: '07', accent: 'blue',
       liveUrl: 'https://ai-blueprint-rust.vercel.app',
       title: 'AI System Design Blueprint',
       subtitle: 'P1–P15 Production Patterns · Angular · Interactive Flow Diagrams',
@@ -415,7 +439,7 @@ export class App implements OnInit, AfterViewInit {
   private readonly _fgScript: Record<string, { img: string; quote: string; sub: string }[]> = {
     hero:       { img: 'guide-chandan-happy.svg',   quote: 'Right person! 😄',    sub: 'Ships. For real.' },
     skills:     { img: 'guide-chandan.svg',          quote: 'All in prod. 💪',     sub: 'Zero tutorials.' },
-    projects:   { img: 'guide-chandan-wow.svg',      quote: '4 systems! 🤩',       sub: 'Click Live Demo ↗' },
+    projects:   { img: 'guide-chandan-wow.svg',      quote: '5 systems! 🤩',       sub: 'Click Live Demo ↗' },
     experience: { img: 'guide-chandan-thinking.svg', quote: 'Self-made. 🎯',       sub: '4 companies. Real.' },
     story:      { img: 'guide-chandan-happy.svg',    quote: 'His why. ✨',         sub: 'Read this one.' },
     contact:    { img: 'guide-chandan-wow.svg',      quote: "Let's build! 🚀",     sub: 'Reach out now.' },
@@ -717,6 +741,36 @@ export class App implements OnInit, AfterViewInit {
     ],
     '04': [
       {
+        img: 'acf-step1-thumbnail.png',
+        label: '🎨 Step 1 — AI-Designed Thumbnail',
+        caption: 'The Thumbnail agent designs headline, kicker badge and colors from the script plus creator instructions, then composites the creator\'s photo locally with Pillow — a real CTR-grade YouTube thumbnail, generated in seconds.',
+        guide: 'guide-chandan.svg',
+        speech: 'Welcome to my AI Content Factory! 🎬 Topic in → finished YouTube video out. Look at this AI-designed thumbnail!',
+      },
+      {
+        img: 'acf-step2-comparison.png',
+        label: '📊 Step 2 — Content-Adaptive Diagram Slides',
+        caption: 'Every slide gets its own diagram designed by the LLM from that slide\'s actual words. Here the chunking section became a "Fixed Size VS Semantic" comparison — never a fixed template.',
+        guide: 'guide-chandan-thinking.svg',
+        speech: 'See this? The LLM read my script about chunking and drew a Bad-vs-Good comparison. Every slide, a unique diagram! 🧠',
+      },
+      {
+        img: 'acf-step3-flow.png',
+        label: '🔀 Step 3 — A Different Diagram Every Slide',
+        caption: 'The retrieval section became a flow chart: Vector Search → Keyword Search → Rerank. Slides flip in exact sync with the narration — voiced by Kokoro, a free on-device neural TTS. Cost per video: DeepSeek tokens only.',
+        guide: 'guide-chandan-wow.svg',
+        speech: 'Same video, different slide — now it\'s a flow chart! And the voice is a FREE neural TTS running on-device. ₹0! 🤩',
+      },
+      {
+        img: 'acf-step4-avatar.png',
+        label: '🧑‍💼 Step 4 — Optional Talking Avatar',
+        caption: 'Creator Profiles make identity configurable: with one photo, HeyGen\'s talking-photo mode renders the creator speaking the narration. Voice, avatar and photo are per-profile — train a new person by adding a row, never by changing code.',
+        guide: 'guide-chandan-happy.svg',
+        speech: 'And this is ME presenting — generated from one photo + my cloned voice. Avatar mode is one dropdown away! 🚀',
+      },
+    ],
+    '05': [
+      {
         img: 'runbook-step1-dashboard.png',
         label: '📋 Step 1 — Command Center',
         caption: 'RunbookAI Dashboard: 22 runbooks, 1 category (Kubernetes), 3 severities (P1→P3), RAGless architecture. Zero vectors — pure SQL + dependency graph. v1.0.0 · Phase 6 · OK.',
@@ -773,7 +827,7 @@ export class App implements OnInit, AfterViewInit {
         speech: 'One incident, multiple runbooks merged — conflict detection across ALL 22 sources at once! This is the magic! 🎊',
       },
     ],
-    '05': [
+    '06': [
       {
         img: 'ua-step1-landing.png',
         label: '🚀 Step 1 — Landing: What It Is',
