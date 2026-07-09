@@ -75,8 +75,9 @@ const EMPTY_DRAFT: CreatorProfileDraft = {
             <div>
               <label class="label" for="vprov">Voice provider</label>
               <select id="vprov" class="input" [(ngModel)]="draft.voice_provider" name="voice_provider">
-                <option value="macos_say">macOS say (free, offline)</option>
-                <option value="elevenlabs">ElevenLabs (cloned voice)</option>
+                <option value="kokoro">Kokoro — natural neural voice (FREE, offline)</option>
+                <option value="macos_say">macOS say (free, robotic)</option>
+                <option value="elevenlabs">ElevenLabs (paid — your cloned voice)</option>
               </select>
             </div>
             <div>
@@ -86,7 +87,13 @@ const EMPTY_DRAFT: CreatorProfileDraft = {
                 class="input"
                 [(ngModel)]="draft.voice_id"
                 name="voice_id"
-                [placeholder]="draft.voice_provider === 'elevenlabs' ? 'ElevenLabs voice_id (your clone)' : 'Samantha'"
+                [placeholder]="
+                  draft.voice_provider === 'elevenlabs'
+                    ? 'ElevenLabs voice_id (your clone)'
+                    : draft.voice_provider === 'kokoro'
+                      ? 'am_michael, am_adam, af_heart, bm_george…'
+                      : 'Samantha'
+                "
               />
             </div>
           </div>

@@ -65,6 +65,7 @@ class AssetKind(str, Enum):
 
 class VoiceProvider(str, Enum):
     MACOS_SAY = "macos_say"
+    KOKORO = "kokoro"          # free local neural TTS — no API cost
     ELEVENLABS = "elevenlabs"
 
 

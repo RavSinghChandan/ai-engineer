@@ -23,7 +23,7 @@ export interface Project {
   created_at: string;
 }
 
-export type VoiceProvider = 'macos_say' | 'elevenlabs';
+export type VoiceProvider = 'macos_say' | 'kokoro' | 'elevenlabs';
 export type AvatarProvider = 'none' | 'heygen' | 'heygen_photo';
 
 export interface CreatorProfile {

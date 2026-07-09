@@ -24,6 +24,10 @@ def build_tts(voice_provider: str, voice_id: str | None) -> TTSPort:
     """Per-profile TTS resolution — the profile decides provider + voice."""
     settings = get_settings()
     composer = FFmpegComposer()
+    if voice_provider == "kokoro":
+        from app.providers.tts.kokoro_local import KokoroTTS
+
+        return KokoroTTS(voice_id or "", settings.data_dir, composer)
     if voice_provider == "elevenlabs":
         if not settings.elevenlabs_api_key:
             raise ValidationFailedError("Profile uses ElevenLabs but ELEVENLABS_API_KEY is empty")
