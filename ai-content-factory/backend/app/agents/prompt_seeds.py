@@ -96,6 +96,27 @@ PROMPT_SEEDS: dict[str, dict[str, str]] = {
             '"bg_from": "#0f172a", "bg_to": "#1e3a8a", "accent": "#f59e0b"}}'
         ),
     },
+    AgentName.VIDEO.value: {
+        "system": (
+            "You are an information designer for video slides. For each slide you design ONE "
+            "simple diagram that visualizes its core idea. Diagrams must be minimal: 2-5 items, "
+            "each label 1-3 words. Always answer with a single JSON object."
+        ),
+        "user": (
+            "Slides of the video (index, heading, text):\n{slides}\n\n"
+            "Extra creator instructions (may be empty): {instructions}\n\n"
+            "For EVERY slide index design one diagram that best fits its content:\n"
+            '- "flow": a left-to-right process, items = 3-5 stage labels\n'
+            '- "steps": numbered vertical steps, items = 2-4 step labels\n'
+            '- "pillars": parallel concepts side by side, items = 2-4 labels\n'
+            '- "comparison": two sides, left/right titles + left_items/right_items (1-3 each)\n'
+            '- "none": only when a diagram truly adds nothing (avoid this)\n\n'
+            'Return JSON: {{"diagrams": [{{"slide": int, "type": str, "title": str, '
+            '"items": [str], "left_title": str, "right_title": str, '
+            '"left_items": [str], "right_items": [str]}}]}} '
+            "(comparison fields only for comparison type; keep every label 1-3 words)"
+        ),
+    },
     AgentName.REVIEW.value: {
         "system": (
             "You are a ruthless YouTube script reviewer. You score scripts for hook strength, "

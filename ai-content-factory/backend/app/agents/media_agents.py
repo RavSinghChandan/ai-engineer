@@ -220,10 +220,48 @@ class VideoAgent(Agent):
             await ctx.emit(EventType.AGENT_PROGRESS, f"Final video composed ({duration:.1f}s)", None)
         return {"video": {"video_path": str(out_path), "srt_path": str(srt_path)}}
 
+    async def _design_diagrams(self, state: dict[str, Any], ctx: AgentContext) -> list[dict]:
+        """One LLM call: a content-specific diagram spec per slide (never static/templated)."""
+        import json
+
+        from app.domain.enums import ModelRole
+
+        script = state["script"]
+        slide_summaries = []
+        idx = 0
+        if (script.get("hook") or "").strip():
+            slide_summaries.append({"slide": idx, "heading": "HOOK", "text": script["hook"]})
+            idx += 1
+        for section in script.get("sections", []):
+            slide_summaries.append({"slide": idx, "heading": section.get("heading", ""), "text": section.get("narration", "")})
+            idx += 1
+        if (script.get("cta") or "").strip():
+            slide_summaries.append({"slide": idx, "heading": "CALL TO ACTION", "text": script["cta"]})
+
+        data = await self._ask_json(
+            ctx,
+            ModelRole.SEO_EXPERT,
+            {
+                "slides": json.dumps(slide_summaries, ensure_ascii=False),
+                "instructions": state.get("thumbnail_instructions", "") or "(none)",
+            },
+            temperature=0.4,
+        )
+        diagrams = data.get("diagrams") or []
+        return diagrams if isinstance(diagrams, list) else []
+
     async def _compose_slide_deck(
         self, state: dict[str, Any], ctx: AgentContext, srt_path: Path, out_path: Path, duration: float
     ) -> int:
         from app.providers.media.slides import SlideRenderer
+
+        await ctx.emit(EventType.AGENT_PROGRESS, "Designing per-slide diagrams from your content…", None)
+        try:
+            diagrams = await self._design_diagrams(state, ctx)
+            await ctx.emit(EventType.AGENT_PROGRESS, f"{len(diagrams)} content diagrams designed", None)
+        except Exception as exc:  # diagrams enhance slides; never block the video
+            await ctx.emit(EventType.AGENT_PROGRESS, f"Diagram design failed ({exc}) — slides without diagrams", None)
+            diagrams = []
 
         await ctx.emit(EventType.AGENT_PROGRESS, "Rendering dynamic content slides…", None)
         concept = (state.get("thumbnail") or {}).get("concept") or {}
@@ -235,6 +273,7 @@ class VideoAgent(Agent):
             bg_from=concept.get("bg_from", "#0f172a"),
             bg_to=concept.get("bg_to", "#1e3a8a"),
             accent=concept.get("accent", "#38bdf8"),
+            diagrams=diagrams,
         )
         if not deck:
             raise ValueError("script produced no slides")
