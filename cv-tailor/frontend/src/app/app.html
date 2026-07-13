@@ -4,20 +4,69 @@
     <p>Paste a job → get an ATS-tailored PDF of your CV (same format, reworded text) → download &amp; apply.</p>
   </header>
 
+  <!-- PRIMARY: auto-find real jobs -->
   <section class="card form">
-    <div class="row">
-      <input class="in" [(ngModel)]="company" placeholder="Company (e.g. Cognizant)" />
-      <input class="in" [(ngModel)]="role" placeholder="Role (e.g. Senior AI Engineer)" />
+    <h2 class="primary-h">🔎 Auto-find jobs &amp; tailor</h2>
+    <p class="hint">Pick a role, how many jobs, and the location — the app finds live openings with
+      <b>direct company apply links</b> and tailors a CV for each.</p>
+    <div class="grid4">
+      <label class="field">
+        <span>Role</span>
+        <select class="in" [(ngModel)]="selectedRole">
+          @for (r of roles(); track r) { <option [value]="r">{{ r }}</option> }
+        </select>
+      </label>
+      <label class="field">
+        <span>How many</span>
+        <input class="in" type="number" min="1" max="30" [(ngModel)]="count" />
+      </label>
+      <label class="field">
+        <span>Location</span>
+        <select class="in" [(ngModel)]="location">
+          <option value="IN">India</option>
+          <option value="US">United States</option>
+          <option value="GB">United Kingdom</option>
+          <option value="ANY">Anywhere / Remote</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>Posted within</span>
+        <select class="in" [(ngModel)]="maxAge">
+          <option [value]="3">3 days</option>
+          <option [value]="7">1 week</option>
+          <option [value]="14">2 weeks</option>
+          <option [value]="30">1 month</option>
+        </select>
+      </label>
     </div>
-    <input class="in wide" [(ngModel)]="applyUrl" placeholder="Apply link (paste the job URL so you can click it later)" />
-    <textarea class="in ta" [(ngModel)]="jobDescription" rows="8"
-      placeholder="Paste the full job description here…"></textarea>
 
+    @if (searchMsg()) { <p class="ok-msg">{{ searchMsg() }}</p> }
     @if (error()) { <p class="err">{{ error() }}</p> }
 
-    <button class="btn" (click)="tailor()" [disabled]="busy()">
-      {{ busy() ? 'Tailoring & building PDF…' : 'Tailor my CV for this job' }}
+    <button class="btn" (click)="autoSearch()" [disabled]="searching()">
+      {{ searching() ? 'Finding & tailoring… (this takes a moment per job)' : 'Find jobs & tailor my CV' }}
     </button>
+  </section>
+
+  <!-- SECONDARY: manual paste (collapsible) -->
+  <section class="card">
+    <button class="link-btn" (click)="showManual.set(!showManual())">
+      {{ showManual() ? '▾' : '▸' }} Or paste one job manually
+    </button>
+    @if (showManual()) {
+      <div class="manual">
+        <div class="row">
+          <input class="in" [(ngModel)]="company" placeholder="Company" />
+          <input class="in" [(ngModel)]="role" placeholder="Role" />
+        </div>
+        <input class="in wide" [(ngModel)]="applyUrl" placeholder="Apply link (the company careers URL)" />
+        <textarea class="in ta" [(ngModel)]="jobDescription" rows="7"
+          placeholder="Paste the full job description here…"></textarea>
+        <button class="btn" (click)="tailor()" [disabled]="busy()">
+          {{ busy() ? 'Tailoring…' : 'Tailor for this job' }}
+        </button>
+      </div>
+    }
   </section>
 
   <section class="card">

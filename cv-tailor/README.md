@@ -5,7 +5,18 @@ text) → download it and click through to apply. Backend-heavy (FastAPI), thin 
 
 ## How it works
 
-1. You paste a job (company, role, apply link, full description) in the UI.
+**Primary — auto-find (no pasting):** pick a role from the dropdown, choose how many jobs +
+location + freshness, click **Find jobs & tailor**. Pulls live openings from company career
+sites / ATS (Greenhouse, Lever, Workday, SmartRecruiters, Breezy, Comeet…) via jobdataapi —
+apply links go **directly to the employer's careers page**, never a third-party aggregator.
+Tailors a CV per job. **Secondary — manual paste** (collapsible) for one-off jobs.
+
+Jobs API key: works keyless for a few searches (~10/hr) then rate-limits. Free key at
+**jobdataapi.com** → put `JOBDATA_API_KEY=...` in `backend/.env` for reliable, filtered search.
+
+### Tailoring (both flows)
+
+1. A job description (auto-fetched or pasted) drives the rewrite.
 2. DeepSeek rewrites **only the text** of your CV's editable fields (summary, skills,
    experience bullets, project bullets) to mirror the job's keywords — truthfully, no
    invented experience.

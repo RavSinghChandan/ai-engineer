@@ -29,13 +29,53 @@ export class App implements OnInit {
   readonly busy = signal(false);
   readonly error = signal('');
 
+  // auto-search
+  readonly roles = signal<string[]>([]);
+  readonly searching = signal(false);
+  readonly searchMsg = signal('');
+  selectedRole = '';
+  count = 10;
+  location = 'IN';
+  maxAge = 14;
+  showManual = signal(false);
+
+  // manual paste
   company = '';
   role = '';
   applyUrl = '';
   jobDescription = '';
 
   async ngOnInit(): Promise<void> {
+    this.roles.set(await firstValueFrom(this.http.get<string[]>('/api/roles')));
+    this.selectedRole = this.roles()[0] ?? '';
     await this.refresh();
+  }
+
+  async autoSearch(): Promise<void> {
+    if (!this.selectedRole) return;
+    this.searching.set(true);
+    this.searchMsg.set('');
+    this.error.set('');
+    try {
+      const res: any = await firstValueFrom(
+        this.http.post('/api/auto-search', {
+          role: this.selectedRole,
+          count: this.count,
+          location: this.location,
+          max_age_days: this.maxAge,
+        }),
+      );
+      this.searchMsg.set(
+        res.created > 0
+          ? `Found ${res.found} jobs, tailored ${res.created} CVs. Scroll down to download & apply.`
+          : (res.note || 'No direct-link jobs found. Try a different role or widen the date range.'),
+      );
+      await this.refresh();
+    } catch (err: any) {
+      this.error.set(err?.error?.detail ?? 'Job search failed. Add a JOBDATA_API_KEY for reliable results.');
+    } finally {
+      this.searching.set(false);
+    }
   }
 
   async refresh(): Promise<void> {

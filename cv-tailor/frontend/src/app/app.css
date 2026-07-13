@@ -27,6 +27,18 @@ header p { color: #94a3b8; margin: 4px 0 20px; font-size: 14px; }
 }
 .btn:disabled { opacity: .5; cursor: not-allowed; }
 .err { color: #f87171; font-size: 13px; margin: 2px 0 10px; }
+.ok-msg { color: #4ade80; font-size: 13px; margin: 4px 0 10px; }
+.primary-h { color: #38bdf8; margin: 0 0 4px; }
+.hint { color: #94a3b8; font-size: 13px; margin: 0 0 14px; }
+.grid4 { display: grid; grid-template-columns: 1.6fr 1fr 1.2fr 1.2fr; gap: 10px; margin-bottom: 6px; }
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field span { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: .04em; }
+.field .in { margin-bottom: 0; }
+.link-btn { background: none; border: 0; color: #94a3b8; cursor: pointer; font-size: 14px; padding: 0; }
+.link-btn:hover { color: #e2e8f0; }
+.manual { margin-top: 14px; }
+select.in { appearance: none; cursor: pointer; }
+@media (max-width: 720px) { .grid4 { grid-template-columns: 1fr 1fr; } }
 
 h2 { font-size: 17px; margin: 0 0 14px; }
 .count {

@@ -82,10 +82,16 @@ async def find_jobs(role: str, count: int, location: str = "IN", max_age_days: i
     seen: set[str] = set()
     url: str | None = API_URL
     pages = 0
+    max_pages = 6 if has_key else 3  # keyless tier is rate-limited (~10 req/hr)
     async with httpx.AsyncClient(timeout=40, headers=headers) as client:
-        while url and len(jobs) < count and pages < 8:
+        while url and len(jobs) < count and pages < max_pages:
             resp = await client.get(url, params=params if url == API_URL else None)
             pages += 1
+            if resp.status_code == 403:
+                raise RuntimeError(
+                    "jobdataapi rate limit / subscription reached. Add a free JOBDATA_API_KEY "
+                    "(jobdataapi.com) to backend/.env for reliable, higher-volume searches."
+                )
             if resp.status_code != 200:
                 break
             data = resp.json()
