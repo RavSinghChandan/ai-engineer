@@ -1,0 +1,157 @@
+\documentclass[10pt, letterpaper]{article}
+
+\usepackage[top=0.32in, bottom=0.32in, left=0.55in, right=0.55in]{geometry}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{hyperref}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{tabularx}
+
+\definecolor{primary}{RGB}{28,28,28}
+\definecolor{subtle}{RGB}{110,110,110}
+\definecolor{accent}{RGB}{0,102,204}
+
+\hypersetup{
+  colorlinks=true,
+  urlcolor=accent,
+  linkcolor=accent
+}
+
+\renewcommand{\familydefault}{\sfdefault}
+\pagestyle{empty}
+
+\titleformat{\section}
+  {\large\bfseries\color{primary}}
+  {}{0em}{}
+  [\vspace{-2pt}\color{subtle}\titlerule]
+
+\titlespacing{\section}{0pt}{5pt}{4pt}
+
+\newcommand{\resumeitem}[1]{\item\small{#1}}
+
+\newcommand{\jobheading}[4]{%
+  \noindent
+  \begin{tabularx}{\textwidth}{@{}X r@{}}
+    \textbf{\color{primary}#1} \textbar{} \textit{\small\color{subtle}#2} &
+    \small\color{subtle}#3 \textbar{} \textit{\small #4}
+  \end{tabularx}%
+}
+
+\newlist{jobitems}{itemize}{1}
+\setlist[jobitems]{
+  label=\textbullet,
+  leftmargin=1.4em,
+  itemsep=1.5pt,
+  topsep=3pt,
+  parsep=0pt,
+  after=\vspace{3pt}
+}
+
+\newlist{projectitems}{itemize}{1}
+\setlist[projectitems]{
+  label=\textbullet,
+  leftmargin=1.4em,
+  itemsep=1.5pt,
+  topsep=3pt,
+  parsep=0pt,
+  after=\vspace{3pt}
+}
+
+\begin{document}
+
+\begin{center}
+{\LARGE\bfseries\color{primary} CHANDAN KUMAR}\\[4pt]
+
+\small\color{subtle}
+\href{tel:+916290909518}{+91 62909 09518} \quad
+\href{mailto:ravchandan15@gmail.com}{ravchandan15@gmail.com} \quad
+\href{https://github.com/RavSinghChandan}{github} \quad
+\href{https://linkedin.com}{linkedin} \quad
+\href{https://chandan-kumar-ai-engineer.vercel.app/}{portfolio}
+\end{center}
+
+\vspace{-2pt}
+
+\section{Professional Summary}
+
+\noindent Senior AI Engineer with \textbf{4+ years of experience} building \textbf{LLM-powered systems, Agentic AI applications, RAG pipelines, and scalable backend architectures} using Python and Java.
+
+\vspace{3pt}
+
+\noindent Specialized in \textbf{multi-agent orchestration, LangGraph workflows, RAG with vector databases (FAISS), production LLM applications with FastAPI, and event-driven microservices with Apache Kafka}. Experienced in designing systems with prompt engineering, LLM evaluation, and deployment on AWS with Docker and Kubernetes.
+
+\section{Technical Skills}
+
+\begin{tabularx}{\textwidth}{@{} l X @{}}
+\textbf{Languages} & Java, Python, JavaScript, TypeScript, SQL \\[2pt]
+\textbf{AI/ML} & LLM APIs, Prompt Engineering, NLP, LLM Evaluation, Agentic AI \\[2pt]
+\textbf{Frameworks} & Spring Boot, FastAPI, Hibernate, JPA \\[2pt]
+\textbf{AI Tools} & OpenAI API, MCP, LangChain, LangGraph, FAISS, Pinecone, Vector Databases, RAG \\[2pt]
+\textbf{Data} & Pandas, NumPy \\[2pt]
+\textbf{Messaging} & Apache Kafka (event-driven systems, real-time pipelines, async AI workflows) \\[2pt]
+\textbf{Databases} & PostgreSQL, MySQL, MongoDB \\[2pt]
+\textbf{DevOps} & Docker, Kubernetes, AWS, Redis, CI/CD \\[2pt]
+\textbf{Concepts} & Agentic AI, RAG, Distributed Systems, Microservices, Scalability, Multi-agent Orchestration \\
+\end{tabularx}
+
+\section{Professional Experience}
+
+\jobheading{Infosys --- Bank of America}{Senior Software Engineer}{Nov 2025 -- Present}{Pune}
+
+\begin{jobitems}
+\resumeitem{Designed LLM-integrated backend systems enabling intelligent workflow automation using FastAPI and Spring Boot.}
+\resumeitem{Built AI-driven microservices using event-driven architecture with Apache Kafka and real-time pipelines.}
+\resumeitem{Implemented Kafka-based data pipelines for continuous AI processing and decision flows in production.}
+\resumeitem{Improved system efficiency by 40\% through optimized AI-integrated architecture deployed on AWS with Docker.}
+\end{jobitems}
+
+\jobheading{Nexsys --- Accelya}{Software Engineer}{Dec 2023 -- Oct 2025}{Mumbai}
+
+\begin{jobitems}
+\resumeitem{Developed systems processing 500K+ daily transactions with AI-ready architecture using Java and Python.}
+\resumeitem{Built asynchronous Kafka pipelines supporting real-time intelligent data processing for AI workflows.}
+\resumeitem{Designed scalable backend services and microservice-based integrations with Docker and Kubernetes.}
+\end{jobitems}
+
+\jobheading{Texala}{Software Engineer}{May 2023 -- Dec 2023}{Pune}
+
+\begin{jobitems}
+\resumeitem{Developed microservices and maintained production-grade backend systems using Spring Boot and FastAPI.}
+\resumeitem{Built scalable APIs and integrated enterprise applications with event-driven messaging.}
+\end{jobitems}
+
+\jobheading{Flyboard Ventures}{Software Engineer}{Aug 2022 -- May 2023}{Chandigarh}
+
+\begin{jobitems}
+\resumeitem{Built scalable APIs supporting high-concurrency systems using Python and Java.}
+\resumeitem{Worked on backend architecture, performance tuning, and reliability improvements with AWS.}
+\end{jobitems}
+
+\section{Engineering Projects}
+
+\noindent\textbf{Agentic Astro Insight Engine} \textemdash{} \textit{Multi-Agent AI System}
+
+\begin{projectitems}
+\resumeitem{Built a multi-agent LLM system using LangGraph orchestration to generate personalized life-insight reports.}
+\resumeitem{Designed LangGraph-based multi-agent orchestration enabling collaboration across domain-specific agents.}
+\resumeitem{Implemented structured RAG pipeline combining vector search (FAISS) with domain-specific reasoning agents.}
+\resumeitem{Developed end-to-end workflow from user input to dynamic PDF report generation using FastAPI.}
+\resumeitem{Integrated tarot, palmistry, numerology, and vastu reasoning into a unified AI consultation system with prompt engineering.}
+\end{projectitems}
+
+\noindent\textbf{Bench Resource Optimization System} \textemdash{} \textit{AI Agent System}
+
+\begin{projectitems}
+\resumeitem{Built a RAG-based AI system using LangChain and FAISS to map employee skills to project roles.}
+\resumeitem{Developed multi-agent pipeline for CV parsing, role mapping, planning, and tracking with LangGraph.}
+\resumeitem{Implemented FAISS-based retrieval for role matching using vector similarity search in production.}
+\resumeitem{Generated personalized preparation plans using LLM-based planning agents with prompt engineering.}
+\resumeitem{Designed readiness scoring system to optimize resource allocation using LLM evaluation techniques.}
+\end{projectitems}
+
+\section{Education}
+
+\jobheading{Future Institute of Engineering and Management}{B.Tech - Computer Science Engineering}{2014 -- 2018}{CGPA: 8.7}
+
+\end{document}

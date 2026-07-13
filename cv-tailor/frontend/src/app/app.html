@@ -1,0 +1,75 @@
+<div class="wrap">
+  <header>
+    <h1>CV Tailor</h1>
+    <p>Paste a job → get an ATS-tailored PDF of your CV (same format, reworded text) → download &amp; apply.</p>
+  </header>
+
+  <section class="card form">
+    <div class="row">
+      <input class="in" [(ngModel)]="company" placeholder="Company (e.g. Cognizant)" />
+      <input class="in" [(ngModel)]="role" placeholder="Role (e.g. Senior AI Engineer)" />
+    </div>
+    <input class="in wide" [(ngModel)]="applyUrl" placeholder="Apply link (paste the job URL so you can click it later)" />
+    <textarea class="in ta" [(ngModel)]="jobDescription" rows="8"
+      placeholder="Paste the full job description here…"></textarea>
+
+    @if (error()) { <p class="err">{{ error() }}</p> }
+
+    <button class="btn" (click)="tailor()" [disabled]="busy()">
+      {{ busy() ? 'Tailoring & building PDF…' : 'Tailor my CV for this job' }}
+    </button>
+  </section>
+
+  <section class="card">
+    <h2>Applications <span class="count">{{ apps().length }}</span></h2>
+    @if (apps().length === 0) {
+      <p class="muted">No tailored CVs yet. Paste a job above to create your first one.</p>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th>Company / Role</th>
+            <th>ATS Match</th>
+            <th>Keywords</th>
+            <th>Tailored CV</th>
+            <th>Apply</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (a of apps(); track a.id) {
+            <tr>
+              <td>
+                <div class="co">{{ a.company || 'Untitled' }}</div>
+                <div class="ro">{{ a.role }}</div>
+                <div class="dt">{{ (a.created_at * 1000) | date:'MMM d, HH:mm' }}</div>
+              </td>
+              <td>
+                <span class="score" [class]="scoreClass(a.ats_score)">{{ a.ats_score }}%</span>
+              </td>
+              <td class="kw">
+                @for (k of a.matched_keywords.slice(0, 6); track k) {
+                  <span class="chip ok">{{ k }}</span>
+                }
+                @for (k of a.missing_keywords.slice(0, 3); track k) {
+                  <span class="chip miss">{{ k }}</span>
+                }
+              </td>
+              <td>
+                <button class="dl" (click)="downloadPdf(a)">⬇ Download PDF</button>
+              </td>
+              <td>
+                @if (a.apply_url) {
+                  <a class="apply" [href]="a.apply_url" target="_blank" rel="noopener">Apply ↗</a>
+                } @else {
+                  <span class="muted">—</span>
+                }
+              </td>
+              <td><button class="x" (click)="remove(a)" title="Delete">✕</button></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </section>
+</div>
