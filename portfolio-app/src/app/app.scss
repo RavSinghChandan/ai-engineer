@@ -289,6 +289,41 @@ h1 {
   margin-bottom: 1.1rem;
 }
 
+.proof-link {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #10b981;
+  text-decoration: none;
+  margin: -0.5rem 0 0.9rem;
+}
+.proof-link:hover { text-decoration: underline; }
+
+/* ── OPEN SOURCE section ── */
+.oss-section { padding: 3.5rem 0; }
+.oss-h {
+  font-size: 1.8rem; font-weight: 800; color: var(--text); margin: 0 0 0.4rem;
+}
+.oss-sub { color: var(--text2); font-size: 0.95rem; margin: 0 0 1.8rem; }
+.oss-sub b { color: #10b981; }
+.oss-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem;
+}
+.oss-card {
+  display: block; text-decoration: none;
+  background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px; padding: 1.1rem 1.2rem; transition: border-color .2s, transform .2s;
+}
+.oss-card:hover { border-color: #10b981; transform: translateY(-2px); }
+.oss-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; }
+.oss-repo { font-family: monospace; font-size: 0.8rem; color: #a78bfa; font-weight: 600; }
+.oss-stars { font-size: 0.75rem; color: #f59e0b; font-weight: 700; }
+.oss-title { font-size: 0.95rem; font-weight: 700; color: var(--text); margin-bottom: 0.35rem; }
+.oss-desc { font-size: 0.78rem; color: var(--text2); line-height: 1.5; margin-bottom: 0.9rem; }
+.oss-foot { display: flex; justify-content: space-between; align-items: center; }
+.oss-merged { font-size: 0.75rem; font-weight: 700; color: #10b981; }
+.oss-view { font-size: 0.72rem; color: var(--text2); font-weight: 600; }
+
 /* SVG icon — top-right corner, always colourful */
 .proof-icon {
   position: absolute;

@@ -212,6 +212,9 @@
           <div class="proof-num">{{ p.stat }}</div>
           <div class="proof-title">{{ p.title }}</div>
           <div class="proof-sub">{{ p.sub }}</div>
+          @if (p.link) {
+            <a class="proof-link" [href]="p.link" target="_blank" rel="noopener">View on GitHub ↗</a>
+          }
 
           <!-- Aarav character CTA — click to ask -->
           <button class="proof-aarav" (click)="askAarav(p.askQuestion)" [title]="p.askQuestion">
@@ -223,6 +226,32 @@
           </button>
 
         </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- OPEN SOURCE -->
+<section id="opensource" class="oss-section">
+  <div class="container">
+    <h2 class="oss-h">Open Source Contributions</h2>
+    <p class="oss-sub">
+      Merged code in widely-used ML libraries — <b>{{ openSource.length }} merged</b>, more in review.
+    </p>
+    <div class="oss-grid">
+      @for (o of openSource; track o.pr) {
+        <a class="oss-card" [href]="o.pr" target="_blank" rel="noopener">
+          <div class="oss-top">
+            <span class="oss-repo">{{ o.repo }}</span>
+            <span class="oss-stars">{{ o.stars }}</span>
+          </div>
+          <div class="oss-title">{{ o.title }}</div>
+          <div class="oss-desc">{{ o.desc }}</div>
+          <div class="oss-foot">
+            <span class="oss-merged">✓ Merged · {{ o.merged }}</span>
+            <span class="oss-view">View PR ↗</span>
+          </div>
+        </a>
       }
     </div>
   </div>
