@@ -74,16 +74,18 @@ nav[aria-label="Main navigation"] {
 }
 .nav-inner {
   display: flex; align-items: center; justify-content: space-between; height: 60px;
+  gap: 1rem;
 }
 .nav-logo {
   font-size: 1.3rem; font-weight: 900; letter-spacing: -0.04em;
+  flex-shrink: 0;
   span { color: var(--purple); }
 }
 .nav-links {
-  display: flex; gap: 2rem;
+  display: flex; gap: 1.35rem; align-items: center;
   a {
-    font-size: 0.82rem; font-weight: 500; color: var(--text2);
-    text-transform: uppercase; letter-spacing: 0.06em;
+    font-size: 0.78rem; font-weight: 500; color: var(--text2);
+    text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap;
     transition: color 0.2s;
     position: relative; padding-bottom: 2px;
     /* Slide-in underline — Apple/Google nav pattern */
