@@ -10,6 +10,8 @@ interface Application {
   role: string;
   apply_url: string;
   ats_score: number;
+  target_score?: number;
+  rounds?: number;
   matched_keywords: string[];
   missing_keywords: string[];
   created_at: number;
@@ -37,6 +39,7 @@ export class App implements OnInit {
   count = 10;
   location = 'IN';
   maxAge = 14;
+  targetScore = 95;
   showManual = signal(false);
 
   // manual paste
@@ -63,6 +66,7 @@ export class App implements OnInit {
           count: this.count,
           location: this.location,
           max_age_days: this.maxAge,
+          target_score: this.targetScore,
         }),
       );
       this.searchMsg.set(
@@ -96,6 +100,7 @@ export class App implements OnInit {
           role: this.role,
           apply_url: this.applyUrl,
           job_description: this.jobDescription,
+          target_score: this.targetScore,
         }),
       );
       this.company = this.role = this.applyUrl = this.jobDescription = '';

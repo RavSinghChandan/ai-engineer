@@ -40,6 +40,12 @@
       </label>
     </div>
 
+    <div class="slider-row">
+      <span class="slider-label">Target ATS match: <b>{{ targetScore }}%</b></span>
+      <input class="slider" type="range" min="70" max="100" step="1" [(ngModel)]="targetScore" />
+      <span class="slider-hint">CV is re-tailored until it hits this (or its honest ceiling).</span>
+    </div>
+
     @if (searchMsg()) { <p class="ok-msg">{{ searchMsg() }}</p> }
     @if (error()) { <p class="err">{{ error() }}</p> }
 
@@ -95,6 +101,12 @@
               </td>
               <td>
                 <span class="score" [class]="scoreClass(a.ats_score)">{{ a.ats_score }}%</span>
+                @if (a.target_score) {
+                  <div class="tgt">
+                    @if (a.ats_score >= a.target_score) { <span class="met">✓ target {{ a.target_score }}%</span> }
+                    @else { <span class="under">target {{ a.target_score }}%</span> }
+                  </div>
+                }
               </td>
               <td class="kw">
                 @for (k of a.matched_keywords.slice(0, 6); track k) {

@@ -25,6 +25,8 @@ def init_db() -> None:
                 apply_url TEXT,
                 job_description TEXT,
                 ats_score INTEGER,
+                target_score INTEGER,
+                rounds INTEGER,
                 matched_keywords TEXT,
                 missing_keywords TEXT,
                 tex_path TEXT,
@@ -33,6 +35,11 @@ def init_db() -> None:
             )
             """
         )
+        # additive migration for existing DBs
+        cols = {r[1] for r in conn.execute("PRAGMA table_info(applications)")}
+        for col in ("target_score", "rounds"):
+            if col not in cols:
+                conn.execute(f"ALTER TABLE applications ADD COLUMN {col} INTEGER")
 
 
 def add_application(**kw) -> str:
@@ -40,12 +47,13 @@ def add_application(**kw) -> str:
     with _conn() as conn:
         conn.execute(
             """INSERT INTO applications
-               (id, company, role, apply_url, job_description, ats_score,
+               (id, company, role, apply_url, job_description, ats_score, target_score, rounds,
                 matched_keywords, missing_keywords, tex_path, pdf_path, created_at)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (
                 app_id, kw.get("company", ""), kw.get("role", ""), kw.get("apply_url", ""),
                 kw.get("job_description", ""), kw.get("ats_score", 0),
+                kw.get("target_score", 95), kw.get("rounds", 1),
                 json.dumps(kw.get("matched_keywords", [])),
                 json.dumps(kw.get("missing_keywords", [])),
                 kw.get("tex_path", ""), kw.get("pdf_path", ""), time.time(),

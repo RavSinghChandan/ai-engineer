@@ -14,6 +14,14 @@ Tailors a CV per job. **Secondary — manual paste** (collapsible) for one-off j
 Jobs API key: works keyless for a few searches (~10/hr) then rate-limits. Free key at
 **jobdataapi.com** → put `JOBDATA_API_KEY=...` in `backend/.env` for reliable, filtered search.
 
+### Target ATS score (slider)
+
+A slider (70–100%, default 95%) sets the **target** match. The tailoring runs an
+**iterative refinement loop**: tailor → self-score → if below target, feed the still-missing
+keywords back and re-tailor, up to 4 rounds, until the target is met (or its honest ceiling).
+The table shows achieved % vs target with a ✓ when met. Higher target = more aggressive
+keyword weaving; the rewrite stays truthful (no fabricated skills).
+
 ### Tailoring (both flows)
 
 1. A job description (auto-fetched or pasted) drives the rewrite.

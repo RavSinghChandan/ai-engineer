@@ -42,6 +42,7 @@ class TailorRequest(BaseModel):
     role: str = Field(default="", max_length=200)
     apply_url: str = Field(default="", max_length=1000)
     job_description: str = Field(min_length=30, max_length=20000)
+    target_score: int = Field(default=95, ge=50, le=100)
 
 
 @app.get("/health")
@@ -53,7 +54,7 @@ async def health() -> dict:
 async def tailor(req: TailorRequest) -> dict:
     """Tailor the CV to the pasted job, compile the PDF, store the row."""
     try:
-        result = await tailor_cv(req.job_description)
+        result = await tailor_cv(req.job_description, target=req.target_score)
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Tailoring failed: {exc}")
 
@@ -69,6 +70,8 @@ async def tailor(req: TailorRequest) -> dict:
         apply_url=req.apply_url,
         job_description=req.job_description,
         ats_score=result.ats_score,
+        target_score=req.target_score,
+        rounds=result.rounds,
         matched_keywords=result.matched,
         missing_keywords=result.missing,
         tex_path=str(tex_path),
@@ -82,6 +85,8 @@ async def tailor(req: TailorRequest) -> dict:
         "ats_score": result.ats_score,
         "matched_keywords": result.matched,
         "missing_keywords": result.missing,
+        "rounds": result.rounds,
+        "target_score": req.target_score,
     }
 
 
@@ -95,6 +100,7 @@ class AutoSearchRequest(BaseModel):
     count: int = Field(default=10, ge=1, le=30)
     location: str = Field(default="IN", max_length=4)   # country code, e.g. IN
     max_age_days: int = Field(default=14, ge=1, le=60)
+    target_score: int = Field(default=95, ge=50, le=100)
 
 
 @app.post("/api/auto-search")
@@ -112,7 +118,9 @@ async def auto_search(req: AutoSearchRequest) -> dict:
     errors: list[str] = []
     for job in postings:
         try:
-            result = await tailor_cv(job.description or f"{job.role} at {job.company}")
+            result = await tailor_cv(
+                job.description or f"{job.role} at {job.company}", target=req.target_score
+            )
             tex_source = render_tex(result)
             tex_path, pdf_path = await compile_tex(tex_source)
             add_application(
@@ -121,6 +129,8 @@ async def auto_search(req: AutoSearchRequest) -> dict:
                 apply_url=job.apply_url,
                 job_description=job.description,
                 ats_score=result.ats_score,
+                target_score=req.target_score,
+                rounds=result.rounds,
                 matched_keywords=result.matched,
                 missing_keywords=result.missing,
                 tex_path=str(tex_path),
@@ -141,6 +151,7 @@ async def applications() -> list[dict]:
         out.append({
             "id": a["id"], "company": a["company"], "role": a["role"],
             "apply_url": a["apply_url"], "ats_score": a["ats_score"],
+            "target_score": a.get("target_score"), "rounds": a.get("rounds"),
             "matched_keywords": a["matched_keywords"], "missing_keywords": a["missing_keywords"],
             "created_at": a["created_at"],
         })

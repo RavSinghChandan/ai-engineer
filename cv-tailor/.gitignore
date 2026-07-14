@@ -1,0 +1,19 @@
+# Python
+backend/.venv/
+__pycache__/
+*.pyc
+
+# Secrets
+backend/.env
+
+# Generated CVs, PDFs, DB
+backend/data/
+backend/app/base/*.pdf
+
+# Node / Angular
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+
+# OS
+.DS_Store
