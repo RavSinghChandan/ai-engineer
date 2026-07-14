@@ -299,12 +299,17 @@ h1 {
 }
 .proof-link:hover { text-decoration: underline; }
 
-/* ── OPEN SOURCE section ── */
+/* ── OPEN SOURCE CONTRIBUTION section ── */
 .oss-section { padding: 3.5rem 0; }
-.oss-h {
-  font-size: 1.8rem; font-weight: 800; color: var(--text); margin: 0 0 0.4rem;
+.oss-head { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.8rem; }
+.oss-hf {
+  width: 52px; height: 52px; flex-shrink: 0;
+  filter: drop-shadow(0 0 14px rgba(255,208,0,0.35));
 }
-.oss-sub { color: var(--text2); font-size: 0.95rem; margin: 0 0 1.8rem; }
+.oss-h {
+  font-size: 1.8rem; font-weight: 800; color: var(--text); margin: 0 0 0.25rem;
+}
+.oss-sub { color: var(--text2); font-size: 0.95rem; margin: 0; }
 .oss-sub b { color: #10b981; }
 .oss-grid {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem;

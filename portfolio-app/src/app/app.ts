@@ -332,23 +332,6 @@ export class App implements OnInit, AfterViewInit {
         <path d="M17 18h14M17 22h10M17 26h12" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.3"/>
       </svg>`,
     },
-    {
-      stat:  'Merged',
-      title: 'Open source, merged.',
-      sub:   'Code merged into Hugging Face libraries (sentence-transformers, 18.9k★). See the Open Source section below.',
-      link:  'https://github.com/huggingface/sentence-transformers/pull/3855',
-      askQuestion: 'What open source contributions has Chandan merged?',
-      aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: 'Merged into a Hugging Face library! 🚀',
-      svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="24" cy="12" r="5" stroke="#a78bfa" stroke-width="2"/>
-        <circle cx="24" cy="36" r="5" stroke="#10b981" stroke-width="2"/>
-        <path d="M24 17 L24 31" stroke="currentColor" stroke-width="2" opacity="0.5"/>
-        <path d="M20 34l3 3 6-7" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <circle cx="38" cy="20" r="4" stroke="#f59e0b" stroke-width="2"/>
-        <path d="M24 12 C33 12 38 15 38 20" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2" opacity="0.4"/>
-      </svg>`,
-    },
   ];
 
   /** Opens chatbot and sends a pre-filled question about the clicked stat */
@@ -1262,7 +1245,7 @@ export class App implements OnInit, AfterViewInit {
     // back-to-top threshold
     this.showBackToTop.set(sy > document.documentElement.scrollHeight * 0.35);
     // active nav section
-    const sections = ['story','skills','projects','by-numbers','experience','contact'];
+    const sections = ['story','opensource','skills','projects','by-numbers','experience','contact'];
     let current = '';
     for (const id of sections) {
       const el = document.getElementById(id);
