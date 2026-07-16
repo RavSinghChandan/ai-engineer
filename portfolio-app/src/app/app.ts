@@ -966,79 +966,92 @@ export class App implements OnInit, AfterViewInit {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    const prefersReduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const DPR = Math.min(window.devicePixelRatio || 1, 2);
+
     // ── tuning ──────────────────────────────────────────────────────────────
-    const NODE_COUNT      = 90;   // neurons
-    const CLUSTER_COUNT   = 7;    // brain-region clusters
-    const AXON_PER_NODE   = 3;    // each neuron connects to at most N others (sparse)
-    const MAX_AXON_LEN    = 260;  // long-range axons, like real brain fibres
-    const DRIFT_SPEED     = 0.08; // very slow — neurons barely move
-    const SIGNAL_SPEED    = 0.012;// fraction of edge traversed per frame
-    const SIGNAL_INTERVAL = 90;   // frames between spontaneous signals
+    const baseCount       = 96;   // neurons (scaled by viewport area)
+    const CLUSTER_COUNT   = 6;    // cortical-region clusters
+    const AXON_PER_NODE   = 3;    // sparse: each neuron connects to at most N
+    const MAX_AXON_LEN    = 300;  // long-range fibres
+    const DRIFT_SPEED     = 0.10; // slow ambient drift
+    const SIGNAL_SPEED    = 0.014;// fraction of edge per frame
+    const SIGNAL_INTERVAL = 42;   // frames between spontaneous firings
+    const MOUSE_RADIUS    = 190;  // cursor influence radius
+    const PARALLAX        = 14;    // px of depth parallax from cursor
     // ────────────────────────────────────────────────────────────────────────
 
     const rgb = (hex: string) => ({
-      r: parseInt(hex.slice(1,3),16),
-      g: parseInt(hex.slice(3,5),16),
-      b: parseInt(hex.slice(5,7),16),
+      r: parseInt(hex.slice(1, 3), 16),
+      g: parseInt(hex.slice(3, 5), 16),
+      b: parseInt(hex.slice(5, 7), 16),
     });
 
-    // Cluster centres — spread across viewport like cortical regions
     interface Cluster { cx: number; cy: number; color: string; }
-    const CLUSTER_COLORS = ['#7c3aed','#0891b2','#6366f1','#0f766e','#5b21b6','#1e40af','#6d28d9'];
+    // luminous violet→cyan spectrum, tuned for additive glow on dark bg
+    const CLUSTER_COLORS = ['#8b5cf6', '#22d3ee', '#6366f1', '#2dd4bf', '#a855f7', '#3b82f6'];
 
+    let W = 0, H = 0;
     let clusters: Cluster[] = [];
     const buildClusters = () => {
       clusters = Array.from({ length: CLUSTER_COUNT }, (_, i) => ({
-        cx: (0.1 + 0.8 * Math.random()) * canvas.width,
-        cy: (0.1 + 0.8 * Math.random()) * canvas.height,
+        cx: (0.12 + 0.76 * Math.random()) * W,
+        cy: (0.12 + 0.76 * Math.random()) * H,
         color: CLUSTER_COLORS[i % CLUSTER_COLORS.length],
       }));
     };
 
-    // Neuron nodes
     interface Neuron {
-      x: number; y: number; vx: number; vy: number;
-      r: number; clusterId: number;
-      glow: number; glowDir: number; // slow soma glow breathe
+      x: number; y: number; hx: number; hy: number; // home + live pos
+      vx: number; vy: number; r: number; z: number;  // z = depth 0..1
+      clusterId: number; glow: number; glowDir: number;
+      fire: number; // 0..1 activation flash when a signal arrives
     }
     let neurons: Neuron[] = [];
 
-    // Directed axon edges (sparse, pre-computed)
-    interface Axon { from: number; to: number; }
+    interface Axon { from: number; to: number; heat: number; } // heat = recent-signal glow
     let axons: Axon[] = [];
 
-    // Active signals travelling along axons
-    interface Signal { axonIdx: number; t: number; }// t 0→1
+    interface Signal { axonIdx: number; t: number; }
     let signals: Signal[] = [];
     let frameCount = 0;
 
+    // pointer state (smoothed)
+    const mouse = { x: -9999, y: -9999, tx: -9999, ty: -9999, active: false };
+
+    let NODE_COUNT = baseCount;
+
     const resize = () => {
-      canvas.width  = window.innerWidth;
-      canvas.height = window.innerHeight;
+      W = window.innerWidth; H = window.innerHeight;
+      canvas.width = W * DPR; canvas.height = H * DPR;
+      canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      // scale node count to viewport area so it never looks sparse/crowded
+      NODE_COUNT = Math.round(baseCount * Math.min(1.4, Math.max(0.55, (W * H) / (1440 * 900))));
       buildClusters();
       init();
     };
 
     const init = () => {
-      // Seed neurons near cluster centres with gaussian-ish spread
       neurons = Array.from({ length: NODE_COUNT }, (_, i) => {
         const cid = i % CLUSTER_COUNT;
-        const cl  = clusters[cid];
-        const spread = 80 + Math.random() * 120;
-        const angle  = Math.random() * Math.PI * 2;
+        const cl = clusters[cid];
+        const spread = 70 + Math.random() * 150;
+        const angle = Math.random() * Math.PI * 2;
+        const x = cl.cx + Math.cos(angle) * spread * Math.random();
+        const y = cl.cy + Math.sin(angle) * spread * Math.random();
+        const z = Math.random(); // depth: near nodes bigger/brighter/parallax more
         return {
-          x: cl.cx + Math.cos(angle) * spread * Math.random(),
-          y: cl.cy + Math.sin(angle) * spread * Math.random(),
+          x, y, hx: x, hy: y,
           vx: (Math.random() - 0.5) * DRIFT_SPEED,
           vy: (Math.random() - 0.5) * DRIFT_SPEED,
-          r:  1.2 + Math.random() * 2,
-          clusterId: cid,
-          glow: Math.random(),
-          glowDir: Math.random() > 0.5 ? 1 : -1,
+          r: (1 + Math.random() * 2) * (0.6 + z * 0.9),
+          z, clusterId: cid,
+          glow: Math.random(), glowDir: Math.random() > 0.5 ? 1 : -1,
+          fire: 0,
         };
       });
 
-      // Build sparse axons: each neuron connects to nearest AXON_PER_NODE within MAX_AXON_LEN
       axons = [];
       for (let i = 0; i < neurons.length; i++) {
         const candidates: { j: number; d: number }[] = [];
@@ -1046,139 +1059,175 @@ export class App implements OnInit, AfterViewInit {
           if (i === j) continue;
           const dx = neurons[i].x - neurons[j].x;
           const dy = neurons[i].y - neurons[j].y;
-          const d  = Math.sqrt(dx*dx + dy*dy);
+          const d = Math.sqrt(dx * dx + dy * dy);
           if (d < MAX_AXON_LEN) candidates.push({ j, d });
         }
-        candidates.sort((a,b) => a.d - b.d);
-        // prefer same-cluster neighbours, occasionally cross-cluster (long-range)
-        const sameCluster = candidates.filter(c => neurons[c.j].clusterId === neurons[i].clusterId);
-        const diffCluster = candidates.filter(c => neurons[c.j].clusterId !== neurons[i].clusterId);
-        const chosen = [
-          ...sameCluster.slice(0, AXON_PER_NODE - 1),
-          ...diffCluster.slice(0, 1),
-        ].slice(0, AXON_PER_NODE);
-        for (const c of chosen) axons.push({ from: i, to: c.j });
+        candidates.sort((a, b) => a.d - b.d);
+        const same = candidates.filter(c => neurons[c.j].clusterId === neurons[i].clusterId);
+        const diff = candidates.filter(c => neurons[c.j].clusterId !== neurons[i].clusterId);
+        const chosen = [...same.slice(0, AXON_PER_NODE - 1), ...diff.slice(0, 1)].slice(0, AXON_PER_NODE);
+        for (const c of chosen) axons.push({ from: i, to: c.j, heat: 0 });
       }
-
       signals = [];
     };
 
+    // pre-index outgoing axons per neuron for fast cascades
+    const outgoingOf = (nodeIdx: number) => {
+      const out: number[] = [];
+      for (let i = 0; i < axons.length; i++) if (axons[i].from === nodeIdx) out.push(i);
+      return out;
+    };
+
+    const onMove = (e: MouseEvent) => { mouse.tx = e.clientX; mouse.ty = e.clientY; mouse.active = true; };
+    const onLeave = () => { mouse.active = false; };
     window.addEventListener('resize', resize);
+    window.addEventListener('mousemove', onMove, { passive: true });
+    window.addEventListener('mouseout', onLeave, { passive: true });
     resize();
 
+    const spawnSignal = (axonIdx: number) => { if (axons[axonIdx]) { signals.push({ axonIdx, t: 0 }); axons[axonIdx].heat = 1; } };
+
     const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
       frameCount++;
 
-      // Drift neurons
+      // trail/afterglow: fade previous frame instead of hard clear (bloom look)
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = 'rgba(8, 9, 20, 0.22)';
+      ctx.fillRect(0, 0, W, H);
+
+      // smooth pointer
+      mouse.x += (mouse.tx - mouse.x) * 0.12;
+      mouse.y += (mouse.ty - mouse.y) * 0.12;
+      const pxOff = mouse.active ? (mouse.x / W - 0.5) * PARALLAX : 0;
+      const pyOff = mouse.active ? (mouse.y / H - 0.5) * PARALLAX : 0;
+
+      // physics
       for (const n of neurons) {
-        n.x += n.vx; n.y += n.vy;
-        // soft boundary — nudge back gently instead of hard bounce
-        if (n.x < 20)  n.vx += 0.02;
-        if (n.x > canvas.width  - 20) n.vx -= 0.02;
-        if (n.y < 20)  n.vy += 0.02;
-        if (n.y > canvas.height - 20) n.vy -= 0.02;
-        // soma glow breathe
+        n.hx += n.vx; n.hy += n.vy;
+        if (n.hx < 20) n.vx += 0.02; if (n.hx > W - 20) n.vx -= 0.02;
+        if (n.hy < 20) n.vy += 0.02; if (n.hy > H - 20) n.vy -= 0.02;
+        // gentle damping so drift stays calm
+        n.vx *= 0.996; n.vy *= 0.996;
+
+        // depth parallax
+        let x = n.hx + pxOff * (0.3 + n.z);
+        let y = n.hy + pyOff * (0.3 + n.z);
+
+        // cursor repulsion (nodes lean away, like a field)
+        if (mouse.active) {
+          const dx = x - mouse.x, dy = y - mouse.y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < MOUSE_RADIUS * MOUSE_RADIUS) {
+            const d = Math.sqrt(d2) || 1;
+            const force = (1 - d / MOUSE_RADIUS) * 14;
+            x += (dx / d) * force; y += (dy / d) * force;
+          }
+        }
+        n.x = x; n.y = y;
+
         n.glow += n.glowDir * 0.005;
         if (n.glow > 1) { n.glow = 1; n.glowDir = -1; }
-        if (n.glow < 0) { n.glow = 0; n.glowDir =  1; }
+        if (n.glow < 0) { n.glow = 0; n.glowDir = 1; }
+        if (n.fire > 0) n.fire -= 0.03;
       }
 
-      // Spawn new signal occasionally
-      if (frameCount % SIGNAL_INTERVAL === 0 && axons.length > 0) {
-        const ax = axons[Math.floor(Math.random() * axons.length)];
-        signals.push({ axonIdx: axons.indexOf(ax), t: 0 });
+      // spontaneous firing (+ a burst near the cursor for responsiveness)
+      if (!prefersReduced && frameCount % SIGNAL_INTERVAL === 0 && axons.length) {
+        spawnSignal(Math.floor(Math.random() * axons.length));
+      }
+      if (mouse.active && !prefersReduced && frameCount % 10 === 0) {
+        // find nearest neuron to cursor and fire one of its axons
+        let best = -1, bd = 1e9;
+        for (let i = 0; i < neurons.length; i++) {
+          const dx = neurons[i].x - mouse.x, dy = neurons[i].y - mouse.y;
+          const d = dx * dx + dy * dy;
+          if (d < bd) { bd = d; best = i; }
+        }
+        if (best >= 0 && bd < MOUSE_RADIUS * MOUSE_RADIUS) {
+          const out = outgoingOf(best);
+          if (out.length) spawnSignal(out[Math.floor(Math.random() * out.length)]);
+        }
       }
 
-      // Advance signals; when they arrive, trigger neighbours
+      // advance signals + cascade
       const done: number[] = [];
       for (let s = 0; s < signals.length; s++) {
         signals[s].t += SIGNAL_SPEED;
+        const ax = axons[signals[s].axonIdx];
+        if (ax) ax.heat = Math.max(ax.heat, 1 - Math.abs(signals[s].t - 0.5));
         if (signals[s].t >= 1) {
           done.push(s);
-          // cascade: fire one outgoing axon from arrival neuron
-          const arrivedAt = axons[signals[s].axonIdx].to;
-          const outgoing = axons
-            .map((a,i) => ({ a, i }))
-            .filter(({ a }) => a.from === arrivedAt);
-          if (outgoing.length > 0 && Math.random() > 0.35) {
-            const pick = outgoing[Math.floor(Math.random() * outgoing.length)];
-            signals.push({ axonIdx: pick.i, t: 0 });
+          if (ax) {
+            neurons[ax.to].fire = 1; // flash the arrival neuron
+            const out = outgoingOf(ax.to);
+            if (out.length && Math.random() > 0.32) {
+              spawnSignal(out[Math.floor(Math.random() * out.length)]);
+            }
           }
         }
       }
       for (let i = done.length - 1; i >= 0; i--) signals.splice(done[i], 1);
-      if (signals.length > 60) signals.splice(0, signals.length - 60); // cap
+      if (signals.length > 80) signals.splice(0, signals.length - 80);
 
-      // Draw axons (dendrites / axon fibres) — very thin, very dim
+      // ADDITIVE pass — everything glowing blends luminously
+      ctx.globalCompositeOperation = 'lighter';
+
+      // axons (base dim + heat brighten as signals pass)
       for (const ax of axons) {
-        const a = neurons[ax.from]; const b = neurons[ax.to];
+        const a = neurons[ax.from], b = neurons[ax.to];
         const cl = clusters[a.clusterId];
         const { r, g, b: bl } = rgb(cl.color);
+        const mx = (a.x + b.x) / 2 + (b.y - a.y) * 0.14;
+        const my = (a.y + b.y) / 2 - (b.x - a.x) * 0.14;
+        const base = 0.05 + 0.14 * ((a.z + b.z) / 2);
+        const alpha = base + ax.heat * 0.5;
         ctx.beginPath();
         ctx.moveTo(a.x, a.y);
-        // slight curve — axons are not perfectly straight
-        const mx = (a.x + b.x) / 2 + (b.y - a.y) * 0.15;
-        const my = (a.y + b.y) / 2 - (b.x - a.x) * 0.15;
         ctx.quadraticCurveTo(mx, my, b.x, b.y);
-        ctx.strokeStyle = `rgba(${r},${g},${bl},0.12)`;
-        ctx.lineWidth = 0.6;
+        ctx.strokeStyle = `rgba(${r},${g},${bl},${alpha})`;
+        ctx.lineWidth = 0.5 + ax.heat * 1.4;
         ctx.stroke();
+        ax.heat *= 0.92; // cool down
       }
 
-      // Draw travelling signals as bright dots on axon path
+      // travelling signals — comet head + soft glow
       for (const sig of signals) {
-        const ax  = axons[sig.axonIdx];
-        if (!ax) continue;
-        const a   = neurons[ax.from]; const b = neurons[ax.to];
-        const t   = sig.t;
-        const mx  = (a.x + b.x) / 2 + (b.y - a.y) * 0.15;
-        const my  = (a.y + b.y) / 2 - (b.x - a.x) * 0.15;
-        // quadratic bezier point at t
-        const px  = (1-t)*(1-t)*a.x + 2*(1-t)*t*mx + t*t*b.x;
-        const py  = (1-t)*(1-t)*a.y + 2*(1-t)*t*my + t*t*b.y;
-        const cl  = clusters[neurons[ax.from].clusterId];
-        const { r, g, b: bl } = rgb(cl.color);
-        // bright glow dot
-        const sg  = ctx.createRadialGradient(px, py, 0, px, py, 6);
-        sg.addColorStop(0,   `rgba(${r},${g},${bl},0.9)`);
-        sg.addColorStop(0.4, `rgba(${r},${g},${bl},0.4)`);
-        sg.addColorStop(1,   `rgba(${r},${g},${bl},0)`);
-        ctx.beginPath();
-        ctx.arc(px, py, 6, 0, Math.PI*2);
-        ctx.fillStyle = sg;
-        ctx.fill();
-        // tiny bright core
-        ctx.beginPath();
-        ctx.arc(px, py, 1.5, 0, Math.PI*2);
-        ctx.fillStyle = `rgba(255,255,255,0.95)`;
-        ctx.fill();
+        const ax = axons[sig.axonIdx]; if (!ax) continue;
+        const a = neurons[ax.from], b = neurons[ax.to];
+        const t = sig.t;
+        const mx = (a.x + b.x) / 2 + (b.y - a.y) * 0.14;
+        const my = (a.y + b.y) / 2 - (b.x - a.x) * 0.14;
+        const px = (1 - t) * (1 - t) * a.x + 2 * (1 - t) * t * mx + t * t * b.x;
+        const py = (1 - t) * (1 - t) * a.y + 2 * (1 - t) * t * my + t * t * b.y;
+        const { r, g, b: bl } = rgb(clusters[a.clusterId].color);
+        const sg = ctx.createRadialGradient(px, py, 0, px, py, 9);
+        sg.addColorStop(0, `rgba(${r},${g},${bl},0.95)`);
+        sg.addColorStop(0.35, `rgba(${r},${g},${bl},0.35)`);
+        sg.addColorStop(1, `rgba(${r},${g},${bl},0)`);
+        ctx.beginPath(); ctx.arc(px, py, 9, 0, Math.PI * 2); ctx.fillStyle = sg; ctx.fill();
+        ctx.beginPath(); ctx.arc(px, py, 1.6, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,255,255,0.98)'; ctx.fill();
       }
 
-      // Draw soma (neuron cell bodies)
+      // soma — halo scales with depth, glow-breathe, and fire flash
       for (const n of neurons) {
-        const cl = clusters[n.clusterId];
-        const { r, g, b: bl } = rgb(cl.color);
-        const gAlpha = 0.15 + n.glow * 0.25;
-
-        // soft soma halo
-        const sg = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r * 4);
+        const { r, g, b: bl } = rgb(clusters[n.clusterId].color);
+        const fire = n.fire > 0 ? n.fire : 0;
+        const haloR = n.r * (3.4 + fire * 3);
+        const gAlpha = 0.10 + n.glow * 0.20 + fire * 0.5;
+        const sg = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, haloR);
         sg.addColorStop(0, `rgba(${r},${g},${bl},${gAlpha})`);
         sg.addColorStop(1, `rgba(${r},${g},${bl},0)`);
-        ctx.beginPath();
-        ctx.arc(n.x, n.y, n.r * 4, 0, Math.PI*2);
-        ctx.fillStyle = sg;
-        ctx.fill();
-
-        // soma core dot
-        ctx.beginPath();
-        ctx.arc(n.x, n.y, n.r, 0, Math.PI*2);
-        ctx.fillStyle = `rgba(${r},${g},${bl},0.75)`;
+        ctx.beginPath(); ctx.arc(n.x, n.y, haloR, 0, Math.PI * 2); ctx.fillStyle = sg; ctx.fill();
+        ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${Math.min(255, r + fire * 120)},${Math.min(255, g + fire * 120)},${Math.min(255, bl + fire * 120)},${0.7 + fire * 0.3})`;
         ctx.fill();
       }
 
       requestAnimationFrame(draw);
     };
+    // paint a solid base once so the fade-trail has something to fade from
+    ctx.fillStyle = '#080914'; ctx.fillRect(0, 0, W, H);
     draw();
   }
 

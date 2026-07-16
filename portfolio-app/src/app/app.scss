@@ -48,8 +48,13 @@
   height: 100%;
   z-index: -1;
   pointer-events: none;
-  opacity: 0.55;
+  opacity: 0.85;
+  transition: opacity 0.4s var(--ease);
 }
+/* the canvas paints its own deep-space base; in light theme dial it back
+   so the white UI stays clean and legible */
+:root[data-theme="light"] #neural-canvas,
+body[data-theme="light"] #neural-canvas { opacity: 0.35; }
 
 /* ── NAV ── */
 nav[aria-label="Main navigation"] {
