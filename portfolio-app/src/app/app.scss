@@ -304,9 +304,10 @@ h1 {
 /* ── OPEN SOURCE CONTRIBUTION section ── */
 .oss-section { padding: 3.5rem 0; }
 .oss-head { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.8rem; }
+.oss-logos { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
 .oss-hf {
-  width: 52px; height: 52px; flex-shrink: 0;
-  filter: drop-shadow(0 0 14px rgba(255,208,0,0.35));
+  width: 48px; height: 48px; flex-shrink: 0;
+  filter: drop-shadow(0 0 12px rgba(255,208,0,0.30));
 }
 .oss-h {
   font-size: 1.8rem; font-weight: 800; color: var(--text); margin: 0 0 0.25rem;
@@ -323,7 +324,8 @@ h1 {
 }
 .oss-card:hover { border-color: #10b981; transform: translateY(-2px); }
 .oss-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; }
-.oss-repo { font-family: monospace; font-size: 0.8rem; color: #a78bfa; font-weight: 600; }
+.oss-repo { font-family: monospace; font-size: 0.8rem; color: #a78bfa; font-weight: 600; display: inline-flex; align-items: center; gap: 0.45rem; }
+.oss-card-logo { width: 20px; height: 20px; flex-shrink: 0; border-radius: 5px; }
 .oss-stars { font-size: 0.75rem; color: #f59e0b; font-weight: 700; }
 .oss-title { font-size: 0.95rem; font-weight: 700; color: var(--text); margin-bottom: 0.35rem; }
 .oss-desc { font-size: 0.78rem; color: var(--text2); line-height: 1.5; margin-bottom: 0.9rem; }

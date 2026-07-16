@@ -352,14 +352,36 @@ export class App implements OnInit, AfterViewInit {
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
     {
+      repo: 'joblib/joblib',
+      logo: 'joblib-logo.svg',
+      org: 'joblib',
+      stars: '4.1k★',
+      title: 'accept any os.PathLike in dump() and load()',
+      desc: 'Bug fix: joblib.dump()/load() now accept os.PathLike subclasses (not just str/pathlib.Path), matching open() semantics. joblib powers parallelism & caching across scikit-learn and the ML stack.',
+      pr: 'https://github.com/joblib/joblib/pull/1812',
+      merged: 'Jul 2026',
+    },
+    {
+      repo: 'joblib/joblib',
+      logo: 'joblib-logo.svg',
+      org: 'joblib',
+      stars: '4.1k★',
+      title: 'add missing docstrings to time-format helpers',
+      desc: 'Documented format_time, short_format_time and pformat in joblib’s logging utilities.',
+      pr: 'https://github.com/joblib/joblib/pull/1811',
+      merged: 'Jul 2026',
+    },
+    {
       repo: 'huggingface/sentence-transformers',
+      logo: 'huggingface-logo.svg',
+      org: 'Hugging Face',
       stars: '18.9k★',
       title: 'add tests for append_to_last_row',
       desc: 'Regression tests for an untested CSV utility in the embeddings/reranking library used across the ML ecosystem.',
       pr: 'https://github.com/huggingface/sentence-transformers/pull/3855',
       merged: 'Jul 2026',
     },
-    // Next merges go here — e.g. joblib, nltk, spaCy, evaluate (PRs currently in review).
+    // Next merges go here — e.g. nltk, spaCy, evaluate, smolagents (PRs currently in review).
   ];
 
   skills = [

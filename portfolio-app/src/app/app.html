@@ -200,7 +200,10 @@
 <section id="opensource" class="oss-section">
   <div class="container">
     <div class="oss-head">
-      <img class="oss-hf" src="huggingface-logo.svg" alt="Hugging Face" />
+      <div class="oss-logos">
+        <img class="oss-hf" src="huggingface-logo.svg" alt="Hugging Face" />
+        <img class="oss-hf" src="joblib-logo.svg" alt="joblib" />
+      </div>
       <div>
         <h2 class="oss-h">Open Source Contribution</h2>
         <p class="oss-sub">Merged code into libraries the AI/ML world actually uses — <b>{{ openSource.length }} merged</b>, more in review.</p>
@@ -210,7 +213,10 @@
       @for (o of openSource; track o.pr) {
         <a class="oss-card" [href]="o.pr" target="_blank" rel="noopener">
           <div class="oss-top">
-            <span class="oss-repo">{{ o.repo }}</span>
+            <span class="oss-repo">
+              <img class="oss-card-logo" [src]="o.logo" [alt]="o.org" />
+              {{ o.repo }}
+            </span>
             <span class="oss-stars">{{ o.stars }}</span>
           </div>
           <div class="oss-title">{{ o.title }}</div>
