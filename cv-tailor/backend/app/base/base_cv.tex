@@ -26,7 +26,7 @@
   {}{0em}{}
   [\vspace{-2pt}\color{subtle}\titlerule]
 
-\titlespacing{\section}{0pt}{3pt}{2pt}
+\titlespacing{\section}{0pt}{2pt}{1pt}
 
 \newcommand{\resumeitem}[1]{\item\small{#1}}
 
@@ -42,20 +42,20 @@
 \setlist[jobitems]{
   label=\textbullet,
   leftmargin=1.4em,
-  itemsep=1.5pt,
-  topsep=3pt,
+  itemsep=1pt,
+  topsep=2pt,
   parsep=0pt,
-  after=\vspace{3pt}
+  after=\vspace{2pt}
 }
 
 \newlist{projectitems}{itemize}{1}
 \setlist[projectitems]{
   label=\textbullet,
   leftmargin=1.4em,
-  itemsep=1.5pt,
-  topsep=3pt,
+  itemsep=1pt,
+  topsep=2pt,
   parsep=0pt,
-  after=\vspace{3pt}
+  after=\vspace{2pt}
 }
 
 \begin{document}
@@ -75,19 +75,15 @@
 
 \section{Professional Summary}
 
-\noindent Senior AI Engineer with \textbf{4+ years of experience} building \textbf{LLM-powered systems, Agentic AI applications, RAG pipelines, and scalable backend architectures}.
-
-\vspace{3pt}
-
-\noindent Specialized in \textbf{multi-agent orchestration, autonomous decision systems, LangGraph workflows, AI-integrated microservices, and production-grade AI platforms} using Python and Java. Experienced in designing systems that learn and improve through feedback loops, evaluation pipelines, and data-driven optimization.
+\noindent Senior AI Engineer with \textbf{4+ years of experience} building production-grade AI systems using \textbf{LLMs, Agentic AI, RAG, LangChain, LangGraph, FastAPI, Python, and Java}. Active open-source contributor to Hugging Face and Joblib with merged contributions to widely used AI/ML libraries.
 
 \section{Technical Skills}
 
 \begin{tabularx}{\textwidth}{@{} l X @{}}
 \textbf{Languages} & Java, Python, JavaScript, TypeScript, SQL \\[2pt]
-\textbf{AI/ML} & LLM APIs, Prompt Engineering, NLP, Evaluation Techniques \\[2pt]
+\textbf{AI/ML} & LLMs, Agentic AI, RAG, Prompt Engineering, NLP, AI Evaluation \\[2pt]
 \textbf{Frameworks} & Spring Boot, FastAPI, Hibernate, JPA \\[2pt]
-\textbf{AI Tools} & OpenAI API, MCP, LangChain, LangGraph, FAISS, Vector Databases \\[2pt]
+\textbf{AI Tools} & OpenAI API, Hugging Face, LangChain, LangGraph, FAISS, ChromaDB \\[2pt]
 \textbf{Data} & Pandas, NumPy \\[2pt]
 \textbf{Messaging} & Apache Kafka (real-time pipelines, async AI workflows) \\[2pt]
 \textbf{Databases} & PostgreSQL, MySQL, MongoDB \\[2pt]
@@ -152,8 +148,12 @@
 
 \section{Open Source Contributions}
 
+\noindent\textbf{Hugging Face \& Joblib} \hfill \href{https://github.com/RavSinghChandan}{\small\color{accent}GitHub}
+
 \begin{projectitems}
-\resumeitem{Merged PR into \textbf{Hugging Face / sentence-transformers} (18.9k+ stars); active contributor to joblib, NLTK, spaCy, and HF Evaluate with additional PRs under review.}
+\resumeitem{Merged 3 production-grade contributions into Hugging Face Sentence Transformers and Joblib, widely used across the AI/ML ecosystem.}
+\resumeitem{Added regression tests, improved \texttt{os.PathLike} compatibility in \texttt{joblib.dump()/load()}, and enhanced developer documentation through merged pull requests.}
+\resumeitem{Collaborated with maintainers through code reviews; additional AI/ML contributions are under active review.}
 \end{projectitems}
 
 \section{Education}
