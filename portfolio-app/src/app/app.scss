@@ -324,8 +324,9 @@ h1 {
 }
 .oss-card {
   display: block; text-decoration: none;
-  background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08);
+  background: var(--card); border: 1px solid var(--border);
   border-radius: 14px; padding: 1.1rem 1.2rem; transition: border-color .2s, transform .2s;
+  box-shadow: var(--shadow);
 }
 .oss-card:hover { border-color: #10b981; transform: translateY(-2px); }
 .oss-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; }
@@ -1760,8 +1761,8 @@ footer {
   display: flex; align-items: center; justify-content: center;
   width: 56px; height: 56px; margin: 0 auto 0.45rem;
   border-radius: 16px;
-  background: rgba(255,255,255,0.06);
-  border: 1.5px solid rgba(255,255,255,0.1);
+  background: var(--surface);
+  border: 1.5px solid var(--border);
   animation: stl-float 4s ease-in-out infinite;
   svg { width: 34px; height: 34px; display: block; }
 }
@@ -1934,8 +1935,8 @@ footer {
   display: flex; align-items: center; justify-content: center;
   width: 52px; height: 52px; margin: 0 auto 0.5rem;
   border-radius: 14px;
-  background: rgba(255,255,255,0.06);
-  border: 1.5px solid rgba(255,255,255,0.12);
+  background: var(--surface);
+  border: 1.5px solid var(--border);
   animation: stl-float 5s ease-in-out infinite;
   svg { width: 32px; height: 32px; display: block; }
 }
@@ -1977,7 +1978,7 @@ footer {
 .cdlg-avatar {
   flex-shrink: 0; display: flex; align-items: center; justify-content: center;
   width: 42px; height: 42px; border-radius: 12px;
-  background: rgba(255,255,255,0.07); border: 1.5px solid rgba(255,255,255,0.12);
+  background: var(--surface); border: 1.5px solid var(--border);
   color: var(--text2);
   animation: stl-float 4s ease-in-out infinite;
   svg { width: 26px; height: 26px; display: block; }
