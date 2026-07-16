@@ -4,6 +4,9 @@
 \usepackage{enumitem}
 \usepackage{titlesec}
 \usepackage{hyperref}
+\usepackage{fontawesome5}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
 \usepackage{microtype}
 \usepackage{xcolor}
 \usepackage{tabularx}
@@ -26,7 +29,7 @@
   {}{0em}{}
   [\vspace{-2pt}\color{subtle}\titlerule]
 
-\titlespacing{\section}{0pt}{2pt}{1pt}
+\titlespacing{\section}{0pt}{5pt}{4pt}
 
 \newcommand{\resumeitem}[1]{\item\small{#1}}
 
@@ -40,22 +43,20 @@
 
 \newlist{jobitems}{itemize}{1}
 \setlist[jobitems]{
-  label=\textbullet,
   leftmargin=1.4em,
-  itemsep=1pt,
-  topsep=2pt,
+  itemsep=1.5pt,
+  topsep=3pt,
   parsep=0pt,
-  after=\vspace{2pt}
+  after=\vspace{3pt}
 }
 
 \newlist{projectitems}{itemize}{1}
 \setlist[projectitems]{
-  label=\textbullet,
   leftmargin=1.4em,
-  itemsep=1pt,
-  topsep=2pt,
+  itemsep=1.5pt,
+  topsep=3pt,
   parsep=0pt,
-  after=\vspace{2pt}
+  after=\vspace{3pt}
 }
 
 \begin{document}
@@ -64,13 +65,13 @@
 {\LARGE\bfseries\color{primary} CHANDAN KUMAR}\\[4pt]
 
 \small\color{subtle}
-\href{tel:+916290909518}{+91 62909 09518} \quad
-\href{mailto:ravchandan15@gmail.com}{ravchandan15@gmail.com} \quad
-\href{https://github.com/RavSinghChandan}{github} \quad
-\href{https://linkedin.com}{linkedin} \quad
-\href{https://chandan-kumar-ai-engineer.vercel.app/}{portfolio}
+\faPhone\ \href{tel:+916290909518}{+91 62909 09518} \quad
+\faEnvelope\ \href{mailto:ravchandan15@gmail.com}{ravchandan15@gmail.com} \quad
+\faGithub\ \href{https://github.com/RavSinghChandan}{GitHub} \quad
+\faCodeBranch\ \href{https://github.com/joblib/joblib/pull/1811}{Open Source} \quad
+\faLinkedin\ \href{https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/}{LinkedIn} \quad
+\faGlobe\ \href{https://chandan-kumar-ai-engineer.vercel.app/}{Portfolio}
 \end{center}
-
 \vspace{-2pt}
 
 \section{Professional Summary}
@@ -85,70 +86,18 @@
 \textbf{Frameworks} & Spring Boot, FastAPI, Hibernate, JPA \\[2pt]
 \textbf{AI Tools} & OpenAI API, Hugging Face, LangChain, LangGraph, FAISS, ChromaDB \\[2pt]
 \textbf{Data} & Pandas, NumPy \\[2pt]
-\textbf{Messaging} & Apache Kafka (real-time pipelines, async AI workflows) \\[2pt]
+\textbf{Messaging} & Apache Kafka \\[2pt]
 \textbf{Databases} & PostgreSQL, MySQL, MongoDB \\[2pt]
 \textbf{DevOps} & Docker, Kubernetes, Redis, CI/CD \\[2pt]
 \textbf{Concepts} & Agentic AI, RAG, Distributed Systems, Microservices, Scalability \\
 \end{tabularx}
 
-\section{Professional Experience}
-
-\jobheading{Infosys --- Bank of America}{Senior Software Engineer}{Nov 2025 -- Present}{Pune}
-
-\begin{jobitems}
-\resumeitem{Designed LLM-integrated backend systems enabling intelligent workflow automation.}
-\resumeitem{Built AI-driven microservices using event-driven architecture and real-time pipelines.}
-\resumeitem{Implemented Kafka-based data pipelines for continuous AI processing and decision flows.}
-\resumeitem{Improved system efficiency by 40\% through optimized AI-integrated architecture.}
-\end{jobitems}
-
-\jobheading{Nexsys --- Accelya}{Software Engineer}{Dec 2023 -- Oct 2025}{Mumbai}
-
-\begin{jobitems}
-\resumeitem{Developed systems processing 500K+ daily transactions with AI-ready architecture.}
-\resumeitem{Built asynchronous pipelines supporting real-time intelligent data processing.}
-\resumeitem{Designed scalable backend services and microservice-based integrations.}
-\end{jobitems}
-
-\jobheading{Texala}{Software Engineer}{May 2023 -- Dec 2023}{Pune}
-
-\begin{jobitems}
-\resumeitem{Developed microservices and maintained production-grade backend systems.}
-\resumeitem{Built scalable APIs and integrated enterprise applications.}
-\end{jobitems}
-
-\jobheading{Flyboard Ventures}{Software Engineer}{Aug 2022 -- May 2023}{Chandigarh}
-
-\begin{jobitems}
-\resumeitem{Built scalable APIs supporting high-concurrency systems.}
-\resumeitem{Worked on backend architecture, performance tuning, and reliability improvements.}
-\end{jobitems}
-
-\section{Engineering Projects}
-
-\noindent\textbf{Agentic Astro Insight Engine} \textemdash{} \textit{Multi-Agent AI System}
-
-\begin{projectitems}
-\resumeitem{Built a multi-agent LLM system to generate personalized life-insight reports from user queries.}
-\resumeitem{Designed LangGraph-based orchestration enabling collaboration across astrology, numerology, and reasoning agents.}
-\resumeitem{Implemented structured reasoning pipeline combining domain-specific agents with consensus generation.}
-\resumeitem{Developed end-to-end workflow from user input to dynamic PDF report generation.}
-\resumeitem{Integrated tarot, palmistry, numerology, and vastu reasoning into a unified AI consultation system.}
-\end{projectitems}
-
-\noindent\textbf{Bench Resource Optimization System} \textemdash{} \textit{AI Agent System}
-
-\begin{projectitems}
-\resumeitem{Built a RAG-based AI system to map employee skills to project roles and identify gaps.}
-\resumeitem{Developed multi-agent pipeline for CV parsing, role mapping, planning, and tracking.}
-\resumeitem{Implemented FAISS-based retrieval for role matching using vector similarity search.}
-\resumeitem{Generated personalized preparation plans using LLM-based planning agents.}
-\resumeitem{Designed readiness scoring system to optimize resource allocation and deployment readiness.}
-\end{projectitems}
-
 \section{Open Source Contributions}
 
-\noindent\textbf{Hugging Face \& Joblib} \hfill \href{https://github.com/RavSinghChandan}{\small\color{accent}GitHub}
+\noindent
+\textbf{Hugging Face \& Joblib}
+\hfill
+\href{https://github.com/RavSinghChandan}{GitHub}
 
 \begin{projectitems}
 \resumeitem{Merged 3 production-grade contributions into Hugging Face Sentence Transformers and Joblib, widely used across the AI/ML ecosystem.}
@@ -156,8 +105,52 @@
 \resumeitem{Collaborated with maintainers through code reviews; additional AI/ML contributions are under active review.}
 \end{projectitems}
 
+\section{Professional Experience}
+
+\jobheading{Infosys --- Bank of America}{Senior Software Engineer}{Nov 2025 -- Present}{Pune}
+
+\begin{jobitems}
+\resumeitem{Designed LLM-powered backend systems and AI-driven microservices using event-driven architecture.}
+\resumeitem{Improved system efficiency by 40\% through scalable architecture optimization.}
+\end{jobitems}
+
+\jobheading{Nexsys --- Accelya}{Software Engineer}{Dec 2023 -- Oct 2025}{Mumbai}
+
+\begin{jobitems}
+\resumeitem{Built scalable backend services processing 500K+ daily transactions using microservice architecture.}
+\end{jobitems}
+
+\jobheading{Texala}{Software Engineer}{May 2023 -- Dec 2023}{Pune}
+
+\begin{jobitems}
+\resumeitem{Developed production-grade microservices and scalable enterprise APIs.}
+\end{jobitems}
+
+\jobheading{Flyboard Ventures}{Software Engineer}{Aug 2022 -- May 2023}{Chandigarh}
+
+\begin{jobitems}
+\resumeitem{Built scalable APIs while improving backend architecture, performance, and reliability.}
+\end{jobitems}
+\section{Engineering Projects}
+
+\noindent\textbf{Agentic Astro Insight Engine} \textemdash{} \textit{Multi-Agent AI Platform}
+
+\begin{projectitems}
+\resumeitem{Built a multi-agent AI platform using LangGraph and LLMs to generate personalized life-insight reports.}
+\resumeitem{Designed agent orchestration combining numerology, astrology, reasoning, and report-generation workflows.}
+\resumeitem{Implemented structured reasoning with dynamic PDF generation using FastAPI and Python.}
+\end{projectitems}
+
+\noindent\textbf{Bench Resource Optimization System} \textemdash{} \textit{RAG + Multi-Agent AI}
+
+\begin{projectitems}
+\resumeitem{Built a RAG-based AI platform mapping employee skills to project requirements using vector search.}
+\resumeitem{Implemented multi-agent workflow for CV parsing, skill matching, planning, and personalized learning paths.}
+\resumeitem{Integrated FAISS retrieval with LLM planning agents to generate customized preparation roadmaps.}
+\end{projectitems}
+
 \section{Education}
 
-\jobheading{Future Institute of Engineering and Management}{B.Tech - Computer Science Engineering}{2014 -- 2018}{CGPA: 8.7}
+\jobheading{Future Institute of Engineering and Management}{B.Tech -- Computer Science Engineering}{2014 -- 2018}{CGPA: 8.7}
 
 \end{document}
