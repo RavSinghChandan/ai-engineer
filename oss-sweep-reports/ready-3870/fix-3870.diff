@@ -1,0 +1,21 @@
+diff --git a/sentence_transformers/util/hard_negatives.py b/sentence_transformers/util/hard_negatives.py
+index 9d07f70..abc92b0 100644
+--- a/sentence_transformers/util/hard_negatives.py
++++ b/sentence_transformers/util/hard_negatives.py
+@@ -390,8 +390,14 @@ def mine_hard_negatives(
+         os.makedirs(cache_folder, exist_ok=True)
+ 
+         model_name = model.model_card_data.base_model or ""
+-        query_hash = hashlib.sha256((model_name + "".join(queries)).encode(), usedforsecurity=False).hexdigest()
+-        corpus_hash = hashlib.sha256((model_name + "".join(corpus)).encode(), usedforsecurity=False).hexdigest()
++        query_hash = hashlib.sha256(
++            repr((model_name, query_prompt_name, query_prompt, tuple(queries))).encode(),
++            usedforsecurity=False,
++        ).hexdigest()
++        corpus_hash = hashlib.sha256(
++            repr((model_name, corpus_prompt_name, corpus_prompt, tuple(corpus))).encode(),
++            usedforsecurity=False,
++        ).hexdigest()
+ 
+         query_cache_file = os.path.join(cache_folder, f"query_embeddings_{query_hash}.npy")
+         corpus_cache_file = os.path.join(cache_folder, f"corpus_embeddings_{corpus_hash}.npy")
