@@ -228,7 +228,13 @@ export class OrchestratorService {
       vastu:      { label: 'Vastu Shastra',icon: '🏠', order: 5 },
     };
 
-    const sections = await Promise.all(review.questions.map(async q => {
+    // Remedies are user-level (same person, same numerology blueprint), so they must
+    // appear ONCE in the report, not repeated per question. Attach them only to the
+    // first question that carries numerology; all later questions skip remedies.
+    const remedyQuestionIndex = review.questions.findIndex(qq =>
+      qq.insights.some(i => (i.domains?.includes('numerology')) || /numerolog/i.test(i.sub_agent ?? ''))
+    );
+    const sections = await Promise.all(review.questions.map(async (q, qIndex) => {
       const approved = q.insights
         .filter(i => approvedIds.includes(i.id))
         .map(i => ({ ...i, approved: true }));
@@ -310,8 +316,12 @@ export class OrchestratorService {
         } catch { /* keep original bullets on failure */ }
       }
 
-      // Fetch RAG remedies from numerology books for this question
-      if (this.backendMode() === 'backend' && lifePathNum > 0) {
+      // Fetch RAG remedies from numerology books — ONLY ONCE, for the first
+      // numerology-bearing question. Later questions from the same user skip
+      // remedies so the PDF doesn't repeat them. (remedyQuestionIndex resolved above;
+      // fall back to the first question if none was flagged.)
+      const isRemedyQuestion = qIndex === (remedyQuestionIndex >= 0 ? remedyQuestionIndex : 0);
+      if (this.backendMode() === 'backend' && lifePathNum > 0 && isRemedyQuestion) {
         try {
           const remRes = await firstValueFrom(
             this.api.getRagRemedies(lifePathNum, q.intent)

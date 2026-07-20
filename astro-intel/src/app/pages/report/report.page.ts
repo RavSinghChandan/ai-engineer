@@ -820,7 +820,8 @@ import { firstValueFrom } from 'rxjs';
                 <div class="dm-divider" [style.background]="dsAccent(grp.domain)"></div>
 
                 <!-- ── Story paragraphs (numerology only, when LLM returns story arc) ── -->
-                @if (grp.domain === 'numerology' && grp.bullets.length === 1 && parseStoryParagraphs(grp.bullets[0]); as storyParts) {
+                <!-- Remedies shown once: only the first question (si === 0) keeps its [REMEDIES] segment -->
+                @if (grp.domain === 'numerology' && grp.bullets.length === 1 && parseStoryParagraphs(grp.bullets[0], si === 0); as storyParts) {
                   <div class="dm-story">
                     @for (part of storyParts; track part.label) {
                       <div class="dm-story-block" [style.borderLeftColor]="part.color">
@@ -2583,11 +2584,14 @@ export class ReportPage implements OnInit {
     { key: 'REMEDIES',   label: 'Remedies',          color: '#059669' },
   ];
 
-  parseStoryParagraphs(text: string): Array<{ label: string; color: string; text: string }> | null {
+  parseStoryParagraphs(text: string, includeRemedies = true): Array<{ label: string; color: string; text: string }> | null {
     if (!text || !text.includes('[HOOK]')) return null;
     const result: Array<{ label: string; color: string; text: string }> = [];
     for (let i = 0; i < this.STORY_THEMES.length; i++) {
       const { key, label, color } = this.STORY_THEMES[i];
+      // Remedies must appear only once per report — skip the [REMEDIES] segment
+      // for every question after the first numerology one (includeRemedies=false).
+      if (key === 'REMEDIES' && !includeRemedies) continue;
       const start = text.indexOf(`[${key}]`);
       if (start === -1) continue;
       const contentStart = start + key.length + 2; // skip "[KEY]"
