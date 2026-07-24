@@ -12,3 +12,7 @@
 1. Chandan comments on #184 (drafted) offering the _split_phonemes fix, asking to open a PR.
 2. Maintainer says yes (responsive) → build fix + pytest → Chandan pushes PR.
 This is the best OSS shot in 15 days — real bug, real lib he uses, welcoming maintainer, deeper fix unclaimed.
+
+---
+## CANDIDATE #2 (BEST — cleanest) — kokoro-onnx #155: speed arg is int32
+`src/kokoro_onnx/__init__.py` line 115: `"speed": np.array([speed], dtype=np.int32)` — casts float speed (1.5) to int (1); speeds <1 error. Confirmed by 4 users (hfl112, Patrick-Ric, yzm0080, cowboywang). UNCLAIMED, no PR. FIX: int32 -> float32 (one line) + a test that speed=1.5 stays 1.5. This is the highest-odds clean merge. Chandan posts comment on #155 (drafted, natural voice), maintainer says yes, build 1-line fix + pytest, Chandan pushes.
