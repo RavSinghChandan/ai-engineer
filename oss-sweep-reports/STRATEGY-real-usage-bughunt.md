@@ -24,3 +24,12 @@ NEXT to probe: kokoro-onnx (newest, best odds), soundfile edge cases, kafka-pyth
 
 ## Ongoing rule
 This replaces the passive cron as the PRIMARY path. When Chandan is building and hits ANY library misbehaving, that's the moment — report it. Merges come from REAL usage, not hunting scraps.
+
+---
+## PERMANENT DAILY PLAYBOOK (locked 2026-07-24)
+Every time Chandan says "check OSS / any bug to merge":
+1. Quick status: merged count, cron candidate, any PR with new maintainer activity.
+2. Hunt bugs in HIS PROJECT DEPENDENCIES (requirements.txt of astro-intel / meeting-assistant / content-factory). Prefer smaller/newer libs, welcoming maintainers. Repo must be SAFE (no CLAUDE/AGENTS.md).
+3. Hand Chandan 2-3 REAL, unclaimed bugs — each with issue link + a ready-to-paste comment in his NATURAL HUMAN voice (casual, paragraphs, plain words, direct question). He pastes himself.
+4. On maintainer "yes" -> build fix + pytest -> Chandan pushes the PR.
+Writing style for comments: human, not bot. "Ran into this too", short sentences, a line break, ends with "want me to?". No jargon.
