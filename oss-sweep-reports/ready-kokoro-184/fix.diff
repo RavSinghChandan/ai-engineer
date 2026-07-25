@@ -1,0 +1,129 @@
+diff --git a/src/kokoro_onnx/__init__.py b/src/kokoro_onnx/__init__.py
+index 104d198..bfa7ef9 100644
+--- a/src/kokoro_onnx/__init__.py
++++ b/src/kokoro_onnx/__init__.py
+@@ -133,6 +133,25 @@ class Kokoro:
+     def get_voice_style(self, name: str) -> NDArray[np.float32]:
+         return self.voices[name]
+ 
++    @staticmethod
++    def _hard_split(part: str, limit: int) -> list[str]:
++        """
++        Split a single over-long chunk into pieces no longer than ``limit``.
++        Prefer breaking at a space so words stay intact; if there is no space,
++        fall back to a hard cut at ``limit``.
++        """
++        pieces: list[str] = []
++        while len(part) > limit:
++            window = part[:limit]
++            cut = window.rfind(" ")
++            if cut <= 0:
++                cut = limit
++            pieces.append(part[:cut].strip())
++            part = part[cut:].strip()
++        if part:
++            pieces.append(part)
++        return pieces
++
+     def _split_phonemes(self, phonemes: str) -> list[str]:
+         """
+         Split phonemes into batches of MAX_PHONEME_LENGTH
+@@ -147,19 +166,33 @@ class Kokoro:
+             # Remove leading/trailing whitespace
+             part = part.strip()
+ 
+-            if part:
++            if not part:
++                continue
++
++            # A single part can itself be longer than MAX_PHONEME_LENGTH (e.g. a long
++            # run of phonemes with no punctuation). Previously it was placed into a
++            # batch unchanged and then silently truncated in _create_audio, dropping
++            # everything past the limit. Hard-split such parts first so no phonemes
++            # are lost.
++            subparts = (
++                self._hard_split(part, MAX_PHONEME_LENGTH)
++                if len(part) >= MAX_PHONEME_LENGTH
++                else [part]
++            )
++
++            for sub in subparts:
+                 # If adding the part exceeds the max length, split into a new batch
+-                # TODO: make it more accurate
+-                if len(current_batch) + len(part) + 1 >= MAX_PHONEME_LENGTH:
+-                    batched_phoenemes.append(current_batch.strip())
+-                    current_batch = part
++                if len(current_batch) + len(sub) + 1 >= MAX_PHONEME_LENGTH:
++                    if current_batch:
++                        batched_phoenemes.append(current_batch.strip())
++                    current_batch = sub
+                 else:
+-                    if part in ".,!?;":
+-                        current_batch += part
++                    if sub in ".,!?;":
++                        current_batch += sub
+                     else:
+                         if current_batch:
+                             current_batch += " "
+-                        current_batch += part
++                        current_batch += sub
+ 
+         # Append the last batch if it contains any phonemes
+         if current_batch:
+diff --git a/tests/test_split_phonemes.py b/tests/test_split_phonemes.py
+new file mode 100644
+index 0000000..d6b2536
+--- /dev/null
++++ b/tests/test_split_phonemes.py
+@@ -0,0 +1,51 @@
++"""Tests for _split_phonemes: over-long segments must be split, not truncated.
++
++Regression test for the silent phoneme truncation described in
++https://github.com/thewh1teagle/kokoro-onnx/issues/184 : when a single
++segment (no punctuation) was longer than MAX_PHONEME_LENGTH it was passed
++downstream unchanged and truncated in _create_audio, dropping everything
++past the limit. These tests check that _split_phonemes now keeps every
++batch within the limit without losing any phonemes.
++
++They call the pure string logic directly, so no model files are required.
++"""
++
++from kokoro_onnx import Kokoro
++from kokoro_onnx.config import MAX_PHONEME_LENGTH
++
++# _split_phonemes / _hard_split only use string logic, not any model state,
++# so we can invoke them on an uninitialised instance (no model files needed).
++_kokoro = object.__new__(Kokoro)
++_split = _kokoro._split_phonemes
++
++
++def _total_len(batches):
++    return sum(len(b) for b in batches)
++
++
++def test_long_unpunctuated_segment_is_split_not_truncated():
++    text = "a" * 700
++    batches = _split(text)
++    assert all(len(b) <= MAX_PHONEME_LENGTH for b in batches)
++    assert _total_len(batches) == 700  # nothing dropped
++
++
++def test_multiple_long_words_without_punctuation():
++    text = " ".join(["x" * 200] * 5)  # ~1000 chars, no punctuation
++    batches = _split(text)
++    assert all(len(b) <= MAX_PHONEME_LENGTH for b in batches)
++    assert sum(b.count("x") for b in batches) == 1000
++
++
++def test_single_token_no_spaces_hard_cut():
++    text = "b" * 1200
++    batches = _split(text)
++    assert all(len(b) <= MAX_PHONEME_LENGTH for b in batches)
++    assert _total_len(batches) == 1200
++
++
++def test_normal_short_text_is_unchanged():
++    text = "hello world. how are you? fine thanks."
++    batches = _split(text)
++    assert all(len(b) <= MAX_PHONEME_LENGTH for b in batches)
++    assert batches  # produces at least one batch
