@@ -165,8 +165,9 @@ _CHAPTER_SYSTEM = (
     "specifically about the year ahead.\n"
     "5. Write EXACTLY these 6 labelled paragraphs:\n"
     "[HOOK] [TENSION] [TURN] [RESOLUTION] [CLOSING] [REMEDIES]\n"
-    "6. Each paragraph MUST be SHORT — one or two plain sentences, about 25 words "
-    "max. NEVER write a long run-on paragraph. Keep it light and easy to read.\n"
+    "6. Each paragraph is two or three warm, complete sentences — rich enough to "
+    "move the reader, but never a long run-on wall of text. Finish every thought; "
+    "never trail off. Make each beat land like a line from a beautiful book.\n"
     "7. Do NOT lecture about numerology traditions, karmic ledgers, mantras "
     "chanted 108 times, or gemstones unless it flows naturally in one short line. "
     "In [REMEDIES], give one or two simple everyday suggestions as flowing prose."
@@ -222,7 +223,7 @@ def _chapter_story(
                 system=_CHAPTER_SYSTEM,
                 user=prompt,
                 temperature=0.55 if attempt == 0 else 0.4,
-                max_tokens=420,
+                max_tokens=560,
             )
             story = (result or "").strip()
             if len(story) > 120 and "[HOOK]" in story:
@@ -251,11 +252,13 @@ def _chapter_story(
     )
 
 
-def _trim_beats(story: str, max_sentences: int = 2) -> str:
-    """Cap each labelled beat to at most ``max_sentences`` sentences.
+def _trim_beats(story: str, max_chars: int = 340) -> str:
+    """Safety net ONLY — trim a beat that is a genuine wall of text.
 
-    Guarantees no chapter renders as a dense wall of text even if the model
-    ignored the "keep it short" instruction. Preserves the labels and order.
+    This must NEVER compromise good content: it keeps a beat untouched unless it
+    is clearly over-long, and even then it drops only WHOLE trailing sentences
+    (never cutting mid-sentence). Beats within budget pass through unchanged, so
+    rich, complete chapters are preserved exactly as written.
     """
     import re as _re
     parts = _re.split(r"(\[(?:HOOK|TENSION|TURN|RESOLUTION|CLOSING|REMEDIES)\])", story)
@@ -263,10 +266,21 @@ def _trim_beats(story: str, max_sentences: int = 2) -> str:
     i = 1
     while i < len(parts):
         label = parts[i].strip()
-        text = parts[i + 1].strip() if i + 1 < len(parts) else ""
-        sentences = [s.strip() for s in _re.split(r"(?<=[.!?])\s+", text) if s.strip()]
-        trimmed = " ".join(sentences[:max_sentences]) if sentences else text
-        out.append(f"{label} {trimmed}")
+        text = (parts[i + 1].strip() if i + 1 < len(parts) else "")
+        if len(text) > max_chars:
+            # Split into whole sentences and keep as many COMPLETE sentences as
+            # fit, so the beat always ends cleanly on a full stop.
+            sentences = _re.findall(r"[^.!?]*[.!?]+", text, _re.S)
+            if sentences:
+                kept, total = [], 0
+                for s in sentences:
+                    s = s.strip()
+                    if kept and total + len(s) > max_chars:
+                        break
+                    kept.append(s)
+                    total += len(s) + 1
+                text = " ".join(kept)
+        out.append(f"{label} {text}")
         i += 2
     return "\n".join(out) if out else story
 
@@ -278,25 +292,34 @@ def _arc_from_prose(prose: str) -> str:
     renders short, readable beats instead of one dense wall of text.
     """
     import re as _re
-    # Split into sentences, keeping them whole.
-    sentences = [s.strip() for s in _re.split(r"(?<=[.!?])\s+", prose.strip()) if s.strip()]
+    # Split into whole sentences (keep punctuation).
+    sentences = [s.strip() for s in _re.findall(r"[^.!?]*[.!?]+", prose.strip(), _re.S)]
+    if not sentences:
+        sentences = [prose.strip()]
     labels = ["HOOK", "TENSION", "TURN", "RESOLUTION", "CLOSING", "REMEDIES"]
-    if len(sentences) <= 1:
-        return f"[HOOK] {prose.strip()}"
-    # Distribute sentences as evenly as possible across the 6 beats.
+    # Never split mid-sentence to force 6 beats — a beat that ends on a comma
+    # reads as a broken thought. Fewer, COMPLETE beats beat six chopped ones,
+    # so we distribute only whole sentences across as many labels as they fill.
+
+    # Distribute sentences as EVENLY as possible — spread the remainder across
+    # the earliest beats instead of dumping it all on the last (which caused a
+    # wall). Every label gets a fair share.
     n = len(sentences)
-    per = max(1, n // len(labels))
+    k = len(labels)
+    base, extra = divmod(n, k)
     beats: list[str] = []
     idx = 0
     for i, label in enumerate(labels):
-        if i == len(labels) - 1:
-            chunk = sentences[idx:]          # last beat takes the remainder
-        else:
-            chunk = sentences[idx:idx + per]
-            idx += per
+        take = base + (1 if i < extra else 0)
+        chunk = sentences[idx:idx + take]
+        idx += take
         if chunk:
             beats.append(f"[{label}] " + " ".join(chunk))
     return "\n".join(beats)
+
+
+# A story that fell all the way to the bland generic template starts with this.
+_GENERIC_MARKER = "Every strength here carries a matching challenge."
 
 
 def _build_chapter(
@@ -305,7 +328,35 @@ def _build_chapter(
     dob: str,
     nums: Dict[str, Any],
 ) -> Dict[str, Any]:
-    """Build one chapter: RAG reading -> storified arc. Reuses the Q&A engine."""
+    """Build one chapter, retrying once if the first result is thin/generic.
+
+    Empty LLM/RAG responses are transient (rate limits, a bad completion). For a
+    once-in-a-lifetime report we never accept a bland filler chapter, so if the
+    story is too short or fell to the generic template, we rebuild it once.
+    """
+    intent = chapter["intent"]
+    story = ""
+    for _attempt in range(2):
+        story = _build_chapter_story(chapter, name, dob, nums)
+        if len(story) >= 500 and _GENERIC_MARKER not in story:
+            break  # rich, specific chapter — good
+    return {
+        "chapter_id": chapter["id"],
+        "order": int(chapter["order"]),
+        "title": chapter["title"],
+        "intent": intent,
+        "story": story,
+        "numbers": nums,
+    }
+
+
+def _build_chapter_story(
+    chapter: Dict[str, str],
+    name: str,
+    dob: str,
+    nums: Dict[str, Any],
+) -> str:
+    """One attempt: RAG reading -> unique story arc. Reuses the Q&A engine."""
     intent = chapter["intent"]
     guide = chapter["guide"]
 
@@ -342,16 +393,7 @@ def _build_chapter(
     # 3) Weave into a story arc that is UNIQUE to this chapter — its own angle,
     #    its own opening, its own timing lens. This is what stops all 14 chapters
     #    reading the same. Falls back to the RAG reading if the LLM call fails.
-    story = _chapter_story(chapter, name, nums, reading, rag_remedy)
-
-    return {
-        "chapter_id": chapter["id"],
-        "order": int(chapter["order"]),
-        "title": chapter["title"],
-        "intent": intent,
-        "story": story,
-        "numbers": nums,
-    }
+    return _chapter_story(chapter, name, nums, reading, rag_remedy)
 
 
 def build_holistic_chapters(name: str, dob: str) -> List[Dict[str, Any]]:
