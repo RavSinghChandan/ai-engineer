@@ -163,9 +163,13 @@ _CHAPTER_SYSTEM = (
     "4. For timing, use ONLY the timing lens given for this chapter. Do not list "
     "generic 'Personal Year 8 in 2026 / Year 9 in 2027' unless this chapter is "
     "specifically about the year ahead.\n"
-    "5. Write EXACTLY these 6 paragraphs, each labelled and 1-2 simple sentences:\n"
+    "5. Write EXACTLY these 6 labelled paragraphs:\n"
     "[HOOK] [TENSION] [TURN] [RESOLUTION] [CLOSING] [REMEDIES]\n"
-    "In [REMEDIES], give flowing prose advice (no bullets, no icons)."
+    "6. Each paragraph MUST be SHORT — one or two plain sentences, about 25 words "
+    "max. NEVER write a long run-on paragraph. Keep it light and easy to read.\n"
+    "7. Do NOT lecture about numerology traditions, karmic ledgers, mantras "
+    "chanted 108 times, or gemstones unless it flows naturally in one short line. "
+    "In [REMEDIES], give one or two simple everyday suggestions as flowing prose."
 )
 
 
@@ -218,11 +222,11 @@ def _chapter_story(
                 system=_CHAPTER_SYSTEM,
                 user=prompt,
                 temperature=0.55 if attempt == 0 else 0.4,
-                max_tokens=520,
+                max_tokens=420,
             )
             story = (result or "").strip()
             if len(story) > 120 and "[HOOK]" in story:
-                return story
+                return _trim_beats(story)
             # Keep the best unlabelled-but-warm prose the model produced — it is
             # still second-person story voice, just missing the labels.
             if len(story) > len(last_prose):
@@ -230,14 +234,13 @@ def _chapter_story(
     except Exception:
         pass
 
-    # Fallback: the model gave warm prose but no labels → wrap it as one [HOOK]
-    # block (the PDF renders that as clean prose). This keeps the story VOICE,
-    # unlike the third-person textbook RAG reading, which we only use as a last
-    # resort when even the LLM produced nothing usable.
-    if len(last_prose) > 120:
-        return f"[HOOK] {last_prose}"
-    if reading and len(reading.strip()) > 80:
-        return f"[HOOK] {reading.strip()}"
+    # Fallback: the model gave prose but no labels. Do NOT dump it as one giant
+    # [HOOK] wall of text (that produced the dense, unreadable chapters). Instead
+    # split the prose into the six story beats so it renders like every other
+    # clean chapter. Prefer the model's own prose over the textbook RAG reading.
+    prose = last_prose if len(last_prose) > 120 else (reading or "").strip()
+    if len(prose) > 120:
+        return _trim_beats(_arc_from_prose(prose))
     return (
         f"[HOOK] This chapter looks at {chapter['title'].lower()}.\n"
         f"[TENSION] Every strength here carries a matching challenge.\n"
@@ -246,6 +249,54 @@ def _chapter_story(
         f"[CLOSING] This is a real part of who you are.\n"
         f"[REMEDIES] Stay patient with yourself and trust your natural rhythm."
     )
+
+
+def _trim_beats(story: str, max_sentences: int = 2) -> str:
+    """Cap each labelled beat to at most ``max_sentences`` sentences.
+
+    Guarantees no chapter renders as a dense wall of text even if the model
+    ignored the "keep it short" instruction. Preserves the labels and order.
+    """
+    import re as _re
+    parts = _re.split(r"(\[(?:HOOK|TENSION|TURN|RESOLUTION|CLOSING|REMEDIES)\])", story)
+    out: list[str] = []
+    i = 1
+    while i < len(parts):
+        label = parts[i].strip()
+        text = parts[i + 1].strip() if i + 1 < len(parts) else ""
+        sentences = [s.strip() for s in _re.split(r"(?<=[.!?])\s+", text) if s.strip()]
+        trimmed = " ".join(sentences[:max_sentences]) if sentences else text
+        out.append(f"{label} {trimmed}")
+        i += 2
+    return "\n".join(out) if out else story
+
+
+def _arc_from_prose(prose: str) -> str:
+    """Turn an unlabelled prose paragraph into the 6-beat [HOOK]…[REMEDIES] arc.
+
+    Splits into sentences and distributes them across the six labels so the PDF
+    renders short, readable beats instead of one dense wall of text.
+    """
+    import re as _re
+    # Split into sentences, keeping them whole.
+    sentences = [s.strip() for s in _re.split(r"(?<=[.!?])\s+", prose.strip()) if s.strip()]
+    labels = ["HOOK", "TENSION", "TURN", "RESOLUTION", "CLOSING", "REMEDIES"]
+    if len(sentences) <= 1:
+        return f"[HOOK] {prose.strip()}"
+    # Distribute sentences as evenly as possible across the 6 beats.
+    n = len(sentences)
+    per = max(1, n // len(labels))
+    beats: list[str] = []
+    idx = 0
+    for i, label in enumerate(labels):
+        if i == len(labels) - 1:
+            chunk = sentences[idx:]          # last beat takes the remainder
+        else:
+            chunk = sentences[idx:idx + per]
+            idx += per
+        if chunk:
+            beats.append(f"[{label}] " + " ".join(chunk))
+    return "\n".join(beats)
 
 
 def _build_chapter(
