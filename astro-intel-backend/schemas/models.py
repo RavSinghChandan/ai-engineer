@@ -147,3 +147,49 @@ class FinalReport(BaseModel):
     questions: List[str]
     sections: List[FinalReportSection]
     generated_at: str
+
+
+# ── Holistic 360° life report (parallel flow, no user question) ──────────────
+class HolisticRequest(BaseModel):
+    """A full-life 360° report request. No question — birth details only."""
+    user_profile: UserProfile
+    user_id: str = "anonymous"
+    prompt_version: Optional[str] = "v2"
+    bypass_cache: bool = False
+
+
+class HolisticChapter(BaseModel):
+    """One chapter of the 360° book (rendered as story-arc PDF pages)."""
+    chapter_id: str                 # stable slug, e.g. "life_path"
+    order: int                      # 1-based position (hierarchy of importance)
+    title: str                      # e.g. "Your Life Path"
+    intent: str                     # career / relationships / health / general …
+    story: str                      # [HOOK]…[REMEDIES] labelled story arc
+    numbers: Dict[str, Any] = Field(default_factory=dict)  # numbers used
+
+
+class HolisticReview(BaseModel):
+    """Human-in-loop review payload for the holistic flow (mirrors AdminReview)."""
+    session_id: str
+    user_name: str
+    chapters: List[HolisticChapter]
+    generated_at: str
+
+
+class HolisticApprovalRequest(BaseModel):
+    session_id: str
+    approved_chapter_ids: List[str] = Field(default_factory=list)
+    rejected_chapter_ids: List[str] = Field(default_factory=list)
+    brand_name: str = "{{BRAND_NAME}}"
+    logo_url: str = "{{LOGO_URL}}"
+    image_url: str = "{{IMAGE_URL}}"
+
+
+class HolisticReport(BaseModel):
+    """Final approved 360° book — rendered as a 20-30 page storytelling PDF."""
+    brand_name: str
+    logo_url: str
+    image_url: str
+    user_name: str
+    chapters: List[HolisticChapter]
+    generated_at: str

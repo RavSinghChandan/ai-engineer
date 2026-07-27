@@ -4,6 +4,44 @@ A complete end-to-end demonstration of the Aura with Rav spiritual intelligence 
 
 ---
 
+## 🆕 360° Holistic Life Report (added 2026-07-27)
+
+A **second, parallel flow** alongside the question-driven one. The user provides
+**only birth details — no question** — and receives a **20-30 page storytelling
+"book"**: 14 chapters (in hierarchy of importance) covering their whole life
+through numerology, each written as a `[HOOK]…[REMEDIES]` story arc using the
+same RAG + storytelling engine, so the PDF renders identically.
+
+**Chapters (order = importance):** Life Path · Destiny & Expression · Soul Urge ·
+Personality · Birthday · Maturity · Career & Money · Love & Relationships ·
+Health & Energy · Family & Home · Personal Growth · The Year Ahead · Life Cycles ·
+Lucky Guide & Remedies.
+
+**Endpoints** (mirror the Q&A pair; human-in-loop preserved):
+```bash
+# 1) Generate the 14-chapter book (birth details only)
+curl -s -X POST http://localhost:8080/api/v1/analysis/run-holistic \
+  -H "X-API-Key: $API_KEY" -H "Content-Type: application/json" \
+  -d '{"user_profile":{"full_name":"Rav Singh Chandan","date_of_birth":"1995-08-19"}}'
+# -> { session_id, holistic_review: { chapters: [ {title, story, ...} x14 ] } }
+
+# 2) Approve chapters (empty approved list = keep all but rejected) -> final book
+curl -s -X POST http://localhost:8080/api/v1/analysis/approve-holistic \
+  -H "X-API-Key: $API_KEY" -H "Content-Type: application/json" \
+  -d '{"session_id":"<from step 1>","approved_chapter_ids":["life_path","career"]}'
+```
+
+**Frontend:** Intake page has a mode toggle — **💬 Ask a Question** vs
+**📖 Full 360° Life Report**. In 360° mode the question field is hidden; on submit
+it calls `runHolistic()`, maps the chapters into the existing review/PDF
+structures, and renders the same storytelling UI/UX (review page + jsPDF export).
+
+**Architecture:** fully additive — new files `agents/holistic_agent.py`,
+`graph/holistic_pipeline.py`, `tests/test_holistic.py`; the question-driven
+`/run` + `/approve` flow is **untouched**. 72 tests pass (7 new + existing).
+
+---
+
 ## Prerequisites
 
 ```bash

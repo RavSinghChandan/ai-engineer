@@ -13,7 +13,9 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from schemas import AnalysisRequest, ApprovalRequest
+from schemas.models import HolisticRequest, HolisticApprovalRequest
 from graph.pipeline import run_pipeline
+from graph.holistic_pipeline import run_holistic_pipeline
 from memory.persona import build_tenant_context
 from memory.episodic import log_correction
 import agents.prompt_config as prompt_config
@@ -36,6 +38,12 @@ import session_store
 from utils.event_bus import emit as _emit
 
 router = APIRouter(prefix="/api/v1/analysis", tags=["Analysis"])
+
+
+def _now_iso() -> str:
+    """UTC ISO-8601 timestamp — matches report_agent's generated_at format."""
+    from datetime import datetime, timezone
+    return datetime.now(timezone.utc).isoformat()
 
 # IP-based rate limiter for the auth-free /simplify-bullets endpoint
 _simplify_limiter = RateLimiter(max_requests=10, window_seconds=60)
@@ -222,6 +230,139 @@ async def run_analysis(
                      ttl=response_cache.PROFILE_TTL_SECONDS, meta=cache_meta)
 
     return JSONResponse(content=response_body)
+
+
+# ── POST /run-holistic — 360° life report (no question) ──────────────────────
+@router.post("/run-holistic")
+async def run_holistic(
+    req: HolisticRequest,
+    ctx: TenantContext = Depends(can(Permission.ANALYSIS__RUN)),
+) -> JSONResponse:
+    """
+    Execute the holistic 360° pipeline — birth details only, no question.
+    Returns a chapters-based review (human-in-loop) that mirrors admin_review.
+    Completely separate from the question-driven /run flow.
+    """
+    # ── Rate limiter — same policy as /run ───────────────────────────────────
+    rate_key = getattr(req, "user_id", None) or ctx.tenant_id
+    allowed, reason = rate_limiter.is_allowed(rate_key)
+    if not allowed:
+        raise HTTPException(status_code=429, detail=reason)
+
+    requested_version = (req.prompt_version or "v2").strip().lower()
+    if requested_version in ("v1", "v2"):
+        prompt_config.ACTIVE_PROMPT_VERSION = requested_version
+
+    profile_dict = req.user_profile.model_dump()
+
+    # ── Cache check (profile-keyed; no question) ─────────────────────────────
+    cache_key = response_cache.make_key(
+        user_id       = getattr(req, "user_id", "") or "",
+        questions     = [],
+        user_question = "__holistic__",
+        profile       = profile_dict,
+    )
+    if not req.bypass_cache:
+        cached = response_cache.get(cache_key, ttl=response_cache.PROFILE_TTL_SECONDS)
+        if cached is not None:
+            cached["cache_hit"] = True
+            cached["cache_key"] = cache_key
+            return JSONResponse(content=cached)
+
+    session_id = str(uuid.uuid4())
+    initial_state: Dict[str, Any] = {
+        "user_profile": profile_dict,
+        "user_id":      getattr(req, "user_id", "anonymous"),
+        "agent_log":    [],
+        "errors":       [],
+        "memory":       {},
+    }
+
+    reset_session_usage()
+    t_start = time.time()
+    loop = asyncio.get_event_loop()
+    final_state = await loop.run_in_executor(None, run_holistic_pipeline, initial_state)
+    t_end = time.time()
+
+    session_store.save(session_id, final_state, tenant_id=ctx.tenant_id)
+    await store.write_meta(session_id, "state", final_state)
+    await store.write_meta(session_id, "profile", profile_dict)
+    _record_metrics(session_id, final_state, t_start, t_end)
+
+    chapters = final_state.get("holistic_chapters", [])
+    review = {
+        "session_id":   session_id,
+        "user_name":    profile_dict.get("full_name", ""),
+        "chapters":     chapters,
+        "generated_at": _now_iso(),
+    }
+
+    response_body: Dict[str, Any] = {
+        "session_id":          session_id,
+        "status":              "completed",
+        "cache_hit":           False,
+        "cache_key":           cache_key,
+        "holistic_review":     review,
+        "agent_log":           final_state.get("agent_log", []),
+        "hallucination_audit": final_state.get("hallucination_audit", {}),
+    }
+
+    cache_meta = {
+        "key_type":  "holistic",
+        "user_name": profile_dict.get("full_name", ""),
+    }
+    response_cache.set(cache_key, response_body,
+                       ttl=response_cache.PROFILE_TTL_SECONDS, meta=cache_meta)
+    return JSONResponse(content=response_body)
+
+
+# ── POST /approve-holistic — finalize the 360° book ──────────────────────────
+@router.post("/approve-holistic")
+async def approve_holistic(
+    req: HolisticApprovalRequest,
+    ctx: TenantContext = Depends(can(Permission.ANALYSIS__APPROVE)),
+) -> JSONResponse:
+    """
+    Finalize the holistic report: keep only approved chapters (or all, if the
+    approved list is empty), then return the book for PDF rendering.
+    """
+    saved = session_store.get(req.session_id)
+    if not saved:
+        saved = await store.read_meta(req.session_id, "state")
+    if not saved:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Session '{req.session_id}' not found. Run /run-holistic first.",
+        )
+
+    profile = saved.get("user_profile", {}) or {}
+    chapters = saved.get("holistic_chapters", []) or []
+
+    approved = set(req.approved_chapter_ids or [])
+    rejected = set(req.rejected_chapter_ids or [])
+    if approved:
+        kept = [c for c in chapters if c.get("chapter_id") in approved]
+    else:
+        # Default: keep everything except explicitly rejected chapters.
+        kept = [c for c in chapters if c.get("chapter_id") not in rejected]
+
+    report = {
+        "brand_name":   req.brand_name,
+        "logo_url":     req.logo_url,
+        "image_url":    req.image_url,
+        "user_name":    profile.get("full_name", ""),
+        "chapters":     kept,
+        "generated_at": _now_iso(),
+    }
+
+    session_store.update(req.session_id, "holistic_report", report, tenant_id=ctx.tenant_id)
+    await store.write_meta(req.session_id, "holistic_report", report)
+
+    return JSONResponse(content={
+        "session_id":      req.session_id,
+        "status":          "completed",
+        "holistic_report": report,
+    })
 
 
 # ── POST /approve — generate final report ────────────────────────────────────

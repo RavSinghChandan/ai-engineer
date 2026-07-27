@@ -563,7 +563,28 @@ function validateProfile(p: {
           </div>
         </div>
 
-        <!-- ── Your Question card ── -->
+        <!-- ── Reading mode toggle: Ask a Question vs Full 360° Report ── -->
+        <div class="card reading-mode-card">
+          <div class="rm-toggle">
+            <button type="button" class="rm-opt" [class.rm-active]="!holisticMode()"
+                    (click)="holisticMode.set(false)">
+              💬 Ask a Question
+            </button>
+            <button type="button" class="rm-opt" [class.rm-active]="holisticMode()"
+                    (click)="holisticMode.set(true)">
+              📖 Full 360° Life Report
+            </button>
+          </div>
+          @if (holisticMode()) {
+            <div class="rm-desc">
+              A complete storytelling book about your whole life through numerology —
+              career, love, health, family, timing and remedies. No question needed.
+            </div>
+          }
+        </div>
+
+        <!-- ── Your Question card (hidden in 360° mode) ── -->
+        @if (!holisticMode()) {
         <div class="card card-question">
           <div class="card-hdr">
             <div class="card-icon-wrap" style="background:rgba(16,185,129,0.1)">
@@ -628,6 +649,7 @@ function validateProfile(p: {
             </div>
           }
         </div>
+        }
 
       </div>
     </section>
@@ -1603,6 +1625,16 @@ function validateProfile(p: {
   border-radius: 12px; padding: 14px; flex-shrink: 0;
 }
 .card-question { background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border-color: rgba(16,185,129,0.2); }
+
+/* ── Reading mode toggle (Question vs 360° Report) ── */
+.reading-mode-card { padding: 14px; }
+.rm-toggle { display: flex; gap: 8px; background: rgba(99,102,241,0.06); border-radius: 12px; padding: 5px; }
+.rm-opt { flex: 1; border: 0; background: transparent; padding: 11px 12px; border-radius: 9px;
+  font-size: 14px; font-weight: 600; color: #64748b; cursor: pointer; transition: all .18s ease; }
+.rm-opt:hover { color: #4338ca; }
+.rm-active { background: #fff; color: #4338ca; box-shadow: 0 2px 8px rgba(79,70,229,0.18); }
+.rm-desc { margin-top: 11px; font-size: 13px; line-height: 1.5; color: #6366f1;
+  background: rgba(99,102,241,0.06); border-radius: 9px; padding: 10px 12px; }
 .card-hdr { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
 .card-icon-wrap { width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .card-title { font-size: 13px; font-weight: 600; color: #111827; margin-bottom: 2px; }
@@ -2629,6 +2661,8 @@ export class IntakePage {
   }
 
   userQuestion = '';
+  // 360° holistic mode — when on, no question is asked; a full life-book is generated.
+  readonly holisticMode = signal(false);
   palmInput: { hand_shape?: string } = {};
   tarotInput: { question?: string; spread?: '3-card'|'5-card' } = { spread: '3-card' };
   vastuInput: { property_type?: string; facing_direction?: string; floor_plan_notes?: string } = {};
@@ -2801,10 +2835,31 @@ export class IntakePage {
     if (Object.keys(this.errors()).length) {
       this.launchError.set('Please fix the highlighted errors in Birth Profile.'); return;
     }
-    if (!this.selectedModules().size) {
+    if (!this.holisticMode() && !this.selectedModules().size) {
       this.launchError.set('Please select at least one analysis module.'); return;
     }
     this.launchError.set('');
+
+    // ── 360° Holistic mode — no question, generate the full life-book ──────────
+    if (this.holisticMode()) {
+      const hInput: SystemInput = {
+        user_profile:     { ...this.profileSig() },
+        user_question:    '',
+        questions:        [],
+        selected_modules: ['numerology'],
+        module_inputs:    {},
+        prompt_version:   this.promptVersion(),
+      };
+      this.chakraSpinning.set(true);
+      await this.orch.runHolistic(hInput);
+      if (this.auth.isAdmin()) {
+        this.chakraSpinning.set(false);
+        this.router.navigate(['/review']);
+      } else {
+        await this.goReview();
+      }
+      return;
+    }
 
     // USER on 2nd run+ → show lead capture form instead of running AI
     // Skip when admin is doing a reading for a specific lead

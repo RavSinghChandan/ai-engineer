@@ -4,7 +4,7 @@ import {
   SystemInput, AgentOutputs, AdminReview, AdminInsight, AdminQuestion,
   FinalReport, Module, AgentStep, NormalizedQuestion, HwBullet, DomainSummaryGroup, DomainSubGroup
 } from '../models/astro.models';
-import { ApiService, RunResponse } from './api.service';
+import { ApiService, RunResponse, HolisticChapter } from './api.service';
 
 import { NumerologyService } from './numerology.service';
 import { AstrologyService }  from './astrology.service';
@@ -86,6 +86,9 @@ export class OrchestratorService {
   readonly cacheHit            = signal(false);
   // tracks how many analyses this session has completed (used for USER free tier logic)
   readonly runCount            = signal<number>(0);
+  // ── 360° holistic mode ─────────────────────────────────────────────────────
+  readonly holisticMode        = signal(false);
+  readonly holisticChapters    = signal<HolisticChapter[]>([]);
 
   readonly progress = computed(() => {
     const s = this.steps();
@@ -191,6 +194,118 @@ export class OrchestratorService {
     this.isRunning.set(false);
     this.isDone.set(true);
     this.runCount.update(n => n + 1);
+  }
+
+  // ── 360° Holistic run — birth details only, no question ─────────────────────
+  // Maps each chapter into the SAME adminReview structure the review page and
+  // PDF already render, so the storytelling UI/UX is reused with no redesign.
+  async runHolistic(input: SystemInput): Promise<void> {
+    this.holisticMode.set(true);
+    this.currentInput.set(input);
+    this.isRunning.set(true);
+    this.isDone.set(false);
+    this.cacheHit.set(false);
+    this.adminReview.set(null);
+    this.finalReport.set(null);
+    this.backendError.set('');
+    this.sessionId.set('');
+    this.agentLog.set([]);
+    this.holisticChapters.set([]);
+
+    // Simple single "book" progress step.
+    const steps = this._buildSteps(['numerology']);
+    this.steps.set(steps);
+    const animTimer = this._startAnimation(steps);
+
+    try {
+      const res = await firstValueFrom(this.api.runHolistic({
+        user_profile:   input.user_profile as any,
+        user_id:        input.user_id ?? 'anonymous',
+        prompt_version: (input as any).prompt_version ?? 'v2',
+      }));
+
+      clearInterval(animTimer);
+      if (res.cache_hit) this.cacheHit.set(true);
+      this._markAllDone(steps);
+
+      this.sessionId.set(res.session_id);
+      this.agentLog.set(res.agent_log ?? []);
+      this.backendMode.set('backend');
+
+      const chapters = res.holistic_review?.chapters ?? [];
+      this.holisticChapters.set(chapters);
+      this.adminReview.set(this._mapHolisticToReview(chapters, res.holistic_review?.user_name ?? ''));
+
+      // Feed the Sacred Numbers panel — the numbers are identical across
+      // chapters, so read them from the first chapter that carries them and
+      // publish into the SAME shape the report reads (numerology.indian.core_numbers).
+      const nums = chapters.find(c => c.numbers && Object.keys(c.numbers).length)?.numbers ?? {};
+      if (Object.keys(nums).length) {
+        this.rawOutputs.set({
+          numerology: {
+            indian: {
+              core_numbers: {
+                life_path:   nums['life_path'],
+                destiny:     nums['destiny'],
+                name_number: nums['name_number'],
+                soul_urge:   nums['soul_urge'],
+                personality: nums['personality'],
+                birthday:    nums['birthday'],
+                maturity:    nums['maturity'],
+              },
+            },
+          },
+        } as any);
+      }
+
+    } catch (err: any) {
+      clearInterval(animTimer);
+      this._markAllDone(steps);
+      this.backendError.set(err?.message ?? 'Backend unavailable for the 360° report.');
+      this.backendMode.set('local');
+      // Minimal fallback so the review page always has data.
+      this.adminReview.set({
+        subject: (input.user_profile as any).full_name ?? '',
+        questions: [{
+          question: 'Your Life Path',
+          intent: 'general',
+          insights: [{
+            id: 'ch1_i1',
+            content: 'Your 360° reading could not be generated right now. Please try again.',
+            confidence: 'medium' as any,
+            domains: ['numerology'],
+            is_common: true,
+            editable: true,
+          }],
+        }],
+      });
+    }
+
+    this.isRunning.set(false);
+    this.isDone.set(true);
+    this.runCount.update(n => n + 1);
+  }
+
+  // Map holistic chapters → adminReview: one question per chapter, the story as
+  // a single numerology-domain insight (so the [HOOK]… story renderer fires).
+  private _mapHolisticToReview(chapters: HolisticChapter[], subject: string): AdminReview {
+    return {
+      subject,
+      questions: chapters.map((ch, i) => ({
+        question: ch.title,
+        intent:   ch.intent || 'general',
+        insights: [{
+          id:         `${ch.chapter_id || 'ch'+ (i+1)}_i1`,
+          content:    ch.story || '',
+          confidence: 'high' as any,
+          domains:    ['numerology'],
+          sub_agent:  '',
+          is_common:  true,
+          editable:   true,
+          edited:     false,
+        }],
+      })),
+    };
   }
 
   // ── Approve ────────────────────────────────────────────────────────────────

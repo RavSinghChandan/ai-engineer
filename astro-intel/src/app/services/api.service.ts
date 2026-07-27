@@ -83,6 +83,60 @@ export interface ApproveRequest {
   image_url?: string;
 }
 
+// ── 360° Holistic report (no question) ──────────────────────────────────────
+export interface HolisticRunRequest {
+  user_profile: {
+    full_name: string; alias_name: string; date_of_birth: string;
+    time_of_birth: string; place_of_birth: string; pincode: string;
+  };
+  user_id?: string;
+  bypass_cache?: boolean;
+  prompt_version?: string;
+}
+
+export interface HolisticChapter {
+  chapter_id: string;
+  order: number;
+  title: string;
+  intent: string;
+  story: string;
+  numbers: Record<string, any>;
+}
+
+export interface HolisticReview {
+  session_id: string;
+  user_name: string;
+  chapters: HolisticChapter[];
+  generated_at: string;
+}
+
+export interface HolisticRunResponse {
+  session_id: string;
+  status: string;
+  cache_hit: boolean;
+  cache_key?: string;
+  holistic_review: HolisticReview;
+  agent_log: any[];
+}
+
+export interface HolisticApproveRequest {
+  session_id: string;
+  approved_chapter_ids?: string[];
+  rejected_chapter_ids?: string[];
+  brand_name?: string;
+  logo_url?: string;
+  image_url?: string;
+}
+
+export interface HolisticApproveResponse {
+  session_id: string;
+  status: string;
+  holistic_report: {
+    brand_name: string; logo_url: string; image_url: string;
+    user_name: string; chapters: HolisticChapter[]; generated_at: string;
+  };
+}
+
 export interface ReportSection {
   question: string;
   intent: string;
@@ -178,6 +232,18 @@ export class ApiService {
   approveReport(req: ApproveRequest): Observable<ApproveResponse> {
     return this.http
       .post<ApproveResponse>(`${BACKEND}/api/v1/analysis/approve`, req)
+      .pipe(timeout(120_000), catchError(this._handleError));
+  }
+
+  runHolistic(req: HolisticRunRequest): Observable<HolisticRunResponse> {
+    return this.http
+      .post<HolisticRunResponse>(`${BACKEND}/api/v1/analysis/run-holistic`, req)
+      .pipe(timeout(180_000), catchError(this._handleError));
+  }
+
+  approveHolistic(req: HolisticApproveRequest): Observable<HolisticApproveResponse> {
+    return this.http
+      .post<HolisticApproveResponse>(`${BACKEND}/api/v1/analysis/approve-holistic`, req)
       .pipe(timeout(120_000), catchError(this._handleError));
   }
 
