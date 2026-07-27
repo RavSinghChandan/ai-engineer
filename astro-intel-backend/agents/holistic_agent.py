@@ -37,48 +37,85 @@ from utils.numerics import (
 # Each chapter frames an implicit "guiding question" so the existing hybrid RAG
 # answerer produces relevant book-grounded material, which is then storified.
 CHAPTERS: List[Dict[str, str]] = [
-    {"id": "life_path",      "order": "1",  "title": "Your Life Path",
-     "intent": "general",
+    # ACT I — WHO YOU ARE (the foundation: core identity numbers)
+    {"id": "life_path", "order": "1", "act": "Act I — Who You Are",
+     "title": "Your Life Path", "intent": "general", "focus": "life_path",
+     "angle": "the ONE big reason this soul came to earth — their life purpose",
+     "timing": "the overall arc of their whole life",
      "guide": "What is the core life path and life purpose of this person?"},
-    {"id": "destiny",        "order": "2",  "title": "Your Destiny & Expression",
-     "intent": "general",
-     "guide": "What is this person's destiny and how are they meant to express themselves in the world?"},
-    {"id": "soul_urge",      "order": "3",  "title": "Your Soul's Deepest Desire",
-     "intent": "spirituality",
-     "guide": "What does this person's heart most deeply desire and long for?"},
-    {"id": "personality",    "order": "4",  "title": "How the World Sees You",
-     "intent": "general",
-     "guide": "How does this person come across to others — their outer personality?"},
-    {"id": "birthday",       "order": "5",  "title": "The Gift of Your Birth Day",
-     "intent": "general",
-     "guide": "What special talent or gift does this person's birth day number reveal?"},
-    {"id": "maturity",       "order": "6",  "title": "Who You Are Becoming",
-     "intent": "general",
-     "guide": "What will this person grow into in the second half of life — their maturity number?"},
-    {"id": "career",         "order": "7",  "title": "Career & Money",
-     "intent": "career",
-     "guide": "What career path and money pattern suits this person best?"},
-    {"id": "relationships",  "order": "8",  "title": "Love & Relationships",
-     "intent": "marriage",
-     "guide": "What does love and partnership look like for this person?"},
-    {"id": "health",         "order": "9",  "title": "Health & Energy",
-     "intent": "health",
-     "guide": "What should this person know about their health, energy and wellbeing?"},
-    {"id": "family",         "order": "10", "title": "Family & Home",
-     "intent": "general",
-     "guide": "What role do family and home play in this person's life?"},
-    {"id": "growth",         "order": "11", "title": "Personal Growth & Purpose",
-     "intent": "spirituality",
-     "guide": "How can this person grow, and what is their deeper purpose?"},
-    {"id": "personal_year",  "order": "12", "title": "The Year Ahead",
-     "intent": "general",
-     "guide": "What does the current personal year cycle hold for this person?"},
-    {"id": "cycles",         "order": "13", "title": "Life Cycles & Turning Points",
-     "intent": "general",
-     "guide": "What are the key pinnacles, challenges and turning points ahead in this person's life?"},
-    {"id": "remedies",       "order": "14", "title": "Your Lucky Guide & Remedies",
-     "intent": "general",
-     "guide": "What lucky numbers, colours, days and practical remedies support this person?"},
+    {"id": "destiny", "order": "2", "act": "Act I — Who You Are",
+     "title": "Your Destiny & Expression", "intent": "career", "focus": "destiny",
+     "angle": "the mark they are meant to leave on the world — their public destiny and talents, NOT their inner purpose",
+     "timing": "the long build toward their life's work",
+     "guide": "What is this person's destiny number and the gift they are meant to express to the world?"},
+    {"id": "soul_urge", "order": "3", "act": "Act I — Who You Are",
+     "title": "Your Soul's Deepest Desire", "intent": "spirituality", "focus": "soul_urge",
+     "angle": "the secret private craving of their heart that no one sees — what they want when no one is watching",
+     "timing": "a quiet inner longing, timeless",
+     "guide": "What does this person's heart secretly and most deeply desire?"},
+    {"id": "personality", "order": "4", "act": "Act I — Who You Are",
+     "title": "How the World Sees You", "intent": "general", "focus": "personality",
+     "angle": "the FIRST impression — the mask and vibe strangers pick up in the first ten seconds",
+     "timing": "how first impressions shift as they mature",
+     "guide": "How does this person come across to others on first meeting — their outer personality?"},
+
+    # ACT II — HOW YOU MOVE THROUGH LIFE (gifts + who they become)
+    {"id": "birthday", "order": "5", "act": "Act II — How You Move Through Life",
+     "title": "The Gift of Your Birth Day", "intent": "general", "focus": "birthday",
+     "angle": "one specific hidden talent their birth-day number hands them — a single superpower, concrete not vague",
+     "timing": "when this talent tends to switch on in life",
+     "guide": "What one special talent does this person's birth day number reveal?"},
+    {"id": "maturity", "order": "6", "act": "Act II — How You Move Through Life",
+     "title": "Who You Are Becoming", "intent": "general", "focus": "maturity",
+     "angle": "who they quietly turn into after ~35 — the second-half-of-life self, a transformation forward",
+     "timing": "the mid-life turning point and the years after it",
+     "guide": "Who does this person grow into in the second half of life (maturity number)?"},
+
+    # ACT III — YOUR LIFE DOMAINS (the four rooms of a life)
+    {"id": "career", "order": "7", "act": "Act III — Your Life Domains",
+     "title": "Career & Money", "intent": "career", "focus": "life_path",
+     "angle": "work, calling and money ONLY — where they thrive, how wealth comes, what job drains them",
+     "timing": "the best upcoming career/money window specifically",
+     "guide": "What career and money pattern suits this person, and when is their best money window?"},
+    {"id": "relationships", "order": "8", "act": "Act III — Your Life Domains",
+     "title": "Love & Relationships", "intent": "marriage", "focus": "soul_urge",
+     "angle": "love and partnership ONLY — how they love, what partner fits, their relationship blind spot",
+     "timing": "the upcoming window for love/commitment specifically",
+     "guide": "What does love and the right partnership look like for this person?"},
+    {"id": "health", "order": "9", "act": "Act III — Your Life Domains",
+     "title": "Health & Energy", "intent": "health", "focus": "life_path",
+     "angle": "body, energy and wellbeing ONLY — where stress lands in their body, what keeps them strong",
+     "timing": "the health rhythm to watch in the coming period",
+     "guide": "What should this person know about their health, energy and body?"},
+    {"id": "family", "order": "10", "act": "Act III — Your Life Domains",
+     "title": "Family & Home", "intent": "general", "focus": "personality",
+     "angle": "home, roots and family role ONLY — the part they play in their family, their home life",
+     "timing": "a family/home shift on the horizon",
+     "guide": "What role does this person play in family and home life?"},
+
+    # ACT IV — YOUR TIMELINE AHEAD (where the road is going)
+    {"id": "growth", "order": "11", "act": "Act IV — Your Timeline Ahead",
+     "title": "Personal Growth & Purpose", "intent": "spirituality", "focus": "maturity",
+     "angle": "the ONE inner lesson they are here to master — their growth edge and how to grow it",
+     "timing": "the current growth season",
+     "guide": "What is the one inner lesson this person is here to grow into?"},
+    {"id": "personal_year", "order": "12", "act": "Act IV — Your Timeline Ahead",
+     "title": "The Year Ahead", "intent": "general", "focus": "life_path",
+     "angle": "THIS coming year only — the single theme, mood and opportunity of the next 12 months",
+     "timing": "strictly the current personal-year cycle and the very next one",
+     "guide": "What is the theme and opportunity of this person's coming personal year?"},
+    {"id": "cycles", "order": "13", "act": "Act IV — Your Timeline Ahead",
+     "title": "Life Cycles & Turning Points", "intent": "general", "focus": "destiny",
+     "angle": "the big multi-year turning points (pinnacles/challenges) across the whole life map — a wide zoom-out",
+     "timing": "the major life pinnacles and their approximate ages",
+     "guide": "What are the major multi-year pinnacles and turning points across this person's life?"},
+
+    # ACT V — YOUR GUIDE (the closing gift they can act on)
+    {"id": "remedies", "order": "14", "act": "Act V — Your Guide",
+     "title": "Your Lucky Guide & Remedies", "intent": "general", "focus": "life_path",
+     "angle": "practical takeaways ONLY — lucky numbers, colours, days and 2-3 simple remedies they can start this week",
+     "timing": "small daily/weekly practices",
+     "guide": "What lucky numbers, colours, days and simple practical remedies support this person?"},
 ]
 
 
@@ -108,6 +145,107 @@ def _core_numbers(name: str, dob: str) -> Dict[str, Any]:
         "lucky_numbers": lucky_numbers(lp, nm),
         "lucky_colors":  lucky_colors_for_number(lp),
     }
+
+
+_CHAPTER_SYSTEM = (
+    "You are the world's warmest, wisest numerologist and storyteller, writing "
+    "one chapter of a person's life-book. You write in simple, everyday English "
+    "a 12-year-old could follow — short sentences, warm and human, never a "
+    "textbook. You make the reader feel truly SEEN.\n\n"
+    "CRITICAL RULES:\n"
+    "1. This chapter covers ONE topic only (given below). Do NOT summarise the "
+    "person's whole personality — stay on this chapter's topic.\n"
+    "2. Your opening line MUST be fresh and specific to THIS chapter's angle. Do "
+    "NOT start with 'You are a creator...' or restate their life purpose — that "
+    "belongs to another chapter. Surprise the reader with a new door.\n"
+    "3. Weave the numbers in LIGHTLY and naturally — this is a story about THEM, "
+    "not a maths lesson. Mention at most one or two numbers, only if it helps.\n"
+    "4. For timing, use ONLY the timing lens given for this chapter. Do not list "
+    "generic 'Personal Year 8 in 2026 / Year 9 in 2027' unless this chapter is "
+    "specifically about the year ahead.\n"
+    "5. Write EXACTLY these 6 paragraphs, each labelled and 1-2 simple sentences:\n"
+    "[HOOK] [TENSION] [TURN] [RESOLUTION] [CLOSING] [REMEDIES]\n"
+    "In [REMEDIES], give flowing prose advice (no bullets, no icons)."
+)
+
+
+def _chapter_story(
+    chapter: Dict[str, str],
+    name: str,
+    nums: Dict[str, Any],
+    reading: str,
+    rag_remedy: str,
+) -> str:
+    """Turn a chapter's RAG reading into a UNIQUE story arc for this chapter.
+
+    Each chapter gets its own angle, opening, and timing lens baked into the
+    prompt, so no two chapters read alike. Falls back to the RAG reading (or a
+    minimal arc) if the LLM call fails — a chapter is never left empty.
+    """
+    focus_key = chapter.get("focus", "life_path")
+    focus_val = nums.get(focus_key, nums["life_path"])
+    user_prompt = (
+        f"Person: {name}\n"
+        f"Book section: {chapter.get('act', '')}\n"
+        f"THIS CHAPTER: {chapter['title']}\n"
+        f"Cover ONLY this angle: {chapter.get('angle', chapter['guide'])}\n"
+        f"Leading number for this chapter: {focus_key.replace('_', ' ')} = {focus_val}\n"
+        f"Timing lens to use (and only this): {chapter.get('timing', 'their life arc')}\n\n"
+        f"Background reading you may draw from (rewrite it in your own warm voice, "
+        f"do not copy):\n{reading[:900]}\n"
+    )
+    if rag_remedy:
+        user_prompt += f"\nBook remedy knowledge for the [REMEDIES] line:\n{rag_remedy[:600]}\n"
+    user_prompt += (
+        f"\nNow write the {chapter['title']} chapter as the 6 labelled paragraphs. "
+        f"Remember: fresh opening, stay on this one topic, numbers woven in lightly."
+    )
+
+    # Try up to twice — the arc labels ([HOOK]…) occasionally get dropped, and a
+    # retry (with a firm reminder) usually recovers the format.
+    last_prose = ""
+    try:
+        from utils.deepseek_client import call as ds_call
+        for attempt in range(2):
+            prompt = user_prompt
+            if attempt == 1:
+                prompt += (
+                    "\n\nIMPORTANT: You MUST use the six labels exactly: "
+                    "[HOOK] [TENSION] [TURN] [RESOLUTION] [CLOSING] [REMEDIES]. "
+                    "Write in second person ('you'), not third person."
+                )
+            result = ds_call(
+                system=_CHAPTER_SYSTEM,
+                user=prompt,
+                temperature=0.55 if attempt == 0 else 0.4,
+                max_tokens=520,
+            )
+            story = (result or "").strip()
+            if len(story) > 120 and "[HOOK]" in story:
+                return story
+            # Keep the best unlabelled-but-warm prose the model produced — it is
+            # still second-person story voice, just missing the labels.
+            if len(story) > len(last_prose):
+                last_prose = story
+    except Exception:
+        pass
+
+    # Fallback: the model gave warm prose but no labels → wrap it as one [HOOK]
+    # block (the PDF renders that as clean prose). This keeps the story VOICE,
+    # unlike the third-person textbook RAG reading, which we only use as a last
+    # resort when even the LLM produced nothing usable.
+    if len(last_prose) > 120:
+        return f"[HOOK] {last_prose}"
+    if reading and len(reading.strip()) > 80:
+        return f"[HOOK] {reading.strip()}"
+    return (
+        f"[HOOK] This chapter looks at {chapter['title'].lower()}.\n"
+        f"[TENSION] Every strength here carries a matching challenge.\n"
+        f"[TURN] Your {focus_key.replace('_', ' ')} number {focus_val} is the key.\n"
+        f"[RESOLUTION] Lean into it gently and it works for you.\n"
+        f"[CLOSING] This is a real part of who you are.\n"
+        f"[REMEDIES] Stay patient with yourself and trust your natural rhythm."
+    )
 
 
 def _build_chapter(
@@ -150,40 +288,17 @@ def _build_chapter(
     except Exception:
         rag_remedy = ""
 
-    # 3) Weave into the SAME story-arc format the PDF already renders.
-    #    numerology_story needs >=2 bullets to storify; give it the reading plus
-    #    a numbers-anchored second source so it always produces the arc.
-    numbers_line = (
-        f"Life Path {nums['life_path']}, Destiny {nums['destiny']}, "
-        f"Soul Urge {nums['soul_urge']}, Personality {nums['personality']}, "
-        f"Birthday {nums['birthday']}, Maturity {nums['maturity']}."
-    )
-    story = ""
-    try:
-        from agents.storytelling_agent import numerology_story
-        bullets = [b for b in (reading, numbers_line) if b and b.strip()]
-        story = numerology_story(
-            bullets=bullets,
-            question=guide,
-            intent=intent,
-            subject=name,
-            rag_remedy_text=rag_remedy,
-        )
-    except Exception:
-        story = ""
-
-    # A real story arc contains [HOOK]. If storifying failed (empty, or fell
-    # back to the thin numbers line), keep the RICH reading instead of a bare
-    # numbers line — the PDF renders plain prose fine when there is no arc.
-    if "[HOOK]" not in (story or ""):
-        story = reading if len(reading) > len(story or "") else (story or reading)
+    # 3) Weave into a story arc that is UNIQUE to this chapter — its own angle,
+    #    its own opening, its own timing lens. This is what stops all 14 chapters
+    #    reading the same. Falls back to the RAG reading if the LLM call fails.
+    story = _chapter_story(chapter, name, nums, reading, rag_remedy)
 
     return {
         "chapter_id": chapter["id"],
         "order": int(chapter["order"]),
         "title": chapter["title"],
         "intent": intent,
-        "story": story or reading or numbers_line,
+        "story": story,
         "numbers": nums,
     }
 

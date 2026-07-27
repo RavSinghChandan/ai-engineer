@@ -12,10 +12,18 @@ A **second, parallel flow** alongside the question-driven one. The user provides
 through numerology, each written as a `[HOOK]…[REMEDIES]` story arc using the
 same RAG + storytelling engine, so the PDF renders identically.
 
-**Chapters (order = importance):** Life Path · Destiny & Expression · Soul Urge ·
-Personality · Birthday · Maturity · Career & Money · Love & Relationships ·
-Health & Energy · Family & Home · Personal Growth · The Year Ahead · Life Cycles ·
-Lucky Guide & Remedies.
+**Structure — a 5-Act journey** (not 14 flat essays), so the book reads as one
+story that builds:
+- **Act I — Who You Are:** Life Path · Destiny & Expression · Soul Urge · Personality
+- **Act II — How You Move Through Life:** Birthday · Maturity
+- **Act III — Your Life Domains:** Career & Money · Love · Health · Family & Home
+- **Act IV — Your Timeline Ahead:** Personal Growth · The Year Ahead · Life Cycles
+- **Act V — Your Guide:** Lucky Guide & Remedies
+
+Each chapter has a **distinct angle, a fresh opening, and its own timing lens**
+(no repeated hooks, no "Personal Year 8/9" pasted everywhere). Prose is
+story-first, second-person, numbers woven in lightly — driven by a chapter-aware
+prompt (`_chapter_story`) with a retry so no chapter falls back to textbook voice.
 
 **Endpoints** (mirror the Q&A pair; human-in-loop preserved):
 ```bash
