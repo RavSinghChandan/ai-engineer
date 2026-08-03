@@ -381,6 +381,16 @@ export class App implements OnInit, AfterViewInit {
       pr: 'https://github.com/huggingface/sentence-transformers/pull/3855',
       merged: 'Jul 2026',
     },
+    {
+      repo: 'huggingface/sentence-transformers',
+      logo: 'huggingface-logo.svg',
+      org: 'Hugging Face',
+      stars: '18.9k★',
+      title: 'add missing docstring to to_scipy_coo',
+      desc: 'Documented the sparse-tensor → SciPy COO conversion used by the sparse embedding pipeline, with a runnable example matching the library’s docstring conventions.',
+      pr: 'https://github.com/huggingface/sentence-transformers/pull/3843',
+      merged: 'Aug 2026',
+    },
     // Next merges go here — e.g. nltk, spaCy, evaluate, smolagents (PRs currently in review).
   ];
 
