@@ -391,7 +391,17 @@ export class App implements OnInit, AfterViewInit {
       pr: 'https://github.com/huggingface/sentence-transformers/pull/3843',
       merged: 'Aug 2026',
     },
-    // Next merges go here — e.g. nltk, spaCy, evaluate, smolagents (PRs currently in review).
+    {
+      repo: 'nltk/nltk',
+      logo: 'nltk-logo.svg',
+      org: 'NLTK',
+      stars: '14.7k★',
+      title: 'add tests for transitive_closure',
+      desc: 'Regression tests for an untested graph-closure utility in NLTK — covers chains, reflexive closure, cycles, empty graphs, and pins the guarantee that the input graph is never mutated.',
+      pr: 'https://github.com/nltk/nltk/pull/3703',
+      merged: 'Aug 2026',
+    },
+    // Next merges go here — e.g. pypdf, spaCy, evaluate, smolagents (PRs currently in review).
   ];
 
   skills = [
