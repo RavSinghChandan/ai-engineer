@@ -1696,7 +1696,7 @@ export class App implements OnInit, AfterViewInit {
         x: cx + Math.cos(a) * spread + (Math.random() - 0.5) * 30,
         y: cy + Math.sin(a) * spread + (Math.random() - 0.5) * 30,
         vx: 0, vy: 0,
-        r: n.kind === 'system' ? 9 : n.kind === 'oss' ? 7 : 6,
+        r: n.kind === 'system' ? 13 : n.kind === 'oss' ? 11 : 10,
         pinned: false,
       };
     });
@@ -1722,8 +1722,17 @@ export class App implements OnInit, AfterViewInit {
       const r = canvas.getBoundingClientRect();
       return { x: e.clientX - r.left, y: e.clientY - r.top };
     };
-    const hit = (x: number, y: number) =>
-      this.gBodies.find(b => Math.hypot(b.x - x, b.y - y) < b.r + 10) || null;
+    // Generous grab radius, and when two nodes overlap pick the nearest one —
+    // aiming at a 6px dot with a mouse is not a fair ask.
+    const hit = (x: number, y: number) => {
+      let best: GraphBody | null = null;
+      let bestD = Infinity;
+      for (const b of this.gBodies) {
+        const d = Math.hypot(b.x - x, b.y - y);
+        if (d < b.r + 22 && d < bestD) { bestD = d; best = b; }
+      }
+      return best;
+    };
 
     canvas.addEventListener('pointermove', e => {
       const p = pos(e);
@@ -1753,7 +1762,12 @@ export class App implements OnInit, AfterViewInit {
     });
 
     const release = () => {
-      if (this.gDrag) { this.gDrag.pinned = false; this.gDrag = null; }
+      if (this.gDrag) {
+        // Stay where it was dropped rather than snapping back — the mesh
+        // rearranges around it, which is the point of dragging.
+        this.gDrag.vx = 0; this.gDrag.vy = 0;
+        this.gDrag = null;
+      }
       canvas.style.cursor = this.gHoverId ? 'grab' : 'default';
     };
     canvas.addEventListener('pointerup', e => {
@@ -1764,6 +1778,10 @@ export class App implements OnInit, AfterViewInit {
       release();
     });
     canvas.addEventListener('pointercancel', release);
+    // Double-click anywhere releases every pinned node back into the layout.
+    canvas.addEventListener('dblclick', () => {
+      for (const b of this.gBodies) b.pinned = false;
+    });
     canvas.addEventListener('pointerleave', () => {
       this.gPointer.x = -9999; this.gPointer.y = -9999;
       this.gHoverId = null; this.graphHover.set(null);
@@ -1789,21 +1807,16 @@ export class App implements OnInit, AfterViewInit {
         let dx = b.x - o.x, dy = b.y - o.y;
         let d2 = dx * dx + dy * dy;
         if (d2 < 1) { dx = Math.random() - 0.5; dy = Math.random() - 0.5; d2 = 1; }
-        if (d2 < 40000) {
-          const f = 620 / d2;
+        if (d2 < 46000) {
+          const f = 900 / d2;   // bigger nodes need more elbow room
           b.vx += dx * f; b.vy += dy * f;
         }
       }
       // gentle pull to centre keeps the mesh on screen
       b.vx += (cx - b.x) * 0.0016;
       b.vy += (cy - b.y) * 0.0016;
-      // cursor pushes nodes away slightly — makes it feel alive
-      const pdx = b.x - this.gPointer.x, pdy = b.y - this.gPointer.y;
-      const pd2 = pdx * pdx + pdy * pdy;
-      if (pd2 < 14000 && pd2 > 1) {
-        const f = 260 / pd2;
-        b.vx += pdx * f; b.vy += pdy * f;
-      }
+      // Nodes deliberately do NOT flee the cursor — they used to, which made
+      // them almost impossible to grab. The mesh stays put so it can be aimed at.
     }
     // edge springs
     for (const [a, c] of this.graphEdges) {
@@ -1811,17 +1824,24 @@ export class App implements OnInit, AfterViewInit {
       if (!A || !B) continue;
       const dx = B.x - A.x, dy = B.y - A.y;
       const dist = Math.hypot(dx, dy) || 1;
-      const f = (dist - 108) * 0.0055;
+      const f = (dist - 128) * 0.0055;
       const fx = dx / dist * f, fy = dy / dist * f;
       if (!A.pinned) { A.vx += fx; A.vy += fy; }
       if (!B.pinned) { B.vx -= fx; B.vy -= fy; }
     }
-    // integrate
+    // Integrate. Heavier damping than a typical force layout, plus a hard stop
+    // below a threshold, so the mesh comes to rest and stays aimable instead of
+    // jittering forever under the cursor.
     for (const b of this.gBodies) {
       if (b.pinned) continue;
-      b.vx *= 0.86; b.vy *= 0.86;
+      b.vx *= 0.78; b.vy *= 0.78;
+      if (Math.abs(b.vx) < 0.02) b.vx = 0;
+      if (Math.abs(b.vy) < 0.02) b.vy = 0;
+      const max = 6;                        // no teleporting across the canvas
+      b.vx = Math.max(-max, Math.min(max, b.vx));
+      b.vy = Math.max(-max, Math.min(max, b.vy));
       b.x += b.vx; b.y += b.vy;
-      const m = b.r + 4;
+      const m = b.r + 6;
       b.x = Math.max(m, Math.min(W - m, b.x));
       b.y = Math.max(m, Math.min(H - m, b.y));
     }
@@ -1852,7 +1872,7 @@ export class App implements OnInit, AfterViewInit {
       ctx.globalAlpha = dim ? 0.25 : 1;
       if (isHover || isNear) {
         ctx.beginPath();
-        ctx.arc(b.x, b.y, b.r + (isHover ? 9 : 5), 0, Math.PI * 2);
+        ctx.arc(b.x, b.y, b.r + (isHover ? 14 : 6), 0, Math.PI * 2);
         ctx.fillStyle = color + '22';
         ctx.fill();
       }
@@ -1860,6 +1880,21 @@ export class App implements OnInit, AfterViewInit {
       ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
       ctx.fillStyle = color;
       ctx.fill();
+      // A crisp ring on the hovered node: shows exactly what a click will grab.
+      if (isHover) {
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.r + 7, 0, Math.PI * 2);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+      }
+      // Pinned (being dragged) reads as solid white-cored.
+      if (b.pinned) {
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.r * 0.42, 0, Math.PI * 2);
+        ctx.fillStyle = '#fff';
+        ctx.fill();
+      }
 
       // labels: always for systems, on hover/neighbour for the rest
       if (b.kind === 'system' || isHover || isNear) {
