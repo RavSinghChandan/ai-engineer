@@ -4,6 +4,23 @@ import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ChatService } from './chat.service';
 
+/** A node in the interactive knowledge graph. */
+interface GraphNode {
+  id: string;
+  label: string;
+  kind: 'system' | 'tech' | 'oss' | 'work';
+  detail: string;
+  url?: string;
+}
+
+/** Runtime physics state for a graph node. */
+interface GraphBody extends GraphNode {
+  x: number; y: number;   // position
+  vx: number; vy: number; // velocity
+  r: number;              // radius
+  pinned: boolean;
+}
+
 @Component({
   selector: 'app-root',
   imports: [CommonModule, FormsModule],
@@ -413,6 +430,59 @@ export class App implements OnInit, AfterViewInit {
     },
     // Next merges go here — e.g. spaCy, evaluate, smolagents (PRs currently in review).
   ];
+
+  // ── Interactive knowledge graph (hero section below the fold) ──────────────
+  //    Nodes are the real things on this page; edges are how they actually
+  //    connect. Physics runs in a canvas — see initGraph() further down.
+  readonly graphNodes: GraphNode[] = [
+    // Systems built (purple)
+    { id: 'aura',    label: 'Aura with Rav',        kind: 'system', detail: '18+ agents · 415 tests · 23 languages' },
+    { id: 'bench',   label: 'Bench Optimizer',      kind: 'system', detail: 'Enterprise AI HR platform · G1–G5 guardrails' },
+    { id: 'growth',  label: 'Agentic Growth OS',    kind: 'system', detail: 'Autonomous AI marketing platform' },
+    { id: 'factory', label: 'AI Content Factory',   kind: 'system', detail: 'Multi-agent video production pipeline' },
+
+    // Core technologies (cyan)
+    { id: 'python',    label: 'Python',      kind: 'tech', detail: 'Primary language for all AI work' },
+    { id: 'langgraph', label: 'LangGraph',   kind: 'tech', detail: 'Stateful multi-agent orchestration' },
+    { id: 'langchain', label: 'LangChain',   kind: 'tech', detail: 'LLM chains, tools, retrievers' },
+    { id: 'fastapi',   label: 'FastAPI',     kind: 'tech', detail: 'Async Python APIs' },
+    { id: 'rag',       label: 'RAG',         kind: 'tech', detail: 'Hybrid retrieval · HyDE · CRAG · RRF fusion' },
+    { id: 'angular',   label: 'Angular',     kind: 'tech', detail: 'This portfolio, and every project UI' },
+    { id: 'java',      label: 'Java/Spring', kind: 'tech', detail: '4 years of production backend' },
+    { id: 'kafka',     label: 'Kafka',       kind: 'tech', detail: 'Async jobs, DLQ, event streaming' },
+    { id: 'docker',    label: 'Docker/AWS',  kind: 'tech', detail: 'Containerised deploys, ECS, CI/CD' },
+
+    // Merged open source (green)
+    { id: 'pypdf',   label: 'pypdf #3929',    kind: 'oss', detail: 'Bug fix: low-bit DeviceRGB decoding', url: 'https://github.com/py-pdf/pypdf/pull/3929' },
+    { id: 'nltk',    label: 'nltk #3703',     kind: 'oss', detail: 'Tests for transitive_closure',        url: 'https://github.com/nltk/nltk/pull/3703' },
+    { id: 'joblib1', label: 'joblib #1812',   kind: 'oss', detail: 'Bug fix: os.PathLike in dump/load',    url: 'https://github.com/joblib/joblib/pull/1812' },
+    { id: 'st1',     label: 'sent-tf #3855',  kind: 'oss', detail: 'Regression tests for a core utility',  url: 'https://github.com/huggingface/sentence-transformers/pull/3855' },
+    { id: 'st2',     label: 'sent-tf #3843',  kind: 'oss', detail: 'Documented to_scipy_coo',              url: 'https://github.com/huggingface/sentence-transformers/pull/3843' },
+
+    // Experience (amber)
+    { id: 'infosys', label: 'Infosys — BofA', kind: 'work', detail: 'Senior Software Engineer' },
+    { id: 'nexsys',  label: 'Nexsys/Accelya', kind: 'work', detail: 'Software Engineer' },
+    { id: 'texala',  label: 'Texala',         kind: 'work', detail: 'Software Engineer' },
+  ];
+
+  readonly graphEdges: [string, string][] = [
+    // systems → the tech they actually run on
+    ['aura','python'], ['aura','langgraph'], ['aura','fastapi'], ['aura','rag'], ['aura','angular'],
+    ['bench','python'], ['bench','langgraph'], ['bench','fastapi'], ['bench','angular'], ['bench','rag'],
+    ['growth','python'], ['growth','langchain'], ['growth','fastapi'], ['growth','angular'],
+    ['factory','python'], ['factory','langgraph'], ['factory','fastapi'], ['factory','angular'],
+    // tech ↔ tech
+    ['langgraph','langchain'], ['langchain','rag'], ['python','fastapi'], ['python','langchain'],
+    ['fastapi','kafka'], ['fastapi','docker'], ['angular','docker'], ['java','kafka'], ['java','docker'],
+    // open source grows out of the language
+    ['pypdf','python'], ['nltk','python'], ['joblib1','python'], ['st1','python'], ['st2','python'],
+    ['st1','rag'], ['st2','rag'], ['nltk','langchain'],
+    // work history → what was used there
+    ['infosys','java'], ['infosys','kafka'], ['nexsys','java'], ['nexsys','angular'], ['texala','java'],
+  ];
+
+  graphHover = signal<GraphNode | null>(null);
+  graphReady = signal(false);
 
   skills = [
     { icon: 'python', type: 'skillicon', title: 'AI & LLM Engineering', color: 'purple', items: ['python','pytorch','tensorflow','fastapi'], labels: ['LangChain','LangGraph','OpenAI API','Prompt Engineering','RAG Pipelines','Agentic AI'] },
@@ -1278,6 +1348,24 @@ export class App implements OnInit, AfterViewInit {
       list.forEach(el => observer.observe(el.nativeElement));
     });
 
+    // Knowledge graph — only start the animation loop once it is on screen,
+    // and stop it again when it scrolls away, so it costs nothing otherwise.
+    const kg = document.getElementById('kg-canvas');
+    if (kg) {
+      let started = false;
+      const kgObs = new IntersectionObserver(entries => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            if (!started) { started = true; this.initGraph(); }
+            else if (!this.gRaf) this.stepGraph();
+          } else if (started) {
+            this.stopGraph(); this.gRaf = 0;
+          }
+        }
+      }, { threshold: 0.05 });
+      kgObs.observe(kg);
+    }
+
     // Animate stat counters when hero scrolls into view
     const heroEl = document.querySelector('.hero-stats');
     if (heroEl) {
@@ -1560,5 +1648,233 @@ export class App implements OnInit, AfterViewInit {
       const el = this.cbScrollEl.nativeElement;
       el.scrollTop = el.scrollHeight;
     }
+  }
+
+  // ── Interactive knowledge graph ────────────────────────────────────────────
+  //  A small force-directed layout on a canvas: nodes repel each other, edges
+  //  pull their endpoints together, and everything drifts back toward centre.
+  //  Drag a node to pull the whole mesh around; hover to highlight neighbours.
+
+  private gBodies: GraphBody[] = [];
+  private gCtx: CanvasRenderingContext2D | null = null;
+  private gCanvas: HTMLCanvasElement | null = null;
+  private gRaf = 0;
+  private gDrag: GraphBody | null = null;
+  private gPointer = { x: -9999, y: -9999, down: false };
+  private gHoverId: string | null = null;
+  private gNeighbours = new Map<string, Set<string>>();
+
+  private readonly G_COLORS: Record<GraphNode['kind'], string> = {
+    system: '#a78bfa',  // purple — things I built
+    tech:   '#22d3ee',  // cyan   — technologies
+    oss:    '#34d399',  // green  — merged open source
+    work:   '#fbbf24',  // amber  — experience
+  };
+
+  private initGraph() {
+    const canvas = document.getElementById('kg-canvas') as HTMLCanvasElement | null;
+    if (!canvas) return;
+    this.gCanvas = canvas;
+    this.gCtx = canvas.getContext('2d');
+    if (!this.gCtx) return;
+
+    // adjacency, used for hover highlighting
+    this.gNeighbours = new Map(this.graphNodes.map(n => [n.id, new Set<string>()]));
+    for (const [a, b] of this.graphEdges) {
+      this.gNeighbours.get(a)?.add(b);
+      this.gNeighbours.get(b)?.add(a);
+    }
+
+    const rect = canvas.getBoundingClientRect();
+    const cx = rect.width / 2, cy = rect.height / 2;
+    // seed on a circle so the layout unfolds outward rather than exploding
+    this.gBodies = this.graphNodes.map((n, i) => {
+      const a = (i / this.graphNodes.length) * Math.PI * 2;
+      const spread = Math.min(rect.width, rect.height) * 0.32;
+      return {
+        ...n,
+        x: cx + Math.cos(a) * spread + (Math.random() - 0.5) * 30,
+        y: cy + Math.sin(a) * spread + (Math.random() - 0.5) * 30,
+        vx: 0, vy: 0,
+        r: n.kind === 'system' ? 9 : n.kind === 'oss' ? 7 : 6,
+        pinned: false,
+      };
+    });
+
+    this.resizeGraph();
+    this.bindGraphEvents(canvas);
+    this.graphReady.set(true);
+    this.stepGraph();
+  }
+
+  private resizeGraph() {
+    const canvas = this.gCanvas, ctx = this.gCtx;
+    if (!canvas || !ctx) return;
+    const rect = canvas.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  private bindGraphEvents(canvas: HTMLCanvasElement) {
+    const pos = (e: PointerEvent) => {
+      const r = canvas.getBoundingClientRect();
+      return { x: e.clientX - r.left, y: e.clientY - r.top };
+    };
+    const hit = (x: number, y: number) =>
+      this.gBodies.find(b => Math.hypot(b.x - x, b.y - y) < b.r + 10) || null;
+
+    canvas.addEventListener('pointermove', e => {
+      const p = pos(e);
+      this.gPointer.x = p.x; this.gPointer.y = p.y;
+      if (this.gDrag) {
+        this.gDrag.x = p.x; this.gDrag.y = p.y;
+        this.gDrag.vx = 0; this.gDrag.vy = 0;
+        return;
+      }
+      const h = hit(p.x, p.y);
+      const id = h?.id ?? null;
+      if (id !== this.gHoverId) {
+        this.gHoverId = id;
+        this.graphHover.set(h ? this.graphNodes.find(n => n.id === id) ?? null : null);
+        canvas.style.cursor = h ? (h.url ? 'pointer' : 'grab') : 'default';
+      }
+    });
+
+    canvas.addEventListener('pointerdown', e => {
+      const p = pos(e);
+      const h = hit(p.x, p.y);
+      if (h) {
+        this.gDrag = h; h.pinned = true;
+        canvas.setPointerCapture(e.pointerId);
+        canvas.style.cursor = 'grabbing';
+      }
+    });
+
+    const release = () => {
+      if (this.gDrag) { this.gDrag.pinned = false; this.gDrag = null; }
+      canvas.style.cursor = this.gHoverId ? 'grab' : 'default';
+    };
+    canvas.addEventListener('pointerup', e => {
+      // a click without a drag on an OSS node opens the PR
+      const p = pos(e);
+      const h = hit(p.x, p.y);
+      if (h?.url && this.gDrag === h) window.open(h.url, '_blank', 'noopener');
+      release();
+    });
+    canvas.addEventListener('pointercancel', release);
+    canvas.addEventListener('pointerleave', () => {
+      this.gPointer.x = -9999; this.gPointer.y = -9999;
+      this.gHoverId = null; this.graphHover.set(null);
+      release();
+    });
+    window.addEventListener('resize', () => this.resizeGraph());
+  }
+
+  private stepGraph() {
+    const ctx = this.gCtx, canvas = this.gCanvas;
+    if (!ctx || !canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const W = rect.width, H = rect.height;
+    const cx = W / 2, cy = H / 2;
+    const byId = new Map(this.gBodies.map(b => [b.id, b]));
+
+    // ---- forces ----
+    for (const b of this.gBodies) {
+      if (b.pinned) continue;
+      // repulsion between every pair (n is small, so O(n²) is fine)
+      for (const o of this.gBodies) {
+        if (o === b) continue;
+        let dx = b.x - o.x, dy = b.y - o.y;
+        let d2 = dx * dx + dy * dy;
+        if (d2 < 1) { dx = Math.random() - 0.5; dy = Math.random() - 0.5; d2 = 1; }
+        if (d2 < 40000) {
+          const f = 620 / d2;
+          b.vx += dx * f; b.vy += dy * f;
+        }
+      }
+      // gentle pull to centre keeps the mesh on screen
+      b.vx += (cx - b.x) * 0.0016;
+      b.vy += (cy - b.y) * 0.0016;
+      // cursor pushes nodes away slightly — makes it feel alive
+      const pdx = b.x - this.gPointer.x, pdy = b.y - this.gPointer.y;
+      const pd2 = pdx * pdx + pdy * pdy;
+      if (pd2 < 14000 && pd2 > 1) {
+        const f = 260 / pd2;
+        b.vx += pdx * f; b.vy += pdy * f;
+      }
+    }
+    // edge springs
+    for (const [a, c] of this.graphEdges) {
+      const A = byId.get(a), B = byId.get(c);
+      if (!A || !B) continue;
+      const dx = B.x - A.x, dy = B.y - A.y;
+      const dist = Math.hypot(dx, dy) || 1;
+      const f = (dist - 108) * 0.0055;
+      const fx = dx / dist * f, fy = dy / dist * f;
+      if (!A.pinned) { A.vx += fx; A.vy += fy; }
+      if (!B.pinned) { B.vx -= fx; B.vy -= fy; }
+    }
+    // integrate
+    for (const b of this.gBodies) {
+      if (b.pinned) continue;
+      b.vx *= 0.86; b.vy *= 0.86;
+      b.x += b.vx; b.y += b.vy;
+      const m = b.r + 4;
+      b.x = Math.max(m, Math.min(W - m, b.x));
+      b.y = Math.max(m, Math.min(H - m, b.y));
+    }
+
+    // ---- draw ----
+    ctx.clearRect(0, 0, W, H);
+    const hovered = this.gHoverId;
+    const near = hovered ? this.gNeighbours.get(hovered) : null;
+
+    for (const [a, c] of this.graphEdges) {
+      const A = byId.get(a), B = byId.get(c);
+      if (!A || !B) continue;
+      const lit = !!hovered && (a === hovered || c === hovered);
+      ctx.beginPath();
+      ctx.moveTo(A.x, A.y);
+      ctx.lineTo(B.x, B.y);
+      ctx.strokeStyle = lit ? 'rgba(167,139,250,0.75)' : 'rgba(148,163,184,0.20)';
+      ctx.lineWidth = lit ? 1.6 : 0.8;
+      ctx.stroke();
+    }
+
+    for (const b of this.gBodies) {
+      const isHover = b.id === hovered;
+      const isNear = !!near?.has(b.id);
+      const dim = !!hovered && !isHover && !isNear;
+      const color = this.G_COLORS[b.kind];
+
+      ctx.globalAlpha = dim ? 0.25 : 1;
+      if (isHover || isNear) {
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.r + (isHover ? 9 : 5), 0, Math.PI * 2);
+        ctx.fillStyle = color + '22';
+        ctx.fill();
+      }
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+
+      // labels: always for systems, on hover/neighbour for the rest
+      if (b.kind === 'system' || isHover || isNear) {
+        ctx.font = `${isHover ? 600 : 500} ${isHover ? 12 : 11}px ui-sans-serif, system-ui, sans-serif`;
+        ctx.fillStyle = isHover ? color : 'rgba(203,213,225,0.92)';
+        ctx.textAlign = 'center';
+        ctx.fillText(b.label, b.x, b.y - b.r - 7);
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    this.gRaf = requestAnimationFrame(() => this.stepGraph());
+  }
+
+  stopGraph() {
+    if (this.gRaf) cancelAnimationFrame(this.gRaf);
   }
 }

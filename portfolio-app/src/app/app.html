@@ -196,6 +196,49 @@
   </div>
 </section>
 
+<!-- KNOWLEDGE GRAPH — everything on this page, and how it connects -->
+<section id="graph" class="kg-section" aria-label="Interactive knowledge graph">
+  <div class="container">
+    <div class="kg-head">
+      <h2 class="kg-h">How It All Connects</h2>
+      <p class="kg-sub">
+        Every system, technology, merged contribution and role on this page — as one graph.
+        <b>Drag a node</b> to pull the mesh around, hover to trace what it touches,
+        or click a green node to open the merged PR.
+      </p>
+      <div class="kg-legend">
+        <span class="kg-key"><i class="kg-dot kg-dot--system"></i>Systems built</span>
+        <span class="kg-key"><i class="kg-dot kg-dot--tech"></i>Technologies</span>
+        <span class="kg-key"><i class="kg-dot kg-dot--oss"></i>Merged open source</span>
+        <span class="kg-key"><i class="kg-dot kg-dot--work"></i>Experience</span>
+      </div>
+    </div>
+
+    <div class="kg-stage">
+      <canvas id="kg-canvas" class="kg-canvas"
+              aria-label="Interactive graph connecting projects, technologies, open-source contributions and work experience. The same relationships are described in text below."></canvas>
+
+      @if (graphHover(); as n) {
+        <div class="kg-tip" [class.kg-tip--link]="!!n.url">
+          <div class="kg-tip-label">{{ n.label }}</div>
+          <div class="kg-tip-detail">{{ n.detail }}</div>
+          @if (n.url) { <div class="kg-tip-cta">Click to open the PR ↗</div> }
+        </div>
+      } @else {
+        <div class="kg-hint">Drag a node — the rest follows</div>
+      }
+    </div>
+
+    <!-- Text fallback: the same relationships, for screen readers and no-JS -->
+    <p class="kg-a11y">
+      Systems: Aura with Rav, Bench Resource Optimizer, Agentic Growth OS and AI Content Factory —
+      all built with Python, FastAPI, LangGraph and Angular. Merged open-source contributions to
+      pypdf, NLTK, joblib and Hugging Face Sentence Transformers. Backend experience in Java and
+      Spring at Infosys (Bank of America), Nexsys/Accelya and Texala.
+    </p>
+  </div>
+</section>
+
 <!-- OPEN SOURCE CONTRIBUTION — 2nd section, grows with each merge -->
 <section id="opensource" class="oss-section">
   <div class="container">
