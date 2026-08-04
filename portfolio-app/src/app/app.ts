@@ -401,7 +401,17 @@ export class App implements OnInit, AfterViewInit {
       pr: 'https://github.com/nltk/nltk/pull/3703',
       merged: 'Aug 2026',
     },
-    // Next merges go here — e.g. pypdf, spaCy, evaluate, smolagents (PRs currently in review).
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Decode low-bit DeviceRGB images as RGB instead of palette',
+      desc: 'Bug fix: 2- and 4-bit-per-component DeviceRGB images were forced to a palette mode, leaving an unrecognized Pillow mode that broke image extraction. Now unpacks the interleaved colour components and scales them to full range.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/3929',
+      merged: 'Aug 2026',
+    },
+    // Next merges go here — e.g. spaCy, evaluate, smolagents (PRs currently in review).
   ];
 
   skills = [
