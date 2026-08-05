@@ -428,6 +428,16 @@ export class App implements OnInit, AfterViewInit {
       pr: 'https://github.com/py-pdf/pypdf/pull/3929',
       merged: 'Aug 2026',
     },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Expand low-bit samples for images without a filter',
+      desc: 'Follow-up bug fix: the low-bit expansion only ran for FlateDecode images, so an unfiltered or inline image passed a raw "4bits" mode straight to Pillow and raised "unrecognized image mode". Extracted the dispatch so every decode path gets it.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/3938',
+      merged: 'Aug 2026',
+    },
     // Next merges go here — e.g. spaCy, evaluate, smolagents (PRs currently in review).
   ];
 
