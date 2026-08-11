@@ -335,7 +335,7 @@ h1 {
 
 .kg-stage {
   position: relative;
-  height: clamp(380px, 52vh, 560px);
+  height: clamp(460px, 68vh, 720px);
   border: 1px solid var(--border); border-radius: 18px;
   background:
     radial-gradient(ellipse at 30% 25%, rgba(124,58,237,0.10), transparent 62%),
@@ -374,7 +374,7 @@ h1 {
 }
 
 @media (max-width: 640px) {
-  .kg-stage { height: 340px; }
+  .kg-stage { height: 400px; }
   .kg-legend { gap: 0.3rem 0.9rem; font-size: 0.74rem; }
 }
 @media (prefers-reduced-motion: reduce) {

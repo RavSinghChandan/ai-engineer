@@ -1672,10 +1672,17 @@ export class App implements OnInit, AfterViewInit {
     }
   }
 
-  // ── Interactive knowledge graph ────────────────────────────────────────────
-  //  A small force-directed layout on a canvas: nodes repel each other, edges
-  //  pull their endpoints together, and everything drifts back toward centre.
-  //  Drag a node to pull the whole mesh around; hover to highlight neighbours.
+  // ── Interactive knowledge graph — a C60 buckminsterfullerene ───────────────
+  //  The 22 real nodes are carried on the vertices of a truncated icosahedron:
+  //  60 vertices, 90 edges, 12 pentagons and 20 hexagons — the actual buckyball.
+  //  It rotates in 3D; drag to spin it, hover a carried vertex to trace what it
+  //  touches, click a green one to open the merged PR.
+  //
+  //  Geometry: a truncated icosahedron is the icosahedron with each vertex cut
+  //  off. Its 60 vertices are the even permutations of
+  //      (0, ±1, ±3φ) · (±1, ±(2+φ), ±2φ) · (±2, ±(1+2φ), ±φ)
+  //  with φ the golden ratio. Two vertices share an edge iff they sit at the
+  //  minimum separation (2), which is what gives the hexagon/pentagon mesh.
 
   private gBodies: GraphBody[] = [];
   private gCtx: CanvasRenderingContext2D | null = null;
@@ -1686,12 +1693,105 @@ export class App implements OnInit, AfterViewInit {
   private gHoverId: string | null = null;
   private gNeighbours = new Map<string, Set<string>>();
 
+  // buckyball state
+  private bVerts: { x: number; y: number; z: number }[] = [];   // unit-sphere vertices
+  private bBonds: [number, number][] = [];                      // the 90 C–C bonds
+  private bProj: { x: number; y: number; z: number; s: number }[] = [];
+  private bCarrier: number[] = [];        // which vertex carries graphNodes[i]
+  private bRotX = -0.35;                  // current orientation
+  private bRotY = 0.6;
+  private bSpinX = 0;                     // idle spin
+  private bSpinY = 0.0022;
+  private bDragging = false;
+  private bLast = { x: 0, y: 0 };
+  private bRadius = 200;
+
   private readonly G_COLORS: Record<GraphNode['kind'], string> = {
     system: '#a78bfa',  // purple — things I built
     tech:   '#22d3ee',  // cyan   — technologies
     oss:    '#34d399',  // green  — merged open source
     work:   '#fbbf24',  // amber  — experience
   };
+
+  /** Build the 60 vertices + 90 bonds of a truncated icosahedron. */
+  private buildBuckyball() {
+    const P = (1 + Math.sqrt(5)) / 2;              // golden ratio
+    const raw: number[][] = [];
+    // even cyclic permutations of the three coordinate triples, all sign combos
+    const seeds = [
+      [0, 1, 3 * P],
+      [1, 2 + P, 2 * P],
+      [2, 1 + 2 * P, P],
+    ];
+    const cyc = (t: number[]) => [
+      [t[0], t[1], t[2]],
+      [t[1], t[2], t[0]],
+      [t[2], t[0], t[1]],
+    ];
+    for (const seed of seeds) {
+      for (const p of cyc(seed)) {
+        for (const sx of [1, -1]) for (const sy of [1, -1]) for (const sz of [1, -1]) {
+          const v = [p[0] * sx, p[1] * sy, p[2] * sz];
+          // skip duplicates produced when a component is 0
+          if (!raw.some(o => Math.abs(o[0] - v[0]) < 1e-9 && Math.abs(o[1] - v[1]) < 1e-9 && Math.abs(o[2] - v[2]) < 1e-9)) {
+            raw.push(v);
+          }
+        }
+      }
+    }
+    // normalise onto the unit sphere
+    const norm = Math.hypot(raw[0][0], raw[0][1], raw[0][2]);
+    this.bVerts = raw.map(v => ({ x: v[0] / norm, y: v[1] / norm, z: v[2] / norm }));
+
+    // bonds = pairs at the minimum separation
+    let min = Infinity;
+    for (let i = 0; i < this.bVerts.length; i++) {
+      for (let j = i + 1; j < this.bVerts.length; j++) {
+        const d = this.v3dist(this.bVerts[i], this.bVerts[j]);
+        if (d < min) min = d;
+      }
+    }
+    this.bBonds = [];
+    for (let i = 0; i < this.bVerts.length; i++) {
+      for (let j = i + 1; j < this.bVerts.length; j++) {
+        if (this.v3dist(this.bVerts[i], this.bVerts[j]) < min * 1.12) this.bBonds.push([i, j]);
+      }
+    }
+  }
+
+  private v3dist(a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }) {
+    return Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
+  }
+
+  /**
+   * Spread the real nodes over the sphere so no two land adjacent — a greedy
+   * farthest-point pick, grouped by kind so each colour reads as a cluster.
+   */
+  private assignCarriers() {
+    const n = this.graphNodes.length;
+    const chosen: number[] = [];
+    // start from the vertex nearest the +Y pole for a stable, repeatable layout
+    let start = 0, bestY = -Infinity;
+    this.bVerts.forEach((v, i) => { if (v.y > bestY) { bestY = v.y; start = i; } });
+    chosen.push(start);
+    while (chosen.length < n) {
+      let best = -1, bestD = -Infinity;
+      for (let i = 0; i < this.bVerts.length; i++) {
+        if (chosen.includes(i)) continue;
+        let d = Infinity;
+        for (const c of chosen) d = Math.min(d, this.v3dist(this.bVerts[i], this.bVerts[c]));
+        if (d > bestD) { bestD = d; best = i; }
+      }
+      chosen.push(best);
+    }
+    // order carriers so same-kind nodes end up near each other on the sphere
+    const order = [...this.graphNodes.keys()].sort((a, b) => {
+      const rank = { system: 0, oss: 1, tech: 2, work: 3 } as Record<string, number>;
+      return rank[this.graphNodes[a].kind] - rank[this.graphNodes[b].kind];
+    });
+    this.bCarrier = new Array(n);
+    order.forEach((nodeIdx, k) => { this.bCarrier[nodeIdx] = chosen[k]; });
+  }
 
   private initGraph() {
     const canvas = document.getElementById('kg-canvas') as HTMLCanvasElement | null;
@@ -1707,21 +1807,17 @@ export class App implements OnInit, AfterViewInit {
       this.gNeighbours.get(b)?.add(a);
     }
 
-    const rect = canvas.getBoundingClientRect();
-    const cx = rect.width / 2, cy = rect.height / 2;
-    // seed on a circle so the layout unfolds outward rather than exploding
-    this.gBodies = this.graphNodes.map((n, i) => {
-      const a = (i / this.graphNodes.length) * Math.PI * 2;
-      const spread = Math.min(rect.width, rect.height) * 0.32;
-      return {
-        ...n,
-        x: cx + Math.cos(a) * spread + (Math.random() - 0.5) * 30,
-        y: cy + Math.sin(a) * spread + (Math.random() - 0.5) * 30,
-        vx: 0, vy: 0,
-        r: n.kind === 'system' ? 13 : n.kind === 'oss' ? 11 : 10,
-        pinned: false,
-      };
-    });
+    this.buildBuckyball();
+    this.assignCarriers();
+
+    // Bodies now just mirror their carrier vertex each frame; x/y are filled in
+    // by the projection step before anything reads them.
+    this.gBodies = this.graphNodes.map(n => ({
+      ...n,
+      x: 0, y: 0, vx: 0, vy: 0,
+      r: n.kind === 'system' ? 13 : n.kind === 'oss' ? 11 : 10,
+      pinned: false,
+    }));
 
     this.resizeGraph();
     this.bindGraphEvents(canvas);
@@ -1756,12 +1852,24 @@ export class App implements OnInit, AfterViewInit {
       return best;
     };
 
+    let downAt = { x: 0, y: 0 };
+    let moved = 0;
+    let downOn: GraphBody | null = null;
+
     canvas.addEventListener('pointermove', e => {
       const p = pos(e);
       this.gPointer.x = p.x; this.gPointer.y = p.y;
-      if (this.gDrag) {
-        this.gDrag.x = p.x; this.gDrag.y = p.y;
-        this.gDrag.vx = 0; this.gDrag.vy = 0;
+      if (this.bDragging) {
+        // Drag anywhere spins the ball; vertical drag tilts, horizontal turns.
+        const dx = p.x - this.bLast.x, dy = p.y - this.bLast.y;
+        this.bRotY += dx * 0.006;
+        this.bRotX -= dy * 0.006;
+        this.bRotX = Math.max(-1.4, Math.min(1.4, this.bRotX));
+        this.bLast = { x: p.x, y: p.y };
+        moved += Math.abs(dx) + Math.abs(dy);
+        // hand the spin back as momentum when released
+        this.bSpinY = dx * 0.0012;
+        this.bSpinX = -dy * 0.0012;
         return;
       }
       const h = hit(p.x, p.y);
@@ -1769,34 +1877,37 @@ export class App implements OnInit, AfterViewInit {
       if (id !== this.gHoverId) {
         this.gHoverId = id;
         this.graphHover.set(h ? this.graphNodes.find(n => n.id === id) ?? null : null);
-        canvas.style.cursor = h ? (h.url ? 'pointer' : 'grab') : 'default';
+        canvas.style.cursor = h ? (h.url ? 'pointer' : 'grab') : 'grab';
       }
     });
 
     canvas.addEventListener('pointerdown', e => {
       const p = pos(e);
-      const h = hit(p.x, p.y);
-      if (h) {
-        this.gDrag = h; h.pinned = true;
-        canvas.setPointerCapture(e.pointerId);
-        canvas.style.cursor = 'grabbing';
-      }
+      downAt = p; moved = 0;
+      // Remember what was under the cursor at press time: the ball keeps
+      // rotating, so by pointerup a different atom may have moved into place.
+      downOn = hit(p.x, p.y);
+      this.bDragging = true;
+      this.bLast = { x: p.x, y: p.y };
+      canvas.setPointerCapture(e.pointerId);
+      canvas.style.cursor = 'grabbing';
     });
 
     const release = () => {
-      if (this.gDrag) {
-        // Stay where it was dropped rather than snapping back — the mesh
-        // rearranges around it, which is the point of dragging.
-        this.gDrag.vx = 0; this.gDrag.vy = 0;
-        this.gDrag = null;
-      }
-      canvas.style.cursor = this.gHoverId ? 'grab' : 'default';
+      this.bDragging = false;
+      downOn = null;
+      // settle back to the idle drift rather than stopping dead
+      if (Math.abs(this.bSpinY) < 0.0004) this.bSpinY = 0.0022;
+      canvas.style.cursor = this.gHoverId ? 'grab' : 'grab';
     };
     canvas.addEventListener('pointerup', e => {
-      // a click without a drag on an OSS node opens the PR
+      // A click (press and release in the same spot) on an OSS atom opens its
+      // PR. Distance from the press point is the only test that matters --
+      // `moved` accumulates across the preceding hover sweep too.
       const p = pos(e);
-      const h = hit(p.x, p.y);
-      if (h?.url && this.gDrag === h) window.open(h.url, '_blank', 'noopener');
+      const wasClick = Math.hypot(p.x - downAt.x, p.y - downAt.y) < 6;
+      if (wasClick && downOn?.url) window.open(downOn.url, '_blank', 'noopener');
+      downOn = null;
       release();
     });
     canvas.addEventListener('pointercancel', release);
@@ -1818,112 +1929,155 @@ export class App implements OnInit, AfterViewInit {
     const rect = canvas.getBoundingClientRect();
     const W = rect.width, H = rect.height;
     const cx = W / 2, cy = H / 2;
-    const byId = new Map(this.gBodies.map(b => [b.id, b]));
 
-    // ---- forces ----
-    for (const b of this.gBodies) {
-      if (b.pinned) continue;
-      // repulsion between every pair (n is small, so O(n²) is fine)
-      for (const o of this.gBodies) {
-        if (o === b) continue;
-        let dx = b.x - o.x, dy = b.y - o.y;
-        let d2 = dx * dx + dy * dy;
-        if (d2 < 1) { dx = Math.random() - 0.5; dy = Math.random() - 0.5; d2 = 1; }
-        if (d2 < 46000) {
-          const f = 900 / d2;   // bigger nodes need more elbow room
-          b.vx += dx * f; b.vy += dy * f;
-        }
-      }
-      // gentle pull to centre keeps the mesh on screen
-      b.vx += (cx - b.x) * 0.0016;
-      b.vy += (cy - b.y) * 0.0016;
-      // Nodes deliberately do NOT flee the cursor — they used to, which made
-      // them almost impossible to grab. The mesh stays put so it can be aimed at.
-    }
-    // edge springs
-    for (const [a, c] of this.graphEdges) {
-      const A = byId.get(a), B = byId.get(c);
-      if (!A || !B) continue;
-      const dx = B.x - A.x, dy = B.y - A.y;
-      const dist = Math.hypot(dx, dy) || 1;
-      const f = (dist - 128) * 0.0055;
-      const fx = dx / dist * f, fy = dy / dist * f;
-      if (!A.pinned) { A.vx += fx; A.vy += fy; }
-      if (!B.pinned) { B.vx -= fx; B.vy -= fy; }
-    }
-    // Integrate. Heavier damping than a typical force layout, plus a hard stop
-    // below a threshold, so the mesh comes to rest and stays aimable instead of
-    // jittering forever under the cursor.
-    for (const b of this.gBodies) {
-      if (b.pinned) continue;
-      b.vx *= 0.78; b.vy *= 0.78;
-      if (Math.abs(b.vx) < 0.02) b.vx = 0;
-      if (Math.abs(b.vy) < 0.02) b.vy = 0;
-      const max = 6;                        // no teleporting across the canvas
-      b.vx = Math.max(-max, Math.min(max, b.vx));
-      b.vy = Math.max(-max, Math.min(max, b.vy));
-      b.x += b.vx; b.y += b.vy;
-      const m = b.r + 6;
-      b.x = Math.max(m, Math.min(W - m, b.x));
-      b.y = Math.max(m, Math.min(H - m, b.y));
-    }
+    // ---- rotate ----
+    if (!this.bDragging) { this.bRotX += this.bSpinX; this.bRotY += this.bSpinY; }
+    const sx = Math.sin(this.bRotX), cxr = Math.cos(this.bRotX);
+    const sy = Math.sin(this.bRotY), cyr = Math.cos(this.bRotY);
+    // Fit to the smaller axis, leaving room for the perspective bulge, the node
+    // glow and the labels that sit above the top-most atoms.
+    this.bRadius = Math.min(W, H) * 0.385;
+
+    // ---- project all 60 vertices ----
+    this.bProj = this.bVerts.map(v => {
+      // rotate about Y then X
+      const x1 = v.x * cyr + v.z * sy;
+      const z1 = -v.x * sy + v.z * cyr;
+      const y2 = v.y * cxr - z1 * sx;
+      const z2 = v.y * sx + z1 * cxr;
+      const persp = 1 / (1 - z2 * 0.28);        // gentle perspective
+      return {
+        x: cx + x1 * this.bRadius * persp,
+        y: cy + y2 * this.bRadius * persp,
+        z: z2,
+        s: persp,
+      };
+    });
+
+    // mirror carrier positions onto the real nodes so hit-testing/tooltips work
+    this.gBodies.forEach((b, i) => {
+      const p = this.bProj[this.bCarrier[i]];
+      if (p) { b.x = p.x; b.y = p.y; }
+    });
 
     // ---- draw ----
     ctx.clearRect(0, 0, W, H);
     const hovered = this.gHoverId;
     const near = hovered ? this.gNeighbours.get(hovered) : null;
+    const carrierOf = new Map(this.gBodies.map((b, i) => [this.bCarrier[i], b]));
 
-    for (const [a, c] of this.graphEdges) {
-      const A = byId.get(a), B = byId.get(c);
-      if (!A || !B) continue;
-      const lit = !!hovered && (a === hovered || c === hovered);
+    // 1. the cage: 90 C–C bonds, depth-sorted so the far side sits behind
+    const bonds = this.bBonds
+      .map(([i, j]) => ({ i, j, z: (this.bProj[i].z + this.bProj[j].z) / 2 }))
+      .sort((a, b) => a.z - b.z);
+    for (const { i, j, z } of bonds) {
+      const A = this.bProj[i], B = this.bProj[j];
+      const depth = (z + 1) / 2;                       // 0 back … 1 front
+      const a = 0.14 + depth * 0.62;
+      const grad = ctx.createLinearGradient(A.x, A.y, B.x, B.y);
+      grad.addColorStop(0, `rgba(129,140,248,${a})`);        // indigo
+      grad.addColorStop(0.5, `rgba(56,232,249,${a * 1.15})`); // cyan
+      grad.addColorStop(1, `rgba(192,132,252,${a})`);        // violet
       ctx.beginPath();
       ctx.moveTo(A.x, A.y);
       ctx.lineTo(B.x, B.y);
-      ctx.strokeStyle = lit ? 'rgba(167,139,250,0.75)' : 'rgba(148,163,184,0.20)';
-      ctx.lineWidth = lit ? 1.6 : 0.8;
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = 0.7 + depth * 2.0;
+      // front-facing bonds get a soft bloom so the cage reads as lit glass
+      if (depth > 0.62) {
+        ctx.shadowColor = `rgba(56,232,249,${(depth - 0.62) * 0.9})`;
+        ctx.shadowBlur = 7;
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+
+    // 2. bare lattice vertices (the carbons that carry nothing)
+    for (let i = 0; i < this.bProj.length; i++) {
+      if (carrierOf.has(i)) continue;
+      const p = this.bProj[i];
+      const depth = (p.z + 1) / 2;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 1.8 + depth * 2.4, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(186,209,232,${0.22 + depth * 0.62})`;
+      ctx.fill();
+    }
+
+    // 3. relationship chords between real nodes, drawn across the sphere
+    for (const [a, c] of this.graphEdges) {
+      const ia = this.gBodies.findIndex(b => b.id === a);
+      const ic = this.gBodies.findIndex(b => b.id === c);
+      if (ia < 0 || ic < 0) continue;
+      const A = this.bProj[this.bCarrier[ia]], B = this.bProj[this.bCarrier[ic]];
+      const lit = !!hovered && (a === hovered || c === hovered);
+      if (!lit && (A.z < -0.15 || B.z < -0.15)) continue;   // hide far-side clutter
+      ctx.beginPath();
+      ctx.moveTo(A.x, A.y);
+      // bow the chord outward so it reads as wrapping the sphere
+      const mx = (A.x + B.x) / 2 - cx, my = (A.y + B.y) / 2 - cy;
+      const bow = 1.18;
+      ctx.quadraticCurveTo(cx + mx * bow, cy + my * bow, B.x, B.y);
+      ctx.strokeStyle = lit ? 'rgba(240,171,252,0.85)' : 'rgba(148,163,184,0.16)';
+      ctx.lineWidth = lit ? 2 : 0.7;
       ctx.stroke();
     }
 
-    for (const b of this.gBodies) {
+    // 4. the real nodes, painted back-to-front
+    const drawOrder = this.gBodies
+      .map((b, i) => ({ b, p: this.bProj[this.bCarrier[i]] }))
+      .sort((m, n) => m.p.z - n.p.z);
+
+    for (const { b, p } of drawOrder) {
       const isHover = b.id === hovered;
       const isNear = !!near?.has(b.id);
       const dim = !!hovered && !isHover && !isNear;
       const color = this.G_COLORS[b.kind];
+      const depth = (p.z + 1) / 2;
+      const r = b.r * (0.62 + depth * 0.55);
 
-      ctx.globalAlpha = dim ? 0.25 : 1;
-      if (isHover || isNear) {
-        ctx.beginPath();
-        ctx.arc(b.x, b.y, b.r + (isHover ? 14 : 6), 0, Math.PI * 2);
-        ctx.fillStyle = color + '22';
-        ctx.fill();
-      }
+      ctx.globalAlpha = dim ? 0.18 : 0.35 + depth * 0.65;
+
+      // glow
+      const halo = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 3.4);
+      halo.addColorStop(0, color + 'cc');
+      halo.addColorStop(0.45, color + '33');
+      halo.addColorStop(1, color + '00');
       ctx.beginPath();
-      ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
-      ctx.fillStyle = color;
+      ctx.arc(p.x, p.y, r * 3.4, 0, Math.PI * 2);
+      ctx.fillStyle = halo;
       ctx.fill();
-      // A crisp ring on the hovered node: shows exactly what a click will grab.
+
+      // the atom
+      const body = ctx.createRadialGradient(p.x - r * 0.35, p.y - r * 0.35, r * 0.1, p.x, p.y, r);
+      body.addColorStop(0, '#ffffff');
+      body.addColorStop(0.35, color);
+      body.addColorStop(1, color + 'bb');
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.fillStyle = body;
+      ctx.fill();
+
       if (isHover) {
         ctx.beginPath();
-        ctx.arc(b.x, b.y, b.r + 7, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, r + 8, 0, Math.PI * 2);
         ctx.strokeStyle = color;
         ctx.lineWidth = 2.5;
         ctx.stroke();
       }
-      // Pinned (being dragged) reads as solid white-cored.
-      if (b.pinned) {
-        ctx.beginPath();
-        ctx.arc(b.x, b.y, b.r * 0.42, 0, Math.PI * 2);
-        ctx.fillStyle = '#fff';
-        ctx.fill();
-      }
 
-      // labels: always for systems, on hover/neighbour for the rest
-      if (b.kind === 'system' || isHover || isNear) {
-        ctx.font = `${isHover ? 600 : 500} ${isHover ? 12 : 11}px ui-sans-serif, system-ui, sans-serif`;
-        ctx.fillStyle = isHover ? color : 'rgba(203,213,225,0.92)';
+      // labels: front-facing systems always, others on hover/neighbour
+      if ((b.kind === 'system' && p.z > -0.1) || isHover || isNear) {
+        ctx.font = `${isHover ? 600 : 500} ${isHover ? 12.5 : 11}px ui-sans-serif, system-ui, sans-serif`;
+        ctx.fillStyle = isHover ? color : 'rgba(226,232,240,0.95)';
         ctx.textAlign = 'center';
-        ctx.fillText(b.label, b.x, b.y - b.r - 7);
+        ctx.shadowColor = 'rgba(2,6,23,0.9)';
+        ctx.shadowBlur = 6;
+        // keep the label inside the canvas: a centred label on a rim atom
+        // otherwise runs off the edge and gets clipped
+        const half = ctx.measureText(b.label).width / 2 + 4;
+        const lx = Math.max(half, Math.min(W - half, p.x));
+        ctx.fillText(b.label, lx, p.y - r - 9);
+        ctx.shadowBlur = 0;
       }
       ctx.globalAlpha = 1;
     }
