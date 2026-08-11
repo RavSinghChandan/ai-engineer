@@ -438,7 +438,17 @@ export class App implements OnInit, AfterViewInit {
       pr: 'https://github.com/py-pdf/pypdf/pull/3938',
       merged: 'Aug 2026',
     },
-    // Next merges go here — e.g. spaCy, evaluate, smolagents (PRs currently in review).
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Keep the Adobe CMYK inversion when an explicit /Decode is present',
+      desc: 'Bug fix: Adobe writes CMYK JPEGs with inverted component values. An explicit /Decode array replaced that inversion instead of combining with it, so an identity /Decode left every extracted image colour-inverted. Now the two are composed by swapping each min/max pair.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/3943',
+      merged: 'Aug 2026',
+    },
+    // Next merges go here — e.g. authlib, spaCy, evaluate (PRs currently in review).
   ];
 
   // ── Interactive knowledge graph (hero section below the fold) ──────────────
@@ -468,6 +478,7 @@ export class App implements OnInit, AfterViewInit {
     { id: 'joblib1', label: 'joblib #1812',   kind: 'oss', detail: 'Bug fix: os.PathLike in dump/load',    url: 'https://github.com/joblib/joblib/pull/1812' },
     { id: 'st1',     label: 'sent-tf #3855',  kind: 'oss', detail: 'Regression tests for a core utility',  url: 'https://github.com/huggingface/sentence-transformers/pull/3855' },
     { id: 'st2',     label: 'sent-tf #3843',  kind: 'oss', detail: 'Documented to_scipy_coo',              url: 'https://github.com/huggingface/sentence-transformers/pull/3843' },
+    { id: 'pypdf2',  label: 'pypdf #3943',    kind: 'oss', detail: 'Bug fix: CMYK /Decode inversion',      url: 'https://github.com/py-pdf/pypdf/pull/3943' },
 
     // Experience (amber)
     { id: 'infosys', label: 'Infosys — BofA', kind: 'work', detail: 'Senior Software Engineer' },
@@ -486,6 +497,7 @@ export class App implements OnInit, AfterViewInit {
     ['fastapi','kafka'], ['fastapi','docker'], ['angular','docker'], ['java','kafka'], ['java','docker'],
     // open source grows out of the language
     ['pypdf','python'], ['nltk','python'], ['joblib1','python'], ['st1','python'], ['st2','python'],
+    ['pypdf2','python'], ['pypdf2','pypdf'],
     ['st1','rag'], ['st2','rag'], ['nltk','langchain'],
     // work history → what was used there
     ['infosys','java'], ['infosys','kafka'], ['nexsys','java'], ['nexsys','angular'], ['texala','java'],
