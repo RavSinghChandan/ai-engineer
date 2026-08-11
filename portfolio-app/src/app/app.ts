@@ -458,7 +458,17 @@ export class App implements OnInit, AfterViewInit {
       pr: 'https://github.com/authlib/authlib/pull/919',
       merged: 'Aug 2026',
     },
-    // Next merges go here — e.g. pypdf #3957, spaCy, evaluate (PRs currently in review).
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Type pages as a Sequence rather than a list',
+      desc: 'Bug fix: PdfDocCommon.pages was annotated list[PageObject] but returns a lazily-evaluated _VirtualList, with the mismatch suppressed by a type: ignore. A type checker therefore accepted reader.pages.append(page), which raises at runtime. Also cleared 16 typeguard failures in the test suite.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/3957',
+      merged: 'Aug 2026',
+    },
+    // Next merges go here — e.g. spaCy, HF Evaluate (PRs currently in review).
   ];
 
   // ── Interactive knowledge graph (hero section below the fold) ──────────────
@@ -490,6 +500,7 @@ export class App implements OnInit, AfterViewInit {
     { id: 'st2',     label: 'sent-tf #3843',  kind: 'oss', detail: 'Documented to_scipy_coo',              url: 'https://github.com/huggingface/sentence-transformers/pull/3843' },
     { id: 'pypdf2',  label: 'pypdf #3943',    kind: 'oss', detail: 'Bug fix: CMYK /Decode inversion',      url: 'https://github.com/py-pdf/pypdf/pull/3943' },
     { id: 'authlib', label: 'authlib #919',   kind: 'oss', detail: 'Bug fix: OAuth1 error named OAuth 2',  url: 'https://github.com/authlib/authlib/pull/919' },
+    { id: 'pypdf3',  label: 'pypdf #3957',    kind: 'oss', detail: 'Bug fix: pages typed list, returns Sequence', url: 'https://github.com/py-pdf/pypdf/pull/3957' },
 
     // Experience (amber)
     { id: 'infosys', label: 'Infosys — BofA', kind: 'work', detail: 'Senior Software Engineer' },
@@ -510,6 +521,7 @@ export class App implements OnInit, AfterViewInit {
     ['pypdf','python'], ['nltk','python'], ['joblib1','python'], ['st1','python'], ['st2','python'],
     ['pypdf2','python'], ['pypdf2','pypdf'],
     ['authlib','python'], ['authlib','fastapi'],
+    ['pypdf3','python'], ['pypdf3','pypdf'],
     ['st1','rag'], ['st2','rag'], ['nltk','langchain'],
     // work history → what was used there
     ['infosys','java'], ['infosys','kafka'], ['nexsys','java'], ['nexsys','angular'], ['texala','java'],
