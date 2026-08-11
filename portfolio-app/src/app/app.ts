@@ -448,7 +448,17 @@ export class App implements OnInit, AfterViewInit {
       pr: 'https://github.com/py-pdf/pypdf/pull/3943',
       merged: 'Aug 2026',
     },
-    // Next merges go here — e.g. authlib, spaCy, evaluate (PRs currently in review).
+    {
+      repo: 'authlib/authlib',
+      logo: 'authlib-logo.svg',
+      org: 'Authlib',
+      stars: '5.4k★',
+      title: 'correct protocol name in InsecureTransportError description',
+      desc: 'Bug fix: the OAuth1 InsecureTransportError carried the description string from its OAuth2 counterpart, so an OAuth 1.0a client hitting an http:// endpoint was told "OAuth 2 MUST utilize https." Merged by the project lead. Authlib is the OAuth/OIDC layer behind a large share of Python auth.',
+      pr: 'https://github.com/authlib/authlib/pull/919',
+      merged: 'Aug 2026',
+    },
+    // Next merges go here — e.g. pypdf #3957, spaCy, evaluate (PRs currently in review).
   ];
 
   // ── Interactive knowledge graph (hero section below the fold) ──────────────
@@ -479,6 +489,7 @@ export class App implements OnInit, AfterViewInit {
     { id: 'st1',     label: 'sent-tf #3855',  kind: 'oss', detail: 'Regression tests for a core utility',  url: 'https://github.com/huggingface/sentence-transformers/pull/3855' },
     { id: 'st2',     label: 'sent-tf #3843',  kind: 'oss', detail: 'Documented to_scipy_coo',              url: 'https://github.com/huggingface/sentence-transformers/pull/3843' },
     { id: 'pypdf2',  label: 'pypdf #3943',    kind: 'oss', detail: 'Bug fix: CMYK /Decode inversion',      url: 'https://github.com/py-pdf/pypdf/pull/3943' },
+    { id: 'authlib', label: 'authlib #919',   kind: 'oss', detail: 'Bug fix: OAuth1 error named OAuth 2',  url: 'https://github.com/authlib/authlib/pull/919' },
 
     // Experience (amber)
     { id: 'infosys', label: 'Infosys — BofA', kind: 'work', detail: 'Senior Software Engineer' },
@@ -498,6 +509,7 @@ export class App implements OnInit, AfterViewInit {
     // open source grows out of the language
     ['pypdf','python'], ['nltk','python'], ['joblib1','python'], ['st1','python'], ['st2','python'],
     ['pypdf2','python'], ['pypdf2','pypdf'],
+    ['authlib','python'], ['authlib','fastapi'],
     ['st1','rag'], ['st2','rag'], ['nltk','langchain'],
     // work history → what was used there
     ['infosys','java'], ['infosys','kafka'], ['nexsys','java'], ['nexsys','angular'], ['texala','java'],
