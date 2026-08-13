@@ -468,7 +468,17 @@ export class App implements OnInit, AfterViewInit {
       pr: 'https://github.com/py-pdf/pypdf/pull/3957',
       merged: 'Aug 2026',
     },
-    // Next merges go here — e.g. spaCy, HF Evaluate (PRs currently in review).
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Always define PdfWriter._reader',
+      desc: 'Bug fix: PdfWriterProtocol declares _reader, but PdfWriter only assigned it in incremental mode — so a writer built the normal way did not satisfy the protocol it gets passed as. Cleared 62 runtime type-check failures across the test suite.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/3960',
+      merged: 'Aug 2026',
+    },
+    // Next merges go here — e.g. uvicorn #3062, llama_index, spaCy (in review).
   ];
 
   // ── Interactive knowledge graph (hero section below the fold) ──────────────
@@ -501,6 +511,7 @@ export class App implements OnInit, AfterViewInit {
     { id: 'pypdf2',  label: 'pypdf #3943',    kind: 'oss', detail: 'Bug fix: CMYK /Decode inversion',      url: 'https://github.com/py-pdf/pypdf/pull/3943' },
     { id: 'authlib', label: 'authlib #919',   kind: 'oss', detail: 'Bug fix: OAuth1 error named OAuth 2',  url: 'https://github.com/authlib/authlib/pull/919' },
     { id: 'pypdf3',  label: 'pypdf #3957',    kind: 'oss', detail: 'Bug fix: pages typed list, returns Sequence', url: 'https://github.com/py-pdf/pypdf/pull/3957' },
+    { id: 'pypdf4',  label: 'pypdf #3960',    kind: 'oss', detail: 'Bug fix: PdfWriter failed its own protocol',   url: 'https://github.com/py-pdf/pypdf/pull/3960' },
 
     // Experience (amber)
     { id: 'infosys', label: 'Infosys — BofA', kind: 'work', detail: 'Senior Software Engineer' },
@@ -522,6 +533,7 @@ export class App implements OnInit, AfterViewInit {
     ['pypdf2','python'], ['pypdf2','pypdf'],
     ['authlib','python'], ['authlib','fastapi'],
     ['pypdf3','python'], ['pypdf3','pypdf'],
+    ['pypdf4','python'], ['pypdf4','pypdf3'],
     ['st1','rag'], ['st2','rag'], ['nltk','langchain'],
     // work history → what was used there
     ['infosys','java'], ['infosys','kafka'], ['nexsys','java'], ['nexsys','angular'], ['texala','java'],
