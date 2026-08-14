@@ -23,6 +23,12 @@
   /* The signature accent. Used sparingly — rules, underlines, small fills. */
   --grad: linear-gradient(90deg, #6C3BFF 0%, #2563eb 25%, #20C4D8 50%, #E83E9F 78%, #FF8A32 100%);
 
+  /* Same sweep, tuned for gradient TEXT on a light ground. The display cyan
+     and orange sit at 2.1:1 and 2.4:1 on white — fine as a graphic, too weak
+     as a letterform — so those two stops are deepened to clear 3:1. */
+  --grad-text: linear-gradient(96deg,
+    #6C3BFF 0%, #2563eb 18%, #1596AF 42%, #E83E9F 70%, #D2650F 92%);
+
   --ease:      cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -157,7 +163,12 @@ h2 {
   letter-spacing: 0.14em; color: var(--purple);
   display: flex; align-items: center; gap: 0.5rem;
   margin-bottom: 0.6rem;
-  &::before { content: ''; width: 18px; height: 2px; background: var(--purple); border-radius: 2px; }
+  /* The little rule ahead of every section label carries the brand sweep —
+     it repeats down the page, so it does more brand work than its size suggests. */
+  &::before {
+    content: ''; width: 26px; height: 3px; border-radius: 3px;
+    background: var(--grad);
+  }
 }
 
 /* ── AARAV CHAT BUBBLE INNER STYLES (global — needed for [innerHTML]) ── */
