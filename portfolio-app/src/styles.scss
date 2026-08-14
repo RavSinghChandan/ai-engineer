@@ -1,50 +1,44 @@
-/* ELVEXA AI brand type: Poppins for all UI, Fira Code for code samples. */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Fira+Code:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Fira+Code:wght@400;500;600&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── ELVEXA AI brand palette ──────────────────────────────────────────────
-   Deep navy carries the typography; the gradient hues are accents only.
-   Ratio held across the page: ~75% light ground, ~20% navy type, ~5% gradient. */
 :root {
-  --navy:      #101C5A;   /* primary — headings, brand type */
-  --purple:    #6C3BFF;
-  --purple-lt: #9b7cff;
-  --cyan:      #20C4D8;
-  --pink:      #E83E9F;
-  --orange:    #FF8A32;
-  --green:     #10b981;   /* kept: merged-PR status colour */
-  --amber:     #FF8A32;   /* aliased to brand orange */
-  --red:       #E83E9F;   /* aliased to brand pink */
-  --blue:      #6C3BFF;   /* aliased to brand purple */
-  --soft-bg:   #F9FAFF;
-  --line:      #E8EAF4;
-
-  /* The signature accent. Used sparingly — rules, underlines, small fills. */
-  --grad: linear-gradient(90deg, #6C3BFF 0%, #2563eb 25%, #20C4D8 50%, #E83E9F 78%, #FF8A32 100%);
-
-  /* Same sweep, tuned for gradient TEXT on a light ground. The display cyan
-     and orange sit at 2.1:1 and 2.4:1 on white — fine as a graphic, too weak
-     as a letterform — so those two stops are deepened to clear 3:1. */
-  --grad-text: linear-gradient(96deg,
-    #6C3BFF 0%, #2563eb 18%, #1596AF 42%, #E83E9F 70%, #D2650F 92%);
-
+  --purple:    #7c3aed;
+  --purple-lt: #a78bfa;
+  --cyan:      #06b6d4;
+  --green:     #10b981;
+  --amber:     #f59e0b;
+  --red:       #ef4444;
+  --blue:      #2563eb;
   --ease:      cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ── Light mode — the ELVEXA AI default ──────────────────────────────────
-   White foundation, navy type, soft shadows, thin light borders. */
-:root, html, html[data-theme="light"], body[data-theme="light"] {
+/* Dark mode — default */
+:root, html, html[data-theme="dark"], body[data-theme="dark"] {
+  --bg:      #09090b;
+  --surface: #111113;
+  --card:    #18181b;
+  --border:  #27272a;
+  --border2: #3f3f46;
+  --text:    #fafafa;
+  --text2:   #a1a1aa;
+  --text3:   #52525b;
+  --glow:    rgba(124,58,237,0.3);
+  --shadow:  0 0 0 1px #27272a, 0 4px 24px rgba(0,0,0,0.4);
+}
+
+/* Light mode */
+html[data-theme="light"], body[data-theme="light"] {
   --bg:      #ffffff;
-  --surface: #F9FAFF;
+  --surface: #f4f4f5;
   --card:    #ffffff;
-  --border:  #E8EAF4;
-  --border2: #d7dbeb;
-  --text:    #101C5A;   /* deep navy carries all primary copy */
-  --text2:   #4a5484;
-  --text3:   #8a92b2;
-  --glow:    rgba(108,59,255,0.14);
-  --shadow:  0 1px 2px rgba(16,28,90,0.04), 0 8px 24px rgba(16,28,90,0.06);
+  --border:  #e4e4e7;
+  --border2: #d4d4d8;
+  --text:    #09090b;
+  --text2:   #52525b;
+  --text3:   #a1a1aa;
+  --glow:    rgba(124,58,237,0.12);
+  --shadow:  0 0 0 1px #e4e4e7, 0 4px 24px rgba(0,0,0,0.06);
 
   /* Tag colors — dark text on tinted bg for WCAG AA contrast on white */
   .tag-purple { background: #ede9fe; color: #5b21b6; border-color: #c4b5fd; }
@@ -57,25 +51,14 @@
 
 html { scroll-behavior: smooth; }
 
-/* ── The ELVEXA ground ────────────────────────────────────────────────────
-   Not flat white: a soft mesh of lavender, cyan and peach washes over an
-   off-white base, the way the brand creatives are built. Fixed, so the page
-   scrolls over it rather than dragging it along. */
 body {
-  background-color: #FBFCFF;
-  background-image:
-    radial-gradient(ellipse 62% 48% at 12% 4%,  rgba(108,59,255,0.10) 0%, transparent 62%),
-    radial-gradient(ellipse 54% 42% at 88% 10%, rgba(232,62,159,0.075) 0%, transparent 60%),
-    radial-gradient(ellipse 48% 40% at 92% 62%, rgba(255,138,50,0.065) 0%, transparent 58%),
-    radial-gradient(ellipse 58% 46% at 6%  74%, rgba(32,196,216,0.075) 0%, transparent 60%),
-    radial-gradient(ellipse 70% 50% at 50% 100%, rgba(108,59,255,0.05) 0%, transparent 65%);
-  background-attachment: fixed;
-  background-repeat: no-repeat;
+  background: var(--bg);
   color: var(--text);
-  font-family: 'Poppins', -apple-system, system-ui, sans-serif;
+  font-family: 'Inter', -apple-system, system-ui, sans-serif;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  transition: background 0.3s var(--ease), color 0.3s var(--ease);
 }
 
 ::-webkit-scrollbar { width: 4px; }
@@ -83,6 +66,13 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--purple); border-radius: 4px; }
 
 a { text-decoration: none; color: inherit; }
+
+/* Light mode nav — higher specificity beats the dark .scrolled rule */
+html[data-theme="light"] nav,
+html[data-theme="light"] nav.scrolled {
+  background: rgba(255,255,255,0.9);
+  backdrop-filter: blur(16px);
+}
 
 .container { max-width: 1060px; margin: 0 auto; padding: 0 1.5rem; }
 
@@ -94,42 +84,28 @@ a { text-decoration: none; color: inherit; }
   padding: 0.18rem 0.6rem;
   border-radius: 4px;
 }
-/* Base pills target the light default: tinted ground, dark ink, AA contrast.
-   The dark-theme block above overrides them when the toggle is flipped. */
-.tag-purple { background: #efeaff; color: #4a1fd6; border: 1px solid #d5c8ff; }
-.tag-cyan   { background: #e0f8fb; color: #0b6b78; border: 1px solid #b4ecf3; }
-.tag-green  { background: #d9f7ec; color: #0a6b4c; border: 1px solid #9fe8cd; }
-.tag-amber  { background: #fff0e2; color: #9a4a06; border: 1px solid #ffd3ae; }
-.tag-red    { background: #fdeaf4; color: #a01262; border: 1px solid #f9c2de; }
-.tag-blue   { background: #e6edff; color: #1b46c2; border: 1px solid #c3d2ff; }
+.tag-purple { background: rgba(124,58,237,0.12); color: #c4b5fd; border: 1px solid rgba(124,58,237,0.25); }
+.tag-cyan   { background: rgba(6,182,212,0.10);  color: #67e8f9; border: 1px solid rgba(6,182,212,0.25); }
+.tag-green  { background: rgba(16,185,129,0.10); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.25); }
+.tag-amber  { background: rgba(245,158,11,0.10); color: #fcd34d; border: 1px solid rgba(245,158,11,0.25); }
+.tag-red    { background: rgba(239,68,68,0.10);  color: #fca5a5; border: 1px solid rgba(239,68,68,0.25); }
+.tag-blue   { background: rgba(37,99,235,0.12);  color: #93c5fd; border: 1px solid rgba(37,99,235,0.25); }
 
 .btn {
   display: inline-flex; align-items: center; gap: 0.45rem;
-  padding: 0.68rem 1.5rem; border-radius: 999px;
+  padding: 0.6rem 1.25rem; border-radius: 8px;
   font-size: 0.875rem; font-weight: 600; cursor: pointer;
   border: none; font-family: inherit;
   transition: all 0.2s var(--ease);
 }
 .btn-primary {
-  /* The poster CTA: a solid gradient pill running purple → pink → orange. */
-  /* Same purple → pink → orange arc as the brand CTA, but the last two stops
-     are deepened: the display pink and orange put white text at 3.7:1 and
-     2.4:1, which is fine on a poster headline and unreadable on a button. */
-  background: linear-gradient(96deg, #6C3BFF 0%, #A03BE8 38%, #C41F73 72%, #B34A05 100%);
-  background-size: 160% 100%;
-  color: #fff;
-  box-shadow: 0 4px 16px rgba(108,59,255,0.24);
-  transition: background-position 0.5s var(--ease), transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
-  &:hover {
-    background-position: 100% 50%;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 26px rgba(232,62,159,0.30);
-  }
+  background: var(--purple); color: #fff;
+  box-shadow: 0 0 0 0 var(--glow);
+  &:hover { background: #6d28d9; transform: translateY(-1px); box-shadow: 0 4px 20px var(--glow); }
 }
 .btn-ghost {
-  background: rgba(255,255,255,0.75); color: var(--text2);
+  background: transparent; color: var(--text2);
   border: 1px solid var(--border);
-  backdrop-filter: blur(8px);
   &:hover { border-color: var(--border2); color: var(--text); transform: translateY(-1px); }
 }
 
@@ -152,12 +128,7 @@ h2 {
   letter-spacing: 0.14em; color: var(--purple);
   display: flex; align-items: center; gap: 0.5rem;
   margin-bottom: 0.6rem;
-  /* The little rule ahead of every section label carries the brand sweep —
-     it repeats down the page, so it does more brand work than its size suggests. */
-  &::before {
-    content: ''; width: 26px; height: 3px; border-radius: 3px;
-    background: var(--grad);
-  }
+  &::before { content: ''; width: 18px; height: 2px; background: var(--purple); border-radius: 2px; }
 }
 
 /* ── AARAV CHAT BUBBLE INNER STYLES (global — needed for [innerHTML]) ── */
@@ -245,8 +216,8 @@ h2 {
 }
 
 /* ── Chat panel theme tokens ─────────────────────────────────────── */
-/* Light is the only theme; these are overridden by the block below. */
-:root {
+/* Dark mode (default) */
+:root, html[data-theme="dark"] {
   --cb-bg:           #0f0f1a;
   --cb-bg2:          #1a1a2e;
   --cb-border:       #2d2d3d;
@@ -272,8 +243,8 @@ h2 {
   --cb-ph:           #4b5563;
 }
 
-/* The real values — light only. */
-:root, html[data-theme="light"] {
+/* Light mode overrides */
+html[data-theme="light"] {
   --cb-bg:           #ffffff;
   --cb-bg2:          #f8fafc;
   --cb-border:       #e2e8f0;
