@@ -29,7 +29,7 @@ interface GraphBody extends GraphNode {
 })
 export class App implements OnInit, AfterViewInit {
 
-  theme = signal<'dark' | 'light'>('dark');
+  theme = signal<'dark' | 'light'>('light');
   typedText = signal('');
   scrolled = signal(false);
   mobileNavOpen = signal(false);
@@ -1248,9 +1248,13 @@ export class App implements OnInit, AfterViewInit {
     const draw = () => {
       frameCount++;
 
-      // trail/afterglow: fade previous frame instead of hard clear (bloom look)
+      // trail/afterglow: fade previous frame instead of hard clear (bloom look).
+      // The fade colour has to match the page ground, or the canvas paints its
+      // own dark rectangle over a light theme.
       ctx.globalCompositeOperation = 'source-over';
-      ctx.fillStyle = 'rgba(8, 9, 20, 0.22)';
+      ctx.fillStyle = this.theme() === 'light'
+        ? 'rgba(255, 255, 255, 0.26)'
+        : 'rgba(8, 9, 20, 0.22)';
       ctx.fillRect(0, 0, W, H);
 
       // smooth pointer
@@ -1385,13 +1389,14 @@ export class App implements OnInit, AfterViewInit {
       requestAnimationFrame(draw);
     };
     // paint a solid base once so the fade-trail has something to fade from
-    ctx.fillStyle = '#080914'; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = this.theme() === 'light' ? '#ffffff' : '#080914';
+    ctx.fillRect(0, 0, W, H);
     draw();
   }
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
-      this.applyTheme('dark');
+      this.applyTheme('light');
       this.startTyping();
     }
   }
@@ -1473,8 +1478,16 @@ export class App implements OnInit, AfterViewInit {
     this.theme.set(t);
     document.documentElement.setAttribute('data-theme', t);
     document.body.setAttribute('data-theme', t);
-    document.body.style.background = t === 'dark' ? '#09090b' : '#ffffff';
-    document.body.style.color = t === 'dark' ? '#fafafa' : '#09090b';
+    document.body.style.background = t === 'dark' ? '#070B1E' : '#ffffff';
+    document.body.style.color = t === 'dark' ? '#eef1fb' : '#101C5A';
+    // Repaint the neural canvas ground; its fade-trail would otherwise keep
+    // washing toward the previous theme's colour.
+    const nc = document.getElementById('neural-canvas') as HTMLCanvasElement | null;
+    const nctx = nc?.getContext('2d');
+    if (nc && nctx) {
+      nctx.fillStyle = t === 'light' ? '#ffffff' : '#080914';
+      nctx.fillRect(0, 0, nc.width, nc.height);
+    }
     // Force chat panel to repaint with new CSS vars if open
     if (this.cbOpen()) {
       this.cbOpen.set(false);
@@ -2009,11 +2022,20 @@ export class App implements OnInit, AfterViewInit {
     for (const { i, j, z } of bonds) {
       const A = this.bProj[i], B = this.bProj[j];
       const depth = (z + 1) / 2;                       // 0 back … 1 front
-      const a = 0.14 + depth * 0.62;
+      // The cage has to hold up on a white ground as well as a dark one, so
+      // the bond colours and their alpha both follow the theme.
+      const lightBg = this.theme() === 'light';
+      const a = lightBg ? 0.30 + depth * 0.55 : 0.14 + depth * 0.62;
       const grad = ctx.createLinearGradient(A.x, A.y, B.x, B.y);
-      grad.addColorStop(0, `rgba(129,140,248,${a})`);        // indigo
-      grad.addColorStop(0.5, `rgba(56,232,249,${a * 1.15})`); // cyan
-      grad.addColorStop(1, `rgba(192,132,252,${a})`);        // violet
+      if (lightBg) {
+        grad.addColorStop(0, `rgba(88,60,220,${a})`);          // deep indigo
+        grad.addColorStop(0.5, `rgba(20,150,175,${a * 1.1})`); // deep cyan
+        grad.addColorStop(1, `rgba(150,60,210,${a})`);         // deep violet
+      } else {
+        grad.addColorStop(0, `rgba(129,140,248,${a})`);
+        grad.addColorStop(0.5, `rgba(56,232,249,${a * 1.15})`);
+        grad.addColorStop(1, `rgba(192,132,252,${a})`);
+      }
       ctx.beginPath();
       ctx.moveTo(A.x, A.y);
       ctx.lineTo(B.x, B.y);
@@ -2035,7 +2057,9 @@ export class App implements OnInit, AfterViewInit {
       const depth = (p.z + 1) / 2;
       ctx.beginPath();
       ctx.arc(p.x, p.y, 1.8 + depth * 2.4, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(186,209,232,${0.22 + depth * 0.62})`;
+      ctx.fillStyle = this.theme() === 'light'
+        ? `rgba(120,132,175,${0.30 + depth * 0.55})`
+        : `rgba(186,209,232,${0.22 + depth * 0.62})`;
       ctx.fill();
     }
 
@@ -2104,9 +2128,11 @@ export class App implements OnInit, AfterViewInit {
       // labels: front-facing systems always, others on hover/neighbour
       if ((b.kind === 'system' && p.z > -0.1) || isHover || isNear) {
         ctx.font = `${isHover ? 600 : 500} ${isHover ? 12.5 : 11}px ui-sans-serif, system-ui, sans-serif`;
-        ctx.fillStyle = isHover ? color : 'rgba(226,232,240,0.95)';
+        ctx.fillStyle = isHover ? color
+          : (this.theme() === 'light' ? 'rgba(16,28,90,0.95)' : 'rgba(226,232,240,0.95)');
         ctx.textAlign = 'center';
-        ctx.shadowColor = 'rgba(2,6,23,0.9)';
+        ctx.shadowColor = this.theme() === 'light'
+          ? 'rgba(255,255,255,0.95)' : 'rgba(2,6,23,0.9)';
         ctx.shadowBlur = 6;
         // keep the label inside the canvas: a centred label on a rim atom
         // otherwise runs off the edge and gets clipped

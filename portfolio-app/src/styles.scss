@@ -1,44 +1,44 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Fira+Code:wght@400;500;600&display=swap');
+/* ELVEXA AI brand type: Poppins for all UI, Fira Code for code samples. */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Fira+Code:wght@400;500;600&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* ── ELVEXA AI brand palette ──────────────────────────────────────────────
+   Deep navy carries the typography; the gradient hues are accents only.
+   Ratio held across the page: ~75% light ground, ~20% navy type, ~5% gradient. */
 :root {
-  --purple:    #7c3aed;
-  --purple-lt: #a78bfa;
-  --cyan:      #06b6d4;
-  --green:     #10b981;
-  --amber:     #f59e0b;
-  --red:       #ef4444;
-  --blue:      #2563eb;
+  --navy:      #101C5A;   /* primary — headings, brand type */
+  --purple:    #6C3BFF;
+  --purple-lt: #9b7cff;
+  --cyan:      #20C4D8;
+  --pink:      #E83E9F;
+  --orange:    #FF8A32;
+  --green:     #10b981;   /* kept: merged-PR status colour */
+  --amber:     #FF8A32;   /* aliased to brand orange */
+  --red:       #E83E9F;   /* aliased to brand pink */
+  --blue:      #6C3BFF;   /* aliased to brand purple */
+  --soft-bg:   #F9FAFF;
+  --line:      #E8EAF4;
+
+  /* The signature accent. Used sparingly — rules, underlines, small fills. */
+  --grad: linear-gradient(90deg, #6C3BFF 0%, #2563eb 25%, #20C4D8 50%, #E83E9F 78%, #FF8A32 100%);
+
   --ease:      cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Dark mode — default */
-:root, html, html[data-theme="dark"], body[data-theme="dark"] {
-  --bg:      #09090b;
-  --surface: #111113;
-  --card:    #18181b;
-  --border:  #27272a;
-  --border2: #3f3f46;
-  --text:    #fafafa;
-  --text2:   #a1a1aa;
-  --text3:   #52525b;
-  --glow:    rgba(124,58,237,0.3);
-  --shadow:  0 0 0 1px #27272a, 0 4px 24px rgba(0,0,0,0.4);
-}
-
-/* Light mode */
-html[data-theme="light"], body[data-theme="light"] {
+/* ── Light mode — the ELVEXA AI default ──────────────────────────────────
+   White foundation, navy type, soft shadows, thin light borders. */
+:root, html, html[data-theme="light"], body[data-theme="light"] {
   --bg:      #ffffff;
-  --surface: #f4f4f5;
+  --surface: #F9FAFF;
   --card:    #ffffff;
-  --border:  #e4e4e7;
-  --border2: #d4d4d8;
-  --text:    #09090b;
-  --text2:   #52525b;
-  --text3:   #a1a1aa;
-  --glow:    rgba(124,58,237,0.12);
-  --shadow:  0 0 0 1px #e4e4e7, 0 4px 24px rgba(0,0,0,0.06);
+  --border:  #E8EAF4;
+  --border2: #d7dbeb;
+  --text:    #101C5A;   /* deep navy carries all primary copy */
+  --text2:   #4a5484;
+  --text3:   #8a92b2;
+  --glow:    rgba(108,59,255,0.14);
+  --shadow:  0 1px 2px rgba(16,28,90,0.04), 0 8px 24px rgba(16,28,90,0.06);
 
   /* Tag colors — dark text on tinted bg for WCAG AA contrast on white */
   .tag-purple { background: #ede9fe; color: #5b21b6; border-color: #c4b5fd; }
@@ -49,12 +49,39 @@ html[data-theme="light"], body[data-theme="light"] {
   .tag-blue   { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
 }
 
+/* ── Dark mode — opt-in via the toggle ───────────────────────────────────
+   Navy-tinted rather than neutral grey, so the brand still reads. */
+html[data-theme="dark"], body[data-theme="dark"] {
+  --bg:      #070B1E;
+  --surface: #0d1330;
+  --card:    #111a3d;
+  --border:  #1e2a55;
+  --border2: #2c3a6e;
+  --text:    #eef1fb;
+  --text2:   #a6b0d4;
+  --text3:   #6b76a0;
+  --glow:    rgba(108,59,255,0.34);
+  --shadow:  0 0 0 1px #1e2a55, 0 4px 24px rgba(0,0,0,0.45);
+
+  /* Pills on the dark ground. Opaque fills rather than alpha tints, so the
+     measured contrast is the real one; each pairing clears 4.5:1. */
+  .tag-purple { background: #221a4d; color: #cfc2ff; border-color: #3d2f80; }
+  .tag-cyan   { background: #0d3540; color: #9beef7; border-color: #175566; }
+  .tag-green  { background: #0d3a2c; color: #8bebc4; border-color: #175c47; }
+  .tag-amber  { background: #40260f; color: #ffcda3; border-color: #6b421c; }
+  .tag-red    { background: #3d1030; color: #fbb2d9; border-color: #661c50; }
+  .tag-blue   { background: #17244f; color: #b6cdff; border-color: #2a3d7d; }
+
+  /* Full-saturation purple is too dark on navy — lift the accent copy. */
+  .eyebrow { color: #a78bfa; &::before { background: #a78bfa; } }
+}
+
 html { scroll-behavior: smooth; }
 
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'Inter', -apple-system, system-ui, sans-serif;
+  font-family: 'Poppins', -apple-system, system-ui, sans-serif;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
@@ -67,10 +94,10 @@ body {
 
 a { text-decoration: none; color: inherit; }
 
-/* Light mode nav — higher specificity beats the dark .scrolled rule */
-html[data-theme="light"] nav,
-html[data-theme="light"] nav.scrolled {
-  background: rgba(255,255,255,0.9);
+/* Dark mode nav — higher specificity beats the light .scrolled default */
+html[data-theme="dark"] nav.scrolled,
+body[data-theme="dark"] nav.scrolled {
+  background: rgba(7,11,30,0.88);
   backdrop-filter: blur(16px);
 }
 
@@ -84,12 +111,14 @@ html[data-theme="light"] nav.scrolled {
   padding: 0.18rem 0.6rem;
   border-radius: 4px;
 }
-.tag-purple { background: rgba(124,58,237,0.12); color: #c4b5fd; border: 1px solid rgba(124,58,237,0.25); }
-.tag-cyan   { background: rgba(6,182,212,0.10);  color: #67e8f9; border: 1px solid rgba(6,182,212,0.25); }
-.tag-green  { background: rgba(16,185,129,0.10); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.25); }
-.tag-amber  { background: rgba(245,158,11,0.10); color: #fcd34d; border: 1px solid rgba(245,158,11,0.25); }
-.tag-red    { background: rgba(239,68,68,0.10);  color: #fca5a5; border: 1px solid rgba(239,68,68,0.25); }
-.tag-blue   { background: rgba(37,99,235,0.12);  color: #93c5fd; border: 1px solid rgba(37,99,235,0.25); }
+/* Base pills target the light default: tinted ground, dark ink, AA contrast.
+   The dark-theme block above overrides them when the toggle is flipped. */
+.tag-purple { background: #efeaff; color: #4a1fd6; border: 1px solid #d5c8ff; }
+.tag-cyan   { background: #e0f8fb; color: #0b6b78; border: 1px solid #b4ecf3; }
+.tag-green  { background: #d9f7ec; color: #0a6b4c; border: 1px solid #9fe8cd; }
+.tag-amber  { background: #fff0e2; color: #9a4a06; border: 1px solid #ffd3ae; }
+.tag-red    { background: #fdeaf4; color: #a01262; border: 1px solid #f9c2de; }
+.tag-blue   { background: #e6edff; color: #1b46c2; border: 1px solid #c3d2ff; }
 
 .btn {
   display: inline-flex; align-items: center; gap: 0.45rem;
