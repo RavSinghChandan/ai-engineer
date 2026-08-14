@@ -55,43 +55,27 @@
   .tag-blue   { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
 }
 
-/* ── Dark mode — opt-in via the toggle ───────────────────────────────────
-   Navy-tinted rather than neutral grey, so the brand still reads. */
-html[data-theme="dark"], body[data-theme="dark"] {
-  --bg:      #070B1E;
-  --surface: #0d1330;
-  --card:    #111a3d;
-  --border:  #1e2a55;
-  --border2: #2c3a6e;
-  --text:    #eef1fb;
-  --text2:   #a6b0d4;
-  --text3:   #6b76a0;
-  --glow:    rgba(108,59,255,0.34);
-  --shadow:  0 0 0 1px #1e2a55, 0 4px 24px rgba(0,0,0,0.45);
-
-  /* Pills on the dark ground. Opaque fills rather than alpha tints, so the
-     measured contrast is the real one; each pairing clears 4.5:1. */
-  .tag-purple { background: #221a4d; color: #cfc2ff; border-color: #3d2f80; }
-  .tag-cyan   { background: #0d3540; color: #9beef7; border-color: #175566; }
-  .tag-green  { background: #0d3a2c; color: #8bebc4; border-color: #175c47; }
-  .tag-amber  { background: #40260f; color: #ffcda3; border-color: #6b421c; }
-  .tag-red    { background: #3d1030; color: #fbb2d9; border-color: #661c50; }
-  .tag-blue   { background: #17244f; color: #b6cdff; border-color: #2a3d7d; }
-
-  /* Full-saturation purple is too dark on navy — lift the accent copy. */
-  .eyebrow { color: #a78bfa; &::before { background: #a78bfa; } }
-}
-
 html { scroll-behavior: smooth; }
 
+/* ── The ELVEXA ground ────────────────────────────────────────────────────
+   Not flat white: a soft mesh of lavender, cyan and peach washes over an
+   off-white base, the way the brand creatives are built. Fixed, so the page
+   scrolls over it rather than dragging it along. */
 body {
-  background: var(--bg);
+  background-color: #FBFCFF;
+  background-image:
+    radial-gradient(ellipse 62% 48% at 12% 4%,  rgba(108,59,255,0.10) 0%, transparent 62%),
+    radial-gradient(ellipse 54% 42% at 88% 10%, rgba(232,62,159,0.075) 0%, transparent 60%),
+    radial-gradient(ellipse 48% 40% at 92% 62%, rgba(255,138,50,0.065) 0%, transparent 58%),
+    radial-gradient(ellipse 58% 46% at 6%  74%, rgba(32,196,216,0.075) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 50% at 50% 100%, rgba(108,59,255,0.05) 0%, transparent 65%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
   color: var(--text);
   font-family: 'Poppins', -apple-system, system-ui, sans-serif;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
-  transition: background 0.3s var(--ease), color 0.3s var(--ease);
 }
 
 ::-webkit-scrollbar { width: 4px; }
@@ -99,13 +83,6 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--purple); border-radius: 4px; }
 
 a { text-decoration: none; color: inherit; }
-
-/* Dark mode nav — higher specificity beats the light .scrolled default */
-html[data-theme="dark"] nav.scrolled,
-body[data-theme="dark"] nav.scrolled {
-  background: rgba(7,11,30,0.88);
-  backdrop-filter: blur(16px);
-}
 
 .container { max-width: 1060px; margin: 0 auto; padding: 0 1.5rem; }
 
@@ -128,19 +105,31 @@ body[data-theme="dark"] nav.scrolled {
 
 .btn {
   display: inline-flex; align-items: center; gap: 0.45rem;
-  padding: 0.6rem 1.25rem; border-radius: 8px;
+  padding: 0.68rem 1.5rem; border-radius: 999px;
   font-size: 0.875rem; font-weight: 600; cursor: pointer;
   border: none; font-family: inherit;
   transition: all 0.2s var(--ease);
 }
 .btn-primary {
-  background: var(--purple); color: #fff;
-  box-shadow: 0 0 0 0 var(--glow);
-  &:hover { background: #6d28d9; transform: translateY(-1px); box-shadow: 0 4px 20px var(--glow); }
+  /* The poster CTA: a solid gradient pill running purple → pink → orange. */
+  /* Same purple → pink → orange arc as the brand CTA, but the last two stops
+     are deepened: the display pink and orange put white text at 3.7:1 and
+     2.4:1, which is fine on a poster headline and unreadable on a button. */
+  background: linear-gradient(96deg, #6C3BFF 0%, #A03BE8 38%, #C41F73 72%, #B34A05 100%);
+  background-size: 160% 100%;
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(108,59,255,0.24);
+  transition: background-position 0.5s var(--ease), transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
+  &:hover {
+    background-position: 100% 50%;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 26px rgba(232,62,159,0.30);
+  }
 }
 .btn-ghost {
-  background: transparent; color: var(--text2);
+  background: rgba(255,255,255,0.75); color: var(--text2);
   border: 1px solid var(--border);
+  backdrop-filter: blur(8px);
   &:hover { border-color: var(--border2); color: var(--text); transform: translateY(-1px); }
 }
 
@@ -256,8 +245,8 @@ h2 {
 }
 
 /* ── Chat panel theme tokens ─────────────────────────────────────── */
-/* Dark mode (default) */
-:root, html[data-theme="dark"] {
+/* Light is the only theme; these are overridden by the block below. */
+:root {
   --cb-bg:           #0f0f1a;
   --cb-bg2:          #1a1a2e;
   --cb-border:       #2d2d3d;
@@ -283,8 +272,8 @@ h2 {
   --cb-ph:           #4b5563;
 }
 
-/* Light mode overrides */
-html[data-theme="light"] {
+/* The real values — light only. */
+:root, html[data-theme="light"] {
   --cb-bg:           #ffffff;
   --cb-bg2:          #f8fafc;
   --cb-border:       #e2e8f0;

@@ -29,7 +29,7 @@ interface GraphBody extends GraphNode {
 })
 export class App implements OnInit, AfterViewInit {
 
-  theme = signal<'dark' | 'light'>('light');
+  theme = signal<'light'>('light');
   typedText = signal('');
   scrolled = signal(false);
   mobileNavOpen = signal(false);
@@ -1469,30 +1469,12 @@ export class App implements OnInit, AfterViewInit {
     setTimeout(step, interval);
   }
 
-  toggleTheme() {
-    const next = this.theme() === 'dark' ? 'light' : 'dark';
-    this.applyTheme(next);
-  }
-
-  private applyTheme(t: 'dark' | 'light') {
-    this.theme.set(t);
-    document.documentElement.setAttribute('data-theme', t);
-    document.body.setAttribute('data-theme', t);
-    document.body.style.background = t === 'dark' ? '#070B1E' : '#ffffff';
-    document.body.style.color = t === 'dark' ? '#eef1fb' : '#101C5A';
-    // Repaint the neural canvas ground; its fade-trail would otherwise keep
-    // washing toward the previous theme's colour.
-    const nc = document.getElementById('neural-canvas') as HTMLCanvasElement | null;
-    const nctx = nc?.getContext('2d');
-    if (nc && nctx) {
-      nctx.fillStyle = t === 'light' ? '#ffffff' : '#080914';
-      nctx.fillRect(0, 0, nc.width, nc.height);
-    }
-    // Force chat panel to repaint with new CSS vars if open
-    if (this.cbOpen()) {
-      this.cbOpen.set(false);
-      setTimeout(() => this.cbOpen.set(true), 10);
-    }
+  /** Light-only: the ELVEXA identity is a white foundation. Kept as a method
+   *  so the one-time init call site stays unchanged. */
+  private applyTheme(_t: 'light' = 'light') {
+    this.theme.set('light');
+    document.documentElement.setAttribute('data-theme', 'light');
+    document.body.setAttribute('data-theme', 'light');
   }
 
   @HostListener('window:scroll')
