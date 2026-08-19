@@ -478,7 +478,27 @@ export class App implements OnInit, AfterViewInit {
       pr: 'https://github.com/py-pdf/pypdf/pull/3960',
       merged: 'Aug 2026',
     },
-    // Next merges go here — e.g. uvicorn #3062, llama_index, spaCy (in review).
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Type _id_translated to match what it holds',
+      desc: 'Bug fix: the writer\'s object-translation table is declared int-to-int, but each entry also stores the source document under a "PreventGC" key to keep it alive. Two type: ignore comments hid the mismatch and a runtime protocol check rejected the writer outright.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/3970',
+      merged: 'Aug 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Detect minor version bumps in the release script',
+      desc: 'Release tooling: the version bump always assumed a patch release, so every release containing an enhancement had to be corrected by hand. Now it reads the generated changelog sections — verified against all 39 releases in the project history.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/3969',
+      merged: 'Aug 2026',
+    },
+    // Next merges go here — e.g. pypdf #3971/#3972, uvicorn #3062 (in review).
   ];
 
   // ── Interactive knowledge graph (hero section below the fold) ──────────────
@@ -512,6 +532,8 @@ export class App implements OnInit, AfterViewInit {
     { id: 'authlib', label: 'authlib #919',   kind: 'oss', detail: 'Bug fix: OAuth1 error named OAuth 2',  url: 'https://github.com/authlib/authlib/pull/919' },
     { id: 'pypdf3',  label: 'pypdf #3957',    kind: 'oss', detail: 'Bug fix: pages typed list, returns Sequence', url: 'https://github.com/py-pdf/pypdf/pull/3957' },
     { id: 'pypdf4',  label: 'pypdf #3960',    kind: 'oss', detail: 'Bug fix: PdfWriter failed its own protocol',   url: 'https://github.com/py-pdf/pypdf/pull/3960' },
+    { id: 'pypdf5',  label: 'pypdf #3970',    kind: 'oss', detail: 'Bug fix: translation table typed wrongly',   url: 'https://github.com/py-pdf/pypdf/pull/3970' },
+    { id: 'pypdf6',  label: 'pypdf #3969',    kind: 'oss', detail: 'Release tooling: auto minor version bump',   url: 'https://github.com/py-pdf/pypdf/pull/3969' },
 
     // Experience (amber)
     { id: 'infosys', label: 'Infosys — BofA', kind: 'work', detail: 'Senior Software Engineer' },
@@ -534,6 +556,8 @@ export class App implements OnInit, AfterViewInit {
     ['authlib','python'], ['authlib','fastapi'],
     ['pypdf3','python'], ['pypdf3','pypdf'],
     ['pypdf4','python'], ['pypdf4','pypdf3'],
+    ['pypdf5','python'], ['pypdf5','pypdf4'],
+    ['pypdf6','python'], ['pypdf6','pypdf5'],
     ['st1','rag'], ['st2','rag'], ['nltk','langchain'],
     // work history → what was used there
     ['infosys','java'], ['infosys','kafka'], ['nexsys','java'], ['nexsys','angular'], ['texala','java'],
