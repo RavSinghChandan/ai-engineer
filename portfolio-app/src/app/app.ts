@@ -498,7 +498,17 @@ export class App implements OnInit, AfterViewInit {
       pr: 'https://github.com/py-pdf/pypdf/pull/3969',
       merged: 'Aug 2026',
     },
-    // Next merges go here — e.g. pypdf #3971/#3972, uvicorn #3062 (in review).
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Default decode_parms to a DictionaryObject',
+      desc: 'Bug fix: a stream without an explicit /DecodeParms handed every filter a plain dict, but the decoders are typed for a DictionaryObject. Static checking missed it because the value flows through a stream lookup that returns Any.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/3971',
+      merged: 'Aug 2026',
+    },
+    // Next merges go here — e.g. pypdf #3972, uvicorn #3062 (in review).
   ];
 
   // ── Interactive knowledge graph (hero section below the fold) ──────────────
@@ -534,6 +544,7 @@ export class App implements OnInit, AfterViewInit {
     { id: 'pypdf4',  label: 'pypdf #3960',    kind: 'oss', detail: 'Bug fix: PdfWriter failed its own protocol',   url: 'https://github.com/py-pdf/pypdf/pull/3960' },
     { id: 'pypdf5',  label: 'pypdf #3970',    kind: 'oss', detail: 'Bug fix: translation table typed wrongly',   url: 'https://github.com/py-pdf/pypdf/pull/3970' },
     { id: 'pypdf6',  label: 'pypdf #3969',    kind: 'oss', detail: 'Release tooling: auto minor version bump',   url: 'https://github.com/py-pdf/pypdf/pull/3969' },
+    { id: 'pypdf7',  label: 'pypdf #3971',    kind: 'oss', detail: 'Bug fix: decode params typed as a plain dict', url: 'https://github.com/py-pdf/pypdf/pull/3971' },
 
     // Experience (amber)
     { id: 'infosys', label: 'Infosys — BofA', kind: 'work', detail: 'Senior Software Engineer' },
@@ -558,6 +569,7 @@ export class App implements OnInit, AfterViewInit {
     ['pypdf4','python'], ['pypdf4','pypdf3'],
     ['pypdf5','python'], ['pypdf5','pypdf4'],
     ['pypdf6','python'], ['pypdf6','pypdf5'],
+    ['pypdf7','python'], ['pypdf7','pypdf6'],
     ['st1','rag'], ['st2','rag'], ['nltk','langchain'],
     // work history → what was used there
     ['infosys','java'], ['infosys','kafka'], ['nexsys','java'], ['nexsys','angular'], ['texala','java'],
