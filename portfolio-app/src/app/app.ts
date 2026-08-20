@@ -508,6 +508,46 @@ export class App implements OnInit, AfterViewInit {
       pr: 'https://github.com/py-pdf/pypdf/pull/3971',
       merged: 'Aug 2026',
     },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Collect the fonts declared in the AcroForm /DR dictionary',
+      desc: 'Bug fix: iterating a PDF dictionary yields its keys, so the AcroForm font walk was passing font names where font objects were expected and silently collecting nothing. Form fields inheriting their font from the document resources came back with an empty font set.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/3983',
+      merged: 'Aug 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Accept an ArrayObject when constructing a RectangleObject',
+      desc: 'RectangleObject was typed to accept only a tuple or another RectangleObject, but every caller inside pypdf hands it an ArrayObject read from the PDF. Widened to the sequence it actually consumes, which cleared thirteen runtime type-check failures and a now-dead type: ignore.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/3984',
+      merged: 'Aug 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Return None from remove_objects_from_page',
+      desc: 'The early return handed back two empty lists from a function annotated to return None, suppressed with a type: ignore. Returning None matches the annotation and the other exit in the same function.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/3985',
+      merged: 'Aug 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Type the annotation list as holding PdfObject',
+      desc: 'The annotations parameter was declared as a list of DictionaryObject, but the list read back from a page holds IndirectObject references. Typed to the base class both actually satisfy.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/3986',
+      merged: 'Aug 2026',
+    },
     // Next merges go here — e.g. pypdf #3972, uvicorn #3062 (in review).
   ];
 
@@ -545,6 +585,10 @@ export class App implements OnInit, AfterViewInit {
     { id: 'pypdf5',  label: 'pypdf #3970',    kind: 'oss', detail: 'Bug fix: translation table typed wrongly',   url: 'https://github.com/py-pdf/pypdf/pull/3970' },
     { id: 'pypdf6',  label: 'pypdf #3969',    kind: 'oss', detail: 'Release tooling: auto minor version bump',   url: 'https://github.com/py-pdf/pypdf/pull/3969' },
     { id: 'pypdf7',  label: 'pypdf #3971',    kind: 'oss', detail: 'Bug fix: decode params typed as a plain dict', url: 'https://github.com/py-pdf/pypdf/pull/3971' },
+    { id: 'pypdf8',  label: 'pypdf #3983',    kind: 'oss', detail: 'Bug fix: AcroForm /DR fonts never collected', url: 'https://github.com/py-pdf/pypdf/pull/3983' },
+    { id: 'pypdf9',  label: 'pypdf #3984',    kind: 'oss', detail: 'Bug fix: RectangleObject rejected ArrayObject', url: 'https://github.com/py-pdf/pypdf/pull/3984' },
+    { id: 'pypdf10', label: 'pypdf #3985',    kind: 'oss', detail: 'Return None to match the annotation', url: 'https://github.com/py-pdf/pypdf/pull/3985' },
+    { id: 'pypdf11', label: 'pypdf #3986',    kind: 'oss', detail: 'Annotation list typed as PdfObject', url: 'https://github.com/py-pdf/pypdf/pull/3986' },
 
     // Experience (amber)
     { id: 'infosys', label: 'Infosys — BofA', kind: 'work', detail: 'Senior Software Engineer' },
@@ -570,6 +614,10 @@ export class App implements OnInit, AfterViewInit {
     ['pypdf5','python'], ['pypdf5','pypdf4'],
     ['pypdf6','python'], ['pypdf6','pypdf5'],
     ['pypdf7','python'], ['pypdf7','pypdf6'],
+    ['pypdf8','python'], ['pypdf8','pypdf7'],
+    ['pypdf9','python'], ['pypdf9','pypdf8'],
+    ['pypdf10','python'], ['pypdf10','pypdf9'],
+    ['pypdf11','python'], ['pypdf11','pypdf10'],
     ['st1','rag'], ['st2','rag'], ['nltk','langchain'],
     // work history → what was used there
     ['infosys','java'], ['infosys','kafka'], ['nexsys','java'], ['nexsys','angular'], ['texala','java'],
