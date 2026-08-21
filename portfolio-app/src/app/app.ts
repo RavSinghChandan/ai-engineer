@@ -548,6 +548,26 @@ export class App implements OnInit, AfterViewInit {
       pr: 'https://github.com/py-pdf/pypdf/pull/3986',
       merged: 'Aug 2026',
     },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Accept any sequence of fit arguments in Fit',
+      desc: 'Fit was typed to take a tuple, but the destination builder unpacks the PDF array and hands over a list, and the writer passes the list stored under /fit_args. Typed as the sequence the constructor actually iterates.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/3990',
+      merged: 'Aug 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Accept any sequence as the annotation border',
+      desc: 'The Link annotation and add_link declared the border as an ArrayObject, but the documented usage is a plain list and the argument is only sliced and indexed.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/3991',
+      merged: 'Aug 2026',
+    },
     // Next merges go here — e.g. pypdf #3972, uvicorn #3062 (in review).
   ];
 
@@ -589,6 +609,8 @@ export class App implements OnInit, AfterViewInit {
     { id: 'pypdf9',  label: 'pypdf #3984',    kind: 'oss', detail: 'Bug fix: RectangleObject rejected ArrayObject', url: 'https://github.com/py-pdf/pypdf/pull/3984' },
     { id: 'pypdf10', label: 'pypdf #3985',    kind: 'oss', detail: 'Return None to match the annotation', url: 'https://github.com/py-pdf/pypdf/pull/3985' },
     { id: 'pypdf11', label: 'pypdf #3986',    kind: 'oss', detail: 'Annotation list typed as PdfObject', url: 'https://github.com/py-pdf/pypdf/pull/3986' },
+    { id: 'pypdf12', label: 'pypdf #3990',    kind: 'oss', detail: 'Fit accepts any sequence of arguments', url: 'https://github.com/py-pdf/pypdf/pull/3990' },
+    { id: 'pypdf13', label: 'pypdf #3991',    kind: 'oss', detail: 'Annotation border accepts any sequence', url: 'https://github.com/py-pdf/pypdf/pull/3991' },
 
     // Experience (amber)
     { id: 'infosys', label: 'Infosys — BofA', kind: 'work', detail: 'Senior Software Engineer' },
@@ -618,6 +640,8 @@ export class App implements OnInit, AfterViewInit {
     ['pypdf9','python'], ['pypdf9','pypdf8'],
     ['pypdf10','python'], ['pypdf10','pypdf9'],
     ['pypdf11','python'], ['pypdf11','pypdf10'],
+    ['pypdf12','python'], ['pypdf12','pypdf11'],
+    ['pypdf13','python'], ['pypdf13','pypdf12'],
     ['st1','rag'], ['st2','rag'], ['nltk','langchain'],
     // work history → what was used there
     ['infosys','java'], ['infosys','kafka'], ['nexsys','java'], ['nexsys','angular'], ['texala','java'],
