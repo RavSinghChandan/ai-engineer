@@ -568,6 +568,26 @@ export class App implements OnInit, AfterViewInit {
       pr: 'https://github.com/py-pdf/pypdf/pull/3991',
       merged: 'Aug 2026',
     },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Type the XMP stream as StreamObject rather than ContentStream',
+      desc: 'XmpInformation is built from the /Metadata stream, a DecodedStreamObject. ContentStream is a sibling of that class rather than a parent, so the annotation could never hold. The class only calls get_data, set_data and write_to_stream, all on the shared base.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/3995',
+      merged: 'Aug 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Type character widths as float',
+      desc: 'The /W array in a CIDFont may hold real numbers, and both parsing branches store the entry as read. A font with a width of 443.35938 put a float into a mapping annotated dict[str, int].',
+      pr: 'https://github.com/py-pdf/pypdf/pull/3996',
+      merged: 'Aug 2026',
+    },
     // Next merges go here — e.g. pypdf #3972, uvicorn #3062 (in review).
   ];
 
@@ -611,6 +631,8 @@ export class App implements OnInit, AfterViewInit {
     { id: 'pypdf11', label: 'pypdf #3986',    kind: 'oss', detail: 'Annotation list typed as PdfObject', url: 'https://github.com/py-pdf/pypdf/pull/3986' },
     { id: 'pypdf12', label: 'pypdf #3990',    kind: 'oss', detail: 'Fit accepts any sequence of arguments', url: 'https://github.com/py-pdf/pypdf/pull/3990' },
     { id: 'pypdf13', label: 'pypdf #3991',    kind: 'oss', detail: 'Annotation border accepts any sequence', url: 'https://github.com/py-pdf/pypdf/pull/3991' },
+    { id: 'pypdf14', label: 'pypdf #3995',    kind: 'oss', detail: 'XMP stream typed as StreamObject', url: 'https://github.com/py-pdf/pypdf/pull/3995' },
+    { id: 'pypdf15', label: 'pypdf #3996',    kind: 'oss', detail: 'CID font widths may be real numbers', url: 'https://github.com/py-pdf/pypdf/pull/3996' },
 
     // Experience (amber)
     { id: 'infosys', label: 'Infosys — BofA', kind: 'work', detail: 'Senior Software Engineer' },
@@ -642,6 +664,8 @@ export class App implements OnInit, AfterViewInit {
     ['pypdf11','python'], ['pypdf11','pypdf10'],
     ['pypdf12','python'], ['pypdf12','pypdf11'],
     ['pypdf13','python'], ['pypdf13','pypdf12'],
+    ['pypdf14','python'], ['pypdf14','pypdf13'],
+    ['pypdf15','python'], ['pypdf15','pypdf14'],
     ['st1','rag'], ['st2','rag'], ['nltk','langchain'],
     // work history → what was used there
     ['infosys','java'], ['infosys','kafka'], ['nexsys','java'], ['nexsys','angular'], ['texala','java'],
