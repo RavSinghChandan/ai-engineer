@@ -588,6 +588,36 @@ export class App implements OnInit, AfterViewInit {
       pr: 'https://github.com/py-pdf/pypdf/pull/3996',
       merged: 'Aug 2026',
     },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Type the xref stream as StreamObject rather than ContentStream',
+      desc: 'A compressed cross-reference stream is read as an EncodedStreamObject, which is a sibling of ContentStream rather than a subclass, so the declared type could never hold. Typed to the base class the reader actually works with.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/3972',
+      merged: 'Aug 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Type the destination and field trees as DictionaryObject',
+      desc: 'Both name-tree walks cast to TreeObject on objects that are plain dictionaries at runtime, and neither function calls anything TreeObject adds. Sixteen runtime type-check failures across the reader, writer and form tests.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/3988',
+      merged: 'Aug 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Type the second argument of mult as the mapping it accepts',
+      desc: 'The layout-mode text extractor passes a ChainMap into a function annotated for two lists, suppressed with a type: ignore. Narrowed the key type to a Literal so the suppression could go.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/3989',
+      merged: 'Aug 2026',
+    },
     // Next merges go here — e.g. pypdf #3972, uvicorn #3062 (in review).
   ];
 
@@ -633,6 +663,9 @@ export class App implements OnInit, AfterViewInit {
     { id: 'pypdf13', label: 'pypdf #3991',    kind: 'oss', detail: 'Annotation border accepts any sequence', url: 'https://github.com/py-pdf/pypdf/pull/3991' },
     { id: 'pypdf14', label: 'pypdf #3995',    kind: 'oss', detail: 'XMP stream typed as StreamObject', url: 'https://github.com/py-pdf/pypdf/pull/3995' },
     { id: 'pypdf15', label: 'pypdf #3996',    kind: 'oss', detail: 'CID font widths may be real numbers', url: 'https://github.com/py-pdf/pypdf/pull/3996' },
+    { id: 'pypdf16', label: 'pypdf #3972',    kind: 'oss', detail: 'Xref stream typed as StreamObject', url: 'https://github.com/py-pdf/pypdf/pull/3972' },
+    { id: 'pypdf17', label: 'pypdf #3988',    kind: 'oss', detail: 'Destination trees are plain dictionaries', url: 'https://github.com/py-pdf/pypdf/pull/3988' },
+    { id: 'pypdf18', label: 'pypdf #3989',    kind: 'oss', detail: 'Transform mapping keys as a Literal', url: 'https://github.com/py-pdf/pypdf/pull/3989' },
 
     // Experience (amber)
     { id: 'infosys', label: 'Infosys — BofA', kind: 'work', detail: 'Senior Software Engineer' },
@@ -666,6 +699,9 @@ export class App implements OnInit, AfterViewInit {
     ['pypdf13','python'], ['pypdf13','pypdf12'],
     ['pypdf14','python'], ['pypdf14','pypdf13'],
     ['pypdf15','python'], ['pypdf15','pypdf14'],
+    ['pypdf16','python'], ['pypdf16','pypdf15'],
+    ['pypdf17','python'], ['pypdf17','pypdf16'],
+    ['pypdf18','python'], ['pypdf18','pypdf17'],
     ['st1','rag'], ['st2','rag'], ['nltk','langchain'],
     // work history → what was used there
     ['infosys','java'], ['infosys','kafka'], ['nexsys','java'], ['nexsys','angular'], ['texala','java'],
