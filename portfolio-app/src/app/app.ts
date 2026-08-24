@@ -628,6 +628,16 @@ export class App implements OnInit, AfterViewInit {
       pr: 'https://github.com/py-pdf/pypdf/pull/3997',
       merged: 'Aug 2026',
     },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Note why the entity declaration flag is typed as a bool',
+      desc: 'expat passes an int for is_parameter_entity, documented in expat.h and unchanged since 2003, but typeshed declares the handler with a bool. Records why the annotation stays as it is so the next reader does not repeat the detour.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4000',
+      merged: 'Aug 2026',
+    },
     // Next merges go here — e.g. pypdf #3972, uvicorn #3062 (in review).
   ];
 
@@ -677,6 +687,7 @@ export class App implements OnInit, AfterViewInit {
     { id: 'pypdf17', label: 'pypdf #3988',    kind: 'oss', detail: 'Destination trees are plain dictionaries', url: 'https://github.com/py-pdf/pypdf/pull/3988' },
     { id: 'pypdf18', label: 'pypdf #3989',    kind: 'oss', detail: 'Transform mapping keys as a Literal', url: 'https://github.com/py-pdf/pypdf/pull/3989' },
     { id: 'pypdf19', label: 'pypdf #3997',    kind: 'oss', detail: 'Docs use the AnnotationFlag enum', url: 'https://github.com/py-pdf/pypdf/pull/3997' },
+    { id: 'pypdf20', label: 'pypdf #4000',    kind: 'oss', detail: 'expat passes an int, typeshed says bool', url: 'https://github.com/py-pdf/pypdf/pull/4000' },
 
     // Experience (amber)
     { id: 'infosys', label: 'Infosys — BofA', kind: 'work', detail: 'Senior Software Engineer' },
@@ -714,6 +725,7 @@ export class App implements OnInit, AfterViewInit {
     ['pypdf17','python'], ['pypdf17','pypdf16'],
     ['pypdf18','python'], ['pypdf18','pypdf17'],
     ['pypdf19','python'], ['pypdf19','pypdf18'],
+    ['pypdf20','python'], ['pypdf20','pypdf19'],
     ['st1','rag'], ['st2','rag'], ['nltk','langchain'],
     // work history → what was used there
     ['infosys','java'], ['infosys','kafka'], ['nexsys','java'], ['nexsys','angular'], ['texala','java'],
