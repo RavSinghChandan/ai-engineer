@@ -658,6 +658,16 @@ export class App implements OnInit, AfterViewInit {
       pr: 'https://github.com/py-pdf/pypdf/pull/4005',
       merged: 'Aug 2026',
     },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Reject a page range with a zero stride',
+      desc: 'PageRange("::0") was accepted and PageRange.valid("::0") returned True, but slice() only raises once the range is applied, far from the string that caused it. Through PdfWriter.append the same input surfaced as a TypeError about the pages argument.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4004',
+      merged: 'Aug 2026',
+    },
     // Next merges go here — e.g. pypdf #3972, uvicorn #3062 (in review).
   ];
 
@@ -710,6 +720,7 @@ export class App implements OnInit, AfterViewInit {
     { id: 'pypdf20', label: 'pypdf #4000',    kind: 'oss', detail: 'expat passes an int, typeshed says bool', url: 'https://github.com/py-pdf/pypdf/pull/4000' },
     { id: 'pypdf21', label: 'pypdf #4002',    kind: 'oss', detail: 'Font resource never resolved', url: 'https://github.com/py-pdf/pypdf/pull/4002' },
     { id: 'pypdf22', label: 'pypdf #4005',    kind: 'oss', detail: 'Roman numeral from a negative number', url: 'https://github.com/py-pdf/pypdf/pull/4005' },
+    { id: 'pypdf23', label: 'pypdf #4004',    kind: 'oss', detail: 'Page range with a zero stride', url: 'https://github.com/py-pdf/pypdf/pull/4004' },
 
     // Experience (amber)
     { id: 'infosys', label: 'Infosys — BofA', kind: 'work', detail: 'Senior Software Engineer' },
@@ -750,6 +761,7 @@ export class App implements OnInit, AfterViewInit {
     ['pypdf20','python'], ['pypdf20','pypdf19'],
     ['pypdf21','python'], ['pypdf21','pypdf20'],
     ['pypdf22','python'], ['pypdf22','pypdf21'],
+    ['pypdf23','python'], ['pypdf23','pypdf22'],
     ['st1','rag'], ['st2','rag'], ['nltk','langchain'],
     // work history → what was used there
     ['infosys','java'], ['infosys','kafka'], ['nexsys','java'], ['nexsys','angular'], ['texala','java'],
