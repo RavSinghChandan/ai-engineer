@@ -638,6 +638,26 @@ export class App implements OnInit, AfterViewInit {
       pr: 'https://github.com/py-pdf/pypdf/pull/4000',
       merged: 'Aug 2026',
     },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Resolve the font resource before building a Font from it',
+      desc: 'Two callers handed the raw /Font entry to a function that reads it as a dictionary. It only worked because IndirectObject forwards unknown attributes to the object it points at, so the lookups landed on the resolved dictionary by accident.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4002',
+      merged: 'Aug 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Reject a non-positive number when building a Roman numeral',
+      desc: 'number2uppercase_roman_numeral(-1) returned CMXCIX: the loop subtracts each value it emits and stops once the remainder reaches zero, which a negative input satisfies after one pass. The letter styles beside it already refused non-positive input.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4005',
+      merged: 'Aug 2026',
+    },
     // Next merges go here — e.g. pypdf #3972, uvicorn #3062 (in review).
   ];
 
@@ -688,6 +708,8 @@ export class App implements OnInit, AfterViewInit {
     { id: 'pypdf18', label: 'pypdf #3989',    kind: 'oss', detail: 'Transform mapping keys as a Literal', url: 'https://github.com/py-pdf/pypdf/pull/3989' },
     { id: 'pypdf19', label: 'pypdf #3997',    kind: 'oss', detail: 'Docs use the AnnotationFlag enum', url: 'https://github.com/py-pdf/pypdf/pull/3997' },
     { id: 'pypdf20', label: 'pypdf #4000',    kind: 'oss', detail: 'expat passes an int, typeshed says bool', url: 'https://github.com/py-pdf/pypdf/pull/4000' },
+    { id: 'pypdf21', label: 'pypdf #4002',    kind: 'oss', detail: 'Font resource never resolved', url: 'https://github.com/py-pdf/pypdf/pull/4002' },
+    { id: 'pypdf22', label: 'pypdf #4005',    kind: 'oss', detail: 'Roman numeral from a negative number', url: 'https://github.com/py-pdf/pypdf/pull/4005' },
 
     // Experience (amber)
     { id: 'infosys', label: 'Infosys — BofA', kind: 'work', detail: 'Senior Software Engineer' },
@@ -726,6 +748,8 @@ export class App implements OnInit, AfterViewInit {
     ['pypdf18','python'], ['pypdf18','pypdf17'],
     ['pypdf19','python'], ['pypdf19','pypdf18'],
     ['pypdf20','python'], ['pypdf20','pypdf19'],
+    ['pypdf21','python'], ['pypdf21','pypdf20'],
+    ['pypdf22','python'], ['pypdf22','pypdf21'],
     ['st1','rag'], ['st2','rag'], ['nltk','langchain'],
     // work history → what was used there
     ['infosys','java'], ['infosys','kafka'], ['nexsys','java'], ['nexsys','angular'], ['texala','java'],
