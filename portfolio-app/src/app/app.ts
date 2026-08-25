@@ -678,6 +678,16 @@ export class App implements OnInit, AfterViewInit {
       pr: 'https://github.com/py-pdf/pypdf/pull/4003',
       merged: 'Aug 2026',
     },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'List the valid layouts in the page layout warning',
+      desc: 'The warning passed a set built from an empty string and every layout joined with no separator, so it read as one run-on blob. page_mode next to it already joins its values with a comma.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4010',
+      merged: 'Aug 2026',
+    },
     // Next merges go here — e.g. pypdf #3972, uvicorn #3062 (in review).
   ];
 
@@ -732,6 +742,7 @@ export class App implements OnInit, AfterViewInit {
     { id: 'pypdf22', label: 'pypdf #4005',    kind: 'oss', detail: 'Roman numeral from a negative number', url: 'https://github.com/py-pdf/pypdf/pull/4005' },
     { id: 'pypdf23', label: 'pypdf #4004',    kind: 'oss', detail: 'Page range with a zero stride', url: 'https://github.com/py-pdf/pypdf/pull/4004' },
     { id: 'pypdf24', label: 'pypdf #4003',    kind: 'oss', detail: 'Form flags use the FfBits enum', url: 'https://github.com/py-pdf/pypdf/pull/4003' },
+    { id: 'pypdf25', label: 'pypdf #4010',    kind: 'oss', detail: 'Layout warning listed nothing readable', url: 'https://github.com/py-pdf/pypdf/pull/4010' },
 
     // Experience (amber)
     { id: 'infosys', label: 'Infosys — BofA', kind: 'work', detail: 'Senior Software Engineer' },
@@ -774,6 +785,7 @@ export class App implements OnInit, AfterViewInit {
     ['pypdf22','python'], ['pypdf22','pypdf21'],
     ['pypdf23','python'], ['pypdf23','pypdf22'],
     ['pypdf24','python'], ['pypdf24','pypdf23'],
+    ['pypdf25','python'], ['pypdf25','pypdf24'],
     ['st1','rag'], ['st2','rag'], ['nltk','langchain'],
     // work history → what was used there
     ['infosys','java'], ['infosys','kafka'], ['nexsys','java'], ['nexsys','angular'], ['texala','java'],
