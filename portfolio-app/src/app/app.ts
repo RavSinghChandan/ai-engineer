@@ -668,6 +668,16 @@ export class App implements OnInit, AfterViewInit {
       pr: 'https://github.com/py-pdf/pypdf/pull/4004',
       merged: 'Aug 2026',
     },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Use the FfBits enum instead of a plain integer for form flags',
+      desc: 'update_page_form_field_values documents its flags as FieldDictionaryAttributes.FfBits, but the tests passed a bare 1 in five places. FfBits(1) is ReadOnly, so spelling it out says what the call is asking for.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4003',
+      merged: 'Aug 2026',
+    },
     // Next merges go here — e.g. pypdf #3972, uvicorn #3062 (in review).
   ];
 
@@ -721,6 +731,7 @@ export class App implements OnInit, AfterViewInit {
     { id: 'pypdf21', label: 'pypdf #4002',    kind: 'oss', detail: 'Font resource never resolved', url: 'https://github.com/py-pdf/pypdf/pull/4002' },
     { id: 'pypdf22', label: 'pypdf #4005',    kind: 'oss', detail: 'Roman numeral from a negative number', url: 'https://github.com/py-pdf/pypdf/pull/4005' },
     { id: 'pypdf23', label: 'pypdf #4004',    kind: 'oss', detail: 'Page range with a zero stride', url: 'https://github.com/py-pdf/pypdf/pull/4004' },
+    { id: 'pypdf24', label: 'pypdf #4003',    kind: 'oss', detail: 'Form flags use the FfBits enum', url: 'https://github.com/py-pdf/pypdf/pull/4003' },
 
     // Experience (amber)
     { id: 'infosys', label: 'Infosys — BofA', kind: 'work', detail: 'Senior Software Engineer' },
@@ -762,6 +773,7 @@ export class App implements OnInit, AfterViewInit {
     ['pypdf21','python'], ['pypdf21','pypdf20'],
     ['pypdf22','python'], ['pypdf22','pypdf21'],
     ['pypdf23','python'], ['pypdf23','pypdf22'],
+    ['pypdf24','python'], ['pypdf24','pypdf23'],
     ['st1','rag'], ['st2','rag'], ['nltk','langchain'],
     // work history → what was used there
     ['infosys','java'], ['infosys','kafka'], ['nexsys','java'], ['nexsys','angular'], ['texala','java'],
