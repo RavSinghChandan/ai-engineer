@@ -688,6 +688,36 @@ export class App implements OnInit, AfterViewInit {
       pr: 'https://github.com/py-pdf/pypdf/pull/4010',
       merged: 'Aug 2026',
     },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Reject too few values when setting a page box',
+      desc: 'page.mediabox = ArrayObject([0, 0]) was accepted, but reading the box back raised ValueError, so a page could be written with a box that could not be read. The getter still tolerates more than four values for backwards compatibility.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4009',
+      merged: 'Aug 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Check the value assigned to print_scaling',
+      desc: '/PrintScaling was declared with an empty list of acceptable values, so any name was written through and the generated docstring read "Acceptable values: []". The spec allows /None and /AppDefault.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4011',
+      merged: 'Aug 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Reject an odd-length print page range',
+      desc: '/PrintPageRange holds first/last page pairs, so an array with an odd number of entries leaves a range without its end. It was written through unchecked.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4013',
+      merged: 'Aug 2026',
+    },
     // Next merges go here — e.g. pypdf #3972, uvicorn #3062 (in review).
   ];
 
@@ -743,6 +773,9 @@ export class App implements OnInit, AfterViewInit {
     { id: 'pypdf23', label: 'pypdf #4004',    kind: 'oss', detail: 'Page range with a zero stride', url: 'https://github.com/py-pdf/pypdf/pull/4004' },
     { id: 'pypdf24', label: 'pypdf #4003',    kind: 'oss', detail: 'Form flags use the FfBits enum', url: 'https://github.com/py-pdf/pypdf/pull/4003' },
     { id: 'pypdf25', label: 'pypdf #4010',    kind: 'oss', detail: 'Layout warning listed nothing readable', url: 'https://github.com/py-pdf/pypdf/pull/4010' },
+    { id: 'pypdf26', label: 'pypdf #4009',    kind: 'oss', detail: 'Page box setter accepted too few values', url: 'https://github.com/py-pdf/pypdf/pull/4009' },
+    { id: 'pypdf27', label: 'pypdf #4011',    kind: 'oss', detail: 'print_scaling validated nothing', url: 'https://github.com/py-pdf/pypdf/pull/4011' },
+    { id: 'pypdf28', label: 'pypdf #4013',    kind: 'oss', detail: 'Odd-length print page range', url: 'https://github.com/py-pdf/pypdf/pull/4013' },
 
     // Experience (amber)
     { id: 'infosys', label: 'Infosys — BofA', kind: 'work', detail: 'Senior Software Engineer' },
@@ -786,6 +819,9 @@ export class App implements OnInit, AfterViewInit {
     ['pypdf23','python'], ['pypdf23','pypdf22'],
     ['pypdf24','python'], ['pypdf24','pypdf23'],
     ['pypdf25','python'], ['pypdf25','pypdf24'],
+    ['pypdf26','python'], ['pypdf26','pypdf25'],
+    ['pypdf27','python'], ['pypdf27','pypdf26'],
+    ['pypdf28','python'], ['pypdf28','pypdf27'],
     ['st1','rag'], ['st2','rag'], ['nltk','langchain'],
     // work history → what was used there
     ['infosys','java'], ['infosys','kafka'], ['nexsys','java'], ['nexsys','angular'], ['texala','java'],
