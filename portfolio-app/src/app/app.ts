@@ -718,6 +718,26 @@ export class App implements OnInit, AfterViewInit {
       pr: 'https://github.com/py-pdf/pypdf/pull/4013',
       merged: 'Aug 2026',
     },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Reject a negative number of copies',
+      desc: '/NumCopies was written through without a check, so a negative value was stored just as readily as a real count and no reader can interpret it. Zero stays allowed, since the spec gives no lower bound.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4012',
+      merged: 'Aug 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Check the box names assigned to the area and clip preferences',
+      desc: '/ViewArea, /ViewClip, /PrintArea and /PrintClip were each declared with an empty list of acceptable values, so any name was written through. All four name one of the five page boundaries.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4014',
+      merged: 'Aug 2026',
+    },
     // Next merges go here — e.g. pypdf #3972, uvicorn #3062 (in review).
   ];
 
@@ -776,6 +796,8 @@ export class App implements OnInit, AfterViewInit {
     { id: 'pypdf26', label: 'pypdf #4009',    kind: 'oss', detail: 'Page box setter accepted too few values', url: 'https://github.com/py-pdf/pypdf/pull/4009' },
     { id: 'pypdf27', label: 'pypdf #4011',    kind: 'oss', detail: 'print_scaling validated nothing', url: 'https://github.com/py-pdf/pypdf/pull/4011' },
     { id: 'pypdf28', label: 'pypdf #4013',    kind: 'oss', detail: 'Odd-length print page range', url: 'https://github.com/py-pdf/pypdf/pull/4013' },
+    { id: 'pypdf29', label: 'pypdf #4012',    kind: 'oss', detail: 'Negative number of copies', url: 'https://github.com/py-pdf/pypdf/pull/4012' },
+    { id: 'pypdf30', label: 'pypdf #4014',    kind: 'oss', detail: 'Box-name preferences validated nothing', url: 'https://github.com/py-pdf/pypdf/pull/4014' },
 
     // Experience (amber)
     { id: 'infosys', label: 'Infosys — BofA', kind: 'work', detail: 'Senior Software Engineer' },
@@ -822,6 +844,8 @@ export class App implements OnInit, AfterViewInit {
     ['pypdf26','python'], ['pypdf26','pypdf25'],
     ['pypdf27','python'], ['pypdf27','pypdf26'],
     ['pypdf28','python'], ['pypdf28','pypdf27'],
+    ['pypdf29','python'], ['pypdf29','pypdf28'],
+    ['pypdf30','python'], ['pypdf30','pypdf29'],
     ['st1','rag'], ['st2','rag'], ['nltk','langchain'],
     // work history → what was used there
     ['infosys','java'], ['infosys','kafka'], ['nexsys','java'], ['nexsys','angular'], ['texala','java'],
