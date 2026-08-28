@@ -88,7 +88,7 @@ export class App implements OnInit, AfterViewInit {
     'Hybrid RAG: FAISS + BM25 + HyDE + CRAG',
     'Production Guardrails G1–G5 implemented',
     'SSE Streaming · Kafka · Redis · JWT Auth',
-    '637 tests passing · 3.6s runtime · Zero shortcuts',
+    '637 tests passing · under 4s · Zero shortcuts',
   ];
   private li = 0; private ci = 0; private deleting = false;
 
@@ -98,7 +98,7 @@ export class App implements OnInit, AfterViewInit {
       liveUrl: 'demo',
       title: 'Aura with Rav',
       subtitle: 'AI Spiritual Intelligence Platform',
-      desc: '18+ AI agents coordinate dynamically to generate personalized intelligence reports across Vedic Astrology, Numerology, Palmistry, Tarot & Vastu Shastra — in 23 Indian languages.',
+      desc: '16 AI agents coordinate dynamically to generate personalized intelligence reports across Vedic Astrology, Numerology, Palmistry, Tarot & Vastu Shastra — in 23 Indian languages.',
       github: 'https://github.com/RavSinghChandan',
       tags: [
         { label: 'Python', cls: 'tag-purple' }, { label: 'FastAPI', cls: 'tag-purple' },
@@ -107,12 +107,12 @@ export class App implements OnInit, AfterViewInit {
         { label: 'JWT Auth', cls: 'tag-green' }, { label: '415 Tests', cls: 'tag-amber' }, { label: 'G1–G5 Guardrails', cls: 'tag-red' },
       ],
       challenges: [
-        { p: '18+ agents coordinating without conflicts', s: 'LangGraph stateful orchestration — each agent is a node, edges are conditional' },
+        { p: '16 agents coordinating without conflicts', s: 'LangGraph stateful orchestration — each agent is a node, edges are conditional' },
         { p: 'Multi-tenant SaaS — 3 roles (USER / ADMIN / SUPERADMIN)', s: 'JWT Bearer + X-API-Key dual auth, role-based route guards, 76 auth tests' },
         { p: 'Retrieval quality on spiritual domain queries', s: 'Hybrid RAG + Multi-Query expansion — ambiguous queries matched at higher confidence' },
         { p: 'LLM hallucination on sensitive predictions', s: 'G1–G5 guardrails: rate limit, injection detection, PII filter, faithfulness gate' },
         { p: 'Reports in 23 Indian languages', s: 'Language-aware prompt templating + dynamic PDF rendering per locale' },
-        { p: 'Reliability without LLM in the test loop', s: '415 tests, 3.6s runtime — full stack with mock LLM, zero flakiness' },
+        { p: 'Reliability without LLM in the test loop', s: '415 tests, seconds not minutes — full stack with mock LLM, zero flakiness' },
       ],
       imgSrc: 'project-aura.png',
     },
@@ -138,7 +138,7 @@ export class App implements OnInit, AfterViewInit {
         { p: 'Agent memory lost on every server restart', s: 'Write-through episodic memory to SQLite WAL — survives restarts' },
         { p: 'Slow plan generation blocking the UI', s: 'SSE streaming — Angular EventSource renders tokens live, TTFT under 1.5s' },
         { p: 'Role knowledge stuck as hardcoded JSON', s: 'Admin CRUD API + async FAISS/BM25 rebuild — live updates, zero downtime' },
-        { p: 'Verifying the entire enterprise stack', s: '222 tests, 3.6s runtime — zero external dependencies in CI' },
+        { p: 'Verifying the entire enterprise stack', s: '222 tests, seconds not minutes — zero external dependencies in CI' },
       ],
       imgSrc: 'project-bench.png',
     },
@@ -263,9 +263,9 @@ export class App implements OnInit, AfterViewInit {
   readonly proofStats = [
     {
       stat:  '637',
-      title: 'Tests. 3.6 seconds.',
+      title: 'Tests. Under four seconds.',
       sub:   'Every line of production code is tested. No shortcuts, no flakiness.',
-      askQuestion: 'How does Chandan achieve 637 tests in 3.6 seconds?',
+      askQuestion: 'How does Chandan keep 637 tests under four seconds?',
       aaravImg: 'guide-chandan-wow.svg',
       aaravSay: '637 tests, zero flakes! 🤩',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -296,9 +296,9 @@ export class App implements OnInit, AfterViewInit {
       stat:  '18+',
       title: 'AI agents coordinated.',
       sub:   'LangGraph StateGraph — parallel domain agents, conditional edges, human-in-loop.',
-      askQuestion: 'How does Chandan coordinate 18+ AI agents without conflicts?',
+      askQuestion: 'How does Chandan coordinate 16 AI agents without conflicts?',
       aaravImg: 'guide-chandan.svg',
-      aaravSay: '18 agents, zero conflicts! 🤖',
+      aaravSay: '16 agents, zero conflicts! 🤖',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="24" cy="10" r="5" stroke="#a78bfa" stroke-width="2"/>
         <circle cx="10" cy="34" r="5" stroke="#06b6d4" stroke-width="2"/>
@@ -806,7 +806,7 @@ export class App implements OnInit, AfterViewInit {
   //    connect. Physics runs in a canvas — see initGraph() further down.
   readonly graphNodes: GraphNode[] = [
     // Systems built (purple)
-    { id: 'aura',    label: 'Aura with Rav',        kind: 'system', detail: '18+ agents · 415 tests · 23 languages' },
+    { id: 'aura',    label: 'Aura with Rav',        kind: 'system', detail: '16 agents · 415 tests · 23 languages' },
     { id: 'bench',   label: 'Bench Optimizer',      kind: 'system', detail: 'Enterprise AI HR platform · G1–G5 guardrails' },
     { id: 'growth',  label: 'Agentic Growth OS',    kind: 'system', detail: 'Autonomous AI marketing platform' },
     { id: 'factory', label: 'AI Content Factory',   kind: 'system', detail: 'Multi-agent video production pipeline' },
@@ -958,7 +958,7 @@ export class App implements OnInit, AfterViewInit {
       company: 'Nexsys — Accelya',
       role: 'Software Engineer',
       location: 'Mumbai, India',
-      period: 'Dec 2023 – Nov 2025',
+      period: 'Dec 2023 – Oct 2025',
       color: 'cyan',
       isPresent: false,
       points: [
@@ -973,7 +973,7 @@ export class App implements OnInit, AfterViewInit {
       company: 'Texala',
       role: 'Software Engineer',
       location: 'Pune, India',
-      period: 'Jul 2023 – Nov 2023',
+      period: 'May 2023 – Dec 2023',
       color: 'green',
       isPresent: false,
       points: [
@@ -986,7 +986,7 @@ export class App implements OnInit, AfterViewInit {
       company: 'Flyboard Ventures',
       role: 'Software Engineer',
       location: 'Chandigarh, India',
-      period: 'Aug 2022 – Jul 2023',
+      period: 'Aug 2022 – May 2023',
       color: 'amber',
       isPresent: false,
       points: [
@@ -1108,7 +1108,7 @@ export class App implements OnInit, AfterViewInit {
       id: 'gb-p01',
       img: 'guide-chandan-wow.svg',
       dir: 'left',
-      quote: "18+ AI agents, 23 languages, 415 tests. Real engineering. 🔮",
+      quote: "16 AI agents, 23 languages, 415 tests. Real engineering. 🔮",
       sub:   "Project 01 · Aura with Rav",
     },
     {
@@ -1184,7 +1184,7 @@ export class App implements OnInit, AfterViewInit {
         label: '📋 Step 3 — Birth Profile Form',
         caption: 'After login, the AI intake form loads. Fill Name, Date of Birth, Place of Birth, and your question for the Astrologer across 5 analysis modules.',
         guide: 'guide-chandan-thinking.svg',
-        speech: 'Hmm... now let me fill in my birth details. This powers ALL 18+ agents! 🔮',
+        speech: 'Hmm... now let me fill in my birth details. This powers ALL 16 agents! 🔮',
       },
       {
         img: 'aura-step4-form-filled.png',
@@ -1270,7 +1270,7 @@ export class App implements OnInit, AfterViewInit {
         label: '📊 Step 8 — Production Metrics',
         caption: 'Live production metrics: request latency, cache hit rates (L1 exact < 1ms, L2 semantic), guardrail trigger counts, circuit breaker state, and SSE streaming TTFT.',
         guide: 'guide-chandan-wow.svg',
-        speech: '222 tests, 3.6s runtime, zero shortcuts — and now you can see it all live in production metrics! 🚀',
+        speech: '222 tests, seconds not minutes, zero shortcuts — and now you can see it all live in production metrics! 🚀',
       },
     ],
     '03': [
@@ -1423,7 +1423,7 @@ export class App implements OnInit, AfterViewInit {
       {
         img: 'ua-step3-first-response.png',
         label: '🤖 Step 3 — First AI Response',
-        caption: 'Agent responds with deep knowledge of all 4 enterprise platforms. It knows AstroIntel (18+ agents, G1–G5 guardrails), Bench (Hybrid RAG, 222 tests), RunbookAI (RAGless SQL), and Agentic Growth OS (auto-learning). Cross-platform intelligence from a single configured agent.',
+        caption: 'Agent responds with deep knowledge of all 4 enterprise platforms. It knows AstroIntel (16 agents, G1–G5 guardrails), Bench (Hybrid RAG, 222 tests), RunbookAI (RAGless SQL), and Agentic Growth OS (auto-learning). Cross-platform intelligence from a single configured agent.',
         guide: 'guide-chandan-wow.svg',
         speech: 'WOW — the agent knows ALL 4 of my platforms! AstroIntel, Bench, RunbookAI, Agentic — one brain, four domains! 🤩',
       },
