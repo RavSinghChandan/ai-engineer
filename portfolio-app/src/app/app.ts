@@ -788,6 +788,16 @@ export class App implements OnInit, AfterViewInit {
       pr: 'https://github.com/py-pdf/pypdf/pull/4022',
       merged: 'Aug 2026',
     },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Do not crash on an outline node that is not a dictionary',
+      desc: 'The outline walk casts /First to a DictionaryObject and subscripts it, so a file where that entry holds a number, a string or an array brought down the whole read with a raw TypeError. The same loop already warns and stops on a cycle.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4018',
+      merged: 'Aug 2026',
+    },
     // Next merges go here — e.g. pypdf #3972, uvicorn #3062 (in review).
   ];
 
@@ -853,6 +863,7 @@ export class App implements OnInit, AfterViewInit {
     { id: 'pypdf33', label: 'pypdf #4019',    kind: 'oss', detail: 'AcroForm fields entry not an array', url: 'https://github.com/py-pdf/pypdf/pull/4019' },
     { id: 'pypdf34', label: 'pypdf #4021',    kind: 'oss', detail: 'Viewer preferences not a dictionary', url: 'https://github.com/py-pdf/pypdf/pull/4021' },
     { id: 'pypdf35', label: 'pypdf #4022',    kind: 'oss', detail: 'Page labels not a dictionary', url: 'https://github.com/py-pdf/pypdf/pull/4022' },
+    { id: 'pypdf36', label: 'pypdf #4018',    kind: 'oss', detail: 'Outline node not a dictionary', url: 'https://github.com/py-pdf/pypdf/pull/4018' },
 
     // Experience (amber)
     { id: 'infosys', label: 'Infosys — BofA', kind: 'work', detail: 'Senior Software Engineer' },
@@ -906,6 +917,7 @@ export class App implements OnInit, AfterViewInit {
     ['pypdf33','python'], ['pypdf33','pypdf32'],
     ['pypdf34','python'], ['pypdf34','pypdf33'],
     ['pypdf35','python'], ['pypdf35','pypdf34'],
+    ['pypdf36','python'], ['pypdf36','pypdf35'],
     ['st1','rag'], ['st2','rag'], ['nltk','langchain'],
     // work history → what was used there
     ['infosys','java'], ['infosys','kafka'], ['nexsys','java'], ['nexsys','angular'], ['texala','java'],
