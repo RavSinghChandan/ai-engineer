@@ -803,6 +803,16 @@ export class App implements OnInit, AfterViewInit {
       logo: 'pypdf-logo.svg',
       org: 'py-pdf',
       stars: '10.1k★',
+      title: 'Do not crash when the XObject resources are not a dictionary',
+      desc: 'Collecting the images on a page iterated the /XObject resources without checking they were a dictionary, so a number, a string or an array there raised a TypeError instead of reporting no images.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4030',
+      merged: 'Aug 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
       title: 'Do not crash when the outlines entry is not a dictionary',
       desc: 'The outline reader cast the catalog /Outlines entry to a DictionaryObject and subscripted it, so a file storing a number or an array there brought down the read with a TypeError.',
       pr: 'https://github.com/py-pdf/pypdf/pull/4023',
@@ -908,6 +918,7 @@ export class App implements OnInit, AfterViewInit {
     { id: 'pypdf38', label: 'pypdf #4023',    kind: 'oss', detail: 'Outlines entry not a dictionary', url: 'https://github.com/py-pdf/pypdf/pull/4023' },
     { id: 'pypdf39', label: 'pypdf #4031',    kind: 'oss', detail: 'Form field entry not a dictionary', url: 'https://github.com/py-pdf/pypdf/pull/4031' },
     { id: 'pypdf40', label: 'pypdf #4029',    kind: 'oss', detail: 'AcroForm entry not a dictionary', url: 'https://github.com/py-pdf/pypdf/pull/4029' },
+    { id: 'pypdf41', label: 'pypdf #4030',    kind: 'oss', detail: 'XObject resources not a dictionary', url: 'https://github.com/py-pdf/pypdf/pull/4030' },
 
     // Experience (amber)
     { id: 'infosys', label: 'Infosys — BofA', kind: 'work', detail: 'Senior Software Engineer' },
