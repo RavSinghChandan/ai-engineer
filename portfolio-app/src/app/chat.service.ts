@@ -138,7 +138,7 @@ export class ChatService {
 
     // 637 tests / under four seconds
     if (/\b(637|3\.6\s*s(ec)?|tests?\s*in\s*3|achieve\s*637|3\.6\s*second)\b/i.test(t))
-      return `<div style="margin:0.9rem 0 0.5rem;padding:0.22rem 0.7rem;border-left:3px solid #10b981;background:rgba(16,185,129,0.07);border-radius:0 5px 5px 0;font-size:0.7rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#10b981">✅ 637 Tests — 3.6 Seconds</div>
+      return `<div style="margin:0.9rem 0 0.5rem;padding:0.22rem 0.7rem;border-left:3px solid #10b981;background:rgba(16,185,129,0.07);border-radius:0 5px 5px 0;font-size:0.7rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#10b981">✅ 637 Tests — Under Four Seconds</div>
 <div style="color:var(--cb-text);font-size:0.82rem;line-height:1.6">
 Chandan runs <strong>637 automated tests</strong> across all 4 AI systems and the full suite completes in <strong>under four seconds</strong> — without any API keys or external services.<br><br>
 <strong>How it's done:</strong><br>
@@ -171,7 +171,7 @@ Aura with Rav originally took <strong>78 seconds</strong> per analysis. Chandan 
 
     // 16 agents coordinated
     if (/\b(18\+?\s*agent|18\s*ai\s*agent|coordinat.*agent|agent.*coordinat|without\s*conflict)\b/i.test(t) || /coordinate\s+18/i.test(t))
-      return `<div style="margin:0.9rem 0 0.5rem;padding:0.22rem 0.7rem;border-left:3px solid #a78bfa;background:rgba(167,139,250,0.07);border-radius:0 5px 5px 0;font-size:0.7rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#a78bfa">🤖 18+ AI Agents — Zero Conflicts</div>
+      return `<div style="margin:0.9rem 0 0.5rem;padding:0.22rem 0.7rem;border-left:3px solid #a78bfa;background:rgba(167,139,250,0.07);border-radius:0 5px 5px 0;font-size:0.7rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#a78bfa">🤖 16 AI Agents — Zero Conflicts</div>
 <div style="color:var(--cb-text);font-size:0.82rem;line-height:1.6">
 Aura with Rav coordinates <strong>16 AI agents</strong> across 5 spiritual domains using <strong>LangGraph StateGraph</strong>:<br><br>
 <strong>Architecture:</strong><br>
@@ -356,7 +356,7 @@ Chandan built <strong>5 defence layers</strong> that wrap every LLM call in prod
 
   private _matchStory(t: string): string | null {
     if (!/\b(?:story|journey|motivat|inspir|how (?:did|he)|why (?:did|he)|started?|began?|origin|background|mechanical|console|fuel|become|became|what drove)/i.test(t)) return null;
-    return `A friend once said: <em>"You can't even spell console."</em><br><br>That taunt became the fuel. Chandan — a engineering graduate with no job offers — joined Masai School, outworked everyone quietly, and never stopped.<br><br>Today: <strong>637 tests · 4 AI systems · 0 shortcuts taken.</strong><br><br><a href="https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/" target="_blank" style="color:var(--purple-lt)">Connect on LinkedIn ↗</a> · <a href="https://github.com/RavSinghChandan" target="_blank" style="color:var(--purple-lt)">GitHub ↗</a><hr class="cb-divider"/><a href="#story" style="color:#c4b5fd;font-weight:700">↗ Read the full story on portfolio</a> ✨`;
+    return `A friend once said: <em>"You can't even spell console."</em><br><br>That taunt became the fuel. Chandan — an engineering graduate with no job offers — joined Masai School, outworked everyone quietly, and never stopped.<br><br>Today: <strong>637 tests · 4 AI systems · 0 shortcuts taken.</strong><br><br><a href="https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/" target="_blank" style="color:var(--purple-lt)">Connect on LinkedIn ↗</a> · <a href="https://github.com/RavSinghChandan" target="_blank" style="color:var(--purple-lt)">GitHub ↗</a><hr class="cb-divider"/><a href="#story" style="color:#c4b5fd;font-weight:700">↗ Read the full story on portfolio</a> ✨`;
   }
 
   private _matchCurrentRole(t: string): string | null {
