@@ -833,6 +833,16 @@ export class App implements OnInit, AfterViewInit {
       logo: 'pypdf-logo.svg',
       org: 'py-pdf',
       stars: '10.1k★',
+      title: 'Do not crash when a destination tree node entry is not an array',
+      desc: 'A name tree node holds its entries under /Names or /Kids, both read without a type check, so a malformed file crashed named_destinations on len() or iteration instead of reporting no destinations.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4039',
+      merged: 'Sep 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
       title: 'Do not crash when the outlines entry is not a dictionary',
       desc: 'The outline reader cast the catalog /Outlines entry to a DictionaryObject and subscripted it, so a file storing a number or an array there brought down the read with a TypeError.',
       pr: 'https://github.com/py-pdf/pypdf/pull/4023',
@@ -941,6 +951,7 @@ export class App implements OnInit, AfterViewInit {
     { id: 'pypdf41', label: 'pypdf #4030',    kind: 'oss', detail: 'XObject resources not a dictionary', url: 'https://github.com/py-pdf/pypdf/pull/4030' },
     { id: 'pypdf42', label: 'pypdf #4038',    kind: 'oss', detail: 'read_object return type narrowed', url: 'https://github.com/py-pdf/pypdf/pull/4038' },
     { id: 'pypdf43', label: 'pypdf #4041',    kind: 'oss', detail: 'Page box not an array', url: 'https://github.com/py-pdf/pypdf/pull/4041' },
+    { id: 'pypdf44', label: 'pypdf #4039',    kind: 'oss', detail: 'Destination tree node not an array', url: 'https://github.com/py-pdf/pypdf/pull/4039' },
 
     // Experience (amber)
     { id: 'infosys', label: 'Infosys — BofA', kind: 'work', detail: 'Senior Software Engineer' },
