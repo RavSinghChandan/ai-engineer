@@ -2288,7 +2288,8 @@ export class App implements OnInit, AfterViewInit {
    * farthest-point pick, grouped by kind so each colour reads as a cluster.
    */
   private assignCarriers() {
-    const n = this.graphNodes.length;
+    // The buckyball has 60 vertices, so at most 60 nodes can be carried.
+    const n = Math.min(this.graphNodes.length, this.bVerts.length);
     const chosen: number[] = [];
     // start from the vertex nearest the +Y pole for a stable, repeatable layout
     let start = 0, bestY = -Infinity;
@@ -2308,7 +2309,7 @@ export class App implements OnInit, AfterViewInit {
     const order = [...this.graphNodes.keys()].sort((a, b) => {
       const rank = { system: 0, oss: 1, tech: 2, work: 3 } as Record<string, number>;
       return rank[this.graphNodes[a].kind] - rank[this.graphNodes[b].kind];
-    });
+    }).slice(0, n);
     this.bCarrier = new Array(n);
     order.forEach((nodeIdx, k) => { this.bCarrier[nodeIdx] = chosen[k]; });
   }
@@ -2529,6 +2530,7 @@ export class App implements OnInit, AfterViewInit {
       const ic = this.gBodies.findIndex(b => b.id === c);
       if (ia < 0 || ic < 0) continue;
       const A = this.bProj[this.bCarrier[ia]], B = this.bProj[this.bCarrier[ic]];
+      if (!A || !B) continue;
       const lit = !!hovered && (a === hovered || c === hovered);
       if (!lit && (A.z < -0.15 || B.z < -0.15)) continue;   // hide far-side clutter
       ctx.beginPath();
@@ -2545,6 +2547,7 @@ export class App implements OnInit, AfterViewInit {
     // 4. the real nodes, painted back-to-front
     const drawOrder = this.gBodies
       .map((b, i) => ({ b, p: this.bProj[this.bCarrier[i]] }))
+      .filter(m => !!m.p)
       .sort((m, n) => m.p.z - n.p.z);
 
     for (const { b, p } of drawOrder) {
