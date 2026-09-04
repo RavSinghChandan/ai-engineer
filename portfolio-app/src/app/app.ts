@@ -2344,7 +2344,7 @@ export class App implements OnInit, AfterViewInit {
 
     // the portrait at the centre of the cage
     const portrait = new Image();
-    portrait.src = 'chandan-photo.jpg';
+    portrait.src = 'chandan-orb.png';
     portrait.onload = () => { this.bPortrait = portrait; };
 
     // adjacency, used for hover highlighting
@@ -2513,37 +2513,30 @@ export class App implements OnInit, AfterViewInit {
     const near = hovered ? this.gNeighbours.get(hovered) : null;
     const carrierOf = new Map(this.gBodies.map((b, i) => [this.bCarrier[i], b]));
 
-    // 0. the portrait the cage is built around, clipped to a circle at the centre
+    // 0. the sphere at the core: a lit 3D orb of me, sunk inside the cage.
+    //    Drawn before the bonds so the 90 struts close over the front of it.
     if (this.bPortrait) {
-      const pr = this.bRadius * 0.46;
-      ctx.save();
-      // soft aura so the face sits inside the cage rather than on top of it
-      const aura = ctx.createRadialGradient(cx, cy, pr * 0.7, cx, cy, pr * 1.75);
-      aura.addColorStop(0, 'rgba(167,139,250,0.30)');
+      const pr = this.bRadius * 0.40;
+      // outer aura bleeding into the cage
+      const aura = ctx.createRadialGradient(cx, cy, pr * 0.85, cx, cy, pr * 2.05);
+      aura.addColorStop(0, 'rgba(129,140,248,0.34)');
+      aura.addColorStop(0.55, 'rgba(167,139,250,0.13)');
       aura.addColorStop(1, 'rgba(167,139,250,0)');
       ctx.fillStyle = aura;
       ctx.beginPath();
-      ctx.arc(cx, cy, pr * 1.75, 0, Math.PI * 2);
+      ctx.arc(cx, cy, pr * 2.05, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.beginPath();
-      ctx.arc(cx, cy, pr, 0, Math.PI * 2);
-      ctx.clip();
-      const img = this.bPortrait;
-      // cover-fit the photo into the circle without distorting it
-      const scale = Math.max((pr * 2) / img.width, (pr * 2) / img.height);
-      const dw = img.width * scale, dh = img.height * scale;
-      ctx.globalAlpha = 0.92;
-      ctx.drawImage(img, cx - dw / 2, cy - dh / 2, dw, dh);
-      ctx.globalAlpha = 1;
-      ctx.restore();
+      ctx.drawImage(this.bPortrait, cx - pr, cy - pr, pr * 2, pr * 2);
 
-      // rim light on the circle edge
+      // contact shadow under the orb so it sits in space rather than on glass
+      const base = ctx.createRadialGradient(cx, cy + pr * 0.86, 0, cx, cy + pr * 0.86, pr * 0.95);
+      base.addColorStop(0, 'rgba(2,6,23,0.5)');
+      base.addColorStop(1, 'rgba(2,6,23,0)');
+      ctx.fillStyle = base;
       ctx.beginPath();
-      ctx.arc(cx, cy, pr, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(226,232,240,0.35)';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
+      ctx.ellipse(cx, cy + pr * 0.9, pr * 0.9, pr * 0.22, 0, 0, Math.PI * 2);
+      ctx.fill();
     }
 
     // 1. the cage: 90 C–C bonds, depth-sorted so the far side sits behind
@@ -2609,15 +2602,20 @@ export class App implements OnInit, AfterViewInit {
       .filter(m => !!m.p)
       .sort((m, n) => m.p.z - n.p.z);
 
+    const orbR = this.bPortrait ? this.bRadius * 0.40 : 0;
     for (const { b, p } of drawOrder) {
       const isHover = b.id === hovered;
       const isNear = !!near?.has(b.id);
       const dim = !!hovered && !isHover && !isNear;
+      // a front vertex crossing the orb would sit on the face: fade it back so
+      // the portrait stays readable and the cage still reads as closing over it
+      const overOrb = orbR > 0 && p.z > 0
+        && Math.hypot(p.x - cx, p.y - cy) < orbR * 1.02;
       const color = this.nodeColor(b);
       const depth = (p.z + 1) / 2;
       const r = b.r * (0.62 + depth * 0.55);
 
-      ctx.globalAlpha = dim ? 0.18 : 0.35 + depth * 0.65;
+      ctx.globalAlpha = (dim ? 0.18 : 0.35 + depth * 0.65) * (overOrb && !isHover ? 0.28 : 1);
 
       // glow
       const halo = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 3.4);
