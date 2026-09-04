@@ -2225,6 +2225,7 @@ export class App implements OnInit, AfterViewInit {
   private bDragging = false;
   private bLast = { x: 0, y: 0 };
   private bRadius = 200;
+  private bPortrait: HTMLImageElement | null = null;   // the face the cage is built around
 
   private readonly G_COLORS: Record<GraphNode['kind'], string> = {
     system: '#a78bfa',  // purple — things I built
@@ -2232,6 +2233,26 @@ export class App implements OnInit, AfterViewInit {
     oss:    '#34d399',  // green  — merged open source
     work:   '#fbbf24',  // amber  — experience
   };
+
+  //  The cage carries seven colours, one per family: the four node kinds above,
+  //  with the open-source vertices split by the library they landed in so a
+  //  glance shows the spread rather than one wall of green.
+  private readonly OSS_COLORS: Record<string, string> = {
+    pypdf:    '#34d399',  // emerald
+    joblib:   '#fb7185',  // rose
+    'sent-tf': '#f472b6', // pink
+    nltk:     '#facc15',  // yellow
+    authlib:  '#818cf8',  // indigo
+  };
+
+  /** Colour for a node: open-source vertices are keyed by library. */
+  private nodeColor(n: GraphNode): string {
+    if (n.kind === 'oss') {
+      const library = n.label.split(' ')[0];
+      return this.OSS_COLORS[library] ?? this.G_COLORS.oss;
+    }
+    return this.G_COLORS[n.kind];
+  }
 
   /** Build the 60 vertices + 90 bonds of a truncated icosahedron. */
   private buildBuckyball() {
@@ -2320,6 +2341,11 @@ export class App implements OnInit, AfterViewInit {
     this.gCanvas = canvas;
     this.gCtx = canvas.getContext('2d');
     if (!this.gCtx) return;
+
+    // the portrait at the centre of the cage
+    const portrait = new Image();
+    portrait.src = 'chandan-photo.jpg';
+    portrait.onload = () => { this.bPortrait = portrait; };
 
     // adjacency, used for hover highlighting
     this.gNeighbours = new Map(this.graphNodes.map(n => [n.id, new Set<string>()]));
@@ -2487,6 +2513,39 @@ export class App implements OnInit, AfterViewInit {
     const near = hovered ? this.gNeighbours.get(hovered) : null;
     const carrierOf = new Map(this.gBodies.map((b, i) => [this.bCarrier[i], b]));
 
+    // 0. the portrait the cage is built around, clipped to a circle at the centre
+    if (this.bPortrait) {
+      const pr = this.bRadius * 0.46;
+      ctx.save();
+      // soft aura so the face sits inside the cage rather than on top of it
+      const aura = ctx.createRadialGradient(cx, cy, pr * 0.7, cx, cy, pr * 1.75);
+      aura.addColorStop(0, 'rgba(167,139,250,0.30)');
+      aura.addColorStop(1, 'rgba(167,139,250,0)');
+      ctx.fillStyle = aura;
+      ctx.beginPath();
+      ctx.arc(cx, cy, pr * 1.75, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, pr, 0, Math.PI * 2);
+      ctx.clip();
+      const img = this.bPortrait;
+      // cover-fit the photo into the circle without distorting it
+      const scale = Math.max((pr * 2) / img.width, (pr * 2) / img.height);
+      const dw = img.width * scale, dh = img.height * scale;
+      ctx.globalAlpha = 0.92;
+      ctx.drawImage(img, cx - dw / 2, cy - dh / 2, dw, dh);
+      ctx.globalAlpha = 1;
+      ctx.restore();
+
+      // rim light on the circle edge
+      ctx.beginPath();
+      ctx.arc(cx, cy, pr, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(226,232,240,0.35)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+
     // 1. the cage: 90 C–C bonds, depth-sorted so the far side sits behind
     const bonds = this.bBonds
       .map(([i, j]) => ({ i, j, z: (this.bProj[i].z + this.bProj[j].z) / 2 }))
@@ -2554,7 +2613,7 @@ export class App implements OnInit, AfterViewInit {
       const isHover = b.id === hovered;
       const isNear = !!near?.has(b.id);
       const dim = !!hovered && !isHover && !isNear;
-      const color = this.G_COLORS[b.kind];
+      const color = this.nodeColor(b);
       const depth = (p.z + 1) / 2;
       const r = b.r * (0.62 + depth * 0.55);
 
