@@ -2225,7 +2225,6 @@ export class App implements OnInit, AfterViewInit {
   private bDragging = false;
   private bLast = { x: 0, y: 0 };
   private bRadius = 200;
-  private bPortrait: HTMLImageElement | null = null;   // the face the cage is built around
 
   private readonly G_COLORS: Record<GraphNode['kind'], string> = {
     system: '#a78bfa',  // purple — things I built
@@ -2341,11 +2340,6 @@ export class App implements OnInit, AfterViewInit {
     this.gCanvas = canvas;
     this.gCtx = canvas.getContext('2d');
     if (!this.gCtx) return;
-
-    // the portrait at the centre of the cage
-    const portrait = new Image();
-    portrait.src = 'chandan-orb.png';
-    portrait.onload = () => { this.bPortrait = portrait; };
 
     // adjacency, used for hover highlighting
     this.gNeighbours = new Map(this.graphNodes.map(n => [n.id, new Set<string>()]));
@@ -2513,32 +2507,6 @@ export class App implements OnInit, AfterViewInit {
     const near = hovered ? this.gNeighbours.get(hovered) : null;
     const carrierOf = new Map(this.gBodies.map((b, i) => [this.bCarrier[i], b]));
 
-    // 0. the sphere at the core: a lit 3D orb of me, sunk inside the cage.
-    //    Drawn before the bonds so the 90 struts close over the front of it.
-    if (this.bPortrait) {
-      const pr = this.bRadius * 0.40;
-      // outer aura bleeding into the cage
-      const aura = ctx.createRadialGradient(cx, cy, pr * 0.85, cx, cy, pr * 2.05);
-      aura.addColorStop(0, 'rgba(129,140,248,0.34)');
-      aura.addColorStop(0.55, 'rgba(167,139,250,0.13)');
-      aura.addColorStop(1, 'rgba(167,139,250,0)');
-      ctx.fillStyle = aura;
-      ctx.beginPath();
-      ctx.arc(cx, cy, pr * 2.05, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.drawImage(this.bPortrait, cx - pr, cy - pr, pr * 2, pr * 2);
-
-      // contact shadow under the orb so it sits in space rather than on glass
-      const base = ctx.createRadialGradient(cx, cy + pr * 0.86, 0, cx, cy + pr * 0.86, pr * 0.95);
-      base.addColorStop(0, 'rgba(2,6,23,0.5)');
-      base.addColorStop(1, 'rgba(2,6,23,0)');
-      ctx.fillStyle = base;
-      ctx.beginPath();
-      ctx.ellipse(cx, cy + pr * 0.9, pr * 0.9, pr * 0.22, 0, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
     // 1. the cage: 90 C–C bonds, depth-sorted so the far side sits behind
     const bonds = this.bBonds
       .map(([i, j]) => ({ i, j, z: (this.bProj[i].z + this.bProj[j].z) / 2 }))
@@ -2602,20 +2570,15 @@ export class App implements OnInit, AfterViewInit {
       .filter(m => !!m.p)
       .sort((m, n) => m.p.z - n.p.z);
 
-    const orbR = this.bPortrait ? this.bRadius * 0.40 : 0;
     for (const { b, p } of drawOrder) {
       const isHover = b.id === hovered;
       const isNear = !!near?.has(b.id);
       const dim = !!hovered && !isHover && !isNear;
-      // a front vertex crossing the orb would sit on the face: fade it back so
-      // the portrait stays readable and the cage still reads as closing over it
-      const overOrb = orbR > 0 && p.z > 0
-        && Math.hypot(p.x - cx, p.y - cy) < orbR * 1.02;
       const color = this.nodeColor(b);
       const depth = (p.z + 1) / 2;
       const r = b.r * (0.62 + depth * 0.55);
 
-      ctx.globalAlpha = (dim ? 0.18 : 0.35 + depth * 0.65) * (overOrb && !isHover ? 0.28 : 1);
+      ctx.globalAlpha = dim ? 0.18 : 0.35 + depth * 0.65;
 
       // glow
       const halo = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 3.4);
