@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: astro-intel-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PW_SALT
+        generateValue: true
+      - key: MASTER_API_KEY
+        sync: false
+      - key: APP_ENV
+        value: production
+      - key: APP_URL
+        value: https://aurawithrav.com
