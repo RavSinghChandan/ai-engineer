@@ -110,3 +110,6 @@ portfolio-app/public/slide-portfolio.png
 
 # Salesflow telegram platform artifacts
 salesflow-ai/platforms/telegram/
+
+# deployment secrets - never commit
+**/DEPLOY_ENV_VARS.txt
