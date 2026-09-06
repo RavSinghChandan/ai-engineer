@@ -131,7 +131,7 @@ import { RouterLink } from '@angular/router';
     .card img { width: clamp(34px, 5.2vh, 52px); height: clamp(34px, 5.2vh, 52px);
                 object-fit: contain; margin-bottom: .35rem; }
     .card h3 { margin: 0 0 .2rem; font-size: clamp(.8rem, 1.7vh, .95rem); color: #4338ca; }
-    .card p { margin: 0; color: #4b5563; font-size: clamp(.62rem, 1.25vh, .78rem); line-height: 1.32; }
+    .card p { margin: 0; color: #4b5563; font-size: clamp(.79rem, 1.5vh, .85rem); line-height: 1.4; }
 
     .steps {
       display: flex; flex-wrap: wrap; justify-content: center;
@@ -146,22 +146,39 @@ import { RouterLink } from '@angular/router';
     .steps .dot { color: #9ca3af; }
 
     .cta { display: flex; gap: .65rem; flex-wrap: wrap; justify-content: center; }
-    .btn { padding: clamp(.6rem, 1.5vh, .85rem) clamp(1.1rem, 3vw, 1.9rem);
-           border-radius: 10px; font-weight: 700; text-decoration: none;
-           font-size: clamp(.82rem, 1.7vh, .97rem); white-space: nowrap; }
+    .btn { padding: clamp(.85rem, 1.8vh, 1rem) clamp(1.2rem, 3vw, 1.9rem);
+           border-radius: 12px; font-weight: 700; text-decoration: none;
+           font-size: clamp(.95rem, 1.9vh, 1rem); white-space: nowrap;
+           min-height: 50px; display: inline-flex; align-items: center;
+           justify-content: center; box-sizing: border-box; }
     .btn-primary { background: #4338ca; color: #fff; box-shadow: 0 4px 14px rgba(67,56,202,.25); }
     .btn-ghost { background: rgba(255,255,255,.75); color: #4338ca; border: 1.5px solid #c7d2fe; }
 
     .foot {
       display: flex; flex-wrap: wrap; justify-content: center; align-items: center;
-      gap: .45rem; font-size: clamp(.66rem, 1.3vh, .78rem); color: #6b7280;
+      gap: .35rem .55rem; font-size: clamp(.8rem, 1.5vh, .85rem); color: #6b7280;
     }
-    .foot a { color: #4338ca; text-decoration: none; font-weight: 600; }
-    .foot .copy { flex-basis: 100%; text-align: center; color: #9ca3af; }
+    .foot a { color: #4338ca; text-decoration: none; font-weight: 600;
+              padding: .55rem .3rem; display: inline-flex; align-items: center;
+              min-height: 44px; }
+    .foot .copy { flex-basis: 100%; text-align: center; color: #9ca3af; font-size: .78rem; }
 
     /* Phones: two columns of cards keeps everything on one screen. */
+    /* Phones carry ~90% of the traffic, so readable text and real tap targets
+       matter more than squeezing everything above the fold. Let it scroll. */
     @media (max-width: 640px) {
-      .cards { grid-template-columns: repeat(2, 1fr); }
+      .screen { min-height: auto; padding: 1.75rem 1rem 2rem; }
+      .inner { gap: 1.15rem; }
+      .cards { grid-template-columns: repeat(2, 1fr); gap: .7rem; }
+      .card { padding: .95rem .75rem; }
+      .card img { width: 46px; height: 46px; }
+      .card h3 { font-size: .95rem; }
+      .card p { font-size: .82rem; line-height: 1.45; }
+      .title { font-size: 2.05rem; }
+      .tag { font-size: 1.02rem; }
+      .sub { font-size: .88rem; }
+      .avatar { width: 96px; }
+      .steps { font-size: .85rem; gap: .4rem .6rem; }
       .watermark { width: 86vw; opacity: .05; }
       .cta { width: 100%; flex-direction: column; }
       .btn { width: 100%; box-sizing: border-box; text-align: center; }
