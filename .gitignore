@@ -113,3 +113,5 @@ salesflow-ai/platforms/telegram/
 
 # deployment secrets - never commit
 **/DEPLOY_ENV_VARS.txt
+
+**/RENDER_PASTE_THIS.txt
