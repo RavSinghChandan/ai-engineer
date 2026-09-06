@@ -63,7 +63,12 @@ def get_conn():
     if _USE_PG:
         import psycopg2
         import psycopg2.extras
-        conn = psycopg2.connect(_DATABASE_URL)
+        # Managed Postgres (Supabase, Neon, RDS) requires TLS. Only add it
+        # when the URL does not already say what it wants.
+        dsn = _DATABASE_URL
+        if "sslmode=" not in dsn:
+            dsn += ("&" if "?" in dsn else "?") + "sslmode=require"
+        conn = psycopg2.connect(dsn)
         conn.autocommit = False
         return _PgConnShim(conn)
     else:
