@@ -145,6 +145,47 @@ async def list_leads(
     return [LeadOut(**asdict(l)) for l in store.list_leads()]
 
 
+@router.get("/admin/leads.csv")
+async def export_leads_csv(
+    ctx: TenantContext = Depends(can(Permission.LEAD__VIEW_ALL)),
+):
+    """ADMIN/SUPERADMIN: every lead as a CSV file, ready to open in Excel."""
+    import csv, io
+    from dataclasses import asdict
+    from datetime import datetime, timezone
+    from fastapi.responses import StreamingResponse
+
+    columns = [
+        "lead_id", "name", "email", "phone", "dob", "time_of_birth",
+        "place_of_birth", "alias_name", "question", "status",
+        "consent", "created_at", "updated_at", "notes",
+    ]
+
+    def when(value):
+        try:
+            return datetime.fromtimestamp(float(value), timezone.utc).strftime("%Y-%m-%d %H:%M")
+        except (TypeError, ValueError):
+            return ""
+
+    buffer = io.StringIO()
+    # utf-8-sig further down keeps Excel happy with non-ASCII names.
+    writer = csv.writer(buffer)
+    writer.writerow([c.replace("_", " ").title() for c in columns])
+    for lead in store.list_leads():
+        row = asdict(lead)
+        writer.writerow([
+            when(row.get(c)) if c in ("created_at", "updated_at") else row.get(c, "")
+            for c in columns
+        ])
+
+    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    return StreamingResponse(
+        iter([buffer.getvalue().encode("utf-8-sig")]),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="aura-leads-{stamp}.csv"'},
+    )
+
+
 @router.post("/admin/leads/{lead_id}/attach-report")
 async def attach_report_to_lead(
     lead_id: str,
