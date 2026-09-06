@@ -31,6 +31,33 @@ _SQLITE_DB_PATH = Path(os.environ.get("SQLITE_DB_PATH", "astrointel.db"))
 
 # ── Connection factory ────────────────────────────────────────────────────────
 
+class _PgConnShim:
+    """Let PostgreSQL accept the SQLite call style used across this codebase.
+
+    The rest of the code calls conn.execute("... WHERE x=?", (v,)) and chains
+    .fetchone()/.fetchall() straight off it. psycopg2 needs a cursor and uses
+    %s placeholders, so translate both here rather than rewriting every query.
+    """
+
+    def __init__(self, conn):
+        self._conn = conn
+
+    def execute(self, sql, params=()):
+        import psycopg2.extras
+        # SQLite-only syntax that PostgreSQL spells differently
+        if "INSERT OR IGNORE INTO" in sql:
+            sql = sql.replace("INSERT OR IGNORE INTO", "INSERT INTO")
+            if "ON CONFLICT" not in sql:
+                sql = sql.rstrip().rstrip(";") + " ON CONFLICT DO NOTHING"
+        sql = sql.replace("?", "%s")
+        cur = self._conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cur.execute(sql, params)
+        return cur
+
+    def __getattr__(self, name):
+        return getattr(self._conn, name)
+
+
 def get_conn():
     """Return a live database connection (SQLite or PostgreSQL)."""
     if _USE_PG:
@@ -38,7 +65,7 @@ def get_conn():
         import psycopg2.extras
         conn = psycopg2.connect(_DATABASE_URL)
         conn.autocommit = False
-        return conn
+        return _PgConnShim(conn)
     else:
         import sqlite3
         conn = sqlite3.connect(str(_SQLITE_DB_PATH), check_same_thread=False)
