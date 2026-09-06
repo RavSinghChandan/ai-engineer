@@ -47,4 +47,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
 EXPOSE 8080
 
 # Cloud hosts (Railway, Render) inject $PORT; fall back to 8080 locally.
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8080} --workers 2"]
+# One worker by default: this image runs on a 512MB instance, and a second
+# worker loading LangChain and FAISS again pushes it over the limit, which the
+# platform answers with an intermittent 502. Override with WEB_CONCURRENCY.
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8080} --workers ${WEB_CONCURRENCY:-1}"]
