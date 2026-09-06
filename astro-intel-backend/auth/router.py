@@ -18,7 +18,11 @@ from __future__ import annotations
 
 import secrets, time
 from collections import defaultdict
+import os
+
 from fastapi import APIRouter, Depends, HTTPException, status, Request
+
+from guardrails.production import RateLimiter
 from pydantic import BaseModel
 from typing import List, Optional
 
@@ -150,12 +154,41 @@ class KeyOut(BaseModel):
 
 # ── POST /auth/register — self-registration (USER) ───────────────────────────
 
+# This runs on a small free instance. Two limits keep it from being swamped:
+# a cap on how many accounts exist at all, and a cap on how fast new ones can
+# be created. Both are env-tunable so raising them needs no code change.
+_MAX_USERS = int(os.environ.get("MAX_TOTAL_USERS", "500"))
+_signup_limiter = RateLimiter(
+    max_requests=int(os.environ.get("SIGNUPS_PER_HOUR", "20")),
+    window_seconds=3600,
+)
+
+
 @router.post("/auth/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
-async def register(req: RegisterRequest):
+async def register(req: RegisterRequest, request: Request):
     """
     Self-register as a USER. Creates an account + personal tenant instantly.
     Returns a JWT so the user is logged in immediately.
     """
+    # Turn people away politely rather than letting the instance fall over.
+    if len(users.list_users()) >= _MAX_USERS:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=(
+                "We have reached the number of free accounts this trial can host. "
+                "Please book a session at https://topmate.io/aurawithrav and we will "
+                "read for you directly."
+            ),
+        )
+
+    client_ip = (request.client.host if request.client else "unknown")
+    allowed, reason = _signup_limiter.is_allowed(f"signup:{client_ip}")
+    if not allowed:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many sign-ups from this network. Please try again later.",
+        )
+
     try:
         user = users.create_user(req.email, req.name, req.password, phone=req.phone)
     except ValueError as e:
