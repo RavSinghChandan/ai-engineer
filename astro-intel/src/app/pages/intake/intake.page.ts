@@ -16,12 +16,10 @@ import { UI_STRINGS_EN, UiStrings, getUiStrings } from './ui-strings';
 
 const BACKEND = environment.apiUrl;
 
+// Numerology only. The other readings are still implemented end to end, so
+// adding one back is a matter of restoring its line here.
 const ALL_MODULES: { id: Module; label: string; icon: string; desc: string; glyph: string }[] = [
-  { id: 'astrology',  label: 'Vedic Astrology', icon: '🪐', glyph: '♈', desc: 'Lagna · Planets · Dasha · Doshas' },
   { id: 'numerology', label: 'Numerology',       icon: '🔢', glyph: '∞', desc: 'Indian · Chaldean · Pythagorean' },
-  { id: 'palmistry',  label: 'Palmistry',        icon: '✋', glyph: '☽', desc: 'Indian · Chinese · Western' },
-  { id: 'tarot',      label: 'Tarot',            icon: '🃏', glyph: '★', desc: '3-card or 5-card spread' },
-  { id: 'vastu',      label: 'Vastu Shastra',    icon: '🏠', glyph: '⊕', desc: 'Space energy · Directions' },
 ];
 
 const DIRECTIONS  = ['North','Northeast','East','Southeast','South','Southwest','West','Northwest'];

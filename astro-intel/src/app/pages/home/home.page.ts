@@ -17,30 +17,30 @@ import { RouterLink } from '@angular/router';
           </div>
           <h1 class="title"><strong>AURA</strong> <em>with Rav</em></h1>
           <p class="tag">See life — as it is.</p>
-          <p class="sub">360° Astro-Spiritual Intelligence Platform</p>
+          <p class="sub">Numerology readings, in plain language</p>
         </div>
 
         <!-- Services -->
         <div class="cards">
           <div class="card">
-            <img src="jyoti.svg" alt="" />
-            <h3>Astrology</h3>
-            <p>Vedic, KP &amp; Western, read together</p>
+            <img src="aarav.svg" alt="" />
+            <h3>Your Core Numbers</h3>
+            <p>Life Path, Destiny and Soul Urge, worked out from your name and date of birth</p>
           </div>
           <div class="card">
-            <img src="aarav.svg" alt="" />
-            <h3>Numerology</h3>
-            <p>Your core numbers and what they mean</p>
+            <img src="jyoti.svg" alt="" />
+            <h3>Three Systems</h3>
+            <p>Indian, Chaldean and Pythagorean — compared, not picked one at a time</p>
           </div>
           <div class="card">
             <img src="jyoti-thinking.svg" alt="" />
-            <h3>Palmistry</h3>
-            <p>Lines and mounts from a photograph</p>
+            <h3>Ask Anything</h3>
+            <p>Career, relationships, health or timing — answered against your numbers</p>
           </div>
           <div class="card">
             <img src="aarav-wow.svg" alt="" />
-            <h3>Tarot &amp; Vastu</h3>
-            <p>Your question, and the space you live in</p>
+            <h3>Full Life Report</h3>
+            <p>A complete written reading covering every area, plus practical remedies</p>
           </div>
         </div>
 
@@ -48,9 +48,9 @@ import { RouterLink } from '@angular/router';
         <div class="steps">
           <span><b>1</b> Create a free account</span>
           <span class="dot">·</span>
-          <span><b>2</b> Share your birth details</span>
+          <span><b>2</b> Share your name and date of birth</span>
           <span class="dot">·</span>
-          <span><b>3</b> Get your 360° reading</span>
+          <span><b>3</b> Get your numerology reading</span>
         </div>
 
         <!-- Call to action -->
@@ -95,7 +95,7 @@ import { RouterLink } from '@angular/router';
       position: relative; z-index: 1;
       width: 100%; max-width: 940px;
       display: flex; flex-direction: column;
-      align-items: center; gap: clamp(.7rem, 2vh, 1.4rem);
+      align-items: center; gap: clamp(.5rem, 1.7vh, 1.4rem);
     }
 
     .brand { text-align: center; }
@@ -125,13 +125,13 @@ import { RouterLink } from '@angular/router';
     }
     .card {
       background: rgba(255,255,255,.8); border: 1px solid #e5e7eb;
-      border-radius: 12px; padding: clamp(.6rem, 1.6vh, 1rem) .6rem;
+      border-radius: 12px; padding: clamp(.45rem, 1.3vh, 1rem) .55rem;
       text-align: center;
     }
     .card img { width: clamp(34px, 5.2vh, 52px); height: clamp(34px, 5.2vh, 52px);
                 object-fit: contain; margin-bottom: .35rem; }
     .card h3 { margin: 0 0 .2rem; font-size: clamp(.8rem, 1.7vh, .95rem); color: #4338ca; }
-    .card p { margin: 0; color: #4b5563; font-size: clamp(.66rem, 1.35vh, .8rem); line-height: 1.4; }
+    .card p { margin: 0; color: #4b5563; font-size: clamp(.62rem, 1.25vh, .78rem); line-height: 1.32; }
 
     .steps {
       display: flex; flex-wrap: wrap; justify-content: center;
