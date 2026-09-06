@@ -21,7 +21,7 @@
       <span class="refresh-icon">↻</span>
       {{ loading() ? 'Loading…' : 'Refresh' }}
     </button>
-    <button class="hdr-btn hdr-btn-home" (click)="router.navigate(['/'])" title="Back to Home">
+    <button class="hdr-btn hdr-btn-home" (click)="router.navigate(['/intake'])" title="Back to Home">
       <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
         <path d="M1.5 6.5L6.5 2l5 4.5M2.5 6v5h2.5V8h3v3h2.5V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
@@ -71,7 +71,7 @@
         <div class="empty-icon">📊</div>
         <h3 class="empty-title">No data yet</h3>
         <p class="empty-sub">Submit an analysis on the home page to see live metrics populate here.</p>
-        <button class="btn-primary" (click)="router.navigate(['/'])">Run Analysis →</button>
+        <button class="btn-primary" (click)="router.navigate(['/intake'])">Run Analysis →</button>
       </div>
     } @else {
 

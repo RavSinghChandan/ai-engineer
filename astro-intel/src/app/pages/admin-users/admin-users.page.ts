@@ -1071,5 +1071,5 @@ export class AdminUsersPage implements OnInit {
     });
   }
 
-  goHome() { this.router.navigate(['/']); }
+  goHome() { this.router.navigate(['/intake']); }
 }

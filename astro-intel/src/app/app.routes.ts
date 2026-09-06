@@ -7,7 +7,12 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/login/login.page').then(m => m.LoginPage),
   },
   {
+    // Public landing page - visitors see this before signing in.
     path: '',
+    loadComponent: () => import('./pages/home/home.page').then(m => m.HomePage),
+  },
+  {
+    path: 'intake',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/intake/intake.page').then(m => m.IntakePage),
   },

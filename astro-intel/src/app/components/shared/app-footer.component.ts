@@ -22,17 +22,17 @@ import { CommonModule } from '@angular/common';
         Email
       </a>
       <span class="sf-d-sep">·</span>
-      <a href="https://www.youtube.com/@aurawithrav" class="sf-d-link sf-yt" target="_blank" rel="noopener" title="YouTube">
+      <a href="https://www.youtube.com/@aurawithrav" class="sf-d-link sf-yt" rel="noopener noreferrer external" title="YouTube">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-1.96C18.88 4 12 4 12 4s-6.88 0-8.6.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.94 1.96C5.12 20 12 20 12 20s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58zM9.75 15.02V8.98L15.5 12l-5.75 3.02z"/></svg>
         YouTube
       </a>
       <span class="sf-d-sep">·</span>
-      <a href="https://www.linkedin.com/groups/10040340/" class="sf-d-link sf-li" target="_blank" rel="noopener" title="LinkedIn">
+      <a href="https://www.linkedin.com/groups/10040340/" class="sf-d-link sf-li" rel="noopener noreferrer external" title="LinkedIn">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
         LinkedIn
       </a>
       <span class="sf-d-sep">·</span>
-      <a href="https://topmate.io/aurawithrav" class="sf-d-book" target="_blank" rel="noopener">
+      <a href="https://topmate.io/aurawithrav" rel="noopener noreferrer external" class="sf-d-book" rel="noopener noreferrer external">
         Book a Session ↗
       </a>
     </div>
@@ -52,21 +52,21 @@ import { CommonModule } from '@angular/common';
       </div>
 
       <div class="sf-m-links">
-        <a href="mailto:aurawithrav@gmail.com" class="sf-m-link" target="_blank" rel="noopener">
+        <a href="mailto:aurawithrav@gmail.com" class="sf-m-link" rel="noopener noreferrer external">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
           aurawithrav&#64;gmail.com
         </a>
-        <a href="https://www.youtube.com/@aurawithrav" class="sf-m-link sf-m-yt" target="_blank" rel="noopener">
+        <a href="https://www.youtube.com/@aurawithrav" class="sf-m-link sf-m-yt" rel="noopener noreferrer external">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-1.96C18.88 4 12 4 12 4s-6.88 0-8.6.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.94 1.96C5.12 20 12 20 12 20s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58zM9.75 15.02V8.98L15.5 12l-5.75 3.02z"/></svg>
           YouTube — @aurawithrav
         </a>
-        <a href="https://www.linkedin.com/groups/10040340/" class="sf-m-link sf-m-li" target="_blank" rel="noopener">
+        <a href="https://www.linkedin.com/groups/10040340/" class="sf-m-link sf-m-li" rel="noopener noreferrer external">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
           LinkedIn Community
         </a>
       </div>
 
-      <a href="https://topmate.io/aurawithrav" class="sf-m-cta" target="_blank" rel="noopener">
+      <a href="https://topmate.io/aurawithrav" rel="noopener noreferrer external" class="sf-m-cta" rel="noopener noreferrer external">
         Book a 1-on-1 Session with Chandan Kumar ↗
       </a>
 

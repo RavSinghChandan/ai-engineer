@@ -307,7 +307,7 @@ function validateProfile(p: {
       }
 
       <!-- Book a Session CTA -->
-      <a href="https://topmate.io/aurawithrav" class="hdr-book-btn" target="_blank" rel="noopener">Book a Session</a>
+      <a href="https://topmate.io/aurawithrav" rel="noopener noreferrer external" class="hdr-book-btn" rel="noopener noreferrer external">Book a Session</a>
 
       <!-- Divider -->
       <div class="hdr-divider"></div>

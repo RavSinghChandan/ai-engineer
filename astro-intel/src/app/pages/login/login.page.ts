@@ -140,7 +140,7 @@ export class LoginPage implements OnInit, OnDestroy {
     this.loading.set(true);
     this.error.set('');
     this.auth.login(this.siEmail().trim(), this.siPassword()).subscribe({
-      next:  () => this.router.navigate(['/']),
+      next:  () => this.router.navigate(['/intake']),
       error: (e: Error) => { this.error.set(e.message); this.loading.set(false); },
     });
   }
@@ -227,7 +227,7 @@ export class LoginPage implements OnInit, OnDestroy {
       : this.auth.verifyOtp(email, code);
 
     obs.subscribe({
-      next:  () => this.router.navigate(['/']),
+      next:  () => this.router.navigate(['/intake']),
       error: (e: Error) => { this.error.set(e.message); this.loading.set(false); },
     });
   }

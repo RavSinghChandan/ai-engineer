@@ -51,7 +51,7 @@ const BACKEND = environment.apiUrl;
     </div>
 
     <div class="hdr-right">
-      <button class="hdr-nav-btn hdr-home-btn" (click)="router.navigate(['/'])" title="Home">
+      <button class="hdr-nav-btn hdr-home-btn" (click)="router.navigate(['/intake'])" title="Home">
         <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1.5 6.5L6.5 2l5 4.5M2.5 6v5h2.5V8h3v3h2.5V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Home
       </button>
@@ -2629,7 +2629,7 @@ export class ReviewPage {
     if (this.auth.isAdmin() && this.leadId()) {
       this.router.navigate(['/admin/users']);
     } else {
-      this.router.navigate(['/']);
+      this.router.navigate(['/intake']);
     }
   }
 
