@@ -98,9 +98,14 @@ _allowed_origins = (
     if _env_origins
     else _default_origins
 )
+# Vercel gives every deployment its own hostname, so match them by pattern
+# rather than listing each one.
+_origin_regex = r"https://.*\.vercel\.app"
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_allowed_origins,
+    allow_origin_regex=_origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

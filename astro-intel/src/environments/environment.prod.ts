@@ -1,4 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://api.aurawithrav.com',
+  // Live backend on Render. Swap to https://api.aurawithrav.com once that
+  // CNAME points at the same service.
+  apiUrl: 'https://astro-intel-api.onrender.com',
 };
