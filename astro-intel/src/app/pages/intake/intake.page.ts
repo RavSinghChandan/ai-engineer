@@ -2030,10 +2030,30 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
   background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2);
   font-size: 12px; color: #4338ca;
 }
+/* The download is the one thing a user came here for, so it is sized like a
+   primary action rather than a secondary control: full width, large text and
+   a comfortable tap target on a phone. */
 .report-dl-btn {
   background: linear-gradient(135deg, #059669, #10b981) !important;
-  box-shadow: 0 4px 14px rgba(16,185,129,0.4) !important;
-  padding: 12px 28px !important; font-size: 14px !important;
+  box-shadow: 0 6px 22px rgba(16,185,129,0.45) !important;
+  padding: 18px 32px !important;
+  font-size: 17px !important;
+  font-weight: 800 !important;
+  width: 100% !important;
+  max-width: 420px;
+  margin: 4px auto 0 !important;
+  display: flex !important;
+  align-items: center; justify-content: center; gap: 10px;
+  min-height: 56px;              /* comfortably above the 44px tap-target floor */
+  letter-spacing: .2px;
+}
+.report-dl-btn svg { width: 20px !important; height: 20px !important; flex: none; }
+.report-dl-btn:hover:not(:disabled) {
+  box-shadow: 0 8px 28px rgba(16,185,129,0.55) !important;
+  transform: translateY(-2px);
+}
+@media (max-width: 640px) {
+  .report-dl-btn { font-size: 16px !important; padding: 17px 20px !important; max-width: none; }
 }
 
 /* ── Auto-poll note ── */
