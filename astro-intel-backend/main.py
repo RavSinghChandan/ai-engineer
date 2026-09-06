@@ -112,6 +112,34 @@ app.add_middleware(
 )
 
 # ── Routers ──────────────────────────────────────────────────────────────────
+# ── Keep-alive ────────────────────────────────────────────────────────────────
+# Render's free tier sleeps a service after ~15 minutes of no traffic, and the
+# next request then waits ~50s for a cold start - long enough that the browser
+# gives up and a sign-up looks broken. Ping ourselves so that never happens.
+# Only runs when RENDER_EXTERNAL_URL is set, so local development is untouched.
+
+@app.on_event("startup")
+async def _start_keep_alive() -> None:
+    import asyncio
+
+    base = os.environ.get("RENDER_EXTERNAL_URL", "").rstrip("/")
+    if not base:
+        return
+
+    async def _ping_forever() -> None:
+        import urllib.request
+        while True:
+            await asyncio.sleep(600)  # 10 minutes, comfortably under the 15 limit
+            try:
+                await asyncio.to_thread(
+                    urllib.request.urlopen, f"{base}/health", None, 30
+                )
+            except Exception:
+                pass  # a failed ping must never take the app down
+
+    asyncio.create_task(_ping_forever())
+
+
 app.include_router(auth_router)          # /auth/token, /admin/*
 app.include_router(leads_router)         # /leads, /admin/leads
 app.include_router(analysis_router)       # /api/v1/analysis/* — auth wired per-endpoint
