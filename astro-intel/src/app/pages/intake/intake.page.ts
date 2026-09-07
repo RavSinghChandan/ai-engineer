@@ -2066,8 +2066,14 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
     display: inline-flex; align-items: center; justify-content: center;
   }
   .sf-m-link { min-height: 44px; display: inline-flex; align-items: center; }
-  .req, .opt, .card-sub, .pv-desc, .ptb-title, .hdr-tag, .hdr-btn-label {
+  .req, .opt, .card-sub, .pv-desc, .ptb-title, .hdr-tag, .hdr-btn-label,
+  .flabel-hint, .q-word-count, .mod-chip-name, .mod-chip-desc,
+  .mod-chip-check, .pv-label, .pv-badge {
     font-size: 12.5px;
+  }
+  .cta, .graph-fab {
+    min-height: 44px; min-width: 44px;
+    display: inline-flex; align-items: center; justify-content: center;
   }
 }
 

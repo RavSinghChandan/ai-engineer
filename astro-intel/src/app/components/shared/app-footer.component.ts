@@ -209,7 +209,15 @@ import { CommonModule } from '@angular/common';
     padding-top: 0.75rem;
   }
 }
-  `]
+  
+    /* Phone: footer links need a real tap target, separators need to be legible. */
+    @media (max-width: 640px) {
+      .sf-m-link, .sf-m-cta {
+        min-height: 44px; display: inline-flex; align-items: center; justify-content: center;
+      }
+      .sf-d-sep { font-size: 12.5px; }
+    }
+`]
 })
 export class AppFooterComponent {
   readonly year = new Date().getFullYear();
