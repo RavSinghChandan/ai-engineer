@@ -2052,6 +2052,25 @@ input[type=date].inp, input[type=time].inp { color-scheme: light; }
   box-shadow: 0 8px 28px rgba(16,185,129,0.55) !important;
   transform: translateY(-2px);
 }
+/* Roughly 90% of visitors are on a phone, so every control here is sized for a
+   thumb (44px minimum) and no label drops below 12px. */
+@media (max-width: 640px) {
+  .inp, .ptb-lang-select, select, textarea {
+    min-height: 46px; font-size: 16px;   /* 16px also stops iOS zooming on focus */
+  }
+  .topic-pill, .tod-pill {
+    min-height: 44px; padding: 10px 14px; font-size: 14px;
+  }
+  .hdr-book-btn, .hdr-icon-btn, .hdr-signout-btn {
+    min-height: 44px; min-width: 44px;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .sf-m-link { min-height: 44px; display: inline-flex; align-items: center; }
+  .req, .opt, .card-sub, .pv-desc, .ptb-title, .hdr-tag, .hdr-btn-label {
+    font-size: 12.5px;
+  }
+}
+
 @media (max-width: 640px) {
   .report-dl-btn { font-size: 16px !important; padding: 17px 20px !important; max-width: none; }
 }
