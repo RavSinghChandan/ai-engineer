@@ -10,6 +10,7 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 // Browser SpeechRecognition — vendor-prefixed in some browsers
 declare const webkitSpeechRecognition: any;
@@ -26,7 +27,11 @@ export interface AstroMessage {
 @Injectable({ providedIn: 'root' })
 export class AstroAgentService {
 
-  private readonly agentUrl = 'http://localhost:8010/agent';
+  // The voice agent runs as a separate local service during development. It is
+  // not deployed, so in production this stays empty and every call short-circuits
+  // rather than firing a request that is guaranteed to fail.
+  private readonly agentUrl = environment.production ? '' : 'http://localhost:8010/agent';
+  private get agentAvailable(): boolean { return this.agentUrl !== ''; }
 
   // Rate limit — 10 questions per session
   private readonly QUESTION_LIMIT = 10;
@@ -133,6 +138,7 @@ export class AstroAgentService {
   }
 
   private _loadVoiceConfig(): void {
+    if (!this.agentAvailable) return;
     this.http.get<any>(`${this.agentUrl}/voice/config`).subscribe({
       next: (cfg) => {
         if (typeof cfg.tts_rate   === 'number') this._ttsRate   = cfg.tts_rate;
