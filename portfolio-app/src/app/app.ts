@@ -853,6 +853,16 @@ export class App implements OnInit, AfterViewInit {
       logo: 'pypdf-logo.svg',
       org: 'py-pdf',
       stars: '10.1k★',
+      title: 'Do not crash when a page tree entry is not a dictionary',
+      desc: 'The page tree walk guarded the /Kids array but not the entries inside it, so a child that was a number, a string or an array crashed the whole document instead of being skipped.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4048',
+      merged: 'Sep 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
       title: 'Do not crash when the outlines entry is not a dictionary',
       desc: 'The outline reader cast the catalog /Outlines entry to a DictionaryObject and subscripted it, so a file storing a number or an array there brought down the read with a TypeError.',
       pr: 'https://github.com/py-pdf/pypdf/pull/4023',
@@ -963,6 +973,7 @@ export class App implements OnInit, AfterViewInit {
     { id: 'pypdf43', label: 'pypdf #4041',    kind: 'oss', detail: 'Page box not an array', url: 'https://github.com/py-pdf/pypdf/pull/4041' },
     { id: 'pypdf44', label: 'pypdf #4039',    kind: 'oss', detail: 'Destination tree node not an array', url: 'https://github.com/py-pdf/pypdf/pull/4039' },
     { id: 'pypdf45', label: 'pypdf #4046',    kind: 'oss', detail: 'Annotations not an array', url: 'https://github.com/py-pdf/pypdf/pull/4046' },
+    { id: 'pypdf46', label: 'pypdf #4048',    kind: 'oss', detail: 'Page tree entry not a dictionary', url: 'https://github.com/py-pdf/pypdf/pull/4048' },
 
     // Experience (amber)
     { id: 'infosys', label: 'Infosys — BofA', kind: 'work', detail: 'Senior Software Engineer' },
