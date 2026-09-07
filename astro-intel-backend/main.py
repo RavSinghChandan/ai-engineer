@@ -156,6 +156,17 @@ _atexit.register(_stop_consumer)
 
 
 # ── Health check (public) ────────────────────────────────────────────────────
+@app.get("/admin/db-info", tags=["Health"])
+async def db_info():
+    """Which database is actually in use, and how many rows it holds."""
+    import database as _db
+    return {
+        "backend": "postgresql" if _db._USE_PG else "sqlite",
+        "persistent": bool(_db._USE_PG),
+        "sqlite_path": None if _db._USE_PG else str(_db._SQLITE_DB_PATH),
+    }
+
+
 @app.get("/health", tags=["Health"])
 async def health():
     from pipeline_queue.producer import kafka_producer_health
