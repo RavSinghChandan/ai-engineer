@@ -863,6 +863,16 @@ export class App implements OnInit, AfterViewInit {
       logo: 'pypdf-logo.svg',
       org: 'py-pdf',
       stars: '10.1k★',
+      title: 'Do not crash when the page resources are not a dictionary',
+      desc: 'extract_text cast the inherited /Resources to a dictionary and then tested "/Font" in it, so a page whose /Resources was a number, a string or an array crashed instead of returning no text.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4054',
+      merged: 'Sep 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
       title: 'Do not crash when the outlines entry is not a dictionary',
       desc: 'The outline reader cast the catalog /Outlines entry to a DictionaryObject and subscripted it, so a file storing a number or an array there brought down the read with a TypeError.',
       pr: 'https://github.com/py-pdf/pypdf/pull/4023',
@@ -974,6 +984,7 @@ export class App implements OnInit, AfterViewInit {
     { id: 'pypdf44', label: 'pypdf #4039',    kind: 'oss', detail: 'Destination tree node not an array', url: 'https://github.com/py-pdf/pypdf/pull/4039' },
     { id: 'pypdf45', label: 'pypdf #4046',    kind: 'oss', detail: 'Annotations not an array', url: 'https://github.com/py-pdf/pypdf/pull/4046' },
     { id: 'pypdf46', label: 'pypdf #4048',    kind: 'oss', detail: 'Page tree entry not a dictionary', url: 'https://github.com/py-pdf/pypdf/pull/4048' },
+    { id: 'pypdf47', label: 'pypdf #4054',    kind: 'oss', detail: 'Page resources not a dictionary', url: 'https://github.com/py-pdf/pypdf/pull/4054' },
 
     // Experience (amber)
     { id: 'infosys', label: 'Infosys — BofA', kind: 'work', detail: 'Senior Software Engineer' },

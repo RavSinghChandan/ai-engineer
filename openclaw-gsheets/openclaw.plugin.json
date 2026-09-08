@@ -1,0 +1,24 @@
+{
+  "id": "gsheets",
+  "name": "Google Sheets",
+  "description": "Read and write the team Google Sheet. Destructive operations pin a Drive revision first so they can be rolled back from version history.",
+  "version": "0.1.0",
+  "configSchema": {
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
+  },
+  "activation": {
+    "onStartup": true
+  },
+  "contracts": {
+    "tools": [
+      "sheet_describe",
+      "sheet_read",
+      "sheet_append",
+      "sheet_update",
+      "sheet_clear",
+      "sheet_batch_update"
+    ]
+  }
+}
