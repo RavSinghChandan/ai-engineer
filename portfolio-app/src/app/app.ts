@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, HostListener, ElementRef, QueryList, ViewChildren, AfterViewInit, PLATFORM_ID, Inject, ViewChild, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, HostListener, ElementRef, QueryList, ViewChildren, AfterViewInit, PLATFORM_ID, Inject, ViewChild, inject } from '@angular/core';
 import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -873,6 +873,26 @@ export class App implements OnInit, AfterViewInit {
       logo: 'pypdf-logo.svg',
       org: 'py-pdf',
       stars: '10.1k★',
+      title: 'Do not crash when the font encoding differences are not an array',
+      desc: 'A font /Encoding whose /Differences was a number, string or dictionary was cast to an array and iterated, so text extraction raised TypeError. Layout mode propagated it; the default mode silently dropped the font and returned wrong glyphs.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4058',
+      merged: 'Sep 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Do not crash when the XFA entry is not a well-formed array',
+      desc: 'reader.xfa walked /XFA in tag/value pairs after a bare cast, so a non-array entry raised TypeError and an odd-length array raised StopIteration straight out of the property.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4064',
+      merged: 'Sep 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
       title: 'Do not crash when the outlines entry is not a dictionary',
       desc: 'The outline reader cast the catalog /Outlines entry to a DictionaryObject and subscripted it, so a file storing a number or an array there brought down the read with a TypeError.',
       pr: 'https://github.com/py-pdf/pypdf/pull/4023',
@@ -910,6 +930,100 @@ export class App implements OnInit, AfterViewInit {
     },
     // Next merges go here — e.g. pypdf #3972, uvicorn #3062 (in review).
   ];
+
+  // ── Open-source browser: filter by library, sort, paginate ──────────────
+  //    56 cards at once is a wall. Show 9, let people narrow it down.
+  readonly ossPageSize = 9;
+  ossLibrary = signal<string>('all');
+  ossSort = signal<'newest' | 'oldest' | 'stars' | 'library'>('newest');
+  ossPage = signal(1);
+
+  /** Library tabs with counts, biggest first. */
+  readonly ossLibraries = computed(() => {
+    const counts = new Map<string, { org: string; logo: string; n: number }>();
+    for (const o of this.openSource) {
+      const e = counts.get(o.repo) ?? { org: o.org, logo: o.logo, n: 0 };
+      e.n++;
+      counts.set(o.repo, e);
+    }
+    return [...counts.entries()]
+      .map(([repo, v]) => ({
+        repo,
+        ...v,
+        // Slug from the repo name: the `org` field is free text
+        // ('Hugging Face', 'NLTK'), so it cannot key a CSS selector.
+        slug: repo.split('/')[1].toLowerCase(),
+      }))
+      .sort((a, b) => b.n - a.n);
+  });
+
+  private starValue(s: string): number {
+    const v = s.replace('★', '').trim();
+    return v.endsWith('k') ? parseFloat(v) * 1000 : parseFloat(v);
+  }
+
+  /** PR number is the only reliable chronology — the merged label is month-level. */
+  private prNumber(url: string): number {
+    return Number(url.split('/').pop() ?? 0);
+  }
+
+  readonly ossFiltered = computed(() => {
+    const lib = this.ossLibrary();
+    const rows = lib === 'all'
+      ? [...this.openSource]
+      : this.openSource.filter(o => o.repo === lib);
+
+    switch (this.ossSort()) {
+      case 'oldest':
+        return rows.sort((a, b) => this.prNumber(a.pr) - this.prNumber(b.pr));
+      case 'stars':
+        return rows.sort((a, b) =>
+          this.starValue(b.stars) - this.starValue(a.stars) ||
+          this.prNumber(b.pr) - this.prNumber(a.pr));
+      case 'library':
+        return rows.sort((a, b) =>
+          a.repo.localeCompare(b.repo) || this.prNumber(b.pr) - this.prNumber(a.pr));
+      default:
+        return rows.sort((a, b) => this.prNumber(b.pr) - this.prNumber(a.pr));
+    }
+  });
+
+  readonly ossTotalPages = computed(() =>
+    Math.max(1, Math.ceil(this.ossFiltered().length / this.ossPageSize)));
+
+  readonly ossVisible = computed(() => {
+    // Clamp: a filter change can leave us past the last page.
+    const page = Math.min(this.ossPage(), this.ossTotalPages());
+    const start = (page - 1) * this.ossPageSize;
+    return this.ossFiltered().slice(start, start + this.ossPageSize);
+  });
+
+  readonly ossPageNumbers = computed(() =>
+    Array.from({ length: this.ossTotalPages() }, (_, i) => i + 1));
+
+  readonly ossRangeLabel = computed(() => {
+    const total = this.ossFiltered().length;
+    if (!total) return 'No matches';
+    const page = Math.min(this.ossPage(), this.ossTotalPages());
+    const from = (page - 1) * this.ossPageSize + 1;
+    return `${from}\u2013${Math.min(from + this.ossPageSize - 1, total)} of ${total}`;
+  });
+
+  setOssLibrary(repo: string): void {
+    this.ossLibrary.set(repo);
+    this.ossPage.set(1);
+  }
+
+  setOssSort(sort: 'newest' | 'oldest' | 'stars' | 'library'): void {
+    this.ossSort.set(sort);
+    this.ossPage.set(1);
+  }
+
+  goOssPage(n: number): void {
+    this.ossPage.set(Math.min(Math.max(1, n), this.ossTotalPages()));
+    document.getElementById('opensource')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
 
   // ── Interactive knowledge graph (hero section below the fold) ──────────────
   //    Nodes are the real things on this page; edges are how they actually

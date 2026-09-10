@@ -257,8 +257,45 @@
         <p class="oss-sub">Merged code into libraries the AI/ML world actually uses — <b>{{ openSource.length }} merged</b>, more in review.</p>
       </div>
     </div>
+    <!-- Library filter: colour-coded chips, biggest project first -->
+    <div class="oss-controls">
+      <div class="oss-chips" role="tablist" aria-label="Filter by library">
+        <button type="button" role="tab" class="oss-chip"
+                [class.is-active]="ossLibrary() === 'all'"
+                [attr.aria-selected]="ossLibrary() === 'all'"
+                (click)="setOssLibrary('all')">
+          All <span class="oss-chip-n">{{ openSource.length }}</span>
+        </button>
+        @for (lib of ossLibraries(); track lib.repo) {
+          <button type="button" role="tab" class="oss-chip"
+                  [attr.data-lib]="lib.slug"
+                  [class.is-active]="ossLibrary() === lib.repo"
+                  [attr.aria-selected]="ossLibrary() === lib.repo"
+                  (click)="setOssLibrary(lib.repo)">
+            <img class="oss-chip-logo" [src]="lib.logo" [alt]="" aria-hidden="true" />
+            {{ lib.repo.split('/')[1] }} <span class="oss-chip-n">{{ lib.n }}</span>
+          </button>
+        }
+      </div>
+
+      <div class="oss-sortbar">
+        <span class="oss-range">{{ ossRangeLabel() }}</span>
+        <label class="oss-sort">
+          <span class="oss-sort-label">Sort</span>
+          <select [value]="ossSort()"
+                  (change)="setOssSort($any($event.target).value)"
+                  aria-label="Sort merged pull requests">
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="stars">Most stars</option>
+            <option value="library">By library</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
     <div class="oss-grid">
-      @for (o of openSource; track o.pr) {
+      @for (o of ossVisible(); track o.pr) {
         <a class="oss-card" [href]="o.pr" target="_blank" rel="noopener">
           <div class="oss-top">
             <span class="oss-repo">
@@ -276,6 +313,23 @@
         </a>
       }
     </div>
+
+    @if (ossTotalPages() > 1) {
+      <nav class="oss-pager" aria-label="Merged pull request pages">
+        <button type="button" class="oss-page-btn oss-page-arrow"
+                [disabled]="ossPage() <= 1"
+                (click)="goOssPage(ossPage() - 1)" aria-label="Previous page">&larr;</button>
+        @for (n of ossPageNumbers(); track n) {
+          <button type="button" class="oss-page-btn"
+                  [class.is-active]="ossPage() === n"
+                  [attr.aria-current]="ossPage() === n ? 'page' : null"
+                  (click)="goOssPage(n)">{{ n }}</button>
+        }
+        <button type="button" class="oss-page-btn oss-page-arrow"
+                [disabled]="ossPage() >= ossTotalPages()"
+                (click)="goOssPage(ossPage() + 1)" aria-label="Next page">&rarr;</button>
+      </nav>
+    }
   </div>
 </section>
 
