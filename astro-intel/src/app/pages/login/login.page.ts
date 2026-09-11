@@ -1,7 +1,7 @@
 import { Component, signal, inject, computed, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { AppFooterComponent } from '../../components/shared/app-footer.component';
 
@@ -45,6 +45,7 @@ function validateConfirm(pass: string, confirm: string): string {
 export class LoginPage implements OnInit, OnDestroy {
   private auth   = inject(AuthService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   // On localhost auto-fill superadmin credentials so no manual typing needed
   private readonly _isLocal = typeof location !== 'undefined' &&
@@ -256,6 +257,8 @@ export class LoginPage implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    const tab = this.route.snapshot.queryParamMap.get('tab');
+    if (tab === 'signup' || tab === 'signin') this.tab.set(tab);
     if (this._isLocal) this.signIn();
   }
 

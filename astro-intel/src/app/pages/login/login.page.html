@@ -212,10 +212,10 @@
     }
 
     <!--
-    <!-- ── OTP LOGIN ── -->
+    ==== OTP LOGIN ====
     @if (tab() === 'otp') {
 
-      <!-- Email / Phone toggle -->
+      Email / Phone toggle
       <div class="otp-mode-toggle">
         <button class="otp-mode-btn" [class.active]="otpMode() === 'email'" (click)="switchOtpMode('email')">
           ✉ Email
@@ -226,7 +226,7 @@
       </div>
 
       @if (!otpSent()) {
-        <!-- Step 1 -->
+        Step 1
         <div class="otp-hero">
           <div class="otp-hero-icon">✦</div>
           @if (otpMode() === 'email') {
@@ -297,7 +297,7 @@
         </div>
 
       } @else {
-        <!-- Step 2: Enter code -->
+        Step 2: Enter code
         <div class="otp-hero sent">
           <div class="otp-hero-icon sent-icon">{{ otpMode() === 'phone' ? '📱' : '✉' }}</div>
           @if (otpMode() === 'email') {
