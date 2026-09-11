@@ -893,6 +893,16 @@ export class App implements OnInit, AfterViewInit {
       logo: 'pypdf-logo.svg',
       org: 'py-pdf',
       stars: '10.1k★',
+      title: 'Do not look up a page size that does not exist yet',
+      desc: 'insert_blank_page read an existing page\'s size before checking the caller supplied one, so on a writer with no pages it failed on the lookup instead of raising the documented PageSizeNotDefinedError.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4069',
+      merged: 'Sep 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
       title: 'Do not crash when the outlines entry is not a dictionary',
       desc: 'The outline reader cast the catalog /Outlines entry to a DictionaryObject and subscripted it, so a file storing a number or an array there brought down the read with a TypeError.',
       pr: 'https://github.com/py-pdf/pypdf/pull/4023',
@@ -1099,6 +1109,9 @@ export class App implements OnInit, AfterViewInit {
     { id: 'pypdf45', label: 'pypdf #4046',    kind: 'oss', detail: 'Annotations not an array', url: 'https://github.com/py-pdf/pypdf/pull/4046' },
     { id: 'pypdf46', label: 'pypdf #4048',    kind: 'oss', detail: 'Page tree entry not a dictionary', url: 'https://github.com/py-pdf/pypdf/pull/4048' },
     { id: 'pypdf47', label: 'pypdf #4054',    kind: 'oss', detail: 'Page resources not a dictionary', url: 'https://github.com/py-pdf/pypdf/pull/4054' },
+    { id: 'pypdf48', label: 'pypdf #4058',    kind: 'oss', detail: 'Font differences not an array', url: 'https://github.com/py-pdf/pypdf/pull/4058' },
+    { id: 'pypdf49', label: 'pypdf #4064',    kind: 'oss', detail: 'XFA entry not a well-formed array', url: 'https://github.com/py-pdf/pypdf/pull/4064' },
+    { id: 'pypdf50', label: 'pypdf #4069',    kind: 'oss', detail: 'Blank page size on an empty writer', url: 'https://github.com/py-pdf/pypdf/pull/4069' },
 
     // Experience (amber)
     { id: 'infosys', label: 'Infosys — BofA', kind: 'work', detail: 'Senior Software Engineer' },
