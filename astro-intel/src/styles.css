@@ -73,3 +73,7 @@ body { overflow-x: hidden; }
   0%, 100% { opacity: 1; transform: scale(1); }
   50%       { opacity: 0.4; transform: scale(0.7); }
 }
+
+/* Hide the app-wide brand stamp on the public home page — the home hero has
+   its own branding and the fixed stamp otherwise overlaps its content. */
+body.home-active .gw { display: none !important; }

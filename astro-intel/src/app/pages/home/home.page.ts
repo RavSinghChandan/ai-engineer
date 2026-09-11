@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 /**
@@ -29,7 +29,7 @@ import { RouterLink } from '@angular/router';
           <span class="logo-mark">✦</span>
           <span class="logo-text">AURA <em>with Rav</em></span>
         </a>
-        <a routerLink="/login" [queryParams]="{ tab: 'signin' }" class="nav-signin">Sign in</a>
+        <a routerLink="/login" class="nav-signin">Sign in</a>
       </header>
 
       <section class="hero">
@@ -47,7 +47,7 @@ import { RouterLink } from '@angular/router';
           </p>
 
           <div class="cta">
-            <a routerLink="/login" [queryParams]="{ tab: 'signup' }" class="btn btn-primary">
+            <a routerLink="/login" class="btn btn-primary">
               Get my reading — free
             </a>
             <a href="https://topmate.io/aurawithrav" rel="noopener noreferrer external" class="btn btn-ghost">
@@ -101,12 +101,12 @@ import { RouterLink } from '@angular/router';
             </li>
           </ul>
 
-          <a routerLink="/login" [queryParams]="{ tab: 'signup' }" class="btn btn-primary btn-block">
+          <a routerLink="/login" class="btn btn-primary btn-block">
             Create your free account
           </a>
           <p class="panel-foot">
             Already have one?
-            <a routerLink="/login" [queryParams]="{ tab: 'signin' }">Sign in</a>
+            <a routerLink="/login">Sign in</a>
           </p>
         </aside>
       </section>
@@ -146,6 +146,8 @@ import { RouterLink } from '@angular/router';
       background: var(--ink);
       overflow: hidden;
       font-synthesis: none;
+      /* Cover the app-wide brand stamp so it does not bleed onto the dark hero. */
+      z-index: 1;
     }
 
     /* ---- celestial backdrop -------------------------------------------- */
@@ -333,4 +335,9 @@ import { RouterLink } from '@angular/router';
     }
   `],
 })
-export class HomePage {}
+export class HomePage implements OnInit, OnDestroy {
+  // The app shell paints a fixed gold brand stamp on every page. It overlaps
+  // this dark hero, and the page carries its own brand mark, so hide it here.
+  ngOnInit(): void { document.body.classList.add('home-active'); }
+  ngOnDestroy(): void { document.body.classList.remove('home-active'); }
+}

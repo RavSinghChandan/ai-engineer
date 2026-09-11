@@ -26,8 +26,7 @@ import { AstroAgentComponent } from './components/astro-agent/astro-agent.compon
       filter: sepia(1) saturate(6) hue-rotate(5deg) brightness(0.85);
       opacity: 0.35;
       pointer-events: none;
-      /* Sit behind page content so the stamp never overlaps text. */
-      z-index: 0;
+      z-index: 9999;
     }
 
     @media print {
