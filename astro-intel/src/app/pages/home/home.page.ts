@@ -4,11 +4,12 @@ import { RouterLink } from '@angular/router';
 /**
  * Public landing page for aurawithrav.com.
  *
- * Design goals: a calm, premium, celestial feel that suits a numerology
- * practice — deep indigo night sky, soft gold accents, generous space — and a
- * clear path to sign in or create an account. The layout is a two-column hero
- * on desktop (brand + value on the left, a glass sign-in panel on the right)
- * that stacks cleanly to a single column on phones, which carry most traffic.
+ * Design goals: a calm, premium, light feel that suits a numerology practice —
+ * warm ivory ground, the AURA emblem tiled softly across the whole background,
+ * gold and ink accents — and a clear path to sign in or create an account. The
+ * layout is a two-column hero on desktop (brand + value on the left, a card on
+ * the right) that stacks to a single column on phones, which carry most
+ * traffic.
  */
 @Component({
   selector: 'app-home',
@@ -16,17 +17,16 @@ import { RouterLink } from '@angular/router';
   imports: [RouterLink],
   template: `
     <main class="page">
-      <!-- Celestial background: layered gradients + a slow starfield -->
-      <div class="sky" aria-hidden="true">
-        <div class="glow glow-a"></div>
-        <div class="glow glow-b"></div>
-        <div class="stars"></div>
-        <div class="ring"></div>
+      <!-- Tiled emblem watermark + soft colour washes -->
+      <div class="canvas" aria-hidden="true">
+        <div class="weave"></div>
+        <div class="wash wash-a"></div>
+        <div class="wash wash-b"></div>
       </div>
 
       <header class="nav">
         <a class="logo" routerLink="/">
-          <span class="logo-mark">✦</span>
+          <img src="rav-emblem.png" alt="" class="logo-mark" />
           <span class="logo-text">AURA <em>with Rav</em></span>
         </a>
         <a routerLink="/login" class="nav-signin">Sign in</a>
@@ -63,7 +63,7 @@ import { RouterLink } from '@angular/router';
           </div>
         </div>
 
-        <!-- RIGHT: glass panel that sells the "what you get" and routes to auth -->
+        <!-- RIGHT: card that sells the "what you get" and routes to auth -->
         <aside class="panel">
           <div class="panel-head">
             <h2>What you'll receive</h2>
@@ -112,7 +112,7 @@ import { RouterLink } from '@angular/router';
       </section>
 
       <footer class="foot">
-        <span class="foot-brand">✦ AURA with Rav</span>
+        <span class="foot-brand">AURA with Rav</span>
         <nav class="foot-links">
           <a href="https://topmate.io/aurawithrav" rel="noopener noreferrer external">Book a 1-on-1</a>
           <a href="mailto:aurawithrav&#64;gmail.com">Email</a>
@@ -125,69 +125,58 @@ import { RouterLink } from '@angular/router';
   styles: [`
     :host { display: block; }
 
-    /* ---- palette -------------------------------------------------------- */
+    /* ---- palette (light) ------------------------------------------------ */
     :host {
-      --ink: #0b0720;            /* deep night */
-      --ink-2: #150c33;
-      --violet: #7c6cff;
-      --violet-soft: #a99bff;
-      --gold: #f3c96b;
-      --gold-soft: #ffe6ad;
-      --text: #eae6ff;
-      --text-dim: #b3abd6;
-      --line: rgba(255,255,255,.10);
-      --glass: rgba(255,255,255,.055);
+      --ivory: #fbf8f2;          /* warm paper ground */
+      --ivory-2: #f4eee3;
+      --gold: #b08d3f;           /* the logo gold, darkened for contrast */
+      --gold-soft: #d8bd7e;
+      --ink: #2b2a33;            /* body text */
+      --ink-soft: #6b6878;
+      --line: rgba(43,42,51,.12);
+      --card: rgba(255,255,255,.82);
     }
 
     .page {
       position: relative; min-height: 100vh; min-height: 100dvh;
       display: flex; flex-direction: column;
-      color: var(--text);
-      background: var(--ink);
+      color: var(--ink);
+      background: var(--ivory);
       overflow: hidden;
       font-synthesis: none;
-      /* Cover the app-wide brand stamp so it does not bleed onto the dark hero. */
+      /* Cover the app-wide brand stamp; this page carries its own mark. */
       z-index: 1;
     }
 
-    /* ---- celestial backdrop -------------------------------------------- */
-    .sky { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
-    .glow { position: absolute; border-radius: 50%; filter: blur(80px); opacity: .55; }
-    .glow-a {
-      width: 60vw; height: 60vw; max-width: 780px; max-height: 780px;
-      top: -18vw; right: -12vw;
-      background: radial-gradient(circle, rgba(124,108,255,.75), transparent 68%);
+    /* ---- tiled emblem watermark ----------------------------------------- */
+    .canvas { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+    .weave {
+      position: absolute; inset: -10%;
+      background-image: url('/rav-emblem.png');
+      background-repeat: repeat;
+      background-size: clamp(120px, 14vw, 190px) auto;
+      /* Low opacity keeps it a watermark, not a pattern that fights the text. */
+      opacity: .07;
+      /* Slow drift so the page feels alive without distracting. */
+      animation: drift 90s linear infinite;
     }
-    .glow-b {
-      width: 52vw; height: 52vw; max-width: 680px; max-height: 680px;
-      bottom: -20vw; left: -14vw;
-      background: radial-gradient(circle, rgba(243,201,107,.30), transparent 66%);
+    @keyframes drift {
+      from { transform: translate3d(0, 0, 0); }
+      to   { transform: translate3d(-190px, -190px, 0); }
     }
-    /* starfield made from layered radial-gradient dots */
-    .stars {
-      position: absolute; inset: 0; opacity: .55;
-      background-image:
-        radial-gradient(1.4px 1.4px at 12% 22%, #fff, transparent),
-        radial-gradient(1.2px 1.2px at 82% 14%, #fff, transparent),
-        radial-gradient(1.6px 1.6px at 46% 68%, #fff, transparent),
-        radial-gradient(1px 1px at 68% 42%, #fff, transparent),
-        radial-gradient(1.3px 1.3px at 28% 84%, #fff, transparent),
-        radial-gradient(1px 1px at 92% 76%, #fff, transparent),
-        radial-gradient(1.1px 1.1px at 8% 56%, #fff, transparent),
-        radial-gradient(1.4px 1.4px at 58% 8%, #fff, transparent);
-      animation: twinkle 6s ease-in-out infinite alternate;
+    .wash { position: absolute; border-radius: 50%; filter: blur(90px); }
+    .wash-a {
+      width: 60vw; height: 60vw; max-width: 760px; max-height: 760px;
+      top: -20vw; right: -14vw;
+      background: radial-gradient(circle, rgba(216,189,126,.34), transparent 70%);
     }
-    @keyframes twinkle { from { opacity: .35; } to { opacity: .7; } }
-    /* faint zodiac ring, upper-centre */
-    .ring {
-      position: absolute; top: 8%; left: 50%; transform: translateX(-50%);
-      width: min(120vw, 1100px); aspect-ratio: 1; border-radius: 50%;
-      border: 1px solid rgba(255,255,255,.05);
-      box-shadow: 0 0 0 1px rgba(255,255,255,.03) inset,
-                  0 0 140px rgba(124,108,255,.12) inset;
+    .wash-b {
+      width: 52vw; height: 52vw; max-width: 660px; max-height: 660px;
+      bottom: -22vw; left: -16vw;
+      background: radial-gradient(circle, rgba(176,141,63,.18), transparent 68%);
     }
     @media (prefers-reduced-motion: reduce) {
-      .stars { animation: none; }
+      .weave { animation: none; }
     }
 
     /* ---- top nav -------------------------------------------------------- */
@@ -196,16 +185,17 @@ import { RouterLink } from '@angular/router';
       display: flex; align-items: center; justify-content: space-between;
       padding: 1.15rem clamp(1.1rem, 4vw, 3rem);
     }
-    .logo { display: inline-flex; align-items: center; gap: .55rem; text-decoration: none; color: var(--text); }
-    .logo-mark { color: var(--gold); font-size: 1.15rem; }
+    .logo { display: inline-flex; align-items: center; gap: .6rem; text-decoration: none; color: var(--ink); }
+    .logo-mark { width: 34px; height: 34px; object-fit: contain; }
     .logo-text { font-weight: 700; letter-spacing: .3px; font-size: 1.05rem; }
-    .logo-text em { color: var(--violet-soft); font-style: italic; font-weight: 500; }
+    .logo-text em { color: var(--gold); font-style: italic; font-weight: 500; }
     .nav-signin {
-      color: var(--text); text-decoration: none; font-weight: 600; font-size: .95rem;
+      color: var(--ink); text-decoration: none; font-weight: 600; font-size: .95rem;
       padding: .55rem 1.1rem; border: 1px solid var(--line); border-radius: 999px;
+      background: rgba(255,255,255,.7);
       transition: border-color .2s, background .2s;
     }
-    .nav-signin:hover { border-color: var(--violet-soft); background: rgba(124,108,255,.12); }
+    .nav-signin:hover { border-color: var(--gold); background: #fff; }
 
     /* ---- hero ----------------------------------------------------------- */
     .hero {
@@ -218,8 +208,9 @@ import { RouterLink } from '@angular/router';
 
     .eyebrow {
       display: inline-block; font-size: .8rem; letter-spacing: .16em;
-      text-transform: uppercase; color: var(--gold-soft);
-      border: 1px solid rgba(243,201,107,.28); border-radius: 999px;
+      text-transform: uppercase; color: var(--gold);
+      border: 1px solid rgba(176,141,63,.35); border-radius: 999px;
+      background: rgba(255,255,255,.6);
       padding: .4rem .85rem; margin-bottom: 1.4rem;
     }
     .headline {
@@ -227,12 +218,12 @@ import { RouterLink } from '@angular/router';
       font-weight: 800; letter-spacing: -1.5px; margin: 0 0 1.1rem;
     }
     .grad {
-      background: linear-gradient(100deg, var(--violet-soft), var(--gold));
+      background: linear-gradient(100deg, var(--gold), #8c6d28);
       -webkit-background-clip: text; background-clip: text; color: transparent;
     }
     .lede {
       font-size: clamp(1rem, 1.5vw, 1.18rem); line-height: 1.65;
-      color: var(--text-dim); max-width: 34ch; margin: 0 0 2rem;
+      color: var(--ink-soft); max-width: 34ch; margin: 0 0 2rem;
     }
 
     .cta { display: flex; flex-wrap: wrap; gap: .85rem; margin-bottom: 2rem; }
@@ -244,53 +235,53 @@ import { RouterLink } from '@angular/router';
     }
     .btn:active { transform: translateY(1px); }
     .btn-primary {
-      color: #1a1140;
-      background: linear-gradient(100deg, var(--gold-soft), var(--gold));
-      box-shadow: 0 10px 30px rgba(243,201,107,.28);
+      color: #fff;
+      background: linear-gradient(100deg, #c39a45, var(--gold));
+      box-shadow: 0 10px 26px rgba(176,141,63,.30);
     }
-    .btn-primary:hover { box-shadow: 0 14px 40px rgba(243,201,107,.42); }
+    .btn-primary:hover { box-shadow: 0 14px 34px rgba(176,141,63,.42); }
     .btn-ghost {
-      color: var(--text); background: rgba(255,255,255,.06);
+      color: var(--ink); background: rgba(255,255,255,.75);
       border: 1px solid var(--line);
     }
-    .btn-ghost:hover { background: rgba(255,255,255,.12); border-color: var(--violet-soft); }
+    .btn-ghost:hover { background: #fff; border-color: var(--gold); }
     .btn-block { width: 100%; }
 
     .trust { display: flex; align-items: center; gap: .8rem; }
     .faces .face {
       width: 44px; height: 44px; border-radius: 50%; object-fit: cover;
-      object-position: center top; border: 2px solid rgba(255,255,255,.5);
-      box-shadow: 0 4px 14px rgba(0,0,0,.35);
+      object-position: center top; border: 2px solid #fff;
+      box-shadow: 0 3px 12px rgba(43,42,51,.18);
     }
-    .trust p { margin: 0; font-size: .9rem; color: var(--text-dim); }
-    .trust strong { color: var(--text); }
+    .trust p { margin: 0; font-size: .9rem; color: var(--ink-soft); }
+    .trust strong { color: var(--ink); }
 
-    /* ---- glass panel ---------------------------------------------------- */
+    /* ---- card ----------------------------------------------------------- */
     .panel {
-      background: var(--glass);
+      background: var(--card);
       border: 1px solid var(--line);
       border-radius: 22px;
       padding: clamp(1.4rem, 2.5vw, 2rem);
-      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-      box-shadow: 0 30px 80px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.08);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      box-shadow: 0 20px 50px rgba(43,42,51,.10);
     }
     .panel-head h2 { margin: 0 0 .2rem; font-size: 1.3rem; font-weight: 700; }
-    .panel-head p { margin: 0 0 1.3rem; color: var(--text-dim); font-size: .92rem; }
+    .panel-head p { margin: 0 0 1.3rem; color: var(--ink-soft); font-size: .92rem; }
 
     .features { list-style: none; margin: 0 0 1.5rem; padding: 0; display: grid; gap: 1rem; }
     .features li { display: flex; gap: .9rem; align-items: flex-start; }
     .num {
       flex: none; width: 40px; height: 40px; border-radius: 12px;
       display: grid; place-items: center; font-weight: 800; font-size: .95rem;
-      color: var(--gold-soft);
-      background: rgba(124,108,255,.14);
-      border: 1px solid rgba(124,108,255,.3);
+      color: var(--gold);
+      background: rgba(176,141,63,.10);
+      border: 1px solid rgba(176,141,63,.28);
     }
-    .features h3 { margin: 0 0 .15rem; font-size: 1rem; font-weight: 700; color: var(--text); }
-    .features p { margin: 0; font-size: .88rem; line-height: 1.5; color: var(--text-dim); }
+    .features h3 { margin: 0 0 .15rem; font-size: 1rem; font-weight: 700; color: var(--ink); }
+    .features p { margin: 0; font-size: .88rem; line-height: 1.5; color: var(--ink-soft); }
 
-    .panel-foot { text-align: center; margin: .9rem 0 0; font-size: .9rem; color: var(--text-dim); }
-    .panel-foot a { color: var(--gold-soft); font-weight: 700; text-decoration: none; }
+    .panel-foot { text-align: center; margin: .9rem 0 0; font-size: .9rem; color: var(--ink-soft); }
+    .panel-foot a { color: var(--gold); font-weight: 700; text-decoration: none; }
     .panel-foot a:hover { text-decoration: underline; }
 
     /* ---- footer --------------------------------------------------------- */
@@ -298,13 +289,13 @@ import { RouterLink } from '@angular/router';
       position: relative; z-index: 1;
       display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
       gap: .6rem 1.4rem; padding: 1.4rem clamp(1.1rem, 4vw, 3rem) 1.8rem;
-      border-top: 1px solid var(--line); color: var(--text-dim); font-size: .85rem;
+      border-top: 1px solid var(--line); color: var(--ink-soft); font-size: .85rem;
     }
-    .foot-brand { color: var(--text); font-weight: 700; }
+    .foot-brand { color: var(--ink); font-weight: 700; letter-spacing: .3px; }
     .foot-links { display: flex; flex-wrap: wrap; gap: .4rem 1.2rem; }
-    .foot-links a { color: var(--violet-soft); text-decoration: none; font-weight: 600; padding: .4rem 0; }
-    .foot-links a:hover { color: var(--gold-soft); }
-    .foot-copy { color: rgba(179,171,214,.6); }
+    .foot-links a { color: var(--gold); text-decoration: none; font-weight: 600; padding: .4rem 0; }
+    .foot-links a:hover { color: #8c6d28; }
+    .foot-copy { color: rgba(107,104,120,.75); }
 
     /* ---- responsive ----------------------------------------------------- */
     @media (max-width: 900px) {
@@ -336,8 +327,8 @@ import { RouterLink } from '@angular/router';
   `],
 })
 export class HomePage implements OnInit, OnDestroy {
-  // The app shell paints a fixed gold brand stamp on every page. It overlaps
-  // this dark hero, and the page carries its own brand mark, so hide it here.
+  // The app shell paints a fixed gold brand stamp on every page. This page
+  // carries its own tiled emblem, so hide the stamp while it is open.
   ngOnInit(): void { document.body.classList.add('home-active'); }
   ngOnDestroy(): void { document.body.classList.remove('home-active'); }
 }
