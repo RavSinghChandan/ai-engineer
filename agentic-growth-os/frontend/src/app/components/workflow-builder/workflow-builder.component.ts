@@ -19,7 +19,7 @@ import { WorkflowNode, WorkflowEdge, CampaignForm } from '../../models/campaign.
         <div class="flex items-center justify-between">
           <div>
             <h2 class="section-title">Workflow Builder</h2>
-            <p class="text-xs text-gray-500 mt-0.5">Drag nodes to rearrange · Edges show LangGraph data flow</p>
+            <p class="text-xs text-slate-500 mt-0.5">Drag nodes to rearrange · Edges show LangGraph data flow</p>
           </div>
           <label class="flex items-center gap-2 cursor-pointer select-none">
             <div class="relative">
@@ -27,7 +27,7 @@ import { WorkflowNode, WorkflowEdge, CampaignForm } from '../../models/campaign.
               <div class="w-10 h-5 rounded-full bg-gray-700 peer-checked:bg-indigo-600 transition-colors duration-200"></div>
               <div class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-all duration-200 peer-checked:translate-x-5"></div>
             </div>
-            <span class="text-sm font-medium" [class]="campaign.learning_mode ? 'text-indigo-400' : 'text-gray-500'">
+            <span class="text-sm font-medium" [class]="campaign.learning_mode ? 'text-indigo-600' : 'text-slate-500'">
               🧠 Learning {{ campaign.learning_mode ? 'ON' : 'OFF' }}
             </span>
           </label>
@@ -35,7 +35,7 @@ import { WorkflowNode, WorkflowEdge, CampaignForm } from '../../models/campaign.
 
         <!-- SVG + Node Canvas -->
         <div #canvas class="glass rounded-2xl relative overflow-hidden"
-             style="height:380px; background: radial-gradient(circle at 50% 50%, rgba(99,102,241,0.04) 0%, transparent 70%);"
+             style="height:380px; background-color:#fafafa; background-image: radial-gradient(rgba(15,23,42,.10) 1px, transparent 1px); background-size: 20px 20px;"
              (mousemove)="onMouseMove($event)"
              (mouseup)="onMouseUp()"
              (mouseleave)="onMouseUp()">
@@ -75,15 +75,15 @@ import { WorkflowNode, WorkflowEdge, CampaignForm } from '../../models/campaign.
               <div class="w-9 h-9 rounded-lg flex items-center justify-center text-lg flex-shrink-0"
                    [style.background]="node.color + '25'">{{ node.icon }}</div>
               <div class="min-w-0">
-                <div class="text-xs font-semibold text-white leading-tight truncate">{{ node.label }}</div>
-                <div class="text-gray-500 mt-0.5 leading-tight" style="font-size:10px;">{{ node.description }}</div>
+                <div class="text-xs font-semibold text-slate-900 leading-tight truncate">{{ node.label }}</div>
+                <div class="text-slate-500 mt-0.5 leading-tight" style="font-size:10px;">{{ node.description }}</div>
               </div>
             </div>
             <div class="mt-2 flex items-center gap-1.5 pointer-events-none">
               <div *ngIf="node.status==='idle'"    class="w-1.5 h-1.5 rounded-full bg-gray-600"></div>
               <div *ngIf="node.status==='running'" class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></div>
               <div *ngIf="node.status==='done'"    class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
-              <span class="text-gray-500 pointer-events-none" style="font-size:10px;">
+              <span class="text-slate-500 pointer-events-none" style="font-size:10px;">
                 {{ node.status === 'running' ? 'Processing...' : node.status === 'done' ? 'Completed ✓' : 'Ready' }}
               </span>
             </div>
@@ -97,8 +97,8 @@ import { WorkflowNode, WorkflowEdge, CampaignForm } from '../../models/campaign.
                 <div class="w-1.5 h-1.5 rounded-full bg-indigo-400 loading-dot"></div>
                 <div class="w-1.5 h-1.5 rounded-full bg-indigo-400 loading-dot"></div>
               </div>
-              <span class="text-xs text-indigo-300">{{ runningAgent$ | async }}</span>
-              <div class="ml-auto text-xs text-gray-500">{{ progress$ | async }}%</div>
+              <span class="text-xs text-indigo-700">{{ runningAgent$ | async }}</span>
+              <div class="ml-auto text-xs text-slate-500">{{ progress$ | async }}%</div>
             </div>
           </div>
         </div>
@@ -114,10 +114,10 @@ import { WorkflowNode, WorkflowEdge, CampaignForm } from '../../models/campaign.
           <div class="label-text mb-3">⚡ Quick Load Demo Campaign</div>
           <div class="grid grid-cols-3 gap-2">
             <button *ngFor="let d of demoCampaigns" (click)="loadDemo(d)"
-              class="text-left p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-indigo-500/40 transition-all duration-200">
+              class="text-left p-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 hover:border-indigo-400 transition-all duration-200">
               <div class="text-lg mb-1">{{ campaignEmoji(d['campaign_type']) }}</div>
-              <div class="text-xs font-semibold text-white leading-tight">{{ d['name'] }}</div>
-              <div class="text-xs text-gray-500 mt-0.5">₹{{ ((d['budget'] ?? 0) / 1000).toFixed(0) }}K budget</div>
+              <div class="text-xs font-semibold text-slate-900 leading-tight">{{ d['name'] }}</div>
+              <div class="text-xs text-slate-500 mt-0.5">₹{{ ((d['budget'] ?? 0) / 1000).toFixed(0) }}K budget</div>
             </button>
           </div>
         </div>
@@ -174,7 +174,7 @@ import { WorkflowNode, WorkflowEdge, CampaignForm } from '../../models/campaign.
           class="btn-primary w-full flex items-center justify-center gap-2 py-3 text-sm">
           <ng-container *ngIf="!(running$ | async)">▶ Execute LangGraph Workflow</ng-container>
           <ng-container *ngIf="running$ | async">
-            <span class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+            <span class="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
             Running agents...
           </ng-container>
         </button>
@@ -184,9 +184,9 @@ import { WorkflowNode, WorkflowEdge, CampaignForm } from '../../models/campaign.
           <div class="label-text mb-2">Execution Log</div>
           <div class="space-y-1.5">
             <div *ngFor="let log of agentLog" class="flex items-center gap-2 text-xs">
-              <span class="text-emerald-400">✓</span>
-              <span class="text-gray-300">{{ log.agent }}</span>
-              <span class="ml-auto text-gray-600 text-xs">done</span>
+              <span class="text-emerald-600">✓</span>
+              <span class="text-slate-700">{{ log.agent }}</span>
+              <span class="ml-auto text-slate-500 text-xs">done</span>
             </div>
           </div>
         </div>
@@ -286,7 +286,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
   nodeBorderColor(node: WorkflowNode): string {
     if (node.status === 'running') return '#6366f1';
     if (node.status === 'done')    return '#10b981';
-    return 'rgba(255,255,255,0.1)';
+    return '#e2e8f0';
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

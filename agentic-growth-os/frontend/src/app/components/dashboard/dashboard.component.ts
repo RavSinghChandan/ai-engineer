@@ -16,7 +16,7 @@ Chart.register(...registerables);
       <div class="flex items-center justify-between">
         <div>
           <h2 class="section-title">Campaign Dashboard</h2>
-          <p class="text-xs text-gray-500 mt-0.5">Real-time metrics from the last workflow execution</p>
+          <p class="text-xs text-slate-500 mt-0.5">Real-time metrics from the last workflow execution</p>
         </div>
         <button (click)="clearMemory()" class="btn-danger text-xs py-1.5 px-3">🗑 Clear Memory</button>
       </div>
@@ -24,8 +24,8 @@ Chart.register(...registerables);
       <!-- No results -->
       <div *ngIf="!result" class="glass-card text-center py-16">
         <div class="text-4xl mb-4">📊</div>
-        <div class="text-gray-400 font-medium">No campaign data yet</div>
-        <div class="text-gray-600 text-sm mt-1">Run a workflow to see results here</div>
+        <div class="text-slate-500 font-medium">No campaign data yet</div>
+        <div class="text-slate-500 text-sm mt-1">Run a workflow to see results here</div>
       </div>
 
       <ng-container *ngIf="result">
@@ -38,19 +38,19 @@ Chart.register(...registerables);
             <span class="text-2xl">{{ result.learning_summary.type === 'improved' ? '🧠' : '🌱' }}</span>
             <div class="flex-1">
               <div class="font-semibold text-sm"
-                   [class]="result.learning_summary.type === 'improved' ? 'text-emerald-400' : 'text-indigo-400'">
+                   [class]="result.learning_summary.type === 'improved' ? 'text-emerald-600' : 'text-indigo-600'">
                 {{ result.learning_summary.type === 'improved' ? 'Auto-Learning Applied!' : 'Baseline Established' }}
               </div>
-              <div class="text-xs text-gray-300 mt-0.5">{{ result.learning_summary.message }}</div>
+              <div class="text-xs text-slate-700 mt-0.5">{{ result.learning_summary.message }}</div>
               <div *ngIf="result.learning_summary.changes_applied?.length" class="mt-2 space-y-0.5">
                 <div *ngFor="let c of result.learning_summary.changes_applied"
-                     class="text-xs text-emerald-300 flex items-center gap-1.5">
+                     class="text-xs text-emerald-700 flex items-center gap-1.5">
                   <span>→</span> {{ c }}
                 </div>
               </div>
             </div>
             <div *ngIf="result.improvement_percentage"
-                 class="text-2xl font-bold text-emerald-400">
+                 class="text-2xl font-bold text-emerald-600">
               +{{ result.improvement_percentage }}%
             </div>
           </div>
@@ -60,18 +60,18 @@ Chart.register(...registerables);
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div class="metric-card">
             <div class="label-text">CTR</div>
-            <div class="text-2xl font-bold text-white">{{ result.metrics.ctr | number:'1.1-2' }}%</div>
+            <div class="text-2xl font-bold text-slate-900">{{ result.metrics.ctr | number:'1.1-2' }}%</div>
             <div *ngIf="prev && prev.metrics" class="text-xs"
-                 [class]="result.metrics.ctr > prev.metrics.ctr ? 'text-emerald-400' : 'text-red-400'">
+                 [class]="result.metrics.ctr > prev.metrics.ctr ? 'text-emerald-600' : 'text-red-600'">
               {{ result.metrics.ctr > prev.metrics.ctr ? '▲' : '▼' }}
               {{ (result.metrics.ctr - prev.metrics.ctr) | number:'1.2-2' }}% vs prev
             </div>
           </div>
           <div class="metric-card">
             <div class="label-text">Conversion Rate</div>
-            <div class="text-2xl font-bold text-white">{{ result.metrics.conversion_rate | number:'1.1-2' }}%</div>
+            <div class="text-2xl font-bold text-slate-900">{{ result.metrics.conversion_rate | number:'1.1-2' }}%</div>
             <div *ngIf="prev && prev.metrics" class="text-xs"
-                 [class]="result.metrics.conversion_rate > prev.metrics.conversion_rate ? 'text-emerald-400' : 'text-red-400'">
+                 [class]="result.metrics.conversion_rate > prev.metrics.conversion_rate ? 'text-emerald-600' : 'text-red-600'">
               {{ result.metrics.conversion_rate > prev.metrics.conversion_rate ? '▲' : '▼' }}
               {{ (result.metrics.conversion_rate - prev.metrics.conversion_rate) | number:'1.2-2' }}% vs prev
             </div>
@@ -87,8 +87,8 @@ Chart.register(...registerables);
           </div>
           <div class="metric-card">
             <div class="label-text">Conversions</div>
-            <div class="text-2xl font-bold text-white">{{ result.metrics.conversions | number }}</div>
-            <div class="text-xs text-gray-500">{{ result.metrics.impressions | number }} impressions</div>
+            <div class="text-2xl font-bold text-slate-900">{{ result.metrics.conversions | number }}</div>
+            <div class="text-xs text-slate-500">{{ result.metrics.impressions | number }} impressions</div>
           </div>
         </div>
 
@@ -100,13 +100,13 @@ Chart.register(...registerables);
               <div class="label-text mb-2">{{ metric.label }}</div>
               <div class="flex items-end justify-center gap-3">
                 <div class="text-center">
-                  <div class="text-xs text-gray-500 mb-1">Before</div>
-                  <div class="text-lg font-bold text-gray-400">{{ metric.before }}</div>
+                  <div class="text-xs text-slate-500 mb-1">Before</div>
+                  <div class="text-lg font-bold text-slate-500">{{ metric.before }}</div>
                 </div>
-                <div class="text-indigo-400 text-lg pb-1">→</div>
+                <div class="text-indigo-600 text-lg pb-1">→</div>
                 <div class="text-center">
-                  <div class="text-xs text-emerald-400 mb-1">After</div>
-                  <div class="text-lg font-bold text-emerald-400">{{ metric.after }}</div>
+                  <div class="text-xs text-emerald-600 mb-1">After</div>
+                  <div class="text-lg font-bold text-emerald-600">{{ metric.after }}</div>
                 </div>
               </div>
             </div>
@@ -127,8 +127,8 @@ Chart.register(...registerables);
             <div class="space-y-2">
               <div *ngFor="let insight of result.ai_insights.slice(0,8)"
                    class="flex items-start gap-2 text-xs">
-                <span class="text-indigo-400 mt-0.5 flex-shrink-0">›</span>
-                <span class="text-gray-300">{{ insight }}</span>
+                <span class="text-indigo-600 mt-0.5 flex-shrink-0">›</span>
+                <span class="text-slate-700">{{ insight }}</span>
               </div>
             </div>
           </div>
@@ -139,16 +139,16 @@ Chart.register(...registerables);
           <div class="label-text mb-3">30-Day Forecast</div>
           <div class="grid grid-cols-3 gap-4 text-center">
             <div>
-              <div class="text-2xl font-bold text-white">{{ result.forecast_30_days.projected_conversions | number }}</div>
-              <div class="text-xs text-gray-500 mt-0.5">Projected Conversions</div>
+              <div class="text-2xl font-bold text-slate-900">{{ result.forecast_30_days.projected_conversions | number }}</div>
+              <div class="text-xs text-slate-500 mt-0.5">Projected Conversions</div>
             </div>
             <div>
-              <div class="text-2xl font-bold text-indigo-400">₹{{ (result.forecast_30_days.projected_revenue / 100000) | number:'1.1-1' }}L</div>
-              <div class="text-xs text-gray-500 mt-0.5">Projected Revenue</div>
+              <div class="text-2xl font-bold text-indigo-600">₹{{ (result.forecast_30_days.projected_revenue / 100000) | number:'1.1-1' }}L</div>
+              <div class="text-xs text-slate-500 mt-0.5">Projected Revenue</div>
             </div>
             <div>
               <div class="text-2xl font-bold" [class]="getRoiColor(result.forecast_30_days.projected_roi)">{{ result.forecast_30_days.projected_roi | number:'1.2-2' }}x</div>
-              <div class="text-xs text-gray-500 mt-0.5">Projected ROI</div>
+              <div class="text-xs text-slate-500 mt-0.5">Projected ROI</div>
             </div>
           </div>
         </div>
@@ -217,7 +217,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
           labels,
           datasets: [{ data: values, backgroundColor: ['#6366f1', '#06b6d4', '#10b981'], borderWidth: 0, hoverOffset: 6 }],
         },
-        options: { plugins: { legend: { position: 'bottom', labels: { color: '#9ca3af', font: { size: 11 }, padding: 12 } } }, cutout: '65%' },
+        options: { plugins: { legend: { position: 'bottom', labels: { color: '#475569', font: { size: 11 }, padding: 12 } } }, cutout: '65%' },
       });
     }, 100);
   }
@@ -237,10 +237,10 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
           ],
         },
         options: {
-          plugins: { legend: { labels: { color: '#9ca3af', font: { size: 11 } } } },
+          plugins: { legend: { labels: { color: '#475569', font: { size: 11 } } } },
           scales: {
-            x: { ticks: { color: '#6b7280' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-            y: { ticks: { color: '#6b7280' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            x: { ticks: { color: '#64748b' }, grid: { color: 'rgba(15,23,42,0.07)' } },
+            y: { ticks: { color: '#64748b' }, grid: { color: 'rgba(15,23,42,0.07)' } },
           },
         },
       });
@@ -256,9 +256,9 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   getRoiColor(roi: number): string {
-    if (roi >= 2.5) return 'text-emerald-400';
-    if (roi >= 1.5) return 'text-indigo-400';
-    return 'text-amber-400';
+    if (roi >= 2.5) return 'text-emerald-600';
+    if (roi >= 1.5) return 'text-indigo-600';
+    return 'text-amber-600';
   }
 
   getGradeBadge(grade: string): string {

@@ -23,12 +23,12 @@ import { AgenticAgentComponent } from './components/agentic-agent/agentic-agent.
 
       <main class="flex-1 overflow-y-auto">
         <!-- Top bar -->
-        <header class="sticky top-0 z-10 border-b border-white/5 px-6 py-3 flex items-center justify-between"
-                style="background: rgba(3,7,18,0.85); backdrop-filter: blur(12px);">
+        <header class="sticky top-0 z-10 border-b border-slate-200 px-6 py-3 flex items-center justify-between"
+                style="background: rgba(255,255,255,0.78); backdrop-filter: saturate(180%) blur(20px);">
           <div class="flex items-center gap-2">
-            <span class="text-gray-500 text-sm">Agentic Growth OS</span>
-            <span class="text-gray-700">/</span>
-            <span class="text-gray-200 text-sm font-medium capitalize">{{ activeTab.replace('-', ' ') }}</span>
+            <span class="text-slate-500 text-sm">Agentic Growth OS</span>
+            <span class="text-slate-300">/</span>
+            <span class="text-slate-900 text-sm font-semibold capitalize">{{ activeTab.replace('-', ' ') }}</span>
           </div>
           <div class="flex items-center gap-2">
             <div class="badge-green">LangGraph Powered</div>

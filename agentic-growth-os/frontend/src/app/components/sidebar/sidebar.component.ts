@@ -10,16 +10,16 @@ interface NavItem { id: ActiveTab; label: string; icon: string; }
   standalone: true,
   imports: [CommonModule],
   template: `
-    <aside class="w-64 flex-shrink-0 flex flex-col bg-gray-900/60 border-r border-white/5 h-screen sticky top-0">
+    <aside class="w-64 flex-shrink-0 flex flex-col bg-white border-r border-slate-200 h-screen sticky top-0">
       <!-- Logo -->
-      <div class="p-6 border-b border-white/5">
+      <div class="p-6 border-b border-slate-200">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-900/50 text-xl">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-sm text-xl">
             ⚡
           </div>
           <div>
-            <div class="font-bold text-white text-sm leading-none">Agentic Growth</div>
-            <div class="text-xs text-indigo-400 font-medium mt-0.5">OS — LangGraph</div>
+            <div class="font-bold text-slate-900 text-sm leading-none">Agentic Growth</div>
+            <div class="text-xs text-indigo-600 font-semibold mt-0.5">OS — LangGraph</div>
           </div>
         </div>
       </div>
@@ -45,20 +45,20 @@ interface NavItem { id: ActiveTab; label: string; icon: string; }
           </div>
           <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
             <span class="text-sm">🟣</span>
-            <span class="text-xs text-indigo-400 font-medium">Meta Ads</span>
+            <span class="text-xs text-indigo-600 font-semibold">Meta Ads</span>
           </div>
         </div>
       </div>
 
       <!-- AI Status -->
-      <div class="p-4 border-t border-white/5">
+      <div class="p-4 border-t border-slate-200">
         <div class="glass-card p-3">
           <div class="flex items-center gap-2 mb-1.5">
             <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
             <span class="text-xs font-semibold text-emerald-400">LangGraph Engine Active</span>
           </div>
-          <div class="text-xs text-gray-500">5 agent nodes ready</div>
-          <div class="text-xs text-gray-500">Auto-learning: ON</div>
+          <div class="text-xs text-slate-500">5 agent nodes ready</div>
+          <div class="text-xs text-slate-500">Auto-learning: ON</div>
         </div>
       </div>
     </aside>
