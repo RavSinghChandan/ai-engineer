@@ -31,6 +31,7 @@ class CampaignState(TypedDict):
     metrics: Optional[Dict[str, Any]]
     improvement_percentage: Optional[float]
     performance_grade: str
+    low_volume: bool
     forecast_30_days: Optional[Dict[str, Any]]
     agent_decisions: Optional[Dict[str, Any]]
     learning_summary: Optional[Dict[str, Any]]

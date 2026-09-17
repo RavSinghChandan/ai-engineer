@@ -1,4 +1,6 @@
 import random
+
+from graph.model import simulation
 from graph.state import CampaignState
 
 BASE = {
@@ -37,7 +39,8 @@ def budget_node(state: CampaignState) -> CampaignState:
         for ch, pct in alloc.items()
     }
 
-    efficiency_gain = round(random.uniform(8, 22), 1) if improvements else 0.0
+    rng = random.Random(simulation.seed_for(state))
+    efficiency_gain = round(rng.uniform(8, 22), 1) if improvements else 0.0
     if improvements:
         insights.append(f"Estimated efficiency gain: +{efficiency_gain}% from reallocation")
 

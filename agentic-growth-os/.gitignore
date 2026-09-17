@@ -1,0 +1,12 @@
+
+# Local secrets
+.env
+backend/.env
+
+# Dependencies and build artifacts
+node_modules/
+__pycache__/
+*.pyc
+venv/
+.angular/cache/
+dist/

@@ -1,4 +1,6 @@
 import random
+
+from graph.model import llm, simulation
 from graph.state import CampaignState
 
 COPY_TEMPLATES = {
@@ -32,6 +34,8 @@ QUESTION_HOOKS = {"real_estate": "Tired of Paying Rent with Nothing to Show?", "
 TESTIMONIAL_HEADS = {"real_estate": '"Best investment of my life" — Priya S.', "coaching": '"Got placed at MNC in 3 months" — Rahul K.', "ecommerce": '"Haven\'t shopped anywhere else since" — Meera T.', "custom": '"Transformed our business completely" — Arjun M.'}
 NUMBER_LEADS = {"real_estate": "₹45L Onwards — 0% Brokerage, RERA Approved", "coaching": "87% Placement Rate | ₹8LPA Avg Salary Hike", "ecommerce": "4.8★ | 50K+ Reviews | Free Next-Day Delivery", "custom": "10,000+ Customers | 4.9★ Avg Rating"}
 
+TONE_CTR_LIFT = {tone: v["ctr"] for tone, v in simulation.TONE_LIFT.items()}
+
 CTAS = {"professional": "Learn More", "urgent_cta": "Book Now — Limited Time", "emotional_storytelling": "Start Your Journey", "benefit_focused": "See Proven Results", "question_hook": "Find Out How", "testimonial_style": "Join Thousands", "number_lead": "View Live Results"}
 
 
@@ -49,7 +53,8 @@ def ad_copy_node(state: CampaignState) -> CampaignState:
 
     templates = COPY_TEMPLATES.get(ct, COPY_TEMPLATES["custom"])
     t = templates.get(tone, templates["professional"])
-    headline = t["h"][random.randint(0, len(t["h"]) - 1)]
+    rng = random.Random(simulation.seed_for(state))
+    headline = t["h"][rng.randint(0, len(t["h"]) - 1)]
     description = t["d"][0]
 
     if hl_strategy == "question_hook":
@@ -62,12 +67,38 @@ def ad_copy_node(state: CampaignState) -> CampaignState:
         headline = NUMBER_LEADS.get(ct, headline)
         insights.append("Data-driven headline applied to boost trust")
 
-    ctr_lift = round(random.uniform(0.4, 1.2), 2) if improvements else 0.0
+    cta = CTAS.get(tone, "Get Started")
+    source = "template"
+
+    # Real generation when a DeepSeek key is present in the environment;
+    # the templates above stay as the offline fallback.
+    if llm.is_enabled():
+        generated = llm.generate_ad_copy(
+            campaign_type=ct,
+            product_name=state.get("product_name", ""),
+            target_audience=state.get("target_audience", ""),
+            key_benefit=state.get("key_benefit", ""),
+            tone=tone,
+            headline_strategy=hl_strategy,
+        )
+        if generated:
+            headline = generated["headline"]
+            description = generated["description"]
+            cta = generated["cta"] or cta
+            source = "deepseek"
+            insights.append("Ad copy written by DeepSeek for this specific product and audience")
+        else:
+            insights.append("DeepSeek unavailable — fell back to the template library")
+
+    # Expected CTR lift for the chosen tone, from the same table the
+    # performance model scores against, so the two never disagree.
+    ctr_lift = round((TONE_CTR_LIFT.get(tone, 1.0) - 1.0) * 100, 2) if improvements else 0.0
     output = {
         "headline": headline, "description": description,
-        "cta": CTAS.get(tone, "Get Started"),
+        "cta": cta,
         "tone_applied": tone, "headline_strategy": hl_strategy,
         "predicted_ctr_lift": ctr_lift,
+        "copy_source": source,
         "insights": insights,
     }
     log_entry = {"agent": "Ad Copy Agent", "status": "completed", "insights": insights}

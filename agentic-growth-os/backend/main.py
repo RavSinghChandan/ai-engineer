@@ -1,4 +1,6 @@
 import uuid
+
+from graph.model import llm, simulation
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional, Dict, Any
@@ -58,6 +60,12 @@ def root():
     return {"message": "Agentic Growth OS API", "engine": "LangGraph", "version": "2.0.0"}
 
 
+@app.get("/api/model-info")
+def model_info():
+    """Provenance of the numbers, and whether live copy generation is enabled."""
+    return {"simulation": simulation.describe(), "copy_generation": llm.status()}
+
+
 @app.get("/api/demo-campaigns")
 def get_demo_campaigns():
     return {"campaigns": DEMO_CAMPAIGNS}
@@ -109,6 +117,7 @@ async def execute_workflow(request: WorkflowExecuteRequest):
     # Run LangGraph
     final_state = campaign_graph.invoke(initial_state)
 
+    performance = final_state.get("performance_output") or {}
     metrics   = final_state.get("metrics") or {}
     ad_copy   = final_state.get("ad_copy_output") or {}
     budget_op = final_state.get("budget_output") or {}
@@ -145,11 +154,14 @@ async def execute_workflow(request: WorkflowExecuteRequest):
         "improvement_percentage":  imp_pct,
         "metrics":                 metrics,
         "performance_grade":       final_state.get("performance_grade", "B"),
+        "low_volume":              final_state.get("low_volume", False),
         "forecast_30_days":        final_state.get("forecast_30_days", {}),
         "agent_log":               final_state.get("agent_log", []),
         "agent_decisions":         agent_decisions,
         "ai_insights":             final_state.get("all_insights", []),
         "learning_summary":        _learning_summary(learning_applied, improvements, imp_pct, similar),
+        "provenance":              performance.get("provenance", {}),
+        "copy_source":             ad_copy.get("copy_source", "template"),
     }
 
 
@@ -214,9 +226,30 @@ def _learning_summary(learning_applied, improvements, imp_pct, similar):
     if improvements.get("headline_strategy", "standard") != "standard":
         changes.append(f"Headline strategy → '{improvements['headline_strategy']}'")
 
+    # A learning run can land worse than the baseline. Saying "improved" either
+    # way makes the whole learning claim untrustworthy, so report the direction
+    # that actually happened.
+    runs = f"{len(similar)} previous run(s)"
+    if imp_pct is None:
+        message = f"System learned from {runs} and applied the changes below."
+        outcome = "improved"
+    elif imp_pct > 0:
+        message = f"System learned from {runs} and improved ROI by {imp_pct}%."
+        outcome = "improved"
+    elif imp_pct < 0:
+        message = (
+            f"System learned from {runs}, but this configuration came out "
+            f"{abs(imp_pct)}% below the baseline. The changes below are being "
+            f"kept for comparison, not because they won."
+        )
+        outcome = "regressed"
+    else:
+        message = f"System learned from {runs}; ROI matched the baseline."
+        outcome = "flat"
+
     return {
-        "message": f"System learned from {len(similar)} previous run(s) and improved performance{f' by {imp_pct}%' if imp_pct else ''}",
-        "type": "improved",
+        "message": message,
+        "type": outcome,
         "runs_analyzed": len(similar),
         "changes_applied": changes,
         "improvement_percentage": imp_pct,

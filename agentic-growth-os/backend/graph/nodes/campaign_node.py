@@ -1,4 +1,6 @@
 import random
+
+from graph.model import simulation
 from graph.state import CampaignState
 
 PLATFORMS = {
@@ -25,7 +27,8 @@ def campaign_node(state: CampaignState) -> CampaignState:
 
     cfg = PLATFORMS.get(platform, PLATFORMS["google_ads"])
     qs_min, qs_max = cfg["qs_range"]
-    qs = round(random.uniform(qs_min, qs_max - 1) + (0.5 if improvements else 0), 1)
+    rng = random.Random(simulation.seed_for(state))
+    qs = round(rng.uniform(qs_min, qs_max - 1) + (0.5 if improvements else 0), 1)
     qs = min(qs, qs_max)
 
     if improvements:
@@ -33,7 +36,7 @@ def campaign_node(state: CampaignState) -> CampaignState:
         insights.append(f"Ad relevance boosted via tone: {ad_copy.get('tone_applied', 'standard')}")
 
     groups = AD_GROUPS.get(ct, AD_GROUPS["custom"])[:3]
-    ad_groups = [{"name": g, "ads_count": random.randint(2, 4), "status": "active", "bid_adj": round(random.uniform(0.9, 1.3), 2)} for g in groups]
+    ad_groups = [{"name": g, "ads_count": rng.randint(2, 4), "status": "active", "bid_adj": round(rng.uniform(0.9, 1.3), 2)} for g in groups]
 
     insights.append(f"Launching on {cfg['name']} — Quality Score: {qs}/10")
 
@@ -42,7 +45,7 @@ def campaign_node(state: CampaignState) -> CampaignState:
         "campaign_status": "ready_to_launch",
         "ad_groups": ad_groups,
         "quality_score": qs,
-        "campaign_type_selected": random.choice(cfg["types"]),
+        "campaign_type_selected": rng.choice(cfg["types"]),
         "estimated_impressions_daily": int(budget.get("daily_budget", 1000) * 12),
         "insights": insights,
     }

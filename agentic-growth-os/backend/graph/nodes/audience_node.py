@@ -1,4 +1,6 @@
 import random
+
+from graph.model import simulation
 from graph.state import CampaignState
 
 PROFILES = {
@@ -45,7 +47,8 @@ def audience_node(state: CampaignState) -> CampaignState:
         insights.append(f"Age group refined to {age_group} based on previous conversion data")
 
     quality_boost = 0.3 if improvements else 0.0
-    quality_score = round(random.uniform(7.2, 9.2) + quality_boost, 1)
+    rng = random.Random(simulation.seed_for(state))
+    quality_score = round(rng.uniform(7.2, 9.2) + quality_boost, 1)
     estimated_reach = int(state["budget"] * 150 * (1.12 if improvements else 1.0))
 
     insights.append(f"Identified {len(profile['interests'])} interest clusters for targeting")
