@@ -64,6 +64,36 @@ These are plausible Indian digital-advertising reference figures, not measured
 results from any account. They are the model's assumptions, and changing them
 changes every projection.
 
+## Execution timing
+
+The agents' own work is genuinely instant — a dictionary lookup and some
+arithmetic complete in about **34ms for the whole pipeline** (verify with
+`AGENT_PACE=0`). A workflow that finishes that fast looks fake, and the
+frontend used to paper over it with a fixed 500ms-per-agent client-side loop
+that ran whether or not the backend was reachable.
+
+That loop is gone. The backend now streams each agent's sub-steps over
+server-sent events (`POST /api/execute-workflow/stream`) and the UI renders
+what the backend reports:
+
+- 19 declared sub-steps across the 5 agents (`GET /api/workflow-steps`)
+- each step carries `real_ms`, an estimate of its cost against a live LLM or
+  ad-platform API — **~28s** for a full run
+- `AGENT_PACE` (default `0.45`) scales those estimates for the demo, giving a
+  ~12s run
+
+The pacing is latency *shaping*, not a fake timer:
+
+- a step whose work is real is never padded — the DeepSeek call inside the ad
+  copy agent costs exactly what it costs, and its actual duration is credited
+  against that step's shaping
+- progress only advances when the backend says a step finished; if the backend
+  dies mid-run, the bar stops
+- `AGENT_PACE=0` removes shaping entirely for tests and benchmarking
+
+The UI states this openly under the progress bar rather than implying the
+agents are as fast as the demo suggests.
+
 ## Known limits
 
 - The baselines are static. A real system would fit them from the advertiser's
@@ -72,6 +102,8 @@ changes every projection.
   flags this with a `low_volume` warning rather than showing a confident grade.
 - The learning loop optimises against this model, so it can only prove that it
   improves *the model's* score — not real-world performance.
+- The `real_ms` per-step latencies are estimates of what these calls cost in a
+  deployed system, not measurements from this code.
 
 ## Enabling live ad copy
 

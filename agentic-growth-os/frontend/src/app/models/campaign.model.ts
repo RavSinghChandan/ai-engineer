@@ -106,3 +106,24 @@ export interface LearningInsight {
   latest_roi: number;
   latest_ctr: number;
 }
+
+export interface AgentStep {
+  key: string;
+  label: string;
+  detail: string;
+  status: 'idle' | 'running' | 'done';
+}
+
+export interface AgentProgress {
+  key: string;
+  label: string;
+  steps: AgentStep[];
+  progress: number;
+  status: 'idle' | 'running' | 'done';
+}
+
+export interface WorkflowStepsResponse {
+  agents: { key: string; label: string; steps: { key: string; label: string; detail: string }[] }[];
+  estimated_real_ms: number;
+  pace: number;
+}

@@ -1,8 +1,13 @@
+import asyncio
+import json
 import uuid
 
 from graph.model import llm, simulation
+from graph.model import steps as step_defs
+from graph.runner import run_with_progress
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from typing import List, Optional, Dict, Any
 
 from models.campaign import WorkflowExecuteRequest
@@ -71,12 +76,8 @@ def get_demo_campaigns():
     return {"campaigns": DEMO_CAMPAIGNS}
 
 
-@app.post("/api/execute-workflow")
-async def execute_workflow(request: WorkflowExecuteRequest):
-    c = request.campaign
-    campaign_id = str(uuid.uuid4())[:8]
-
-    # Memory lookup
+def _prepare_run(c):
+    """Memory lookup plus the initial graph state, shared by both endpoints."""
     similar = []
     improvements = {}
     learning_applied = False
@@ -87,7 +88,6 @@ async def execute_workflow(request: WorkflowExecuteRequest):
             improvements = get_improvements(similar)
             learning_applied = True
 
-    # Build initial state for LangGraph
     initial_state: dict = {
         "campaign_type":      c.campaign_type.value,
         "product_name":       c.product_name,
@@ -113,10 +113,12 @@ async def execute_workflow(request: WorkflowExecuteRequest):
         "agent_decisions":    None,
         "learning_summary":   None,
     }
+    return initial_state, similar, improvements, learning_applied
 
-    # Run LangGraph
-    final_state = campaign_graph.invoke(initial_state)
 
+def _shape_response(c, final_state, similar, improvements, learning_applied):
+    """Turn a finished graph state into the API response."""
+    campaign_id = str(uuid.uuid4())[:8]
     performance = final_state.get("performance_output") or {}
     metrics   = final_state.get("metrics") or {}
     ad_copy   = final_state.get("ad_copy_output") or {}
@@ -163,6 +165,50 @@ async def execute_workflow(request: WorkflowExecuteRequest):
         "provenance":              performance.get("provenance", {}),
         "copy_source":             ad_copy.get("copy_source", "template"),
     }
+
+
+@app.get("/api/workflow-steps")
+def workflow_steps():
+    """The sub-steps each agent runs, so the UI can render them before starting."""
+    return step_defs.describe()
+
+
+@app.post("/api/execute-workflow")
+async def execute_workflow(request: WorkflowExecuteRequest):
+    """Run the whole graph and return the result in one response."""
+    c = request.campaign
+    initial_state, similar, improvements, learning_applied = _prepare_run(c)
+    final_state = campaign_graph.invoke(initial_state)
+    return _shape_response(c, final_state, similar, improvements, learning_applied)
+
+
+@app.post("/api/execute-workflow/stream")
+async def execute_workflow_stream(request: WorkflowExecuteRequest):
+    """Same run, as server-sent events, reporting each sub-step as it finishes."""
+    c = request.campaign
+    initial_state, similar, improvements, learning_applied = _prepare_run(c)
+
+    async def event_stream():
+        try:
+            async for event in run_with_progress(initial_state):
+                if event["type"] == "state":
+                    result = _shape_response(
+                        c, event["state"], similar, improvements, learning_applied
+                    )
+                    yield f"data: {json.dumps({'type': 'result', 'result': result})}\n\n"
+                else:
+                    yield f"data: {json.dumps(event)}\n\n"
+        except asyncio.CancelledError:
+            # The viewer navigated away or reloaded; stop quietly.
+            raise
+        except Exception as exc:  # noqa: BLE001 - the stream must report, not 500
+            yield f"data: {json.dumps({'type': 'error', 'message': str(exc)})}\n\n"
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 @app.get("/api/campaign-memory")

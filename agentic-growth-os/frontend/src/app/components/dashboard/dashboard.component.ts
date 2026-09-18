@@ -303,15 +303,106 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
       this.budgetChartInst?.destroy();
       const decisions = this.result.agent_decisions as Record<string, Record<string, number>>;
       const split = decisions?.['budget_split'] as Record<string, number> ?? {};
-      const labels = Object.keys(split).map(k => k.replace('_', ' ').toUpperCase());
+      const labels = Object.keys(split).map(k => k.replace(/_/g, ' ').toUpperCase());
       const values = Object.values(split).map(v => Math.round(v * 100));
+      const budget = this.result.metrics.clicks * this.result.metrics.cost_per_click;
+      const palette = ['#6366f1', '#06b6d4', '#10b981', '#f59e0b', '#ec4899'];
+
+      // The share was only readable on hover, which nobody does while watching a
+      // demo, so an empty-looking ring read as a broken chart. Paint the value
+      // onto each segment and the total into the middle.
+      const segmentLabels = {
+        id: 'segmentLabels',
+        afterDatasetsDraw(chart: Chart<'doughnut'>) {
+          const { ctx } = chart;
+          const meta = chart.getDatasetMeta(0);
+          ctx.save();
+          meta.data.forEach((arc, i) => {
+            const value = values[i];
+            if (!value) return;
+            const a = arc as unknown as {
+              tooltipPosition: () => { x: number; y: number };
+              outerRadius: number; innerRadius: number;
+            };
+            const { x, y } = a.tooltipPosition();
+            const band = (a.outerRadius ?? 0) - (a.innerRadius ?? 0);
+            const size = Math.max(Math.min(band * 0.46, 12), 9);
+            ctx.font = `600 ${size}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            // Slices under 8% are too thin to hold text legibly.
+            if (value >= 8) ctx.fillText(`${value}%`, x, y);
+          });
+
+          const first = meta.data[0] as unknown as
+            { x: number; y: number; innerRadius: number } | undefined;
+          if (first) {
+            // The hole shrinks with the card, so size the centre text from the
+            // inner radius rather than fixing it - at narrow widths a fixed
+            // size overlapped the ring.
+            const hole = first.innerRadius ?? 0;
+            const stack = hole > 34;
+            const total = Math.max(Math.min(hole * 0.38, 18), 9);
+            ctx.fillStyle = '#0f172a';
+            ctx.font = `700 ${total}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+            ctx.fillText(`₹${Math.round(budget / 1000)}K`, first.x, first.y - (stack ? total * 0.42 : 0));
+            // Below that, the caption no longer fits inside the hole.
+            if (stack) {
+              const cap = Math.max(total * 0.58, 8);
+              ctx.fillStyle = '#64748b';
+              ctx.font = `500 ${cap}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+              ctx.fillText('TOTAL BUDGET', first.x, first.y + total * 0.62);
+            }
+          }
+          ctx.restore();
+        },
+      };
+
       this.budgetChartInst = new Chart(this.budgetChartRef.nativeElement, {
         type: 'doughnut',
         data: {
           labels,
-          datasets: [{ data: values, backgroundColor: ['#6366f1', '#06b6d4', '#10b981'], borderWidth: 0, hoverOffset: 6 }],
+          datasets: [{ data: values, backgroundColor: palette, borderWidth: 0, hoverOffset: 6 }],
         },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#475569', font: { size: 11 }, padding: 12 } } }, cutout: '65%' },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: { padding: { top: 4 } },
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                color: '#475569',
+                font: { size: 11 },
+                padding: 12,
+                boxWidth: 10,
+                boxHeight: 10,
+                usePointStyle: true,
+                pointStyle: 'circle',
+                // Carry the share and the rupee amount into the legend, so the
+                // figures are readable even where a slice is too thin for text.
+                generateLabels: () => labels.map((label, i) => ({
+                  text: `${label} — ${values[i]}% · ₹${Math.round((budget * values[i]) / 100 / 1000)}K`,
+                  fillStyle: palette[i % palette.length],
+                  strokeStyle: palette[i % palette.length],
+                  lineWidth: 0,
+                  index: i,
+                })),
+              },
+            },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => {
+                  const pct = ctx.parsed as number;
+                  return ` ${pct}% · ₹${Math.round((budget * pct) / 100).toLocaleString('en-IN')}`;
+                },
+              },
+            },
+          },
+          cutout: '62%',
+        },
+        plugins: [segmentLabels],
       });
     }, 100);
   }
