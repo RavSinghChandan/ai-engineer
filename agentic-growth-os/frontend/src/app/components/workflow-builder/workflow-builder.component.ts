@@ -5,14 +5,14 @@ import { AsyncPipe } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { WorkflowService } from '../../services/workflow.service';
 import { CampaignService } from '../../services/campaign.service';
-import { AgentProgress, WorkflowNode, WorkflowEdge, CampaignForm } from '../../models/campaign.model';
+import { AgentProgress, LiveStep, WorkflowNode, WorkflowEdge, CampaignForm } from '../../models/campaign.model';
 
 @Component({
   selector: 'app-workflow-builder',
   standalone: true,
   imports: [CommonModule, FormsModule, AsyncPipe],
   template: `
-    <div class="flex gap-5 h-full animate-fade-in">
+    <div class="flex flex-col xl:flex-row gap-5 h-full animate-fade-in">
 
       <!-- Left: Canvas + presets -->
       <div class="flex-1 flex flex-col gap-4">
@@ -35,7 +35,7 @@ import { AgentProgress, WorkflowNode, WorkflowEdge, CampaignForm } from '../../m
 
         <!-- SVG + Node Canvas -->
         <div #canvas class="glass rounded-2xl relative overflow-x-auto overflow-y-hidden"
-             style="height:520px; background-color:#fafafa; background-image: radial-gradient(rgba(15,23,42,.10) 1px, transparent 1px); background-size: 20px 20px;"
+             style="height:560px; background-color:#fafafa; background-image: radial-gradient(rgba(15,23,42,.10) 1px, transparent 1px); background-size: 20px 20px;"
              (mousemove)="onMouseMove($event)"
              (mouseup)="onMouseUp()"
              (mouseleave)="onMouseUp()">
@@ -62,7 +62,7 @@ import { AgentProgress, WorkflowNode, WorkflowEdge, CampaignForm } from '../../m
 
           <!-- Agent nodes (drag via mousedown) -->
           <div *ngFor="let node of nodes"
-               class="absolute agent-node p-2.5 w-48 select-none"
+               class="absolute agent-node p-3 w-48 select-none"
                [style.left.px]="node.x"
                [style.top.px]="node.y"
                [style.border-color]="nodeBorderColor(node)"
@@ -75,17 +75,18 @@ import { AgentProgress, WorkflowNode, WorkflowEdge, CampaignForm } from '../../m
               <div class="w-9 h-9 rounded-lg flex items-center justify-center text-lg flex-shrink-0"
                    [style.background]="node.color + '25'">{{ node.icon }}</div>
               <div class="min-w-0">
-                <div class="text-xs font-semibold text-slate-900 leading-tight truncate">{{ node.label }}</div>
-                <div class="text-slate-500 mt-0.5 leading-tight" style="font-size:10px;">{{ node.description }}</div>
+                <div class="text-sm font-bold text-slate-900 leading-tight truncate">{{ node.label }}</div>
+                <div class="text-slate-500 mt-0.5 leading-tight text-xs" *ngIf="node.status === 'idle'">{{ node.description }}</div>
               </div>
             </div>
             <ng-container *ngIf="agentFor(node.id) as ag">
               <div class="mt-2 pointer-events-none">
                 <div class="flex items-center justify-between mb-1">
-                  <span class="text-slate-500" style="font-size:10px;">
+                  <span class="text-xs font-medium"
+                        [class]="node.status === 'running' ? 'text-indigo-600' : node.status === 'done' ? 'text-emerald-600' : 'text-slate-500'">
                     {{ node.status === 'running' ? 'Running' : node.status === 'done' ? 'Completed' : 'Ready' }}
                   </span>
-                  <span class="font-semibold tabular-nums" style="font-size:10px;"
+                  <span class="text-xs font-bold tabular-nums"
                         [class]="node.status === 'done' ? 'text-emerald-600' : 'text-indigo-600'">{{ ag.progress }}%</span>
                 </div>
                 <div class="h-1 rounded-full bg-slate-100 overflow-hidden">
@@ -93,15 +94,17 @@ import { AgentProgress, WorkflowNode, WorkflowEdge, CampaignForm } from '../../m
                        [style.width.%]="ag.progress"
                        [style.background]="node.status === 'done' ? '#10b981' : node.color"></div>
                 </div>
-                <div class="mt-1.5 space-y-0.5" *ngIf="node.status !== 'idle'">
-                  <div *ngFor="let st of ag.steps" class="flex items-center gap-1 leading-tight"
-                       style="font-size:9px;" [class.opacity-40]="st.status === 'idle'">
-                    <span class="flex-shrink-0 w-2 text-center"
-                          [class]="st.status === 'done' ? 'text-emerald-600' : st.status === 'running' ? 'text-indigo-600' : 'text-slate-400'">{{ st.status === 'done' ? '✓' : st.status === 'running' ? '▸' : '·' }}</span>
-                    <span class="truncate"
-                          [class]="st.status === 'running' ? 'text-indigo-700 font-semibold' : 'text-slate-500'">{{ st.label }}</span>
-                  </div>
+                <div class="mt-2 flex items-center gap-1.5" *ngIf="node.status !== 'idle'">
+                  <span *ngFor="let st of ag.steps; let i = index"
+                        class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold tabular-nums transition-colors"
+                        [class]="st.status === 'done' ? 'bg-emerald-500 text-white'
+                               : st.status === 'running' ? 'bg-indigo-600 text-white ring-2 ring-indigo-200'
+                               : 'bg-slate-200 text-slate-500'"
+                        [title]="st.label">{{ st.status === 'done' ? '✓' : i + 1 }}</span>
                 </div>
+                <!-- Name only the step in flight; the rest are pips above. -->
+                <div class="mt-1.5 text-xs font-semibold text-indigo-700 truncate"
+                     *ngIf="runningStepLabel(ag) as label">{{ label }}</div>
               </div>
             </ng-container>
           </div>
@@ -125,15 +128,51 @@ import { AgentProgress, WorkflowNode, WorkflowEdge, CampaignForm } from '../../m
         </div>
 
         <!-- Progress bar -->
-        <div *ngIf="running$ | async" class="-mt-2 space-y-1">
-          <div class="glass rounded-full h-1.5 overflow-hidden">
+        <div *ngIf="running$ | async" class="-mt-2 space-y-1.5">
+          <div class="glass rounded-full h-2 overflow-hidden">
             <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-300 rounded-full"
                  [style.width.%]="progress$ | async"></div>
           </div>
-          <div class="flex items-center justify-between text-slate-400" style="font-size:10px;" *ngIf="estimatedRealMs">
+          <div class="flex items-center justify-between text-xs text-slate-400" *ngIf="estimatedRealMs">
             <span>Step timing is scaled from measured API latency</span>
             <span class="tabular-nums">~{{ (estimatedRealMs / 1000) | number:'1.0-0' }}s against live ad platforms</span>
           </div>
+        </div>
+
+        <!-- Live detail: the canvas cards are too small to read from a room,
+             so the step in flight gets its own panel at readable size. -->
+        <div *ngIf="liveStep as live" class="glass-card border-indigo-200 bg-indigo-50/40">
+          <div class="flex items-start gap-4">
+            <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-lg font-bold tabular-nums">
+              {{ live.stepIndex }}
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <span class="text-lg font-bold text-slate-900">{{ live.agentLabel }}</span>
+                <span class="text-sm text-slate-500">{{ live.agentRole }}</span>
+              </div>
+              <div class="mt-1.5 text-base font-semibold text-indigo-700">
+                Step {{ live.stepIndex }} of {{ live.stepTotal }} — {{ live.stepLabel }}
+              </div>
+              <div class="mt-0.5 text-sm text-slate-600">{{ live.stepDetail }}</div>
+            </div>
+            <div class="flex-shrink-0 text-right">
+              <div class="text-2xl font-bold text-indigo-700 tabular-nums">{{ progress$ | async }}%</div>
+              <div class="text-xs text-slate-500 tabular-nums">{{ (elapsedMs / 1000) | number:'1.1-1' }}s elapsed</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Primary action, centred under the workflow it runs -->
+        <div class="flex justify-center">
+          <button (click)="execute()" [disabled]="(running$ | async) === true"
+            class="btn-primary flex items-center justify-center gap-2.5 px-10 py-3.5 text-base">
+            <ng-container *ngIf="!(running$ | async)">▶ Build My Campaign</ng-container>
+            <ng-container *ngIf="running$ | async">
+              <span class="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+              Building campaign…
+            </ng-container>
+          </button>
         </div>
 
         <!-- Demo presets -->
@@ -151,7 +190,7 @@ import { AgentProgress, WorkflowNode, WorkflowEdge, CampaignForm } from '../../m
       </div>
 
       <!-- Right: Config + Execute -->
-      <div class="w-72 xl:w-64 flex-shrink-0 flex flex-col gap-4">
+      <div class="w-full xl:w-72 flex-shrink-0 flex flex-col gap-4">
         <div class="glass-card flex-1 overflow-y-auto">
           <div class="section-title mb-4">Campaign Config</div>
           <div class="space-y-3">
@@ -197,14 +236,7 @@ import { AgentProgress, WorkflowNode, WorkflowEdge, CampaignForm } from '../../m
           </div>
         </div>
 
-        <button (click)="execute()" [disabled]="(running$ | async) === true"
-          class="btn-primary w-full flex items-center justify-center gap-2 py-3 text-sm">
-          <ng-container *ngIf="!(running$ | async)">▶ Execute LangGraph Workflow</ng-container>
-          <ng-container *ngIf="running$ | async">
-            <span class="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-            Running agents...
-          </ng-container>
-        </button>
+
 
         <!-- Execution log -->
         <div *ngIf="agentLog.length > 0" class="glass-card max-h-52 overflow-y-auto">
@@ -243,6 +275,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
   progress$     = this.campaignSvc.progress$;
   runningAgent$ = this.campaignSvc.runningAgent$;
   activeStep$   = this.campaignSvc.activeStep$;
+  liveStep: LiveStep | null = null;
   agents: AgentProgress[] = [];
   estimatedRealMs = 0;
   elapsedMs = 0;
@@ -274,6 +307,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       this.agents = a;
       for (const agent of a) this.workflowSvc.applyAgentStatus(agent.key, agent.status);
     }));
+    this.subs.add(this.campaignSvc.liveStep$.subscribe(v => (this.liveStep = v)));
     this.subs.add(this.campaignSvc.estimatedRealMs$.subscribe(ms => (this.estimatedRealMs = ms)));
     this.campaignSvc.loadSteps();
   }
@@ -305,6 +339,10 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
   private static readonly NODE_AGENT_KEYS: Record<string, string> = {
     '1': 'audience', '2': 'ad_copy', '3': 'budget', '4': 'campaign', '5': 'performance',
   };
+
+  runningStepLabel(agent: AgentProgress): string | null {
+    return agent.steps.find(s => s.status === 'running')?.label ?? null;
+  }
 
   agentFor(nodeId: string): AgentProgress | undefined {
     const key = WorkflowBuilderComponent.NODE_AGENT_KEYS[nodeId];

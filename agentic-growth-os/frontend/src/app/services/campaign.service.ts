@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { AgentProgress, CampaignForm, CampaignResult, LearningInsight, WorkflowEdge, WorkflowNode, WorkflowStepsResponse } from '../models/campaign.model';
+import { AgentProgress, CampaignForm, CampaignResult, LearningInsight, LiveStep, WorkflowEdge, WorkflowNode, WorkflowStepsResponse } from '../models/campaign.model';
 
 const API = 'http://localhost:8000';
 
@@ -15,6 +15,7 @@ export class CampaignService {
   private _runningAgent = new BehaviorSubject<string>('');
   private _agents  = new BehaviorSubject<AgentProgress[]>([]);
   private _activeStep = new BehaviorSubject<string>('');
+  private _liveStep = new BehaviorSubject<LiveStep | null>(null);
   private _estimatedRealMs = new BehaviorSubject<number>(0);
 
   result$       = this._result.asObservable();
@@ -25,6 +26,7 @@ export class CampaignService {
   runningAgent$ = this._runningAgent.asObservable();
   agents$       = this._agents.asObservable();
   activeStep$   = this._activeStep.asObservable();
+  liveStep$     = this._liveStep.asObservable();
   estimatedRealMs$ = this._estimatedRealMs.asObservable();
 
   constructor(private http: HttpClient) {}
@@ -59,6 +61,7 @@ export class CampaignService {
     return data.agents.map(a => ({
       key: a.key,
       label: a.label,
+      role: a.role,
       progress: 0,
       status: 'idle' as const,
       steps: a.steps.map(st => ({ ...st, status: 'idle' as const })),
@@ -98,6 +101,7 @@ export class CampaignService {
     this._progress.next(0);
     this._runningAgent.next('');
     this._activeStep.next('');
+    this._liveStep.next(null);
     this._agents.next(this._agents.value.map(a => ({
       ...a,
       progress: 0,
@@ -155,6 +159,14 @@ export class CampaignService {
         break;
       case 'step_start':
         this._activeStep.next(event['step_label'] as string);
+        this._liveStep.next({
+          agentLabel: event['agent_label'] as string,
+          agentRole: event['agent_role'] as string,
+          stepLabel: event['step_label'] as string,
+          stepDetail: event['step_detail'] as string,
+          stepIndex: event['step_index'] as number,
+          stepTotal: event['step_total'] as number,
+        });
         this.patchStep(agentKey, event['step'] as string, 'running');
         break;
       case 'step_done':
@@ -173,6 +185,7 @@ export class CampaignService {
         this._running.next(false);
         this._runningAgent.next('');
         this._activeStep.next('');
+        this._liveStep.next(null);
         break;
       }
       case 'error':

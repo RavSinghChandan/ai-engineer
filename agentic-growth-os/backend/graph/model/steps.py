@@ -99,6 +99,16 @@ AGENT_LABELS = {
     "performance": "Performance Analyzer",
 }
 
+# What each agent is the specialist in. Shown while it runs, so the role is
+# clear to someone watching who has not read the architecture.
+AGENT_ROLES = {
+    "audience": "Targeting specialist — decides who sees the ad",
+    "ad_copy": "Creative specialist — decides what the ad says",
+    "budget": "Media buying specialist — decides where the money goes",
+    "campaign": "Delivery specialist — assembles the launch payload",
+    "performance": "Analytics specialist — scores the result and grades it",
+}
+
 AGENT_ORDER = ["audience", "ad_copy", "budget", "campaign", "performance"]
 
 
@@ -118,8 +128,14 @@ def describe() -> Dict[str, Any]:
             {
                 "key": key,
                 "label": AGENT_LABELS[key],
+                "role": AGENT_ROLES[key],
                 "steps": [
-                    {"key": s["key"], "label": s["label"], "detail": s["detail"], "weight": s["weight"]}
+                    {
+                        "key": s["key"],
+                        "label": s["label"],
+                        "detail": s["detail"],
+                        "weight": s["weight"],
+                    }
                     for s in STEPS[key]
                 ],
             }

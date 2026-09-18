@@ -46,6 +46,9 @@ async def run_with_progress(state: Dict[str, Any]) -> AsyncIterator[Dict[str, An
             "type": "agent_start",
             "agent": agent_key,
             "agent_label": agent_label,
+            "agent_role": step_defs.AGENT_ROLES[agent_key],
+            "agent_index": step_defs.AGENT_ORDER.index(agent_key) + 1,
+            "agent_total": len(step_defs.AGENT_ORDER),
             "steps": [
                 {"key": s["key"], "label": s["label"], "detail": s["detail"]}
                 for s in agent_steps
@@ -61,9 +64,12 @@ async def run_with_progress(state: Dict[str, Any]) -> AsyncIterator[Dict[str, An
                 "type": "step_start",
                 "agent": agent_key,
                 "agent_label": agent_label,
+                "agent_role": step_defs.AGENT_ROLES[agent_key],
                 "step": step["key"],
                 "step_label": step["label"],
                 "step_detail": step["detail"],
+                "step_index": index + 1,
+                "step_total": len(agent_steps),
                 "agent_progress": round(agent_progress * 100),
                 "overall_progress": round((completed / total_steps) * 100),
             }

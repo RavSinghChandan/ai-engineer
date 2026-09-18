@@ -3,11 +3,11 @@ import { BehaviorSubject } from 'rxjs';
 import { WorkflowEdge, WorkflowNode } from '../models/campaign.model';
 
 const DEFAULT_NODES: WorkflowNode[] = [
-  { id: '1', type: 'audienceAgent',         label: 'Audience Agent',       color: '#6366f1', icon: '👥', description: 'Segments & identifies ideal audience',  x: 12,  y: 176, status: 'idle' },
-  { id: '2', type: 'adCopyAgent',           label: 'Ad Copy Agent',        color: '#8b5cf6', icon: '✍️', description: 'Generates high-converting ad creatives', x: 222, y: 52,  status: 'idle' },
-  { id: '3', type: 'budgetOptimizerAgent',  label: 'Budget Optimizer',     color: '#06b6d4', icon: '💰', description: 'Allocates budget for max ROI',           x: 222, y: 312, status: 'idle' },
-  { id: '4', type: 'campaignAgent',         label: 'Campaign Agent',       color: '#10b981', icon: '🚀', description: 'Launches & manages campaigns',          x: 432, y: 176, status: 'idle' },
-  { id: '5', type: 'performanceAnalyzerAgent', label: 'Performance Analyzer', color: '#f59e0b', icon: '📊', description: 'Tracks ROI & optimization signals',  x: 642, y: 176, status: 'idle' },
+  { id: '1', type: 'audienceAgent',         label: 'Audience Agent',       color: '#6366f1', icon: '👥', description: 'Segments & identifies ideal audience',  x: 6,   y: 176, status: 'idle' },
+  { id: '2', type: 'adCopyAgent',           label: 'Ad Copy Agent',        color: '#8b5cf6', icon: '✍️', description: 'Generates high-converting ad creatives', x: 208, y: 36,  status: 'idle' },
+  { id: '3', type: 'budgetOptimizerAgent',  label: 'Budget Optimizer',     color: '#06b6d4', icon: '💰', description: 'Allocates budget for max ROI',           x: 208, y: 320, status: 'idle' },
+  { id: '4', type: 'campaignAgent',         label: 'Campaign Agent',       color: '#10b981', icon: '🚀', description: 'Launches & manages campaigns',          x: 410, y: 176, status: 'idle' },
+  { id: '5', type: 'performanceAnalyzerAgent', label: 'Performance Analyzer', color: '#f59e0b', icon: '📊', description: 'Tracks ROI & optimization signals',  x: 612, y: 176, status: 'idle' },
 ];
 
 const DEFAULT_EDGES: WorkflowEdge[] = [
