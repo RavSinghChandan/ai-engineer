@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ElementRef, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AsyncPipe } from '@angular/common';
@@ -139,26 +139,58 @@ import { AgentProgress, LiveStep, WorkflowNode, WorkflowEdge, CampaignForm } fro
           </div>
         </div>
 
-        <!-- Live detail: the canvas cards are too small to read from a room,
-             so the step in flight gets its own panel at readable size. -->
-        <div *ngIf="liveStep as live" class="glass-card border-indigo-200 bg-indigo-50/40">
-          <div class="flex items-start gap-4">
-            <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-lg font-bold tabular-nums">
-              {{ live.stepIndex }}
+        <!-- Execution trail. Every agent that has started stays on screen with
+             its steps, so a viewer can read back what happened rather than
+             watching one line get overwritten. -->
+        <div *ngIf="showTrail" class="glass-card p-0 overflow-hidden">
+          <div class="px-4 py-3 border-b border-slate-200 flex items-center gap-3">
+            <span class="text-sm font-bold text-slate-900">Agent Execution</span>
+            <span class="text-xs text-slate-500">{{ doneAgentCount }} of {{ agents.length }} agents complete</span>
+            <div class="ml-auto flex items-center gap-3">
+              <span class="text-sm font-bold text-indigo-700 tabular-nums">{{ progress$ | async }}%</span>
+              <span class="text-xs text-slate-500 tabular-nums">{{ (elapsedMs / 1000) | number:'1.1-1' }}s</span>
             </div>
-            <div class="min-w-0 flex-1">
-              <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                <span class="text-lg font-bold text-slate-900">{{ live.agentLabel }}</span>
-                <span class="text-sm text-slate-500">{{ live.agentRole }}</span>
+          </div>
+
+          <div class="divide-y divide-slate-100 max-h-80 overflow-y-auto" #trail>
+            <div *ngFor="let ag of startedAgents" class="px-4 py-3">
+              <!-- Agent header: green once finished, indigo while running -->
+              <div class="flex items-center gap-2.5">
+                <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                      [class]="ag.status === 'done' ? 'bg-emerald-500 text-white' : 'bg-indigo-600 text-white'">
+                  {{ ag.status === 'done' ? '✓' : '▸' }}
+                </span>
+                <span class="text-base font-bold"
+                      [class]="ag.status === 'done' ? 'text-emerald-700' : 'text-indigo-700'">{{ ag.label }}</span>
+                <span class="text-xs text-slate-500 hidden sm:inline">{{ ag.role }}</span>
+                <span class="ml-auto text-sm font-bold tabular-nums"
+                      [class]="ag.status === 'done' ? 'text-emerald-600' : 'text-indigo-600'">{{ ag.progress }}%</span>
               </div>
-              <div class="mt-1.5 text-base font-semibold text-indigo-700">
-                Step {{ live.stepIndex }} of {{ live.stepTotal }} — {{ live.stepLabel }}
+
+              <!-- Its steps, numbered, kept on screen after they finish -->
+              <div class="mt-2 ml-8.5 space-y-1.5" style="margin-left:2.1rem;">
+                <div *ngFor="let st of ag.steps; let i = index"
+                     class="flex items-start gap-2.5"
+                     [class.opacity-35]="st.status === 'idle'">
+                  <span class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold tabular-nums flex-shrink-0 mt-px"
+                        [class]="st.status === 'done' ? 'bg-emerald-100 text-emerald-700'
+                               : st.status === 'running' ? 'bg-indigo-600 text-white'
+                               : 'bg-slate-100 text-slate-400'">{{ st.status === 'done' ? '✓' : i + 1 }}</span>
+                  <div class="min-w-0 flex-1">
+                    <div class="text-sm font-semibold"
+                         [class]="st.status === 'running' ? 'text-indigo-700'
+                                : st.status === 'done' ? 'text-slate-700' : 'text-slate-400'">{{ st.label }}</div>
+                    <div class="text-xs text-slate-500 leading-snug" *ngIf="st.status !== 'idle'">{{ st.detail }}</div>
+                    <!-- Time bar runs for exactly as long as the step is held -->
+                    <div *ngIf="st.status === 'running'" class="mt-1 h-0.5 rounded-full bg-indigo-100 overflow-hidden">
+                      <div class="h-full bg-indigo-500 rounded-full step-timer"
+                           [style.animation-duration.s]="st.seconds || 2"></div>
+                    </div>
+                  </div>
+                  <span class="text-xs text-slate-400 tabular-nums flex-shrink-0"
+                        *ngIf="st.status === 'done' && st.tookSeconds">{{ st.tookSeconds | number:'1.1-1' }}s</span>
+                </div>
               </div>
-              <div class="mt-0.5 text-sm text-slate-600">{{ live.stepDetail }}</div>
-            </div>
-            <div class="flex-shrink-0 text-right">
-              <div class="text-2xl font-bold text-indigo-700 tabular-nums">{{ progress$ | async }}%</div>
-              <div class="text-xs text-slate-500 tabular-nums">{{ (elapsedMs / 1000) | number:'1.1-1' }}s elapsed</div>
             </div>
           </div>
         </div>
@@ -276,6 +308,8 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
   runningAgent$ = this.campaignSvc.runningAgent$;
   activeStep$   = this.campaignSvc.activeStep$;
   liveStep: LiveStep | null = null;
+  showTrail = false;
+  @ViewChild('trail') trailRef?: ElementRef<HTMLElement>;
   agents: AgentProgress[] = [];
   estimatedRealMs = 0;
   elapsedMs = 0;
@@ -307,7 +341,14 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       this.agents = a;
       for (const agent of a) this.workflowSvc.applyAgentStatus(agent.key, agent.status);
     }));
-    this.subs.add(this.campaignSvc.liveStep$.subscribe(v => (this.liveStep = v)));
+    this.subs.add(this.campaignSvc.liveStep$.subscribe(v => {
+      this.liveStep = v;
+      // Follow the run as the trail grows past the panel's height.
+      queueMicrotask(() => {
+        const el = this.trailRef?.nativeElement;
+        if (el) el.scrollTop = el.scrollHeight;
+      });
+    }));
     this.subs.add(this.campaignSvc.estimatedRealMs$.subscribe(ms => (this.estimatedRealMs = ms)));
     this.campaignSvc.loadSteps();
   }
@@ -320,6 +361,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
   async execute(): Promise<void> {
     this.agentLog = [];
     this.workflowSvc.resetExecution();
+    this.showTrail = true;
     this.startElapsed();
     await this.campaignSvc.executeWorkflow(this.nodes, this.edges, this.campaign);
     this.stopElapsed();
@@ -339,6 +381,15 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
   private static readonly NODE_AGENT_KEYS: Record<string, string> = {
     '1': 'audience', '2': 'ad_copy', '3': 'budget', '4': 'campaign', '5': 'performance',
   };
+
+  /** Agents that have started, so the trail grows rather than pre-filling. */
+  get startedAgents(): AgentProgress[] {
+    return this.agents.filter(a => a.status !== 'idle');
+  }
+
+  get doneAgentCount(): number {
+    return this.agents.filter(a => a.status === 'done').length;
+  }
 
   runningStepLabel(agent: AgentProgress): string | null {
     return agent.steps.find(s => s.status === 'running')?.label ?? null;

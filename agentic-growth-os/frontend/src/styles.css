@@ -94,3 +94,18 @@
   .agent-node.running { animation: none; }
   .progress-bar { animation: none; }
 }
+
+/* Per-step timer bar: fills for exactly as long as the backend holds the step,
+   so the viewer can see how much reading time is left. */
+@keyframes step-timer {
+  from { width: 0%; }
+  to   { width: 100%; }
+}
+.step-timer {
+  animation: step-timer linear forwards;
+  width: 0%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step-timer { animation: none; width: 100%; }
+}

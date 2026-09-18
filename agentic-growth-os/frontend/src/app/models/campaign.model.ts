@@ -112,6 +112,10 @@ export interface AgentStep {
   label: string;
   detail: string;
   status: 'idle' | 'running' | 'done';
+  /** Seconds this step is held on screen; drives the per-step timer bar. */
+  seconds?: number;
+  /** Wall-clock seconds the step actually took, once finished. */
+  tookSeconds?: number;
 }
 
 export interface AgentProgress {

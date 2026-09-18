@@ -60,6 +60,10 @@ async def run_with_progress(state: Dict[str, Any]) -> AsyncIterator[Dict[str, An
         for index, step in enumerate(agent_steps):
             is_last = index == len(agent_steps) - 1
 
+            # How long this step stays on screen: the scaled latency, floored
+            # by the time its own text takes to read.
+            pause = step_defs.step_seconds(step)
+
             yield {
                 "type": "step_start",
                 "agent": agent_key,
@@ -70,12 +74,10 @@ async def run_with_progress(state: Dict[str, Any]) -> AsyncIterator[Dict[str, An
                 "step_detail": step["detail"],
                 "step_index": index + 1,
                 "step_total": len(agent_steps),
+                "step_seconds": round(pause, 2),
                 "agent_progress": round(agent_progress * 100),
                 "overall_progress": round((completed / total_steps) * 100),
             }
-
-            # Latency shaping for the steps that carry no real I/O.
-            pause = step_defs.pace_seconds(step["real_ms"])
 
             if is_last:
                 # The node's actual work, executed off the event loop so a slow

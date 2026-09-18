@@ -28,11 +28,11 @@ from typing import Any, Dict, List
 
 # Fraction of the estimated real latency to actually wait when the step has no
 # real I/O behind it. 1.0 would make the demo take a full minute; 0 makes it
-# instant. The default keeps the five agents at roughly 12-13 seconds.
+# instant. The default keeps the five agents at roughly 40 seconds.
 try:
-    PACE = max(0.0, float(os.environ.get("AGENT_PACE", "0.45")))
+    PACE = max(0.0, float(os.environ.get("AGENT_PACE", "0.7")))
 except ValueError:
-    PACE = 0.45
+    PACE = 0.7
 
 
 def _step(key: str, label: str, detail: str, weight: float, real_ms: int) -> Dict[str, Any]:
@@ -112,9 +112,37 @@ AGENT_ROLES = {
 AGENT_ORDER = ["audience", "ad_copy", "budget", "campaign", "performance"]
 
 
-def pace_seconds(real_ms: int) -> float:
-    """How long to actually wait for a step whose work carries no real I/O."""
-    return (real_ms * PACE) / 1000.0
+# A step must stay on screen long enough to actually be read. Several steps
+# were landing in 0.18-0.45s against roughly 2.5s of reading, so the text
+# changed before anyone could take it in. These floors are applied on top of
+# the scaled latency, whichever is longer.
+WORDS_PER_SECOND = 5.5   # slower than silent reading (~200wpm); the viewer is
+                         # also watching the canvas, not only reading.
+MIN_STEP_SECONDS = 1.5   # nothing flashes past, however short its label.
+READ_PAD_SECONDS = 0.35   # a beat after the words land, before moving on.
+
+
+def read_seconds(*texts: str) -> float:
+    """How long the given text needs to be read comfortably."""
+    words = sum(len(t.split()) for t in texts if t)
+    return words / WORDS_PER_SECOND + READ_PAD_SECONDS
+
+
+def pace_seconds(real_ms: int, *texts: str) -> float:
+    """How long a step should stay on screen.
+
+    The scaled latency estimate, floored by the time its own text takes to
+    read. With PACE at 0 both terms vanish, so tests stay instant.
+    """
+    scaled = (real_ms * PACE) / 1000.0
+    if PACE <= 0:
+        return 0.0
+    return max(scaled, read_seconds(*texts), MIN_STEP_SECONDS)
+
+
+def step_seconds(step: Dict[str, Any]) -> float:
+    """Pacing for a declared step, including its own label and detail."""
+    return pace_seconds(step["real_ms"], step["label"], step["detail"])
 
 
 def total_estimated_ms() -> int:

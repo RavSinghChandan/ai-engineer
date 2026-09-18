@@ -79,8 +79,14 @@ what the backend reports:
 - 19 declared sub-steps across the 5 agents (`GET /api/workflow-steps`)
 - each step carries `real_ms`, an estimate of its cost against a live LLM or
   ad-platform API — **~28s** for a full run
-- `AGENT_PACE` (default `0.45`) scales those estimates for the demo, giving a
-  ~12s run
+- `AGENT_PACE` (default `0.7`) scales those estimates, and each step is then
+  floored by the time its own text takes to read — roughly a **41s run**, with
+  no step shorter than 1.8s
+
+The reading floor exists because the scaled latencies alone put several steps
+at 0.18–0.45s against ~2.5s of text. The words changed before anyone could
+take them in, which reads as a progress animation rather than as work. A step
+now stays up for `max(scaled_latency, words / 5.5 + 0.35s, 1.5s)`.
 
 The pacing is latency *shaping*, not a fake timer:
 
@@ -91,8 +97,12 @@ The pacing is latency *shaping*, not a fake timer:
   dies mid-run, the bar stops
 - `AGENT_PACE=0` removes shaping entirely for tests and benchmarking
 
-The UI states this openly under the progress bar rather than implying the
-agents are as fast as the demo suggests.
+Completed agents and their steps stay on screen in a running trail rather than
+being overwritten, each finished step showing what it actually took, so the
+run can be read back after it ends.
+
+The UI states the scaling openly under the progress bar rather than implying
+the agents are as fast as the demo suggests.
 
 ## Known limits
 

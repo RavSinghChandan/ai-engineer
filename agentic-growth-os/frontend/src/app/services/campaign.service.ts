@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { AgentProgress, CampaignForm, CampaignResult, LearningInsight, LiveStep, WorkflowEdge, WorkflowNode, WorkflowStepsResponse } from '../models/campaign.model';
+import { AgentProgress, AgentStep, CampaignForm, CampaignResult, LearningInsight, LiveStep, WorkflowEdge, WorkflowNode, WorkflowStepsResponse } from '../models/campaign.model';
 
 const API = 'http://localhost:8000';
 
@@ -16,6 +16,7 @@ export class CampaignService {
   private _agents  = new BehaviorSubject<AgentProgress[]>([]);
   private _activeStep = new BehaviorSubject<string>('');
   private _liveStep = new BehaviorSubject<LiveStep | null>(null);
+  private stepStartedAt = 0;
   private _estimatedRealMs = new BehaviorSubject<number>(0);
 
   result$       = this._result.asObservable();
@@ -74,11 +75,16 @@ export class CampaignService {
     );
   }
 
-  private patchStep(agentKey: string, stepKey: string, status: 'running' | 'done'): void {
+  private patchStep(
+    agentKey: string,
+    stepKey: string,
+    status: 'running' | 'done',
+    extra: Partial<AgentStep> = {},
+  ): void {
     this._agents.next(
       this._agents.value.map(a =>
         a.key === agentKey
-          ? { ...a, steps: a.steps.map(s => (s.key === stepKey ? { ...s, status } : s)) }
+          ? { ...a, steps: a.steps.map(s => (s.key === stepKey ? { ...s, status, ...extra } : s)) }
           : a,
       ),
     );
@@ -158,6 +164,7 @@ export class CampaignService {
         this.patchAgent(agentKey, { status: 'running', progress: 0 });
         break;
       case 'step_start':
+        this.stepStartedAt = Date.now();
         this._activeStep.next(event['step_label'] as string);
         this._liveStep.next({
           agentLabel: event['agent_label'] as string,
@@ -167,10 +174,14 @@ export class CampaignService {
           stepIndex: event['step_index'] as number,
           stepTotal: event['step_total'] as number,
         });
-        this.patchStep(agentKey, event['step'] as string, 'running');
+        this.patchStep(agentKey, event['step'] as string, 'running', {
+          seconds: event['step_seconds'] as number,
+        });
         break;
       case 'step_done':
-        this.patchStep(agentKey, event['step'] as string, 'done');
+        this.patchStep(agentKey, event['step'] as string, 'done', {
+          tookSeconds: (Date.now() - this.stepStartedAt) / 1000,
+        });
         this.patchAgent(agentKey, { progress: event['agent_progress'] as number });
         break;
       case 'agent_done':
