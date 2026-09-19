@@ -3,12 +3,19 @@
 # serves. Kept separate from start.sh so a redeploy does not rebuild on boot.
 set -euo pipefail
 
-echo "==> Installing Python dependencies"
-pip install --no-cache-dir -r backend/requirements.txt
+# Install into the interpreter that start.sh will run, not whichever pip
+# happens to be first on PATH - otherwise the server starts without uvicorn.
+PY="${PYTHON:-python3}"
+echo "==> Installing Python dependencies with $("$PY" -c 'import sys; print(sys.executable)')"
+"$PY" -m pip install --no-cache-dir -r backend/requirements.txt
 
 echo "==> Building the frontend"
 cd frontend
-npm ci --no-audit --no-fund
+if [ -f package-lock.json ]; then
+  npm ci --no-audit --no-fund
+else
+  npm install --no-audit --no-fund
+fi
 npx ng build --configuration production
 cd ..
 
