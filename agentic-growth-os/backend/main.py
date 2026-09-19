@@ -1,13 +1,15 @@
 import asyncio
 import json
+import os
 import uuid
+from pathlib import Path
 
 from graph.model import llm, simulation
 from graph.model import steps as step_defs
 from graph.runner import run_with_progress
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from typing import List, Optional, Dict, Any
 
 from models.campaign import WorkflowExecuteRequest
@@ -60,8 +62,10 @@ DEMO_CAMPAIGNS = [
 ]
 
 
-@app.get("/")
+@app.get("/api")
 def root():
+    """API identity. `/` serves the frontend in a deployment, so this moved
+    under /api rather than shadowing the app's own index page."""
     return {"message": "Agentic Growth OS API", "engine": "LangGraph", "version": "2.0.0"}
 
 
@@ -302,6 +306,32 @@ def _learning_summary(learning_applied, improvements, imp_pct, similar):
     }
 
 
+# ── Static frontend ────────────────────────────────────────────────────────
+# In a deployment there is one process and one port: the built Angular app is
+# served from here, so the browser calls the API on its own origin and no CORS
+# or second server is involved. Locally this directory does not exist and
+# `ng serve` on 4200 talks to uvicorn on 8000 instead.
+_FRONTEND_DIST = (
+    Path(__file__).resolve().parent.parent / "frontend" / "dist" / "agentic-growth-os" / "browser"
+)
+
+if _FRONTEND_DIST.is_dir():
+    @app.get("/{path:path}", include_in_schema=False)
+    def serve_frontend(path: str):
+        """Serve a built asset, falling back to index.html for client routes."""
+        candidate = (_FRONTEND_DIST / path).resolve()
+        # Keep the lookup inside the build directory.
+        if (
+            path
+            and _FRONTEND_DIST in candidate.parents
+            and candidate.is_file()
+        ):
+            return FileResponse(candidate)
+        return FileResponse(_FRONTEND_DIST / "index.html")
+
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+
+    # Replit provides PORT; default to 8000 for local runs.
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))

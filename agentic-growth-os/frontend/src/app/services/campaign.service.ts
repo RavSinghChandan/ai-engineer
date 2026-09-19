@@ -3,7 +3,9 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { AgentProgress, AgentStep, CampaignForm, CampaignResult, LearningInsight, LiveStep, WorkflowEdge, WorkflowNode, WorkflowStepsResponse } from '../models/campaign.model';
 
-const API = 'http://localhost:8000';
+// Same-origin in a deployment (FastAPI serves the built frontend), and the
+// local backend when running `ng serve` on 4200 against uvicorn on 8000.
+const API = window.location.port === '4200' ? 'http://localhost:8000' : '';
 
 @Injectable({ providedIn: 'root' })
 export class CampaignService {

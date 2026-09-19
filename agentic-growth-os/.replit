@@ -1,0 +1,20 @@
+# Replit: build the Angular app once, then run FastAPI, which serves both the
+# API and the built frontend on a single port.
+run = "bash start.sh"
+entrypoint = "backend/main.py"
+modules = ["python-3.11", "nodejs-20"]
+
+[nix]
+channel = "stable-24_05"
+
+[deployment]
+run = ["bash", "start.sh"]
+deploymentTarget = "cloudrun"
+build = ["bash", "build.sh"]
+
+[[ports]]
+localPort = 8000
+externalPort = 80
+
+[env]
+PYTHONUNBUFFERED = "1"
