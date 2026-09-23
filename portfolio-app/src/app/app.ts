@@ -923,6 +923,16 @@ export class App implements OnInit, AfterViewInit {
       logo: 'pypdf-logo.svg',
       org: 'py-pdf',
       stars: '10.1k★',
+      title: 'Do not crash on an outline action without a type',
+      desc: 'An outline item whose /A action omits the required /S subtype raised a bare KeyError while reading the outline, so one malformed entry made the whole document unreadable. The entry is now reported and the item kept.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4098',
+      merged: 'Sep 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
       title: 'Do not crash on a composite font without descendant fonts',
       desc: 'from_font_resource read /DescendantFonts directly on the composite-font branch, with a comment stating the entry need not be tested for. That holds for the subtype, not the entry: a /Type0 font omitting it raised a bare KeyError out of extract_text().',
       pr: 'https://github.com/py-pdf/pypdf/pull/4119',
@@ -1191,6 +1201,7 @@ export class App implements OnInit, AfterViewInit {
     { id: 'pypdf54', label: 'pypdf #4102',    kind: 'oss', detail: 'Page label kids not an array', url: 'https://github.com/py-pdf/pypdf/pull/4102' },
     { id: 'pypdf55', label: 'pypdf #4118',    kind: 'oss', detail: 'Font widths not an array', url: 'https://github.com/py-pdf/pypdf/pull/4118' },
     { id: 'pypdf56', label: 'pypdf #4119',    kind: 'oss', detail: 'Composite font without descendants', url: 'https://github.com/py-pdf/pypdf/pull/4119' },
+    { id: 'pypdf57', label: 'pypdf #4098',    kind: 'oss', detail: 'Outline action without a type', url: 'https://github.com/py-pdf/pypdf/pull/4098' },
 
     // Experience (amber)
     { id: 'infosys', label: 'Infosys — BofA', kind: 'work', detail: 'Senior Software Engineer' },
