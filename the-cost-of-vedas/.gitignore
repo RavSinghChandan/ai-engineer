@@ -1,0 +1,5 @@
+build/META-INF/
+build/OEBPS/
+build/mimetype
+tools/__pycache__/
+manuscript/_old/
