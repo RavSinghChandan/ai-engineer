@@ -1,0 +1,16 @@
+[project]
+name = "prtriage"
+version = "0.1.0"
+description = "Triage your open pull requests with a System One model"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+jev = ["typesafe-sdk"]
+
+[project.scripts]
+prtriage = "prtriage.cli:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
