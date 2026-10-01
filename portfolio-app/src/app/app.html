@@ -8,7 +8,7 @@
     <div class="nav-links">
       <a href="#story"      [class.nav-active]="activeSection()==='story'"      (click)="closeMobileNav()">Story</a>
       <a href="#opensource" [class.nav-active]="activeSection()==='opensource'" (click)="closeMobileNav()">Open Source</a>
-      <a href="#skills"     [class.nav-active]="activeSection()==='skills'"     (click)="closeMobileNav()">Skills</a>
+      <a href="#skills"     [class.nav-active]="activeSection()==='skills'"     (click)="closeMobileNav()">FDE</a>
       <a href="#projects"   [class.nav-active]="activeSection()==='projects'"   (click)="closeMobileNav()">Projects</a>
       <a href="#by-numbers" [class.nav-active]="activeSection()==='by-numbers'" (click)="closeMobileNav()">Proof</a>
       <a href="#experience" [class.nav-active]="activeSection()==='experience'" (click)="closeMobileNav()">Experience</a>
@@ -121,7 +121,7 @@
       <p class="hero-desc">
         <strong class="hero-lede">I build AI systems that don't stop at the demo.</strong>
         From ambiguous problem → architecture → agent → integration → production.
-        <span class="hero-triad">Software Engineering × Agentic AI × Distributed Systems</span>
+        <span class="hero-triad">Agentic AI × Full-Stack × Production × Communication</span>
       </p>
 
       <div class="hero-typing">
@@ -185,12 +185,13 @@
       </div>
 
       <div class="hero-card">
-        <div class="hc-label">Tech Stack</div>
-        <div class="hc-icons">
-          <img src="https://skillicons.dev/icons?i=python,fastapi,java,spring" alt="Python FastAPI Java Spring" class="hc-skillrow"/>
-          <img src="https://skillicons.dev/icons?i=angular,typescript,kafka,redis" alt="Angular TypeScript Kafka Redis" class="hc-skillrow"/>
-          <img src="https://skillicons.dev/icons?i=docker,aws,githubactions,postgres" alt="Docker AWS GitHub Actions Postgres" class="hc-skillrow"/>
+        <div class="hc-label">End-to-end stack · I ship every layer</div>
+        <div class="hc-layers">
+          @for (l of stackLayers; track l.layer) {
+            <div class="hc-layer"><span class="hc-layer-name">{{ l.layer }}</span><span class="hc-layer-items">{{ l.items }}</span></div>
+          }
         </div>
+        <img src="https://skillicons.dev/icons?i=python,java,fastapi,angular,react,kafka,docker,aws&perline=8" alt="Python Java FastAPI Angular React Kafka Docker AWS" class="hc-iconstrip"/>
         <div class="hc-footer">
           <span class="hc-stat green">● 637 tests passing</span>
           <span class="hc-stat amber">under 4s runtime</span>
@@ -343,7 +344,7 @@
   <div class="container">
     <div class="eyebrow">Proof of Work</div>
     <h2>Engineering Proof</h2>
-    <p class="section-sub">Every number below is real, verifiable in GitHub, and backed by production code — not slides.</p>
+    <p class="section-sub">What a forward-deployed hiring manager looks for: <b>it ships, it integrates, it holds up in production, and other engineers trust the code.</b> Every number below is real and verifiable — not slides.</p>
 
     <div class="proof-grid">
       @for (p of proofStats; track p.stat) {
@@ -375,121 +376,32 @@
 <!-- SKILLS -->
 <section id="skills" class="skills-section" data-guide="skills">
   <div class="container">
-    <div class="eyebrow">Capabilities</div>
-    <h2>What I Bring</h2>
-    <p class="section-sub">A software engineer who learned AI deeply — and applies it to messy, real-world engineering problems.</p>
+    <div class="eyebrow">Forward Deployed Engineering</div>
+    <h2>Built for Forward Deployed Work</h2>
+    <p class="section-sub">A forward deployed engineer is four people in one: <b>an agentic AI engineer, a full-stack builder,
+      a production engineer and a communicator</b> — embedded with the problem and accountable for the outcome.
+      Here is each part, with receipts.</p>
 
-    <!-- Animated Skill Orbit + Bars -->
-    <div class="skills-orbit-wrap fade-up" #fadeEl aria-hidden="true" #skillsOrbit>
-      <!-- Orbit SVG -->
-      <svg class="skills-orbit-svg" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <radialGradient id="orbit-core" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#26890D" stop-opacity="0.9"/>
-            <stop offset="100%" stop-color="#26890D" stop-opacity="0.4"/>
-          </radialGradient>
-        </defs>
-        <!-- Orbit rings -->
-        <circle cx="120" cy="120" r="45"  class="orbit-ring orbit-ring--1"/>
-        <circle cx="120" cy="120" r="72"  class="orbit-ring orbit-ring--2"/>
-        <circle cx="120" cy="120" r="100" class="orbit-ring orbit-ring--3"/>
-        <!-- Core brain — neural net icon -->
-        <circle cx="120" cy="120" r="24" fill="url(#orbit-core)" opacity="0.9"/>
-        <!-- brain SVG paths centered at 120,120 (scale ~18px) -->
-        <g transform="translate(108,108)" fill="white" opacity="0.92">
-          <circle cx="4" cy="6" r="2.5"/>
-          <circle cx="12" cy="6" r="2.5"/>
-          <circle cx="8" cy="14" r="2.5"/>
-          <line x1="4" y1="6" x2="12" y2="6" stroke="white" stroke-width="1.2"/>
-          <line x1="4" y1="6" x2="8" y2="14" stroke="white" stroke-width="1.2"/>
-          <line x1="12" y1="6" x2="8" y2="14" stroke="white" stroke-width="1.2"/>
-          <circle cx="0" cy="12" r="1.8" fill="white" opacity="0.6"/>
-          <line x1="0" y1="12" x2="4" y2="6" stroke="white" stroke-width="1" opacity="0.6"/>
-          <circle cx="16" cy="12" r="1.8" fill="white" opacity="0.6"/>
-          <line x1="16" y1="12" x2="12" y2="6" stroke="white" stroke-width="1" opacity="0.6"/>
-        </g>
-        <!-- Orbiting tech dots — text labels replace emojis -->
-        <g class="orbit-dot orbit-dot--1">
-          <circle cx="120" cy="75" r="10" fill="#0D8390" opacity="0.85"/>
-          <text x="120" y="79" text-anchor="middle" font-size="7" font-family="'Fira Code',monospace" font-weight="700" fill="white">PY</text>
-        </g>
-        <g class="orbit-dot orbit-dot--1" style="animation-delay:-2.5s">
-          <circle cx="165" cy="120" r="9" fill="#26890D" opacity="0.85"/>
-          <text x="165" y="124" text-anchor="middle" font-size="6" font-family="'Fira Code',monospace" font-weight="700" fill="white">API</text>
-        </g>
-        <g class="orbit-dot orbit-dot--1" style="animation-delay:-5s">
-          <circle cx="120" cy="165" r="10" fill="#ED8B00" opacity="0.85"/>
-          <text x="120" y="169" text-anchor="middle" font-size="5.5" font-family="'Fira Code',monospace" font-weight="700" fill="white">LG</text>
-        </g>
-        <g class="orbit-dot orbit-dot--2">
-          <circle cx="48"  cy="120" r="8" fill="#26890D" opacity="0.85"/>
-          <text x="48" y="124" text-anchor="middle" font-size="5.5" font-family="'Fira Code',monospace" font-weight="700" fill="white">NG</text>
-        </g>
-        <g class="orbit-dot orbit-dot--2" style="animation-delay:-6s">
-          <circle cx="96"  cy="48"  r="7" fill="#0D8390" opacity="0.8"/>
-          <text x="96" y="52" text-anchor="middle" font-size="5" font-family="'Fira Code',monospace" font-weight="700" fill="white">RAG</text>
-        </g>
-        <g class="orbit-dot orbit-dot--3">
-          <circle cx="20"  cy="90"  r="6" fill="#26890D" opacity="0.7"/>
-          <!-- shield shape -->
-          <path d="M20,84 L25,87 L25,92 Q20,96 20,96 Q15,96 15,92 L15,87 Z" fill="white" opacity="0.85" transform="scale(0.6) translate(13,56)"/>
-        </g>
-        <g class="orbit-dot orbit-dot--3" style="animation-delay:-9s">
-          <circle cx="220" cy="150" r="6" fill="#ED8B00" opacity="0.7"/>
-          <!-- arrow-up / deploy icon -->
-          <polyline points="220,154 220,147 224,151 220,147 216,151" stroke="white" stroke-width="1.4" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
-        </g>
-      </svg>
-      <!-- Skill bars -->
-      <div class="skills-bars" #skillBars>
-        <div class="skb-row">
-          <div class="skb-head">
-            <span class="skb-name"><span class="skb-svg-icon"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 2C5.5 2 4 3 4 4.5V6h4v.5H3C1.5 6.5 1 7.5 1 9s.8 2.5 2 2.5h1v-1.5c0-1 .8-1.5 2-1.5h3.5c1 0 1.5-.6 1.5-1.5V4.5C11 3 9.5 2 8 2zM6.5 4a.75.75 0 110 1.5.75.75 0 010-1.5z" fill="currentColor" opacity="0.9"/><path d="M8 14c2.5 0 4-1 4-2.5V10H8v-.5h5c1.5 0 2-1 2-2.5s-.8-2.5-2-2.5h-1v1.5c0 1-.8 1.5-2 1.5H6.5c-1 0-1.5.6-1.5 1.5v3C5 13 6.5 14 8 14zm1.5-2a.75.75 0 110-1.5.75.75 0 010 1.5z" fill="currentColor" opacity="0.7"/></svg></span>Python</span>
-            <span class="skb-pct" style="color:#26890D">97%</span>
-          </div>
-          <div class="skb-track"><div class="skb-fill skb-fill--purple" [style.width]="skillsVisible() ? '97%' : '0'"></div></div>
-          <span class="skb-tag">Breathing it since 2023</span>
-        </div>
-        <div class="skb-row">
-          <div class="skb-head">
-            <span class="skb-name"><span class="skb-svg-icon"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="2" fill="currentColor"/><circle cx="8" cy="2" r="1.5" fill="currentColor" opacity="0.8"/><circle cx="8" cy="14" r="1.5" fill="currentColor" opacity="0.8"/><circle cx="2" cy="5" r="1.5" fill="currentColor" opacity="0.8"/><circle cx="14" cy="5" r="1.5" fill="currentColor" opacity="0.8"/><circle cx="2" cy="11" r="1.5" fill="currentColor" opacity="0.8"/><circle cx="14" cy="11" r="1.5" fill="currentColor" opacity="0.8"/><line x1="8" y1="6" x2="8" y2="3.5" stroke="currentColor" stroke-width="1" opacity="0.6"/><line x1="8" y1="10" x2="8" y2="12.5" stroke="currentColor" stroke-width="1" opacity="0.6"/><line x1="6.3" y1="7" x2="3.2" y2="5.8" stroke="currentColor" stroke-width="1" opacity="0.6"/><line x1="9.7" y1="7" x2="12.8" y2="5.8" stroke="currentColor" stroke-width="1" opacity="0.6"/><line x1="6.3" y1="9" x2="3.2" y2="10.2" stroke="currentColor" stroke-width="1" opacity="0.6"/><line x1="9.7" y1="9" x2="12.8" y2="10.2" stroke="currentColor" stroke-width="1" opacity="0.6"/></svg></span>LangGraph</span>
-            <span class="skb-pct" style="color:#0D8390">92%</span>
-          </div>
-          <div class="skb-track"><div class="skb-fill skb-fill--cyan" [style.width]="skillsVisible() ? '92%' : '0'"></div></div>
-          <span class="skb-tag">State machine poet 🎭</span>
-        </div>
-        <div class="skb-row">
-          <div class="skb-head">
-            <span class="skb-name"><span class="skb-svg-icon"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><polygon points="9,2 4,9 8,9 7,14 12,7 8,7" fill="currentColor" opacity="0.95"/></svg></span>FastAPI</span>
-            <span class="skb-pct" style="color:#ED8B00">95%</span>
-          </div>
-          <div class="skb-track"><div class="skb-fill skb-fill--amber" [style.width]="skillsVisible() ? '95%' : '0'"></div></div>
-          <span class="skb-tag">Auto-docs everything 📄</span>
-        </div>
-        <div class="skb-row">
-          <div class="skb-head">
-            <span class="skb-name"><span class="skb-svg-icon"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><polygon points="8,1 15,4 13,13 8,15 3,13 1,4" stroke="currentColor" stroke-width="1.2" fill="none" opacity="0.9"/><polygon points="8,3.5 11.5,12.5 10,12.5 9,10 7,10 6,12.5 4.5,12.5" fill="currentColor" opacity="0.85"/><line x1="6.5" y1="8.5" x2="9.5" y2="8.5" stroke="currentColor" stroke-width="1" opacity="0.6"/></svg></span>Angular</span>
-            <span class="skb-pct" style="color:#26890D">88%</span>
-          </div>
-          <div class="skb-track"><div class="skb-fill skb-fill--green" [style.width]="skillsVisible() ? '88%' : '0'"></div></div>
-          <span class="skb-tag">Signals believer since v17</span>
-        </div>
-        <div class="skb-row">
-          <div class="skb-head">
-            <span class="skb-name"><span class="skb-svg-icon"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="6.5" cy="6.5" r="4" stroke="currentColor" stroke-width="1.5" opacity="0.9"/><line x1="9.5" y1="9.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity="0.85"/><line x1="4" y1="6.5" x2="9" y2="6.5" stroke="currentColor" stroke-width="1" opacity="0.5"/><line x1="6.5" y1="4" x2="6.5" y2="9" stroke="currentColor" stroke-width="1" opacity="0.5"/></svg></span>Hybrid RAG</span>
-            <span class="skb-pct" style="color:#f87171">90%</span>
-          </div>
-          <div class="skb-track"><div class="skb-fill skb-fill--red" [style.width]="skillsVisible() ? '90%' : '0'"></div></div>
-          <span class="skb-tag">FAISS + BM25 + HyDE + CRAG</span>
-        </div>
-      </div>
-    </div>
+    <!-- How I deploy: the loop -->
+    <ol class="fde-loop fade-up" #fadeEl aria-label="How I take a problem to production">
+      @for (step of deployLoop; track step.name; let i = $index) {
+        <li class="fde-step">
+          <span class="fde-n">{{ i + 1 < 10 ? '0' + (i + 1) : i + 1 }}</span>
+          <span class="fde-name">{{ step.name }}</span>
+          <span class="fde-desc">{{ step.desc }}</span>
+        </li>
+      }
+    </ol>
 
-    <div class="skills-grid">
+    <div class="skills-grid fde-grid">
       @for (skill of skills; track skill.title) {
-        <div class="skill-card fade-up" #fadeEl>
-          <img [src]="getSkillIconUrl(skill.items)" [alt]="skill.title" class="skill-logos"/>
-          <div class="skill-title" [ngClass]="'color-' + skill.color">{{ skill.title }}</div>
+        <div class="skill-card fde-card fade-up" #fadeEl>
+          <div class="fde-card-top">
+            <div class="skill-title" [ngClass]="'color-' + skill.color">{{ skill.title }}</div>
+            <img [src]="getSkillIconUrl(skill.items)" [alt]="skill.title" class="skill-logos fde-logos"/>
+          </div>
+          <p class="fde-what">{{ skill.what }}</p>
+          <div class="fde-evidence"><span class="fde-ev-label">Evidence</span>{{ skill.evidence }}</div>
           <div class="skill-items">
             @for (item of skill.labels; track item) {
               <span class="skill-item tag" [ngClass]="'tag-' + skill.color">{{ item }}</span>

@@ -352,6 +352,37 @@ export class App implements OnInit, AfterViewInit {
   // ── 6 proof cards — each one a gut-punch stat readable in 2 seconds ──
   readonly proofStats = [
     {
+      stat:  '4 → 1',
+      title: 'Apps served by one agent engine.',
+      sub:   'Universal Agent drops into FastAPI, Angular, React or plain HTML via SDKs and YAML — integration, not rewrites.',
+      askQuestion: 'How does one Universal Agent engine serve four different apps?',
+      aaravImg: 'guide-chandan-happy.svg',
+      aaravSay: 'Build once, plug in anywhere! 🔌',
+      svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="24" cy="24" r="6" stroke="currentColor" stroke-width="2"/>
+        <rect x="4" y="6" width="10" height="8" rx="1.5" stroke="#26890D" stroke-width="2"/>
+        <rect x="34" y="6" width="10" height="8" rx="1.5" stroke="#26890D" stroke-width="2"/>
+        <rect x="4" y="34" width="10" height="8" rx="1.5" stroke="#26890D" stroke-width="2"/>
+        <rect x="34" y="34" width="10" height="8" rx="1.5" stroke="#26890D" stroke-width="2"/>
+        <path d="M14 12l6 7M34 12l-6 7M14 36l6-7M34 36l-6-7" stroke="currentColor" stroke-width="1.5" opacity="0.6"/>
+      </svg>`,
+    },
+    {
+      stat:  '66',
+      title: 'PRs merged by outside maintainers.',
+      sub:   'Code reviewed and accepted into pypdf, Joblib, Sentence Transformers, NLTK and Authlib — trusted by strangers, not just teammates.',
+      askQuestion: 'What kind of open-source contributions has Chandan merged?',
+      aaravImg: 'guide-chandan-wow.svg',
+      aaravSay: '66 merged, all reviewed! ✅',
+      svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
+        <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
+        <circle cx="34" cy="20" r="4" stroke="#26890D" stroke-width="2"/>
+        <path d="M14 14v20M34 24c0 8-8 8-16 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M29 36l3 3 6-6" stroke="#26890D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>`,
+    },
+    {
       stat:  '637',
       title: 'Tests. Under four seconds.',
       sub:   'Every line of production code is tested. No shortcuts, no flakiness.',
@@ -1368,12 +1399,54 @@ export class App implements OnInit, AfterViewInit {
   graphHover = signal<GraphNode | null>(null);
   graphReady = signal(false);
 
+  // ── Forward deployed engineering: how I work + what I bring, with evidence ──
+  readonly deployLoop = [
+    { name: 'Embed',     desc: 'Sit with users, data and constraints' },
+    { name: 'Scope',     desc: 'Turn ambiguity into a design' },
+    { name: 'Prototype', desc: 'A working agent, fast' },
+    { name: 'Integrate', desc: 'Into existing auth, APIs and data' },
+    { name: 'Harden',    desc: 'Tests, guardrails, evals, cost' },
+    { name: 'Hand over', desc: 'Docs, demos, a team that owns it' },
+  ];
+
+  readonly stackLayers = [
+    { layer: 'AI & Agents', items: 'LangGraph · LangChain · RAG · Tool calling · Evals' },
+    { layer: 'Backend',     items: 'Python · Java · FastAPI · Spring Boot' },
+    { layer: 'Frontend',    items: 'Angular · React · TypeScript' },
+    { layer: 'Data',        items: 'PostgreSQL · Redis · Kafka · FAISS' },
+    { layer: 'Ship & Run',  items: 'Docker · Kubernetes · AWS · CI/CD' },
+    { layer: 'Security',    items: 'Guardrails · PII · Injection defence' },
+  ];
+
   skills = [
-    { icon: 'python', type: 'skillicon', title: 'Agentic AI', color: 'purple', items: ['python','pytorch','fastapi'], labels: ['LLMs','LangGraph','LangChain','Multi-Agent Systems','Tool Calling','AI Evaluation'] },
-    { icon: 'postgresql', type: 'skillicon', title: 'Production AI', color: 'cyan', items: ['redis','postgresql','fastapi'], labels: ['RAG','Hybrid Search','Guardrails','Memory','Caching','Observability','Cost Optimization'] },
-    { icon: 'java', type: 'skillicon', title: 'Software Engineering', color: 'green', items: ['java','spring','python','kafka'], labels: ['Java','Python','Spring Boot','FastAPI','Microservices','Distributed Systems','Kafka'] },
-    { icon: 'python', type: 'skillicon', title: 'AI Security', color: 'red', items: ['regex','python','linux'], labels: ['Prompt-Injection Defence','PII Protection','Output Validation','Secure Agentic Workflows'] },
-    { icon: 'docker', type: 'skillicon', title: 'Production Infrastructure', color: 'amber', items: ['docker','kubernetes','aws','githubactions'], labels: ['Docker','Kubernetes','AWS','CI/CD','Redis','PostgreSQL'] },
+    { title: 'Discover & Scope', color: 'cyan', items: ['md','figma'],
+      what: 'Turn an ambiguous ask into a scoped, defensible design before writing code.',
+      evidence: 'Every flagship is written up as Problem → Constraint → Decision → Result. RunbookAI went RAGless after scoping the real risk: a hallucinated command mid-incident.',
+      labels: ['Problem framing','System design','Trade-off analysis','Build vs buy','Risk mapping'] },
+    { title: 'Agentic AI Engineering', color: 'purple', items: ['python','pytorch','fastapi'],
+      what: 'Agents that plan, call tools and recover from failure — not just chat.',
+      evidence: '18+ agents across production-oriented systems; 16 coordinated in one LangGraph graph; hybrid RAG with HyDE, CRAG and reranking.',
+      labels: ['LangGraph','LangChain','Multi-agent','Tool calling','RAG','AI evaluation','Prompt engineering'] },
+    { title: 'Full-Stack Delivery', color: 'blue', items: ['angular','react','typescript','fastapi'],
+      what: 'From API to interface — something a real user can pick up and use.',
+      evidence: 'Every system ships with its own UI: Angular dashboards, live SSE/WebSocket pipeline views, and Angular, React and plain-JS SDKs for Universal Agent.',
+      labels: ['Angular','React','TypeScript','FastAPI','Spring Boot','SSE','WebSockets'] },
+    { title: 'Enterprise Integration', color: 'green', items: ['java','spring','kafka','postgres'],
+      what: 'Fit into the systems a customer already runs, instead of asking them to change.',
+      evidence: 'One agent engine embedded in 4 apps through SDKs and YAML; multi-tenant JWT with 3 roles; Kafka pipelines in a Bank of America environment; LLM provider switched by config.',
+      labels: ['REST APIs','SDKs','JWT / RBAC','Multi-tenant','Kafka','Event-driven','LLM abstraction'] },
+    { title: 'Production Engineering', color: 'amber', items: ['docker','kubernetes','aws','githubactions'],
+      what: 'Fast, cheap, observable and hard to break once real traffic arrives.',
+      evidence: '637 tests running in under 4 s; latency cut from 78 s to 4 s; $0.000137 per analysis; circuit breakers and two-tier semantic caching.',
+      labels: ['Testing','Caching','Circuit breakers','Observability','Cost control','Docker','Kubernetes','AWS','CI/CD'] },
+    { title: 'AI Security', color: 'red', items: ['regex','linux','python'],
+      what: 'Agents a security team will actually sign off on.',
+      evidence: 'G1–G5 guardrails — rate limiting, injection detection, PII filtering, faithfulness gate, output validation. Now in Deloitte USI\'s Agentic AI & Security work.',
+      labels: ['Prompt-injection defence','PII protection','Output validation','Secure tool use','Threat modelling'] },
+    { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
+      what: 'Explain the system to engineers, leaders and reviewers — and own the outcome.',
+      evidence: '66 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
+      labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
   experience = [
