@@ -2,48 +2,90 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* One theme only, in Deloitte's visual language: white pages, black bands,
-   the #86BC25 green as the accent and darker greens wherever green is text. */
-:root, html, body, html[data-theme], body[data-theme] {
+/* Deloitte-inspired themes. Dark is the default; light is opt-in via the
+   nav toggle (html[data-theme="light"]). Component styles only read these
+   tokens, because Angular's emulated encapsulation cannot match html[...]. */
+:root {
   --dl-green:   #86BC25;
-  --dl-green-2: #26890D;
-  --dl-green-3: #046A38;
-  --dl-teal:    #0D8390;
-  --dl-blue:    #007CB0;
-  --dl-black:   #000000;
-  --dl-gray-1:  #53565A;
-  --dl-gray-2:  #75787B;
-  --dl-gray-4:  #D0D0CE;
-  --dl-gray-5:  #F2F2F2;
+  --dl-teal:    #00ABAB;
+  --dl-blue:    #62B5E5;
+  --dl-grad:    linear-gradient(100deg, #86BC25 0%, #43B02A 45%, #00ABAB 100%);
+  --ease:       cubic-bezier(0.4, 0, 0.2, 1);
+  --red:        #DA291C;
+}
 
-  --purple:    #26890D;
-  --purple-lt: #046A38;
-  --cyan:      #0D8390;
-  --green:     #26890D;
-  --amber:     #C26E00;
-  --red:       #DA291C;
-  --blue:      #007CB0;
-  --ease:      cubic-bezier(0.4, 0, 0.2, 1);
+:root, html[data-theme="dark"] {
+  color-scheme: dark;
+  --bg:      #000000;
+  --bg-alt:  #070807;
+  --surface: #0E0F0E;
+  --card:    #0B0C0B;
+  --card-hi: #121412;
+  --border:  rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.16);
+  --text:    #FFFFFF;
+  --text2:   #C8C9C7;
+  --text3:   #8E9093;
+  --muted:   #A7A8AA;
+  --accent:   #86BC25;
+  --accent-2: #A6D86E;
+  --purple:    #86BC25;
+  --purple-lt: #A6D86E;
+  --green:     #86BC25;
+  --cyan:      #00ABAB;
+  --amber:     #FFB81C;
+  --blue:      #62B5E5;
+  --glow:    rgba(134,188,37,0.22);
+  --shadow:  0 0 0 1px rgba(255,255,255,0.06), 0 10px 30px -12px rgba(0,0,0,0.8);
+  --card-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 18px 40px -20px rgba(0,0,0,0.9);
+  --card-shadow-hover: inset 0 3px 0 #86BC25, inset 0 1px 0 rgba(255,255,255,0.05), 0 28px 60px -24px rgba(134,188,37,0.25);
+  --chip-active-bg: #FFFFFF;
+  --chip-active-fg: #000000;
+}
 
-  --bg:      #ffffff;
-  --surface: #F7F7F7;
-  --card:    #ffffff;
-  --border:  #E1E1DF;
+html[data-theme="light"] {
+  color-scheme: light;
+  --bg:      #FFFFFF;
+  --bg-alt:  #F6F6F4;
+  --surface: #F4F4F2;
+  --card:    #FFFFFF;
+  --card-hi: #FFFFFF;
+  --border:  rgba(0,0,0,0.08);
   --border2: #D0D0CE;
   --text:    #000000;
   --text2:   #53565A;
   --text3:   #75787B;
   --muted:   #53565A;
+  --accent:   #26890D;
+  --accent-2: #046A38;
+  --purple:    #26890D;
+  --purple-lt: #046A38;
+  --green:     #26890D;
+  --cyan:      #0D8390;
+  --amber:     #B35A00;
+  --blue:      #007CB0;
   --glow:    rgba(134,188,37,0.18);
   --shadow:  0 0 0 1px #E1E1DF, 0 2px 12px rgba(0,0,0,0.05);
+  --card-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 10px 30px -12px rgba(0,0,0,0.12);
+  --card-shadow-hover: inset 0 3px 0 #86BC25, 0 2px 4px rgba(0,0,0,0.04), 0 24px 48px -16px rgba(0,0,0,0.22);
+  --chip-active-bg: #000000;
+  --chip-active-fg: #FFFFFF;
 }
 
-.tag-purple { background: #EEF6E0 !important; color: #046A38 !important; border-color: #C5E09A !important; }
-.tag-cyan   { background: #E1F1F2 !important; color: #0A6670 !important; border-color: #A6D3D8 !important; }
-.tag-green  { background: #E6F2E2 !important; color: #1E6E0A !important; border-color: #B4D9A8 !important; }
-.tag-amber  { background: #FDF0DE !important; color: #8A4F00 !important; border-color: #F2C98A !important; }
-.tag-red    { background: #FBE6E4 !important; color: #A11F14 !important; border-color: #F0B1AB !important; }
-.tag-blue   { background: #E0EFF6 !important; color: #005A80 !important; border-color: #9FCBE0 !important; }
+/* Tags: tinted on dark, pastel on light */
+.tag-purple, .tag-green { background: rgba(134,188,37,0.12); color: #A6D86E; border: 1px solid rgba(134,188,37,0.28); }
+.tag-cyan   { background: rgba(0,171,171,0.12);  color: #5FD3D3; border: 1px solid rgba(0,171,171,0.3); }
+.tag-amber  { background: rgba(255,184,28,0.10); color: #FFCF66; border: 1px solid rgba(255,184,28,0.28); }
+.tag-red    { background: rgba(218,41,28,0.12);  color: #FF8A80; border: 1px solid rgba(218,41,28,0.3); }
+.tag-blue   { background: rgba(98,181,229,0.12); color: #9FD3F2; border: 1px solid rgba(98,181,229,0.3); }
+html[data-theme="light"] {
+  .tag-purple { background: #EEF6E0; color: #046A38; border-color: #C5E09A; }
+  .tag-cyan   { background: #E1F1F2; color: #0A6670; border-color: #A6D3D8; }
+  .tag-green  { background: #E6F2E2; color: #1E6E0A; border-color: #B4D9A8; }
+  .tag-amber  { background: #FDF0DE; color: #8A4F00; border-color: #F2C98A; }
+  .tag-red    { background: #FBE6E4; color: #A11F14; border-color: #F0B1AB; }
+  .tag-blue   { background: #E0EFF6; color: #005A80; border-color: #9FCBE0; }
+}
 
 html { scroll-behavior: smooth; }
 
@@ -74,12 +116,6 @@ a { text-decoration: none; color: inherit; }
   padding: 0.18rem 0.6rem;
   border-radius: 4px;
 }
-.tag-purple { background: rgba(134,188,37,0.12); color: #26890D; border: 1px solid rgba(134,188,37,0.25); }
-.tag-cyan   { background: rgba(13,131,144,0.10);  color: #0D8390; border: 1px solid rgba(13,131,144,0.25); }
-.tag-green  { background: rgba(4,106,56,0.10); color: #86BC25; border: 1px solid rgba(4,106,56,0.25); }
-.tag-amber  { background: rgba(237,139,0,0.10); color: #ED8B00; border: 1px solid rgba(237,139,0,0.25); }
-.tag-red    { background: rgba(239,68,68,0.10);  color: #fca5a5; border: 1px solid rgba(239,68,68,0.25); }
-.tag-blue   { background: rgba(0,124,176,0.12);  color: #007CB0; border: 1px solid rgba(0,124,176,0.25); }
 
 .btn {
   display: inline-flex; align-items: center; gap: 0.45rem;

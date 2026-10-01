@@ -29,8 +29,8 @@ interface GraphBody extends GraphNode {
 })
 export class App implements OnInit, AfterViewInit {
 
-  // Single theme (Deloitte-style). Kept as a signal because the chat payload reads it.
-  theme = signal<'light'>('light');
+  // Dark by default; the nav toggle switches to light and remembers the choice.
+  theme = signal<'dark' | 'light'>('dark');
   typedText = signal('');
   scrolled = signal(false);
   mobileNavOpen = signal(false);
@@ -45,6 +45,19 @@ export class App implements OnInit, AfterViewInit {
   // Lets visitors filter projects by tech stack tag with a single click.
   // Builds the unique tag list lazily on first access so no maintenance overhead.
   activeTagFilter = signal<string | null>(null);
+  tagsExpanded = signal(false);
+  readonly tagPreviewCount = 10;
+
+  /** Tags shared by the most projects first; the rest sit behind "+N more". */
+  get visibleFilterTags(): string[] {
+    const count = (tag: string) =>
+      this.projects.filter(p => p.tags.some(t => t.label.toLowerCase() === tag.toLowerCase())).length;
+    const ranked = [...this.filterTags].sort((a, b) => count(b) - count(a));
+    if (this.tagsExpanded()) return ranked;
+    const top = ranked.slice(0, this.tagPreviewCount);
+    const active = this.activeTagFilter();
+    return active && !top.includes(active) ? [...top, active] : top;
+  }
 
   get filterTags(): string[] {
     const seen = new Set<string>();
@@ -81,8 +94,8 @@ export class App implements OnInit, AfterViewInit {
   }
 
   // ── Projects browser: sort + paginate, same pattern as open source ──────
-  //    Each project card is long (challenges + screenshots), so two per page.
-  readonly projPageSize = 2;
+  //    Each project card is long (challenges + screenshots), so one per page.
+  readonly projPageSize = 1;
   projSort = signal<'featured' | 'newest' | 'oldest' | 'az' | 'tests'>('featured');
   projPage = signal(1);
 
@@ -120,8 +133,7 @@ export class App implements OnInit, AfterViewInit {
     const total = this.filteredProjects.length;
     if (!total) return 'No matches';
     const page = Math.min(this.projPage(), this.projTotalPages);
-    const from = (page - 1) * this.projPageSize + 1;
-    return `${from}\u2013${Math.min(from + this.projPageSize - 1, total)} of ${total}`;
+    return `Project ${page} of ${total}`;
   }
 
   setProjSort(sort: 'featured' | 'newest' | 'oldest' | 'az' | 'tests'): void {
@@ -2198,7 +2210,9 @@ export class App implements OnInit, AfterViewInit {
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
-      this.applyTheme();
+      let saved: string | null = null;
+      try { saved = localStorage.getItem('ck-theme'); } catch { /* storage blocked */ }
+      this.applyTheme(saved === 'light' ? 'light' : 'dark');
       this.startTyping();
     }
   }
@@ -2270,11 +2284,18 @@ export class App implements OnInit, AfterViewInit {
     setTimeout(step, interval);
   }
 
-  private applyTheme() {
-    document.documentElement.setAttribute('data-theme', 'light');
-    document.body.setAttribute('data-theme', 'light');
-    document.body.style.background = '#ffffff';
-    document.body.style.color = '#000000';
+  toggleTheme() {
+    const next = this.theme() === 'dark' ? 'light' : 'dark';
+    this.applyTheme(next);
+    try { localStorage.setItem('ck-theme', next); } catch { /* storage blocked */ }
+  }
+
+  private applyTheme(t: 'dark' | 'light') {
+    this.theme.set(t);
+    document.documentElement.setAttribute('data-theme', t);
+    document.body.setAttribute('data-theme', t);
+    document.body.style.background = t === 'dark' ? '#000000' : '#ffffff';
+    document.body.style.color = t === 'dark' ? '#ffffff' : '#000000';
     // Force chat panel to repaint with new CSS vars if open
     if (this.cbOpen()) {
       this.cbOpen.set(false);
