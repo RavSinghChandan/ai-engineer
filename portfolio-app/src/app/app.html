@@ -122,6 +122,7 @@
         <strong class="hero-lede">I build AI systems that don't stop at the demo.</strong>
         From ambiguous problem → architecture → agent → integration → production.
         <span class="hero-triad">Agentic AI × Full-Stack × Production × Communication</span>
+        <a class="hero-live" href="https://aurawithrav.com" target="_blank" rel="noopener"><span class="prod-dot"></span><span>Live in production: <b>aurawithrav.com</b> ↗</span></a>
       </p>
 
       <div class="hero-typing">
@@ -344,7 +345,7 @@
   <div class="container">
     <div class="eyebrow">Proof of Work</div>
     <h2>Engineering Proof</h2>
-    <p class="section-sub">What a forward-deployed hiring manager looks for: <b>it ships, it integrates, it holds up in production, and other engineers trust the code.</b> Every number below is real and verifiable — not slides.</p>
+    <p class="section-sub">Forward deployed work is judged by outcomes, not tools: <b>is it live, does it fit the customer’s stack, is it fast and affordable, will security sign off, and can the team trust it?</b> Every number below is real and verifiable — not slides.</p>
 
     <div class="proof-grid">
       @for (p of proofStats; track p.stat) {
@@ -353,9 +354,11 @@
           <!-- SVG icon top-right — hardcoded, safe to bypass sanitizer -->
           <div class="proof-icon" [innerHTML]="safeIcon(p.svgIcon)"></div>
 
+          <div class="proof-tag">{{ p.tag }}</div>
           <div class="proof-num">{{ p.stat }}</div>
           <div class="proof-title">{{ p.title }}</div>
           <div class="proof-sub">{{ p.sub }}</div>
+          @if (p.link) { <a class="proof-live-link" [href]="p.link" target="_blank" rel="noopener">Visit aurawithrav.com →</a> }
 
           <!-- Aarav character CTA — click to ask -->
           <button class="proof-aarav" (click)="askAarav(p.askQuestion)" [title]="p.askQuestion">
@@ -587,7 +590,7 @@
       <div class="project-card fade-up" #fadeEl [ngClass]="'accent-' + project.accent" [id]="'project-' + project.num">
         <div class="project-top">
           <div class="project-left">
-            <div class="project-num" [ngClass]="'num-' + project.accent">✦ Project {{ project.num }}@if (isFlagship(project.num)) {<span class="flagship-badge">Flagship</span>}</div>
+            <div class="project-num" [ngClass]="'num-' + project.accent">✦ Project {{ project.num }}@if (isFlagship(project.num)) {<span class="flagship-badge">Flagship</span>}@if (project.inProduction) {<span class="prod-badge"><span class="prod-dot"></span>Live in production</span>}</div>
             <h3 class="project-title">{{ project.title }}</h3>
             <div class="project-subtitle">{{ project.subtitle }}</div>
             <p class="project-desc">{{ project.desc }}</p>
@@ -609,7 +612,7 @@
                     <img src="guide-chandan.svg" alt="" class="live-btn-avatar" />
                     <span class="live-btn-bubble">Come &amp; see! 👀</span>
                   </span>
-                  <span class="live-btn-label">Live Demo</span>
+                  <span class="live-btn-label">{{ project.inProduction ? 'Visit Live Product' : 'Live Demo' }}</span>
                 </a>
               } @else {
                 <button class="project-live-btn"
@@ -1244,24 +1247,27 @@
       </div>
       <div class="story-text-col">
         <div class="eyebrow">The Person Behind the Code</div>
-        <h2 class="story-headline">The Engineer Behind the Systems</h2>
+        <h2 class="story-headline">From Backend Engineer to Forward Deployed Engineer</h2>
         <p class="story-body">
-          I didn't start my career as an AI engineer. I started by learning how software works —
-          Java, backend systems, APIs, databases, distributed systems.
-          Then AI changed the questions I wanted to solve, so I went deeper: LLMs, RAG, agents,
-          evaluation, security and production systems.
+          I started where real systems live — Java, Spring Boot, APIs, databases and Kafka, at aviation and banking scale.
+          That taught me how enterprise software actually runs, and where it breaks.
         </p>
         <p class="story-body">
-          Today I combine both worlds: <b>software engineering depth + AI-native product thinking.</b>
-          That's the direction I'm building toward.
+          Then I learned AI deeply and saw the gap: <b>demos are easy, production is not.</b> So I build the whole thing —
+          I scope the problem, build the agents and the interface, wire it into what already exists, harden it, ship it and run it.
+          Aura with Rav is live at aurawithrav.com and I own it end to end. At Deloitte USI I bring the same approach to agentic AI and security.
+        </p>
+        <p class="story-body">
+          The goal is simple: <b>be the engineer a team trusts to turn a messy problem into a working system.</b>
         </p>
         <div class="story-stats">
-          <div class="st-stat"><span class="st-num">Deloitte</span><span class="st-lbl">Agentic AI &amp; Security</span></div>
-          <div class="st-stat"><span class="st-num">{{ openSource.length }}</span><span class="st-lbl">merged OSS contributions</span></div>
-          <div class="st-stat"><span class="st-num">{{ projects.length }}</span><span class="st-lbl">production-oriented AI systems</span></div>
+          <div class="st-stat"><span class="st-num">LIVE</span><span class="st-lbl">AI product in production</span></div>
+          <div class="st-stat"><span class="st-num">{{ openSource.length }}</span><span class="st-lbl">PRs merged after external review</span></div>
+          <div class="st-stat"><span class="st-num">Deloitte USI</span><span class="st-lbl">Agentic AI &amp; Security</span></div>
         </div>
         <div class="story-links">
           <span class="story-link-label">Verified by</span>
+          <a href="https://aurawithrav.com" target="_blank" class="story-link">aurawithrav.com — live ↗</a>
           <a href="https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/" target="_blank" class="story-link">LinkedIn Profile ↗</a>
           <a href="https://www.youtube.com/@aiwithrav" target="_blank" class="story-link">YouTube — AI with Rav ↗</a>
           <a href="https://github.com/RavSinghChandan" target="_blank" class="story-link">GitHub — RavSinghChandan ↗</a>

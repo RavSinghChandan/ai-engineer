@@ -2642,3 +2642,22 @@ footer {
   @media (max-width: 900px) { display: flex; flex-direction: column;
     .fde-card-top { flex-direction: row; align-items: center; } }
 }
+
+/* ── Live-in-production signals ── */
+.prod-dot { width: 8px; height: 8px; border-radius: 50%; background: #43B02A; display: inline-block; flex-shrink: 0;
+  box-shadow: 0 0 0 0 rgba(67,176,42,0.6); animation: prod-pulse 2s infinite; }
+@keyframes prod-pulse { 0% { box-shadow: 0 0 0 0 rgba(67,176,42,0.55); } 70% { box-shadow: 0 0 0 8px rgba(67,176,42,0); } 100% { box-shadow: 0 0 0 0 rgba(67,176,42,0); } }
+.prod-badge {
+  margin-left: 0.5rem; padding: 0.12rem 0.55rem; font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 800;
+  border: 1px solid #43B02A; color: var(--accent); display: inline-flex; align-items: center; gap: 0.4rem; vertical-align: middle;
+}
+.hero-live {
+  display: inline-flex; align-items: center; gap: 0.55rem; margin-top: 1rem; padding: 0.5rem 0.85rem;
+  border: 1px solid var(--border2); background: var(--surface); color: var(--text2); font-size: 0.85rem; text-decoration: none;
+  transition: border-color .2s, color .2s;
+  b { color: var(--text); }
+  &:hover { border-color: var(--dl-green); color: var(--text); }
+}
+.proof-tag { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.16em; color: var(--accent); margin-bottom: 0.35rem; }
+.proof-live-link { display: inline-block; margin-top: 0.6rem; font-size: 0.82rem; font-weight: 700; color: var(--accent); text-decoration: none;
+  &:hover { text-decoration: underline; } }

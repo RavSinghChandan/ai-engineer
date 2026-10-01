@@ -97,8 +97,8 @@ export class App implements OnInit, AfterViewInit {
   //    Each project card is long (challenges + screenshots), so one per page.
   readonly projPageSize = 1;
   /** Flagship order: the three most forward-deployed stories lead. */
-  private readonly featuredOrder = ['02', '05', '06', '01', '03', '04', '07'];
-  isFlagship(num: string): boolean { return this.featuredOrder.indexOf(num) < 3; }
+  private readonly featuredOrder = ['01', '02', '05', '06', '03', '04', '07'];
+  isFlagship(num: string): boolean { return this.featuredOrder.indexOf(num) < 4; }
   projSort = signal<'featured' | 'newest' | 'oldest' | 'az' | 'tests'>('featured');
   projPage = signal(1);
 
@@ -167,9 +167,16 @@ export class App implements OnInit, AfterViewInit {
   projects = [
     {
       num: '01', accent: 'purple',
-      liveUrl: 'demo',
+      liveUrl: 'https://aurawithrav.com',
+      inProduction: true,
       title: 'Aura with Rav',
-      subtitle: 'AI Spiritual Intelligence Platform',
+      subtitle: 'Live AI Product — aurawithrav.com',
+      story: [
+        { k: 'Problem', v: 'People want numerology and astrology readings in plain language, not jargon — and they want to ask their own questions.' },
+        { k: 'Constraint', v: 'A public product: real sign-ups, untrusted input, LLM cost and latency, and readings that must not invent facts.' },
+        { k: 'Decision', v: 'Angular on Vercel, Dockerized FastAPI + LangGraph on Render; security and persona-injection checks, domain agents, a hallucination check, a grammar pass and human approval before release.' },
+        { k: 'Result', v: 'Live at aurawithrav.com on a custom domain with HTTPS, sign-up and health monitoring — owned end to end, from idea to uptime.' },
+      ],
       desc: '16 AI agents coordinate dynamically to generate personalized intelligence reports across Vedic Astrology, Numerology, Palmistry, Tarot & Vastu Shastra — in 23 Indian languages.',
       github: 'https://github.com/RavSinghChandan',
       tags: [
@@ -352,9 +359,26 @@ export class App implements OnInit, AfterViewInit {
   // ── 6 proof cards — each one a gut-punch stat readable in 2 seconds ──
   readonly proofStats = [
     {
+      tag:   'SHIPPED',
+      stat:  'LIVE',
+      title: 'A real AI product in production.',
+      sub:   'aurawithrav.com — Angular on Vercel, Dockerized FastAPI + LangGraph on Render, custom domain, HTTPS, sign-up. I own it from idea to uptime.',
+      askQuestion: 'How did Chandan take Aura with Rav to production?',
+      aaravImg: 'guide-chandan-happy.svg',
+      aaravSay: 'Live right now — go try it! 🚀',
+      link: 'https://aurawithrav.com',
+      svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="24" cy="24" r="16" stroke="currentColor" stroke-width="2"/>
+        <path d="M8 24h32M24 8c5 5 5 27 0 32M24 8c-5 5-5 27 0 32" stroke="currentColor" stroke-width="1.5" opacity="0.6"/>
+        <circle cx="38" cy="10" r="5" fill="#26890D"/>
+      </svg>`,
+    },
+    {
+      tag:   'INTEGRATED',
+      link:  '',
       stat:  '4 → 1',
       title: 'Apps served by one agent engine.',
-      sub:   'Universal Agent drops into FastAPI, Angular, React or plain HTML via SDKs and YAML — integration, not rewrites.',
+      sub:   'Fits the customer’s stack — FastAPI, Angular, React or plain HTML via SDKs and YAML. Integration, not rewrites.',
       askQuestion: 'How does one Universal Agent engine serve four different apps?',
       aaravImg: 'guide-chandan-happy.svg',
       aaravSay: 'Build once, plug in anywhere! 🔌',
@@ -368,9 +392,11 @@ export class App implements OnInit, AfterViewInit {
       </svg>`,
     },
     {
+      tag:   'TRUSTED',
+      link:  '',
       stat:  '66',
       title: 'PRs merged by outside maintainers.',
-      sub:   'Code reviewed and accepted into pypdf, Joblib, Sentence Transformers, NLTK and Authlib — trusted by strangers, not just teammates.',
+      sub:   'Strangers reviewed the code and shipped it — pypdf, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
       aaravSay: '66 merged, all reviewed! ✅',
@@ -383,24 +409,11 @@ export class App implements OnInit, AfterViewInit {
       </svg>`,
     },
     {
-      stat:  '637',
-      title: 'Tests. Under four seconds.',
-      sub:   'Every line of production code is tested. No shortcuts, no flakiness.',
-      askQuestion: 'How does Chandan keep 637 tests under four seconds?',
-      aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '637 tests, zero flakes! 🤩',
-      svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="6" y="10" width="36" height="28" rx="4" stroke="currentColor" stroke-width="2"/>
-        <path d="M14 22l4 4 8-8" stroke="#046A38" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M30 20h6M30 24h4M30 28h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
-        <circle cx="38" cy="36" r="7" fill="#09090b" stroke="#046A38" stroke-width="2"/>
-        <path d="M35 36l2 2 4-4" stroke="#046A38" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>`,
-    },
-    {
+      tag:   'FAST',
+      link:  '',
       stat:  '78s → 4s',
-      title: 'Latency reduced 95%.',
-      sub:   'Measured, optimised, and shipped — 3-tier cache + parallel agents.',
+      title: 'Wait time cut by 95%.',
+      sub:   'From a 78-second wait to 4 seconds — a 3-tier cache and parallel agents, measured before and after.',
       askQuestion: 'How did Chandan reduce latency from 78 seconds to 4 seconds?',
       aaravImg: 'guide-chandan-thinking.svg',
       aaravSay: '78s → 4s. Ask me how! ⚡',
@@ -414,25 +427,11 @@ export class App implements OnInit, AfterViewInit {
       </svg>`,
     },
     {
-      stat:  '18+',
-      title: 'AI agents coordinated.',
-      sub:   'LangGraph StateGraph — parallel domain agents, conditional edges, human-in-loop.',
-      askQuestion: 'How does Chandan coordinate 16 AI agents without conflicts?',
-      aaravImg: 'guide-chandan.svg',
-      aaravSay: '16 agents, zero conflicts! 🤖',
-      svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="24" cy="10" r="5" stroke="#26890D" stroke-width="2"/>
-        <circle cx="10" cy="34" r="5" stroke="#0D8390" stroke-width="2"/>
-        <circle cx="38" cy="34" r="5" stroke="#046A38" stroke-width="2"/>
-        <circle cx="24" cy="34" r="5" stroke="#ED8B00" stroke-width="2"/>
-        <path d="M24 15 L10 29M24 15 L38 29M24 15 L24 29" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2" opacity="0.5"/>
-        <path d="M15 34 L19 34M29 34 L33 34" stroke="currentColor" stroke-width="1.5" opacity="0.4"/>
-      </svg>`,
-    },
-    {
+      tag:   'AFFORDABLE',
+      link:  '',
       stat:  '$0.000137',
       title: 'Per AI analysis.',
-      sub:   'DeepSeek + semantic cache. 500× cheaper than GPT-4o. Tracked and proven.',
+      sub:   'Unit economics a customer can sign off on: DeepSeek + semantic cache, 500× cheaper than GPT-4o, tracked per call.',
       askQuestion: 'How did Chandan achieve $0.000137 per AI analysis cost?',
       aaravImg: 'guide-chandan-happy.svg',
       aaravSay: '500× cheaper than GPT-4o! 💰',
@@ -443,9 +442,11 @@ export class App implements OnInit, AfterViewInit {
       </svg>`,
     },
     {
+      tag:   'SAFE',
+      link:  '',
       stat:  '0',
       title: 'Hallucinated commands.',
-      sub:   'RunbookAI: RAGless architecture. Every kubectl command pulled from SQL, verbatim.',
+      sub:   'Under incident pressure, RunbookAI returns commands verbatim from SQL — the design removes the risk, not a prompt.',
       askQuestion: 'How does RunbookAI achieve zero hallucinated commands?',
       aaravImg: 'guide-chandan-wow.svg',
       aaravSay: 'Zero hallucinations. Real. 🎯',
@@ -458,8 +459,10 @@ export class App implements OnInit, AfterViewInit {
       </svg>`,
     },
     {
+      tag:   'SECURE',
+      link:  '',
       stat:  'G1–G5',
-      title: 'Production guardrails.',
+      title: 'Guardrails a security team can review.',
       sub:   'Rate limit · injection detection · PII filter · faithfulness gate · output validation.',
       askQuestion: 'What are the G1 to G5 production guardrails Chandan built?',
       aaravImg: 'guide-chandan-thinking.svg',
@@ -468,6 +471,41 @@ export class App implements OnInit, AfterViewInit {
         <path d="M24 4 L38 10 L38 24 C38 32 32 39 24 42 C16 39 10 32 10 24 L10 10 Z" stroke="#ef4444" stroke-width="2" stroke-linejoin="round" fill="rgba(239,68,68,0.08)"/>
         <path d="M18 24l4 4 8-8" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
         <path d="M17 18h14M17 22h10M17 26h12" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.3"/>
+      </svg>`,
+    },
+    {
+      tag:   'RELIABLE',
+      link:  '',
+      stat:  '637',
+      title: 'Tests, running in under 4 seconds.',
+      sub:   'Fast enough to run on every change, so shipping to a customer is routine, not risky.',
+      askQuestion: 'How does Chandan keep 637 tests under four seconds?',
+      aaravImg: 'guide-chandan-wow.svg',
+      aaravSay: '637 tests, zero flakes! 🤩',
+      svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="6" y="10" width="36" height="28" rx="4" stroke="currentColor" stroke-width="2"/>
+        <path d="M14 22l4 4 8-8" stroke="#046A38" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M30 20h6M30 24h4M30 28h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+        <circle cx="38" cy="36" r="7" fill="#09090b" stroke="#046A38" stroke-width="2"/>
+        <path d="M35 36l2 2 4-4" stroke="#046A38" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>`,
+    },
+    {
+      tag:   'ORCHESTRATED',
+      link:  '',
+      stat:  '18+',
+      title: 'Agents in production-oriented systems.',
+      sub:   'LangGraph graphs with parallel domain agents, conditional edges and human approval before results go out.',
+      askQuestion: 'How does Chandan coordinate 16 AI agents without conflicts?',
+      aaravImg: 'guide-chandan.svg',
+      aaravSay: '16 agents, zero conflicts! 🤖',
+      svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="24" cy="10" r="5" stroke="#26890D" stroke-width="2"/>
+        <circle cx="10" cy="34" r="5" stroke="#0D8390" stroke-width="2"/>
+        <circle cx="38" cy="34" r="5" stroke="#046A38" stroke-width="2"/>
+        <circle cx="24" cy="34" r="5" stroke="#ED8B00" stroke-width="2"/>
+        <path d="M24 15 L10 29M24 15 L38 29M24 15 L24 29" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2" opacity="0.5"/>
+        <path d="M15 34 L19 34M29 34 L33 34" stroke="currentColor" stroke-width="1.5" opacity="0.4"/>
       </svg>`,
     },
   ];
