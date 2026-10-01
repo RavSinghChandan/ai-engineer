@@ -2663,28 +2663,40 @@ footer {
   &:hover { text-decoration: underline; } }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECTION SIGNATURE GEOMETRY — one motif per section, Deloitte palette.
-   Decorative only: aria-hidden, no pointer events, behind content.
+   SECTION SIGNATURE GEOMETRY — mobile first.
+   Each motif is a complete emblem, never cropped:
+   phone  → small solid badge in the section's top padding
+   tablet → mid-size emblem top-right, heading kept clear of it
+   desktop→ large emblem in the empty column beside the heading
    ═══════════════════════════════════════════════════════════════ */
 #opensource, #by-numbers, #skills, #projects, #experience, #story, #contact { position: relative; overflow: hidden; isolation: isolate; }
 #opensource > .container, #by-numbers > .container, #skills > .container, #projects > .container,
 #experience > .container, #story > .container, #contact > .container { position: relative; z-index: 1; }
+
 .sec-geo {
-  position: absolute; z-index: 0; pointer-events: none; width: 560px; height: 560px;
-  opacity: var(--geo-opacity); transition: opacity .4s var(--ease);
-  @media (max-width: 760px) { width: 340px; height: 340px; opacity: calc(var(--geo-opacity) * 0.7); }
+  position: absolute; z-index: 0; pointer-events: none;
+  width: 72px; height: 72px; top: 14px; right: 16px;
+  opacity: var(--geo-opacity-badge);
 }
-.sec-geo--oss        { top: -120px;  right: -150px; }
-.sec-geo--proof      { top: -60px;   right: -170px; }
-.sec-geo--fde        { top: 40px;    right: -190px; }
-.sec-geo--projects   { top: -40px;   left: -200px; }
-.sec-geo--experience { bottom: -150px; right: -120px; top: auto; }
-.sec-geo--story      { top: 20px; left: -80px; width: 760px; }
-.sec-geo--contact    { bottom: -110px; right: -110px; }
-@media (max-width: 760px) {
-  .sec-geo--story { width: 460px; left: -60px; }
-  .sec-geo--oss, .sec-geo--proof, .sec-geo--fde, .sec-geo--contact, .sec-geo--experience { right: -150px; }
-  .sec-geo--projects { left: -160px; }
+/* Story waves are a band, not an emblem */
+.sec-geo--story { width: 100%; height: 120px; top: 0; right: 0; left: 0; opacity: calc(var(--geo-opacity) * 0.8); }
+
+@media (min-width: 768px) {
+  .sec-geo { width: 220px; height: 220px; top: 36px; right: max(24px, calc((100vw - 1060px) / 2)); opacity: var(--geo-opacity); }
+  .sec-geo--story { width: 100%; height: 220px; top: -20px; right: 0; }
+  /* keep headings and intro copy clear of the emblem */
+  #opensource .oss-head, #by-numbers .section-sub, #by-numbers h2, #skills h2, #skills .section-sub,
+  #projects h2, #projects .section-sub, #experience h2, #contact h2, #contact .section-sub, #contact .contact-asks {
+    max-width: calc(100% - 250px);
+  }
+}
+@media (min-width: 1100px) {
+  .sec-geo { width: 340px; height: 340px; top: 28px; }
+  .sec-geo--story { height: 300px; top: -40px; }
+  #opensource .oss-head, #by-numbers .section-sub, #by-numbers h2, #skills h2, #skills .section-sub,
+  #projects h2, #projects .section-sub, #experience h2, #contact h2, #contact .section-sub, #contact .contact-asks {
+    max-width: calc(100% - 360px);
+  }
 }
 
 /* Slow, calm motion; switched off for reduced-motion users */
@@ -2703,11 +2715,52 @@ footer {
 @keyframes geo-pulse  { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2.2); opacity: 0; } }
 @keyframes geo-ripple { 0%,100% { transform: scale(1); } 50% { transform: scale(1.04); } }
 @keyframes geo-dash   { to { stroke-dashoffset: -140; } }
-/* Signature corner: every motif sits top-right beside its heading */
-.sec-geo { width: 470px; height: 470px; top: -10px !important; right: -50px !important; left: auto !important; bottom: auto !important; }
-.sec-geo--story { width: 100% !important; height: 300px; right: 0 !important; left: 0 !important; top: -30px !important; }
-.sec-geo--contact { top: auto !important; bottom: -60px !important; right: -40px !important; }
-@media (max-width: 760px) {
-  .sec-geo { width: 300px; height: 300px; right: -90px !important; top: -20px !important; }
-  .sec-geo--story { height: 200px; }
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE PASS — phone, iPad, desktop (from the device audit)
+   ═══════════════════════════════════════════════════════════════ */
+/* Story stays a band at every size (the emblem rules must not shrink it) */
+@media (min-width: 768px)  { .sec-geo.sec-geo--story { width: 100%; height: 220px; top: -20px; right: 0; left: 0; } }
+@media (min-width: 1100px) { .sec-geo.sec-geo--story { width: 100%; height: 300px; top: -40px; } }
+
+/* Phones: room in the top padding for the section badge */
+@media (max-width: 767px) {
+  #opensource { padding-top: 5.5rem !important; }
+  section { padding-top: 5.5rem; padding-bottom: 4rem; }
+  .container { padding-left: 1rem; padding-right: 1rem; }
+  section h2 { padding-right: 0; }
+}
+
+/* Contact cards: 1 col phone, 2 col tablet, 3 col desktop */
+.contact-grid { grid-template-columns: 1fr !important; }
+.contact-grid > * { grid-column: auto !important; min-width: 0; }
+.cc-value { overflow-wrap: anywhere; }
+@media (min-width: 600px)  { .contact-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
+@media (min-width: 1024px) { .contact-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; } }
+
+/* Readable minimum on phones for the small uppercase labels */
+@media (max-width: 767px) {
+  .ct-badge, .proof-tag, .proof-aarav-cta, .fde-ev-label, .hc-layer-name, .eyebrow, .ers-co, .ers-year, .stl-year,
+  .cc-label, .stat-label, .ps-row dt, .hc-label, .flagship-badge, .prod-badge, .live-btn-bubble, .present-badge, .fde-n {
+    font-size: 11.5px !important;
+  }
+  .ct-col-p, .ct-col-s, .stl-sub, .tl-role, .tl-period { font-size: 13px !important; }
+}
+
+/* Touch targets: at least 44px tall on touch-size screens */
+@media (max-width: 1099px) {
+  .tag-chip, .oss-chip { min-height: 44px; padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+  .oss-page-btn { min-width: 44px !important; height: 44px !important; }
+  .oss-sort select { min-height: 44px; }
+  .proof-live-link { display: inline-flex; align-items: center; min-height: 44px; }
+  .nav-logo { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; }
+  .nav-links a { padding-top: 10px; padding-bottom: 10px; }
+  .theme-btn, .hamburger-btn { width: 44px !important; height: 44px !important; }
+  .story-link, .footer-nav a { display: inline-flex; align-items: center; min-height: 40px; }
+}
+@media (max-width: 1099px) { .project-gh-btn, .project-live-btn { min-height: 44px; } }
+@media (max-width: 767px) { .ers-quip { font-size: 12.5px !important; } .kg-hint { font-size: 13px !important; } .kg-hint sub { font-size: 0.85em; } }
+@media (max-width: 767px) {
+  .oss-head { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+  .oss-logos { order: -1; }
 }
