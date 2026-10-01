@@ -1,60 +1,55 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Fira+Code:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-:root {
-  --purple:    #7c3aed;
-  --purple-lt: #a78bfa;
-  --cyan:      #06b6d4;
-  --green:     #10b981;
-  --amber:     #f59e0b;
-  --red:       #ef4444;
-  --blue:      #2563eb;
+/* One theme only, in Deloitte's visual language: white pages, black bands,
+   the #86BC25 green as the accent and darker greens wherever green is text. */
+:root, html, body, html[data-theme], body[data-theme] {
+  --dl-green:   #86BC25;
+  --dl-green-2: #26890D;
+  --dl-green-3: #046A38;
+  --dl-teal:    #0D8390;
+  --dl-blue:    #007CB0;
+  --dl-black:   #000000;
+  --dl-gray-1:  #53565A;
+  --dl-gray-2:  #75787B;
+  --dl-gray-4:  #D0D0CE;
+  --dl-gray-5:  #F2F2F2;
+
+  --purple:    #26890D;
+  --purple-lt: #046A38;
+  --cyan:      #0D8390;
+  --green:     #26890D;
+  --amber:     #C26E00;
+  --red:       #DA291C;
+  --blue:      #007CB0;
   --ease:      cubic-bezier(0.4, 0, 0.2, 1);
-}
 
-/* Dark mode — default */
-:root, html, html[data-theme="dark"], body[data-theme="dark"] {
-  --bg:      #09090b;
-  --surface: #111113;
-  --card:    #18181b;
-  --border:  #27272a;
-  --border2: #3f3f46;
-  --text:    #fafafa;
-  --text2:   #a1a1aa;
-  --text3:   #52525b;
-  --glow:    rgba(124,58,237,0.3);
-  --shadow:  0 0 0 1px #27272a, 0 4px 24px rgba(0,0,0,0.4);
-}
-
-/* Light mode */
-html[data-theme="light"], body[data-theme="light"] {
   --bg:      #ffffff;
-  --surface: #f4f4f5;
+  --surface: #F7F7F7;
   --card:    #ffffff;
-  --border:  #e4e4e7;
-  --border2: #d4d4d8;
-  --text:    #09090b;
-  --text2:   #52525b;
-  --text3:   #a1a1aa;
-  --glow:    rgba(124,58,237,0.12);
-  --shadow:  0 0 0 1px #e4e4e7, 0 4px 24px rgba(0,0,0,0.06);
-
-  /* Tag colors — dark text on tinted bg for WCAG AA contrast on white */
-  .tag-purple { background: #ede9fe; color: #5b21b6; border-color: #c4b5fd; }
-  .tag-cyan   { background: #cffafe; color: #0e7490; border-color: #a5f3fc; }
-  .tag-green  { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
-  .tag-amber  { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
-  .tag-red    { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
-  .tag-blue   { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
+  --border:  #E1E1DF;
+  --border2: #D0D0CE;
+  --text:    #000000;
+  --text2:   #53565A;
+  --text3:   #75787B;
+  --glow:    rgba(134,188,37,0.18);
+  --shadow:  0 0 0 1px #E1E1DF, 0 2px 12px rgba(0,0,0,0.05);
 }
+
+.tag-purple { background: #EEF6E0 !important; color: #046A38 !important; border-color: #C5E09A !important; }
+.tag-cyan   { background: #E1F1F2 !important; color: #0A6670 !important; border-color: #A6D3D8 !important; }
+.tag-green  { background: #E6F2E2 !important; color: #1E6E0A !important; border-color: #B4D9A8 !important; }
+.tag-amber  { background: #FDF0DE !important; color: #8A4F00 !important; border-color: #F2C98A !important; }
+.tag-red    { background: #FBE6E4 !important; color: #A11F14 !important; border-color: #F0B1AB !important; }
+.tag-blue   { background: #E0EFF6 !important; color: #005A80 !important; border-color: #9FCBE0 !important; }
 
 html { scroll-behavior: smooth; }
 
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'Inter', -apple-system, system-ui, sans-serif;
+  font-family: 'Open Sans', 'Helvetica Neue', Arial, sans-serif;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
@@ -67,12 +62,6 @@ body {
 
 a { text-decoration: none; color: inherit; }
 
-/* Light mode nav — higher specificity beats the dark .scrolled rule */
-html[data-theme="light"] nav,
-html[data-theme="light"] nav.scrolled {
-  background: rgba(255,255,255,0.9);
-  backdrop-filter: blur(16px);
-}
 
 .container { max-width: 1060px; margin: 0 auto; padding: 0 1.5rem; }
 
@@ -84,12 +73,12 @@ html[data-theme="light"] nav.scrolled {
   padding: 0.18rem 0.6rem;
   border-radius: 4px;
 }
-.tag-purple { background: rgba(124,58,237,0.12); color: #c4b5fd; border: 1px solid rgba(124,58,237,0.25); }
-.tag-cyan   { background: rgba(6,182,212,0.10);  color: #67e8f9; border: 1px solid rgba(6,182,212,0.25); }
-.tag-green  { background: rgba(16,185,129,0.10); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.25); }
-.tag-amber  { background: rgba(245,158,11,0.10); color: #fcd34d; border: 1px solid rgba(245,158,11,0.25); }
+.tag-purple { background: rgba(134,188,37,0.12); color: #26890D; border: 1px solid rgba(134,188,37,0.25); }
+.tag-cyan   { background: rgba(13,131,144,0.10);  color: #0D8390; border: 1px solid rgba(13,131,144,0.25); }
+.tag-green  { background: rgba(4,106,56,0.10); color: #86BC25; border: 1px solid rgba(4,106,56,0.25); }
+.tag-amber  { background: rgba(237,139,0,0.10); color: #ED8B00; border: 1px solid rgba(237,139,0,0.25); }
 .tag-red    { background: rgba(239,68,68,0.10);  color: #fca5a5; border: 1px solid rgba(239,68,68,0.25); }
-.tag-blue   { background: rgba(37,99,235,0.12);  color: #93c5fd; border: 1px solid rgba(37,99,235,0.25); }
+.tag-blue   { background: rgba(0,124,176,0.12);  color: #007CB0; border: 1px solid rgba(0,124,176,0.25); }
 
 .btn {
   display: inline-flex; align-items: center; gap: 0.45rem;
@@ -101,7 +90,7 @@ html[data-theme="light"] nav.scrolled {
 .btn-primary {
   background: var(--purple); color: #fff;
   box-shadow: 0 0 0 0 var(--glow);
-  &:hover { background: #6d28d9; transform: translateY(-1px); box-shadow: 0 4px 20px var(--glow); }
+  &:hover { background: #046A38; transform: translateY(-1px); box-shadow: 0 4px 20px var(--glow); }
 }
 .btn-ghost {
   background: transparent; color: var(--text2);
@@ -201,12 +190,12 @@ h2 {
   /* Code */
   code {
     font-family: 'Fira Code', monospace; font-size: 0.71rem;
-    background: rgba(124,58,237,0.14); color: #c4b5fd;
-    border: 1px solid rgba(124,58,237,0.25); border-radius: 4px;
+    background: rgba(134,188,37,0.14); color: #26890D;
+    border: 1px solid rgba(134,188,37,0.25); border-radius: 4px;
     padding: 0.05rem 0.32rem;
   }
   pre {
-    background: #0d0d1a; border: 1px solid rgba(124,58,237,0.22);
+    background: #0d0d1a; border: 1px solid rgba(134,188,37,0.22);
     border-radius: 8px; padding: 0.7rem 0.9rem; margin: 0.5rem 0;
     font-size: 0.71rem; line-height: 1.6;
     white-space: pre-wrap; word-break: break-all; max-width: 100%;
@@ -225,8 +214,8 @@ h2 {
   --cb-text2:        #94a3b8;
   --cb-text3:        #64748b;
   --cb-head-bg:      #1e1b4b;
-  --cb-head-color:   #a78bfa;
-  --cb-head-border:  #7c3aed;
+  --cb-head-color:   #26890D;
+  --cb-head-border:  #26890D;
   --cb-chip-bg:      #312e81;
   --cb-chip-color:   #c7d2fe;
   --cb-btn-bg:       #312e81;
@@ -234,9 +223,9 @@ h2 {
   --cb-btn-border:   #4338ca;
   /* outline chips — same as btn in dark mode */
   --cb-chip-ol-bg:      #1e1b4b;
-  --cb-chip-ol-color:   #c4b5fd;
+  --cb-chip-ol-color:   #26890D;
   --cb-chip-ol-border:  #4338ca;
-  --cb-link:         #a78bfa;
+  --cb-link:         #26890D;
   --cb-divider:      rgba(255,255,255,0.1);
   --cb-input-bg:     #1a1a2e;
   --cb-input-color:  #f1f5f9;
@@ -251,19 +240,19 @@ html[data-theme="light"] {
   --cb-text:         #0f172a;
   --cb-text2:        #475569;
   --cb-text3:        #94a3b8;
-  --cb-head-bg:      #ede9fe;
+  --cb-head-bg:      #EEF6E0;
   --cb-head-color:   #4c1d95;
-  --cb-head-border:  #7c3aed;
-  --cb-chip-bg:      #7c3aed;
+  --cb-head-border:  #26890D;
+  --cb-chip-bg:      #26890D;
   --cb-chip-color:   #ffffff;
-  --cb-btn-bg:       #7c3aed;
+  --cb-btn-bg:       #26890D;
   --cb-btn-color:    #ffffff;
-  --cb-btn-border:   #6d28d9;
+  --cb-btn-border:   #046A38;
   /* outline chips (followup + quick prompt) — dark text on tinted bg */
-  --cb-chip-ol-bg:      #ede9fe;
+  --cb-chip-ol-bg:      #EEF6E0;
   --cb-chip-ol-color:   #4c1d95;
-  --cb-chip-ol-border:  #c4b5fd;
-  --cb-link:         #5b21b6;
+  --cb-chip-ol-border:  #26890D;
+  --cb-link:         #046A38;
   --cb-divider:      #e2e8f0;
   --cb-input-bg:     #f8fafc;
   --cb-input-color:  #0f172a;

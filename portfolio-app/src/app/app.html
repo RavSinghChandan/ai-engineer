@@ -15,21 +15,6 @@
       <a href="#contact"    [class.nav-active]="activeSection()==='contact'"    (click)="closeMobileNav()">Contact</a>
     </div>
     <div class="nav-actions">
-      <button class="theme-btn" (click)="toggleTheme()" [title]="theme() === 'dark' ? 'Light mode' : 'Dark mode'">
-        @if (theme() === 'dark') {
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <circle cx="12" cy="12" r="5"/>
-            <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-            <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-          </svg>
-        } @else {
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-          </svg>
-        }
-      </button>
       <a href="AI_Engineer_Chandan_Kumar_4_Yrs.pdf" target="_blank" class="btn btn-primary nav-hire">Hire Me</a>
       <button class="hamburger-btn" (click)="toggleMobileNav()" aria-label="Menu">
         <span></span><span></span><span></span>
@@ -38,8 +23,6 @@
   </div>
 </nav>
 
-<!-- GLOBAL NEURAL MESH BACKGROUND — persistent across all sections -->
-<canvas id="neural-canvas" aria-hidden="true"></canvas>
 
 <!-- HERO -->
 <section class="hero" data-guide="hero" aria-label="Hero introduction">
@@ -98,8 +81,8 @@
       <!-- Gradient defs -->
       <defs>
         <radialGradient id="pulse-grad" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stop-color="#a78bfa" stop-opacity="1"/>
-          <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
+          <stop offset="0%" stop-color="#26890D" stop-opacity="1"/>
+          <stop offset="100%" stop-color="#0D8390" stop-opacity="0"/>
         </radialGradient>
       </defs>
     </svg>
@@ -110,17 +93,18 @@
     <div class="hero-text">
       <div class="hero-badge">
         <span class="pulse"></span>
-        Open to Senior AI Engineer Roles
+        Deloitte · Cyber — Agentic AI Engineering &amp; Security
       </div>
 
       <h1>
         Chandan Kumar
-        <span class="hero-title-accent">Senior AI Engineer</span>
+        <span class="hero-title-accent">Agentic AI Engineer</span>
       </h1>
 
       <p class="hero-desc">
-        4+ years building scalable backend systems, the last two on LLM-powered, agent-based architectures.
-        Specialized in multi-agent orchestration, RAG pipelines, and production AI — with zero shortcuts.
+        Agentic AI Engineer at Deloitte Cyber. 4+ years building scalable backend systems, the last two on
+        LLM-powered, agent-based architectures. I work forward-deployed: close to the problem, shipping secure
+        multi-agent systems, RAG pipelines and production AI into real environments.
       </p>
 
       <div class="hero-typing">
@@ -175,7 +159,7 @@
           class="hero-photo"
           src="chandan-photo.jpg"
           onerror="this.src='https://ui-avatars.com/api/?name=Chandan+Kumar&size=300&background=7c3aed&color=fff&bold=true&font-size=0.35&rounded=true'"
-          alt="Chandan Kumar — Senior AI Engineer"/>
+          alt="Chandan Kumar — Agentic AI Engineer, Deloitte"/>
         <div class="hero-photo-ring"></div>
       </div>
 
@@ -208,14 +192,14 @@
         or click a coloured one to open the merged PR — each library carries its own colour.
       </p>
       <div class="kg-legend">
-        <span class="kg-key"><i class="kg-dot" style="background:#a78bfa"></i>Systems built</span>
-        <span class="kg-key"><i class="kg-dot" style="background:#22d3ee"></i>Technologies</span>
-        <span class="kg-key"><i class="kg-dot" style="background:#fbbf24"></i>Experience</span>
-        <span class="kg-key"><i class="kg-dot" style="background:#34d399"></i>pypdf</span>
+        <span class="kg-key"><i class="kg-dot" style="background:#26890D"></i>Systems built</span>
+        <span class="kg-key"><i class="kg-dot" style="background:#0D8390"></i>Technologies</span>
+        <span class="kg-key"><i class="kg-dot" style="background:#ED8B00"></i>Experience</span>
+        <span class="kg-key"><i class="kg-dot" style="background:#26890D"></i>pypdf</span>
         <span class="kg-key"><i class="kg-dot" style="background:#fb7185"></i>joblib</span>
         <span class="kg-key"><i class="kg-dot" style="background:#f472b6"></i>sentence-transformers</span>
         <span class="kg-key"><i class="kg-dot" style="background:#facc15"></i>NLTK</span>
-        <span class="kg-key"><i class="kg-dot" style="background:#818cf8"></i>Authlib</span>
+        <span class="kg-key"><i class="kg-dot" style="background:#007CB0"></i>Authlib</span>
       </div>
     </div>
 
@@ -238,8 +222,8 @@
     <p class="kg-a11y">
       Systems: Aura with Rav, Bench Resource Optimizer, Agentic Growth OS and AI Content Factory —
       all built with Python, FastAPI, LangGraph and Angular. Merged open-source contributions to
-      pypdf, NLTK, joblib and Hugging Face Sentence Transformers. Backend experience in Java and
-      Spring at Infosys (Bank of America), Nexsys/Accelya and Texala.
+      pypdf, NLTK, joblib and Hugging Face Sentence Transformers. Currently an Agentic AI Engineer in
+      Deloitte Cyber; earlier backend work in Java and Spring at Infosys (Bank of America), Nexsys/Accelya and Texala.
     </p>
   </div>
 </section>
@@ -380,8 +364,8 @@
       <svg class="skills-orbit-svg" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <radialGradient id="orbit-core" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.9"/>
-            <stop offset="100%" stop-color="#7c3aed" stop-opacity="0.4"/>
+            <stop offset="0%" stop-color="#26890D" stop-opacity="0.9"/>
+            <stop offset="100%" stop-color="#26890D" stop-opacity="0.4"/>
           </radialGradient>
         </defs>
         <!-- Orbit rings -->
@@ -405,32 +389,32 @@
         </g>
         <!-- Orbiting tech dots — text labels replace emojis -->
         <g class="orbit-dot orbit-dot--1">
-          <circle cx="120" cy="75" r="10" fill="#22d3ee" opacity="0.85"/>
+          <circle cx="120" cy="75" r="10" fill="#0D8390" opacity="0.85"/>
           <text x="120" y="79" text-anchor="middle" font-size="7" font-family="'Fira Code',monospace" font-weight="700" fill="white">PY</text>
         </g>
         <g class="orbit-dot orbit-dot--1" style="animation-delay:-2.5s">
-          <circle cx="165" cy="120" r="9" fill="#a78bfa" opacity="0.85"/>
+          <circle cx="165" cy="120" r="9" fill="#26890D" opacity="0.85"/>
           <text x="165" y="124" text-anchor="middle" font-size="6" font-family="'Fira Code',monospace" font-weight="700" fill="white">API</text>
         </g>
         <g class="orbit-dot orbit-dot--1" style="animation-delay:-5s">
-          <circle cx="120" cy="165" r="10" fill="#fbbf24" opacity="0.85"/>
+          <circle cx="120" cy="165" r="10" fill="#ED8B00" opacity="0.85"/>
           <text x="120" y="169" text-anchor="middle" font-size="5.5" font-family="'Fira Code',monospace" font-weight="700" fill="white">LG</text>
         </g>
         <g class="orbit-dot orbit-dot--2">
-          <circle cx="48"  cy="120" r="8" fill="#34d399" opacity="0.85"/>
+          <circle cx="48"  cy="120" r="8" fill="#26890D" opacity="0.85"/>
           <text x="48" y="124" text-anchor="middle" font-size="5.5" font-family="'Fira Code',monospace" font-weight="700" fill="white">NG</text>
         </g>
         <g class="orbit-dot orbit-dot--2" style="animation-delay:-6s">
-          <circle cx="96"  cy="48"  r="7" fill="#22d3ee" opacity="0.8"/>
+          <circle cx="96"  cy="48"  r="7" fill="#0D8390" opacity="0.8"/>
           <text x="96" y="52" text-anchor="middle" font-size="5" font-family="'Fira Code',monospace" font-weight="700" fill="white">RAG</text>
         </g>
         <g class="orbit-dot orbit-dot--3">
-          <circle cx="20"  cy="90"  r="6" fill="#a78bfa" opacity="0.7"/>
+          <circle cx="20"  cy="90"  r="6" fill="#26890D" opacity="0.7"/>
           <!-- shield shape -->
           <path d="M20,84 L25,87 L25,92 Q20,96 20,96 Q15,96 15,92 L15,87 Z" fill="white" opacity="0.85" transform="scale(0.6) translate(13,56)"/>
         </g>
         <g class="orbit-dot orbit-dot--3" style="animation-delay:-9s">
-          <circle cx="220" cy="150" r="6" fill="#fbbf24" opacity="0.7"/>
+          <circle cx="220" cy="150" r="6" fill="#ED8B00" opacity="0.7"/>
           <!-- arrow-up / deploy icon -->
           <polyline points="220,154 220,147 224,151 220,147 216,151" stroke="white" stroke-width="1.4" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
         </g>
@@ -440,7 +424,7 @@
         <div class="skb-row">
           <div class="skb-head">
             <span class="skb-name"><span class="skb-svg-icon"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 2C5.5 2 4 3 4 4.5V6h4v.5H3C1.5 6.5 1 7.5 1 9s.8 2.5 2 2.5h1v-1.5c0-1 .8-1.5 2-1.5h3.5c1 0 1.5-.6 1.5-1.5V4.5C11 3 9.5 2 8 2zM6.5 4a.75.75 0 110 1.5.75.75 0 010-1.5z" fill="currentColor" opacity="0.9"/><path d="M8 14c2.5 0 4-1 4-2.5V10H8v-.5h5c1.5 0 2-1 2-2.5s-.8-2.5-2-2.5h-1v1.5c0 1-.8 1.5-2 1.5H6.5c-1 0-1.5.6-1.5 1.5v3C5 13 6.5 14 8 14zm1.5-2a.75.75 0 110-1.5.75.75 0 010 1.5z" fill="currentColor" opacity="0.7"/></svg></span>Python</span>
-            <span class="skb-pct" style="color:#a78bfa">97%</span>
+            <span class="skb-pct" style="color:#26890D">97%</span>
           </div>
           <div class="skb-track"><div class="skb-fill skb-fill--purple" [style.width]="skillsVisible() ? '97%' : '0'"></div></div>
           <span class="skb-tag">Breathing it since 2023</span>
@@ -448,7 +432,7 @@
         <div class="skb-row">
           <div class="skb-head">
             <span class="skb-name"><span class="skb-svg-icon"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="2" fill="currentColor"/><circle cx="8" cy="2" r="1.5" fill="currentColor" opacity="0.8"/><circle cx="8" cy="14" r="1.5" fill="currentColor" opacity="0.8"/><circle cx="2" cy="5" r="1.5" fill="currentColor" opacity="0.8"/><circle cx="14" cy="5" r="1.5" fill="currentColor" opacity="0.8"/><circle cx="2" cy="11" r="1.5" fill="currentColor" opacity="0.8"/><circle cx="14" cy="11" r="1.5" fill="currentColor" opacity="0.8"/><line x1="8" y1="6" x2="8" y2="3.5" stroke="currentColor" stroke-width="1" opacity="0.6"/><line x1="8" y1="10" x2="8" y2="12.5" stroke="currentColor" stroke-width="1" opacity="0.6"/><line x1="6.3" y1="7" x2="3.2" y2="5.8" stroke="currentColor" stroke-width="1" opacity="0.6"/><line x1="9.7" y1="7" x2="12.8" y2="5.8" stroke="currentColor" stroke-width="1" opacity="0.6"/><line x1="6.3" y1="9" x2="3.2" y2="10.2" stroke="currentColor" stroke-width="1" opacity="0.6"/><line x1="9.7" y1="9" x2="12.8" y2="10.2" stroke="currentColor" stroke-width="1" opacity="0.6"/></svg></span>LangGraph</span>
-            <span class="skb-pct" style="color:#22d3ee">92%</span>
+            <span class="skb-pct" style="color:#0D8390">92%</span>
           </div>
           <div class="skb-track"><div class="skb-fill skb-fill--cyan" [style.width]="skillsVisible() ? '92%' : '0'"></div></div>
           <span class="skb-tag">State machine poet 🎭</span>
@@ -456,7 +440,7 @@
         <div class="skb-row">
           <div class="skb-head">
             <span class="skb-name"><span class="skb-svg-icon"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><polygon points="9,2 4,9 8,9 7,14 12,7 8,7" fill="currentColor" opacity="0.95"/></svg></span>FastAPI</span>
-            <span class="skb-pct" style="color:#fbbf24">95%</span>
+            <span class="skb-pct" style="color:#ED8B00">95%</span>
           </div>
           <div class="skb-track"><div class="skb-fill skb-fill--amber" [style.width]="skillsVisible() ? '95%' : '0'"></div></div>
           <span class="skb-tag">Auto-docs everything 📄</span>
@@ -464,7 +448,7 @@
         <div class="skb-row">
           <div class="skb-head">
             <span class="skb-name"><span class="skb-svg-icon"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><polygon points="8,1 15,4 13,13 8,15 3,13 1,4" stroke="currentColor" stroke-width="1.2" fill="none" opacity="0.9"/><polygon points="8,3.5 11.5,12.5 10,12.5 9,10 7,10 6,12.5 4.5,12.5" fill="currentColor" opacity="0.85"/><line x1="6.5" y1="8.5" x2="9.5" y2="8.5" stroke="currentColor" stroke-width="1" opacity="0.6"/></svg></span>Angular</span>
-            <span class="skb-pct" style="color:#34d399">88%</span>
+            <span class="skb-pct" style="color:#26890D">88%</span>
           </div>
           <div class="skb-track"><div class="skb-fill skb-fill--green" [style.width]="skillsVisible() ? '88%' : '0'"></div></div>
           <span class="skb-tag">Signals believer since v17</span>
@@ -507,20 +491,20 @@
     <div class="projects-constellation fade-up" #fadeEl aria-hidden="true">
       <svg class="pcon-svg" viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <radialGradient id="pg1" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#a78bfa" stop-opacity="0.9"/><stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/></radialGradient>
-          <radialGradient id="pg2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#22d3ee" stop-opacity="0.9"/><stop offset="100%" stop-color="#0891b2" stop-opacity="0"/></radialGradient>
-          <radialGradient id="pg3" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fbbf24" stop-opacity="0.9"/><stop offset="100%" stop-color="#d97706" stop-opacity="0"/></radialGradient>
-          <radialGradient id="pg4" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#34d399" stop-opacity="0.9"/><stop offset="100%" stop-color="#059669" stop-opacity="0"/></radialGradient>
+          <radialGradient id="pg1" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#26890D" stop-opacity="0.9"/><stop offset="100%" stop-color="#26890D" stop-opacity="0"/></radialGradient>
+          <radialGradient id="pg2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#0D8390" stop-opacity="0.9"/><stop offset="100%" stop-color="#0891b2" stop-opacity="0"/></radialGradient>
+          <radialGradient id="pg3" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ED8B00" stop-opacity="0.9"/><stop offset="100%" stop-color="#C26E00" stop-opacity="0"/></radialGradient>
+          <radialGradient id="pg4" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#26890D" stop-opacity="0.9"/><stop offset="100%" stop-color="#046A38" stop-opacity="0"/></radialGradient>
         </defs>
         <!-- Edges -->
-        <line x1="110" y1="90"  x2="50"  y2="40"  class="pcon-edge" style="stroke:#a78bfa;animation-delay:-1s"/>
-        <line x1="110" y1="90"  x2="170" y2="40"  class="pcon-edge" style="stroke:#22d3ee;animation-delay:-2s"/>
-        <line x1="110" y1="90"  x2="30"  y2="110" class="pcon-edge" style="stroke:#fbbf24;animation-delay:-3s"/>
-        <line x1="110" y1="90"  x2="190" y2="110" class="pcon-edge" style="stroke:#34d399;animation-delay:-0.5s"/>
-        <line x1="110" y1="90"  x2="70"  y2="155" class="pcon-edge" style="stroke:#a78bfa;animation-delay:-1.5s"/>
-        <line x1="110" y1="90"  x2="150" y2="155" class="pcon-edge" style="stroke:#22d3ee;animation-delay:-2.5s"/>
-        <line x1="110" y1="90"  x2="110" y2="20"  class="pcon-edge" style="stroke:#fbbf24;animation-delay:-0.8s"/>
-        <line x1="110" y1="90"  x2="200" y2="70"  class="pcon-edge" style="stroke:#34d399;animation-delay:-1.8s"/>
+        <line x1="110" y1="90"  x2="50"  y2="40"  class="pcon-edge" style="stroke:#26890D;animation-delay:-1s"/>
+        <line x1="110" y1="90"  x2="170" y2="40"  class="pcon-edge" style="stroke:#0D8390;animation-delay:-2s"/>
+        <line x1="110" y1="90"  x2="30"  y2="110" class="pcon-edge" style="stroke:#ED8B00;animation-delay:-3s"/>
+        <line x1="110" y1="90"  x2="190" y2="110" class="pcon-edge" style="stroke:#26890D;animation-delay:-0.5s"/>
+        <line x1="110" y1="90"  x2="70"  y2="155" class="pcon-edge" style="stroke:#26890D;animation-delay:-1.5s"/>
+        <line x1="110" y1="90"  x2="150" y2="155" class="pcon-edge" style="stroke:#0D8390;animation-delay:-2.5s"/>
+        <line x1="110" y1="90"  x2="110" y2="20"  class="pcon-edge" style="stroke:#ED8B00;animation-delay:-0.8s"/>
+        <line x1="110" y1="90"  x2="200" y2="70"  class="pcon-edge" style="stroke:#26890D;animation-delay:-1.8s"/>
         <!-- Center node — orchestrator gear -->
         <circle cx="110" cy="90" r="22" fill="url(#pg1)" opacity="0.85"/>
         <g transform="translate(98,78)" stroke="white" fill="none" stroke-width="1.8" opacity="0.92">
@@ -604,14 +588,14 @@
       <div class="pcon-legend">
         <div class="pcon-title">Every project ships with:</div>
         <div class="pcon-items">
-          <div class="pcon-item"><span class="pcon-dot" style="background:#a78bfa"></span>Orchestrator</div>
-          <div class="pcon-item"><span class="pcon-dot" style="background:#22d3ee;animation-delay:.3s"></span>RAG Brain</div>
-          <div class="pcon-item"><span class="pcon-dot" style="background:#fbbf24;animation-delay:.6s"></span>Guardrails</div>
-          <div class="pcon-item"><span class="pcon-dot" style="background:#34d399;animation-delay:.9s"></span>Streaming</div>
-          <div class="pcon-item"><span class="pcon-dot" style="background:#a78bfa;animation-delay:1.2s"></span>Retriever</div>
-          <div class="pcon-item"><span class="pcon-dot" style="background:#22d3ee;animation-delay:1.5s"></span>Evaluator</div>
-          <div class="pcon-item"><span class="pcon-dot" style="background:#fbbf24;animation-delay:1.8s"></span>Auth Gate</div>
-          <div class="pcon-item"><span class="pcon-dot" style="background:#34d399;animation-delay:2.1s"></span>Memory</div>
+          <div class="pcon-item"><span class="pcon-dot" style="background:#26890D"></span>Orchestrator</div>
+          <div class="pcon-item"><span class="pcon-dot" style="background:#0D8390;animation-delay:.3s"></span>RAG Brain</div>
+          <div class="pcon-item"><span class="pcon-dot" style="background:#ED8B00;animation-delay:.6s"></span>Guardrails</div>
+          <div class="pcon-item"><span class="pcon-dot" style="background:#26890D;animation-delay:.9s"></span>Streaming</div>
+          <div class="pcon-item"><span class="pcon-dot" style="background:#26890D;animation-delay:1.2s"></span>Retriever</div>
+          <div class="pcon-item"><span class="pcon-dot" style="background:#0D8390;animation-delay:1.5s"></span>Evaluator</div>
+          <div class="pcon-item"><span class="pcon-dot" style="background:#ED8B00;animation-delay:1.8s"></span>Auth Gate</div>
+          <div class="pcon-item"><span class="pcon-dot" style="background:#26890D;animation-delay:2.1s"></span>Memory</div>
         </div>
       </div>
     </div>
@@ -793,7 +777,7 @@
         </span>
         <div class="ers-role">Software Engineer</div>
         <div class="ers-co">Texala</div>
-        <div class="ers-year">Jul 2023</div>
+        <div class="ers-year">May 2023</div>
       </div>
 
       <!-- Step 3: Accelya — aviation / circuit board hybrid -->
@@ -851,10 +835,30 @@
         </span>
         <div class="ers-role">Senior AI Engineer</div>
         <div class="ers-co">Infosys — Bank of America</div>
+        <div class="ers-year">Nov 2025</div>
+      </div>
+
+      <!-- Step 5: Deloitte Cyber — shield / secure agents -->
+      <div class="ers-step ers-step--5">
+        <span class="ers-svg-icon">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M24 6 L38 11 V23 Q38 34 24 42 Q10 34 10 23 V11 Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+            <circle cx="24" cy="21" r="3" fill="currentColor"/>
+            <circle cx="17" cy="28" r="2.2" fill="currentColor" opacity="0.8"/>
+            <circle cx="31" cy="28" r="2.2" fill="currentColor" opacity="0.8"/>
+            <g stroke="currentColor" stroke-width="1.5" opacity="0.6">
+              <line x1="24" y1="24" x2="18.5" y2="26.8"/>
+              <line x1="24" y1="24" x2="29.5" y2="26.8"/>
+              <line x1="19.2" y1="28" x2="28.8" y2="28"/>
+            </g>
+          </svg>
+        </span>
+        <div class="ers-role">Agentic AI Engineer</div>
+        <div class="ers-co">Deloitte · Cyber</div>
         <div class="ers-year">NOW ✦</div>
       </div>
 
-      <div class="ers-quip">Plot twist: CS grad → backend engineer → AI Engineer. The agents came later.</div>
+      <div class="ers-quip">Plot twist: CS grad → backend engineer → AI Engineer → Deloitte Cyber. The agents came later.</div>
     </div>
 
     <div class="timeline">
@@ -1341,7 +1345,7 @@
     <div class="footer-top">
       <div class="footer-brand">
         <div class="footer-logo">ck<span>.</span></div>
-        <div class="footer-tagline">Senior AI Engineer · Building production-grade AI systems</div>
+        <div class="footer-tagline">Agentic AI Engineer · Deloitte Cyber · Secure, production-grade agentic systems</div>
       </div>
       <nav class="footer-nav" aria-label="Footer navigation">
         <a href="#story">Story</a>

@@ -13,7 +13,8 @@
 
 \definecolor{primary}{RGB}{28,28,28}
 \definecolor{subtle}{RGB}{110,110,110}
-\definecolor{accent}{RGB}{0,102,204}
+\definecolor{accent}{RGB}{38,137,13}
+\definecolor{brandgreen}{RGB}{134,188,37}
 
 \hypersetup{
   colorlinks=true,
@@ -27,9 +28,9 @@
 \titleformat{\section}
   {\large\bfseries\color{primary}}
   {}{0em}{}
-  [\vspace{-2pt}\color{subtle}\titlerule]
+  [\vspace{-2pt}\color{brandgreen}{\titlerule[1.2pt]}]
 
-\titlespacing{\section}{0pt}{5pt}{4pt}
+\titlespacing{\section}{0pt}{3pt}{2.5pt}
 
 \newcommand{\resumeitem}[1]{\item\small{#1}}
 
@@ -44,31 +45,32 @@
 \newlist{jobitems}{itemize}{1}
 \setlist[jobitems]{
   leftmargin=1.4em,
-  itemsep=1.5pt,
-  topsep=3pt,
+  itemsep=0.8pt,
+  topsep=1.5pt,
   parsep=0pt,
-  after=\vspace{3pt}
+  after=\vspace{1.5pt}
 }
 
 \newlist{projectitems}{itemize}{1}
 \setlist[projectitems]{
   leftmargin=1.4em,
-  itemsep=1.5pt,
-  topsep=3pt,
+  itemsep=0.8pt,
+  topsep=1.5pt,
   parsep=0pt,
-  after=\vspace{3pt}
+  after=\vspace{1.5pt}
 }
 
 \begin{document}
 
 \begin{center}
-{\LARGE\bfseries\color{primary} CHANDAN KUMAR}\\[4pt]
+{\LARGE\bfseries\color{primary} CHANDAN KUMAR}{\LARGE\bfseries\color{brandgreen}.}\\[2pt]
+{\normalsize\color{primary} Agentic AI Engineer \textbar{} Deloitte Cyber \textbar{} Bengaluru}\\[4pt]
 
 \small\color{subtle}
 \faPhone\ \href{tel:+916290909518}{+91 62909 09518} \quad
 \faEnvelope\ \href{mailto:ravchandan15@gmail.com}{ravchandan15@gmail.com} \quad
 \faGithub\ \href{https://github.com/RavSinghChandan}{GitHub} \quad
-\faCodeBranch\ \href{https://github.com/joblib/joblib/pull/1811}{Open Source} \quad
+\faCodeBranch\ \href{https://github.com/pulls?q=is\%3Apr+author\%3ARavSinghChandan+is\%3Amerged}{66 Merged PRs} \quad
 \faLinkedin\ \href{https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/}{LinkedIn} \quad
 \faGlobe\ \href{https://chandan-kumar-ai-engineer.vercel.app/}{Portfolio}
 \end{center}
@@ -76,13 +78,14 @@
 
 \section{Professional Summary}
 
-\noindent Senior AI Engineer with \textbf{4+ years of experience} building production-grade AI systems using \textbf{LLMs, Agentic AI, RAG, LangChain, LangGraph, FastAPI, Python, and Java}. Active open-source contributor to Hugging Face and Joblib with merged contributions to widely used AI/ML libraries.
+\noindent Agentic AI Engineer at \textbf{Deloitte (Cyber -- Agentic AI Engineering \& Security)} with \textbf{4+ years of experience} building production-grade systems using \textbf{LLMs, Agentic AI, RAG, LangGraph, FastAPI, Python, and Java}. Works forward-deployed: close to the problem, shipping secure multi-agent systems into real environments. \textbf{66 merged pull requests} across pypdf, Joblib, Hugging Face, NLTK and Authlib.
 
 \section{Technical Skills}
 
 \begin{tabularx}{\textwidth}{@{} l X @{}}
 \textbf{Languages} & Java, Python, JavaScript, TypeScript, SQL \\[2pt]
 \textbf{AI/ML} & LLMs, Agentic AI, RAG, Prompt Engineering, NLP, AI Evaluation \\[2pt]
+\textbf{AI Security} & LLM Guardrails, Prompt-Injection Defence, PII Filtering, Output Validation \\[2pt]
 \textbf{Frameworks} & Spring Boot, FastAPI, Hibernate, JPA \\[2pt]
 \textbf{AI Tools} & OpenAI API, Hugging Face, LangChain, LangGraph, FAISS, ChromaDB \\[2pt]
 \textbf{Data} & Pandas, NumPy \\[2pt]
@@ -95,19 +98,25 @@
 \section{Open Source Contributions}
 
 \noindent
-\textbf{Hugging Face \& Joblib}
+\textbf{66 merged PRs} --- pypdf (59), Joblib (3), Sentence Transformers (2), NLTK (1), Authlib (1)
 \hfill
-\href{https://github.com/RavSinghChandan}{GitHub}
+\href{https://chandan-kumar-ai-engineer.vercel.app/\#opensource}{All PRs}
 
 \begin{projectitems}
-\resumeitem{Merged 3 production-grade contributions into Hugging Face Sentence Transformers and Joblib, widely used across the AI/ML ecosystem.}
-\resumeitem{Added regression tests, improved \texttt{os.PathLike} compatibility in \texttt{joblib.dump()/load()}, and enhanced developer documentation through merged pull requests.}
-\resumeitem{Collaborated with maintainers through code reviews; additional AI/ML contributions are under active review.}
+\resumeitem{\textbf{pypdf (10k+ stars):} 59 merged fixes making the PDF library robust to malformed real-world files --- crashes turned into clear errors or safe recovery, each reproduced first and covered by tests.}
+\resumeitem{\textbf{Joblib:} fixed \texttt{os.PathLike} support in \texttt{dump()/load()}; regression tests for Sentence Transformers; fixes in NLTK and Authlib.}
+\resumeitem{Sustained maintainer collaboration through code review, coverage gates and CI across five external projects.}
 \end{projectitems}
 
 \section{Professional Experience}
 
-\jobheading{Infosys --- Bank of America}{Senior Software Engineer}{Nov 2025 -- Present}{Pune}
+\jobheading{Deloitte}{Agentic AI Engineer --- Cyber}{Sep 2026 -- Present}{Bengaluru}
+
+\begin{jobitems}
+\resumeitem{Agentic AI Engineering \& Security team: engineering agentic AI systems with guardrails, tool-use boundaries and prompt-injection defence designed in.}
+\end{jobitems}
+
+\jobheading{Infosys --- Bank of America}{Senior Software Engineer}{Nov 2025 -- Sep 2026}{Pune}
 
 \begin{jobitems}
 \resumeitem{Designed LLM-powered backend systems and AI-driven microservices using event-driven architecture.}

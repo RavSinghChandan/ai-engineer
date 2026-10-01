@@ -29,7 +29,8 @@ interface GraphBody extends GraphNode {
 })
 export class App implements OnInit, AfterViewInit {
 
-  theme = signal<'dark' | 'light'>('dark');
+  // Single theme (Deloitte-style). Kept as a signal because the chat payload reads it.
+  theme = signal<'light'>('light');
   typedText = signal('');
   scrolled = signal(false);
   mobileNavOpen = signal(false);
@@ -270,10 +271,10 @@ export class App implements OnInit, AfterViewInit {
       aaravSay: '637 tests, zero flakes! 🤩',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect x="6" y="10" width="36" height="28" rx="4" stroke="currentColor" stroke-width="2"/>
-        <path d="M14 22l4 4 8-8" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M14 22l4 4 8-8" stroke="#046A38" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
         <path d="M30 20h6M30 24h4M30 28h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
-        <circle cx="38" cy="36" r="7" fill="#09090b" stroke="#10b981" stroke-width="2"/>
-        <path d="M35 36l2 2 4-4" stroke="#10b981" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="38" cy="36" r="7" fill="#09090b" stroke="#046A38" stroke-width="2"/>
+        <path d="M35 36l2 2 4-4" stroke="#046A38" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>`,
     },
     {
@@ -285,11 +286,11 @@ export class App implements OnInit, AfterViewInit {
       aaravSay: '78s → 4s. Ask me how! ⚡',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="24" cy="24" r="16" stroke="currentColor" stroke-width="2" opacity="0.3"/>
-        <path d="M24 12v12l7 4" stroke="#a78bfa" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M24 12v12l7 4" stroke="#26890D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
         <path d="M8 24h4M36 24h4M24 8v4M24 40v-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
         <path d="M10 38 L20 28" stroke="#ef4444" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
-        <path d="M38 10 L28 20" stroke="#10b981" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
-        <circle cx="24" cy="24" r="3" fill="#a78bfa"/>
+        <path d="M38 10 L28 20" stroke="#046A38" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+        <circle cx="24" cy="24" r="3" fill="#26890D"/>
       </svg>`,
     },
     {
@@ -300,10 +301,10 @@ export class App implements OnInit, AfterViewInit {
       aaravImg: 'guide-chandan.svg',
       aaravSay: '16 agents, zero conflicts! 🤖',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="24" cy="10" r="5" stroke="#a78bfa" stroke-width="2"/>
-        <circle cx="10" cy="34" r="5" stroke="#06b6d4" stroke-width="2"/>
-        <circle cx="38" cy="34" r="5" stroke="#10b981" stroke-width="2"/>
-        <circle cx="24" cy="34" r="5" stroke="#f59e0b" stroke-width="2"/>
+        <circle cx="24" cy="10" r="5" stroke="#26890D" stroke-width="2"/>
+        <circle cx="10" cy="34" r="5" stroke="#0D8390" stroke-width="2"/>
+        <circle cx="38" cy="34" r="5" stroke="#046A38" stroke-width="2"/>
+        <circle cx="24" cy="34" r="5" stroke="#ED8B00" stroke-width="2"/>
         <path d="M24 15 L10 29M24 15 L38 29M24 15 L24 29" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2" opacity="0.5"/>
         <path d="M15 34 L19 34M29 34 L33 34" stroke="currentColor" stroke-width="1.5" opacity="0.4"/>
       </svg>`,
@@ -316,9 +317,9 @@ export class App implements OnInit, AfterViewInit {
       aaravImg: 'guide-chandan-happy.svg',
       aaravSay: '500× cheaper than GPT-4o! 💰',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M24 6 L28 18 L40 18 L30 26 L34 38 L24 30 L14 38 L18 26 L8 18 L20 18 Z" stroke="#f59e0b" stroke-width="2" stroke-linejoin="round" fill="rgba(245,158,11,0.1)"/>
-        <path d="M24 13 L26 19 L32 19 L28 23 L29 29 L24 25 L19 29 L20 23 L16 19 L22 19 Z" fill="#f59e0b" opacity="0.4"/>
-        <text x="24" y="44" text-anchor="middle" font-size="7" font-weight="700" fill="#f59e0b" font-family="monospace">COST</text>
+        <path d="M24 6 L28 18 L40 18 L30 26 L34 38 L24 30 L14 38 L18 26 L8 18 L20 18 Z" stroke="#ED8B00" stroke-width="2" stroke-linejoin="round" fill="rgba(237,139,0,0.1)"/>
+        <path d="M24 13 L26 19 L32 19 L28 23 L29 29 L24 25 L19 29 L20 23 L16 19 L22 19 Z" fill="#ED8B00" opacity="0.4"/>
+        <text x="24" y="44" text-anchor="middle" font-size="7" font-weight="700" fill="#ED8B00" font-family="monospace">COST</text>
       </svg>`,
     },
     {
@@ -329,8 +330,8 @@ export class App implements OnInit, AfterViewInit {
       aaravImg: 'guide-chandan-wow.svg',
       aaravSay: 'Zero hallucinations. Real. 🎯',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="24" cy="24" r="16" stroke="#10b981" stroke-width="2"/>
-        <path d="M17 24l5 5 9-10" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="24" cy="24" r="16" stroke="#046A38" stroke-width="2"/>
+        <path d="M17 24l5 5 9-10" stroke="#046A38" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
         <path d="M10 10 L38 38" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round" opacity="0.3" stroke-dasharray="3 2"/>
         <rect x="13" y="20" width="10" height="3" rx="1" stroke="currentColor" stroke-width="1" opacity="0.25"/>
         <rect x="13" y="25" width="7" height="3" rx="1" stroke="currentColor" stroke-width="1" opacity="0.25"/>
@@ -933,6 +934,16 @@ export class App implements OnInit, AfterViewInit {
       logo: 'pypdf-logo.svg',
       org: 'py-pdf',
       stars: '10.1k★',
+      title: 'Raise a clear error for a rectangle without four values',
+      desc: 'RectangleObject asserted its length, so a malformed box failed with a bare AssertionError carrying no values — and vanished entirely under python -O. It now raises a ValueError naming the count and the sequence it was given.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4123',
+      merged: 'Sep 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
       title: 'Do not crash on a composite font without descendant fonts',
       desc: 'from_font_resource read /DescendantFonts directly on the composite-font branch, with a comment stating the entry need not be tested for. That holds for the subtype, not the entry: a /Type0 font omitting it raised a bare KeyError out of extract_text().',
       pr: 'https://github.com/py-pdf/pypdf/pull/4119',
@@ -1202,8 +1213,10 @@ export class App implements OnInit, AfterViewInit {
     { id: 'pypdf55', label: 'pypdf #4118',    kind: 'oss', detail: 'Font widths not an array', url: 'https://github.com/py-pdf/pypdf/pull/4118' },
     { id: 'pypdf56', label: 'pypdf #4119',    kind: 'oss', detail: 'Composite font without descendants', url: 'https://github.com/py-pdf/pypdf/pull/4119' },
     { id: 'pypdf57', label: 'pypdf #4098',    kind: 'oss', detail: 'Outline action without a type', url: 'https://github.com/py-pdf/pypdf/pull/4098' },
+    { id: 'pypdf58', label: 'pypdf #4123',    kind: 'oss', detail: 'Rectangle without four values', url: 'https://github.com/py-pdf/pypdf/pull/4123' },
 
     // Experience (amber)
+    { id: 'deloitte', label: 'Deloitte', kind: 'work', detail: 'Agentic AI Engineer · Cyber' },
     { id: 'infosys', label: 'Infosys — BofA', kind: 'work', detail: 'Senior Software Engineer' },
     { id: 'nexsys',  label: 'Nexsys/Accelya', kind: 'work', detail: 'Software Engineer' },
     { id: 'texala',  label: 'Texala',         kind: 'work', detail: 'Software Engineer' },
@@ -1259,6 +1272,7 @@ export class App implements OnInit, AfterViewInit {
     ['pypdf37','python'], ['pypdf37','pypdf36'],
     ['st1','rag'], ['st2','rag'], ['nltk','langchain'],
     // work history → what was used there
+    ['deloitte','langgraph'], ['deloitte','python'], ['deloitte','rag'],
     ['infosys','java'], ['infosys','kafka'], ['nexsys','java'], ['nexsys','angular'], ['texala','java'],
   ];
 
@@ -1276,14 +1290,28 @@ export class App implements OnInit, AfterViewInit {
 
   experience = [
     {
+      company: 'Deloitte',
+      role: 'Agentic AI Engineer · Cyber',
+      location: 'Bengaluru, India',
+      period: 'Sep 2026 – Present',
+      color: 'purple',
+      isPresent: true,
+      points: [
+        'Joined Deloitte Cyber in the Agentic AI Engineering & Security team',
+        'Engineering agentic AI systems with security designed in: guardrails, tool-use boundaries and prompt-injection defence',
+        'Bringing production multi-agent, RAG and LLM-ops experience to client-facing cyber engagements',
+      ],
+      companyBadge: '',
+    },
+    {
       company: 'Infosys — Bank of America',
       companyLogo: 'https://skillicons.dev/icons?i=azure',
       logoAlt: 'Infosys',
       role: 'Senior Software Engineer',
       location: 'Pune, India',
-      period: 'Nov 2025 – Present',
-      color: 'purple',
-      isPresent: true,
+      period: 'Nov 2025 – Sep 2026',
+      color: 'cyan',
+      isPresent: false,
       points: [
         'Designed LLM-integrated backend systems enabling intelligent automation of banking workflows',
         'Built AI-driven microservices with event-driven architecture and real-time processing pipelines',
@@ -1298,7 +1326,7 @@ export class App implements OnInit, AfterViewInit {
       role: 'Software Engineer',
       location: 'Mumbai, India',
       period: 'Dec 2023 – Oct 2025',
-      color: 'cyan',
+      color: 'green',
       isPresent: false,
       points: [
         'Developed aviation industry systems processing 500K+ daily transactions with AI-ready architecture',
@@ -1313,7 +1341,7 @@ export class App implements OnInit, AfterViewInit {
       role: 'Software Engineer',
       location: 'Pune, India',
       period: 'May 2023 – Dec 2023',
-      color: 'green',
+      color: 'amber',
       isPresent: false,
       points: [
         'Developed production-grade microservices using Java and Spring Boot',
@@ -1357,7 +1385,7 @@ export class App implements OnInit, AfterViewInit {
     hero:       { img: 'guide-chandan-happy.svg',   quote: 'Right person! 😄',    sub: 'Ships. For real.' },
     skills:     { img: 'guide-chandan.svg',          quote: 'All in prod. 💪',     sub: 'Zero tutorials.' },
     projects:   { img: 'guide-chandan-wow.svg',      quote: '5 systems! 🤩',       sub: 'Click Live Demo ↗' },
-    experience: { img: 'guide-chandan-thinking.svg', quote: 'Self-made. 🎯',       sub: '4 companies. Real.' },
+    experience: { img: 'guide-chandan-thinking.svg', quote: 'Self-made. 🎯',       sub: '5 companies. Real.' },
     story:      { img: 'guide-chandan-happy.svg',    quote: 'His why. ✨',         sub: 'Read this one.' },
     contact:    { img: 'guide-chandan-wow.svg',      quote: "Let's build! 🚀",     sub: 'Reach out now.' },
   } as any;
@@ -1433,7 +1461,7 @@ export class App implements OnInit, AfterViewInit {
       id: 'gb-hero',
       img: 'guide-chandan-happy.svg',
       dir: 'left',
-      quote: "Right person! 👋 Senior AI Engineer who actually ships.",
+      quote: "Right person! 👋 Agentic AI Engineer who actually ships.",
       sub:   "4+ years · 637 tests · Zero shortcuts",
     },
     {
@@ -1475,7 +1503,7 @@ export class App implements OnInit, AfterViewInit {
       id: 'gb-exp',
       img: 'guide-chandan-thinking.svg',
       dir: 'left',
-      quote: "Kolkata → Masai bootcamp → 4 companies → production AI. 🏆",
+      quote: "Kolkata → Masai bootcamp → 4 companies → Deloitte. 🏆",
       sub:   "Self-made. Every role levelled up the craft.",
     },
     {
@@ -1870,7 +1898,7 @@ export class App implements OnInit, AfterViewInit {
 
     interface Cluster { cx: number; cy: number; color: string; }
     // luminous violet→cyan spectrum, tuned for additive glow on dark bg
-    const CLUSTER_COLORS = ['#8b5cf6', '#22d3ee', '#6366f1', '#2dd4bf', '#a855f7', '#3b82f6'];
+    const CLUSTER_COLORS = ['#26890D', '#0D8390', '#6366f1', '#2dd4bf', '#a855f7', '#3b82f6'];
 
     let W = 0, H = 0;
     let clusters: Cluster[] = [];
@@ -2114,7 +2142,7 @@ export class App implements OnInit, AfterViewInit {
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
-      this.applyTheme('dark');
+      this.applyTheme();
       this.startTyping();
     }
   }
@@ -2163,7 +2191,6 @@ export class App implements OnInit, AfterViewInit {
     }
 
     this.initFloatingGuide();
-    this.initNeuralCanvas();
 
     // Trigger skill bars when the orbit section scrolls into view
     const skillsEl = document.querySelector('.skills-orbit-wrap');
@@ -2187,17 +2214,11 @@ export class App implements OnInit, AfterViewInit {
     setTimeout(step, interval);
   }
 
-  toggleTheme() {
-    const next = this.theme() === 'dark' ? 'light' : 'dark';
-    this.applyTheme(next);
-  }
-
-  private applyTheme(t: 'dark' | 'light') {
-    this.theme.set(t);
-    document.documentElement.setAttribute('data-theme', t);
-    document.body.setAttribute('data-theme', t);
-    document.body.style.background = t === 'dark' ? '#09090b' : '#ffffff';
-    document.body.style.color = t === 'dark' ? '#fafafa' : '#09090b';
+  private applyTheme() {
+    document.documentElement.setAttribute('data-theme', 'light');
+    document.body.setAttribute('data-theme', 'light');
+    document.body.style.background = '#ffffff';
+    document.body.style.color = '#000000';
     // Force chat panel to repaint with new CSS vars if open
     if (this.cbOpen()) {
       this.cbOpen.set(false);
@@ -2410,7 +2431,7 @@ export class App implements OnInit, AfterViewInit {
       // Warn on question 8 — 2 left
       const remaining = this.CB_LIMIT - this.cbQCount();
       const warningHtml = remaining === 2
-        ? `${reply}<div style="margin-top:0.6rem;padding:0.3rem 0.6rem;border-radius:6px;background:var(--cb-head-bg);border-left:3px solid #d97706;color:var(--cb-text);font-size:0.72rem;font-style:italic">⚠️ <strong style="color:var(--cb-head-color)">2 questions remaining</strong> in this session</div>`
+        ? `${reply}<div style="margin-top:0.6rem;padding:0.3rem 0.6rem;border-radius:6px;background:var(--cb-head-bg);border-left:3px solid #C26E00;color:var(--cb-text);font-size:0.72rem;font-style:italic">⚠️ <strong style="color:var(--cb-head-color)">2 questions remaining</strong> in this session</div>`
         : remaining === 1
         ? `${reply}<div style="margin-top:0.6rem;padding:0.3rem 0.6rem;border-radius:6px;background:var(--cb-head-bg);border-left:3px solid #dc2626;color:var(--cb-text);font-size:0.72rem;font-style:italic">🔴 <strong style="color:var(--cb-head-color)">Last question</strong> in this session — make it count!</div>`
         : reply;
@@ -2466,21 +2487,21 @@ export class App implements OnInit, AfterViewInit {
   private bRadius = 200;
 
   private readonly G_COLORS: Record<GraphNode['kind'], string> = {
-    system: '#a78bfa',  // purple — things I built
-    tech:   '#22d3ee',  // cyan   — technologies
-    oss:    '#34d399',  // green  — merged open source
-    work:   '#fbbf24',  // amber  — experience
+    system: '#26890D',  // purple — things I built
+    tech:   '#0D8390',  // cyan   — technologies
+    oss:    '#26890D',  // green  — merged open source
+    work:   '#ED8B00',  // amber  — experience
   };
 
   //  The cage carries seven colours, one per family: the four node kinds above,
   //  with the open-source vertices split by the library they landed in so a
   //  glance shows the spread rather than one wall of green.
   private readonly OSS_COLORS: Record<string, string> = {
-    pypdf:    '#34d399',  // emerald
+    pypdf:    '#26890D',  // emerald
     joblib:   '#fb7185',  // rose
     'sent-tf': '#f472b6', // pink
     nltk:     '#facc15',  // yellow
-    authlib:  '#818cf8',  // indigo
+    authlib:  '#007CB0',  // indigo
   };
 
   /** Colour for a node: open-source vertices are keyed by library. */
