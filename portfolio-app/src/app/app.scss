@@ -2487,3 +2487,105 @@ footer {
 .edu-city { min-height: 82px !important; margin-top: 0.9rem; }
 .edu-city .city-svg-night { height: 82px !important; }
 .hero-role { font-size: clamp(1.05rem, 2.1vw, 1.55rem) !important; letter-spacing: -0.01em; line-height: 1.3; margin-top: 0.7rem; font-weight: 700; }
+
+/* ═══════════════════════════════════════════════════════════════
+   LIGHT THEME — every band goes light too.
+   :host-context is the one way a component style can see
+   html[data-theme], so all light overrides live here.
+   ═══════════════════════════════════════════════════════════════ */
+:host-context(html[data-theme="light"]) {
+  nav[aria-label="Main navigation"], .hero, .kg-section, footer {
+    --bg: #FFFFFF; --surface: #F4F4F2; --card: #FFFFFF; --card-hi: #FFFFFF;
+    --border: rgba(0,0,0,0.08); --border2: #D0D0CE;
+    --text: #000000; --text2: #53565A; --text3: #75787B; --muted: #53565A;
+    --accent: #26890D; --accent-2: #046A38; --purple: #26890D; --purple-lt: #046A38; --green: #26890D; --cyan: #0D8390; --amber: #B35A00;
+    color: var(--text);
+  }
+
+  /* Nav */
+  nav[aria-label="Main navigation"], nav[aria-label="Main navigation"].scrolled {
+    background: rgba(255,255,255,0.92) !important; box-shadow: 0 1px 0 rgba(0,0,0,0.06);
+  }
+  .nav-logo { color: #000; }
+  .nav-links a { color: #53565A; &:hover, &.nav-active { color: #000; } }
+  .theme-btn { color: #000 !important; border-color: #D0D0CE !important; }
+  .hamburger-btn { color: #000; border-color: #D0D0CE; }
+  .nav-mobile-open .nav-links { background: #fff !important; border-color: #E1E1DF !important; a { border-color: #EDEDEB !important; } }
+
+  /* Hero */
+  .hero {
+    background:
+      radial-gradient(900px 520px at 88% 8%, rgba(134,188,37,0.16), transparent 60%),
+      radial-gradient(700px 480px at -5% 105%, rgba(0,171,171,0.10), transparent 60%),
+      #FFFFFF;
+    &::before {
+      background-image:
+        linear-gradient(rgba(0,0,0,0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,0.045) 1px, transparent 1px) !important;
+    }
+  }
+  .hero-lede { color: #000; }
+  .hero-badge { background: #F4F4F2; color: #000; border-color: #E1E1DF; }
+  .hero-typing { background: #F7F7F5; border-color: #E1E1DF; }
+  .hero-card {
+    background: #FFFFFF !important; border-color: #E1E1DF !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 24px 60px -24px rgba(0,0,0,0.18) !important;
+  }
+  .hero .btn-ghost { border-color: #000 !important; }
+  .hero-title-accent, .kg-h, .hero-triad { background: linear-gradient(100deg, #26890D 0%, #0D8390 100%) !important; -webkit-background-clip: text !important; background-clip: text !important; }
+
+  /* Knowledge graph (canvas switches palette itself) */
+  .kg-section {
+    background:
+      radial-gradient(800px 500px at 50% 55%, rgba(0,171,171,0.07), transparent 65%),
+      radial-gradient(600px 400px at 15% 20%, rgba(134,188,37,0.08), transparent 60%),
+      #F7F8F5;
+  }
+  .kg-sub b { color: #000; }
+  .kg-legend { color: #53565A; }
+  .kg-legend .kg-key:nth-child(1) .kg-dot { background: #0D8390 !important; box-shadow: none !important; }
+  .kg-legend .kg-key:nth-child(2) .kg-dot { background: #007CB0 !important; box-shadow: none !important; }
+  .kg-legend .kg-key:nth-child(3) .kg-dot { background: #C26E00 !important; box-shadow: none !important; }
+  .kg-legend .kg-key:nth-child(4) .kg-dot { background: #26890D !important; box-shadow: none !important; }
+  .kg-legend .kg-key:nth-child(5) .kg-dot { background: #E11D48 !important; box-shadow: none !important; }
+  .kg-legend .kg-key:nth-child(6) .kg-dot { background: #DB2777 !important; box-shadow: none !important; }
+  .kg-legend .kg-key:nth-child(7) .kg-dot { background: #A16207 !important; box-shadow: none !important; }
+  .kg-legend .kg-key:nth-child(8) .kg-dot { background: #0369A1 !important; box-shadow: none !important; }
+  .kg-stage {
+    background:
+      radial-gradient(ellipse at 50% 50%, rgba(0,171,171,0.06), transparent 62%),
+      radial-gradient(ellipse at 30% 25%, rgba(134,188,37,0.07), transparent 60%),
+      #FFFFFF !important;
+    border-color: #E1E1DF !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 30px 70px -30px rgba(0,0,0,0.18) !important;
+  }
+  .kg-tip { background: rgba(255,255,255,0.96); border-color: #E1E1DF; }
+  .kg-tip-cta { color: #26890D; }
+
+  /* Career strip current step + Deloitte card */
+  .ers-step--5 {
+    background: radial-gradient(240px 140px at 70% 0%, rgba(134,188,37,0.22), transparent 70%), #F3F8EA !important;
+    border-left-color: rgba(38,137,13,0.35);
+    .ers-role { color: #000; }
+    .ers-co { color: #53565A; }
+    .ers-svg-icon { color: #26890D; border-color: rgba(38,137,13,0.4); background: rgba(134,188,37,0.12); }
+  }
+  .tl-item:first-child .tl-body {
+    --text: #000; --text2: #53565A; --text3: #75787B;
+    background: radial-gradient(600px 220px at 100% 0%, rgba(134,188,37,0.14), transparent 60%), #FFFFFF !important;
+    border: 1px solid rgba(0,0,0,0.06) !important;
+    box-shadow: inset 3px 0 0 #86BC25, 0 24px 60px -24px rgba(0,0,0,0.2) !important;
+    .tl-period { color: #26890D; }
+  }
+  .tl-item:first-child .tl-body:hover { box-shadow: inset 3px 0 0 #86BC25, 0 30px 70px -24px rgba(0,0,0,0.25) !important; }
+
+  /* Skylines: daytime sky, deeper windows and labels */
+  .city-svg-night rect[fill*="-sky"], .city-svg-blr rect[fill*="-sky"] { fill: #F3F8EA; }
+  .city-svg-night g[fill="#B9E07A"], .city-svg-blr g[fill="#B9E07A"] { fill: #046A38; }
+  .city-svg-night text, .city-svg-blr text { fill: #26890D; }
+
+  /* Footer */
+  footer { background: #F7F8F5 !important; }
+  .footer-logo { color: #000; }
+  .footer-nav a { color: #53565A; &:hover { color: #000; } }
+}

@@ -2604,12 +2604,21 @@ export class App implements OnInit, AfterViewInit {
   };
 
   /** Colour for a node: open-source vertices are keyed by library. */
+  // Deeper versions of the same hues, readable on the light theme's white stage.
+  private readonly G_COLORS_LIGHT: Record<GraphNode['kind'], string> = {
+    system: '#0D8390', tech: '#007CB0', oss: '#26890D', work: '#C26E00',
+  };
+  private readonly OSS_COLORS_LIGHT: Record<string, string> = {
+    pypdf: '#26890D', joblib: '#E11D48', 'sent-tf': '#DB2777', nltk: '#A16207', authlib: '#0369A1',
+  };
+
   private nodeColor(n: GraphNode): string {
+    const light = this.theme() === 'light';
     if (n.kind === 'oss') {
       const library = n.label.split(' ')[0];
-      return this.OSS_COLORS[library] ?? this.G_COLORS.oss;
+      return (light ? this.OSS_COLORS_LIGHT : this.OSS_COLORS)[library] ?? (light ? this.G_COLORS_LIGHT : this.G_COLORS).oss;
     }
-    return this.G_COLORS[n.kind];
+    return (light ? this.G_COLORS_LIGHT : this.G_COLORS)[n.kind];
   }
 
   /** Build the 60 vertices + 90 bonds of a truncated icosahedron. */
@@ -2829,6 +2838,7 @@ export class App implements OnInit, AfterViewInit {
     const rect = canvas.getBoundingClientRect();
     const W = rect.width, H = rect.height;
     const cx = W / 2, cy = H / 2;
+    const light = this.theme() === 'light';
 
     // ---- rotate ----
     if (!this.bDragging) { this.bRotX += this.bSpinX; this.bRotY += this.bSpinY; }
@@ -2875,9 +2885,15 @@ export class App implements OnInit, AfterViewInit {
       const depth = (z + 1) / 2;                       // 0 back … 1 front
       const a = 0.14 + depth * 0.62;
       const grad = ctx.createLinearGradient(A.x, A.y, B.x, B.y);
-      grad.addColorStop(0, `rgba(134,188,37,${a})`);         // Deloitte green
-      grad.addColorStop(0.5, `rgba(0,171,171,${a * 1.15})`);  // teal
-      grad.addColorStop(1, `rgba(98,181,229,${a})`);         // light blue
+      if (light) {
+        grad.addColorStop(0, `rgba(38,137,13,${a})`);
+        grad.addColorStop(0.5, `rgba(13,131,144,${Math.min(1, a * 1.15)})`);
+        grad.addColorStop(1, `rgba(0,124,176,${a})`);
+      } else {
+        grad.addColorStop(0, `rgba(134,188,37,${a})`);         // Deloitte green
+        grad.addColorStop(0.5, `rgba(0,171,171,${a * 1.15})`);  // teal
+        grad.addColorStop(1, `rgba(98,181,229,${a})`);         // light blue
+      }
       ctx.beginPath();
       ctx.moveTo(A.x, A.y);
       ctx.lineTo(B.x, B.y);
@@ -2885,7 +2901,7 @@ export class App implements OnInit, AfterViewInit {
       ctx.lineWidth = 0.7 + depth * 2.0;
       // front-facing bonds get a soft bloom so the cage reads as lit glass
       if (depth > 0.62) {
-        ctx.shadowColor = `rgba(134,188,37,${(depth - 0.62) * 0.9})`;
+        ctx.shadowColor = light ? `rgba(38,137,13,${(depth - 0.62) * 0.35})` : `rgba(134,188,37,${(depth - 0.62) * 0.9})`;
         ctx.shadowBlur = 7;
       }
       ctx.stroke();
@@ -2899,7 +2915,7 @@ export class App implements OnInit, AfterViewInit {
       const depth = (p.z + 1) / 2;
       ctx.beginPath();
       ctx.arc(p.x, p.y, 1.8 + depth * 2.4, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(186,209,232,${0.22 + depth * 0.62})`;
+      ctx.fillStyle = light ? `rgba(83,86,90,${0.18 + depth * 0.5})` : `rgba(186,209,232,${0.22 + depth * 0.62})`;
       ctx.fill();
     }
 
@@ -2918,7 +2934,7 @@ export class App implements OnInit, AfterViewInit {
       const mx = (A.x + B.x) / 2 - cx, my = (A.y + B.y) / 2 - cy;
       const bow = 1.18;
       ctx.quadraticCurveTo(cx + mx * bow, cy + my * bow, B.x, B.y);
-      ctx.strokeStyle = lit ? 'rgba(166,216,110,0.9)' : 'rgba(148,163,184,0.16)';
+      ctx.strokeStyle = lit ? (light ? 'rgba(38,137,13,0.9)' : 'rgba(166,216,110,0.9)') : (light ? 'rgba(83,86,90,0.14)' : 'rgba(148,163,184,0.16)');
       ctx.lineWidth = lit ? 2 : 0.7;
       ctx.stroke();
     }
@@ -2941,8 +2957,8 @@ export class App implements OnInit, AfterViewInit {
 
       // glow
       const halo = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 3.4);
-      halo.addColorStop(0, color + 'cc');
-      halo.addColorStop(0.45, color + '33');
+      halo.addColorStop(0, color + (light ? '55' : 'cc'));
+      halo.addColorStop(0.45, color + (light ? '18' : '33'));
       halo.addColorStop(1, color + '00');
       ctx.beginPath();
       ctx.arc(p.x, p.y, r * 3.4, 0, Math.PI * 2);
@@ -2970,9 +2986,9 @@ export class App implements OnInit, AfterViewInit {
       // labels: front-facing systems always, others on hover/neighbour
       if ((b.kind === 'system' && p.z > -0.1) || isHover || isNear) {
         ctx.font = `${isHover ? 600 : 500} ${isHover ? 12.5 : 11}px ui-sans-serif, system-ui, sans-serif`;
-        ctx.fillStyle = isHover ? color : 'rgba(226,232,240,0.95)';
+        ctx.fillStyle = isHover ? color : (light ? 'rgba(0,0,0,0.85)' : 'rgba(226,232,240,0.95)');
         ctx.textAlign = 'center';
-        ctx.shadowColor = 'rgba(2,6,23,0.9)';
+        ctx.shadowColor = light ? 'rgba(255,255,255,0.95)' : 'rgba(2,6,23,0.9)';
         ctx.shadowBlur = 6;
         // keep the label inside the canvas: a centred label on a rim atom
         // otherwise runs off the edge and gets clipped
