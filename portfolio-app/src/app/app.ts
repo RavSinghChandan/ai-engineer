@@ -96,6 +96,9 @@ export class App implements OnInit, AfterViewInit {
   // ── Projects browser: sort + paginate, same pattern as open source ──────
   //    Each project card is long (challenges + screenshots), so one per page.
   readonly projPageSize = 1;
+  /** Flagship order: the three most forward-deployed stories lead. */
+  private readonly featuredOrder = ['02', '05', '06', '01', '03', '04', '07'];
+  isFlagship(num: string): boolean { return this.featuredOrder.indexOf(num) < 3; }
   projSort = signal<'featured' | 'newest' | 'oldest' | 'az' | 'tests'>('featured');
   projPage = signal(1);
 
@@ -107,7 +110,7 @@ export class App implements OnInit, AfterViewInit {
   get sortedProjects() {
     const rows = [...this.filteredProjects];
     switch (this.projSort()) {
-      case 'featured': return rows;
+      case 'featured': return rows.sort((a, b) => this.featuredOrder.indexOf(a.num) - this.featuredOrder.indexOf(b.num));
       case 'oldest': return rows.sort((a, b) => a.num.localeCompare(b.num));
       case 'az':     return rows.sort((a, b) => a.title.localeCompare(b.title));
       case 'tests':  return rows.sort((a, b) => this.projTests(b) - this.projTests(a) || b.num.localeCompare(a.num));
@@ -190,6 +193,12 @@ export class App implements OnInit, AfterViewInit {
       liveUrl: 'demo',
       title: 'Bench Resource Optimizer',
       subtitle: 'Enterprise AI HR Platform',
+      story: [
+        { k: 'Problem', v: 'Skilled engineers sit on the bench while projects struggle to find the right capabilities.' },
+        { k: 'Constraint', v: 'Skills are ambiguous, CVs are untrusted, and every LLM call adds latency, cost and a failure mode.' },
+        { k: 'Decision', v: 'Hybrid RAG (FAISS + BM25, HyDE, CRAG) with multi-agent planning, Redis caching, Kafka, SSE streaming and G1–G5 guardrails.' },
+        { k: 'Result', v: '222 tests · semantic caching · circuit breakers · injection detection · live streaming · persistent memory.' },
+      ],
       desc: 'Maps bench employees to open roles using Hybrid RAG, surfaces skill gaps, and generates 7-day preparation roadmaps — production hardened with 222 tests and zero shortcuts.',
       github: 'https://github.com/RavSinghChandan',
       tags: [
@@ -261,6 +270,12 @@ export class App implements OnInit, AfterViewInit {
       liveUrl: 'https://portfolio-quyi2c8kj-ravsinghchandans-projects.vercel.app',
       title: 'RunbookAI',
       subtitle: 'Enterprise IT Incident Response — RAGless + Multi-Source',
+      story: [
+        { k: 'Problem', v: 'Engineers need the right incident-response commands, in the right order, under pressure.' },
+        { k: 'Constraint', v: 'A hallucinated kubectl command mid-incident is worse than no answer at all.' },
+        { k: 'Decision', v: 'RAGless: commands extracted once at ingest and returned verbatim from SQLite; a NetworkX DAG enforces execution order; internal vs official docs ranked and conflict-checked.' },
+        { k: 'Result', v: 'Zero hallucinated commands · safe step ordering · automatic conflict detection · 137 tests.' },
+      ],
       desc: 'RAGless incident response engine: zero vectors, zero hallucinated commands. Every kubectl command pulled verbatim from SQLite. Three ranked panels per query — Internal (green), Combined (purple), Official (blue) — with automated conflict detection between your runbooks and kubernetes.io docs.',
       github: 'https://github.com/RavSinghChandan/ai-engineer',
       tags: [
@@ -285,6 +300,12 @@ export class App implements OnInit, AfterViewInit {
       liveUrl: 'demo',
       title: 'Universal Agent',
       subtitle: 'Plug-and-Play AI Agent — Any App, Any Domain, One Config',
+      story: [
+        { k: 'Problem', v: 'Every app needed its own chatbot, so agent code was being duplicated across four products.' },
+        { k: 'Constraint', v: 'Different stacks (FastAPI, Angular, React, plain HTML), different domains, and no lock-in to one LLM provider.' },
+        { k: 'Decision', v: 'One agent core; domain, persona and tools set in YAML; an LLM abstraction layer; SDKs for each frontend.' },
+        { k: 'Result', v: 'Build once, configure per domain: one engine serving four apps; switching LLM providers is a one-line config change.' },
+      ],
       desc: 'One AI agent that drops into any application — FastAPI, Angular, React, or plain HTML — via a single config file. Swap LLMs (Claude, GPT-4, Gemini, DeepSeek, Ollama) without changing code. Powers 4 enterprise apps simultaneously with per-domain personas and zero hardcoded logic.',
       github: 'https://github.com/RavSinghChandan/ai-engineer',
       tags: [
@@ -1284,7 +1305,7 @@ export class App implements OnInit, AfterViewInit {
     { id: 'pypdf58', label: 'pypdf #4123',    kind: 'oss', detail: 'Rectangle without four values', url: 'https://github.com/py-pdf/pypdf/pull/4123' },
 
     // Experience (amber)
-    { id: 'deloitte', label: 'Deloitte', kind: 'work', detail: 'Agentic AI Engineer · Cyber' },
+    { id: 'deloitte', label: 'Deloitte USI', kind: 'work', detail: 'Software Engineer II · Agentic AI & AI Security' },
     { id: 'infosys', label: 'Infosys — BofA', kind: 'work', detail: 'Senior Software Engineer' },
     { id: 'nexsys',  label: 'Nexsys/Accelya', kind: 'work', detail: 'Software Engineer' },
     { id: 'texala',  label: 'Texala',         kind: 'work', detail: 'Software Engineer' },
@@ -1348,26 +1369,25 @@ export class App implements OnInit, AfterViewInit {
   graphReady = signal(false);
 
   skills = [
-    { icon: 'python', type: 'skillicon', title: 'AI & LLM Engineering', color: 'purple', items: ['python','pytorch','tensorflow','fastapi'], labels: ['LangChain','LangGraph','OpenAI API','Prompt Engineering','RAG Pipelines','Agentic AI'] },
-    { icon: 'postgresql', type: 'skillicon', title: 'Retrieval & Memory', color: 'cyan', items: ['postgresql'], labels: ['FAISS','BM25','HyDE','CRAG','RRF Fusion','Cross-Encoder','Semantic Cache','Vector DBs'] },
-    { icon: 'java', type: 'skillicon', title: 'Backend & APIs', color: 'green', items: ['java','spring','fastapi','sqlite'], labels: ['FastAPI','Spring Boot','Java','Python','REST APIs','Microservices'] },
-    { icon: 'kafka', type: 'skillicon', title: 'Real-Time & Events', color: 'amber', items: ['kafka','redis'], labels: ['Apache Kafka','SSE Streaming','WebSockets','Redis Cache','Async Workers','DLQ'] },
-    { icon: 'docker', type: 'skillicon', title: 'DevOps & Cloud', color: 'cyan', items: ['docker','aws','githubactions','nginx'], labels: ['Docker','AWS','GitHub Actions','CI/CD','Nginx','Kubernetes'] },
-    { icon: 'angular', type: 'skillicon', title: 'Frontend', color: 'red', items: ['angular','typescript','javascript','html','css'], labels: ['Angular 17','TypeScript','JavaScript','HTML5','SCSS','Figma'] },
+    { icon: 'python', type: 'skillicon', title: 'Agentic AI', color: 'purple', items: ['python','pytorch','fastapi'], labels: ['LLMs','LangGraph','LangChain','Multi-Agent Systems','Tool Calling','AI Evaluation'] },
+    { icon: 'postgresql', type: 'skillicon', title: 'Production AI', color: 'cyan', items: ['redis','postgresql','fastapi'], labels: ['RAG','Hybrid Search','Guardrails','Memory','Caching','Observability','Cost Optimization'] },
+    { icon: 'java', type: 'skillicon', title: 'Software Engineering', color: 'green', items: ['java','spring','python','kafka'], labels: ['Java','Python','Spring Boot','FastAPI','Microservices','Distributed Systems','Kafka'] },
+    { icon: 'python', type: 'skillicon', title: 'AI Security', color: 'red', items: ['regex','python','linux'], labels: ['Prompt-Injection Defence','PII Protection','Output Validation','Secure Agentic Workflows'] },
+    { icon: 'docker', type: 'skillicon', title: 'Production Infrastructure', color: 'amber', items: ['docker','kubernetes','aws','githubactions'], labels: ['Docker','Kubernetes','AWS','CI/CD','Redis','PostgreSQL'] },
   ];
 
   experience = [
     {
-      company: 'Deloitte',
-      role: 'Agentic AI Engineer · Cyber',
+      company: 'Deloitte USI',
+      role: 'Software Engineer II · Agentic AI & AI Security',
       location: 'Bengaluru, India',
       period: 'Sep 2026 – Present',
       color: 'purple',
       isPresent: true,
       points: [
-        'Joined Deloitte Cyber in the Agentic AI Engineering & Security team',
-        'Engineering agentic AI systems with security designed in: guardrails, tool-use boundaries and prompt-injection defence',
-        'Bringing production multi-agent, RAG and LLM-ops experience to client-facing cyber engagements',
+        'Working at the intersection of Agentic AI and Security, building on an enterprise agentic application / harness platform for engineering and security workflows',
+        'Building agentic capabilities focused on automation, secure AI adoption, application integration and reliable enterprise execution',
+        'Applying Java, Python, APIs and distributed-systems principles to production-oriented enterprise solutions',
       ],
       companyBadge: '',
     },
@@ -1529,7 +1549,7 @@ export class App implements OnInit, AfterViewInit {
       id: 'gb-hero',
       img: 'guide-chandan-happy.svg',
       dir: 'left',
-      quote: "Right person! 👋 Agentic AI Engineer who actually ships.",
+      quote: "Right person! 👋 An engineer who takes AI past the demo.",
       sub:   "4+ years · 637 tests · Zero shortcuts",
     },
     {
@@ -1923,6 +1943,7 @@ export class App implements OnInit, AfterViewInit {
   skillsVisible = signal(false);
 
   // ── ANIMATED STAT COUNTERS ───────────────────────────────────────
+  statOss    = signal(0);
   statTests  = signal(0);
   statAgents = signal(0);
   statProjects = signal(0);
@@ -2251,9 +2272,10 @@ export class App implements OnInit, AfterViewInit {
       const statsObs = new IntersectionObserver(entries => {
         if (entries[0].isIntersecting && !this.statsAnimated) {
           this.statsAnimated = true;
+          this.animateCount(this.statOss,      this.openSource.length, 1200);
           this.animateCount(this.statTests,    637, 1400);
           this.animateCount(this.statAgents,    18,  900);
-          this.animateCount(this.statProjects,   4,  600);
+          this.animateCount(this.statProjects, this.projects.length, 600);
           this.animateCount(this.statYears,       4,  600);
         }
       }, { threshold: 0.5 });

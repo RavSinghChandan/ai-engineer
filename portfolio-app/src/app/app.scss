@@ -2454,3 +2454,36 @@ footer {
 .footer-nav { background: transparent !important; }
 .scroll-progress-bar { background: var(--dl-grad) !important; border-radius: 0; }
 .tag-chip--more { border-style: dashed !important; color: var(--accent) !important; }
+
+/* ── Forward-deployed narrative pieces ── */
+.hero-lede { display: block; color: #fff; font-size: 1.3rem; font-weight: 600; letter-spacing: -0.015em; line-height: 1.35; margin-bottom: 0.5rem; }
+.hero-triad {
+  display: block; margin-top: 0.9rem; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  background: var(--dl-grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.flagship-badge {
+  margin-left: 0.6rem; padding: 0.12rem 0.5rem; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase;
+  background: var(--dl-green); color: #000; font-weight: 800; vertical-align: middle;
+}
+.proj-story {
+  margin: 1.1rem 0 0.4rem; max-width: 720px; border-left: 2px solid var(--dl-green);
+  display: grid; gap: 0.55rem; padding-left: 1rem;
+}
+.ps-row { display: grid; grid-template-columns: 96px 1fr; gap: 0.75rem; align-items: baseline;
+  @media (max-width: 560px) { grid-template-columns: 1fr; gap: 0.1rem; } }
+.ps-row dt { font-size: 0.68rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+.ps-row dd { font-size: 0.9rem; color: var(--text2); line-height: 1.55; }
+.section-sub b { color: var(--text); }
+.contact-asks { list-style: none; margin: 0 0 0.6rem; display: grid; gap: 0.35rem;
+  li { color: var(--text2); font-size: 0.98rem; padding-left: 1.4rem; position: relative;
+       &::before { content: '→'; position: absolute; left: 0; color: var(--dl-green); font-weight: 700; } } }
+.contact-talk { font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 2.25rem; }
+.story-body + .story-body { margin-top: 0.75rem; }
+.story-body b { color: var(--text); }
+.ers-quip b { color: var(--accent); font-style: normal; }
+/* Night skylines: every city strip renders in full colour, like Bengaluru */
+.city-svg-night { opacity: 1 !important; color: inherit !important; }
+.tl-city-strip { opacity: 1 !important; }
+.edu-city { min-height: 82px !important; margin-top: 0.9rem; }
+.edu-city .city-svg-night { height: 82px !important; }
+.hero-role { font-size: clamp(1.05rem, 2.1vw, 1.55rem) !important; letter-spacing: -0.01em; line-height: 1.3; margin-top: 0.7rem; font-weight: 700; }

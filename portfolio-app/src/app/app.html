@@ -7,10 +7,10 @@
     <a href="#" class="nav-logo">ck<span>.</span></a>
     <div class="nav-links">
       <a href="#story"      [class.nav-active]="activeSection()==='story'"      (click)="closeMobileNav()">Story</a>
-      <a href="#opensource" [class.nav-active]="activeSection()==='opensource'" (click)="closeMobileNav()">Open Source Contribution</a>
+      <a href="#opensource" [class.nav-active]="activeSection()==='opensource'" (click)="closeMobileNav()">Open Source</a>
       <a href="#skills"     [class.nav-active]="activeSection()==='skills'"     (click)="closeMobileNav()">Skills</a>
       <a href="#projects"   [class.nav-active]="activeSection()==='projects'"   (click)="closeMobileNav()">Projects</a>
-      <a href="#by-numbers" [class.nav-active]="activeSection()==='by-numbers'" (click)="closeMobileNav()">By The Numbers</a>
+      <a href="#by-numbers" [class.nav-active]="activeSection()==='by-numbers'" (click)="closeMobileNav()">Proof</a>
       <a href="#experience" [class.nav-active]="activeSection()==='experience'" (click)="closeMobileNav()">Experience</a>
       <a href="#contact"    [class.nav-active]="activeSection()==='contact'"    (click)="closeMobileNav()">Contact</a>
     </div>
@@ -110,18 +110,18 @@
     <div class="hero-text">
       <div class="hero-badge">
         <span class="pulse"></span>
-        Deloitte · Cyber — Agentic AI Engineering &amp; Security
+        Deloitte USI · Bengaluru
       </div>
 
       <h1>
         Chandan Kumar
-        <span class="hero-title-accent">Agentic AI Engineer</span>
+        <span class="hero-title-accent hero-role">Software Engineer II · Agentic AI · AI Security</span>
       </h1>
 
       <p class="hero-desc">
-        Agentic AI Engineer at Deloitte Cyber. 4+ years building scalable backend systems, the last two on
-        LLM-powered, agent-based architectures. I work forward-deployed: close to the problem, shipping secure
-        multi-agent systems, RAG pipelines and production AI into real environments.
+        <strong class="hero-lede">I build AI systems that don't stop at the demo.</strong>
+        From ambiguous problem → architecture → agent → integration → production.
+        <span class="hero-triad">Software Engineering × Agentic AI × Distributed Systems</span>
       </p>
 
       <div class="hero-typing">
@@ -132,6 +132,11 @@
       </div>
 
       <div class="hero-stats">
+        <div class="stat">
+          <div class="stat-num">{{ statOss() }}</div>
+          <div class="stat-label">Merged OSS PRs</div>
+        </div>
+        <div class="stat-sep"></div>
         <div class="stat">
           <div class="stat-num">{{ statTests() }}<span>+</span></div>
           <div class="stat-label">Tests Passing</div>
@@ -144,19 +149,14 @@
         <div class="stat-sep"></div>
         <div class="stat">
           <div class="stat-num">{{ statProjects() }}</div>
-          <div class="stat-label">AI Systems</div>
-        </div>
-        <div class="stat-sep"></div>
-        <div class="stat">
-          <div class="stat-num">{{ statYears() }}<span>+</span></div>
-          <div class="stat-label">Years Exp</div>
+          <div class="stat-label">AI Systems Built</div>
         </div>
       </div>
 
       <div class="hero-cta">
-        <a href="AI_Engineer_Chandan_Kumar_4_Yrs.pdf" target="_blank" class="btn btn-primary">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          View Resume
+        <a href="#projects" class="btn btn-primary">
+          View Engineering Work
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg>
         </a>
         <a href="https://github.com/RavSinghChandan" target="_blank" class="btn btn-ghost">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
@@ -165,6 +165,10 @@
         <a href="https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/" target="_blank" class="btn btn-ghost">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
           LinkedIn
+        </a>
+        <a href="AI_Engineer_Chandan_Kumar_4_Yrs.pdf" target="_blank" class="btn btn-ghost">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download Resume
         </a>
       </div>
     </div>
@@ -176,7 +180,7 @@
           class="hero-photo"
           src="chandan-photo.jpg"
           onerror="this.src='https://ui-avatars.com/api/?name=Chandan+Kumar&size=300&background=7c3aed&color=fff&bold=true&font-size=0.35&rounded=true'"
-          alt="Chandan Kumar — Agentic AI Engineer, Deloitte"/>
+          alt="Chandan Kumar — Software Engineer II, Deloitte USI"/>
         <div class="hero-photo-ring"></div>
       </div>
 
@@ -239,8 +243,8 @@
     <p class="kg-a11y">
       Systems: Aura with Rav, Bench Resource Optimizer, Agentic Growth OS and AI Content Factory —
       all built with Python, FastAPI, LangGraph and Angular. Merged open-source contributions to
-      pypdf, NLTK, joblib and Hugging Face Sentence Transformers. Currently an Agentic AI Engineer in
-      Deloitte Cyber; earlier backend work in Java and Spring at Infosys (Bank of America), Nexsys/Accelya and Texala.
+      pypdf, NLTK, joblib and Hugging Face Sentence Transformers. Currently a Software Engineer II at
+      Deloitte USI (Agentic AI and AI Security); earlier backend work in Java and Spring at Infosys (Bank of America), Nexsys/Accelya and Texala.
     </p>
   </div>
 </section>
@@ -254,8 +258,8 @@
         <img class="oss-hf" src="joblib-logo.svg" alt="joblib" />
       </div>
       <div>
-        <h2 class="oss-h">Open Source Contribution</h2>
-        <p class="oss-sub">Merged code into libraries the AI/ML world actually uses — <b>{{ openSource.length }} merged</b>, more in review.</p>
+        <h2 class="oss-h">I Don't Just Use Open Source. I Contribute to It.</h2>
+        <p class="oss-sub"><b>{{ openSource.length }} merged contributions</b> across libraries used by the AI/ML and Python ecosystem — pypdf · Joblib · Sentence Transformers · NLTK · Authlib.</p>
       </div>
     </div>
     <!-- Library filter: colour-coded chips, biggest project first -->
@@ -338,7 +342,7 @@
 <section class="proof-panel" id="by-numbers">
   <div class="container">
     <div class="eyebrow">Proof of Work</div>
-    <h2>By The Numbers</h2>
+    <h2>Engineering Proof</h2>
     <p class="section-sub">Every number below is real, verifiable in GitHub, and backed by production code — not slides.</p>
 
     <div class="proof-grid">
@@ -371,9 +375,9 @@
 <!-- SKILLS -->
 <section id="skills" class="skills-section" data-guide="skills">
   <div class="container">
-    <div class="eyebrow">Technical Depth</div>
-    <h2>What I Engineer</h2>
-    <p class="section-sub">Full-stack AI — from embedding models to Angular UIs — production guardrails at every layer.</p>
+    <div class="eyebrow">Capabilities</div>
+    <h2>What I Bring</h2>
+    <p class="section-sub">A software engineer who learned AI deeply — and applies it to messy, real-world engineering problems.</p>
 
     <!-- Animated Skill Orbit + Bars -->
     <div class="skills-orbit-wrap fade-up" #fadeEl aria-hidden="true" #skillsOrbit>
@@ -501,8 +505,8 @@
 <section id="projects" data-guide="projects">
   <div class="container">
     <div class="eyebrow">Engineering Evidence</div>
-    <h2>Production AI Systems</h2>
-    <p class="section-sub">Not demos. Not tutorials. Systems built, tested, and hardened for production.</p>
+    <h2>Systems I've Built</h2>
+    <p class="section-sub"><b>Real problems. Real constraints. Real engineering tradeoffs.</b> I build systems where AI has to work with software, data, users and operational constraints — not just generate an impressive demo.</p>
 
     <!-- Animated AI Agent Constellation -->
     <div class="projects-constellation fade-up" #fadeEl aria-hidden="true">
@@ -671,10 +675,17 @@
       <div class="project-card fade-up" #fadeEl [ngClass]="'accent-' + project.accent" [id]="'project-' + project.num">
         <div class="project-top">
           <div class="project-left">
-            <div class="project-num" [ngClass]="'num-' + project.accent">✦ Project {{ project.num }}</div>
+            <div class="project-num" [ngClass]="'num-' + project.accent">✦ Project {{ project.num }}@if (isFlagship(project.num)) {<span class="flagship-badge">Flagship</span>}</div>
             <h3 class="project-title">{{ project.title }}</h3>
             <div class="project-subtitle">{{ project.subtitle }}</div>
             <p class="project-desc">{{ project.desc }}</p>
+            @if (project.story) {
+              <dl class="proj-story">
+                @for (row of project.story; track row.k) {
+                  <div class="ps-row"><dt>{{ row.k }}</dt><dd>{{ row.v }}</dd></div>
+                }
+              </dl>
+            }
           </div>
           <div class="project-actions">
             @if (project.liveUrl) {
@@ -909,12 +920,12 @@
             </g>
           </svg>
         </span>
-        <div class="ers-role">Agentic AI Engineer</div>
-        <div class="ers-co">Deloitte · Cyber</div>
+        <div class="ers-role">Software Engineer II</div>
+        <div class="ers-co">Deloitte USI · Agentic AI</div>
         <div class="ers-year">NOW ✦</div>
       </div>
 
-      <div class="ers-quip">Plot twist: CS grad → backend engineer → AI Engineer → Deloitte Cyber. The agents came later.</div>
+      <div class="ers-quip">I didn't start with AI. I earned my way into it. &nbsp;Next → <b>Forward Deployed Engineering</b></div>
     </div>
 
     <div class="timeline">
@@ -1021,140 +1032,137 @@
               }
               @if (job.location === 'Pune, India') {
                 <!-- Ground=65, all buildings terminate at y=65, text at y=78, viewBox height=82 -->
-                <svg viewBox="0 0 600 82" width="100%" height="82" preserveAspectRatio="xMidYMid meet" fill="none" xmlns="http://www.w3.org/2000/svg" class="city-svg city-svg-strip">
-                  <!-- Shaniwar Wada fort (left) -->
-                  <rect x="10" y="38" width="36" height="27" rx="1" fill="currentColor" opacity="0.18"/>
-                  <polygon points="10,38 28,22 46,38" fill="currentColor" opacity="0.28"/>
-                  <rect x="24" y="26" width="8" height="12" rx="1" fill="currentColor" opacity="0.38"/>
-                  <rect x="16" y="44" width="5" height="9" fill="currentColor" opacity="0.35"/>
-                  <rect x="35" y="44" width="5" height="9" fill="currentColor" opacity="0.35"/>
-                  <!-- Mid buildings — all bottom at y=65 -->
-                  <rect x="55"  y="38" width="20" height="27" rx="2" fill="currentColor" opacity="0.15"/>
-                  <rect x="80"  y="48" width="18" height="17" rx="2" fill="currentColor" opacity="0.12"/>
-                  <rect x="103" y="42" width="16" height="23" rx="2" fill="currentColor" opacity="0.14"/>
+                <svg viewBox="0 0 600 82" width="100%" height="82" preserveAspectRatio="xMidYMid meet" fill="none" xmlns="http://www.w3.org/2000/svg" class="city-svg city-svg-strip city-svg-night city-svg-pune">
+                  <defs>
+                    <linearGradient id="pun-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#0B1A05"/></linearGradient>
+                    <linearGradient id="pun-build" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#86BC25"/><stop offset="55%" stop-color="#26890D"/><stop offset="100%" stop-color="#00ABAB"/></linearGradient>
+                    <linearGradient id="pun-glass" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#00ABAB" stop-opacity="0.9"/><stop offset="100%" stop-color="#26890D" stop-opacity="0.35"/></linearGradient>
+                    <linearGradient id="pun-ground" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#86BC25" stop-opacity="0"/><stop offset="50%" stop-color="#86BC25"/><stop offset="100%" stop-color="#00ABAB" stop-opacity="0"/></linearGradient>
+                  </defs>
+                  <rect x="0" y="0" width="600" height="82" fill="url(#pun-sky)"/>
+                  <!-- Sinhagad hills (back) -->
+                  <path d="M380,65 Q420,26 462,22 Q490,18 520,30 Q560,44 600,36 L600,65 Z" fill="url(#pun-build)" opacity="0.18"/>
+                  <rect x="458" y="16" width="6" height="8" fill="url(#pun-build)" opacity="0.5"/>
+                  <!-- Shaniwar Wada: fort wall, bastions, Dilli Darwaza -->
+                  <rect x="14" y="40" width="112" height="25" fill="url(#pun-build)" opacity="0.42"/>
+                  <rect x="10" y="32" width="16" height="33" fill="url(#pun-build)" opacity="0.6"/>
+                  <rect x="114" y="32" width="16" height="33" fill="url(#pun-build)" opacity="0.6"/>
+                  <path d="M10,32 h16 v-3 h-16 Z M114,32 h16 v-3 h-16 Z" fill="url(#pun-build)" opacity="0.8"/>
+                  <rect x="56" y="30" width="28" height="35" fill="url(#pun-build)" opacity="0.7"/>
+                  <path d="M62,65 L62,48 Q70,38 78,48 L78,65 Z" fill="#000" opacity="0.6"/>
+                  <g fill="url(#pun-build)" opacity="0.75"><rect x="56" y="26" width="5" height="4"/><rect x="66" y="26" width="8" height="4"/><rect x="79" y="26" width="5" height="4"/></g>
+                  <!-- Aga Khan Palace: arcade + central dome -->
+                  <rect x="150" y="44" width="96" height="21" fill="url(#pun-build)" opacity="0.48"/>
+                  <g fill="#000" opacity="0.55">
+                    <path d="M156,65 v-11 q4,-6 8,0 v11 Z"/><path d="M170,65 v-11 q4,-6 8,0 v11 Z"/><path d="M184,65 v-11 q4,-6 8,0 v11 Z"/>
+                    <path d="M204,65 v-11 q4,-6 8,0 v11 Z"/><path d="M218,65 v-11 q4,-6 8,0 v11 Z"/><path d="M232,65 v-11 q4,-6 8,0 v11 Z"/>
+                  </g>
+                  <rect x="184" y="34" width="28" height="10" fill="url(#pun-build)" opacity="0.65"/>
+                  <path d="M186,34 Q198,18 210,34 Z" fill="url(#pun-build)" opacity="0.88"/>
+                  <line x1="198" y1="22" x2="198" y2="15" stroke="#86BC25" stroke-width="1.3"/>
                   <!-- Hinjewadi IT towers -->
-                  <rect x="130" y="18" width="22" height="47" rx="2" fill="currentColor" opacity="0.20"/>
-                  <rect x="135" y="12" width="12" height="6" rx="1" fill="currentColor" opacity="0.24"/>
-                  <line x1="141" y1="12" x2="141" y2="5" stroke="currentColor" stroke-width="1.8" opacity="0.3"/>
-                  <rect x="157" y="28" width="20" height="37" rx="2" fill="currentColor" opacity="0.17"/>
-                  <rect x="182" y="14" width="24" height="51" rx="2" fill="currentColor" opacity="0.20"/>
-                  <rect x="187" y="8"  width="14" height="6" rx="1" fill="currentColor" opacity="0.25"/>
-                  <rect x="211" y="26" width="20" height="39" rx="2" fill="currentColor" opacity="0.15"/>
-                  <!-- Central towers -->
-                  <rect x="240" y="20" width="22" height="45" rx="2" fill="currentColor" opacity="0.18"/>
-                  <rect x="267" y="30" width="18" height="35" rx="2" fill="currentColor" opacity="0.15"/>
-                  <rect x="290" y="14" width="24" height="51" rx="2" fill="currentColor" opacity="0.20"/>
-                  <rect x="319" y="32" width="18" height="33" rx="2" fill="currentColor" opacity="0.14"/>
-                  <rect x="342" y="22" width="22" height="43" rx="2" fill="currentColor" opacity="0.17"/>
-                  <rect x="369" y="36" width="16" height="29" rx="2" fill="currentColor" opacity="0.13"/>
-                  <rect x="390" y="26" width="20" height="39" rx="2" fill="currentColor" opacity="0.16"/>
-                  <!-- Sinhagad hill (right) — terminates at y=65 -->
-                  <path d="M420,65 Q450,30 480,24 Q505,18 540,36 Q560,46 600,42 L600,65 Z" fill="currentColor" opacity="0.10"/>
-                  <rect x="476" y="18" width="5" height="10" fill="currentColor" opacity="0.28"/>
-                  <!-- Windows -->
-                  <rect x="135" y="24" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.45"/>
-                  <rect x="145" y="24" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.45"/>
-                  <rect x="188" y="18" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.45"/>
-                  <rect x="198" y="18" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.45"/>
-                  <rect x="245" y="26" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.4"/>
-                  <rect x="295" y="20" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.4"/>
-                  <!-- Ground line at y=65 -->
-                  <line x1="0" y1="65" x2="600" y2="65" stroke="currentColor" stroke-width="1.5" opacity="0.35"/>
-                  <text x="300" y="78" text-anchor="middle" font-size="8" font-family="'Fira Code', monospace" font-weight="700" fill="currentColor" opacity="0.65" letter-spacing="3">PUNE</text>
+                  <rect x="268" y="18" width="22" height="47" fill="url(#pun-glass)" opacity="0.7"/>
+                  <rect x="294" y="30" width="18" height="35" fill="url(#pun-glass)" opacity="0.5"/>
+                  <rect x="316" y="12" width="24" height="53" fill="url(#pun-glass)" opacity="0.72"/>
+                  <line x1="328" y1="12" x2="328" y2="4" stroke="#00ABAB" stroke-width="1.4"/>
+                  <rect x="344" y="28" width="18" height="37" fill="url(#pun-glass)" opacity="0.5"/>
+                  <rect x="366" y="36" width="22" height="29" fill="url(#pun-glass)" opacity="0.42"/>
+                  <!-- trees -->
+                  <ellipse cx="410" cy="58" rx="13" ry="8" fill="url(#pun-build)" opacity="0.3"/>
+                  <ellipse cx="545" cy="58" rx="15" ry="9" fill="url(#pun-build)" opacity="0.32"/>
+                  <ellipse cx="578" cy="57" rx="13" ry="9" fill="url(#pun-build)" opacity="0.28"/>
+                  <g fill="#B9E07A" opacity="0.85"><rect x="272" y="24" width="3" height="2"/><rect x="281" y="34" width="3" height="2"/><rect x="272" y="46" width="3" height="2"/><rect x="321" y="20" width="3" height="2"/><rect x="332" y="28" width="3" height="2"/><rect x="321" y="40" width="3" height="2"/><rect x="332" y="52" width="3" height="2"/><rect x="348" y="36" width="3" height="2"/><rect x="298" y="40" width="3" height="2"/><rect x="370" y="44" width="3" height="2"/></g>
+                  <line x1="0" y1="65" x2="600" y2="65" stroke="url(#pun-ground)" stroke-width="1.6"/>
+                  <text x="300" y="78" text-anchor="middle" font-size="8" font-family="'Fira Code', monospace" font-weight="700" fill="#86BC25" letter-spacing="3">PUNE</text>
                 </svg>
               }
               @if (job.location === 'Mumbai, India') {
                 <!-- Ground=65, all buildings terminate at y=65, text at y=78 -->
-                <svg viewBox="0 0 600 82" width="100%" height="82" preserveAspectRatio="xMidYMid meet" fill="none" xmlns="http://www.w3.org/2000/svg" class="city-svg city-svg-strip">
-                  <!-- Sea water hint -->
-                  <path d="M0,58 Q150,52 300,56 Q450,60 600,56 L600,65 L0,65 Z" fill="currentColor" opacity="0.06"/>
-                  <!-- Bandra-Worli Sea Link left tower -->
-                  <rect x="8"  y="18" width="9" height="47" rx="1" fill="currentColor" opacity="0.22"/>
-                  <line x1="12" y1="18" x2="12" y2="8" stroke="currentColor" stroke-width="2" opacity="0.3"/>
-                  <path d="M12,16 Q50,38 88,60"  stroke="currentColor" stroke-width="1.2" opacity="0.22" fill="none"/>
-                  <path d="M12,16 Q44,36 72,60"  stroke="currentColor" stroke-width="1"   opacity="0.16" fill="none"/>
-                  <path d="M12,16 Q36,34 58,60"  stroke="currentColor" stroke-width="0.8" opacity="0.12" fill="none"/>
-                  <!-- Sea Link right tower -->
-                  <rect x="88" y="24" width="9" height="41" rx="1" fill="currentColor" opacity="0.22"/>
-                  <line x1="92" y1="24" x2="92" y2="14" stroke="currentColor" stroke-width="2" opacity="0.3"/>
-                  <path d="M92,22 Q118,40 142,60" stroke="currentColor" stroke-width="1.2" opacity="0.22" fill="none"/>
-                  <path d="M92,22 Q114,38 132,60" stroke="currentColor" stroke-width="1"   opacity="0.16" fill="none"/>
-                  <!-- Antilia supertall — bottom at 65 -->
-                  <rect x="162" y="4"  width="26" height="61" rx="2" fill="currentColor" opacity="0.20"/>
-                  <rect x="167" y="0"  width="16" height="4"  rx="1" fill="currentColor" opacity="0.25"/>
-                  <!-- BKC cluster -->
-                  <rect x="195" y="18" width="18" height="47" rx="2" fill="currentColor" opacity="0.17"/>
-                  <rect x="218" y="26" width="16" height="39" rx="2" fill="currentColor" opacity="0.15"/>
-                  <rect x="239" y="12" width="20" height="53" rx="2" fill="currentColor" opacity="0.20"/>
-                  <rect x="244" y="6"  width="10" height="6"  rx="1" fill="currentColor" opacity="0.25"/>
-                  <line x1="249" y1="6" x2="249" y2="0" stroke="currentColor" stroke-width="1.5" opacity="0.3"/>
-                  <!-- Central towers -->
-                  <rect x="265" y="24" width="18" height="41" rx="2" fill="currentColor" opacity="0.16"/>
-                  <rect x="288" y="32" width="16" height="33" rx="2" fill="currentColor" opacity="0.14"/>
-                  <rect x="309" y="16" width="20" height="49" rx="2" fill="currentColor" opacity="0.18"/>
-                  <rect x="334" y="28" width="16" height="37" rx="2" fill="currentColor" opacity="0.15"/>
-                  <rect x="355" y="20" width="18" height="45" rx="2" fill="currentColor" opacity="0.17"/>
+                <svg viewBox="0 0 600 82" width="100%" height="82" preserveAspectRatio="xMidYMid meet" fill="none" xmlns="http://www.w3.org/2000/svg" class="city-svg city-svg-strip city-svg-night city-svg-mumbai">
+                  <defs>
+                    <linearGradient id="mum-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#0B1A05"/></linearGradient>
+                    <linearGradient id="mum-build" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#86BC25"/><stop offset="55%" stop-color="#0D8390"/><stop offset="100%" stop-color="#62B5E5"/></linearGradient>
+                    <linearGradient id="mum-glass" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#62B5E5" stop-opacity="0.9"/><stop offset="100%" stop-color="#0D8390" stop-opacity="0.35"/></linearGradient>
+                    <linearGradient id="mum-ground" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#86BC25" stop-opacity="0"/><stop offset="50%" stop-color="#86BC25"/><stop offset="100%" stop-color="#62B5E5" stop-opacity="0"/></linearGradient>
+                  </defs>
+                  <rect x="0" y="0" width="600" height="82" fill="url(#mum-sky)"/>
+                  <!-- Arabian Sea -->
+                  <rect x="0" y="58" width="600" height="7" fill="url(#mum-glass)" opacity="0.18"/>
+                  <path d="M0,61 q10,-3 20,0 t20,0 t20,0 t20,0 t20,0 t20,0 t20,0 t20,0 t20,0 t20,0 t20,0 t20,0 t20,0 t20,0 t20,0 t20,0 t20,0 t20,0 t20,0 t20,0 t20,0 t20,0 t20,0 t20,0 t20,0 t20,0 t20,0 t20,0 t20,0 t20,0" stroke="#00ABAB" stroke-width="0.8" opacity="0.5"/>
                   <!-- Gateway of India -->
-                  <rect x="390" y="38" width="28" height="27" rx="1" fill="currentColor" opacity="0.14"/>
-                  <path d="M390,38 Q404,24 418,38" fill="currentColor" opacity="0.20"/>
-                  <rect x="402" y="22" width="6" height="16" rx="1" fill="currentColor" opacity="0.22"/>
-                  <!-- More skyline -->
-                  <rect x="428" y="30" width="18" height="35" rx="2" fill="currentColor" opacity="0.15"/>
-                  <rect x="451" y="22" width="18" height="43" rx="2" fill="currentColor" opacity="0.16"/>
-                  <rect x="474" y="34" width="16" height="31" rx="2" fill="currentColor" opacity="0.13"/>
-                  <rect x="495" y="26" width="18" height="39" rx="2" fill="currentColor" opacity="0.15"/>
-                  <rect x="518" y="18" width="20" height="47" rx="2" fill="currentColor" opacity="0.16"/>
-                  <rect x="543" y="30" width="16" height="35" rx="2" fill="currentColor" opacity="0.14"/>
-                  <rect x="564" y="22" width="20" height="43" rx="2" fill="currentColor" opacity="0.15"/>
-                  <!-- Windows -->
-                  <rect x="167" y="10" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.45"/>
-                  <rect x="177" y="10" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.45"/>
-                  <rect x="244" y="14" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.45"/>
-                  <rect x="254" y="14" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.45"/>
-                  <rect x="314" y="22" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.4"/>
-                  <rect x="455" y="28" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.4"/>
-                  <!-- Ground line at y=65 -->
-                  <line x1="0" y1="65" x2="600" y2="65" stroke="currentColor" stroke-width="1.5" opacity="0.35"/>
-                  <text x="300" y="78" text-anchor="middle" font-size="8" font-family="'Fira Code', monospace" font-weight="700" fill="currentColor" opacity="0.65" letter-spacing="3">MUMBAI</text>
+                  <rect x="20" y="30" width="70" height="35" fill="url(#mum-build)" opacity="0.6"/>
+                  <path d="M42,65 L42,46 Q55,32 68,46 L68,65 Z" fill="#000" opacity="0.6"/>
+                  <rect x="18" y="22" width="12" height="10" fill="url(#mum-build)" opacity="0.75"/><rect x="80" y="22" width="12" height="10" fill="url(#mum-build)" opacity="0.75"/>
+                  <path d="M18,22 Q24,14 30,22 Z M80,22 Q86,14 92,22 Z" fill="url(#mum-build)" opacity="0.9"/>
+                  <rect x="44" y="24" width="22" height="6" fill="url(#mum-build)" opacity="0.7"/>
+                  <!-- Taj Mahal Palace: block + central red-dome form -->
+                  <rect x="102" y="34" width="84" height="31" fill="url(#mum-build)" opacity="0.45"/>
+                  <g fill="#000" opacity="0.5"><rect x="108" y="40" width="4" height="5"/><rect x="118" y="40" width="4" height="5"/><rect x="128" y="40" width="4" height="5"/><rect x="156" y="40" width="4" height="5"/><rect x="166" y="40" width="4" height="5"/><rect x="176" y="40" width="4" height="5"/>
+                    <rect x="108" y="50" width="4" height="5"/><rect x="118" y="50" width="4" height="5"/><rect x="128" y="50" width="4" height="5"/><rect x="156" y="50" width="4" height="5"/><rect x="166" y="50" width="4" height="5"/><rect x="176" y="50" width="4" height="5"/></g>
+                  <rect x="134" y="24" width="20" height="10" fill="url(#mum-build)" opacity="0.7"/>
+                  <path d="M132,24 Q144,6 156,24 Z" fill="url(#mum-build)" opacity="0.92"/>
+                  <path d="M104,34 Q108,27 112,34 Z M176,34 Q180,27 184,34 Z" fill="url(#mum-build)" opacity="0.75"/>
+                  <!-- Bandra-Worli Sea Link -->
+                  <line x1="200" y1="56" x2="390" y2="56" stroke="url(#mum-build)" stroke-width="2.4" opacity="0.8"/>
+                  <path d="M262,56 L268,16 L274,56 Z" fill="url(#mum-build)" opacity="0.85"/>
+                  <path d="M318,56 L324,22 L330,56 Z" fill="url(#mum-build)" opacity="0.8"/>
+                  <g stroke="#86BC25" stroke-width="0.7" opacity="0.65">
+                    <line x1="268" y1="20" x2="210" y2="56"/><line x1="268" y1="24" x2="226" y2="56"/><line x1="268" y1="28" x2="242" y2="56"/>
+                    <line x1="268" y1="20" x2="300" y2="56"/><line x1="268" y1="24" x2="288" y2="56"/>
+                    <line x1="324" y1="26" x2="300" y2="56"/><line x1="324" y1="26" x2="352" y2="56"/><line x1="324" y1="30" x2="372" y2="56"/><line x1="324" y1="30" x2="312" y2="56"/>
+                  </g>
+                  <!-- Lower Parel / Worli high-rises (World One) -->
+                  <rect x="404" y="6" width="22" height="59" fill="url(#mum-glass)" opacity="0.75"/>
+                  <path d="M404,6 L415,1 L426,6 Z" fill="url(#mum-build)" opacity="0.85"/>
+                  <rect x="430" y="20" width="18" height="45" fill="url(#mum-glass)" opacity="0.55"/>
+                  <rect x="452" y="14" width="20" height="51" fill="url(#mum-glass)" opacity="0.65"/>
+                  <rect x="476" y="30" width="16" height="35" fill="url(#mum-glass)" opacity="0.45"/>
+                  <rect x="496" y="22" width="20" height="43" fill="url(#mum-glass)" opacity="0.55"/>
+                  <rect x="520" y="36" width="18" height="29" fill="url(#mum-glass)" opacity="0.4"/>
+                  <rect x="542" y="26" width="22" height="39" fill="url(#mum-glass)" opacity="0.5"/>
+                  <rect x="568" y="40" width="20" height="25" fill="url(#mum-glass)" opacity="0.38"/>
+                  <g fill="#B9E07A" opacity="0.85"><rect x="409" y="14" width="3" height="2"/><rect x="418" y="24" width="3" height="2"/><rect x="409" y="36" width="3" height="2"/><rect x="418" y="48" width="3" height="2"/><rect x="434" y="28" width="3" height="2"/><rect x="457" y="22" width="3" height="2"/><rect x="465" y="34" width="3" height="2"/><rect x="457" y="46" width="3" height="2"/><rect x="500" y="30" width="3" height="2"/><rect x="546" y="34" width="3" height="2"/><rect x="480" y="38" width="3" height="2"/></g>
+                  <line x1="0" y1="65" x2="600" y2="65" stroke="url(#mum-ground)" stroke-width="1.6"/>
+                  <text x="300" y="78" text-anchor="middle" font-size="8" font-family="'Fira Code', monospace" font-weight="700" fill="#86BC25" letter-spacing="3">MUMBAI</text>
                 </svg>
               }
               @if (job.location === 'Chandigarh, India') {
                 <!-- Ground=65, all buildings terminate at y=65, text at y=78 -->
-                <svg viewBox="0 0 600 82" width="100%" height="82" preserveAspectRatio="xMidYMid meet" fill="none" xmlns="http://www.w3.org/2000/svg" class="city-svg city-svg-strip">
-                  <!-- Capitol Complex flat roof — bottom at y=65 -->
-                  <rect x="8"  y="34" width="70" height="31" rx="1" fill="currentColor" opacity="0.13"/>
-                  <rect x="5"  y="30" width="76" height="6"  rx="1" fill="currentColor" opacity="0.22"/>
-                  <rect x="14" y="22" width="14" height="10" rx="1" fill="currentColor" opacity="0.22"/>
-                  <rect x="54" y="22" width="14" height="10" rx="1" fill="currentColor" opacity="0.22"/>
-                  <!-- Open Hand Monument — pole terminates at y=65 -->
-                  <line x1="108" y1="65" x2="108" y2="18" stroke="currentColor" stroke-width="2.5" opacity="0.28"/>
-                  <path d="M99,22 Q108,8 117,22"  stroke="currentColor" stroke-width="2"   fill="none" opacity="0.35"/>
-                  <path d="M103,22 Q100,14 104,11" stroke="currentColor" stroke-width="1.2" fill="none" opacity="0.28"/>
-                  <path d="M113,22 Q116,14 112,11" stroke="currentColor" stroke-width="1.2" fill="none" opacity="0.28"/>
-                  <!-- Sukhna Lake — flush with ground -->
-                  <path d="M140,60 Q200,54 270,58 Q340,62 410,58 L410,65 L140,65 Z" fill="currentColor" opacity="0.07"/>
-                  <!-- Grid city — all bottom at y=65 -->
-                  <rect x="145" y="40" width="18" height="25" rx="2" fill="currentColor" opacity="0.16"/>
-                  <rect x="168" y="30" width="18" height="35" rx="2" fill="currentColor" opacity="0.16"/>
-                  <rect x="191" y="44" width="18" height="21" rx="2" fill="currentColor" opacity="0.13"/>
-                  <rect x="214" y="32" width="18" height="33" rx="2" fill="currentColor" opacity="0.16"/>
-                  <rect x="237" y="22" width="20" height="43" rx="2" fill="currentColor" opacity="0.18"/>
-                  <rect x="262" y="36" width="18" height="29" rx="2" fill="currentColor" opacity="0.15"/>
-                  <rect x="285" y="26" width="20" height="39" rx="2" fill="currentColor" opacity="0.17"/>
-                  <rect x="310" y="40" width="16" height="25" rx="2" fill="currentColor" opacity="0.14"/>
-                  <rect x="331" y="30" width="20" height="35" rx="2" fill="currentColor" opacity="0.16"/>
-                  <rect x="356" y="18" width="22" height="47" rx="2" fill="currentColor" opacity="0.19"/>
-                  <rect x="383" y="32" width="18" height="33" rx="2" fill="currentColor" opacity="0.15"/>
-                  <!-- Shivalik hills — terminate at y=65 -->
-                  <path d="M415,65 Q445,28 472,20 Q496,14 522,30 Q542,40 580,36 L600,38 L600,65 Z" fill="currentColor" opacity="0.09"/>
-                  <!-- Windows -->
-                  <rect x="149" y="46" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.4"/>
-                  <rect x="241" y="28" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.4"/>
-                  <rect x="289" y="32" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.4"/>
-                  <rect x="360" y="24" width="4" height="3" rx="0.5" fill="currentColor" opacity="0.4"/>
-                  <!-- Ground line at y=65 -->
-                  <line x1="0" y1="65" x2="600" y2="65" stroke="currentColor" stroke-width="1.5" opacity="0.35"/>
-                  <text x="300" y="78" text-anchor="middle" font-size="8" font-family="'Fira Code', monospace" font-weight="700" fill="currentColor" opacity="0.65" letter-spacing="3">CHANDIGARH</text>
+                <svg viewBox="0 0 600 82" width="100%" height="82" preserveAspectRatio="xMidYMid meet" fill="none" xmlns="http://www.w3.org/2000/svg" class="city-svg city-svg-strip city-svg-night city-svg-chandigarh">
+                  <defs>
+                    <linearGradient id="chd-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#0B1A05"/></linearGradient>
+                    <linearGradient id="chd-build" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#A6D86E"/><stop offset="55%" stop-color="#43B02A"/><stop offset="100%" stop-color="#00ABAB"/></linearGradient>
+                    <linearGradient id="chd-glass" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#00ABAB" stop-opacity="0.9"/><stop offset="100%" stop-color="#43B02A" stop-opacity="0.35"/></linearGradient>
+                    <linearGradient id="chd-ground" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#A6D86E" stop-opacity="0"/><stop offset="50%" stop-color="#A6D86E"/><stop offset="100%" stop-color="#00ABAB" stop-opacity="0"/></linearGradient>
+                  </defs>
+                  <rect x="0" y="0" width="600" height="82" fill="url(#chd-sky)"/>
+                  <!-- Shivalik hills -->
+                  <path d="M0,65 L0,40 Q60,18 130,30 Q190,12 260,28 Q330,10 400,26 Q470,14 540,28 Q575,22 600,30 L600,65 Z" fill="url(#chd-build)" opacity="0.14"/>
+                  <!-- Sukhna Lake -->
+                  <rect x="0" y="59" width="150" height="6" fill="url(#chd-glass)" opacity="0.28"/>
+                  <path d="M6,62 h30 M50,62 h40 M104,62 h34" stroke="#00ABAB" stroke-width="0.8" opacity="0.55"/>
+                  <!-- Open Hand monument -->
+                  <line x1="76" y1="58" x2="76" y2="38" stroke="#86BC25" stroke-width="2"/>
+                  <path d="M62,36 Q60,22 70,16 L72,24 L76,12 L80,24 L84,15 Q94,22 90,36 Q76,42 62,36 Z" fill="url(#chd-build)" opacity="0.92"/>
+                  <!-- Palace of Assembly: block, hyperboloid tower, pyramid -->
+                  <rect x="170" y="38" width="120" height="27" fill="url(#chd-build)" opacity="0.5"/>
+                  <path d="M166,38 Q230,30 294,38 L294,34 Q230,24 166,34 Z" fill="url(#chd-build)" opacity="0.75"/>
+                  <path d="M206,34 Q200,20 210,8 L232,8 Q242,20 236,34 Z" fill="url(#chd-build)" opacity="0.85"/>
+                  <polygon points="252,34 264,18 276,34" fill="url(#chd-build)" opacity="0.8"/>
+                  <g fill="#000" opacity="0.5"><rect x="180" y="46" width="6" height="14"/><rect x="194" y="46" width="6" height="14"/><rect x="208" y="46" width="6" height="14"/><rect x="246" y="46" width="6" height="14"/><rect x="260" y="46" width="6" height="14"/><rect x="274" y="46" width="6" height="14"/></g>
+                  <!-- Secretariat: long brise-soleil grid -->
+                  <rect x="310" y="28" width="150" height="37" fill="url(#chd-glass)" opacity="0.5"/>
+                  <g stroke="#000" stroke-width="1" opacity="0.45">
+                    <line x1="310" y1="36" x2="460" y2="36"/><line x1="310" y1="44" x2="460" y2="44"/><line x1="310" y1="52" x2="460" y2="52"/>
+                    <line x1="330" y1="28" x2="330" y2="65"/><line x1="350" y1="28" x2="350" y2="65"/><line x1="370" y1="28" x2="370" y2="65"/><line x1="390" y1="28" x2="390" y2="65"/><line x1="410" y1="28" x2="410" y2="65"/><line x1="430" y1="28" x2="430" y2="65"/><line x1="450" y1="28" x2="450" y2="65"/>
+                  </g>
+                  <!-- Rock Garden figures + trees -->
+                  <g fill="url(#chd-build)" opacity="0.55"><ellipse cx="486" cy="58" rx="4" ry="7"/><circle cx="486" cy="49" r="3"/><ellipse cx="500" cy="59" rx="4" ry="6"/><circle cx="500" cy="51" r="3"/><ellipse cx="514" cy="58" rx="4" ry="7"/><circle cx="514" cy="49" r="3"/></g>
+                  <ellipse cx="548" cy="57" rx="16" ry="10" fill="url(#chd-build)" opacity="0.32"/>
+                  <ellipse cx="582" cy="58" rx="14" ry="8" fill="url(#chd-build)" opacity="0.28"/>
+                  <g fill="#B9E07A" opacity="0.85"><rect x="316" y="31" width="3" height="2"/><rect x="336" y="39" width="3" height="2"/><rect x="356" y="47" width="3" height="2"/><rect x="376" y="31" width="3" height="2"/><rect x="396" y="39" width="3" height="2"/><rect x="416" y="47" width="3" height="2"/><rect x="436" y="31" width="3" height="2"/><rect x="446" y="47" width="3" height="2"/></g>
+                  <line x1="0" y1="65" x2="600" y2="65" stroke="url(#chd-ground)" stroke-width="1.6"/>
+                  <text x="300" y="78" text-anchor="middle" font-size="8" font-family="'Fira Code', monospace" font-weight="700" fill="#A6D86E" letter-spacing="3">CHANDIGARH</text>
                 </svg>
               }
             </div>
@@ -1174,48 +1182,48 @@
       </div>
       <!-- Kolkata skyline — full width below -->
       <div class="edu-city" style="display:block;width:100%;min-height:90px;overflow:visible">
-          <svg viewBox="0 0 260 80" width="100%" height="90" preserveAspectRatio="xMidYMid meet" fill="none" xmlns="http://www.w3.org/2000/svg" class="city-svg city-svg-edu" style="display:block;width:100%;height:90px;min-height:90px;overflow:visible">
-            <!-- Ground -->
-            <line x1="0" y1="65" x2="260" y2="65" stroke="currentColor" stroke-width="1.5" opacity="0.3"/>
-            <!-- Hooghly River -->
-            <path d="M0,58 Q65,53 130,57 Q195,61 260,57 L260,65 L0,65 Z" fill="currentColor" opacity="0.06"/>
-            <!-- Howrah Bridge (iconic) left tower -->
-            <rect x="5" y="20" width="10" height="45" rx="1" fill="currentColor" opacity="0.22"/>
-            <!-- Howrah bridge arch -->
-            <path d="M5,22 Q40,5 80,22" stroke="currentColor" stroke-width="2" fill="none" opacity="0.28"/>
-            <!-- Bridge deck -->
-            <line x1="5" y1="40" x2="80" y2="40" stroke="currentColor" stroke-width="2" opacity="0.2"/>
-            <!-- Howrah bridge right tower -->
-            <rect x="75" y="20" width="10" height="45" rx="1" fill="currentColor" opacity="0.22"/>
-            <!-- Vertical hangers -->
-            <line x1="25" y1="12" x2="25" y2="40" stroke="currentColor" stroke-width="0.8" opacity="0.18"/>
-            <line x1="40" y1="8" x2="40" y2="40" stroke="currentColor" stroke-width="0.8" opacity="0.18"/>
-            <line x1="55" y1="8" x2="55" y2="40" stroke="currentColor" stroke-width="0.8" opacity="0.18"/>
-            <line x1="65" y1="12" x2="65" y2="40" stroke="currentColor" stroke-width="0.8" opacity="0.18"/>
-            <!-- Victoria Memorial dome -->
-            <rect x="98" y="40" width="30" height="25" rx="1" fill="currentColor" opacity="0.15"/>
-            <path d="M98,40 Q113,28 128,40" fill="currentColor" opacity="0.2"/>
-            <ellipse cx="113" cy="27" rx="5" ry="8" fill="currentColor" opacity="0.22"/>
-            <line x1="113" y1="19" x2="113" y2="12" stroke="currentColor" stroke-width="1.5" opacity="0.3"/>
-            <!-- Writer's Building columns hint -->
-            <rect x="140" y="35" width="35" height="30" rx="1" fill="currentColor" opacity="0.13"/>
-            <rect x="140" y="32" width="35" height="5" rx="1" fill="currentColor" opacity="0.2"/>
-            <line x1="148" y1="37" x2="148" y2="65" stroke="currentColor" stroke-width="1" opacity="0.15"/>
-            <line x1="157" y1="37" x2="157" y2="65" stroke="currentColor" stroke-width="1" opacity="0.15"/>
-            <line x1="166" y1="37" x2="166" y2="65" stroke="currentColor" stroke-width="1" opacity="0.15"/>
-            <!-- Modern buildings -->
-            <rect x="185" y="25" width="18" height="40" rx="2" fill="currentColor" opacity="0.15"/>
-            <rect x="207" y="32" width="15" height="33" rx="2" fill="currentColor" opacity="0.13"/>
-            <rect x="226" y="20" width="20" height="45" rx="2" fill="currentColor" opacity="0.15"/>
-            <rect x="230" y="16" width="12" height="4" rx="1" fill="currentColor" opacity="0.2"/>
-            <!-- Windows -->
-            <rect x="189" y="30" width="3" height="2" rx="0.5" fill="currentColor" opacity="0.4"/>
-            <rect x="196" y="30" width="3" height="2" rx="0.5" fill="currentColor" opacity="0.4"/>
-            <rect x="230" y="24" width="3" height="2" rx="0.5" fill="currentColor" opacity="0.4"/>
-            <rect x="237" y="24" width="3" height="2" rx="0.5" fill="currentColor" opacity="0.4"/>
-            <!-- City label -->
-            <text x="130" y="76" text-anchor="middle" font-size="8" font-family="'Fira Code', monospace" font-weight="600" fill="currentColor" opacity="0.65" letter-spacing="2">KOLKATA</text>
-          </svg>
+          <svg viewBox="0 0 600 82" width="100%" height="82" preserveAspectRatio="xMidYMid meet" fill="none" xmlns="http://www.w3.org/2000/svg" class="city-svg city-svg-strip city-svg-night city-svg-kolkata">
+                  <defs>
+                    <linearGradient id="kol-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#0B1A05"/></linearGradient>
+                    <linearGradient id="kol-build" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#86BC25"/><stop offset="55%" stop-color="#26890D"/><stop offset="100%" stop-color="#00ABAB"/></linearGradient>
+                    <linearGradient id="kol-glass" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#00ABAB" stop-opacity="0.9"/><stop offset="100%" stop-color="#26890D" stop-opacity="0.35"/></linearGradient>
+                    <linearGradient id="kol-ground" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#86BC25" stop-opacity="0"/><stop offset="50%" stop-color="#86BC25"/><stop offset="100%" stop-color="#00ABAB" stop-opacity="0"/></linearGradient>
+                  </defs>
+                  <rect x="0" y="0" width="600" height="82" fill="url(#kol-sky)"/>
+                  <!-- Hooghly river -->
+                  <rect x="0" y="57" width="600" height="8" fill="url(#kol-glass)" opacity="0.2"/>
+                  <path d="M0,61 q12,-3 24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0" stroke="#00ABAB" stroke-width="0.8" opacity="0.5"/>
+                  <!-- Victoria Memorial -->
+                  <rect x="24" y="40" width="120" height="25" fill="url(#kol-build)" opacity="0.5"/>
+                  <rect x="60" y="30" width="48" height="10" fill="url(#kol-build)" opacity="0.62"/>
+                  <path d="M66,30 Q84,4 102,30 Z" fill="url(#kol-build)" opacity="0.9"/>
+                  <line x1="84" y1="12" x2="84" y2="4" stroke="#86BC25" stroke-width="1.3"/>
+                  <circle cx="84" cy="3" r="1.6" fill="#86BC25"/>
+                  <path d="M26,40 Q32,30 38,40 Z M130,40 Q136,30 142,40 Z" fill="url(#kol-build)" opacity="0.75"/>
+                  <g fill="#000" opacity="0.5"><path d="M36,65 v-12 q4,-5 8,0 v12 Z"/><path d="M52,65 v-12 q4,-5 8,0 v12 Z"/><path d="M108,65 v-12 q4,-5 8,0 v12 Z"/><path d="M124,65 v-12 q4,-5 8,0 v12 Z"/></g>
+                  <!-- Shaheed Minar -->
+                  <rect x="170" y="14" width="7" height="51" fill="url(#kol-build)" opacity="0.75"/>
+                  <rect x="167" y="12" width="13" height="4" fill="url(#kol-build)" opacity="0.85"/>
+                  <path d="M170,12 Q173.5,4 177,12 Z" fill="url(#kol-build)" opacity="0.9"/>
+                  <rect x="164" y="56" width="19" height="9" fill="url(#kol-build)" opacity="0.6"/>
+                  <!-- Howrah Bridge: cantilever truss -->
+                  <path d="M210,54 L250,14 L262,14 L262,54 Z M478,54 L438,14 L426,14 L426,54 Z" fill="url(#kol-build)" opacity="0.7"/>
+                  <path d="M262,22 Q344,40 426,22" stroke="url(#kol-build)" stroke-width="3" fill="none" opacity="0.9"/>
+                  <line x1="200" y1="54" x2="490" y2="54" stroke="url(#kol-build)" stroke-width="2.6" opacity="0.85"/>
+                  <g stroke="#86BC25" stroke-width="0.8" opacity="0.6">
+                    <line x1="262" y1="22" x2="290" y2="54"/><line x1="290" y1="28" x2="318" y2="54"/><line x1="318" y1="32" x2="344" y2="54"/>
+                    <line x1="344" y1="32" x2="370" y2="54"/><line x1="370" y1="32" x2="398" y2="54"/><line x1="398" y1="28" x2="426" y2="54"/>
+                    <line x1="290" y1="28" x2="290" y2="54"/><line x1="318" y1="32" x2="318" y2="54"/><line x1="344" y1="33" x2="344" y2="54"/><line x1="370" y1="32" x2="370" y2="54"/><line x1="398" y1="28" x2="398" y2="54"/>
+                  </g>
+                  <!-- Salt Lake / New Town towers -->
+                  <rect x="500" y="22" width="18" height="43" fill="url(#kol-glass)" opacity="0.55"/>
+                  <rect x="522" y="34" width="16" height="31" fill="url(#kol-glass)" opacity="0.42"/>
+                  <rect x="542" y="16" width="20" height="49" fill="url(#kol-glass)" opacity="0.62"/>
+                  <rect x="566" y="30" width="18" height="35" fill="url(#kol-glass)" opacity="0.45"/>
+                  <g fill="#B9E07A" opacity="0.85"><rect x="504" y="30" width="3" height="2"/><rect x="510" y="42" width="3" height="2"/><rect x="546" y="24" width="3" height="2"/><rect x="554" y="36" width="3" height="2"/><rect x="546" y="48" width="3" height="2"/><rect x="570" y="38" width="3" height="2"/><rect x="526" y="42" width="3" height="2"/></g>
+                  <line x1="0" y1="65" x2="600" y2="65" stroke="url(#kol-ground)" stroke-width="1.6"/>
+                  <text x="300" y="78" text-anchor="middle" font-size="8" font-family="'Fira Code', monospace" font-weight="700" fill="#86BC25" letter-spacing="3">KOLKATA</text>
+                </svg>
       </div>
     </div>
   </div>
@@ -1239,8 +1247,8 @@
             <line x1="22" y1="19" x2="14" y2="27" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.85"/>
           </svg>
         </span>
-        <div class="stl-label">Day 1: NPE??</div>
-        <div class="stl-sub">Fresh graduate<br>zero offers</div>
+        <div class="stl-label">First Chapter</div>
+        <div class="stl-sub">CS graduate<br>learning how software works</div>
         <div class="stl-year">2018</div>
       </div>
       <div class="stl-step stl-step--2">
@@ -1255,9 +1263,9 @@
             <polyline points="17,21 20,24 23,21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.6"/>
           </svg>
         </span>
-        <div class="stl-label">Java + Spring Boot</div>
-        <div class="stl-sub">First backend API<br>first StackOverflow save</div>
-        <div class="stl-year">2020</div>
+        <div class="stl-label">Software Engineering</div>
+        <div class="stl-sub">Java · Spring Boot · APIs<br>microservices in production</div>
+        <div class="stl-year">2022</div>
       </div>
       <div class="stl-step stl-step--3">
         <!-- open book / bootcamp learning -->
@@ -1271,9 +1279,9 @@
             <line x1="23" y1="18" x2="31" y2="18" stroke="currentColor" stroke-width="1.2" opacity="0.5"/>
           </svg>
         </span>
-        <div class="stl-label">Masai Bootcamp</div>
-        <div class="stl-sub">Bootcamp grind<br>full-stack shipped</div>
-        <div class="stl-year">2022</div>
+        <div class="stl-label">The AI Shift</div>
+        <div class="stl-sub">Python · LLMs · RAG<br>agents · evaluation</div>
+        <div class="stl-year">2023–25</div>
       </div>
       <div class="stl-step stl-step--4">
         <!-- LLM discovery: neural nodes -->
@@ -1295,9 +1303,9 @@
             <circle cx="20" cy="20" r="9" stroke="currentColor" stroke-width="1" stroke-dasharray="3 2" opacity="0.25"/>
           </svg>
         </span>
-        <div class="stl-label">Discovered LLMs</div>
-        <div class="stl-sub">GPT-3 moment<br>everything changed</div>
-        <div class="stl-year">2023</div>
+        <div class="stl-label">Open Source</div>
+        <div class="stl-sub">Real PRs · real maintainers<br>real code review</div>
+        <div class="stl-year">2025–26</div>
       </div>
       <div class="stl-step stl-step--5">
         <!-- shipped: rocket with check -->
@@ -1311,8 +1319,8 @@
             <path d="M28 10 L30 12 L33 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </span>
-        <div class="stl-label">637 Tests · Ship it.</div>
-        <div class="stl-sub">16 agents · 4 systems<br>zero shortcuts</div>
+        <div class="stl-label">Deloitte USI</div>
+        <div class="stl-sub">Agentic AI × Security<br>enterprise engineering</div>
         <div class="stl-year">NOW ✦</div>
       </div>
     </div>
@@ -1324,16 +1332,21 @@
       </div>
       <div class="story-text-col">
         <div class="eyebrow">The Person Behind the Code</div>
-        <h2 class="story-headline">From "You Can't Even Spell console" to Production AI</h2>
+        <h2 class="story-headline">The Engineer Behind the Systems</h2>
         <p class="story-body">
-          A fresh engineering graduate with no job offers. A friend's taunt that became the fuel.
-          A bootcamp, a laptop, and a choice to outwork everyone — quietly.
-          Today: 637 tests, 3 production AI systems, zero shortcuts.
+          I didn't start my career as an AI engineer. I started by learning how software works —
+          Java, backend systems, APIs, databases, distributed systems.
+          Then AI changed the questions I wanted to solve, so I went deeper: LLMs, RAG, agents,
+          evaluation, security and production systems.
+        </p>
+        <p class="story-body">
+          Today I combine both worlds: <b>software engineering depth + AI-native product thinking.</b>
+          That's the direction I'm building toward.
         </p>
         <div class="story-stats">
-          <div class="st-stat"><span class="st-num">4</span><span class="st-lbl">AI systems shipped</span></div>
-          <div class="st-stat"><span class="st-num">4+</span><span class="st-lbl">years of deep work</span></div>
-          <div class="st-stat"><span class="st-num">0</span><span class="st-lbl">shortcuts taken</span></div>
+          <div class="st-stat"><span class="st-num">Deloitte</span><span class="st-lbl">Agentic AI &amp; Security</span></div>
+          <div class="st-stat"><span class="st-num">{{ openSource.length }}</span><span class="st-lbl">merged OSS contributions</span></div>
+          <div class="st-stat"><span class="st-num">{{ projects.length }}</span><span class="st-lbl">production-oriented AI systems</span></div>
         </div>
         <div class="story-links">
           <span class="story-link-label">Verified by</span>
@@ -1351,7 +1364,13 @@
   <div class="container">
     <div class="eyebrow">Get In Touch</div>
     <h2>Let's Build Something Real</h2>
-    <p class="section-sub">If you're building serious AI products and need an engineer who ships — not just talks — reach out.</p>
+    <p class="section-sub">I'm interested in hard AI engineering problems — especially where software, AI, security and real-world business constraints meet.</p>
+    <ul class="contact-asks">
+      <li>Building an AI product?</li>
+      <li>Solving a difficult engineering problem?</li>
+      <li>Hiring for Applied AI / Agentic AI / Forward Deployed Engineering?</li>
+    </ul>
+    <p class="contact-talk">Let's talk.</p>
 
     <div class="contact-grid fade-up" #fadeEl>
       <a href="mailto:ravchandan15@gmail.com" class="contact-card">
@@ -1479,7 +1498,7 @@
     <div class="footer-top">
       <div class="footer-brand">
         <div class="footer-logo">ck<span>.</span></div>
-        <div class="footer-tagline">Agentic AI Engineer · Deloitte Cyber · Secure, production-grade agentic systems</div>
+        <div class="footer-tagline">Software Engineer II · Deloitte USI · Agentic AI × AI Security</div>
       </div>
       <nav class="footer-nav" aria-label="Footer navigation">
         <a href="#story">Story</a>
