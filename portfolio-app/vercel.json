@@ -1,5 +1,17 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist/portfolio-app/browser",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "redirects": [
+    {
+      "source": "/AI_Engineer_Chandan_Kumar_4_Yrs.pdf",
+      "destination": "/Chandan_Kumar_Forward_Deployed_Engineer_Resume.pdf",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }

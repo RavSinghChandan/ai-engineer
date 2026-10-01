@@ -88,7 +88,7 @@ describe('ChatService', () => {
 
   it('responds to hiring query', () => {
     const res = svc.match('is he available to hire?');
-    expect(res).toContain('Senior AI Engineer');
+    expect(res).toContain('Forward Deployed');
   });
 
   it('responds to projects query', () => {

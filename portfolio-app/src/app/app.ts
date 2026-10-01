@@ -150,7 +150,7 @@ export class App implements OnInit, AfterViewInit {
   }
 
   // PDF resume — user to replace with actual hosted PDF URL
-  readonly RESUME_PDF = 'AI_Engineer_Chandan_Kumar_4_Yrs.pdf';
+  readonly RESUME_PDF = 'Chandan_Kumar_Forward_Deployed_Engineer_Resume.pdf';
 
 
   @ViewChildren('fadeEl') fadeEls!: QueryList<ElementRef>;
