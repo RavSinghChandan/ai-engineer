@@ -72,10 +72,66 @@ export class App implements OnInit, AfterViewInit {
 
   setTagFilter(tag: string | null) {
     this.activeTagFilter.set(tag === this.activeTagFilter() ? null : tag);
+    this.projPage.set(1);
   }
 
   clearTagFilter() {
     this.activeTagFilter.set(null);
+    this.projPage.set(1);
+  }
+
+  // ── Projects browser: sort + paginate, same pattern as open source ──────
+  //    Each project card is long (challenges + screenshots), so two per page.
+  readonly projPageSize = 2;
+  projSort = signal<'featured' | 'newest' | 'oldest' | 'az' | 'tests'>('featured');
+  projPage = signal(1);
+
+  private projTests(p: { tags: { label: string }[] }): number {
+    const t = p.tags.find(x => /\d+\s+Tests/i.test(x.label));
+    return t ? parseInt(t.label, 10) : 0;
+  }
+
+  get sortedProjects() {
+    const rows = [...this.filteredProjects];
+    switch (this.projSort()) {
+      case 'featured': return rows;
+      case 'oldest': return rows.sort((a, b) => a.num.localeCompare(b.num));
+      case 'az':     return rows.sort((a, b) => a.title.localeCompare(b.title));
+      case 'tests':  return rows.sort((a, b) => this.projTests(b) - this.projTests(a) || b.num.localeCompare(a.num));
+      default:       return rows.sort((a, b) => b.num.localeCompare(a.num));
+    }
+  }
+
+  get projTotalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredProjects.length / this.projPageSize));
+  }
+
+  get visibleProjects() {
+    const page = Math.min(this.projPage(), this.projTotalPages);
+    const start = (page - 1) * this.projPageSize;
+    return this.sortedProjects.slice(start, start + this.projPageSize);
+  }
+
+  get projPageNumbers(): number[] {
+    return Array.from({ length: this.projTotalPages }, (_, i) => i + 1);
+  }
+
+  get projRangeLabel(): string {
+    const total = this.filteredProjects.length;
+    if (!total) return 'No matches';
+    const page = Math.min(this.projPage(), this.projTotalPages);
+    const from = (page - 1) * this.projPageSize + 1;
+    return `${from}\u2013${Math.min(from + this.projPageSize - 1, total)} of ${total}`;
+  }
+
+  setProjSort(sort: 'featured' | 'newest' | 'oldest' | 'az' | 'tests'): void {
+    this.projSort.set(sort);
+    this.projPage.set(1);
+  }
+
+  goProjPage(n: number): void {
+    this.projPage.set(Math.min(Math.max(1, n), this.projTotalPages));
+    document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   // PDF resume — user to replace with actual hosted PDF URL
@@ -2487,21 +2543,21 @@ export class App implements OnInit, AfterViewInit {
   private bRadius = 200;
 
   private readonly G_COLORS: Record<GraphNode['kind'], string> = {
-    system: '#26890D',  // purple — things I built
-    tech:   '#0D8390',  // cyan   — technologies
-    oss:    '#26890D',  // green  — merged open source
-    work:   '#ED8B00',  // amber  — experience
+    system: '#00ABAB',  // teal       — things I built
+    tech:   '#62B5E5',  // light blue — technologies
+    oss:    '#86BC25',  // green      — merged open source
+    work:   '#FFB81C',  // gold       — experience
   };
 
   //  The cage carries seven colours, one per family: the four node kinds above,
   //  with the open-source vertices split by the library they landed in so a
   //  glance shows the spread rather than one wall of green.
   private readonly OSS_COLORS: Record<string, string> = {
-    pypdf:    '#26890D',  // emerald
+    pypdf:    '#86BC25',  // Deloitte green
     joblib:   '#fb7185',  // rose
     'sent-tf': '#f472b6', // pink
-    nltk:     '#facc15',  // yellow
-    authlib:  '#007CB0',  // indigo
+    nltk:     '#E3E48D',  // lime
+    authlib:  '#A0DCFF',  // sky
   };
 
   /** Colour for a node: open-source vertices are keyed by library. */
@@ -2776,9 +2832,9 @@ export class App implements OnInit, AfterViewInit {
       const depth = (z + 1) / 2;                       // 0 back … 1 front
       const a = 0.14 + depth * 0.62;
       const grad = ctx.createLinearGradient(A.x, A.y, B.x, B.y);
-      grad.addColorStop(0, `rgba(129,140,248,${a})`);        // indigo
-      grad.addColorStop(0.5, `rgba(56,232,249,${a * 1.15})`); // cyan
-      grad.addColorStop(1, `rgba(192,132,252,${a})`);        // violet
+      grad.addColorStop(0, `rgba(134,188,37,${a})`);         // Deloitte green
+      grad.addColorStop(0.5, `rgba(0,171,171,${a * 1.15})`);  // teal
+      grad.addColorStop(1, `rgba(98,181,229,${a})`);         // light blue
       ctx.beginPath();
       ctx.moveTo(A.x, A.y);
       ctx.lineTo(B.x, B.y);
@@ -2786,7 +2842,7 @@ export class App implements OnInit, AfterViewInit {
       ctx.lineWidth = 0.7 + depth * 2.0;
       // front-facing bonds get a soft bloom so the cage reads as lit glass
       if (depth > 0.62) {
-        ctx.shadowColor = `rgba(56,232,249,${(depth - 0.62) * 0.9})`;
+        ctx.shadowColor = `rgba(134,188,37,${(depth - 0.62) * 0.9})`;
         ctx.shadowBlur = 7;
       }
       ctx.stroke();
@@ -2819,7 +2875,7 @@ export class App implements OnInit, AfterViewInit {
       const mx = (A.x + B.x) / 2 - cx, my = (A.y + B.y) / 2 - cy;
       const bow = 1.18;
       ctx.quadraticCurveTo(cx + mx * bow, cy + my * bow, B.x, B.y);
-      ctx.strokeStyle = lit ? 'rgba(240,171,252,0.85)' : 'rgba(148,163,184,0.16)';
+      ctx.strokeStyle = lit ? 'rgba(166,216,110,0.9)' : 'rgba(148,163,184,0.16)';
       ctx.lineWidth = lit ? 2 : 0.7;
       ctx.stroke();
     }

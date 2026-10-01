@@ -192,14 +192,14 @@
         or click a coloured one to open the merged PR — each library carries its own colour.
       </p>
       <div class="kg-legend">
-        <span class="kg-key"><i class="kg-dot" style="background:#26890D"></i>Systems built</span>
-        <span class="kg-key"><i class="kg-dot" style="background:#0D8390"></i>Technologies</span>
-        <span class="kg-key"><i class="kg-dot" style="background:#ED8B00"></i>Experience</span>
-        <span class="kg-key"><i class="kg-dot" style="background:#26890D"></i>pypdf</span>
+        <span class="kg-key"><i class="kg-dot" style="background:#00ABAB;box-shadow:0 0 10px #00ABAB"></i>Systems built</span>
+        <span class="kg-key"><i class="kg-dot" style="background:#62B5E5;box-shadow:0 0 10px #62B5E5"></i>Technologies</span>
+        <span class="kg-key"><i class="kg-dot" style="background:#FFB81C;box-shadow:0 0 10px #FFB81C"></i>Experience</span>
+        <span class="kg-key"><i class="kg-dot" style="background:#86BC25;box-shadow:0 0 10px #86BC25"></i>pypdf</span>
         <span class="kg-key"><i class="kg-dot" style="background:#fb7185"></i>joblib</span>
         <span class="kg-key"><i class="kg-dot" style="background:#f472b6"></i>sentence-transformers</span>
-        <span class="kg-key"><i class="kg-dot" style="background:#facc15"></i>NLTK</span>
-        <span class="kg-key"><i class="kg-dot" style="background:#007CB0"></i>Authlib</span>
+        <span class="kg-key"><i class="kg-dot" style="background:#E3E48D;box-shadow:0 0 10px #E3E48D"></i>NLTK</span>
+        <span class="kg-key"><i class="kg-dot" style="background:#A0DCFF;box-shadow:0 0 10px #A0DCFF"></i>Authlib</span>
       </div>
     </div>
 
@@ -628,7 +628,23 @@
       }
     </div>
 
-    @for (project of filteredProjects; track project.num) {
+    <div class="oss-sortbar proj-sortbar">
+      <span class="oss-range">{{ projRangeLabel }}</span>
+      <label class="oss-sort">
+        <span class="oss-sort-label">Sort</span>
+        <select [value]="projSort()"
+                (change)="setProjSort($any($event.target).value)"
+                aria-label="Sort projects">
+          <option value="featured">Featured</option>
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+          <option value="tests">Most tests</option>
+          <option value="az">A &ndash; Z</option>
+        </select>
+      </label>
+    </div>
+
+    @for (project of visibleProjects; track project.num) {
       <div class="project-card fade-up" #fadeEl [ngClass]="'accent-' + project.accent" [id]="'project-' + project.num">
         <div class="project-top">
           <div class="project-left">
@@ -719,6 +735,23 @@
           </div>
         }
       </div>
+    }
+
+    @if (projTotalPages > 1) {
+      <nav class="oss-pager" aria-label="Project pages">
+        <button type="button" class="oss-page-btn oss-page-arrow"
+                [disabled]="projPage() <= 1"
+                (click)="goProjPage(projPage() - 1)" aria-label="Previous page">&larr;</button>
+        @for (n of projPageNumbers; track n) {
+          <button type="button" class="oss-page-btn"
+                  [class.is-active]="projPage() === n"
+                  [attr.aria-current]="projPage() === n ? 'page' : null"
+                  (click)="goProjPage(n)">{{ n }}</button>
+        }
+        <button type="button" class="oss-page-btn oss-page-arrow"
+                [disabled]="projPage() >= projTotalPages"
+                (click)="goProjPage(projPage() + 1)" aria-label="Next page">&rarr;</button>
+      </nav>
     }
   </div>
 </section>
@@ -885,6 +918,84 @@
             </div>
             <!-- City skyline — full width below bullet points -->
             <div class="tl-city-strip" [attr.aria-label]="job.location">
+              @if (job.location === 'Bengaluru, India') {
+                <!-- Bengaluru: Bangalore Palace, Vidhana Soudha, UB City, WTC, tech parks, Garden City trees. Ground=65 -->
+                <svg viewBox="0 0 600 82" width="100%" height="82" preserveAspectRatio="xMidYMid meet" fill="none" xmlns="http://www.w3.org/2000/svg" class="city-svg city-svg-strip city-svg-blr">
+                  <defs>
+                    <linearGradient id="blr-sky" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#000000"/>
+                      <stop offset="100%" stop-color="#0B1A05"/>
+                    </linearGradient>
+                    <linearGradient id="blr-build" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stop-color="#86BC25"/>
+                      <stop offset="55%" stop-color="#26890D"/>
+                      <stop offset="100%" stop-color="#00ABAB"/>
+                    </linearGradient>
+                    <linearGradient id="blr-glass" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#00ABAB" stop-opacity="0.9"/>
+                      <stop offset="100%" stop-color="#26890D" stop-opacity="0.35"/>
+                    </linearGradient>
+                    <linearGradient id="blr-ground" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stop-color="#86BC25" stop-opacity="0"/>
+                      <stop offset="50%" stop-color="#86BC25"/>
+                      <stop offset="100%" stop-color="#00ABAB" stop-opacity="0"/>
+                    </linearGradient>
+                  </defs>
+                  <rect x="0" y="0" width="600" height="82" fill="url(#blr-sky)"/>
+                  <!-- Garden City canopy (left) -->
+                  <ellipse cx="18" cy="56" rx="14" ry="10" fill="url(#blr-build)" opacity="0.35"/>
+                  <ellipse cx="40" cy="58" rx="11" ry="8" fill="url(#blr-build)" opacity="0.28"/>
+                  <!-- Bangalore Palace: Tudor turrets -->
+                  <rect x="56" y="40" width="58" height="25" fill="url(#blr-build)" opacity="0.38"/>
+                  <rect x="58" y="30" width="9" height="12" fill="url(#blr-build)" opacity="0.55"/>
+                  <polygon points="58,30 62.5,22 67,30" fill="url(#blr-build)" opacity="0.7"/>
+                  <rect x="80" y="33" width="10" height="9" fill="url(#blr-build)" opacity="0.5"/>
+                  <polygon points="80,33 85,25 90,33" fill="url(#blr-build)" opacity="0.65"/>
+                  <rect x="103" y="30" width="9" height="12" fill="url(#blr-build)" opacity="0.55"/>
+                  <polygon points="103,30 107.5,22 112,30" fill="url(#blr-build)" opacity="0.7"/>
+                  <!-- Tech park glass towers -->
+                  <rect x="126" y="22" width="20" height="43" fill="url(#blr-glass)" opacity="0.55"/>
+                  <rect x="150" y="32" width="16" height="33" fill="url(#blr-glass)" opacity="0.45"/>
+                  <!-- Vidhana Soudha (centre): wide base, colonnade, central dome -->
+                  <rect x="196" y="44" width="128" height="21" fill="url(#blr-build)" opacity="0.5"/>
+                  <rect x="214" y="36" width="92" height="9" fill="url(#blr-build)" opacity="0.62"/>
+                  <g fill="#000" opacity="0.55">
+                    <rect x="220" y="47" width="3" height="16"/><rect x="230" y="47" width="3" height="16"/>
+                    <rect x="240" y="47" width="3" height="16"/><rect x="250" y="47" width="3" height="16"/>
+                    <rect x="267" y="47" width="3" height="16"/><rect x="277" y="47" width="3" height="16"/>
+                    <rect x="287" y="47" width="3" height="16"/><rect x="297" y="47" width="3" height="16"/>
+                  </g>
+                  <rect x="247" y="26" width="26" height="11" fill="url(#blr-build)" opacity="0.72"/>
+                  <path d="M247,26 Q260,6 273,26 Z" fill="url(#blr-build)" opacity="0.9"/>
+                  <line x1="260" y1="11" x2="260" y2="4" stroke="#86BC25" stroke-width="1.4"/>
+                  <path d="M206,36 Q211,28 216,36 Z" fill="url(#blr-build)" opacity="0.7"/>
+                  <path d="M304,36 Q309,28 314,36 Z" fill="url(#blr-build)" opacity="0.7"/>
+                  <!-- UB City: tall tower with the crown -->
+                  <rect x="352" y="14" width="22" height="51" fill="url(#blr-glass)" opacity="0.7"/>
+                  <path d="M350,14 L363,3 L376,14 Z" fill="url(#blr-build)" opacity="0.85"/>
+                  <rect x="378" y="30" width="16" height="35" fill="url(#blr-glass)" opacity="0.5"/>
+                  <!-- WTC Bengaluru -->
+                  <rect x="404" y="10" width="20" height="55" fill="url(#blr-glass)" opacity="0.65"/>
+                  <rect x="408" y="6" width="12" height="4" fill="url(#blr-build)" opacity="0.8"/>
+                  <rect x="428" y="26" width="18" height="39" fill="url(#blr-glass)" opacity="0.45"/>
+                  <!-- Outer Ring Road campuses -->
+                  <rect x="458" y="36" width="28" height="29" fill="url(#blr-glass)" opacity="0.38"/>
+                  <rect x="490" y="28" width="18" height="37" fill="url(#blr-glass)" opacity="0.42"/>
+                  <ellipse cx="530" cy="57" rx="16" ry="10" fill="url(#blr-build)" opacity="0.32"/>
+                  <ellipse cx="558" cy="58" rx="13" ry="8" fill="url(#blr-build)" opacity="0.26"/>
+                  <ellipse cx="584" cy="56" rx="14" ry="10" fill="url(#blr-build)" opacity="0.3"/>
+                  <!-- Lit windows -->
+                  <g fill="#B9E07A" opacity="0.85">
+                    <rect x="130" y="28" width="3" height="2"/><rect x="138" y="34" width="3" height="2"/>
+                    <rect x="357" y="22" width="3" height="2"/><rect x="366" y="30" width="3" height="2"/>
+                    <rect x="357" y="40" width="3" height="2"/><rect x="409" y="18" width="3" height="2"/>
+                    <rect x="416" y="28" width="3" height="2"/><rect x="409" y="40" width="3" height="2"/>
+                    <rect x="494" y="36" width="3" height="2"/><rect x="432" y="34" width="3" height="2"/>
+                  </g>
+                  <line x1="0" y1="65" x2="600" y2="65" stroke="url(#blr-ground)" stroke-width="1.6"/>
+                  <text x="300" y="78" text-anchor="middle" font-size="8" font-family="'Fira Code', monospace" font-weight="700" fill="#86BC25" letter-spacing="3">BENGALURU</text>
+                </svg>
+              }
               @if (job.location === 'Pune, India') {
                 <!-- Ground=65, all buildings terminate at y=65, text at y=78, viewBox height=82 -->
                 <svg viewBox="0 0 600 82" width="100%" height="82" preserveAspectRatio="xMidYMid meet" fill="none" xmlns="http://www.w3.org/2000/svg" class="city-svg city-svg-strip">

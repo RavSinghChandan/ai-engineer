@@ -2336,3 +2336,172 @@ footer { background: #000000; border-top: 4px solid var(--dl-green) !important; 
 .footer-logo span { color: var(--dl-green); }
 
 .scroll-progress-bar { background: var(--dl-green) !important; }
+
+/* ═══════════════════════════════════════════════════════════════
+   PREMIUM LAYER — Deloitte language, refined
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Signature gradient used for accent text, hairlines and the cage */
+$dl-grad: linear-gradient(100deg, #86BC25 0%, #43B02A 45%, #00ABAB 100%);
+
+/* Typography: lighter, tighter, more editorial */
+h1 { font-weight: 700 !important; letter-spacing: -0.035em; line-height: 1.04; }
+section h2 { font-weight: 700 !important; letter-spacing: -0.03em; font-size: clamp(1.9rem, 3.6vw, 2.6rem); line-height: 1.12; }
+.section-sub, .kg-sub, .oss-sub { font-size: 1rem; line-height: 1.7; }
+
+/* Nav: black with a gradient hairline */
+nav[aria-label="Main navigation"] {
+  border-bottom: none !important;
+  &::after {
+    content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(134,188,37,0.7) 30%, rgba(0,171,171,0.6) 70%, transparent);
+  }
+}
+.nav-links a { color: #D0D0CE; &:hover, &.nav-active { color: #fff; } }
+
+/* Hero + knowledge graph: one continuous black band */
+.hero, .kg-section {
+  --bg: #000000; --surface: rgba(255,255,255,0.04); --card: rgba(255,255,255,0.03);
+  --border: rgba(255,255,255,0.10); --border2: rgba(255,255,255,0.18);
+  --text: #FFFFFF; --text2: #C8C9C7; --text3: #97999B; --muted: #A7A8AA;
+  --purple: #86BC25; --purple-lt: #86BC25; --green: #86BC25; --cyan: #00ABAB;
+  color: var(--text);
+}
+.hero {
+  background:
+    radial-gradient(900px 520px at 88% 8%, rgba(134,188,37,0.20), transparent 60%),
+    radial-gradient(700px 480px at -5% 105%, rgba(0,171,171,0.14), transparent 60%),
+    #000;
+  &::before {
+    background-image:
+      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px) !important;
+    background-size: 56px 56px !important;
+    mask-image: radial-gradient(ellipse 80% 70% at 60% 40%, #000 30%, transparent 80%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 70% at 60% 40%, #000 30%, transparent 80%);
+  }
+}
+.hero-title-accent, .kg-h, .oss-h {
+  background: $dl-grad !important;
+  -webkit-background-clip: text !important; background-clip: text !important;
+  -webkit-text-fill-color: transparent !important; color: transparent;
+}
+.oss-h { background: linear-gradient(100deg, #000 0%, #000 55%, #26890D 100%) !important; -webkit-background-clip: text !important; background-clip: text !important; }
+.hero-badge {
+  background: rgba(255,255,255,0.05); backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.10); border-left: 3px solid #86BC25;
+}
+.hero-typing { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.10); }
+.hero-card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08);
+  backdrop-filter: blur(10px);
+}
+.hero-photo { box-shadow: 0 0 0 6px rgba(134,188,37,0.12), 0 0 60px rgba(134,188,37,0.35) !important; }
+
+.kg-section {
+  background:
+    radial-gradient(800px 500px at 50% 55%, rgba(0,171,171,0.12), transparent 65%),
+    radial-gradient(600px 400px at 15% 20%, rgba(134,188,37,0.10), transparent 60%),
+    #000;
+  padding: 4.5rem 0 4rem;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.kg-sub b { color: #fff; }
+.kg-legend { color: #A7A8AA; }
+.kg-dot {
+  &--system { background: #00ABAB; box-shadow: 0 0 10px rgba(0,171,171,0.8); }
+  &--tech   { background: #62B5E5; box-shadow: 0 0 10px rgba(98,181,229,0.8); }
+  &--oss    { background: #86BC25; box-shadow: 0 0 10px rgba(134,188,37,0.8); }
+  &--work   { background: #FFB81C; box-shadow: 0 0 10px rgba(255,184,28,0.8); }
+}
+.kg-stage {
+  border-radius: 4px !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  background:
+    radial-gradient(ellipse at 50% 50%, rgba(0,171,171,0.10), transparent 62%),
+    radial-gradient(ellipse at 30% 25%, rgba(134,188,37,0.08), transparent 60%),
+    #030503 !important;
+  box-shadow: inset 0 0 120px rgba(0,0,0,0.9), 0 40px 100px rgba(0,0,0,0.5);
+}
+.kg-tip { background: rgba(10,10,10,0.92); border-color: rgba(255,255,255,0.12); backdrop-filter: blur(8px); border-radius: 4px; }
+.kg-tip-cta { color: #86BC25; }
+
+/* Section rhythm: warm grey alternating with white */
+#by-numbers, #projects, #contact { background: #F6F6F4; }
+.oss-section, #skills, #experience { background: #FFFFFF; }
+
+/* Cards: quiet shadow instead of hard borders, green edge on hover */
+.oss-card, .skill-card, .proof-card, .project-card, .tl-body, .edu-card {
+  border: 1px solid rgba(0,0,0,0.06) !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 10px 30px -12px rgba(0,0,0,0.12) !important;
+  transition: transform .25s var(--ease), box-shadow .25s var(--ease) !important;
+}
+.oss-card:hover, .skill-card:hover, .proof-card:hover, .project-card:hover, .tl-body:hover {
+  transform: translateY(-3px);
+  border-color: rgba(0,0,0,0.06) !important;
+  box-shadow: inset 0 3px 0 #86BC25, 0 2px 4px rgba(0,0,0,0.04), 0 24px 48px -16px rgba(0,0,0,0.22) !important;
+}
+.project-card:hover { transform: none; }
+
+/* Pager + sort, shared by open source and projects */
+.oss-page-btn {
+  border-radius: 0 !important; border-color: #D0D0CE !important; background: #fff !important; color: #000 !important;
+  &:hover:not(:disabled) { border-color: #000 !important; }
+  &.is-active { background: #000 !important; color: #fff !important; border-color: #000 !important; box-shadow: inset 0 -3px 0 #86BC25; }
+  &:disabled { opacity: 0.35; }
+}
+.oss-sort select { border-radius: 0 !important; border-color: #D0D0CE !important; background: #fff; font-weight: 600; }
+.oss-range { font-variant-numeric: tabular-nums; color: #53565A; font-weight: 600; }
+.proj-sortbar { margin: 0.5rem 0 1.5rem; }
+.tag-chip, .oss-chip { border-radius: 0 !important; }
+.tag-chip--active { background: #000 !important; color: #fff !important; border-color: #000 !important; }
+.oss-chip.is-active { color: #000; }
+.oss-chip[data-lib="pypdf"] { --chip: #86BC25; }
+
+/* Experience: the current role is a black card with the Bengaluru skyline */
+.tl-item:first-child .tl-body {
+  --card: #000; --text: #fff; --text2: #C8C9C7; --text3: #A7A8AA; --border: #1F1F1F;
+  background:
+    radial-gradient(600px 220px at 100% 0%, rgba(134,188,37,0.18), transparent 60%),
+    #000 !important;
+  color: #fff;
+  border: 1px solid #1A1A1A !important;
+  box-shadow: inset 3px 0 0 #86BC25, 0 24px 60px -20px rgba(0,0,0,0.5) !important;
+  .tl-company { color: #fff; }
+  .tl-points li { color: #C8C9C7; }
+  .tl-period { color: #86BC25; }
+  .present-badge { background: #86BC25 !important; color: #000 !important; border-color: #86BC25 !important; }
+}
+.tl-item:first-child .tl-body:hover { box-shadow: inset 3px 0 0 #86BC25, 0 30px 70px -20px rgba(0,0,0,0.6) !important; }
+.city-svg-blr { opacity: 1; }
+.tl-item:first-child .tl-city-strip { opacity: 1; }
+
+/* Buttons */
+.btn-primary {
+  background: linear-gradient(135deg, #86BC25, #6FA61A) !important;
+  &:hover { background: linear-gradient(135deg, #97CC35, #7DB523) !important; transform: translateY(-2px); }
+}
+.hero .btn-ghost { border-color: rgba(255,255,255,0.55) !important; }
+
+/* Footer: gradient top edge instead of a flat bar */
+footer {
+  border-top: none !important; position: relative;
+  &::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: $dl-grad; }
+}
+.scroll-progress-bar { background: $dl-grad !important; }
+
+/* Career strip: monochrome steps, only the current role in colour */
+.exp-rocket-strip { margin-top: 2rem; border: 1px solid rgba(0,0,0,0.08) !important; box-shadow: 0 10px 30px -14px rgba(0,0,0,0.15); background: #fff; }
+.ers-step--1, .ers-step--2, .ers-step--3, .ers-step--4 {
+  background: #FFFFFF !important; border-right: 1px solid #EDEDEB;
+  .ers-svg-icon { color: #53565A !important; background: #F6F6F4 !important; border-color: #E1E1DF !important; }
+  .ers-year { background: transparent !important; color: #75787B !important; border: 1px solid #E1E1DF; }
+}
+.ers-step--4 { border-right: none; }
+.ers-step--5 { background: radial-gradient(240px 140px at 70% 0%, rgba(134,188,37,0.25), transparent 70%), #000 !important; }
+.ers-quip { background: #F6F6F4 !important; }
+
+.project-title { font-weight: 700 !important; letter-spacing: -0.025em; }
+.oss-chip:not([data-lib]).is-active { background: #000 !important; color: #fff !important; border-color: #000 !important; .oss-chip-n { background: #86BC25; color: #000; } }
