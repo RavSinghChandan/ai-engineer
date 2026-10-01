@@ -2661,3 +2661,53 @@ footer {
 .proof-tag { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.16em; color: var(--accent); margin-bottom: 0.35rem; }
 .proof-live-link { display: inline-block; margin-top: 0.6rem; font-size: 0.82rem; font-weight: 700; color: var(--accent); text-decoration: none;
   &:hover { text-decoration: underline; } }
+
+/* ═══════════════════════════════════════════════════════════════
+   SECTION SIGNATURE GEOMETRY — one motif per section, Deloitte palette.
+   Decorative only: aria-hidden, no pointer events, behind content.
+   ═══════════════════════════════════════════════════════════════ */
+#opensource, #by-numbers, #skills, #projects, #experience, #story, #contact { position: relative; overflow: hidden; isolation: isolate; }
+#opensource > .container, #by-numbers > .container, #skills > .container, #projects > .container,
+#experience > .container, #story > .container, #contact > .container { position: relative; z-index: 1; }
+.sec-geo {
+  position: absolute; z-index: 0; pointer-events: none; width: 560px; height: 560px;
+  opacity: var(--geo-opacity); transition: opacity .4s var(--ease);
+  @media (max-width: 760px) { width: 340px; height: 340px; opacity: calc(var(--geo-opacity) * 0.7); }
+}
+.sec-geo--oss        { top: -120px;  right: -150px; }
+.sec-geo--proof      { top: -60px;   right: -170px; }
+.sec-geo--fde        { top: 40px;    right: -190px; }
+.sec-geo--projects   { top: -40px;   left: -200px; }
+.sec-geo--experience { bottom: -150px; right: -120px; top: auto; }
+.sec-geo--story      { top: 20px; left: -80px; width: 760px; }
+.sec-geo--contact    { bottom: -110px; right: -110px; }
+@media (max-width: 760px) {
+  .sec-geo--story { width: 460px; left: -60px; }
+  .sec-geo--oss, .sec-geo--proof, .sec-geo--fde, .sec-geo--contact, .sec-geo--experience { right: -150px; }
+  .sec-geo--projects { left: -160px; }
+}
+
+/* Slow, calm motion; switched off for reduced-motion users */
+@media (prefers-reduced-motion: no-preference) {
+  .geo-spin-slow { transform-origin: 300px 300px; transform-box: view-box; animation: geo-spin 90s linear infinite; }
+  .sec-geo--proof path[stroke-linecap="round"] { stroke-dasharray: 1200; stroke-dashoffset: 1200; animation: geo-draw 3.5s var(--ease) forwards; }
+  .geo-chev { animation: geo-chev 2.4s ease-in-out infinite; }
+  .geo-chev--1 { animation-delay: .25s; } .geo-chev--2 { animation-delay: .5s; }
+  .geo-pulse { transform-origin: center; transform-box: fill-box; animation: geo-pulse 2.4s ease-out infinite; }
+  .geo-ripple { transform-origin: 170px 330px; transform-box: view-box; animation: geo-ripple 4s ease-in-out infinite; }
+  .geo-dash { animation: geo-dash 6s linear infinite; }
+}
+@keyframes geo-spin   { to { transform: rotate(360deg); } }
+@keyframes geo-draw   { to { stroke-dashoffset: 0; } }
+@keyframes geo-chev   { 0%,100% { transform: translateX(0); } 50% { transform: translateX(10px); } }
+@keyframes geo-pulse  { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2.2); opacity: 0; } }
+@keyframes geo-ripple { 0%,100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+@keyframes geo-dash   { to { stroke-dashoffset: -140; } }
+/* Signature corner: every motif sits top-right beside its heading */
+.sec-geo { width: 470px; height: 470px; top: -10px !important; right: -50px !important; left: auto !important; bottom: auto !important; }
+.sec-geo--story { width: 100% !important; height: 300px; right: 0 !important; left: 0 !important; top: -30px !important; }
+.sec-geo--contact { top: auto !important; bottom: -60px !important; right: -40px !important; }
+@media (max-width: 760px) {
+  .sec-geo { width: 300px; height: 300px; right: -90px !important; top: -20px !important; }
+  .sec-geo--story { height: 200px; }
+}

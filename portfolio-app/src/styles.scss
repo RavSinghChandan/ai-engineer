@@ -41,6 +41,7 @@
   --card-shadow-hover: inset 0 3px 0 #86BC25, inset 0 1px 0 rgba(255,255,255,0.05), 0 28px 60px -24px rgba(134,188,37,0.25);
   --chip-active-bg: #FFFFFF;
   --chip-active-fg: #000000;
+  --geo-a: #86BC25; --geo-b: #00ABAB; --geo-c: #62B5E5; --geo-line: rgba(255,255,255,0.6); --geo-opacity: 0.5;
 }
 
 html[data-theme="light"] {
@@ -70,6 +71,7 @@ html[data-theme="light"] {
   --card-shadow-hover: inset 0 3px 0 #86BC25, 0 2px 4px rgba(0,0,0,0.04), 0 24px 48px -16px rgba(0,0,0,0.22);
   --chip-active-bg: #000000;
   --chip-active-fg: #FFFFFF;
+  --geo-a: #26890D; --geo-b: #0D8390; --geo-c: #007CB0; --geo-line: rgba(0,0,0,0.5); --geo-opacity: 0.32;
 }
 
 /* Tags: tinted on dark, pastel on light */
