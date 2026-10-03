@@ -6,12 +6,12 @@
   <div class="nav-inner container">
     <a href="#" class="nav-logo">ck<span>.</span></a>
     <div class="nav-links">
-      <a href="#story"      [class.nav-active]="activeSection()==='story'"      (click)="closeMobileNav()">Story</a>
-      <a href="#opensource" [class.nav-active]="activeSection()==='opensource'" (click)="closeMobileNav()">Open Source</a>
-      <a href="#skills"     [class.nav-active]="activeSection()==='skills'"     (click)="closeMobileNav()">FDE</a>
+      <a href="#skills"     [class.nav-active]="activeSection()==='skills'"     (click)="closeMobileNav()">How I Work</a>
       <a href="#projects"   [class.nav-active]="activeSection()==='projects'"   (click)="closeMobileNav()">Projects</a>
       <a href="#by-numbers" [class.nav-active]="activeSection()==='by-numbers'" (click)="closeMobileNav()">Proof</a>
+      <a href="#opensource" [class.nav-active]="activeSection()==='opensource'" (click)="closeMobileNav()">Open Source</a>
       <a href="#experience" [class.nav-active]="activeSection()==='experience'" (click)="closeMobileNav()">Experience</a>
+      <a href="#story"      [class.nav-active]="activeSection()==='story'"      (click)="closeMobileNav()">Story</a>
       <a href="#contact"    [class.nav-active]="activeSection()==='contact'"    (click)="closeMobileNav()">Contact</a>
     </div>
     <div class="nav-actions">
@@ -125,12 +125,6 @@
         <a class="hero-live" href="https://aurawithrav.com" target="_blank" rel="noopener"><span class="prod-dot"></span><span>Live in production: <b>aurawithrav.com</b> ↗</span></a>
       </p>
 
-      <div class="hero-typing">
-        <span class="cursor-line">
-          <span class="prompt">›</span>
-          {{ typedText() }}<span class="cursor">|</span>
-        </span>
-      </div>
 
       <div class="hero-stats">
         <div class="stat">
@@ -159,17 +153,15 @@
           View Engineering Work
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg>
         </a>
-        <a href="https://github.com/RavSinghChandan" target="_blank" class="btn btn-ghost">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
-          GitHub
-        </a>
-        <a href="https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/" target="_blank" class="btn btn-ghost">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-          LinkedIn
-        </a>
         <a href="Chandan_Kumar_Forward_Deployed_Engineer_Resume.pdf" target="_blank" class="btn btn-ghost">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Download Resume
+        </a>
+        <a href="https://github.com/RavSinghChandan" target="_blank" rel="noopener" class="btn btn-ghost btn-icon" aria-label="GitHub" title="GitHub">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        </a>
+        <a href="https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/" target="_blank" rel="noopener" class="btn btn-ghost btn-icon" aria-label="LinkedIn" title="LinkedIn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
         </a>
       </div>
     </div>
@@ -193,191 +185,13 @@
           }
         </div>
         <img src="https://skillicons.dev/icons?i=python,java,fastapi,angular,react,kafka,docker,aws&perline=8" alt="Python Java FastAPI Angular React Kafka Docker AWS" class="hc-iconstrip"/>
-        <div class="hc-footer">
-          <span class="hc-stat green">● 637 tests passing</span>
-          <span class="hc-stat amber">under 4s runtime</span>
-        </div>
+      
       </div>
     </div>
 
   </div>
 </section>
 
-<!-- KNOWLEDGE GRAPH — everything on this page, and how it connects -->
-<section id="graph" class="kg-section" aria-label="Interactive knowledge graph">
-  <div class="container">
-    <div class="kg-head">
-      <h2 class="kg-h">How It All Connects</h2>
-      <p class="kg-sub">
-        Every system, technology, merged contribution and role on this page — carried on a
-        <b>buckminsterfullerene</b>: 60 vertices, 90 bonds, 12 pentagons and 20 hexagons.
-        <b>Drag to spin it</b>, hover a lit vertex to trace what it touches,
-        or click a coloured one to open the merged PR — each library carries its own colour.
-      </p>
-      <div class="kg-legend">
-        <span class="kg-key"><i class="kg-dot" style="background:#00ABAB;box-shadow:0 0 10px #00ABAB"></i>Systems built</span>
-        <span class="kg-key"><i class="kg-dot" style="background:#62B5E5;box-shadow:0 0 10px #62B5E5"></i>Technologies</span>
-        <span class="kg-key"><i class="kg-dot" style="background:#FFB81C;box-shadow:0 0 10px #FFB81C"></i>Experience</span>
-        <span class="kg-key"><i class="kg-dot" style="background:#86BC25;box-shadow:0 0 10px #86BC25"></i>pypdf</span>
-        <span class="kg-key"><i class="kg-dot" style="background:#fb7185"></i>joblib</span>
-        <span class="kg-key"><i class="kg-dot" style="background:#f472b6"></i>sentence-transformers</span>
-        <span class="kg-key"><i class="kg-dot" style="background:#E3E48D;box-shadow:0 0 10px #E3E48D"></i>NLTK</span>
-        <span class="kg-key"><i class="kg-dot" style="background:#A0DCFF;box-shadow:0 0 10px #A0DCFF"></i>Authlib</span>
-      </div>
-    </div>
-
-    <div class="kg-stage">
-      <canvas id="kg-canvas" class="kg-canvas"
-              aria-label="Interactive graph connecting projects, technologies, open-source contributions and work experience. The same relationships are described in text below."></canvas>
-
-      @if (graphHover(); as n) {
-        <div class="kg-tip" [class.kg-tip--link]="!!n.url">
-          <div class="kg-tip-label">{{ n.label }}</div>
-          <div class="kg-tip-detail">{{ n.detail }}</div>
-          @if (n.url) { <div class="kg-tip-cta">Click to open the PR ↗</div> }
-        </div>
-      } @else {
-        <div class="kg-hint">C<sub>60</sub> · drag to spin the molecule — hover a glowing atom to trace its links</div>
-      }
-    </div>
-
-    <!-- Text fallback: the same relationships, for screen readers and no-JS -->
-    <p class="kg-a11y">
-      Systems: Aura with Rav, Bench Resource Optimizer, Agentic Growth OS and AI Content Factory —
-      all built with Python, FastAPI, LangGraph and Angular. Merged open-source contributions to
-      pypdf, NLTK, joblib and Hugging Face Sentence Transformers. Currently a Software Engineer II at
-      Deloitte USI (Agentic AI and AI Security); earlier backend work in Java and Spring at Infosys (Bank of America), Nexsys/Accelya and Texala.
-    </p>
-  </div>
-</section>
-
-<!-- OPEN SOURCE CONTRIBUTION — 2nd section, grows with each merge -->
-<section id="opensource" class="oss-section">
-  <svg class="sec-geo sec-geo--oss" viewBox="0 0 600 600" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><!-- converging rings --><defs><linearGradient id="geo-oss-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" style="stop-color:var(--geo-a)"/><stop offset="55%" style="stop-color:var(--geo-b)"/><stop offset="100%" style="stop-color:var(--geo-c)"/></linearGradient></defs><circle cx="300.0" cy="300.0" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.9"/><circle cx="378.0" cy="300.0" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.7"/><circle cx="339.0" cy="367.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.7"/><circle cx="261.0" cy="367.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.7"/><circle cx="222.0" cy="300.0" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.7"/><circle cx="261.0" cy="232.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.7"/><circle cx="339.0" cy="232.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.7"/><circle cx="417.0" cy="367.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.4"/><circle cx="300.0" cy="435.1" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.4"/><circle cx="183.0" cy="367.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.4"/><circle cx="183.0" cy="232.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.4"/><circle cx="300.0" cy="164.9" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.4"/><circle cx="417.0" cy="232.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.4"/><circle cx="378.0" cy="300.0" r="3.2" style="fill:var(--geo-a)"/><circle cx="339.0" cy="367.5" r="3.2" style="fill:var(--geo-a)"/><circle cx="261.0" cy="367.5" r="3.2" style="fill:var(--geo-a)"/><circle cx="222.0" cy="300.0" r="3.2" style="fill:var(--geo-a)"/><circle cx="261.0" cy="232.5" r="3.2" style="fill:var(--geo-a)"/><circle cx="339.0" cy="232.5" r="3.2" style="fill:var(--geo-a)"/><circle cx="300" cy="300" r="5" style="fill:var(--geo-a)"/><circle cx="300" cy="300" r="262" fill="none" stroke="url(#geo-oss-g)" stroke-width="1" stroke-dasharray="2 7" opacity="0.6" class="geo-spin-slow"/></svg>
-  <div class="container">
-    <div class="oss-head">
-      <div class="oss-logos">
-        <img class="oss-hf" src="huggingface-logo.svg" alt="Hugging Face" />
-        <img class="oss-hf" src="joblib-logo.svg" alt="joblib" />
-      </div>
-      <div>
-        <h2 class="oss-h">I Don't Just Use Open Source. I Contribute to It.</h2>
-        <p class="oss-sub"><b>{{ openSource.length }} merged contributions</b> across libraries used by the AI/ML and Python ecosystem — pypdf · Joblib · Sentence Transformers · NLTK · Authlib.</p>
-      </div>
-    </div>
-    <!-- Library filter: colour-coded chips, biggest project first -->
-    <div class="oss-controls">
-      <div class="oss-chips" role="tablist" aria-label="Filter by library">
-        <button type="button" role="tab" class="oss-chip"
-                [class.is-active]="ossLibrary() === 'all'"
-                [attr.aria-selected]="ossLibrary() === 'all'"
-                (click)="setOssLibrary('all')">
-          All <span class="oss-chip-n">{{ openSource.length }}</span>
-        </button>
-        @for (lib of ossLibraries(); track lib.repo) {
-          <button type="button" role="tab" class="oss-chip"
-                  [attr.data-lib]="lib.slug"
-                  [class.is-active]="ossLibrary() === lib.repo"
-                  [attr.aria-selected]="ossLibrary() === lib.repo"
-                  (click)="setOssLibrary(lib.repo)">
-            <img class="oss-chip-logo" [src]="lib.logo" [alt]="" aria-hidden="true" />
-            {{ lib.repo.split('/')[1] }} <span class="oss-chip-n">{{ lib.n }}</span>
-          </button>
-        }
-      </div>
-
-      <div class="oss-sortbar">
-        <span class="oss-range">{{ ossRangeLabel() }}</span>
-        <label class="oss-sort">
-          <span class="oss-sort-label">Sort</span>
-          <select [value]="ossSort()"
-                  (change)="setOssSort($any($event.target).value)"
-                  aria-label="Sort merged pull requests">
-            <option value="newest">Newest first</option>
-            <option value="oldest">Oldest first</option>
-            <option value="stars">Most stars</option>
-            <option value="library">By library</option>
-          </select>
-        </label>
-      </div>
-    </div>
-
-    <div class="oss-grid">
-      @for (o of ossVisible(); track o.pr) {
-        <a class="oss-card" [href]="o.pr" target="_blank" rel="noopener">
-          <div class="oss-top">
-            <span class="oss-repo">
-              <img class="oss-card-logo" [src]="o.logo" [alt]="o.org" />
-              {{ o.repo }}
-            </span>
-            <span class="oss-stars">{{ o.stars }}</span>
-          </div>
-          <div class="oss-title">{{ o.title }}</div>
-          <div class="oss-desc">{{ o.desc }}</div>
-          <div class="oss-foot">
-            <span class="oss-merged">✓ Merged · {{ o.merged }}</span>
-            <span class="oss-view">View PR ↗</span>
-          </div>
-        </a>
-      }
-    </div>
-
-    @if (ossTotalPages() > 1) {
-      <nav class="oss-pager" aria-label="Merged pull request pages">
-        <button type="button" class="oss-page-btn oss-page-arrow"
-                [disabled]="ossPage() <= 1"
-                (click)="goOssPage(ossPage() - 1)" aria-label="Previous page">&larr;</button>
-        @for (n of ossPageNumbers(); track n) {
-          <button type="button" class="oss-page-btn"
-                  [class.is-active]="ossPage() === n"
-                  [attr.aria-current]="ossPage() === n ? 'page' : null"
-                  (click)="goOssPage(n)">{{ n }}</button>
-        }
-        <button type="button" class="oss-page-btn oss-page-arrow"
-                [disabled]="ossPage() >= ossTotalPages()"
-                (click)="goOssPage(ossPage() + 1)" aria-label="Next page">&rarr;</button>
-      </nav>
-    }
-  </div>
-</section>
-
-<!-- BY THE NUMBERS — 6 verifiable stats with SVG icons + chat CTA -->
-<section class="proof-panel" id="by-numbers">
-  <svg class="sec-geo sec-geo--proof" viewBox="0 0 600 600" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><!-- calibration dial --><defs><linearGradient id="geo-proof-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" style="stop-color:var(--geo-a)"/><stop offset="55%" style="stop-color:var(--geo-b)"/><stop offset="100%" style="stop-color:var(--geo-c)"/></linearGradient></defs><circle cx="300" cy="300" r="70" fill="none" style="stroke:var(--geo-line)" stroke-width="1" opacity="0.35"/><circle cx="300" cy="300" r="120" fill="none" style="stroke:var(--geo-line)" stroke-width="1" opacity="0.44999999999999996"/><circle cx="300" cy="300" r="170" fill="none" style="stroke:var(--geo-line)" stroke-width="1" opacity="0.55"/><circle cx="300" cy="300" r="220" fill="none" style="stroke:var(--geo-line)" stroke-width="1" opacity="0.65"/><circle cx="300" cy="300" r="257" fill="none" style="stroke:var(--geo-line)" stroke-width="8" stroke-dasharray="1 25.9" opacity="0.5" transform="rotate(-90 300 300)"/><circle cx="300" cy="300" r="256" fill="none" style="stroke:var(--geo-line)" stroke-width="18" stroke-dasharray="1.6 132.4" opacity="0.85" transform="rotate(-90 300 300)"/><path d="M300.0,80.0 A220,220 0 1 1 109.5,190.0" fill="none" stroke="url(#geo-proof-g)" stroke-width="5" stroke-linecap="round"/><circle cx="109.5" cy="190.0" r="7" style="fill:var(--geo-a)"/><line x1="260" y1="300" x2="340" y2="300" style="stroke:var(--geo-line)" opacity="0.5"/><line x1="300" y1="260" x2="300" y2="340" style="stroke:var(--geo-line)" opacity="0.5"/><circle cx="300" cy="300" r="10" fill="none" stroke="url(#geo-proof-g)" stroke-width="2"/></svg>
-  <div class="container">
-    <div class="eyebrow">Proof of Work</div>
-    <h2>Engineering Proof</h2>
-    <p class="section-sub">Forward deployed work is judged by outcomes, not tools: <b>is it live, does it fit the customer’s stack, is it fast and affordable, will security sign off, and can the team trust it?</b> Every number below is real and verifiable — not slides.</p>
-
-    <div class="proof-grid">
-      @for (p of proofStats; track p.stat) {
-        <div class="proof-card">
-
-          <!-- SVG icon top-right — hardcoded, safe to bypass sanitizer -->
-          <div class="proof-icon" [innerHTML]="safeIcon(p.svgIcon)"></div>
-
-          <div class="proof-tag">{{ p.tag }}</div>
-          <div class="proof-num">{{ p.stat }}</div>
-          <div class="proof-title">{{ p.title }}</div>
-          <div class="proof-sub">{{ p.sub }}</div>
-          @if (p.link) { <a class="proof-live-link" [href]="p.link" target="_blank" rel="noopener">Visit aurawithrav.com →</a> }
-
-          <!-- Aarav character CTA — click to ask -->
-          <button class="proof-aarav" (click)="askAarav(p.askQuestion)" [title]="p.askQuestion">
-            <img [src]="p.aaravImg" class="proof-aarav-avatar" alt="Aarav"/>
-            <div class="proof-aarav-bubble">
-              <span class="proof-aarav-text">{{ p.aaravSay }}</span>
-              <span class="proof-aarav-cta">Tap to ask me! ↗</span>
-            </div>
-          </button>
-
-        </div>
-      }
-    </div>
-  </div>
-</section>
-
-<!-- OPEN SOURCE -->
 <!-- SKILLS -->
 <section id="skills" class="skills-section" data-guide="skills">
   <svg class="sec-geo sec-geo--fde" viewBox="0 0 600 600" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><!-- outward spiral --><defs><linearGradient id="geo-fde-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" style="stop-color:var(--geo-a)"/><stop offset="55%" style="stop-color:var(--geo-b)"/><stop offset="100%" style="stop-color:var(--geo-c)"/></linearGradient></defs><polyline points="306,300 307,301 308,301 309,302 310,303 311,305 312,306 312,308 313,309 313,311 313,313 313,315 312,317 311,319 310,321 309,322 308,324 306,326 304,328 302,329 300,330 298,331 295,332 292,333 289,333 286,334 283,334 280,333 276,332 273,331 270,330 267,328 264,326 261,324 258,322 255,319 253,315 250,312 248,308 247,304 245,300 244,296 244,291 243,286 243,282 244,277 245,272 246,267 248,262 250,257 253,253 256,248 259,244 263,240 267,236 272,233 277,229 282,227 288,224 294,222 300,221 306,220 313,220 319,220 326,220 333,221 339,223 346,225 352,228 358,232 364,236 370,240 376,245 381,250 386,256 390,263 394,270 397,277 400,284 402,292 403,300 404,308 405,317 404,325 403,333 401,342 399,350 395,358 392,366 387,374 382,382 376,389 369,395 362,402 355,407 347,412 338,417 329,421 320,424 310,426 300,428 290,429 280,429 269,428 259,426 249,424 239,420 229,416 219,411 210,405 201,399 193,392 185,384 178,375 171,366 165,356 160,345 156,335 152,323 150,312 148,300 147,288 147,276 149,264 151,251 154,239 158,228 163,216 169,205 176,194 184,184 193,174 202,165 212,157 223,149 235,143 247,137 260,132 273,128 286,125 300,124 314,123 328,123 342,125 356,128 370,131 383,136 397,142 409,149 422,158 433,167 444,177 455,188 464,200 472,212 480,225 486,239 492,254 496,269 499,284 501,300 501,316 501,332 499,348 496,364 491,379 485,394 478,409 470,424 461,438 451,451 439,463 427,474 413,485 399,494 384,502 368,509 352,515 335,520 318,523 300,525 282,526 264,525 247,522 229,519 212,514 194,507 178,499 162,490 147,480 132,468 119,455 106,441 95,426 84,410 75,393 67,376 61,357 56,339 53,319 51,300 50,280 51,261 54,241 58,221 64,202 71,183 80,165 90,148 102,131 115,115 129,100 145,86 161,74 179,63 198,53 217,44" fill="none" stroke="url(#geo-fde-g)" stroke-width="1.6" opacity="0.85"/><circle cx="306.0" cy="300.0" r="1.2" style="fill:var(--geo-b)" opacity="0.40"/><circle cx="312.4" cy="307.6" r="1.3" style="fill:var(--geo-b)" opacity="0.42"/><circle cx="310.5" cy="320.5" r="1.4" style="fill:var(--geo-b)" opacity="0.44"/><circle cx="297.5" cy="331.5" r="1.5" style="fill:var(--geo-b)" opacity="0.46"/><circle cx="276.4" cy="332.4" r="1.7" style="fill:var(--geo-b)" opacity="0.48"/><circle cx="255.1" cy="318.6" r="1.8" style="fill:var(--geo-b)" opacity="0.50"/><circle cx="243.6" cy="291.1" r="1.9" style="fill:var(--geo-b)" opacity="0.52"/><circle cx="250.1" cy="257.4" r="2.0" style="fill:var(--geo-b)" opacity="0.54"/><circle cx="277.1" cy="229.5" r="2.1" style="fill:var(--geo-b)" opacity="0.55"/><circle cx="319.3" cy="219.6" r="2.2" style="fill:var(--geo-b)" opacity="0.57"/><circle cx="364.5" cy="235.5" r="2.4" style="fill:var(--geo-b)" opacity="0.59"/><circle cx="397.0" cy="276.7" r="2.5" style="fill:var(--geo-b)" opacity="0.61"/><circle cx="403.0" cy="333.5" r="2.6" style="fill:var(--geo-b)" opacity="0.63"/><circle cx="375.8" cy="388.8" r="2.7" style="fill:var(--geo-b)" opacity="0.65"/><circle cx="319.6" cy="423.8" r="2.8" style="fill:var(--geo-b)" opacity="0.67"/><circle cx="248.8" cy="423.6" r="2.9" style="fill:var(--geo-b)" opacity="0.69"/><circle cx="184.8" cy="383.7" r="3.1" style="fill:var(--geo-b)" opacity="0.71"/><circle cx="149.6" cy="311.8" r="3.2" style="fill:var(--geo-b)" opacity="0.73"/><circle cx="158.0" cy="227.6" r="3.3" style="fill:var(--geo-b)" opacity="0.75"/><circle cx="212.3" cy="156.8" r="3.4" style="fill:var(--geo-b)" opacity="0.77"/><circle cx="300.0" cy="123.6" r="3.5" style="fill:var(--geo-b)" opacity="0.79"/><circle cx="396.6" cy="142.3" r="3.6" style="fill:var(--geo-b)" opacity="0.81"/><circle cx="472.4" cy="212.2" r="3.8" style="fill:var(--geo-b)" opacity="0.83"/><circle cx="501.4" cy="315.8" r="3.9" style="fill:var(--geo-b)" opacity="0.85"/><circle cx="470.3" cy="423.7" r="4.0" style="fill:var(--geo-b)" opacity="0.86"/><circle cx="383.8" cy="502.4" r="4.1" style="fill:var(--geo-b)" opacity="0.88"/><circle cx="264.4" cy="524.8" r="4.2" style="fill:var(--geo-b)" opacity="0.90"/><circle cx="146.7" cy="479.5" r="4.3" style="fill:var(--geo-b)" opacity="0.92"/><circle cx="67.4" cy="375.6" r="4.5" style="fill:var(--geo-b)" opacity="0.94"/><circle cx="53.9" cy="240.9" r="4.6" style="fill:var(--geo-b)" opacity="0.96"/><circle cx="115.0" cy="115.0" r="4.7" style="fill:var(--geo-b)" opacity="0.98"/><path d="M440,258 L470,300 L440,342" fill="none" stroke="url(#geo-fde-g)" stroke-width="5" stroke-linecap="square" opacity="0.35" class="geo-chev geo-chev--0"/><path d="M478,258 L508,300 L478,342" fill="none" stroke="url(#geo-fde-g)" stroke-width="5" stroke-linecap="square" opacity="0.65" class="geo-chev geo-chev--1"/><path d="M516,258 L546,300 L516,342" fill="none" stroke="url(#geo-fde-g)" stroke-width="5" stroke-linecap="square" opacity="0.95" class="geo-chev geo-chev--2"/><circle cx="300" cy="300" r="6" style="fill:var(--geo-a)"/></svg>
@@ -723,6 +537,124 @@
         <button type="button" class="oss-page-btn oss-page-arrow"
                 [disabled]="projPage() >= projTotalPages"
                 (click)="goProjPage(projPage() + 1)" aria-label="Next page">&rarr;</button>
+      </nav>
+    }
+  </div>
+</section>
+
+<!-- BY THE NUMBERS — 6 verifiable stats with SVG icons + chat CTA -->
+<section class="proof-panel" id="by-numbers">
+  <svg class="sec-geo sec-geo--proof" viewBox="0 0 600 600" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><!-- calibration dial --><defs><linearGradient id="geo-proof-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" style="stop-color:var(--geo-a)"/><stop offset="55%" style="stop-color:var(--geo-b)"/><stop offset="100%" style="stop-color:var(--geo-c)"/></linearGradient></defs><circle cx="300" cy="300" r="70" fill="none" style="stroke:var(--geo-line)" stroke-width="1" opacity="0.35"/><circle cx="300" cy="300" r="120" fill="none" style="stroke:var(--geo-line)" stroke-width="1" opacity="0.44999999999999996"/><circle cx="300" cy="300" r="170" fill="none" style="stroke:var(--geo-line)" stroke-width="1" opacity="0.55"/><circle cx="300" cy="300" r="220" fill="none" style="stroke:var(--geo-line)" stroke-width="1" opacity="0.65"/><circle cx="300" cy="300" r="257" fill="none" style="stroke:var(--geo-line)" stroke-width="8" stroke-dasharray="1 25.9" opacity="0.5" transform="rotate(-90 300 300)"/><circle cx="300" cy="300" r="256" fill="none" style="stroke:var(--geo-line)" stroke-width="18" stroke-dasharray="1.6 132.4" opacity="0.85" transform="rotate(-90 300 300)"/><path d="M300.0,80.0 A220,220 0 1 1 109.5,190.0" fill="none" stroke="url(#geo-proof-g)" stroke-width="5" stroke-linecap="round"/><circle cx="109.5" cy="190.0" r="7" style="fill:var(--geo-a)"/><line x1="260" y1="300" x2="340" y2="300" style="stroke:var(--geo-line)" opacity="0.5"/><line x1="300" y1="260" x2="300" y2="340" style="stroke:var(--geo-line)" opacity="0.5"/><circle cx="300" cy="300" r="10" fill="none" stroke="url(#geo-proof-g)" stroke-width="2"/></svg>
+  <div class="container">
+    <div class="eyebrow">Proof of Work</div>
+    <h2>Engineering Proof</h2>
+    <p class="section-sub">Forward deployed work is judged by outcomes, not tools: <b>is it live, does it fit the customer’s stack, is it fast and affordable, will security sign off, and can the team trust it?</b> Every number below is real and verifiable — not slides.</p>
+
+    <div class="proof-grid">
+      @for (p of proofStats; track p.stat) {
+        <div class="proof-card">
+
+          <!-- SVG icon top-right — hardcoded, safe to bypass sanitizer -->
+          <div class="proof-icon" [innerHTML]="safeIcon(p.svgIcon)"></div>
+
+          <div class="proof-tag">{{ p.tag }}</div>
+          <div class="proof-num">{{ p.stat }}</div>
+          <div class="proof-title">{{ p.title }}</div>
+          <div class="proof-sub">{{ p.sub }}</div>
+          @if (p.link) { <a class="proof-live-link" [href]="p.link" target="_blank" rel="noopener">Visit aurawithrav.com →</a> }
+
+
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- OPEN SOURCE CONTRIBUTION — grows with each merge -->
+<section id="opensource" class="oss-section">
+  <svg class="sec-geo sec-geo--oss" viewBox="0 0 600 600" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><!-- converging rings --><defs><linearGradient id="geo-oss-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" style="stop-color:var(--geo-a)"/><stop offset="55%" style="stop-color:var(--geo-b)"/><stop offset="100%" style="stop-color:var(--geo-c)"/></linearGradient></defs><circle cx="300.0" cy="300.0" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.9"/><circle cx="378.0" cy="300.0" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.7"/><circle cx="339.0" cy="367.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.7"/><circle cx="261.0" cy="367.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.7"/><circle cx="222.0" cy="300.0" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.7"/><circle cx="261.0" cy="232.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.7"/><circle cx="339.0" cy="232.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.7"/><circle cx="417.0" cy="367.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.4"/><circle cx="300.0" cy="435.1" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.4"/><circle cx="183.0" cy="367.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.4"/><circle cx="183.0" cy="232.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.4"/><circle cx="300.0" cy="164.9" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.4"/><circle cx="417.0" cy="232.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.4"/><circle cx="378.0" cy="300.0" r="3.2" style="fill:var(--geo-a)"/><circle cx="339.0" cy="367.5" r="3.2" style="fill:var(--geo-a)"/><circle cx="261.0" cy="367.5" r="3.2" style="fill:var(--geo-a)"/><circle cx="222.0" cy="300.0" r="3.2" style="fill:var(--geo-a)"/><circle cx="261.0" cy="232.5" r="3.2" style="fill:var(--geo-a)"/><circle cx="339.0" cy="232.5" r="3.2" style="fill:var(--geo-a)"/><circle cx="300" cy="300" r="5" style="fill:var(--geo-a)"/><circle cx="300" cy="300" r="262" fill="none" stroke="url(#geo-oss-g)" stroke-width="1" stroke-dasharray="2 7" opacity="0.6" class="geo-spin-slow"/></svg>
+  <div class="container">
+    <div class="oss-head">
+      <div class="oss-logos">
+        <img class="oss-hf" src="huggingface-logo.svg" alt="Hugging Face" />
+        <img class="oss-hf" src="joblib-logo.svg" alt="joblib" />
+      </div>
+      <div>
+        <h2 class="oss-h">I Don't Just Use Open Source. I Contribute to It.</h2>
+        <p class="oss-sub"><b>{{ openSource.length }} merged contributions</b> across libraries used by the AI/ML and Python ecosystem — pypdf · Joblib · Sentence Transformers · NLTK · Authlib.</p>
+      </div>
+    </div>
+    <!-- Library filter: colour-coded chips, biggest project first -->
+    <div class="oss-controls">
+      <div class="oss-chips" role="tablist" aria-label="Filter by library">
+        <button type="button" role="tab" class="oss-chip"
+                [class.is-active]="ossLibrary() === 'all'"
+                [attr.aria-selected]="ossLibrary() === 'all'"
+                (click)="setOssLibrary('all')">
+          All <span class="oss-chip-n">{{ openSource.length }}</span>
+        </button>
+        @for (lib of ossLibraries(); track lib.repo) {
+          <button type="button" role="tab" class="oss-chip"
+                  [attr.data-lib]="lib.slug"
+                  [class.is-active]="ossLibrary() === lib.repo"
+                  [attr.aria-selected]="ossLibrary() === lib.repo"
+                  (click)="setOssLibrary(lib.repo)">
+            <img class="oss-chip-logo" [src]="lib.logo" [alt]="" aria-hidden="true" />
+            {{ lib.repo.split('/')[1] }} <span class="oss-chip-n">{{ lib.n }}</span>
+          </button>
+        }
+      </div>
+
+      <div class="oss-sortbar">
+        <span class="oss-range">{{ ossRangeLabel() }}</span>
+        <label class="oss-sort">
+          <span class="oss-sort-label">Sort</span>
+          <select [value]="ossSort()"
+                  (change)="setOssSort($any($event.target).value)"
+                  aria-label="Sort merged pull requests">
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="stars">Most stars</option>
+            <option value="library">By library</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <div class="oss-grid">
+      @for (o of ossVisible(); track o.pr) {
+        <a class="oss-card" [href]="o.pr" target="_blank" rel="noopener">
+          <div class="oss-top">
+            <span class="oss-repo">
+              <img class="oss-card-logo" [src]="o.logo" [alt]="o.org" />
+              {{ o.repo }}
+            </span>
+            <span class="oss-stars">{{ o.stars }}</span>
+          </div>
+          <div class="oss-title">{{ o.title }}</div>
+          <div class="oss-desc">{{ o.desc }}</div>
+          <div class="oss-foot">
+            <span class="oss-merged">✓ Merged · {{ o.merged }}</span>
+            <span class="oss-view">View PR ↗</span>
+          </div>
+        </a>
+      }
+    </div>
+
+    @if (ossTotalPages() > 1) {
+      <nav class="oss-pager" aria-label="Merged pull request pages">
+        <button type="button" class="oss-page-btn oss-page-arrow"
+                [disabled]="ossPage() <= 1"
+                (click)="goOssPage(ossPage() - 1)" aria-label="Previous page">&larr;</button>
+        @for (n of ossPageNumbers(); track n) {
+          <button type="button" class="oss-page-btn"
+                  [class.is-active]="ossPage() === n"
+                  [attr.aria-current]="ossPage() === n ? 'page' : null"
+                  (click)="goOssPage(n)">{{ n }}</button>
+        }
+        <button type="button" class="oss-page-btn oss-page-arrow"
+                [disabled]="ossPage() >= ossTotalPages()"
+                (click)="goOssPage(ossPage() + 1)" aria-label="Next page">&rarr;</button>
       </nav>
     }
   </div>
@@ -1302,6 +1234,54 @@
   </div>
 </section>
 
+<!-- KNOWLEDGE GRAPH — everything on this page, and how it connects -->
+<section id="graph" class="kg-section" aria-label="Interactive knowledge graph">
+  <div class="container">
+    <div class="kg-head">
+      <h2 class="kg-h">How It All Connects</h2>
+      <p class="kg-sub">
+        Every system, technology, merged contribution and role on this page — carried on a
+        <b>buckminsterfullerene</b>: 60 vertices, 90 bonds, 12 pentagons and 20 hexagons.
+        <b>Drag to spin it</b>, hover a lit vertex to trace what it touches,
+        or click a coloured one to open the merged PR — each library carries its own colour.
+      </p>
+      <div class="kg-legend">
+        <span class="kg-key"><i class="kg-dot" style="background:#00ABAB;box-shadow:0 0 10px #00ABAB"></i>Systems built</span>
+        <span class="kg-key"><i class="kg-dot" style="background:#62B5E5;box-shadow:0 0 10px #62B5E5"></i>Technologies</span>
+        <span class="kg-key"><i class="kg-dot" style="background:#FFB81C;box-shadow:0 0 10px #FFB81C"></i>Experience</span>
+        <span class="kg-key"><i class="kg-dot" style="background:#86BC25;box-shadow:0 0 10px #86BC25"></i>pypdf</span>
+        <span class="kg-key"><i class="kg-dot" style="background:#fb7185"></i>joblib</span>
+        <span class="kg-key"><i class="kg-dot" style="background:#f472b6"></i>sentence-transformers</span>
+        <span class="kg-key"><i class="kg-dot" style="background:#E3E48D;box-shadow:0 0 10px #E3E48D"></i>NLTK</span>
+        <span class="kg-key"><i class="kg-dot" style="background:#A0DCFF;box-shadow:0 0 10px #A0DCFF"></i>Authlib</span>
+      </div>
+    </div>
+
+    <div class="kg-stage">
+      <canvas id="kg-canvas" class="kg-canvas"
+              aria-label="Interactive graph connecting projects, technologies, open-source contributions and work experience. The same relationships are described in text below."></canvas>
+
+      @if (graphHover(); as n) {
+        <div class="kg-tip" [class.kg-tip--link]="!!n.url">
+          <div class="kg-tip-label">{{ n.label }}</div>
+          <div class="kg-tip-detail">{{ n.detail }}</div>
+          @if (n.url) { <div class="kg-tip-cta">Click to open the PR ↗</div> }
+        </div>
+      } @else {
+        <div class="kg-hint">C<sub>60</sub> · drag to spin the molecule — hover a glowing atom to trace its links</div>
+      }
+    </div>
+
+    <!-- Text fallback: the same relationships, for screen readers and no-JS -->
+    <p class="kg-a11y">
+      Systems: Aura with Rav, Bench Resource Optimizer, Agentic Growth OS and AI Content Factory —
+      all built with Python, FastAPI, LangGraph and Angular. Merged open-source contributions to
+      pypdf, NLTK, joblib and Hugging Face Sentence Transformers. Currently a Software Engineer II at
+      Deloitte USI (Agentic AI and AI Security); earlier backend work in Java and Spring at Infosys (Bank of America), Nexsys/Accelya and Texala.
+    </p>
+  </div>
+</section>
+
 <!-- CONTACT -->
 <section id="contact" class="contact-section" data-guide="contact">
   <svg class="sec-geo sec-geo--contact" viewBox="0 0 600 600" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><!-- reaching ripples --><defs><linearGradient id="geo-contact-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" style="stop-color:var(--geo-a)"/><stop offset="55%" style="stop-color:var(--geo-b)"/><stop offset="100%" style="stop-color:var(--geo-c)"/></linearGradient></defs><circle cx="170" cy="330" r="27" fill="none" stroke="url(#geo-contact-g)" stroke-width="1.3" opacity="0.74" class="geo-ripple geo-ripple--1"/><circle cx="170" cy="330" r="54" fill="none" stroke="url(#geo-contact-g)" stroke-width="1.3" opacity="0.63" class="geo-ripple geo-ripple--2"/><circle cx="170" cy="330" r="81" fill="none" stroke="url(#geo-contact-g)" stroke-width="1.3" opacity="0.52" class="geo-ripple geo-ripple--3"/><circle cx="170" cy="330" r="108" fill="none" stroke="url(#geo-contact-g)" stroke-width="1.3" opacity="0.41" class="geo-ripple geo-ripple--4"/><circle cx="170" cy="330" r="135" fill="none" stroke="url(#geo-contact-g)" stroke-width="1.3" opacity="0.30" class="geo-ripple geo-ripple--5"/><circle cx="170" cy="330" r="162" fill="none" stroke="url(#geo-contact-g)" stroke-width="1.3" opacity="0.19" class="geo-ripple geo-ripple--6"/><path d="M170,330 Q310,150 450,250" fill="none" style="stroke:var(--geo-a)" stroke-width="2" stroke-dasharray="6 8" class="geo-dash"/><circle cx="450" cy="250" r="22" fill="none" stroke="url(#geo-contact-g)" stroke-width="1.4" opacity="0.9"/><circle cx="450" cy="250" r="44" fill="none" stroke="url(#geo-contact-g)" stroke-width="1.4" opacity="0.45"/><circle cx="450" cy="250" r="70" fill="none" stroke="url(#geo-contact-g)" stroke-width="1.4" opacity="0.25"/><circle cx="170" cy="330" r="8" style="fill:var(--geo-a)"/><circle cx="450" cy="250" r="8" style="fill:var(--geo-b)"/></svg>
@@ -1365,6 +1345,7 @@
     </div>
   </div>
 </section>
+
 
 
 <!-- DEMO MODAL -->
@@ -1445,11 +1426,12 @@
         <div class="footer-tagline">Software Engineer II · Deloitte USI · Agentic AI × AI Security</div>
       </div>
       <nav class="footer-nav" aria-label="Footer navigation">
-        <a href="#story">Story</a>
-        <a href="#opensource">Open Source</a>
-        <a href="#skills">Skills</a>
+        <a href="#skills">How I Work</a>
         <a href="#projects">Projects</a>
+        <a href="#by-numbers">Proof</a>
+        <a href="#opensource">Open Source</a>
         <a href="#experience">Experience</a>
+        <a href="#story">Story</a>
         <a href="#contact">Contact</a>
       </nav>
     </div>

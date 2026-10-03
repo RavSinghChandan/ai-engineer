@@ -2848,3 +2848,34 @@ footer {
 .chakra-center { width: calc(var(--wheel) * 0.455); height: calc(var(--wheel) * 0.455); }
 @media (max-width: 1099px) { .cc-foot { display: none; } }
 @media (max-width: 767px) { .cc-kicker { font-size: 11px !important; letter-spacing: 0.06em; } }
+
+/* Section rhythm for the forward-deployed order:
+   hero · how I work · projects · proof · open source · experience · story · map · contact */
+#skills, #by-numbers, #experience, #contact { background: var(--bg) !important; }
+#projects, .oss-section, #story { background: var(--bg-alt) !important; }
+
+/* ── UX pass: calmer hero, professional proof cards ── */
+.hero-cta { align-items: center; }
+.btn-icon { width: 46px; height: 46px; padding: 0 !important; justify-content: center; }
+.btn-icon svg { width: 18px; height: 18px; }
+.hero-desc { max-width: 560px; }
+/* keep the decorative network away from the text column */
+.hero-ai-bg {
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, transparent 42%, #000 62%);
+  mask-image: linear-gradient(90deg, transparent 0%, transparent 42%, #000 62%);
+}
+@media (max-width: 899px) { .hero-ai-bg { opacity: 0.35; -webkit-mask-image: none; mask-image: none; } }
+
+.proof-ask {
+  margin-top: auto; align-self: flex-start; background: none; border: none; padding: 0.6rem 0 0; cursor: pointer;
+  font: inherit; font-size: 0.85rem; font-weight: 700; color: var(--accent); min-height: 44px;
+  span { display: inline-block; transition: transform .2s var(--ease); }
+  &:hover span { transform: translateX(4px); }
+  &:focus-visible { outline: 2px solid var(--dl-green); outline-offset: 3px; }
+}
+.proof-card { display: flex; flex-direction: column; }
+@media (max-width: 599px) {
+  .hero-stats { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem 1.25rem; }
+  .hero-stats .stat-sep { display: none; }
+  .hero-stats .stat { text-align: left; }
+}

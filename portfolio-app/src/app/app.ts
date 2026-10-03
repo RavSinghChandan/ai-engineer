@@ -2368,7 +2368,6 @@ export class App implements OnInit, AfterViewInit {
       let saved: string | null = null;
       try { saved = localStorage.getItem('ck-theme'); } catch { /* storage blocked */ }
       this.applyTheme(saved === 'light' ? 'light' : 'dark');
-      this.startTyping();
     }
   }
 
@@ -2470,7 +2469,7 @@ export class App implements OnInit, AfterViewInit {
     // back-to-top threshold
     this.showBackToTop.set(sy > document.documentElement.scrollHeight * 0.35);
     // active nav section
-    const sections = ['story','opensource','skills','projects','by-numbers','experience','contact'];
+    const sections = ['skills','projects','by-numbers','opensource','experience','story','contact'];
     let current = '';
     for (const id of sections) {
       const el = document.getElementById(id);
