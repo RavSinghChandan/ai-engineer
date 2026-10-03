@@ -389,7 +389,7 @@
       Here is each part, with receipts.</p>
 
     <!-- How I deploy: the loop, drawn as a 24-spoke chakra -->
-    <div class="chakra-wrap fade-up" #fadeEl (mouseenter)="pauseLoop()" (mouseleave)="resumeLoop()" (focusin)="pauseLoop()" (focusout)="resumeLoop()">
+    <div class="chakra-wrap fade-up" #fadeEl (pointerenter)="pauseLoop()" (pointerleave)="resumeLoop()" (focusin)="pauseLoop()">
       <div class="chakra">
         <svg class="chakra-wheel" viewBox="0 0 400 400" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
           <g class="ck-sector" [style.transform]="'rotate(' + loopTurn() * 60 + 'deg)'"><path d="M112.0,47.6 A176,176 0 0 1 288.0,47.6 L246.0,120.3 A92,92 0 0 0 154.0,120.3 Z" fill="url(#ck-sector)"/></g>

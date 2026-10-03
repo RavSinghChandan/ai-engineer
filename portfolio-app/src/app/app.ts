@@ -1451,19 +1451,23 @@ export class App implements OnInit, AfterViewInit {
   // highlighted sector never spins backwards from step 6 to step 1.
   loopTurn = signal(0);
   readonly loopStep = computed(() => this.loopTurn() % this.deployLoop.length);
-  private loopPaused = false;
+  private loopHover = false;
+  private loopHoldUntil = 0;                       // any interaction holds auto-play
   private loopTimer: ReturnType<typeof setInterval> | undefined;
 
   setLoop(i: number): void {
     const n = this.deployLoop.length;
     const cur = this.loopTurn();
     this.loopTurn.set(cur + ((i - (cur % n)) + n) % n);
+    this.loopHoldUntil = Date.now() + 8000;
   }
-  pauseLoop(): void { this.loopPaused = true; }
-  resumeLoop(): void { this.loopPaused = false; }
+  pauseLoop(): void { this.loopHover = true; this.loopHoldUntil = Date.now() + 8000; }
+  resumeLoop(): void { this.loopHover = false; }
   private startLoop(): void {
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
-    this.loopTimer = setInterval(() => { if (!this.loopPaused) this.loopTurn.update(t => t + 1); }, 2800);
+    this.loopTimer = setInterval(() => {
+      if (!this.loopHover && Date.now() > this.loopHoldUntil) this.loopTurn.update(t => t + 1);
+    }, 2800);
   }
 
   readonly stackLayers = [
