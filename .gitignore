@@ -115,3 +115,7 @@ salesflow-ai/platforms/telegram/
 **/DEPLOY_ENV_VARS.txt
 
 **/RENDER_PASTE_THIS.txt
+.vercel
+
+# Aaina lives in its own private repo (github.com/RavSinghChandan/aaina)
+aaina/
