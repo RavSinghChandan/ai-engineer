@@ -7,7 +7,7 @@
 
 .bp-loop { fill: none; stroke: var(--border); stroke-width: 1.5; stroke-dasharray: 4 6; }
 .bp-flow {
-  fill: none; stroke: var(--dl-green, #86BC25); stroke-width: 1.6; opacity: 0.45;
+  fill: none; stroke-width: 1.8; opacity: 0.6;
   stroke-dasharray: 35 965; animation: bp-flow 18s linear infinite;
 }
 @keyframes bp-flow { to { stroke-dashoffset: -1000; } }
@@ -36,3 +36,15 @@
   .bp-flow, .bp-packet, .bp-halo { animation: none !important; }
   .bp-packet { display: none; }
 }
+
+/* layers are colour-coded: the colour carries meaning, the text stays neutral */
+.l-client   { --lc: #62B5E5; }
+.l-security { --lc: #00ABAB; }
+.l-ai       { --lc: #86BC25; }
+.l-data     { --lc: #FFB81C; }
+.l-ship     { --lc: #A78BFA; }
+.bp-node[class*="l-"] rect:first-of-type { stroke: color-mix(in srgb, var(--lc) 55%, transparent); }
+.bp-node .bp-tick, .bp-legend .bp-tick { fill: var(--lc); }
+.bp-node[class*="l-"] .bp-s { fill: color-mix(in srgb, var(--lc) 70%, var(--muted)); }
+.bp-legend .bp-s { fill: var(--muted); }
+@media (max-width: 899px) { .bp-legend { display: none; } }

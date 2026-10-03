@@ -8,7 +8,8 @@ import { DeployLine } from './deploy-line';
 import { Magnetic } from './magnetic';
 import { ProofViz } from './proof-viz';
 import { HeroBlueprint } from './hero-blueprint';
-import { CycleRows, ScrollFill } from './motion';
+import { CityLights, CycleRows, ScrollFill } from './motion';
+import { ProjectReel } from './project-reel';
 import { LiveStatus } from './live-status.service';
 
 /** A node in the interactive knowledge graph. */
@@ -30,7 +31,7 @@ interface GraphBody extends GraphNode {
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, FormsModule, LiveProof, DeployLine, Magnetic, ProofViz, HeroBlueprint, CycleRows, ScrollFill],
+  imports: [CommonModule, FormsModule, LiveProof, DeployLine, Magnetic, ProofViz, HeroBlueprint, CycleRows, ScrollFill, CityLights, ProjectReel],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
@@ -2404,6 +2405,14 @@ export class App implements OnInit, AfterViewInit {
       entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
     }, { threshold: 0.08 });
     this.fadeEls.forEach(el => observer.observe(el.nativeElement));
+
+    // Section diagrams animate only while their section is on screen.
+    if (!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      const geoIo = new IntersectionObserver(entries => {
+        entries.forEach(e => e.target.querySelector('.sec-geo')?.classList.toggle('geo-live', e.isIntersecting));
+      }, { threshold: 0.05 });
+      document.querySelectorAll('section').forEach(sec => { if (sec.querySelector(':scope > .sec-geo')) geoIo.observe(sec); });
+    }
     this.fadeEls.changes.subscribe((list: QueryList<ElementRef>) => {
       list.forEach(el => observer.observe(el.nativeElement));
     });

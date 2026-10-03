@@ -75,3 +75,39 @@ export class ScrollFill implements AfterViewInit, OnDestroy {
     cancelAnimationFrame(this.raf);
   }
 }
+
+/**
+ * City skylines as light bulbs: the small window shapes switch on one by one when
+ * the skyline comes on screen, and a tap or click flips the city's lights.
+ */
+@Directive({
+  selector: '[cityLights]', standalone: true,
+  host: { role: 'button', tabindex: '0', '[attr.aria-pressed]': '!off', '(click)': 'toggle()', '(keydown.enter)': 'toggle()', '(keydown.space)': '$event.preventDefault(); toggle()' },
+})
+export class CityLights implements AfterViewInit, OnDestroy {
+  private readonly el = inject(ElementRef<HTMLElement>);
+  private io?: IntersectionObserver;
+  off = false;
+
+  ngAfterViewInit() {
+    const host = this.el.nativeElement as HTMLElement;
+    let k = 0;
+    for (const r of Array.from(host.querySelectorAll('svg rect')) as SVGRectElement[]) {
+      const w = parseFloat(r.getAttribute('width') || '99'), fill = r.getAttribute('fill') || r.parentElement?.getAttribute('fill') || '';
+      if (w > 6 || fill.startsWith('url') || fill === '#000') continue;
+      r.classList.add('win');
+      r.style.setProperty('--d', `${(k++ * 0.07 + Math.random() * 0.25).toFixed(2)}s`);
+      if (Math.random() < 0.18) r.classList.add('twinkle');
+    }
+    if (calm() || !('IntersectionObserver' in window)) { host.classList.add('lit'); return; }
+    this.io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { host.classList.add('lit'); this.io?.disconnect(); } }, { threshold: 0.5 });
+    this.io.observe(host);
+  }
+
+  toggle() {
+    this.off = !this.off;
+    (this.el.nativeElement as HTMLElement).classList.toggle('lights-off', this.off);
+  }
+
+  ngOnDestroy() { this.io?.disconnect(); }
+}

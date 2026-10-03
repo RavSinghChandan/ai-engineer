@@ -2937,3 +2937,90 @@ footer {
 .timeline .tl-item .tl-dot { transition: transform 0.4s, filter 0.4s, opacity 0.4s; z-index: 1; }
 .timeline .tl-item:not(.reached) .tl-dot { filter: grayscale(1); opacity: 0.45; }
 .timeline .tl-item.reached .tl-dot { transform: scale(1.25); }
+
+/* ── Projects: challenges walk problem → solved ── */
+.challenges-table.cycling .ct-row { transition: background 0.4s; }
+.challenges-table.cycling .ct-row.on { background: rgba(134, 188, 37, 0.07); }
+.challenges-table.cycling .ct-row .ct-col-s { transition: opacity 0.4s, transform 0.4s; }
+.challenges-table.cycling .ct-row:not(.on) .ct-col-s { opacity: 0.55; }
+.challenges-table.cycling .ct-row.on .ct-badge.solved { animation: ct-pop 0.5s ease-out; }
+.challenges-table.cycling .ct-row.on .ct-badge.problem { animation: ct-pulse 0.9s ease-in-out; }
+@keyframes ct-pop { 0% { transform: scale(0.6); opacity: 0; } 70% { transform: scale(1.12); } 100% { transform: scale(1); opacity: 1; } }
+@keyframes ct-pulse { 50% { box-shadow: 0 0 0 4px rgba(218, 41, 28, 0.25); } }
+
+/* ── Experience: city lights are bulbs ── */
+[cityLights] { cursor: pointer; }
+[cityLights]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+[cityLights] .win { opacity: 0.12; transition: opacity 0.45s ease var(--d, 0s), filter 0.45s ease var(--d, 0s); }
+[cityLights].lit .win { opacity: 1; filter: drop-shadow(0 0 2px rgba(255, 220, 120, 0.9)); }
+[cityLights].lit .win.twinkle { animation: win-twinkle 3.2s ease-in-out infinite; animation-delay: calc(var(--d, 0s) + 1s); }
+[cityLights].lit.lights-off .win { opacity: 0.1; filter: none; animation: none; transition-delay: 0s; }
+@keyframes win-twinkle { 0%, 100% { opacity: 1; } 45% { opacity: 0.35; } 55% { opacity: 1; } }
+
+/* timeline dots as bulbs: dim until reached, then a filament flicker and a warm glow */
+.timeline .tl-item .tl-dot::after {
+  content: ''; position: absolute; inset: -7px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 220, 120, 0.55), transparent 65%); opacity: 0; transition: opacity 0.6s;
+}
+.timeline .tl-item.reached .tl-dot { animation: bulb-on 0.7s steps(1, end) 1; }
+.timeline .tl-item.reached .tl-dot::after { opacity: 1; }
+@keyframes bulb-on { 0% { opacity: 0.3; } 20% { opacity: 1; } 35% { opacity: 0.4; } 50% { opacity: 1; } 65% { opacity: 0.6; } 80% { opacity: 1; } }
+
+/* ── Contact: the asks light up in turn; cards get the spotlight ── */
+.contact-asks.cycling li { transition: color 0.4s, transform 0.4s; }
+.contact-asks.cycling li.on { color: var(--text); transform: translateX(6px); }
+.contact-asks.cycling li:not(.on) { opacity: 0.6; }
+.contact-card { position: relative; overflow: hidden; }
+@media (hover: hover) {
+  .contact-card::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.25s;
+    background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), rgba(134, 188, 37, 0.12), transparent 70%);
+  }
+  .contact-card:hover::after { opacity: 1; }
+}
+
+/* ── Section diagrams come alive while their section is on screen ── */
+@media (prefers-reduced-motion: no-preference) {
+  .sec-geo:not(.geo-live) * { animation-play-state: paused !important; }
+
+  /* Forward deployed: the spiral draws itself, its points light in sequence */
+  .sec-geo--fde.geo-live polyline { stroke-dasharray: 2600; stroke-dashoffset: 2600; animation: geo-draw 4s ease-out forwards; }
+  .sec-geo--fde.geo-live circle { animation: geo-blink 3s ease-in-out infinite; }
+  .sec-geo--fde circle:nth-of-type(3n) { animation-delay: 0.4s; }
+  .sec-geo--fde circle:nth-of-type(3n+1) { animation-delay: 0.8s; }
+
+  /* Systems built: the isometric cubes float like a stack being assembled */
+  .sec-geo--projects.geo-live use { animation: geo-float 4.5s ease-in-out infinite; transform-box: fill-box; }
+  .sec-geo--projects use:nth-of-type(2n) { animation-delay: -1.5s; }
+  .sec-geo--projects use:nth-of-type(3n) { animation-delay: -3s; }
+
+  /* Proof: the calibration dial sweeps; its scale turns */
+  .sec-geo--proof.geo-live circle[stroke-dasharray] { transform-origin: 300px 300px; transform-box: view-box; animation: geo-spin 40s linear infinite; }
+  .sec-geo--proof.geo-live line { transform-origin: 300px 300px; transform-box: view-box; animation: geo-sweep 6s ease-in-out infinite; }
+  .sec-geo--proof.geo-live circle:not([stroke-dasharray]) { animation: geo-breathe 4s ease-in-out infinite; }
+
+  /* Open source: the converging rings pulse one after another */
+  .sec-geo--oss.geo-live circle { animation: geo-breathe 3.6s ease-in-out infinite; }
+  .sec-geo--oss circle:nth-of-type(2) { animation-delay: 0.3s; } .sec-geo--oss circle:nth-of-type(3) { animation-delay: 0.6s; }
+  .sec-geo--oss circle:nth-of-type(4) { animation-delay: 0.9s; } .sec-geo--oss circle:nth-of-type(5) { animation-delay: 1.2s; }
+  .sec-geo--oss circle:nth-of-type(6) { animation-delay: 1.5s; } .sec-geo--oss circle:nth-of-type(7) { animation-delay: 1.8s; }
+
+  /* Experience: growth rings ripple outward from the first job */
+  .sec-geo--experience.geo-live circle { animation: geo-grow 4.8s ease-in-out infinite; }
+  .sec-geo--experience circle:nth-of-type(2) { animation-delay: 0.25s; } .sec-geo--experience circle:nth-of-type(3) { animation-delay: 0.5s; }
+  .sec-geo--experience circle:nth-of-type(4) { animation-delay: 0.75s; } .sec-geo--experience circle:nth-of-type(5) { animation-delay: 1s; }
+  .sec-geo--experience circle:nth-of-type(6) { animation-delay: 1.25s; } .sec-geo--experience circle:nth-of-type(7) { animation-delay: 1.5s; }
+  .sec-geo--experience circle:nth-of-type(8) { animation-delay: 1.75s; } .sec-geo--experience circle:nth-of-type(9) { animation-delay: 2s; }
+
+  /* Story: the waves flow */
+  .sec-geo--story.geo-live polyline { stroke-dasharray: 14 10; animation: geo-dash 5s linear infinite; }
+  .sec-geo--story polyline:nth-of-type(2n) { animation-duration: 7s; animation-direction: reverse; }
+
+  /* Contact: the reach extends further */
+  .sec-geo--contact.geo-live circle:not(.geo-ripple) { animation: geo-blink 2.4s ease-in-out infinite; }
+}
+@keyframes geo-blink   { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+@keyframes geo-float   { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+@keyframes geo-sweep   { 0%, 100% { transform: rotate(-35deg); } 50% { transform: rotate(35deg); } }
+@keyframes geo-breathe { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+@keyframes geo-grow    { 0%, 100% { opacity: 0.25; stroke-width: 1.1; } 50% { opacity: 0.9; stroke-width: 2.2; } }
