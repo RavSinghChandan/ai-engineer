@@ -2898,3 +2898,6 @@ footer {
   .sb-layers { grid-template-columns: 1fr; }
   .sb-icons { height: 28px; }
 }
+
+/* magnetic buttons ease back smoothly */
+[magnetic] { transition: transform 0.18s ease-out, background 0.2s; }

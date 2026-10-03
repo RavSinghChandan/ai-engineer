@@ -1,0 +1,60 @@
+:host { display: block; margin: 1.1rem 0 1.6rem; }
+
+.dl-track {
+  position: relative; list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(5, 1fr);
+}
+.dl-rail {
+  position: absolute; left: 10%; right: 10%; top: 9px; height: 2px;
+  background: var(--border); overflow: hidden; z-index: 0;
+}
+.dl-signal {
+  position: absolute; top: 0; left: -30%; width: 30%; height: 100%;
+  background: linear-gradient(90deg, transparent, var(--dl-green), var(--dl-teal), transparent);
+  animation: dl-run 3.2s linear infinite;
+}
+@keyframes dl-run { to { left: 100%; } }
+
+.dl-stage { position: relative; z-index: 1; display: flex; justify-content: center; }
+.dl-stage button {
+  display: flex; flex-direction: column; align-items: center; gap: 0.35rem;
+  background: none; border: 0; padding: 0; cursor: pointer; color: var(--muted); font: inherit;
+}
+.dl-node {
+  position: relative; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--bg); border: 2px solid var(--border); transition: border-color 0.3s, background 0.3s, transform 0.3s;
+}
+.dl-stage.past .dl-node { border-color: var(--dl-green); }
+.dl-stage.on .dl-node { border-color: var(--dl-green); background: var(--dl-green); transform: scale(1.15); }
+.dl-name { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; transition: color 0.3s; }
+.dl-stage.on .dl-name { color: var(--text); }
+@media (hover: hover) { .dl-stage button:hover .dl-name { color: var(--text); } }
+.dl-meta { font-family: 'Fira Code', monospace; font-size: 0.64rem; color: var(--muted); white-space: nowrap; }
+
+/* The production stage is wired to the real health check */
+.dl-node.prod { border-color: var(--muted); }
+.dl-node.prod.ok { border-color: var(--green); background: var(--green); }
+.dl-node.prod.slow { border-color: var(--amber); background: var(--amber); }
+.dl-node.prod.down { border-color: var(--red); background: var(--red); }
+.dl-node.prod.ok .dl-ping {
+  position: absolute; inset: -6px; border-radius: 50%; border: 2px solid var(--green);
+  animation: dl-ping 1.8s ease-out infinite;
+}
+@keyframes dl-ping { from { transform: scale(0.6); opacity: 0.9; } to { transform: scale(1.6); opacity: 0; } }
+.dl-stage:last-of-type .dl-meta { color: var(--green); }
+
+.dl-fact {
+  margin: 0.9rem 0 0; min-height: 3.1em; font-size: 0.92rem; line-height: 1.55; color: var(--text2, var(--muted));
+  border-left: 2px solid var(--dl-green); padding: 0.15rem 0 0.15rem 0.8rem;
+  a { color: var(--accent); font-weight: 700; text-decoration: none; white-space: nowrap; &:hover { text-decoration: underline; } }
+}
+.dl-step { font-family: 'Fira Code', monospace; font-size: 0.7rem; color: var(--accent); margin-right: 0.4rem; }
+
+@media (max-width: 520px) {
+  .dl-name { font-size: 0.58rem; letter-spacing: 0.04em; }
+  .dl-meta { font-size: 0.56rem; }
+  .dl-fact { font-size: 0.86rem; min-height: 4.6em; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dl-signal, .dl-ping { animation: none !important; }
+}

@@ -1,7 +1,9 @@
 :host { display: block; position: relative; z-index: 2; }
 
 .lp {
-  background: var(--card);
+  /* the hero's --card is translucent; sit on solid page colour so the background network stays behind */
+  background-color: var(--bg);
+  background-image: linear-gradient(var(--card), var(--card));
   border: 1px solid var(--border);
   box-shadow: var(--card-shadow);
   padding: 1rem 1.1rem 0.6rem;
@@ -25,9 +27,9 @@
 .lp-sub { margin: 0.35rem 0 0.6rem; font-size: 0.72rem; color: var(--muted); }
 
 .lp-row {
-  display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 0.7rem; align-items: center;
+  display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 0.15rem 0.7rem; align-items: center;
   padding: 0.62rem 0; border-top: 1px solid var(--border); text-decoration: none; color: var(--text);
-  &:hover .lp-k { color: var(--accent); }
+  @media (hover: hover) { &:hover .lp-k { color: var(--accent); } }
 }
 .lp-k {
   display: flex; flex-direction: column; font-weight: 700; line-height: 1.25; transition: color 0.2s;
@@ -52,6 +54,16 @@
   &.checking { background: var(--muted); animation: lp-blink 1s ease-in-out infinite; }
 }
 
+.lp-req {
+  grid-column: 2 / -1; font-family: 'Fira Code', monospace; font-size: 0.62rem; color: var(--muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.85;
+  animation: lp-type 0.7s steps(28, end) both;
+  &::before { content: '$ '; color: var(--accent); }
+}
+.lp-in { animation: lp-in 0.45s var(--ease, ease) both; }
+@keyframes lp-type { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes lp-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
 @keyframes lp-pulse { 0% { box-shadow: 0 0 0 0 rgba(134, 188, 37, 0.55); } 70% { box-shadow: 0 0 0 7px rgba(134, 188, 37, 0); } 100% { box-shadow: 0 0 0 0 rgba(134, 188, 37, 0); } }
 @keyframes lp-blink { 50% { opacity: 0.35; } }
 @keyframes lp-spin { to { transform: rotate(360deg); } }
@@ -60,5 +72,5 @@
   .lp-merge { max-width: 10rem; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .lp-dot, .lp-rec, .spin { animation: none !important; }
+  .lp-dot, .lp-rec, .spin, .lp-req, .lp-in { animation: none !important; }
 }

@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ChatService } from './chat.service';
 import { LiveProof } from './live-proof';
+import { DeployLine } from './deploy-line';
+import { Magnetic } from './magnetic';
 
 /** A node in the interactive knowledge graph. */
 interface GraphNode {
@@ -24,7 +26,7 @@ interface GraphBody extends GraphNode {
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, FormsModule, LiveProof],
+  imports: [CommonModule, FormsModule, LiveProof, DeployLine, Magnetic],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
