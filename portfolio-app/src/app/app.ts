@@ -3,6 +3,7 @@ import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ChatService } from './chat.service';
+import { LiveProof } from './live-proof';
 
 /** A node in the interactive knowledge graph. */
 interface GraphNode {
@@ -23,7 +24,7 @@ interface GraphBody extends GraphNode {
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LiveProof],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })

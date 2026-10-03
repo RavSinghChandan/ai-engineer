@@ -177,18 +177,24 @@
         <div class="hero-photo-ring"></div>
       </div>
 
-      <div class="hero-card">
-        <div class="hc-label">End-to-end stack · I ship every layer</div>
-        <div class="hc-layers">
-          @for (l of stackLayers; track l.layer) {
-            <div class="hc-layer"><span class="hc-layer-name">{{ l.layer }}</span><span class="hc-layer-items">{{ l.items }}</span></div>
-          }
-        </div>
-        <img src="https://skillicons.dev/icons?i=python,java,fastapi,angular,react,kafka,docker,aws&perline=8" alt="Python Java FastAPI Angular React Kafka Docker AWS" class="hc-iconstrip"/>
-      
-      </div>
+      <live-proof class="hero-proof" [fallbackCount]="openSource.length" />
     </div>
 
+  </div>
+</section>
+
+<!-- STACK: every layer, one scan -->
+<section class="stack-band" aria-label="End-to-end stack">
+  <div class="container">
+    <div class="sb-head">
+      <span class="sb-label">End-to-end stack · I ship every layer</span>
+      <img src="https://skillicons.dev/icons?i=python,java,fastapi,angular,react,kafka,docker,aws&perline=8" alt="Python Java FastAPI Angular React Kafka Docker AWS" class="sb-icons" loading="lazy"/>
+    </div>
+    <div class="sb-layers">
+      @for (l of stackLayers; track l.layer) {
+        <div class="sb-layer"><span class="hc-layer-name">{{ l.layer }}</span><span class="hc-layer-items">{{ l.items }}</span></div>
+      }
+    </div>
   </div>
 </section>
 

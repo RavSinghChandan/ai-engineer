@@ -2879,3 +2879,22 @@ footer {
   .hero-stats .stat-sep { display: none; }
   .hero-stats .stat { text-align: left; }
 }
+
+/* ── Hero: live proof panel (replaces the static stack card) ── */
+.hero-proof { width: 100%; max-width: 420px; }
+
+/* ── Stack band: the stack, one scan, right under the hero ── */
+.stack-band {
+  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  background: var(--bg-alt); padding: 1.4rem 0;
+}
+.sb-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.sb-label { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.14em; color: var(--text); }
+.sb-icons { height: 34px; width: auto; max-width: 100%; }
+.sb-layers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.7rem 2rem; }
+.sb-layer { display: grid; grid-template-columns: 88px 1fr; gap: 0.6rem; align-items: baseline; font-size: 0.8rem; }
+@media (max-width: 900px) { .sb-layers { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) {
+  .sb-layers { grid-template-columns: 1fr; }
+  .sb-icons { height: 28px; }
+}
