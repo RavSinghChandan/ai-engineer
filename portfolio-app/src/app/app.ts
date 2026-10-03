@@ -10,6 +10,7 @@ import { ProofViz } from './proof-viz';
 import { HeroBlueprint } from './hero-blueprint';
 import { CityLights, CycleRows, ScrollFill } from './motion';
 import { ProjectReel } from './project-reel';
+import { ContactFlow } from './contact-flow';
 import { LiveStatus } from './live-status.service';
 
 /** A node in the interactive knowledge graph. */
@@ -31,7 +32,7 @@ interface GraphBody extends GraphNode {
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, FormsModule, LiveProof, DeployLine, Magnetic, ProofViz, HeroBlueprint, CycleRows, ScrollFill, CityLights, ProjectReel],
+  imports: [CommonModule, FormsModule, LiveProof, DeployLine, Magnetic, ProofViz, HeroBlueprint, CycleRows, ScrollFill, CityLights, ProjectReel, ContactFlow],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })

@@ -1845,7 +1845,6 @@ footer {
 .stl-step--3 .stl-svg-icon { animation-delay: 0.8s; color: var(--amber); border-color: rgba(237,139,0,0.3);  background: rgba(237,139,0,0.08); }
 .stl-step--4 .stl-svg-icon { animation-delay: 1.2s; color: var(--accent); border-color: rgba(38,137,13,0.3); background: rgba(38,137,13,0.08); }
 .stl-step--5 .stl-svg-icon { animation: stl-bounce 1.2s ease-in-out infinite; color: var(--accent-2); border-color: rgba(4,106,56,0.35); background: rgba(4,106,56,0.1); }
-@keyframes stl-float  { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
 @keyframes stl-bounce { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-8px) scale(1.1)} }
 .stl-label {
   font-size: 0.72rem; font-weight: 700; color: var(--text); line-height: 1.3;
@@ -2699,23 +2698,6 @@ footer {
   }
 }
 
-/* Slow, calm motion; switched off for reduced-motion users */
-@media (prefers-reduced-motion: no-preference) {
-  .geo-spin-slow { transform-origin: 300px 300px; transform-box: view-box; animation: geo-spin 90s linear infinite; }
-  .sec-geo--proof path[stroke-linecap="round"] { stroke-dasharray: 1200; stroke-dashoffset: 1200; animation: geo-draw 3.5s var(--ease) forwards; }
-  .geo-chev { animation: geo-chev 2.4s ease-in-out infinite; }
-  .geo-chev--1 { animation-delay: .25s; } .geo-chev--2 { animation-delay: .5s; }
-  .geo-pulse { transform-origin: center; transform-box: fill-box; animation: geo-pulse 2.4s ease-out infinite; }
-  .geo-ripple { transform-origin: 170px 330px; transform-box: view-box; animation: geo-ripple 4s ease-in-out infinite; }
-  .geo-dash { animation: geo-dash 6s linear infinite; }
-}
-@keyframes geo-spin   { to { transform: rotate(360deg); } }
-@keyframes geo-draw   { to { stroke-dashoffset: 0; } }
-@keyframes geo-chev   { 0%,100% { transform: translateX(0); } 50% { transform: translateX(10px); } }
-@keyframes geo-pulse  { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2.2); opacity: 0; } }
-@keyframes geo-ripple { 0%,100% { transform: scale(1); } 50% { transform: scale(1.04); } }
-@keyframes geo-dash   { to { stroke-dashoffset: -140; } }
-
 /* ═══════════════════════════════════════════════════════════════
    RESPONSIVE PASS — phone, iPad, desktop (from the device audit)
    ═══════════════════════════════════════════════════════════════ */
@@ -2979,48 +2961,29 @@ footer {
   .contact-card:hover::after { opacity: 1; }
 }
 
-/* ── Section diagrams come alive while their section is on screen ── */
-@media (prefers-reduced-motion: no-preference) {
-  .sec-geo:not(.geo-live) * { animation-play-state: paused !important; }
 
-  /* Forward deployed: the spiral draws itself, its points light in sequence */
-  .sec-geo--fde.geo-live polyline { stroke-dasharray: 2600; stroke-dashoffset: 2600; animation: geo-draw 4s ease-out forwards; }
-  .sec-geo--fde.geo-live circle { animation: geo-blink 3s ease-in-out infinite; }
-  .sec-geo--fde circle:nth-of-type(3n) { animation-delay: 0.4s; }
-  .sec-geo--fde circle:nth-of-type(3n+1) { animation-delay: 0.8s; }
-
-  /* Systems built: the isometric cubes float like a stack being assembled */
-  .sec-geo--projects.geo-live use { animation: geo-float 4.5s ease-in-out infinite; transform-box: fill-box; }
-  .sec-geo--projects use:nth-of-type(2n) { animation-delay: -1.5s; }
-  .sec-geo--projects use:nth-of-type(3n) { animation-delay: -3s; }
-
-  /* Proof: the calibration dial sweeps; its scale turns */
-  .sec-geo--proof.geo-live circle[stroke-dasharray] { transform-origin: 300px 300px; transform-box: view-box; animation: geo-spin 40s linear infinite; }
-  .sec-geo--proof.geo-live line { transform-origin: 300px 300px; transform-box: view-box; animation: geo-sweep 6s ease-in-out infinite; }
-  .sec-geo--proof.geo-live circle:not([stroke-dasharray]) { animation: geo-breathe 4s ease-in-out infinite; }
-
-  /* Open source: the converging rings pulse one after another */
-  .sec-geo--oss.geo-live circle { animation: geo-breathe 3.6s ease-in-out infinite; }
-  .sec-geo--oss circle:nth-of-type(2) { animation-delay: 0.3s; } .sec-geo--oss circle:nth-of-type(3) { animation-delay: 0.6s; }
-  .sec-geo--oss circle:nth-of-type(4) { animation-delay: 0.9s; } .sec-geo--oss circle:nth-of-type(5) { animation-delay: 1.2s; }
-  .sec-geo--oss circle:nth-of-type(6) { animation-delay: 1.5s; } .sec-geo--oss circle:nth-of-type(7) { animation-delay: 1.8s; }
-
-  /* Experience: growth rings ripple outward from the first job */
-  .sec-geo--experience.geo-live circle { animation: geo-grow 4.8s ease-in-out infinite; }
-  .sec-geo--experience circle:nth-of-type(2) { animation-delay: 0.25s; } .sec-geo--experience circle:nth-of-type(3) { animation-delay: 0.5s; }
-  .sec-geo--experience circle:nth-of-type(4) { animation-delay: 0.75s; } .sec-geo--experience circle:nth-of-type(5) { animation-delay: 1s; }
-  .sec-geo--experience circle:nth-of-type(6) { animation-delay: 1.25s; } .sec-geo--experience circle:nth-of-type(7) { animation-delay: 1.5s; }
-  .sec-geo--experience circle:nth-of-type(8) { animation-delay: 1.75s; } .sec-geo--experience circle:nth-of-type(9) { animation-delay: 2s; }
-
-  /* Story: the waves flow */
-  .sec-geo--story.geo-live polyline { stroke-dasharray: 14 10; animation: geo-dash 5s linear infinite; }
-  .sec-geo--story polyline:nth-of-type(2n) { animation-duration: 7s; animation-direction: reverse; }
-
-  /* Contact: the reach extends further */
-  .sec-geo--contact.geo-live circle:not(.geo-ripple) { animation: geo-blink 2.4s ease-in-out infinite; }
+/* ── The Ashoka Chakra: navy on white, 24 spokes, as on the flag ── */
+.chakra { --ashoka: #000080; }
+.chakra-wheel { filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.35)); }
+.ck-field { fill: #FFFFFF; }
+.ck-ashoka .ck-rim { stroke: var(--ashoka); }
+.ck-ashoka .ck-lunates circle { fill: var(--ashoka); }
+.ck-ashoka .ck-spokes { fill: var(--ashoka); }
+.ck-ashoka .ck-hub { fill: var(--ashoka); }
+.ck-sector-fill { fill: rgba(0, 0, 128, 0.10); }
+.chakra-center {
+  background: #FFFFFF !important; color: var(--ashoka);
+  box-shadow: 0 0 0 4px var(--ashoka), 0 0 0 9px #FFFFFF, 0 0 0 11px var(--ashoka), 0 12px 30px -12px rgba(0, 0, 0, 0.5) !important;
+  width: calc(var(--wheel) * 0.36) !important; height: calc(var(--wheel) * 0.36) !important;
 }
-@keyframes geo-blink   { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
-@keyframes geo-float   { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
-@keyframes geo-sweep   { 0%, 100% { transform: rotate(-35deg); } 50% { transform: rotate(35deg); } }
-@keyframes geo-breathe { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
-@keyframes geo-grow    { 0%, 100% { opacity: 0.25; stroke-width: 1.1; } 50% { opacity: 0.9; stroke-width: 2.2; } }
+.chakra-center .cc-kicker, .chakra-center .cc-foot { color: var(--ashoka) !important; opacity: 0.8; }
+.chakra-center .cc-name { color: var(--ashoka) !important; }
+.chakra-center .cc-desc { color: #2B2B5E !important; }
+@media (prefers-reduced-motion: no-preference) {
+  .ck-spin.ck-ashoka { animation: geo-spin 48s linear infinite; }
+}
+
+/* "Let's talk." ends with a blinking cursor */
+.contact-talk::after { content: '▍'; margin-left: 0.15em; color: var(--dl-green); animation: talk-caret 1.05s steps(1) infinite; }
+@keyframes talk-caret { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .contact-talk::after { animation: none; } }

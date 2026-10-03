@@ -20,11 +20,18 @@ interface Node { x: number; y: number; t: string; s: string; layer: Layer; }
           <path d="M40 0 H0 V40" fill="none" class="bp-gridline"/>
         </pattern>
         <linearGradient id="bp-layers" gradientUnits="userSpaceOnUse" x1="0" y1="0" [attr.x2]="w()" [attr.y2]="h()">
-          <stop offset="0" stop-color="#62B5E5"/><stop offset="0.35" stop-color="#00ABAB"/><stop offset="0.6" stop-color="#86BC25"/>
-          <stop offset="0.8" stop-color="#FFB81C"/><stop offset="1" stop-color="#A78BFA"/>
+          <stop offset="0" stop-color="#86BC25"/><stop offset="0.5" stop-color="#00ABAB"/><stop offset="1" stop-color="#86BC25"/>
         </linearGradient>
+        <radialGradient id="bp-mist-g"><stop offset="0" stop-color="#86BC25" stop-opacity="0.16"/><stop offset="0.6" stop-color="#00ABAB" stop-opacity="0.06"/><stop offset="1" stop-color="#00ABAB" stop-opacity="0"/></radialGradient>
+        <filter id="bp-soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="30"/></filter>
       </defs>
       <rect [attr.width]="w()" [attr.height]="h()" fill="url(#bp-grid)" class="bp-gridrect"/>
+      <g class="bp-mist" filter="url(#bp-soft)">
+        <ellipse [attr.cx]="w() * 0.78" [attr.cy]="h() * 0.18" [attr.rx]="w() * 0.22" [attr.ry]="h() * 0.2" fill="url(#bp-mist-g)" class="m1"/>
+        <ellipse [attr.cx]="w() * 0.9" [attr.cy]="h() * 0.72" [attr.rx]="w() * 0.2" [attr.ry]="h() * 0.22" fill="url(#bp-mist-g)" class="m2"/>
+        <ellipse [attr.cx]="w() * 0.12" [attr.cy]="h() * 0.92" [attr.rx]="w() * 0.24" [attr.ry]="h() * 0.18" fill="url(#bp-mist-g)" class="m3"/>
+        <ellipse [attr.cx]="w() * 0.45" [attr.cy]="h() * 0.05" [attr.rx]="w() * 0.25" [attr.ry]="h() * 0.12" fill="url(#bp-mist-g)" class="m4"/>
+      </g>
 
       <path [attr.d]="loop()" class="bp-loop"/>
       <path [attr.d]="loop()" class="bp-flow" pathLength="1000" stroke="url(#bp-layers)"/>
@@ -33,7 +40,7 @@ interface Node { x: number; y: number; t: string; s: string; layer: Layer; }
       }
 
       @for (n of nodes(); track n.t) {
-        <g [class]="'bp-node l-' + n.layer" [attr.transform]="'translate(' + n.x + ' ' + n.y + ')'">
+        <g class="bp-node" [attr.transform]="'translate(' + n.x + ' ' + n.y + ')'">
           <rect x="-62" y="-15" width="124" height="30" rx="2"/>
           <rect x="-62" y="-15" width="3" height="30" class="bp-tick"/>
           <text y="-2" text-anchor="middle" class="bp-t">{{ n.t }}</text>
@@ -49,11 +56,6 @@ interface Node { x: number; y: number; t: string; s: string; layer: Layer; }
       </g>
 
       <text [attr.x]="box().r + 62" [attr.y]="box().b + 30" text-anchor="end" class="bp-title">fig. 1 · the deployment loop I run</text>
-      <g class="bp-legend" [attr.transform]="'translate(' + (box().l + 96) + ' ' + (box().b + 31) + ')'">
-        @for (l of legend; track l.k; let i = $index) {
-          <g [class]="'l-' + l.k" [attr.transform]="'translate(' + i * 92 + ' 0)'"><rect width="8" height="8" y="-7" class="bp-tick"/><text x="13" class="bp-s">{{ l.t }}</text></g>
-        }
-      </g>
     </svg>
   `,
   styleUrl: './hero-blueprint.scss',
@@ -62,7 +64,6 @@ export class HeroBlueprint implements OnInit, AfterViewInit, OnDestroy {
   readonly live = inject(LiveStatus);
   private readonly el = inject(ElementRef<HTMLElement>);
   private ro?: ResizeObserver;
-  readonly legend = [{ k: 'client', t: 'client' }, { k: 'security', t: 'security' }, { k: 'ai', t: 'AI' }, { k: 'data', t: 'data' }, { k: 'ship', t: 'ship' }];
   readonly w = signal(1440);
   readonly h = signal(900);
 
