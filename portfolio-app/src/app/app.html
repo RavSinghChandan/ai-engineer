@@ -154,7 +154,13 @@
       <div class="chakra">
         <svg class="chakra-wheel" viewBox="0 0 400 400" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
           <g class="ck-sector" [style.transform]="'rotate(' + loopTurn() * 60 + 'deg)'"><path d="M112.0,47.6 A176,176 0 0 1 288.0,47.6 L246.0,120.3 A92,92 0 0 0 154.0,120.3 Z" class="ck-sector-fill"/></g>
-          <circle cx="200" cy="200" r="198" class="ck-field"/>
+          <defs><clipPath id="ck-disc"><circle cx="200" cy="200" r="198"/></clipPath></defs>
+          <g clip-path="url(#ck-disc)" class="ck-tricolour">
+            <rect x="0" y="2" width="400" height="132" class="ck-saffron"/>
+            <rect x="0" y="134" width="400" height="132" class="ck-white"/>
+            <rect x="0" y="266" width="400" height="132" class="ck-green"/>
+          </g>
+          <circle cx="200" cy="200" r="198" class="ck-field-ring"/>
           <g class="ck-spin ck-ashoka">
             <circle cx="200" cy="200" r="182.0" fill="none" stroke-width="16" class="ck-rim"/>
             <g class="ck-lunates"><circle cx="222.71" cy="27.49" r="5.2"/><circle cx="266.59" cy="39.24" r="5.2"/><circle cx="305.92" cy="61.96" r="5.2"/><circle cx="338.04" cy="94.08" r="5.2"/><circle cx="360.76" cy="133.41" r="5.2"/><circle cx="372.51" cy="177.29" r="5.2"/><circle cx="372.51" cy="222.71" r="5.2"/><circle cx="360.76" cy="266.59" r="5.2"/><circle cx="338.04" cy="305.92" r="5.2"/><circle cx="305.92" cy="338.04" r="5.2"/><circle cx="266.59" cy="360.76" r="5.2"/><circle cx="222.71" cy="372.51" r="5.2"/><circle cx="177.29" cy="372.51" r="5.2"/><circle cx="133.41" cy="360.76" r="5.2"/><circle cx="94.08" cy="338.04" r="5.2"/><circle cx="61.96" cy="305.92" r="5.2"/><circle cx="39.24" cy="266.59" r="5.2"/><circle cx="27.49" cy="222.71" r="5.2"/><circle cx="27.49" cy="177.29" r="5.2"/><circle cx="39.24" cy="133.41" r="5.2"/><circle cx="61.96" cy="94.08" r="5.2"/><circle cx="94.08" cy="61.96" r="5.2"/><circle cx="133.41" cy="39.24" r="5.2"/><circle cx="177.29" cy="27.49" r="5.2"/></g>
