@@ -2910,3 +2910,30 @@ footer {
   }
   .proof-panel .proof-card:hover::after { opacity: 1; }
 }
+
+/* ── Dynamic everywhere: section visuals ── */
+.fde-viz { margin: 0.2rem 0 0.9rem; }
+.oss-months { margin: 1.2rem 0 1.4rem; }
+.oss-track { margin: 0.2rem 0 0.7rem; padding: 0.35rem 0.5rem 0.25rem; }
+.tl-tenure { margin: -0.2rem 0 0.9rem; padding: 0; border: 0; background: none; }
+
+/* Projects: the story rows are walked through one at a time while on screen */
+.proj-story.cycling .ps-row { opacity: 0.5; transition: opacity 0.4s; position: relative; }
+.proj-story.cycling .ps-row.on { opacity: 1; }
+.proj-story.cycling .ps-row::before {
+  content: ''; position: absolute; left: -12px; top: 0.25em; bottom: 0.25em; width: 2px;
+  background: var(--dl-green); transform: scaleY(0); transform-origin: top; transition: transform 0.5s;
+}
+.proj-story.cycling .ps-row.on::before { transform: scaleY(1); }
+.prod-badge.is-down .prod-dot { background: var(--red) !important; box-shadow: none !important; }
+
+/* Experience: the line fills as you scroll; dots light when reached */
+.timeline::after {
+  content: ''; position: absolute; left: 0; top: 8px; width: 2px;
+  height: calc((100% - 8px) * var(--fill, 0));
+  background: linear-gradient(180deg, var(--dl-green), var(--dl-teal));
+  box-shadow: 0 0 10px rgba(134, 188, 37, 0.6); transition: height 0.15s linear;
+}
+.timeline .tl-item .tl-dot { transition: transform 0.4s, filter 0.4s, opacity 0.4s; z-index: 1; }
+.timeline .tl-item:not(.reached) .tl-dot { filter: grayscale(1); opacity: 0.45; }
+.timeline .tl-item.reached .tl-dot { transform: scale(1.25); }

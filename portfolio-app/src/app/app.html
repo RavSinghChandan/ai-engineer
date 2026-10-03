@@ -186,6 +186,13 @@
             <div class="skill-title" [ngClass]="'color-' + skill.color">{{ skill.title }}</div>
             <img [src]="getSkillIconUrl(skill.items)" [alt]="skill.title" class="skill-logos fde-logos"/>
           </div>
+          @if (fdeViz(skill.title); as v) {
+            <proof-viz kind="STEPS" [labels]="v.labels" [caption]="v.caption" [liveLast]="v.live" class="fde-viz" />
+          } @else if (skill.title === 'Agentic AI Engineering') {
+            <proof-viz kind="AGENT" class="fde-viz" />
+          } @else if (skill.title === 'AI Security') {
+            <proof-viz kind="SECURITY" class="fde-viz" />
+          }
           <p class="fde-what">{{ skill.what }}</p>
           <div class="fde-evidence"><span class="fde-ev-label">Evidence</span>{{ skill.evidence }}</div>
           <div class="skill-items">
@@ -374,12 +381,12 @@
       <div class="project-card fade-up" #fadeEl [ngClass]="'accent-' + project.accent" [id]="'project-' + project.num">
         <div class="project-top">
           <div class="project-left">
-            <div class="project-num" [ngClass]="'num-' + project.accent">✦ Project {{ project.num }}@if (isFlagship(project.num)) {<span class="flagship-badge">Flagship</span>}@if (project.inProduction) {<span class="prod-badge"><span class="prod-dot"></span>Live in production</span>}</div>
+            <div class="project-num" [ngClass]="'num-' + project.accent">✦ Project {{ project.num }}@if (isFlagship(project.num)) {<span class="flagship-badge">Flagship</span>}@if (project.inProduction) {<span class="prod-badge" [class.is-down]="live.apiState() === 'down'"><span class="prod-dot"></span>{{ live.apiState() === 'ok' ? 'Live now · ' + live.apiMs() + ' ms' : live.apiState() === 'down' ? 'Live product · not answering now' : 'Live in production' }}</span>}</div>
             <h3 class="project-title">{{ project.title }}</h3>
             <div class="project-subtitle">{{ project.subtitle }}</div>
             <p class="project-desc">{{ project.desc }}</p>
             @if (project.story) {
-              <dl class="proj-story">
+              <dl class="proj-story" cycleRows>
                 @for (row of project.story; track row.k) {
                   <div class="ps-row"><dt>{{ row.k }}</dt><dd>{{ row.v }}</dd></div>
                 }
@@ -532,6 +539,7 @@
         <p class="oss-sub"><b>{{ openSource.length }} merged contributions</b> across libraries used by the AI/ML and Python ecosystem — pypdf · Joblib · Sentence Transformers · NLTK · Authlib.</p>
       </div>
     </div>
+    <proof-viz kind="MONTHS" [prs]="openSource" class="oss-months" />
     <!-- Library filter: colour-coded chips, biggest project first -->
     <div class="oss-controls">
       <div class="oss-chips" role="tablist" aria-label="Filter by library">
@@ -581,6 +589,7 @@
           </div>
           <div class="oss-title">{{ o.title }}</div>
           <div class="oss-desc">{{ o.desc }}</div>
+          <proof-viz kind="STEPS" [labels]="prTrack" [compact]="true" class="oss-track" />
           <div class="oss-foot">
             <span class="oss-merged">✓ Merged · {{ o.merged }}</span>
             <span class="oss-view">View PR ↗</span>
@@ -747,7 +756,7 @@
       <div class="ers-quip">I didn't start with AI. I earned my way into it. &nbsp;Next → <b>Forward Deployed Engineering</b></div>
     </div>
 
-    <div class="timeline">
+    <div class="timeline" scrollFill>
       @for (job of experience; track job.company) {
         <div class="tl-item fade-up" #fadeEl>
           <div class="tl-dot" [ngClass]="'dot-' + job.color"></div>
@@ -762,6 +771,7 @@
               </div>
               <div class="tl-period">{{ job.period }}</div>
             </div>
+            <proof-viz kind="TENURE" [period]="job.period" [maxMonths]="24" class="tl-tenure" />
             <div class="tl-content-row">
               <ul class="tl-points">
                 @for (pt of job.points; track pt) {

@@ -73,10 +73,62 @@
 .pv-node { fill: var(--bg); stroke: var(--pv-a); stroke-width: 1.6; }
 .pv-node.human { stroke: var(--amber, #FFB81C); }
 
+/* STEPS: stages light up in turn while a packet runs under them */
+.pv-step rect { fill: var(--bg); stroke: var(--border); stroke-width: 1.3; }
+.pv-step-t { font-family: 'Fira Code', monospace; font-size: 10px; font-weight: 700; fill: var(--muted); }
+.pv-step { animation: pv-step 3.6s linear infinite; }
+@keyframes pv-step {
+  0%, 22% { --on: 1; }
+  0% { opacity: 1; }
+}
+.pv-step rect, .pv-step-t { animation: inherit; animation-name: pv-step-lit; }
+@keyframes pv-step-lit {
+  0%, 24% { stroke: var(--pv-a); fill: rgba(134, 188, 37, 0.14); color: var(--pv-a); }
+  30%, 100% { stroke: var(--border); fill: var(--bg); }
+}
+.pv-step .pv-step-t { animation-name: pv-step-text; }
+@keyframes pv-step-text { 0%, 24% { fill: var(--text); } 30%, 100% { fill: var(--muted); } }
+.pv-step-live rect { stroke: var(--green, #86BC25); }
+.pv-packet-lin { animation-name: pv-travel-lin2; animation-timing-function: linear; }
+@keyframes pv-travel-lin2 { 0% { offset-distance: 0%; } 100% { offset-distance: 100%; } }
+.pv.pv-compact { height: 30px; }
+
+/* AGENT: the loop */
+.pv-orbit { fill: var(--pv-a); offset-path: path('M150 10 A118 22 0 0 1 268 32 A118 22 0 0 1 150 54 A118 22 0 0 1 32 32 A118 22 0 0 1 150 10'); animation: pv-travel-lin2 3.6s linear infinite; }
+
+/* SECURITY: inputs meet the guard */
+.pv-shield { fill: rgba(134, 188, 37, 0.08); stroke: var(--pv-a); stroke-width: 1.4; }
+.pv-shield-t { font-family: 'Fira Code', monospace; font-size: 12px; font-weight: 800; fill: var(--pv-a); }
+.pv-verdict { font-family: 'Fira Code', monospace; font-size: 10px; font-weight: 700; }
+.pv-input { opacity: 0; animation: pv-in 3.6s ease-out infinite; }
+.pv-input.ok .pv-verdict { fill: var(--pv-a); }
+.pv-input.bad .pv-verdict, .pv-input.bad .pv-code { fill: var(--red, #DA291C); }
+.pv-input.pii .pv-verdict { fill: var(--amber, #FFB81C); }
+
+/* MONTHS: merges per month */
+.pv-months { display: flex; align-items: flex-end; gap: 1.2rem; height: 120px; padding-top: 0.4rem; }
+.pv-month { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 3px;
+  b { font-family: 'Fira Code', monospace; font-size: 0.8rem; color: var(--text); }
+  small { font-family: 'Fira Code', monospace; font-size: 0.66rem; color: var(--muted); }
+}
+.pv-stack { width: 100%; max-width: 70px; display: flex; flex-direction: column-reverse; border-radius: 2px 2px 0 0; overflow: hidden;
+  transform-origin: bottom; animation: pv-grow 1.1s cubic-bezier(.2, .8, .3, 1) both;
+  span { display: block; min-height: 2px; }
+}
+@keyframes pv-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+
+/* TENURE */
+.pv-tenure { display: flex; align-items: center; gap: 0.75rem; }
+.pv-ten-track { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.pv-ten-bar { display: block; height: 100%; background: linear-gradient(90deg, var(--pv-a), var(--pv-b)); transform-origin: left; animation: pv-fill-once 1.4s cubic-bezier(.2, .8, .3, 1) both; }
+@keyframes pv-fill-once { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.pv-ten-l { font-family: 'Fira Code', monospace; font-size: 0.7rem; color: var(--muted); white-space: nowrap; }
+
 /* reduced motion: show the finished state, still */
 :host(.calm) * { animation: none !important; }
 :host(.calm) .pv-sq { opacity: 1; transform: none; }
 :host(.calm) .pv-tests i { background: var(--pv-a); }
 :host(.calm) .pv-ekg { stroke-dashoffset: 0; }
 :host(.calm) .pv-cmd { opacity: 1; }
-:host(.calm) .pv-packet, :host(.calm) .pv-beat, :host(.calm) .pv-req, :host(.calm) .pv-bad { display: none; }
+:host(.calm) .pv-packet, :host(.calm) .pv-beat, :host(.calm) .pv-req, :host(.calm) .pv-bad, :host(.calm) .pv-orbit { display: none; }
+:host(.calm) .pv-input { opacity: 1; }

@@ -115,6 +115,74 @@ const REPO_COLOR: Record<string, string> = {
         </svg>
         <span class="pv-cap">plan → 3 agents in parallel → merge → human approval → out</span>
       }
+
+      @case ('STEPS') {
+        @if (steps(); as st) {
+          <svg [attr.viewBox]="'0 0 300 ' + (compact() ? 30 : 64)" class="pv" [class.pv-compact]="compact()" aria-hidden="true">
+            <line [attr.x1]="st.w / 2" [attr.y1]="st.y" [attr.x2]="300 - st.w / 2" [attr.y2]="st.y" class="pv-wire"/>
+            <circle r="3" class="pv-packet pv-packet-lin" [attr.cy]="0"
+                    [style.offset-path]="st.path"
+                    [style.animation-duration]="st.labels.length * 0.9 + 's'"/>
+            @for (l of st.labels; track $index; let i = $index; let last = $last) {
+              <g class="pv-step" [class.pv-step-live]="last && liveLast()" [style.animation-duration]="st.labels.length * 0.9 + 's'" [style.animation-delay]="i * 0.9 + 's'">
+                <rect [attr.x]="i * (st.w + st.gap)" [attr.y]="st.y - st.h / 2" [attr.width]="st.w" [attr.height]="st.h" rx="3"/>
+                <text [attr.x]="i * (st.w + st.gap) + st.w / 2" [attr.y]="st.y + 3.5" text-anchor="middle" class="pv-step-t">{{ l }}</text>
+              </g>
+            }
+          </svg>
+          @if (cap()) { <span class="pv-cap">{{ cap() }}</span> }
+        }
+      }
+      @case ('AGENT') {
+        <svg viewBox="0 0 300 64" class="pv" aria-hidden="true">
+          <ellipse cx="150" cy="32" rx="118" ry="22" class="pv-wire"/>
+          <circle r="3.4" class="pv-orbit"/>
+          @for (l of loopLabels; track l; let i = $index) {
+            <g class="pv-step" style="animation-duration: 3.6s" [style.animation-delay]="i * 0.9 + 's'">
+              <rect [attr.x]="loopPos[i].x - 30" [attr.y]="loopPos[i].y - 9" width="60" height="18" rx="9"/>
+              <text [attr.x]="loopPos[i].x" [attr.y]="loopPos[i].y + 3.5" text-anchor="middle" class="pv-step-t">{{ l }}</text>
+            </g>
+          }
+        </svg>
+        <span class="pv-cap">think → call a tool → observe → answer, until the task is done</span>
+      }
+      @case ('SECURITY') {
+        <svg viewBox="0 0 300 64" class="pv" aria-hidden="true">
+          <rect x="196" y="2" width="22" height="60" rx="3" class="pv-shield"/>
+          <text x="207" y="36" text-anchor="middle" class="pv-shield-t">G</text>
+          @for (r of inputs; track r.t; let i = $index) {
+            <g class="pv-input" [class]="'pv-input ' + r.k" [style.animation-delay]="i * 1.2 + 's'">
+              <text x="0" [attr.y]="12 + (i % 3) * 20" class="pv-code">{{ r.t }}</text>
+              <text x="296" [attr.y]="12 + (i % 3) * 20" text-anchor="end" class="pv-verdict">{{ r.v }}</text>
+            </g>
+          }
+        </svg>
+        <span class="pv-cap">injection blocked · PII masked · the rest goes through</span>
+      }
+      @case ('MONTHS') {
+        <div class="pv-months">
+          @for (m of months(); track m.label) {
+            <div class="pv-month">
+              <div class="pv-stack" [style.height.%]="m.total / monthMax() * 100">
+                @for (seg of m.segs; track seg.repo) {
+                  <span [style.flex-grow]="seg.n" [style.background]="color(seg.repo)" [title]="seg.repo + ': ' + seg.n"></span>
+                }
+              </div>
+              <b>{{ m.total }}</b>
+              <small>{{ m.label }}</small>
+            </div>
+          }
+        </div>
+        <span class="pv-cap">merged PRs per month, coloured by library</span>
+      }
+      @case ('TENURE') {
+        @if (tenure(); as t) {
+          <div class="pv-tenure">
+            <div class="pv-ten-track"><span class="pv-ten-bar" [style.width.%]="t.pct"></span></div>
+            <span class="pv-ten-l">{{ t.label }}{{ t.present ? ' · and counting' : '' }}</span>
+          </div>
+        }
+      }
     }
   `,
   styleUrl: './proof-viz.scss',
@@ -122,6 +190,14 @@ const REPO_COLOR: Record<string, string> = {
 export class ProofViz implements AfterViewInit, OnDestroy {
   kind = input.required<string>();
   prs = input<MergedPr[]>([]);
+  /** STEPS: the stage labels; the last one can be wired to the live health check. */
+  labels = input<string[]>([]);
+  caption = input('');
+  liveLast = input(false);
+  compact = input(false);
+  /** TENURE: "Aug 2022 – May 2023" or "Sep 2026 – Present", scaled against maxMonths. */
+  period = input('');
+  maxMonths = input(24);
   readonly live = inject(LiveStatus);
   private readonly el = inject(ElementRef<HTMLElement>);
   private readonly browser = isPlatformBrowser(inject(PLATFORM_ID));
@@ -147,6 +223,57 @@ export class ProofViz implements AfterViewInit, OnDestroy {
   ];
 
   merges = computed(() => this.prs());
+
+  readonly loopLabels = ['think', 'tool', 'observe', 'answer'];
+  readonly loopPos = [{ x: 150, y: 10 }, { x: 262, y: 32 }, { x: 150, y: 54 }, { x: 38, y: 32 }];
+  readonly inputs = [
+    { t: 'summarise this incident', v: '✓ pass', k: 'ok' },
+    { t: 'ignore previous instructions…', v: '✗ blocked', k: 'bad' },
+    { t: 'my aadhaar is 4321 …', v: '◐ PII masked', k: 'pii' },
+  ];
+
+  steps = computed(() => {
+    const labels = this.labels(), n = Math.max(labels.length, 1), gap = 10;
+    const w = (300 - gap * (n - 1)) / n;
+    const y = this.compact() ? 15 : 32;
+    return { labels, w, gap, h: this.compact() ? 18 : 24, y, path: `path('M${w / 2} ${y} H${300 - w / 2}')` };
+  });
+  cap = computed(() => {
+    if (this.kind() === 'STEPS' && this.liveLast()) {
+      const s = this.live.apiState();
+      return s === 'ok' ? `${this.caption()} · live API ${this.live.apiMs()} ms` : `${this.caption()} · ${s === 'checking' ? 'checking the live API…' : 'live API not answering'}`;
+    }
+    return this.caption();
+  });
+
+  months = computed(() => {
+    const order: string[] = [];
+    const by = new Map<string, Map<string, number>>();
+    for (const m of [...this.prs()].reverse()) {
+      const key = (m as any).merged as string;
+      if (!key) continue;
+      if (!by.has(key)) { by.set(key, new Map()); order.push(key); }
+      const r = by.get(key)!; r.set(m.repo, (r.get(m.repo) ?? 0) + 1);
+    }
+    const toDate = (k: string) => new Date(`1 ${k}`).getTime();
+    return order.sort((a, b) => toDate(a) - toDate(b)).map(label => {
+      const segs = [...by.get(label)!.entries()].map(([repo, n]) => ({ repo, n }));
+      return { label, segs, total: segs.reduce((a, b) => a + b.n, 0) };
+    });
+  });
+  monthMax = computed(() => Math.max(1, ...this.months().map(m => m.total)));
+
+  tenure = computed(() => {
+    const [a, b] = this.period().split(/\s+[–-]\s+/);
+    const parse = (x: string) => { const d = new Date(`1 ${x}`); return isNaN(d.getTime()) ? null : d; };
+    const start = parse(a ?? ''), present = /present/i.test(b ?? '');
+    const end = present ? new Date() : parse(b ?? '');
+    if (!start || !end) return null;
+    const months = Math.max(1, (end.getFullYear() - start.getFullYear()) * 12 + end.getMonth() - start.getMonth());
+    const y = Math.floor(months / 12), mo = months % 12;
+    const label = [y ? `${y} yr` : '', mo ? `${mo} mo` : ''].filter(Boolean).join(' ');
+    return { pct: Math.min(100, (months / this.maxMonths()) * 100), label, present };
+  });
   shippedCap = computed(() => {
     switch (this.live.apiState()) {
       case 'ok': return `heartbeat from the live API · ${this.live.apiMs()} ms`;

@@ -8,6 +8,8 @@ import { DeployLine } from './deploy-line';
 import { Magnetic } from './magnetic';
 import { ProofViz } from './proof-viz';
 import { HeroBlueprint } from './hero-blueprint';
+import { CycleRows, ScrollFill } from './motion';
+import { LiveStatus } from './live-status.service';
 
 /** A node in the interactive knowledge graph. */
 interface GraphNode {
@@ -28,7 +30,7 @@ interface GraphBody extends GraphNode {
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, FormsModule, LiveProof, DeployLine, Magnetic, ProofViz, HeroBlueprint],
+  imports: [CommonModule, FormsModule, LiveProof, DeployLine, Magnetic, ProofViz, HeroBlueprint, CycleRows, ScrollFill],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
@@ -1459,6 +1461,19 @@ export class App implements OnInit, AfterViewInit {
   private loopHover = false;
   private loopHoldUntil = 0;                       // any interaction holds auto-play
   private loopTimer: ReturnType<typeof setInterval> | undefined;
+
+  readonly live = inject(LiveStatus);
+  readonly prTrack = ['opened', 'review', 'CI', 'merged'];
+
+  /** Built for Forward Deployed Work: each card acts out its skill. */
+  private readonly fdeSteps: Record<string, { labels: string[]; caption: string; live: boolean }> = {
+    'Discover & Scope': { labels: ['problem', 'constraint', 'decision', 'result'], caption: 'every flagship is written up this way', live: false },
+    'Full-Stack Delivery': { labels: ['UI', 'API', 'DB', 'API', 'UI'], caption: 'Angular / React → FastAPI / Spring → Postgres, and back', live: false },
+    'Enterprise Integration': { labels: ['Spring', 'Kafka', 'consumer', 'Postgres'], caption: 'into existing auth, APIs and data, no rewrites', live: false },
+    'Production Engineering': { labels: ['build', 'test', 'docker', 'deploy', 'health'], caption: 'the last stage is real', live: true },
+    'Communication & Ownership': { labels: ['brief', 'demo', 'handover'], caption: 'docs, demos, a team that owns it', live: false },
+  };
+  fdeViz(title: string) { return this.fdeSteps[title] ?? null; }
 
   /** Proof cards: a soft light follows the pointer across the card. */
   spot(e: PointerEvent): void {
