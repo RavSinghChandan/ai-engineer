@@ -388,16 +388,35 @@
       a production engineer and a communicator</b> — embedded with the problem and accountable for the outcome.
       Here is each part, with receipts.</p>
 
-    <!-- How I deploy: the loop -->
-    <ol class="fde-loop fade-up" #fadeEl aria-label="How I take a problem to production">
-      @for (step of deployLoop; track step.name; let i = $index) {
-        <li class="fde-step">
-          <span class="fde-n">{{ i + 1 < 10 ? '0' + (i + 1) : i + 1 }}</span>
-          <span class="fde-name">{{ step.name }}</span>
-          <span class="fde-desc">{{ step.desc }}</span>
-        </li>
-      }
-    </ol>
+    <!-- How I deploy: the loop, drawn as a 24-spoke chakra -->
+    <div class="chakra-wrap fade-up" #fadeEl (mouseenter)="pauseLoop()" (mouseleave)="resumeLoop()" (focusin)="pauseLoop()" (focusout)="resumeLoop()">
+      <div class="chakra">
+        <svg class="chakra-wheel" viewBox="0 0 400 400" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+          <g class="ck-sector" [style.transform]="'rotate(' + loopTurn() * 60 + 'deg)'"><path d="M112.0,47.6 A176,176 0 0 1 288.0,47.6 L246.0,120.3 A92,92 0 0 0 154.0,120.3 Z" fill="url(#ck-sector)"/></g>
+          <defs><linearGradient id="ck-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" style="stop-color:var(--geo-a)"/><stop offset="55%" style="stop-color:var(--geo-b)"/><stop offset="100%" style="stop-color:var(--geo-c)"/></linearGradient><radialGradient id="ck-sector" cx="50%" cy="50%" r="50%"><stop offset="45%" style="stop-color:var(--geo-a)" stop-opacity="0"/><stop offset="100%" style="stop-color:var(--geo-a)" stop-opacity="0.45"/></radialGradient></defs><circle cx="200" cy="200" r="188" fill="none" stroke="url(#ck-grad)" stroke-width="2.5"/><circle cx="200" cy="200" r="177" fill="none" stroke="url(#ck-grad)" stroke-width="1.2" opacity="0.7"/><g class="ck-spin"><g class="ck-spokes" fill="url(#ck-grad)"><path d="M291.9,194.9 L331.9,194.0 L375.0,200.0 L331.9,206.0 L291.9,205.1 Z"/><circle cx="368.5" cy="222.2" r="3.4" class="ck-lunate"/><path d="M290.1,218.8 L328.9,228.3 L369.0,245.3 L325.8,239.9 L287.4,228.7 Z"/><circle cx="357.1" cy="265.1" r="3.4" class="ck-lunate"/><path d="M282.1,241.5 L317.2,260.7 L351.6,287.5 L311.2,271.1 L277.0,250.4 Z"/><circle cx="334.9" cy="303.5" r="3.4" class="ck-lunate"/><path d="M268.6,261.3 L297.5,289.0 L323.7,323.7 L289.0,297.5 L261.3,268.6 Z"/><circle cx="303.5" cy="334.9" r="3.4" class="ck-lunate"/><path d="M250.4,277.0 L271.1,311.2 L287.5,351.6 L260.7,317.2 L241.5,282.1 Z"/><circle cx="265.1" cy="357.1" r="3.4" class="ck-lunate"/><path d="M228.7,287.4 L239.9,325.8 L245.3,369.0 L228.3,328.9 L218.8,290.1 Z"/><circle cx="222.2" cy="368.5" r="3.4" class="ck-lunate"/><path d="M205.1,291.9 L206.0,331.9 L200.0,375.0 L194.0,331.9 L194.9,291.9 Z"/><circle cx="177.8" cy="368.5" r="3.4" class="ck-lunate"/><path d="M181.2,290.1 L171.7,328.9 L154.7,369.0 L160.1,325.8 L171.3,287.4 Z"/><circle cx="134.9" cy="357.1" r="3.4" class="ck-lunate"/><path d="M158.5,282.1 L139.3,317.2 L112.5,351.6 L128.9,311.2 L149.6,277.0 Z"/><circle cx="96.5" cy="334.9" r="3.4" class="ck-lunate"/><path d="M138.7,268.6 L111.0,297.5 L76.3,323.7 L102.5,289.0 L131.4,261.3 Z"/><circle cx="65.1" cy="303.5" r="3.4" class="ck-lunate"/><path d="M123.0,250.4 L88.8,271.1 L48.4,287.5 L82.8,260.7 L117.9,241.5 Z"/><circle cx="42.9" cy="265.1" r="3.4" class="ck-lunate"/><path d="M112.6,228.7 L74.2,239.9 L31.0,245.3 L71.1,228.3 L109.9,218.8 Z"/><circle cx="31.5" cy="222.2" r="3.4" class="ck-lunate"/><path d="M108.1,205.1 L68.1,206.0 L25.0,200.0 L68.1,194.0 L108.1,194.9 Z"/><circle cx="31.5" cy="177.8" r="3.4" class="ck-lunate"/><path d="M109.9,181.2 L71.1,171.7 L31.0,154.7 L74.2,160.1 L112.6,171.3 Z"/><circle cx="42.9" cy="134.9" r="3.4" class="ck-lunate"/><path d="M117.9,158.5 L82.8,139.3 L48.4,112.5 L88.8,128.9 L123.0,149.6 Z"/><circle cx="65.1" cy="96.5" r="3.4" class="ck-lunate"/><path d="M131.4,138.7 L102.5,111.0 L76.3,76.3 L111.0,102.5 L138.7,131.4 Z"/><circle cx="96.5" cy="65.1" r="3.4" class="ck-lunate"/><path d="M149.6,123.0 L128.9,88.8 L112.5,48.4 L139.3,82.8 L158.5,117.9 Z"/><circle cx="134.9" cy="42.9" r="3.4" class="ck-lunate"/><path d="M171.3,112.6 L160.1,74.2 L154.7,31.0 L171.7,71.1 L181.2,109.9 Z"/><circle cx="177.8" cy="31.5" r="3.4" class="ck-lunate"/><path d="M194.9,108.1 L194.0,68.1 L200.0,25.0 L206.0,68.1 L205.1,108.1 Z"/><circle cx="222.2" cy="31.5" r="3.4" class="ck-lunate"/><path d="M218.8,109.9 L228.3,71.1 L245.3,31.0 L239.9,74.2 L228.7,112.6 Z"/><circle cx="265.1" cy="42.9" r="3.4" class="ck-lunate"/><path d="M241.5,117.9 L260.7,82.8 L287.5,48.4 L271.1,88.8 L250.4,123.0 Z"/><circle cx="303.5" cy="65.1" r="3.4" class="ck-lunate"/><path d="M261.3,131.4 L289.0,102.5 L323.7,76.3 L297.5,111.0 L268.6,138.7 Z"/><circle cx="334.9" cy="96.5" r="3.4" class="ck-lunate"/><path d="M277.0,149.6 L311.2,128.9 L351.6,112.5 L317.2,139.3 L282.1,158.5 Z"/><circle cx="357.1" cy="134.9" r="3.4" class="ck-lunate"/><path d="M287.4,171.3 L325.8,160.1 L369.0,154.7 L328.9,171.7 L290.1,181.2 Z"/><circle cx="368.5" cy="177.8" r="3.4" class="ck-lunate"/></g></g><circle cx="200" cy="200" r="92" fill="none" stroke="url(#ck-grad)" stroke-width="2"/><circle cx="200" cy="200" r="84" fill="none" stroke="url(#ck-grad)" stroke-width="0.8" stroke-dasharray="2 5" opacity="0.7" class="ck-spin-rev"/>
+        </svg>
+
+        <div class="chakra-center">
+          <span class="cc-kicker">Step {{ loopStep() + 1 }} of {{ deployLoop.length }}</span>
+          <span class="cc-name">{{ deployLoop[loopStep()].name }}</span>
+          <span class="cc-desc">{{ deployLoop[loopStep()].desc }}</span>
+          <span class="cc-foot">Problem → Production</span>
+        </div>
+
+        <ol class="chakra-steps" aria-label="How I take a problem to production">
+          @for (step of deployLoop; track step.name; let i = $index) {
+            <li class="chakra-step" [style.--a]="(i * 60 - 90) + 'deg'">
+              <button type="button" class="chakra-node" [class.is-active]="loopStep() === i"
+                      [attr.aria-pressed]="loopStep() === i" [attr.aria-label]="(i + 1) + '. ' + step.name + ': ' + step.desc"
+                      (click)="setLoop(i)" (mouseenter)="setLoop(i)" (focus)="setLoop(i)">
+                <span class="cn-n">0{{ i + 1 }}</span>
+                <span class="cn-name">{{ step.name }}</span>
+              </button>
+            </li>
+          }
+        </ol>
+      </div>
+    </div>
 
     <div class="skills-grid fde-grid">
       @for (skill of skills; track skill.title) {

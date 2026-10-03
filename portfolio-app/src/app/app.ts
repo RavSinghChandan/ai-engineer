@@ -1447,6 +1447,25 @@ export class App implements OnInit, AfterViewInit {
     { name: 'Hand over', desc: 'Docs, demos, a team that owns it' },
   ];
 
+  // The loop turns forward forever: loopTurn only ever increases, so the
+  // highlighted sector never spins backwards from step 6 to step 1.
+  loopTurn = signal(0);
+  readonly loopStep = computed(() => this.loopTurn() % this.deployLoop.length);
+  private loopPaused = false;
+  private loopTimer: ReturnType<typeof setInterval> | undefined;
+
+  setLoop(i: number): void {
+    const n = this.deployLoop.length;
+    const cur = this.loopTurn();
+    this.loopTurn.set(cur + ((i - (cur % n)) + n) % n);
+  }
+  pauseLoop(): void { this.loopPaused = true; }
+  resumeLoop(): void { this.loopPaused = false; }
+  private startLoop(): void {
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    this.loopTimer = setInterval(() => { if (!this.loopPaused) this.loopTurn.update(t => t + 1); }, 2800);
+  }
+
   readonly stackLayers = [
     { layer: 'AI & Agents', items: 'LangGraph · LangChain · RAG · Tool calling · Evals' },
     { layer: 'Backend',     items: 'Python · Java · FastAPI · Spring Boot' },
@@ -2394,6 +2413,7 @@ export class App implements OnInit, AfterViewInit {
     }
 
     this.initFloatingGuide();
+    this.startLoop();
 
     // Trigger skill bars when the orbit section scrolls into view
     const skillsEl = document.querySelector('.skills-orbit-wrap');
