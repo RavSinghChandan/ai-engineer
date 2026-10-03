@@ -1,0 +1,82 @@
+:host {
+  display: block; margin: 0 0 1rem; padding: 0.7rem 0.75rem 0.55rem;
+  border: 1px solid var(--border); background: rgba(127, 127, 127, 0.04);
+  --pv-a: var(--dl-green, #86BC25); --pv-b: var(--dl-teal, #00ABAB);
+}
+/* nothing moves until the card is on screen */
+:host:not(.play) * { animation-play-state: paused !important; }
+
+.pv { display: block; width: 100%; height: 64px; overflow: visible; }
+.pv-cap { display: block; margin-top: 0.45rem; font-family: 'Fira Code', monospace; font-size: 0.7rem; color: var(--muted); }
+.pv-lbl { font-family: 'Fira Code', monospace; font-size: 10.5px; fill: var(--muted); }
+.pv-note { font-family: 'Fira Code', monospace; font-size: 10.5px; fill: var(--text); opacity: 0.8; }
+.pv-grid { stroke: var(--border); stroke-width: 1; }
+.pv-wire { fill: none; stroke: var(--border); stroke-width: 1.4; }
+.pv-hub { fill: none; stroke: var(--pv-a); stroke-width: 1.5; }
+.pv-hub-t { font-family: 'Fira Code', monospace; font-size: 11.5px; font-weight: 700; fill: var(--pv-a); }
+
+/* packets travel along their wire (offset-path is set inline) */
+.pv-packet { fill: var(--pv-a); offset-distance: 0%; animation: pv-travel 1.6s ease-in infinite; }
+@keyframes pv-travel { 0% { offset-distance: 0%; opacity: 0; } 15% { opacity: 1; } 100% { offset-distance: 100%; opacity: 1; } }
+
+/* LIVE: a heartbeat drawn over and over; red when the API does not answer */
+.pv-ekg { fill: none; stroke: var(--pv-a); stroke-width: 2; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: pv-draw 2.4s linear infinite; }
+.pv-ekg.down { stroke: var(--red, #DA291C); animation: none; stroke-dashoffset: 0; opacity: 0.5; }
+@keyframes pv-draw { 0% { stroke-dashoffset: 1; } 70%, 100% { stroke-dashoffset: 0; } }
+.pv-beat { fill: var(--pv-a); offset-path: path('M0 40 H70 L80 40 L88 22 L96 56 L104 10 L112 46 L120 40 H190 L200 40 L208 22 L216 56 L224 10 L232 46 L240 40 H300'); animation: pv-travel-lin 2.4s linear infinite; }
+.pv-beat.down { display: none; }
+@keyframes pv-travel-lin { 0% { offset-distance: 0%; } 70%, 100% { offset-distance: 100%; } }
+
+/* 66: one square per merged PR, filling in like a contribution graph */
+.pv-squares { display: grid; grid-template-columns: repeat(22, 1fr); gap: 3px; }
+.pv-sq {
+  aspect-ratio: 1; border-radius: 2px; opacity: 0.15; transform: scale(0.6);
+  animation: pv-pop 0.35s ease-out forwards; transition: transform 0.15s, outline-color 0.15s; outline: 2px solid transparent;
+  &:hover, &:focus-visible { transform: scale(1.45); outline-color: var(--text); z-index: 1; }
+}
+@keyframes pv-pop { to { opacity: 1; transform: scale(1); } }
+
+/* 78s -> 4s: same request, before and after */
+.pv-track { fill: var(--border); }
+.pv-bar { transform-box: fill-box; transform-origin: left center; }
+.pv-bar.slow { fill: var(--red, #DA291C); opacity: 0.75; animation: pv-fill 7.8s linear infinite; }
+.pv-bar.fast { fill: var(--pv-a); animation: pv-fill-fast 7.8s linear infinite; }
+@keyframes pv-fill { 0% { transform: scaleX(0); } 90%, 100% { transform: scaleX(1); } }
+@keyframes pv-fill-fast { 0% { transform: scaleX(0); } 4.6%, 100% { transform: scaleX(1); } }
+
+/* $: cost bars */
+.pv-bar.cost-hi { fill: var(--amber, #FFB81C); opacity: 0.75; animation: pv-fill 2.2s ease-out both; }
+.pv-bar.cost-lo { fill: var(--pv-a); animation: pv-blink 1.4s ease-in-out infinite; }
+@keyframes pv-blink { 50% { opacity: 0.3; } }
+
+/* 0: commands come out of SQL exactly as stored */
+.pv-code { font-family: 'Fira Code', monospace; font-size: 10.5px; fill: var(--text); }
+.pv-ok { font-family: 'Fira Code', monospace; font-size: 10px; fill: var(--pv-a); font-weight: 700; }
+.pv-cmd { opacity: 0; animation: pv-in 3.3s ease-out infinite; }
+@keyframes pv-in { 0% { opacity: 0; transform: translateX(-10px); } 12%, 85% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+
+/* G1-G5: a request clears every gate; an injection is stopped at G2 */
+.pv-gate rect { fill: none; stroke: var(--muted); stroke-width: 1.4; animation: pv-gate 4s linear infinite; }
+@keyframes pv-gate { 0% { stroke: var(--muted); } 8%, 40% { stroke: var(--pv-a); fill: rgba(134, 188, 37, 0.18); } 60%, 100% { stroke: var(--muted); fill: none; } }
+.pv-req { fill: var(--pv-a); offset-path: path('M8 30 H292'); animation: pv-req 4s linear infinite; }
+@keyframes pv-req { 0% { offset-distance: 0%; opacity: 0; } 5% { opacity: 1; } 95% { opacity: 1; } 100% { offset-distance: 100%; opacity: 0; } }
+.pv-bad { fill: var(--red, #DA291C); offset-path: path('M8 30 H96'); animation: pv-bad 8s linear infinite; animation-delay: 4s; opacity: 0; }
+@keyframes pv-bad { 0% { offset-distance: 0%; opacity: 0; } 3% { opacity: 1; } 25% { offset-distance: 100%; opacity: 1; } 32% { offset-distance: 100%; opacity: 0; } 100% { offset-distance: 100%; opacity: 0; } }
+
+/* 637: a test run, dot by dot */
+.pv-tests { display: grid; grid-template-columns: repeat(49, 1fr); gap: 2px; }
+.pv-tests i { aspect-ratio: 1; border-radius: 50%; background: var(--border); animation: pv-pass 0.2s linear forwards; }
+@keyframes pv-pass { to { background: var(--pv-a); } }
+.pv-count { color: var(--pv-a); font-weight: 700; }
+
+/* 18+: an agent graph with a human approval step */
+.pv-node { fill: var(--bg); stroke: var(--pv-a); stroke-width: 1.6; }
+.pv-node.human { stroke: var(--amber, #FFB81C); }
+
+/* reduced motion: show the finished state, still */
+:host(.calm) * { animation: none !important; }
+:host(.calm) .pv-sq { opacity: 1; transform: none; }
+:host(.calm) .pv-tests i { background: var(--pv-a); }
+:host(.calm) .pv-ekg { stroke-dashoffset: 0; }
+:host(.calm) .pv-cmd { opacity: 1; }
+:host(.calm) .pv-packet, :host(.calm) .pv-beat, :host(.calm) .pv-req, :host(.calm) .pv-bad { display: none; }

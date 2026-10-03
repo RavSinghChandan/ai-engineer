@@ -6,6 +6,8 @@ import { ChatService } from './chat.service';
 import { LiveProof } from './live-proof';
 import { DeployLine } from './deploy-line';
 import { Magnetic } from './magnetic';
+import { ProofViz } from './proof-viz';
+import { HeroBlueprint } from './hero-blueprint';
 
 /** A node in the interactive knowledge graph. */
 interface GraphNode {
@@ -26,7 +28,7 @@ interface GraphBody extends GraphNode {
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, FormsModule, LiveProof, DeployLine, Magnetic],
+  imports: [CommonModule, FormsModule, LiveProof, DeployLine, Magnetic, ProofViz, HeroBlueprint],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
@@ -1457,6 +1459,13 @@ export class App implements OnInit, AfterViewInit {
   private loopHover = false;
   private loopHoldUntil = 0;                       // any interaction holds auto-play
   private loopTimer: ReturnType<typeof setInterval> | undefined;
+
+  /** Proof cards: a soft light follows the pointer across the card. */
+  spot(e: PointerEvent): void {
+    const el = e.currentTarget as HTMLElement, r = el.getBoundingClientRect();
+    el.style.setProperty('--mx', `${e.clientX - r.left}px`);
+    el.style.setProperty('--my', `${e.clientY - r.top}px`);
+  }
 
   setLoop(i: number): void {
     const n = this.deployLoop.length;

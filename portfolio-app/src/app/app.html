@@ -45,65 +45,7 @@
 <section class="hero" data-guide="hero" aria-label="Hero introduction">
 
   <!-- AI Neural Network Background (decorative, pointer-events:none) -->
-  <div class="hero-ai-bg" aria-hidden="true">
-    <svg class="hero-ai-svg" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-      <!-- Layer 1: connection lines (animated, very faint) -->
-      <g class="ai-edges" opacity="0.18">
-        <line x1="120" y1="180" x2="320" y2="280" class="ai-edge ai-edge--1"/>
-        <line x1="320" y1="280" x2="520" y2="160" class="ai-edge ai-edge--2"/>
-        <line x1="520" y1="160" x2="720" y2="320" class="ai-edge ai-edge--3"/>
-        <line x1="720" y1="320" x2="920" y2="180" class="ai-edge ai-edge--4"/>
-        <line x1="920" y1="180" x2="1100" y2="300" class="ai-edge ai-edge--5"/>
-        <line x1="120" y1="180" x2="220" y2="420" class="ai-edge ai-edge--2"/>
-        <line x1="220" y1="420" x2="480" y2="500" class="ai-edge ai-edge--3"/>
-        <line x1="480" y1="500" x2="720" y2="320" class="ai-edge ai-edge--1"/>
-        <line x1="720" y1="320" x2="900" y2="520" class="ai-edge ai-edge--4"/>
-        <line x1="900" y1="520" x2="1100" y2="300" class="ai-edge ai-edge--2"/>
-        <line x1="320" y1="280" x2="480" y2="500" class="ai-edge ai-edge--5"/>
-        <line x1="520" y1="160" x2="480" y2="500" class="ai-edge ai-edge--1"/>
-        <line x1="220" y1="420" x2="120" y2="600" class="ai-edge ai-edge--3"/>
-        <line x1="480" y1="500" x2="660" y2="620" class="ai-edge ai-edge--2"/>
-        <line x1="660" y1="620" x2="900" y2="520" class="ai-edge ai-edge--4"/>
-        <line x1="60" y1="350" x2="220" y2="420" class="ai-edge ai-edge--5"/>
-        <line x1="1050" y1="480" x2="900" y2="520" class="ai-edge ai-edge--1"/>
-        <line x1="820" y1="100" x2="920" y2="180" class="ai-edge ai-edge--3"/>
-        <line x1="820" y1="100" x2="720" y2="320" class="ai-edge ai-edge--2"/>
-        <line x1="380" y1="80" x2="520" y2="160" class="ai-edge ai-edge--4"/>
-      </g>
-      <!-- Layer 2: pulse signal travelling along one edge -->
-      <circle class="ai-pulse" r="4" fill="url(#pulse-grad)">
-        <animateMotion dur="4s" repeatCount="indefinite" calcMode="linear">
-          <mpath href="#ai-main-path"/>
-        </animateMotion>
-      </circle>
-      <path id="ai-main-path" d="M120,180 L320,280 L520,160 L720,320 L920,180 L1100,300" fill="none"/>
-      <!-- Layer 3: neuron nodes -->
-      <g class="ai-nodes">
-        <circle cx="120"  cy="180" r="6"  class="ai-node ai-node--purple ai-float--1"/>
-        <circle cx="320"  cy="280" r="5"  class="ai-node ai-node--cyan   ai-float--2"/>
-        <circle cx="520"  cy="160" r="7"  class="ai-node ai-node--purple ai-float--3"/>
-        <circle cx="720"  cy="320" r="6"  class="ai-node ai-node--amber  ai-float--1"/>
-        <circle cx="920"  cy="180" r="5"  class="ai-node ai-node--cyan   ai-float--2"/>
-        <circle cx="1100" cy="300" r="7"  class="ai-node ai-node--purple ai-float--3"/>
-        <circle cx="220"  cy="420" r="5"  class="ai-node ai-node--green  ai-float--2"/>
-        <circle cx="480"  cy="500" r="6"  class="ai-node ai-node--cyan   ai-float--1"/>
-        <circle cx="900"  cy="520" r="5"  class="ai-node ai-node--amber  ai-float--3"/>
-        <circle cx="660"  cy="620" r="4"  class="ai-node ai-node--purple ai-float--2"/>
-        <circle cx="60"   cy="350" r="4"  class="ai-node ai-node--cyan   ai-float--1"/>
-        <circle cx="120"  cy="600" r="4"  class="ai-node ai-node--green  ai-float--3"/>
-        <circle cx="1050" cy="480" r="5"  class="ai-node ai-node--purple ai-float--2"/>
-        <circle cx="820"  cy="100" r="5"  class="ai-node ai-node--amber  ai-float--1"/>
-        <circle cx="380"  cy="80"  r="4"  class="ai-node ai-node--cyan   ai-float--3"/>
-      </g>
-      <!-- Gradient defs -->
-      <defs>
-        <radialGradient id="pulse-grad" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stop-color="#26890D" stop-opacity="1"/>
-          <stop offset="100%" stop-color="#0D8390" stop-opacity="0"/>
-        </radialGradient>
-      </defs>
-    </svg>
-  </div>
+  <hero-blueprint />
 
   <div class="container hero-inner">
 
@@ -557,13 +499,14 @@
 
     <div class="proof-grid">
       @for (p of proofStats; track p.stat) {
-        <div class="proof-card">
+        <div class="proof-card" (pointermove)="spot($event)">
 
           <!-- SVG icon top-right — hardcoded, safe to bypass sanitizer -->
           <div class="proof-icon" [innerHTML]="safeIcon(p.svgIcon)"></div>
 
           <div class="proof-tag">{{ p.tag }}</div>
           <div class="proof-num">{{ p.stat }}</div>
+          <proof-viz [kind]="p.tag" [prs]="openSource" />
           <div class="proof-title">{{ p.title }}</div>
           <div class="proof-sub">{{ p.sub }}</div>
           @if (p.link) { <a class="proof-live-link" [href]="p.link" target="_blank" rel="noopener">Visit aurawithrav.com →</a> }

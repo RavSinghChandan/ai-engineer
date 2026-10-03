@@ -2901,3 +2901,12 @@ footer {
 
 /* magnetic buttons ease back smoothly */
 [magnetic] { transition: transform 0.18s ease-out, background 0.2s; }
+
+/* Proof cards: pointer spotlight (desktop only) */
+@media (hover: hover) {
+  .proof-panel .proof-card::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.25s;
+    background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), rgba(134, 188, 37, 0.10), transparent 70%);
+  }
+  .proof-panel .proof-card:hover::after { opacity: 1; }
+}

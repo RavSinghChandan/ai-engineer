@@ -1,0 +1,38 @@
+:host { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+
+.bp { width: 100%; height: 100%; display: block; }
+
+.bp-gridline { stroke: var(--border); stroke-width: 1; }
+.bp-gridrect { opacity: 0.55; }
+
+.bp-loop { fill: none; stroke: var(--border); stroke-width: 1.5; stroke-dasharray: 4 6; }
+.bp-flow {
+  fill: none; stroke: var(--dl-green, #86BC25); stroke-width: 1.6; opacity: 0.45;
+  stroke-dasharray: 35 965; animation: bp-flow 18s linear infinite;
+}
+@keyframes bp-flow { to { stroke-dashoffset: -1000; } }
+
+.bp-packet { fill: var(--dl-green, #86BC25); offset-distance: 0%; animation: bp-run 18s linear infinite; filter: drop-shadow(0 0 4px rgba(134, 188, 37, 0.8)); }
+@keyframes bp-run { to { offset-distance: 100%; } }
+
+.bp-node rect { fill: var(--bg); stroke: var(--border); stroke-width: 1.2; }
+.bp-t { font-family: 'Fira Code', monospace; font-size: 12px; font-weight: 700; fill: var(--text); opacity: 0.8; }
+.bp-s { font-family: 'Fira Code', monospace; font-size: 9.5px; fill: var(--muted); }
+.bp-title { font-family: 'Fira Code', monospace; font-size: 11px; letter-spacing: 0.12em; fill: var(--muted); opacity: 0.8; text-transform: uppercase; }
+
+/* the last node is the real product, lit by the real health check */
+.bp-prod rect { stroke: var(--muted); stroke-width: 1.5; }
+.bp-prod .bp-halo { fill: none; stroke: none; }
+.bp-prod.ok rect { stroke: var(--green, #86BC25); }
+.bp-prod.ok .bp-s { fill: var(--green, #86BC25); }
+.bp-prod.ok .bp-halo { stroke: var(--green, #86BC25); stroke-width: 2; transform-box: fill-box; transform-origin: center; animation: bp-halo 2.4s ease-out infinite; }
+.bp-prod.slow rect { stroke: var(--amber, #FFB81C); }
+.bp-prod.down rect { stroke: var(--red, #DA291C); }
+@keyframes bp-halo { from { transform: scale(0.8); opacity: 0.7; } to { transform: scale(3.4); opacity: 0; } }
+
+/* phones: the text fills the hero, so keep only the faint loop and its packets */
+@media (max-width: 899px) { :host { opacity: 0.45; } .bp-node, .bp-title { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .bp-flow, .bp-packet, .bp-halo { animation: none !important; }
+  .bp-packet { display: none; }
+}

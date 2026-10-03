@@ -14,7 +14,8 @@ export interface RequestLog { label: string; status: number | 'cache' | 'error';
 const API_HEALTH = 'https://astro-intel-api.onrender.com/health';
 const LIBS = ['py-pdf/pypdf', 'joblib/joblib', 'huggingface/sentence-transformers', 'nltk/nltk', 'authlib/authlib'];
 export const GH_QUERY = 'is:pr author:RavSinghChandan is:merged ' + LIBS.map(r => `repo:${r}`).join(' ');
-const CACHE_KEY = 'live-proof-v2';
+const CACHE_KEY = 'live-proof-v3';
+const CACHE_MS = 15 * 60_000;
 
 @Injectable({ providedIn: 'root' })
 export class LiveStatus {
@@ -98,12 +99,13 @@ export class LiveStatus {
     this.ghState.set('checking');
     this.searchLog.set(null);
     this.eventsLog.set(null);
-    // GitHub allows 10 anonymous searches a minute per visitor, so reuse this tab's
-    // result for a few minutes unless the visitor asks to check again.
+    // GitHub allows anonymous visitors 60 calls an hour, so keep the result for 15
+    // minutes across tabs and visits unless the visitor asks to check again.
+    const cached = this.readCache();
     if (useCache) {
       try {
-        const c = JSON.parse(sessionStorage.getItem(CACHE_KEY) || 'null');
-        if (c && Date.now() - c.t < 5 * 60_000) {
+        const c = cached;
+        if (c && Date.now() - c.t < CACHE_MS) {
           this.apply(c);
           this.searchLog.set({ label: 'GET api.github.com/search/issues', status: 'cache', ms: 0 });
           this.eventsLog.set({ label: 'GET api.github.com/users/…/events', status: 'cache', ms: 0 });
@@ -119,7 +121,11 @@ export class LiveStatus {
     ]);
     this.searchLog.set({ label: 'GET api.github.com/search/issues', status: search.r ? search.r.status : 'error', ms: search.ms });
     this.eventsLog.set({ label: 'GET api.github.com/users/…/events', status: events.r ? events.r.status : 'error', ms: events.ms });
-    if (!search.r?.ok) { this.ghState.set('down'); return; }
+    if (!search.r?.ok) {
+      if (cached) this.apply(cached);                              // last known values, labelled as such
+      this.ghState.set('down');
+      return;
+    }
     try {
       const s = await search.r.json();
       const items: any[] = s.items ?? [];
@@ -133,14 +139,18 @@ export class LiveStatus {
           title: top.title.replace(/^[A-Z]{2,5}:\s*/, ''), repo: top.repository_url.split('/').slice(-2).join('/'),
           number: top.number, url: top.html_url, at: top.closed_at,
         } : null,
-        push: push ? { repo: push.repo.name, at: push.created_at } : null,
+        push: push ? { repo: push.repo.name, at: push.created_at } : (cached?.push ?? null),
       };
       this.apply(data);
       this.ghState.set('ok');
-      try { sessionStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch { /* storage unavailable */ }
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch { /* storage unavailable */ }
     } catch {
       this.ghState.set('down');
     }
+  }
+
+  private readCache(): { t: number; count: number; latest: Merge | null; push: { repo: string; at: string } | null } | null {
+    try { return JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch { return null; }
   }
 
   private apply(d: { count: number; latest: Merge | null; push: { repo: string; at: string } | null }) {
