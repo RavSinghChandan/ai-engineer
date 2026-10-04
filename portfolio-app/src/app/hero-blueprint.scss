@@ -55,3 +55,13 @@
 }
 :host-context([data-theme="light"]) .bp-mist { opacity: 0.6; }
 @media (prefers-reduced-motion: reduce) { .bp-mist ellipse { animation: none !important; } }
+
+/* icons, and a box lights up each time a request passes through it */
+.bp-icon { fill: none; stroke: var(--dl-green, #86BC25); stroke-width: 1.1; stroke-linecap: round; stroke-linejoin: round; opacity: 0.9; }
+.bp-node .bp-box { animation: bp-hit 4.5s linear infinite; animation-delay: var(--hit, 0s); }
+@keyframes bp-hit {
+  0% { stroke: rgba(134, 188, 37, 1); fill: rgba(134, 188, 37, 0.18); }
+  14%, 100% { stroke: rgba(134, 188, 37, 0.42); fill: var(--bg); }
+}
+.bp-trail { fill: var(--dl-teal, #00ABAB); offset-distance: 0%; animation: bp-run 18s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .bp-node .bp-box, .bp-trail { animation: none !important; } .bp-trail { display: none; } }

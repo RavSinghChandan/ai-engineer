@@ -2962,24 +2962,24 @@ footer {
 }
 
 
-/* ── The Ashoka Chakra: navy on white, 24 spokes, as on the flag ── */
-.chakra { --ashoka: #000080; }
-.chakra-wheel { filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.35)); }
-.ck-field { fill: #FFFFFF; }
-.ck-field-ring { fill: none; stroke: var(--ashoka); stroke-width: 2; }
-.ck-ashoka .ck-rim { stroke: var(--ashoka); }
-.ck-ashoka .ck-lunates circle { fill: var(--ashoka); }
-.ck-ashoka .ck-spokes { fill: var(--ashoka); }
-.ck-ashoka .ck-hub { fill: var(--ashoka); }
-.ck-sector-fill { fill: rgba(0, 0, 128, 0.10); }
+/* ── The Ashoka Chakra geometry, in the site's green palette ── */
+.chakra { --ashoka: #86BC25; }
+.chakra-wheel { filter: drop-shadow(0 0 22px rgba(134, 188, 37, 0.18)); }
+.ck-field { fill: var(--card); }
+.ck-field-ring { stroke: rgba(134, 188, 37, 0.45) !important; }
+.ck-ashoka .ck-rim { stroke: url(#ck-green-g); }
+.ck-ashoka .ck-lunates circle { fill: #86BC25; }
+.ck-ashoka .ck-spokes { fill: url(#ck-green-g); }
+.ck-ashoka .ck-hub { fill: url(#ck-green-g); }
+.ck-sector-fill { fill: rgba(134, 188, 37, 0.14); }
 .chakra-center {
-  background: #FFFFFF !important; color: var(--ashoka);
-  box-shadow: 0 0 0 4px var(--ashoka), 0 0 0 9px #FFFFFF, 0 0 0 11px var(--ashoka), 0 12px 30px -12px rgba(0, 0, 0, 0.5) !important;
+  background: radial-gradient(circle at 50% 35%, var(--card-hi), var(--card)) !important;
+  box-shadow: 0 0 0 3px #86BC25, 0 0 0 8px var(--card), 0 0 0 10px rgba(0, 171, 171, 0.7), 0 14px 34px -14px rgba(0, 0, 0, 0.6) !important;
   width: calc(var(--wheel) * 0.36) !important; height: calc(var(--wheel) * 0.36) !important;
 }
-.chakra-center .cc-kicker, .chakra-center .cc-foot { color: var(--ashoka) !important; opacity: 0.8; }
-.chakra-center .cc-name { color: var(--ashoka) !important; }
-.chakra-center .cc-desc { color: #2B2B5E !important; }
+.chakra-center .cc-kicker, .chakra-center .cc-foot { color: var(--accent) !important; opacity: 1; }
+.chakra-center .cc-name { color: var(--text) !important; }
+.chakra-center .cc-desc { color: var(--text2) !important; }
 @media (prefers-reduced-motion: no-preference) {
   .ck-spin.ck-ashoka { animation: geo-spin 48s linear infinite; }
 }

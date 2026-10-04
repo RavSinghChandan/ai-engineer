@@ -7,7 +7,7 @@ import { LiveStatus } from './live-status.service';
  * aurawithrav.com, lit by the real health check.
  */
 type Layer = 'client' | 'security' | 'ai' | 'data' | 'ship';
-interface Node { x: number; y: number; t: string; s: string; layer: Layer; }
+interface Node { x: number; y: number; t: string; s: string; layer: Layer; hit?: number; }
 
 
 @Component({
@@ -36,15 +36,19 @@ interface Node { x: number; y: number; t: string; s: string; layer: Layer; }
       <path [attr.d]="loop()" class="bp-loop"/>
       <path [attr.d]="loop()" class="bp-flow" pathLength="1000" stroke="url(#bp-layers)"/>
       @for (d of [0, 1, 2, 3]; track d) {
-        <circle r="3.2" class="bp-packet" [style.offset-path]="'path(\\'' + loop() + '\\')'" [style.animation-delay]="-d * 4.5 + 's'"/>
+        @for (k of [3, 2, 1]; track k) {
+          <circle [attr.r]="3.2 - k * 0.6" class="bp-trail" [style.opacity]="0.5 - k * 0.12" [style.offset-path]="pathCss()" [style.animation-delay]="(k * 0.14 - d * 4.5) + 's'"/>
+        }
+        <circle r="3.4" class="bp-packet" [style.offset-path]="pathCss()" [style.animation-delay]="-d * 4.5 + 's'"/>
       }
 
       @for (n of nodes(); track n.t) {
-        <g class="bp-node" [attr.transform]="'translate(' + n.x + ' ' + n.y + ')'">
-          <rect x="-62" y="-15" width="124" height="30" rx="2"/>
+        <g class="bp-node" [attr.transform]="'translate(' + n.x + ' ' + n.y + ')'" [style.--hit]="n.hit + 's'">
+          <rect x="-62" y="-15" width="124" height="30" rx="2" class="bp-box"/>
           <rect x="-62" y="-15" width="3" height="30" class="bp-tick"/>
-          <text y="-2" text-anchor="middle" class="bp-t">{{ n.t }}</text>
-          <text y="10" text-anchor="middle" class="bp-s">{{ n.s }}</text>
+          <path [attr.d]="icons[n.t]" transform="translate(-53 -6)" class="bp-icon"/>
+          <text x="7" y="-2" text-anchor="middle" class="bp-t">{{ n.t }}</text>
+          <text x="7" y="10" text-anchor="middle" class="bp-s">{{ n.s }}</text>
         </g>
       }
 
@@ -73,12 +77,13 @@ export class HeroBlueprint implements OnInit, AfterViewInit, OnDestroy {
     return { l: 90, r: w - 80, t: 80, b: h - 38 };
   });
   readonly loop = computed(() => { const b = this.box(); return `M${b.l} ${b.t} H${b.r} V${b.b} H${b.l} Z`; });
+  readonly pathCss = computed(() => `path('${this.loop()}')`);
   readonly nodes = computed<Node[]>(() => {
     const { l, r, t, b } = this.box();
     const across = (i: number, n: number) => l + ((r - l) * i) / n;
     const down = (i: number) => t + ((b - t) * i) / 3;
     return [
-      { x: across(0, 4), y: t, t: 'users', s: 'web · mobile · slack', layer: 'client' },
+      { x: across(0, 4), y: t, t: 'users', s: 'web · mobile', layer: 'client' },
       { x: across(1, 4), y: t, t: 'web app', s: 'Angular · React', layer: 'client' },
       { x: across(2, 4), y: t, t: 'gateway', s: 'FastAPI · auth', layer: 'security' },
       { x: across(3, 4), y: t, t: 'agent graph', s: 'LangGraph · tools', layer: 'ai' },
@@ -89,8 +94,35 @@ export class HeroBlueprint implements OnInit, AfterViewInit, OnDestroy {
       { x: across(3, 4), y: b, t: 'container', s: 'Docker · CI', layer: 'ship' },
       { x: across(2, 4), y: b, t: 'deploy', s: 'Render', layer: 'ship' },
       { x: across(1, 4), y: b, t: 'edge', s: 'Vercel · HTTPS', layer: 'ship' },
-    ];
+    ].map(n => ({ ...n, hit: this.hitDelay(n.x, n.y) }) as Node);
   });
+
+  /** Seconds until a packet reaches (x, y): packets lap the loop in 18 s, one every 4.5 s. */
+  private hitDelay(x: number, y: number): number {
+    const { l, r, t, b } = this.box();
+    const w = r - l, h = b - t, per = 2 * (w + h);
+    let d: number;
+    if (y === t) d = x - l;
+    else if (x === r) d = w + (y - t);
+    else if (y === b) d = w + h + (r - x);
+    else d = 2 * w + h + (b - y);
+    return +(((d / per) * 18) % 4.5).toFixed(2);
+  }
+
+  /** 12 x 12 line icons, one per box. */
+  readonly icons: Record<string, string> = {
+    'users': 'M6 5.5a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4zM1.5 11.5c.4-2.6 2.2-4 4.5-4s4.1 1.4 4.5 4',
+    'web app': 'M1 2h10v8H1zM1 4.5h10M2.6 3.2h.1M4 3.2h.1',
+    'gateway': 'M1 4h8.5M7.5 2l2 2-2 2M11 8H2.5M4.5 6l-2 2 2 2',
+    'agent graph': 'M2.5 2.5L6 9.5L9.5 2.5Z',
+    'guardrails': 'M6 1l4.5 1.8v3.4c0 2.6-1.9 4.4-4.5 5.3-2.6-.9-4.5-2.7-4.5-5.3V2.8zM4 6.2l1.5 1.5L8.3 4.8',
+    'model': 'M3 3h6v6H3zM5 1v2M7 1v2M5 9v2M7 9v2M1 5h2M1 7h2M9 5h2M9 7h2',
+    'retrieval': 'M5 9a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 8l3.2 3.2',
+    'data': 'M1.5 2.8C1.5 1.8 3.5 1 6 1s4.5.8 4.5 1.8v6.4C10.5 10.2 8.5 11 6 11s-4.5-.8-4.5-1.8zM1.5 2.8c0 1 2 1.8 4.5 1.8s4.5-.8 4.5-1.8M1.5 6c0 1 2 1.8 4.5 1.8S10.5 7 10.5 6',
+    'container': 'M6 1l5 2.5v5L6 11 1 8.5v-5zM1 3.5L6 6l5-2.5M6 6v5',
+    'deploy': 'M6 1v7M3 4l3-3 3 3M1.5 10.5h9',
+    'edge': 'M6 11A5 5 0 1 0 6 1a5 5 0 0 0 0 10zM1 6h10M6 1c1.6 1.4 2.4 3.1 2.4 5S7.6 9.6 6 11M6 1C4.4 2.4 3.6 4.1 3.6 6S4.4 9.6 6 11',
+  };
 
   ngAfterViewInit() {
     const host = this.el.nativeElement as HTMLElement;
