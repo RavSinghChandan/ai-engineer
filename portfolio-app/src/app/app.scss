@@ -2992,3 +2992,23 @@ footer {
 .contact-talk::after { content: '▍'; margin-left: 0.15em; color: var(--dl-green); animation: talk-caret 1.05s steps(1) infinite; }
 @keyframes talk-caret { 50% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .contact-talk::after { animation: none; } }
+
+/* ── Landing flow: value → action → proof → how I work ── */
+.hero-pos { display: block; margin-top: 0.55rem; font-size: 1.02rem; color: var(--text2); line-height: 1.55; max-width: 34rem; }
+.hero .hero-desc { margin-bottom: 1.4rem; }
+.hero .hero-cta { margin-bottom: 1.6rem; }
+.hero .hero-stats { margin-bottom: 0.2rem; }
+
+/* phone and iPad: one column in reading order, with the live proof right after the buttons */
+@media (max-width: 900px) {
+  .hero .hero-inner { display: flex; flex-direction: column; align-items: stretch; gap: 0; }
+  .hero .hero-text, .hero .hero-visual { display: contents; }
+  .hero .hero-badge { order: 1; align-self: flex-start; }
+  .hero h1 { order: 2; }
+  .hero .hero-desc { order: 3; }
+  .hero .hero-cta { order: 4; }
+  .hero .hero-proof { order: 5; max-width: none; margin: 0 0 1.6rem; }
+  .hero .hero-stats { order: 6; }
+  .hero deploy-line { order: 7; }
+  .hero .hero-photo-wrap { order: 8; align-self: center; margin-top: 1.5rem; }
+}
