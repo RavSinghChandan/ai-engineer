@@ -403,12 +403,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '66',
+      stat:  '67',
       title: 'PRs merged by outside maintainers.',
       sub:   'Strangers reviewed the code and shipped it — pypdf, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '66 merged, all reviewed! ✅',
+      aaravSay: '67 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -1101,6 +1101,16 @@ export class App implements OnInit, AfterViewInit {
       logo: 'pypdf-logo.svg',
       org: 'py-pdf',
       stars: '10.1k★',
+      title: 'Do not crash when the font resources are not a dictionary',
+      desc: 'A /Font entry that was a number, string or array made extract_text() fail with a TypeError, in plain and layout mode alike. Font resources are now read through one helper: a null entry counts as missing, anything else malformed is reported and treated as empty.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4138',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
       title: 'Raise a clear error for a rectangle without four values',
       desc: 'RectangleObject asserted its length, so a malformed box failed with a bare AssertionError carrying no values — and vanished entirely under python -O. It now raises a ValueError naming the count and the sequence it was given.',
       pr: 'https://github.com/py-pdf/pypdf/pull/4123',
@@ -1381,6 +1391,7 @@ export class App implements OnInit, AfterViewInit {
     { id: 'pypdf56', label: 'pypdf #4119',    kind: 'oss', detail: 'Composite font without descendants', url: 'https://github.com/py-pdf/pypdf/pull/4119' },
     { id: 'pypdf57', label: 'pypdf #4098',    kind: 'oss', detail: 'Outline action without a type', url: 'https://github.com/py-pdf/pypdf/pull/4098' },
     { id: 'pypdf58', label: 'pypdf #4123',    kind: 'oss', detail: 'Rectangle without four values', url: 'https://github.com/py-pdf/pypdf/pull/4123' },
+    { id: 'pypdf59', label: 'pypdf #4138',    kind: 'oss', detail: 'Font resources not a dictionary', url: 'https://github.com/py-pdf/pypdf/pull/4138' },
 
     // Experience (amber)
     { id: 'deloitte', label: 'Deloitte USI', kind: 'work', detail: 'Software Engineer II · Agentic AI & AI Security' },
@@ -1535,7 +1546,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defence','PII protection','Output validation','Secure tool use','Threat modelling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers — and own the outcome.',
-      evidence: '66 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
+      evidence: '67 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
