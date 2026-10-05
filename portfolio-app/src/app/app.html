@@ -62,7 +62,7 @@
 
       <p class="hero-desc">
         <strong class="hero-lede">I build AI systems that don't stop at the demo.</strong>
-        <span class="hero-pos">Forward deployed AI engineering: from the customer's problem to a system running in production.</span>
+        <span class="hero-pos">Forward deployed AI engineering, problem to production. Live today: <a href="https://aurawithrav.com" target="_blank" rel="noopener">Aura with Rav</a> · <a href="https://aaina-ai.vercel.app" target="_blank" rel="noopener">Aaina</a> · <a href="https://poultry-360.onrender.com" target="_blank" rel="noopener">Poultry 360</a>.</span>
       </p>
 
 
@@ -389,7 +389,7 @@
       <div class="project-card fade-up" #fadeEl [ngClass]="'accent-' + project.accent" [id]="'project-' + project.num">
         <div class="project-top">
           <div class="project-left">
-            <div class="project-num" [ngClass]="'num-' + project.accent">✦ Project {{ project.num }}@if (isFlagship(project.num)) {<span class="flagship-badge">Flagship</span>}@if (project.inProduction) {<span class="prod-badge" [class.is-down]="live.apiState() === 'down'"><span class="prod-dot"></span>{{ live.apiState() === 'ok' ? 'Live now · ' + live.apiMs() + ' ms' : live.apiState() === 'down' ? 'Live product · not answering now' : 'Live in production' }}</span>}</div>
+            <div class="project-num" [ngClass]="'num-' + project.accent">✦ Project {{ project.num }}@if (isFlagship(project.num)) {<span class="flagship-badge">Flagship</span>}@if (project.inProduction) {@let ps = live.stateOf(project.num);<span class="prod-badge" [class.is-down]="ps.state === 'down'"><span class="prod-dot"></span>{{ ps.state === 'ok' ? 'Live now · ' + ps.ms + ' ms' : ps.state === 'down' ? 'Live product · not answering now' : 'Live in production' }}</span>}</div>
             <h3 class="project-title">{{ project.title }}</h3>
             <div class="project-subtitle">{{ project.subtitle }}</div>
             <p class="project-desc">{{ project.desc }}</p>
@@ -1183,19 +1183,22 @@
         <p class="story-body">
           Then I learned AI deeply and saw the gap: <b>demos are easy, production is not.</b> So I build the whole thing —
           I scope the problem, build the agents and the interface, wire it into what already exists, harden it, ship it and run it.
-          Aura with Rav is live at aurawithrav.com and I own it end to end. At Deloitte USI I bring the same approach to agentic AI and security.
+          Three of those systems are live in production and I own each one end to end: Aura with Rav (aurawithrav.com), Aaina for salons
+          and Poultry 360 for farmers, each with multi-tenant sign-in, cost caps and health checks. At Deloitte USI I bring the same approach to agentic AI and security.
         </p>
         <p class="story-body">
           The goal is simple: <b>be the engineer a team trusts to turn a messy problem into a working system.</b>
         </p>
         <div class="story-stats">
-          <div class="st-stat"><span class="st-num">LIVE</span><span class="st-lbl">AI product in production</span></div>
+          <div class="st-stat"><span class="st-num">3 LIVE</span><span class="st-lbl">AI products in production</span></div>
           <div class="st-stat"><span class="st-num">{{ openSource.length }}</span><span class="st-lbl">PRs merged after external review</span></div>
           <div class="st-stat"><span class="st-num">Deloitte USI</span><span class="st-lbl">Agentic AI &amp; Security</span></div>
         </div>
         <div class="story-links">
           <span class="story-link-label">Verified by</span>
           <a href="https://aurawithrav.com" target="_blank" class="story-link">aurawithrav.com — live ↗</a>
+          <a href="https://aaina-ai.vercel.app" target="_blank" class="story-link">Aaina — live ↗</a>
+          <a href="https://poultry-360.onrender.com" target="_blank" class="story-link">Poultry 360 — live ↗</a>
           <a href="https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/" target="_blank" class="story-link">LinkedIn Profile ↗</a>
           <a href="https://www.youtube.com/@aiwithrav" target="_blank" class="story-link">YouTube — AI with Rav ↗</a>
           <a href="https://github.com/RavSinghChandan" target="_blank" class="story-link">GitHub — RavSinghChandan ↗</a>

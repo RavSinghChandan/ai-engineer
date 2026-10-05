@@ -106,7 +106,7 @@ export class App implements OnInit, AfterViewInit {
   //    Each project card is long (challenges + screenshots), so one per page.
   readonly projPageSize = 1;
   /** Flagship order: the three most forward-deployed stories lead. */
-  private readonly featuredOrder = ['01', '08', '02', '05', '06', '03', '04', '07'];
+  private readonly featuredOrder = ['01', '08', '09', '02', '05', '06', '03', '04', '07'];
   isFlagship(num: string): boolean { return this.featuredOrder.indexOf(num) < 4; }
   projSort = signal<'featured' | 'newest' | 'oldest' | 'az' | 'tests'>('featured');
   projPage = signal(1);
@@ -233,6 +233,36 @@ export class App implements OnInit, AfterViewInit {
         { p: 'Free hosting that sleeps when idle', s: 'The app wakes the API as soon as someone lands, so it is ready by the last step' },
       ],
       imgSrc: 'project-aaina.png',
+    },
+    {
+      num: '09', accent: 'amber',
+      liveUrl: 'https://poultry-360.onrender.com',
+      inProduction: true,
+      title: 'Poultry 360',
+      subtitle: 'Live AI Product — poultry-360.onrender.com',
+      story: [
+        { k: 'Problem', v: 'Small poultry farmers in India count birds by hand, guess feed, and get advice that is not in their language and not traceable to any source.' },
+        { k: 'Constraint', v: 'Farmers on cheap phones in a shed, reading Bengali or Hindi; a public app on free hosting with a CPU-only vision model and a paid AI key.' },
+        { k: 'Decision', v: 'One Docker image on Render: FastAPI serves the API and the Angular app; a YOLO11 ONNX model counts birds from a photo or video on the CPU; every feed number comes from a published table and the LLM only explains it; farms register, I approve, and they sign in with a signed tenant key.' },
+        { k: 'Result', v: 'Live at poultry-360.onrender.com in Bengali, Hindi and English: a photo is counted in seconds with every bird boxed for checking, and each flow is a chakra a farmer can follow.' },
+      ],
+      desc: 'A multi-tenant AI assistant for poultry farms: count the flock from a photo or video, get the exact ration for the birds\' age, and check flock health, in Bengali, Hindi or English. Every number a farmer acts on is traced to a cited source; the model never invents one.',
+      github: 'https://github.com/RavSinghChandan/poultry-360',
+      tags: [
+        { label: 'Python', cls: 'tag-amber' }, { label: 'FastAPI', cls: 'tag-amber' },
+        { label: 'YOLO11 ONNX vision', cls: 'tag-amber' }, { label: 'DeepSeek LLM', cls: 'tag-green' },
+        { label: 'Angular 17', cls: 'tag-cyan' }, { label: 'Bengali · Hindi · English', cls: 'tag-cyan' },
+        { label: 'Docker + Render', cls: 'tag-amber' }, { label: 'Multi-tenant auth', cls: 'tag-red' }, { label: '211 Tests', cls: 'tag-amber' },
+      ],
+      challenges: [
+        { p: 'An AI telling a farmer a wrong feed number', s: 'Numbers come only from NRC and BIS tables with the source shown; the LLM explains them and never originates one' },
+        { p: 'Counting birds without a GPU', s: 'YOLO11n exported to ONNX runs on the CPU in one 630 MB image; video samples frames and reports the best one' },
+        { p: 'A model count trusted blindly', s: 'Every bird is boxed as clear or uncertain, a likely range is shown, and the farmer confirms the number that is recorded' },
+        { p: 'Farmers who do not read English', s: 'Bengali by default, Hindi and English, with server text and UI strings resolved per language and a fallback chain' },
+        { p: 'Many farms on one paid AI key and CPU', s: 'Multi-tenant: register, owner approval, HMAC-signed tenant key; daily caps per farm, per network and overall; fails closed on deploy' },
+        { p: 'Free hosting that sleeps when idle', s: 'One-click sign-in link keeps retrying while the server wakes, and approved farms survive restarts with no database' },
+      ],
+      imgSrc: 'project-poultry.png',
     },
     {
       num: '02', accent: 'amber',
@@ -400,8 +430,8 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'SHIPPED',
       stat:  'LIVE',
-      title: 'Two real AI products in production.',
-      sub:   'aurawithrav.com and aaina-ai.vercel.app — Angular on Vercel, Dockerized FastAPI on Render, sign-in, health checks. I own them from idea to uptime.',
+      title: 'Three real AI products in production.',
+      sub:   'Aura with Rav, Aaina and Poultry 360: live today, with multi-tenant sign-in, cost caps and health checks, on Vercel and Docker on Render. I own each from idea to uptime.',
       askQuestion: 'How did Chandan take Aura with Rav to production?',
       aaravImg: 'guide-chandan-happy.svg',
       aaravSay: 'Live right now — go try it! 🚀',
@@ -1339,7 +1369,8 @@ export class App implements OnInit, AfterViewInit {
   readonly graphNodes: GraphNode[] = [
     // Systems built (purple)
     { id: 'aura',    label: 'Aura with Rav',        kind: 'system', detail: '16 agents · 415 tests · 23 languages' },
-    { id: 'aaina',   label: 'Aaina',                kind: 'system', detail: '7 agents · multi-tenant · 34 tests' },
+    { id: 'aaina',   label: 'Aaina',                kind: 'system', detail: 'Live · 7 agents · multi-tenant · 34 tests' },
+    { id: 'poultry', label: 'Poultry 360',          kind: 'system', detail: 'Live · on-CPU vision · 3 languages · 211 tests' },
     { id: 'bench',   label: 'Bench Optimizer',      kind: 'system', detail: 'Enterprise AI HR platform · G1–G5 guardrails' },
     { id: 'growth',  label: 'Agentic Growth OS',    kind: 'system', detail: 'Autonomous AI marketing platform' },
     { id: 'factory', label: 'AI Content Factory',   kind: 'system', detail: 'Multi-agent video production pipeline' },
@@ -1437,6 +1468,8 @@ export class App implements OnInit, AfterViewInit {
     ['bench','python'], ['bench','langgraph'], ['bench','fastapi'], ['bench','angular'], ['bench','rag'],
     ['growth','python'], ['growth','langchain'], ['growth','fastapi'], ['growth','angular'],
     ['factory','python'], ['factory','langgraph'], ['factory','fastapi'], ['factory','angular'],
+    ['aaina','python'], ['aaina','fastapi'], ['aaina','angular'], ['aaina','docker'],
+    ['poultry','python'], ['poultry','fastapi'], ['poultry','angular'], ['poultry','docker'],
     // tech ↔ tech
     ['langgraph','langchain'], ['langchain','rag'], ['python','fastapi'], ['python','langchain'],
     ['fastapi','kafka'], ['fastapi','docker'], ['angular','docker'], ['java','kafka'], ['java','docker'],
@@ -1824,6 +1857,13 @@ export class App implements OnInit, AfterViewInit {
   }>(null);
 
   readonly demoData: Record<string, { img: string; caption: string; label: string; guide?: string; speech?: string }[]> = {
+    '09': [
+      { img: 'poultry-step1-welcome.png', label: '☸️ Step 1 — Every flow is a chakra', caption: 'The welcome page: getting access is four steps around one wheel, and each tool shows its own steps, in Bengali, Hindi or English.' },
+      { img: 'poultry-step2-admin.png', label: '🔑 Step 2 — I approve, the farm gets a key', caption: 'A farm registers; on the owner page I approve it and get a signed tenant key, a username and a one-click sign-in link to send on WhatsApp.' },
+      { img: 'poultry-step3-count.png', label: '📷 Step 3 — Signed in, ready to count', caption: 'The farm is signed in with its own name; the chakra shows step 1 of the count: take a photo or a video of the shed.' },
+      { img: 'poultry-step4-counted.png', label: '🐔 Step 4 — Every bird boxed', caption: 'YOLO11 on the CPU finds each bird, marks it clear or uncertain, gives a likely range, and the farmer confirms the number that is kept.' },
+      { img: 'poultry-step5-feed.png', label: '🌾 Step 5 — Feed from a published table', caption: 'The exact ration for the birds\' age, with protein, energy and kilograms for today, each traced to NRC and BIS standards.' },
+    ],
     '08': [
       { img: 'aaina-step1-home.png', label: '🪞 Step 1 — Eight steps, one chakra', caption: 'The landing page: the consultation is eight steps around one wheel, and each step fills in as you go.' },
       { img: 'aaina-step2-photo.png', label: '📏 Step 2 — Measured on your phone', caption: 'One selfie. MediaPipe finds 478 face points on the device and measures face shape, hair colour and length; the photo is never stored.' },

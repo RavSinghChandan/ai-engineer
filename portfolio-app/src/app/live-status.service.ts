@@ -12,6 +12,11 @@ export interface Merge { title: string; repo: string; number: number; url: strin
 export interface RequestLog { label: string; status: number | 'cache' | 'error'; ms: number; }
 
 const API_HEALTH = 'https://astro-intel-api.onrender.com/health';
+/** Every live product's health endpoint, keyed by project number. Aura's is API_HEALTH above. */
+const PRODUCT_HEALTH: Record<string, { url: string; label: string; cors: boolean }> = {
+  '08': { url: 'https://aaina-api.onrender.com/api/health', label: 'Aaina', cors: false },
+  '09': { url: 'https://poultry-360.onrender.com/api/health', label: 'Poultry 360', cors: true },
+};
 const LIBS = ['py-pdf/pypdf', 'joblib/joblib', 'huggingface/sentence-transformers', 'nltk/nltk', 'authlib/authlib'];
 export const GH_QUERY = 'is:pr author:RavSinghChandan is:merged ' + LIBS.map(r => `repo:${r}`).join(' ');
 const CACHE_KEY = 'live-proof-v3';
@@ -33,6 +38,7 @@ export class LiveStatus {
   readonly searchLog = signal<RequestLog | null>(null);
   readonly eventsLog = signal<RequestLog | null>(null);
   readonly now = signal(Date.now());
+  private readonly products = signal<Record<string, { state: CheckState; ms: number }>>({});
   private started = false;
 
   readonly checkedLabel = computed(() => {
@@ -53,7 +59,7 @@ export class LiveStatus {
   async refresh(useCache = false) {
     if (!this.browser || this.busy()) return;
     this.busy.set(true);
-    await Promise.all([this.checkApi(), this.checkGitHub(useCache)]);
+    await Promise.all([this.checkApi(), this.checkGitHub(useCache), ...Object.keys(PRODUCT_HEALTH).map(n => this.checkProduct(n))]);
     this.checkedAt.set(Date.now());
     this.now.set(Date.now());
     this.busy.set(false);
@@ -93,6 +99,30 @@ export class LiveStatus {
     this.apiMs.set(ms);
     this.apiLog.set({ label: 'GET aurawithrav API /health', status: r ? r.status : 'error', ms });
     this.apiState.set(r?.ok && body?.status === 'ok' ? (ms > 8000 ? 'slow' : 'ok') : 'down');
+  }
+
+  /** One product's live state; Aura uses the main API check so the hero and its card agree. */
+  stateOf(num: string): { state: CheckState; ms: number } {
+    if (num === '01') return { state: this.apiState(), ms: this.apiMs() };
+    return this.products()[num] ?? { state: 'checking', ms: 0 };
+  }
+
+  private async checkProduct(num: string) {
+    const { url, cors } = PRODUCT_HEALTH[num];
+    const set = (state: CheckState, ms: number) => this.products.update(m => ({ ...m, [num]: { state, ms } }));
+    set('checking', 0);
+    let r: Response | null = null, ms = 0;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      if (attempt) await new Promise(res => setTimeout(res, 2000));
+      const ctrl = new AbortController();
+      const kill = setTimeout(() => ctrl.abort(), 45000);
+      // An API that only allows its own site still answers; no-cors proves it is up without reading the body.
+      ({ r, ms } = await this.timed(url, { signal: ctrl.signal, cache: 'no-store', mode: cors ? 'cors' : 'no-cors' }));
+      clearTimeout(kill);
+      if (r && (r.ok || r.type === 'opaque')) break;
+    }
+    const up = !!r && (r.type === 'opaque' || (r.ok && (await r.json().catch(() => ({})))?.status === 'ok'));
+    set(up ? (ms > 8000 ? 'slow' : 'ok') : 'down', ms);
   }
 
   private async checkGitHub(useCache: boolean) {

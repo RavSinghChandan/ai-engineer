@@ -2990,6 +2990,7 @@ footer {
 @media (prefers-reduced-motion: reduce) { .contact-talk::after { animation: none; } }
 
 /* ── Landing flow: value → action → proof → how I work ── */
+.hero-pos a { color: var(--green); font-weight: 600; text-underline-offset: 3px; }
 .hero-pos { display: block; margin-top: 0.55rem; font-size: 1.02rem; color: var(--text2); line-height: 1.55; max-width: 34rem; }
 .hero .hero-desc { margin-bottom: 1.4rem; }
 .hero .hero-cta { margin-bottom: 1.6rem; }
