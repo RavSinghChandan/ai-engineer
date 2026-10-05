@@ -213,22 +213,22 @@ export class App implements OnInit, AfterViewInit {
       story: [
         { k: 'Problem', v: 'Salons pick haircuts by guesswork, and customers cannot picture a cut on their own face before it is done.' },
         { k: 'Constraint', v: 'A public app on free hosting: untrusted visitors on a paid AI key, photo privacy, no GPU, and a server that sleeps when idle.' },
-        { k: 'Decision', v: 'Angular on Vercel, Dockerized FastAPI on Render; seven agents run as a YAML-defined DAG with schema checks and rule fallbacks; face shape is measured on the phone; sign-in with signed tokens and daily caps.' },
+        { k: 'Decision', v: 'Angular on Vercel, Dockerized FastAPI on Render; seven agents run as a YAML-defined DAG with schema checks and rule fallbacks; face shape is measured on the phone; multi-tenant onboarding where salons register, I approve, and they sign in with a signed tenant key.' },
         { k: 'Result', v: 'Live at aaina-ai.vercel.app: a full consultation in about ten seconds, the photo is never stored, and the AI key cannot be drained.' },
       ],
-      desc: 'An AI mirror for salons: one selfie and a few taps give the three haircuts that suit you, hair and face routines and a care calendar. Seven agents run as a declarative harness, so new features are YAML, not code.',
+      desc: 'A multi-tenant AI mirror for salons: one selfie and a few taps give the three haircuts that suit a customer, hair and face routines and a care calendar. Seven agents run as a declarative harness, so new features are YAML, not code.',
       github: 'https://github.com/RavSinghChandan',
       tags: [
         { label: 'Python', cls: 'tag-green' }, { label: 'FastAPI', cls: 'tag-green' },
         { label: 'DeepSeek LLM', cls: 'tag-green' }, { label: 'Agent DAG harness', cls: 'tag-green' },
         { label: 'Angular 21', cls: 'tag-cyan' }, { label: 'MediaPipe on-device', cls: 'tag-cyan' },
-        { label: 'Docker + Render', cls: 'tag-amber' }, { label: 'Signed-token auth', cls: 'tag-red' }, { label: '30 Tests', cls: 'tag-amber' },
+        { label: 'Docker + Render', cls: 'tag-amber' }, { label: 'Multi-tenant auth', cls: 'tag-red' }, { label: '34 Tests', cls: 'tag-amber' },
       ],
       challenges: [
         { p: 'New features without touching core code', s: 'Agents, workflows and the intake form are YAML manifests; the engine runs any DAG in parallel' },
         { p: 'An LLM recommending cuts that do not exist', s: 'Answers are grounded in a style catalog with an audience filter, schema-checked, and fall back to rules' },
         { p: 'The text model cannot see the photo', s: 'Face shape, hair colour, length and beard are measured on the phone with MediaPipe and sent as data' },
-        { p: 'A public demo on a paid AI key', s: 'Name + email sign-in with HMAC-signed tokens; caps per person, per network and per day; fails closed' },
+        { p: 'Many salons on one paid AI key', s: 'Multi-tenant: register, owner approval, HMAC-signed tenant key + username; each salon isolated; daily caps; fails closed' },
         { p: 'Photo privacy for real customers', s: 'Explicit consent, measurement on the device, and the photo is never stored on the server' },
         { p: 'Free hosting that sleeps when idle', s: 'The app wakes the API as soon as someone lands, so it is ready by the last step' },
       ],
@@ -1339,7 +1339,7 @@ export class App implements OnInit, AfterViewInit {
   readonly graphNodes: GraphNode[] = [
     // Systems built (purple)
     { id: 'aura',    label: 'Aura with Rav',        kind: 'system', detail: '16 agents · 415 tests · 23 languages' },
-    { id: 'aaina',   label: 'Aaina',                kind: 'system', detail: '7 agents · live · 30 tests' },
+    { id: 'aaina',   label: 'Aaina',                kind: 'system', detail: '7 agents · multi-tenant · 34 tests' },
     { id: 'bench',   label: 'Bench Optimizer',      kind: 'system', detail: 'Enterprise AI HR platform · G1–G5 guardrails' },
     { id: 'growth',  label: 'Agentic Growth OS',    kind: 'system', detail: 'Autonomous AI marketing platform' },
     { id: 'factory', label: 'AI Content Factory',   kind: 'system', detail: 'Multi-agent video production pipeline' },
