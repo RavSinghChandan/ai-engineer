@@ -106,7 +106,7 @@ export class App implements OnInit, AfterViewInit {
   //    Each project card is long (challenges + screenshots), so one per page.
   readonly projPageSize = 1;
   /** Flagship order: the three most forward-deployed stories lead. */
-  private readonly featuredOrder = ['01', '02', '05', '06', '03', '04', '07'];
+  private readonly featuredOrder = ['01', '08', '02', '05', '06', '03', '04', '07'];
   isFlagship(num: string): boolean { return this.featuredOrder.indexOf(num) < 4; }
   projSort = signal<'featured' | 'newest' | 'oldest' | 'az' | 'tests'>('featured');
   projPage = signal(1);
@@ -203,6 +203,36 @@ export class App implements OnInit, AfterViewInit {
         { p: 'Reliability without LLM in the test loop', s: '415 tests, seconds not minutes — full stack with mock LLM, zero flakiness' },
       ],
       imgSrc: 'project-aura.png',
+    },
+    {
+      num: '08', accent: 'green',
+      liveUrl: 'https://aaina-ai.vercel.app',
+      inProduction: true,
+      title: 'Aaina',
+      subtitle: 'Live AI Product — aaina-ai.vercel.app',
+      story: [
+        { k: 'Problem', v: 'Salons pick haircuts by guesswork, and customers cannot picture a cut on their own face before it is done.' },
+        { k: 'Constraint', v: 'A public app on free hosting: untrusted visitors on a paid AI key, photo privacy, no GPU, and a server that sleeps when idle.' },
+        { k: 'Decision', v: 'Angular on Vercel, Dockerized FastAPI on Render; seven agents run as a YAML-defined DAG with schema checks and rule fallbacks; face shape is measured on the phone; sign-in with signed tokens and daily caps.' },
+        { k: 'Result', v: 'Live at aaina-ai.vercel.app: a full consultation in about ten seconds, the photo is never stored, and the AI key cannot be drained.' },
+      ],
+      desc: 'An AI mirror for salons: one selfie and a few taps give the three haircuts that suit you, hair and face routines and a care calendar. Seven agents run as a declarative harness, so new features are YAML, not code.',
+      github: 'https://github.com/RavSinghChandan',
+      tags: [
+        { label: 'Python', cls: 'tag-green' }, { label: 'FastAPI', cls: 'tag-green' },
+        { label: 'DeepSeek LLM', cls: 'tag-green' }, { label: 'Agent DAG harness', cls: 'tag-green' },
+        { label: 'Angular 21', cls: 'tag-cyan' }, { label: 'MediaPipe on-device', cls: 'tag-cyan' },
+        { label: 'Docker + Render', cls: 'tag-amber' }, { label: 'Signed-token auth', cls: 'tag-red' }, { label: '30 Tests', cls: 'tag-amber' },
+      ],
+      challenges: [
+        { p: 'New features without touching core code', s: 'Agents, workflows and the intake form are YAML manifests; the engine runs any DAG in parallel' },
+        { p: 'An LLM recommending cuts that do not exist', s: 'Answers are grounded in a style catalog with an audience filter, schema-checked, and fall back to rules' },
+        { p: 'The text model cannot see the photo', s: 'Face shape, hair colour, length and beard are measured on the phone with MediaPipe and sent as data' },
+        { p: 'A public demo on a paid AI key', s: 'Name + email sign-in with HMAC-signed tokens; caps per person, per network and per day; fails closed' },
+        { p: 'Photo privacy for real customers', s: 'Explicit consent, measurement on the device, and the photo is never stored on the server' },
+        { p: 'Free hosting that sleeps when idle', s: 'The app wakes the API as soon as someone lands, so it is ready by the last step' },
+      ],
+      imgSrc: 'project-aaina.png',
     },
     {
       num: '02', accent: 'amber',
@@ -370,8 +400,8 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'SHIPPED',
       stat:  'LIVE',
-      title: 'A real AI product in production.',
-      sub:   'aurawithrav.com — Angular on Vercel, Dockerized FastAPI + LangGraph on Render, custom domain, HTTPS, sign-up. I own it from idea to uptime.',
+      title: 'Two real AI products in production.',
+      sub:   'aurawithrav.com and aaina-ai.vercel.app — Angular on Vercel, Dockerized FastAPI on Render, sign-in, health checks. I own them from idea to uptime.',
       askQuestion: 'How did Chandan take Aura with Rav to production?',
       aaravImg: 'guide-chandan-happy.svg',
       aaravSay: 'Live right now — go try it! 🚀',
@@ -1309,6 +1339,7 @@ export class App implements OnInit, AfterViewInit {
   readonly graphNodes: GraphNode[] = [
     // Systems built (purple)
     { id: 'aura',    label: 'Aura with Rav',        kind: 'system', detail: '16 agents · 415 tests · 23 languages' },
+    { id: 'aaina',   label: 'Aaina',                kind: 'system', detail: '7 agents · live · 30 tests' },
     { id: 'bench',   label: 'Bench Optimizer',      kind: 'system', detail: 'Enterprise AI HR platform · G1–G5 guardrails' },
     { id: 'growth',  label: 'Agentic Growth OS',    kind: 'system', detail: 'Autonomous AI marketing platform' },
     { id: 'factory', label: 'AI Content Factory',   kind: 'system', detail: 'Multi-agent video production pipeline' },
@@ -1793,6 +1824,13 @@ export class App implements OnInit, AfterViewInit {
   }>(null);
 
   readonly demoData: Record<string, { img: string; caption: string; label: string; guide?: string; speech?: string }[]> = {
+    '08': [
+      { img: 'aaina-step1-home.png', label: '🪞 Step 1 — Eight steps, one chakra', caption: 'The landing page: the consultation is eight steps around one wheel, and each step fills in as you go.' },
+      { img: 'aaina-step2-photo.png', label: '📏 Step 2 — Measured on your phone', caption: 'One selfie. MediaPipe finds 478 face points on the device and measures face shape, hair colour and length; the photo is never stored.' },
+      { img: 'aaina-step3-agents.png', label: '⚙️ Step 3 — Seven agents at work', caption: 'Spin the chakra: the profile, haircut, hair-care and face-care agents run as a DAG, each one lighting up as it finishes.' },
+      { img: 'aaina-step4-looks.png', label: '✂️ Step 4 — Three cuts that suit you', caption: 'Your real photo next to the three best cuts, each drawn in your face shape, skin tone, hair colour and beard, with why it suits you.' },
+      { img: 'aaina-step5-routines.png', label: '🗓️ Step 5 — Routines and a calendar', caption: 'Hair and face routines and a care calendar, written by DeepSeek and checked against a schema before they reach you.' },
+    ],
     '01': [
       {
         img: 'aura-step1-login.png',
