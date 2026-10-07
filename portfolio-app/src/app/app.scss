@@ -2179,6 +2179,7 @@ footer {
   &[data-lib="sentence-transformers"] { --chip: #f472b6; }
   &[data-lib="nltk"]                  { --chip: #facc15; }
   &[data-lib="authlib"]               { --chip: #007CB0; }
+  &[data-lib="fonttools"]             { --chip: #3B5BDB; }
 }
 .oss-chip-logo { width: 15px; height: 15px; object-fit: contain; }
 .oss-chip-n {
@@ -2392,6 +2393,7 @@ nav[aria-label="Main navigation"], nav[aria-label="Main navigation"].scrolled {
 .oss-chip[data-lib="pypdf"] { --chip: #86BC25; }
 .oss-chip[data-lib="nltk"] { --chip: #E3E48D; }
 .oss-chip[data-lib="authlib"] { --chip: #A0DCFF; }
+.oss-chip[data-lib="fonttools"] { --chip: #7C9CFF; }
 .tag-chip { background: var(--card) !important; color: var(--text2) !important; border-color: var(--border2) !important; }
 .tag-chip--active { background: var(--chip-active-bg) !important; color: var(--chip-active-fg) !important; border-color: var(--chip-active-bg) !important; }
 

@@ -549,7 +549,7 @@
       </div>
       <div>
         <h2 class="oss-h">I Don't Just Use Open Source. I Contribute to It.</h2>
-        <p class="oss-sub"><b>{{ openSource.length }} merged contributions</b> across libraries used by the AI/ML and Python ecosystem — pypdf · Joblib · Sentence Transformers · NLTK · Authlib.</p>
+        <p class="oss-sub"><b>{{ openSource.length }} merged contributions</b> across libraries used by the AI/ML and Python ecosystem — pypdf · fontTools · Joblib · Sentence Transformers · NLTK · Authlib.</p>
       </div>
     </div>
     <proof-viz kind="MONTHS" [prs]="openSource" class="oss-months" />
@@ -1229,6 +1229,7 @@
         <span class="kg-key"><i class="kg-dot" style="background:#f472b6"></i>sentence-transformers</span>
         <span class="kg-key"><i class="kg-dot" style="background:#E3E48D;box-shadow:0 0 10px #E3E48D"></i>NLTK</span>
         <span class="kg-key"><i class="kg-dot" style="background:#A0DCFF;box-shadow:0 0 10px #A0DCFF"></i>Authlib</span>
+        <span class="kg-key"><i class="kg-dot" style="background:#7C9CFF;box-shadow:0 0 10px #7C9CFF"></i>fontTools</span>
       </div>
     </div>
 
@@ -1253,7 +1254,7 @@
     <p class="kg-a11y">
       Projects: @for (p of projects; track p.num) { {{ p.title }}{{ $last ? '.' : ', ' }} }
       Experience: @for (e of experience; track e.company) { {{ e.company }}{{ $last ? '.' : ', ' }} }
-      Open source: {{ openSource.length }} pull requests merged by maintainers of pypdf, joblib, Sentence Transformers, NLTK and Authlib.
+      Open source: {{ openSource.length }} pull requests merged by maintainers of pypdf, fontTools, joblib, Sentence Transformers, NLTK and Authlib.
       How I work: @for (s of deployLoop; track s.name) { {{ s.name }}{{ $last ? '.' : ', ' }} }
     </p>
   </div>

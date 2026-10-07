@@ -12,6 +12,7 @@ export interface MergedPr { repo: string; title: string; pr: string; }
 const REPO_COLOR: Record<string, string> = {
   'py-pdf/pypdf': '#86BC25', 'joblib/joblib': '#62B5E5', 'UKPLab/sentence-transformers': '#FFB81C',
   'huggingface/sentence-transformers': '#FFB81C', 'nltk/nltk': '#00ABAB', 'authlib/authlib': '#C084FC',
+  'fonttools/fonttools': '#7C9CFF',
 };
 
 @Component({

@@ -465,12 +465,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '69',
+      stat:  '71',
       title: 'PRs merged by outside maintainers.',
-      sub:   'Strangers reviewed the code and shipped it — pypdf, Joblib, Sentence Transformers, NLTK and Authlib.',
+      sub:   'Strangers reviewed the code and shipped it — pypdf, fontTools, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '69 merged, all reviewed! ✅',
+      aaravSay: '71 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -1193,6 +1193,26 @@ export class App implements OnInit, AfterViewInit {
       logo: 'pypdf-logo.svg',
       org: 'py-pdf',
       stars: '10.1k★',
+      title: 'Skip a Do operator without an operand in extract_text',
+      desc: 'A content stream with a bare Do operator made extract_text() raise an IndexError, from inside its own warning. A Do without an operand is now skipped, as the image extraction loop already did, and the text around it is kept.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4165',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'fonttools/fonttools',
+      logo: 'fonttools-logo.svg',
+      org: 'fonttools',
+      stars: '5.3k★',
+      title: 'Read CFF font names as latin-1, like the compiler writes them',
+      desc: 'fontTools could save a CFF font with a non-ASCII name but not read it back: the Name INDEX was decoded as ASCII while the compiler writes latin-1, so reopening the file made the whole CFF table unreadable. Names are now read the way they are written. Approved and merged by anthrotype.',
+      pr: 'https://github.com/fonttools/fonttools/pull/4253',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
       title: 'Raise a clear error for a rectangle without four values',
       desc: 'RectangleObject asserted its length, so a malformed box failed with a bare AssertionError carrying no values — and vanished entirely under python -O. It now raises a ValueError naming the count and the sequence it was given.',
       pr: 'https://github.com/py-pdf/pypdf/pull/4123',
@@ -1409,7 +1429,7 @@ export class App implements OnInit, AfterViewInit {
   ];
 
   private readonly GRAPH_LIBRARY_NAMES: Record<string, string> = {
-    'sentence-transformers': 'Sentence Transformers', nltk: 'NLTK', authlib: 'Authlib',
+    'sentence-transformers': 'Sentence Transformers', nltk: 'NLTK', authlib: 'Authlib', fonttools: 'fontTools',
   };
 
   /** Short hover lines for the projects; anything else falls back to its subtitle. */
@@ -1587,7 +1607,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defence','PII protection','Output validation','Secure tool use','Threat modelling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers — and own the outcome.',
-      evidence: '69 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
+      evidence: '71 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
@@ -2839,6 +2859,7 @@ export class App implements OnInit, AfterViewInit {
     'sentence-transformers': '#f472b6', // pink
     nltk:     '#E3E48D',  // pale lime
     authlib:  '#A0DCFF',  // sky
+    fonttools: '#7C9CFF', // periwinkle
   };
 
   /** Colour for a node: open-source vertices are keyed by library. */
@@ -2847,7 +2868,7 @@ export class App implements OnInit, AfterViewInit {
     system: '#0D8390', tech: '#007CB0', oss: '#26890D', work: '#C26E00', practice: '#6B7A00',
   };
   private readonly OSS_COLORS_LIGHT: Record<string, string> = {
-    pypdf: '#26890D', joblib: '#E11D48', 'sentence-transformers': '#DB2777', nltk: '#A16207', authlib: '#0369A1',
+    pypdf: '#26890D', joblib: '#E11D48', 'sentence-transformers': '#DB2777', nltk: '#A16207', authlib: '#0369A1', fonttools: '#3B5BDB',
   };
 
   private nodeColor(n: GraphNode): string {
