@@ -3009,3 +3009,6 @@ footer {
   .hero deploy-line { order: 7; }
   .hero .hero-photo-wrap { order: 8; align-self: center; margin-top: 1.5rem; }
 }
+
+// Graph clicks scroll to a project card; keep it clear of the fixed nav.
+.project-card { scroll-margin-top: 88px; }

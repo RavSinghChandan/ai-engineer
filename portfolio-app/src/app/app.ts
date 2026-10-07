@@ -17,9 +17,11 @@ import { LiveStatus } from './live-status.service';
 interface GraphNode {
   id: string;
   label: string;
-  kind: 'system' | 'tech' | 'oss' | 'work';
+  kind: 'system' | 'tech' | 'oss' | 'work' | 'practice';
   detail: string;
   url?: string;
+  /** Element id the node scrolls to when clicked (a project card or a section). */
+  target?: string;
 }
 
 /** Runtime physics state for a graph node. */
@@ -463,12 +465,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '67',
+      stat:  '69',
       title: 'PRs merged by outside maintainers.',
       sub:   'Strangers reviewed the code and shipped it — pypdf, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '67 merged, all reviewed! ✅',
+      aaravSay: '69 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -1171,6 +1173,26 @@ export class App implements OnInit, AfterViewInit {
       logo: 'pypdf-logo.svg',
       org: 'py-pdf',
       stars: '10.1k★',
+      title: 'Keep the text shown before a change of direction',
+      desc: 'A 6.19.0 regression: when Arabic or Persian text switched direction mid-line, extract_text() dropped everything shown before the switch, so digits and Latin words beside right-to-left text vanished. The completed runs are now kept and reach the visitor once.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4155',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Do not crash when the font /FirstChar is not a number',
+      desc: 'A /FirstChar of null, a name or a string made layout-mode extract_text() fail with a TypeError. It is now reported and the widths are skipped, the same way a negative /FirstChar was already handled.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4163',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
       title: 'Raise a clear error for a rectangle without four values',
       desc: 'RectangleObject asserted its length, so a malformed box failed with a bare AssertionError carrying no values — and vanished entirely under python -O. It now raises a ValueError naming the count and the sequence it was given.',
       pr: 'https://github.com/py-pdf/pypdf/pull/4123',
@@ -1366,157 +1388,112 @@ export class App implements OnInit, AfterViewInit {
   // ── Interactive knowledge graph (hero section below the fold) ──────────────
   //    Nodes are the real things on this page; edges are how they actually
   //    connect. Physics runs in a canvas — see initGraph() further down.
-  readonly graphNodes: GraphNode[] = [
-    // Systems built (purple)
-    { id: 'aura',    label: 'Aura with Rav',        kind: 'system', detail: '16 agents · 415 tests · 23 languages' },
-    { id: 'aaina',   label: 'Aaina',                kind: 'system', detail: 'Live · 7 agents · multi-tenant · 34 tests' },
-    { id: 'poultry', label: 'Poultry 360',          kind: 'system', detail: 'Live · on-CPU vision · 3 languages · 211 tests' },
-    { id: 'bench',   label: 'Bench Optimizer',      kind: 'system', detail: 'Enterprise AI HR platform · G1–G5 guardrails' },
-    { id: 'growth',  label: 'Agentic Growth OS',    kind: 'system', detail: 'Autonomous AI marketing platform' },
-    { id: 'factory', label: 'AI Content Factory',   kind: 'system', detail: 'Multi-agent video production pipeline' },
+  graphNodes: GraphNode[] = [];
+  graphEdges: [string, string][] = [];
 
-    // Core technologies (cyan)
-    { id: 'python',    label: 'Python',      kind: 'tech', detail: 'Primary language for all AI work' },
-    { id: 'langgraph', label: 'LangGraph',   kind: 'tech', detail: 'Stateful multi-agent orchestration' },
-    { id: 'langchain', label: 'LangChain',   kind: 'tech', detail: 'LLM chains, tools, retrievers' },
-    { id: 'fastapi',   label: 'FastAPI',     kind: 'tech', detail: 'Async Python APIs' },
-    { id: 'rag',       label: 'RAG',         kind: 'tech', detail: 'Hybrid retrieval · HyDE · CRAG · RRF fusion' },
-    { id: 'angular',   label: 'Angular',     kind: 'tech', detail: 'This portfolio, and every project UI' },
-    { id: 'java',      label: 'Java/Spring', kind: 'tech', detail: '4 years of production backend' },
-    { id: 'kafka',     label: 'Kafka',       kind: 'tech', detail: 'Async jobs, DLQ, event streaming' },
-    { id: 'docker',    label: 'Docker/AWS',  kind: 'tech', detail: 'Containerised deploys, ECS, CI/CD' },
-
-    // Merged open source (green)
-    { id: 'pypdf',   label: 'pypdf #3929',    kind: 'oss', detail: 'Bug fix: low-bit DeviceRGB decoding', url: 'https://github.com/py-pdf/pypdf/pull/3929' },
-    { id: 'nltk',    label: 'nltk #3703',     kind: 'oss', detail: 'Tests for transitive_closure',        url: 'https://github.com/nltk/nltk/pull/3703' },
-    { id: 'joblib1', label: 'joblib #1812',   kind: 'oss', detail: 'Bug fix: os.PathLike in dump/load',    url: 'https://github.com/joblib/joblib/pull/1812' },
-    { id: 'joblib2', label: 'joblib #1811',   kind: 'oss', detail: 'Missing docstrings on time formatters', url: 'https://github.com/joblib/joblib/pull/1811' },
-    { id: 'joblib3', label: 'joblib #1839',   kind: 'oss', detail: 'pre_dispatch below one dispatched nothing', url: 'https://github.com/joblib/joblib/pull/1839' },
-    { id: 'st1',     label: 'sent-tf #3855',  kind: 'oss', detail: 'Regression tests for a core utility',  url: 'https://github.com/huggingface/sentence-transformers/pull/3855' },
-    { id: 'st2',     label: 'sent-tf #3843',  kind: 'oss', detail: 'Documented to_scipy_coo',              url: 'https://github.com/huggingface/sentence-transformers/pull/3843' },
-    { id: 'pypdf1',  label: 'pypdf #3938',    kind: 'oss', detail: 'Low-bit samples without a filter',    url: 'https://github.com/py-pdf/pypdf/pull/3938' },
-    { id: 'pypdf2',  label: 'pypdf #3943',    kind: 'oss', detail: 'Bug fix: CMYK /Decode inversion',      url: 'https://github.com/py-pdf/pypdf/pull/3943' },
-    { id: 'authlib', label: 'authlib #919',   kind: 'oss', detail: 'Bug fix: OAuth1 error named OAuth 2',  url: 'https://github.com/authlib/authlib/pull/919' },
-    { id: 'pypdf3',  label: 'pypdf #3957',    kind: 'oss', detail: 'Bug fix: pages typed list, returns Sequence', url: 'https://github.com/py-pdf/pypdf/pull/3957' },
-    { id: 'pypdf4',  label: 'pypdf #3960',    kind: 'oss', detail: 'Bug fix: PdfWriter failed its own protocol',   url: 'https://github.com/py-pdf/pypdf/pull/3960' },
-    { id: 'pypdf5',  label: 'pypdf #3970',    kind: 'oss', detail: 'Bug fix: translation table typed wrongly',   url: 'https://github.com/py-pdf/pypdf/pull/3970' },
-    { id: 'pypdf6',  label: 'pypdf #3969',    kind: 'oss', detail: 'Release tooling: auto minor version bump',   url: 'https://github.com/py-pdf/pypdf/pull/3969' },
-    { id: 'pypdf7',  label: 'pypdf #3971',    kind: 'oss', detail: 'Bug fix: decode params typed as a plain dict', url: 'https://github.com/py-pdf/pypdf/pull/3971' },
-    { id: 'pypdf8',  label: 'pypdf #3983',    kind: 'oss', detail: 'Bug fix: AcroForm /DR fonts never collected', url: 'https://github.com/py-pdf/pypdf/pull/3983' },
-    { id: 'pypdf9',  label: 'pypdf #3984',    kind: 'oss', detail: 'Bug fix: RectangleObject rejected ArrayObject', url: 'https://github.com/py-pdf/pypdf/pull/3984' },
-    { id: 'pypdf10', label: 'pypdf #3985',    kind: 'oss', detail: 'Return None to match the annotation', url: 'https://github.com/py-pdf/pypdf/pull/3985' },
-    { id: 'pypdf11', label: 'pypdf #3986',    kind: 'oss', detail: 'Annotation list typed as PdfObject', url: 'https://github.com/py-pdf/pypdf/pull/3986' },
-    { id: 'pypdf12', label: 'pypdf #3990',    kind: 'oss', detail: 'Fit accepts any sequence of arguments', url: 'https://github.com/py-pdf/pypdf/pull/3990' },
-    { id: 'pypdf13', label: 'pypdf #3991',    kind: 'oss', detail: 'Annotation border accepts any sequence', url: 'https://github.com/py-pdf/pypdf/pull/3991' },
-    { id: 'pypdf14', label: 'pypdf #3995',    kind: 'oss', detail: 'XMP stream typed as StreamObject', url: 'https://github.com/py-pdf/pypdf/pull/3995' },
-    { id: 'pypdf15', label: 'pypdf #3996',    kind: 'oss', detail: 'CID font widths may be real numbers', url: 'https://github.com/py-pdf/pypdf/pull/3996' },
-    { id: 'pypdf16', label: 'pypdf #3972',    kind: 'oss', detail: 'Xref stream typed as StreamObject', url: 'https://github.com/py-pdf/pypdf/pull/3972' },
-    { id: 'pypdf17', label: 'pypdf #3988',    kind: 'oss', detail: 'Destination trees are plain dictionaries', url: 'https://github.com/py-pdf/pypdf/pull/3988' },
-    { id: 'pypdf18', label: 'pypdf #3989',    kind: 'oss', detail: 'Transform mapping keys as a Literal', url: 'https://github.com/py-pdf/pypdf/pull/3989' },
-    { id: 'pypdf19', label: 'pypdf #3997',    kind: 'oss', detail: 'Docs use the AnnotationFlag enum', url: 'https://github.com/py-pdf/pypdf/pull/3997' },
-    { id: 'pypdf20', label: 'pypdf #4000',    kind: 'oss', detail: 'expat passes an int, typeshed says bool', url: 'https://github.com/py-pdf/pypdf/pull/4000' },
-    { id: 'pypdf21', label: 'pypdf #4002',    kind: 'oss', detail: 'Font resource never resolved', url: 'https://github.com/py-pdf/pypdf/pull/4002' },
-    { id: 'pypdf22', label: 'pypdf #4005',    kind: 'oss', detail: 'Roman numeral from a negative number', url: 'https://github.com/py-pdf/pypdf/pull/4005' },
-    { id: 'pypdf23', label: 'pypdf #4004',    kind: 'oss', detail: 'Page range with a zero stride', url: 'https://github.com/py-pdf/pypdf/pull/4004' },
-    { id: 'pypdf24', label: 'pypdf #4003',    kind: 'oss', detail: 'Form flags use the FfBits enum', url: 'https://github.com/py-pdf/pypdf/pull/4003' },
-    { id: 'pypdf25', label: 'pypdf #4010',    kind: 'oss', detail: 'Layout warning listed nothing readable', url: 'https://github.com/py-pdf/pypdf/pull/4010' },
-    { id: 'pypdf26', label: 'pypdf #4009',    kind: 'oss', detail: 'Page box setter accepted too few values', url: 'https://github.com/py-pdf/pypdf/pull/4009' },
-    { id: 'pypdf27', label: 'pypdf #4011',    kind: 'oss', detail: 'print_scaling validated nothing', url: 'https://github.com/py-pdf/pypdf/pull/4011' },
-    { id: 'pypdf28', label: 'pypdf #4013',    kind: 'oss', detail: 'Odd-length print page range', url: 'https://github.com/py-pdf/pypdf/pull/4013' },
-    { id: 'pypdf29', label: 'pypdf #4012',    kind: 'oss', detail: 'Negative number of copies', url: 'https://github.com/py-pdf/pypdf/pull/4012' },
-    { id: 'pypdf30', label: 'pypdf #4014',    kind: 'oss', detail: 'Box-name preferences validated nothing', url: 'https://github.com/py-pdf/pypdf/pull/4014' },
-    { id: 'pypdf31', label: 'pypdf #4016',    kind: 'oss', detail: 'Out-of-range page leaked IndexError', url: 'https://github.com/py-pdf/pypdf/pull/4016' },
-    { id: 'pypdf32', label: 'pypdf #4017',    kind: 'oss', detail: 'Page label style validated nowhere', url: 'https://github.com/py-pdf/pypdf/pull/4017' },
-    { id: 'pypdf33', label: 'pypdf #4019',    kind: 'oss', detail: 'AcroForm fields entry not an array', url: 'https://github.com/py-pdf/pypdf/pull/4019' },
-    { id: 'pypdf34', label: 'pypdf #4021',    kind: 'oss', detail: 'Viewer preferences not a dictionary', url: 'https://github.com/py-pdf/pypdf/pull/4021' },
-    { id: 'pypdf35', label: 'pypdf #4022',    kind: 'oss', detail: 'Page labels not a dictionary', url: 'https://github.com/py-pdf/pypdf/pull/4022' },
-    { id: 'pypdf36', label: 'pypdf #4018',    kind: 'oss', detail: 'Outline node not a dictionary', url: 'https://github.com/py-pdf/pypdf/pull/4018' },
-    { id: 'pypdf37', label: 'pypdf #4020',    kind: 'oss', detail: 'Destination tree not a dictionary', url: 'https://github.com/py-pdf/pypdf/pull/4020' },
-    { id: 'pypdf38', label: 'pypdf #4023',    kind: 'oss', detail: 'Outlines entry not a dictionary', url: 'https://github.com/py-pdf/pypdf/pull/4023' },
-    { id: 'pypdf39', label: 'pypdf #4031',    kind: 'oss', detail: 'Form field entry not a dictionary', url: 'https://github.com/py-pdf/pypdf/pull/4031' },
-    { id: 'pypdf40', label: 'pypdf #4029',    kind: 'oss', detail: 'AcroForm entry not a dictionary', url: 'https://github.com/py-pdf/pypdf/pull/4029' },
-    { id: 'pypdf41', label: 'pypdf #4030',    kind: 'oss', detail: 'XObject resources not a dictionary', url: 'https://github.com/py-pdf/pypdf/pull/4030' },
-    { id: 'pypdf42', label: 'pypdf #4038',    kind: 'oss', detail: 'read_object return type narrowed', url: 'https://github.com/py-pdf/pypdf/pull/4038' },
-    { id: 'pypdf43', label: 'pypdf #4041',    kind: 'oss', detail: 'Page box not an array', url: 'https://github.com/py-pdf/pypdf/pull/4041' },
-    { id: 'pypdf44', label: 'pypdf #4039',    kind: 'oss', detail: 'Destination tree node not an array', url: 'https://github.com/py-pdf/pypdf/pull/4039' },
-    { id: 'pypdf45', label: 'pypdf #4046',    kind: 'oss', detail: 'Annotations not an array', url: 'https://github.com/py-pdf/pypdf/pull/4046' },
-    { id: 'pypdf46', label: 'pypdf #4048',    kind: 'oss', detail: 'Page tree entry not a dictionary', url: 'https://github.com/py-pdf/pypdf/pull/4048' },
-    { id: 'pypdf47', label: 'pypdf #4054',    kind: 'oss', detail: 'Page resources not a dictionary', url: 'https://github.com/py-pdf/pypdf/pull/4054' },
-    { id: 'pypdf48', label: 'pypdf #4058',    kind: 'oss', detail: 'Font differences not an array', url: 'https://github.com/py-pdf/pypdf/pull/4058' },
-    { id: 'pypdf49', label: 'pypdf #4064',    kind: 'oss', detail: 'XFA entry not a well-formed array', url: 'https://github.com/py-pdf/pypdf/pull/4064' },
-    { id: 'pypdf50', label: 'pypdf #4069',    kind: 'oss', detail: 'Blank page size on an empty writer', url: 'https://github.com/py-pdf/pypdf/pull/4069' },
-    { id: 'pypdf51', label: 'pypdf #4074',    kind: 'oss', detail: 'String rect collapsed to zero', url: 'https://github.com/py-pdf/pypdf/pull/4074' },
-    { id: 'pypdf52', label: 'pypdf #4080',    kind: 'oss', detail: 'Unsupported page_number type', url: 'https://github.com/py-pdf/pypdf/pull/4080' },
-    { id: 'pypdf53', label: 'pypdf #4099',    kind: 'oss', detail: 'Hardcoded /FitH top of 826', url: 'https://github.com/py-pdf/pypdf/pull/4099' },
-    { id: 'pypdf54', label: 'pypdf #4102',    kind: 'oss', detail: 'Page label kids not an array', url: 'https://github.com/py-pdf/pypdf/pull/4102' },
-    { id: 'pypdf55', label: 'pypdf #4118',    kind: 'oss', detail: 'Font widths not an array', url: 'https://github.com/py-pdf/pypdf/pull/4118' },
-    { id: 'pypdf56', label: 'pypdf #4119',    kind: 'oss', detail: 'Composite font without descendants', url: 'https://github.com/py-pdf/pypdf/pull/4119' },
-    { id: 'pypdf57', label: 'pypdf #4098',    kind: 'oss', detail: 'Outline action without a type', url: 'https://github.com/py-pdf/pypdf/pull/4098' },
-    { id: 'pypdf58', label: 'pypdf #4123',    kind: 'oss', detail: 'Rectangle without four values', url: 'https://github.com/py-pdf/pypdf/pull/4123' },
-    { id: 'pypdf59', label: 'pypdf #4138',    kind: 'oss', detail: 'Font resources not a dictionary', url: 'https://github.com/py-pdf/pypdf/pull/4138' },
-
-    // Experience (amber)
-    { id: 'deloitte', label: 'Deloitte USI', kind: 'work', detail: 'Software Engineer II · Agentic AI & AI Security' },
-    { id: 'infosys', label: 'Infosys — BofA', kind: 'work', detail: 'Senior Software Engineer' },
-    { id: 'nexsys',  label: 'Nexsys/Accelya', kind: 'work', detail: 'Software Engineer' },
-    { id: 'texala',  label: 'Texala',         kind: 'work', detail: 'Software Engineer' },
+  /** The technologies on the cage, matched against each project's and job's own text. */
+  private readonly GRAPH_TECH: { id: string; label: string; detail: string; match: RegExp }[] = [
+    { id: 'python',    label: 'Python',          detail: 'Primary language for all AI work',              match: /python|fastapi|pytest/i },
+    { id: 'langgraph', label: 'LangGraph',       detail: 'Stateful multi-agent orchestration',            match: /langgraph/i },
+    { id: 'langchain', label: 'LangChain',       detail: 'LLM chains, tools, retrievers',                 match: /langchain/i },
+    { id: 'llm',       label: 'LLMs',            detail: 'DeepSeek, OpenAI and Claude behind one interface', match: /\bllms?\b|deepseek|openai|gpt|claude|gemini/i },
+    { id: 'rag',       label: 'RAG',             detail: 'Hybrid retrieval · HyDE · CRAG · RRF fusion',   match: /\brag\b|faiss|bm25|retriev/i },
+    { id: 'vision',    label: 'Computer vision', detail: 'YOLO11 on CPU · MediaPipe on the phone',        match: /vision|yolo|mediapipe|onnx/i },
+    { id: 'fastapi',   label: 'FastAPI',         detail: 'Async Python APIs',                             match: /fastapi/i },
+    { id: 'angular',   label: 'Angular',         detail: 'This portfolio, and every project UI',          match: /angular/i },
+    { id: 'java',      label: 'Java/Spring',     detail: '4 years of production backend',                 match: /java\b|spring/i },
+    { id: 'kafka',     label: 'Kafka',           detail: 'Async jobs, DLQ, event streaming',              match: /kafka/i },
+    { id: 'cloud',     label: 'Docker · Cloud',  detail: 'Docker, Render, Vercel, AWS, CI/CD',            match: /docker|render|vercel|aws|kubernetes|ci\/cd/i },
+    { id: 'security',  label: 'AI security',     detail: 'Guardrails, injection and PII checks, evals',   match: /guardrail|security|injection|pii|hallucinat/i },
+    { id: 'auth',      label: 'Multi-tenant auth', detail: 'Signed tenant keys, JWT, roles, daily caps',  match: /tenant|jwt|rbac|\bauth/i },
   ];
 
-  readonly graphEdges: [string, string][] = [
-    // systems → the tech they actually run on
-    ['aura','python'], ['aura','langgraph'], ['aura','fastapi'], ['aura','rag'], ['aura','angular'],
-    ['bench','python'], ['bench','langgraph'], ['bench','fastapi'], ['bench','angular'], ['bench','rag'],
-    ['growth','python'], ['growth','langchain'], ['growth','fastapi'], ['growth','angular'],
-    ['factory','python'], ['factory','langgraph'], ['factory','fastapi'], ['factory','angular'],
-    ['aaina','python'], ['aaina','fastapi'], ['aaina','angular'], ['aaina','docker'],
-    ['poultry','python'], ['poultry','fastapi'], ['poultry','angular'], ['poultry','docker'],
-    // tech ↔ tech
-    ['langgraph','langchain'], ['langchain','rag'], ['python','fastapi'], ['python','langchain'],
-    ['fastapi','kafka'], ['fastapi','docker'], ['angular','docker'], ['java','kafka'], ['java','docker'],
-    // open source grows out of the language
-    ['pypdf','python'], ['nltk','python'], ['joblib1','python'], ['st1','python'], ['st2','python'],
-    ['pypdf2','python'], ['pypdf2','pypdf'],
-    ['authlib','python'], ['authlib','fastapi'],
-    ['pypdf3','python'], ['pypdf3','pypdf'],
-    ['pypdf4','python'], ['pypdf4','pypdf3'],
-    ['pypdf5','python'], ['pypdf5','pypdf4'],
-    ['pypdf6','python'], ['pypdf6','pypdf5'],
-    ['pypdf7','python'], ['pypdf7','pypdf6'],
-    ['pypdf8','python'], ['pypdf8','pypdf7'],
-    ['pypdf9','python'], ['pypdf9','pypdf8'],
-    ['pypdf10','python'], ['pypdf10','pypdf9'],
-    ['pypdf11','python'], ['pypdf11','pypdf10'],
-    ['pypdf12','python'], ['pypdf12','pypdf11'],
-    ['pypdf13','python'], ['pypdf13','pypdf12'],
-    ['pypdf14','python'], ['pypdf14','pypdf13'],
-    ['pypdf15','python'], ['pypdf15','pypdf14'],
-    ['pypdf16','python'], ['pypdf16','pypdf15'],
-    ['pypdf17','python'], ['pypdf17','pypdf16'],
-    ['pypdf18','python'], ['pypdf18','pypdf17'],
-    ['pypdf19','python'], ['pypdf19','pypdf18'],
-    ['pypdf20','python'], ['pypdf20','pypdf19'],
-    ['pypdf21','python'], ['pypdf21','pypdf20'],
-    ['pypdf22','python'], ['pypdf22','pypdf21'],
-    ['pypdf23','python'], ['pypdf23','pypdf22'],
-    ['pypdf24','python'], ['pypdf24','pypdf23'],
-    ['pypdf25','python'], ['pypdf25','pypdf24'],
-    ['pypdf26','python'], ['pypdf26','pypdf25'],
-    ['pypdf27','python'], ['pypdf27','pypdf26'],
-    ['pypdf28','python'], ['pypdf28','pypdf27'],
-    ['pypdf29','python'], ['pypdf29','pypdf28'],
-    ['pypdf30','python'], ['pypdf30','pypdf29'],
-    ['pypdf31','python'], ['pypdf31','pypdf30'],
-    ['pypdf32','python'], ['pypdf32','pypdf31'],
-    ['pypdf33','python'], ['pypdf33','pypdf32'],
-    ['pypdf34','python'], ['pypdf34','pypdf33'],
-    ['pypdf35','python'], ['pypdf35','pypdf34'],
-    ['pypdf36','python'], ['pypdf36','pypdf35'],
-    ['pypdf37','python'], ['pypdf37','pypdf36'],
-    ['st1','rag'], ['st2','rag'], ['nltk','langchain'],
-    // work history → what was used there
-    ['deloitte','langgraph'], ['deloitte','python'], ['deloitte','rag'],
-    ['infosys','java'], ['infosys','kafka'], ['nexsys','java'], ['nexsys','angular'], ['texala','java'],
-  ];
+  private readonly GRAPH_LIBRARY_NAMES: Record<string, string> = {
+    'sentence-transformers': 'Sentence Transformers', nltk: 'NLTK', authlib: 'Authlib',
+  };
+
+  /** Short hover lines for the projects; anything else falls back to its subtitle. */
+  private readonly GRAPH_PROJECT_DETAIL: Record<string, string> = {
+    '01': 'Live · 16 agents · 415 tests · 23 languages',
+    '08': 'Live · 7 agents · multi-tenant · 34 tests',
+    '09': 'Live · on-CPU vision · 3 languages · 211 tests',
+    '02': 'Hybrid RAG + multi-agent · G1–G5 guardrails · 222 tests',
+  };
+
+  /**
+   * Everything on this page as nodes on the cage, built from the page's own data so
+   * it never drifts: every project, every job, each open-source library with its live
+   * merge count, the technologies, and the six steps of how I work. Edges are real:
+   * a project or job links to a technology only when its own text names it.
+   */
+  private buildGraph(): void {
+    const nodes: GraphNode[] = [];
+    const edges: [string, string][] = [];
+    const textOf = (...parts: unknown[]) => JSON.stringify(parts);
+
+    for (const t of this.GRAPH_TECH) nodes.push({ id: t.id, label: t.label, kind: 'tech', detail: t.detail });
+
+    for (const p of this.projects) {
+      const id = `project-${p.num}`;
+      nodes.push({
+        id, label: p.title, kind: 'system',
+        detail: this.GRAPH_PROJECT_DETAIL[p.num] ?? p.subtitle,
+        target: id,
+      });
+      const text = textOf(p.title, p.subtitle, p.desc, p.tags, p.challenges);
+      for (const t of this.GRAPH_TECH) if (t.match.test(text)) edges.push([id, t.id]);
+      if (p.inProduction) edges.push([id, 'step-4'], [id, 'step-3']);   // live: integrated and hardened
+    }
+
+    this.experience.forEach((e, i) => {
+      const id = `work-${i}`;
+      nodes.push({ id, label: e.company.split(' — ')[0], kind: 'work', detail: `${e.role} · ${e.company}`, target: 'experience' });
+      const text = textOf(e);
+      for (const t of this.GRAPH_TECH) if (t.match.test(text)) edges.push([id, t.id]);
+      if (i > 0) edges.push([id, `work-${i - 1}`]);                     // the career path, in order
+    });
+    edges.push(['work-0', 'step-0']);                                     // forward deployed at Deloitte: embedded with the team
+
+    const libs = new Map<string, number>();
+    for (const o of this.openSource) libs.set(o.repo, (libs.get(o.repo) ?? 0) + 1);
+    for (const [repo, count] of [...libs].sort((a, b) => b[1] - a[1])) {
+      const name = repo.split('/')[1];
+      const id = `oss-${name.toLowerCase()}`;
+      nodes.push({
+        id, label: this.GRAPH_LIBRARY_NAMES[name] ?? name, kind: 'oss',
+        detail: `${count} PR${count === 1 ? '' : 's'} merged by its maintainers`,
+        url: `https://github.com/${repo}/pulls?q=is%3Apr+author%3ARavSinghChandan+is%3Amerged`,
+      });
+      edges.push([id, 'python'], [id, 'step-4']);                        // open source here is hardening Python libraries
+    }
+
+    this.deployLoop.forEach((s, i) => {
+      nodes.push({ id: `step-${i}`, label: s.name, kind: 'practice', detail: `How I work · ${s.desc}`, target: 'skills' });
+      edges.push([`step-${i}`, `step-${(i + 1) % this.deployLoop.length}`]);
+    });
+
+    this.graphNodes = nodes;
+    this.graphEdges = edges;
+  }
+
+  /** Open what a node stands for: its PR list, its project card or its section. */
+  private openGraphNode(node: GraphNode): void {
+    if (node.url) {
+      window.open(node.url, '_blank', 'noopener');
+      return;
+    }
+    if (!node.target) return;
+    if (node.target.startsWith('project-')) {
+      this.clearTagFilter();
+      const index = this.sortedProjects.findIndex(p => `project-${p.num}` === node.target);
+      if (index < 0) return;
+      this.projPage.set(index + 1);
+      // the card renders on the next change detection; scroll to it, not the section top
+      setTimeout(() => document.getElementById(node.target!)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+      return;
+    }
+    document.getElementById(node.target)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 
   graphHover = signal<GraphNode | null>(null);
   graphReady = signal(false);
@@ -1610,7 +1587,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defence','PII protection','Output validation','Secure tool use','Threat modelling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers — and own the outcome.',
-      evidence: '67 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
+      evidence: '69 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
@@ -2812,7 +2789,7 @@ export class App implements OnInit, AfterViewInit {
   }
 
   // ── Interactive knowledge graph — a C60 buckminsterfullerene ───────────────
-  //  The 22 real nodes are carried on the vertices of a truncated icosahedron:
+  //  The real nodes (see buildGraph) are carried on the vertices of a truncated icosahedron:
   //  60 vertices, 90 edges, 12 pentagons and 20 hexagons — the actual buckyball.
   //  It rotates in 3D; drag to spin it, hover a carried vertex to trace what it
   //  touches, click a green one to open the merged PR.
@@ -2850,6 +2827,7 @@ export class App implements OnInit, AfterViewInit {
     tech:   '#62B5E5',  // light blue — technologies
     oss:    '#86BC25',  // green      — merged open source
     work:   '#FFB81C',  // gold       — experience
+    practice: '#C4D600', // lime      — how I work
   };
 
   //  The cage carries seven colours, one per family: the four node kinds above,
@@ -2858,24 +2836,24 @@ export class App implements OnInit, AfterViewInit {
   private readonly OSS_COLORS: Record<string, string> = {
     pypdf:    '#86BC25',  // Deloitte green
     joblib:   '#fb7185',  // rose
-    'sent-tf': '#f472b6', // pink
-    nltk:     '#E3E48D',  // lime
+    'sentence-transformers': '#f472b6', // pink
+    nltk:     '#E3E48D',  // pale lime
     authlib:  '#A0DCFF',  // sky
   };
 
   /** Colour for a node: open-source vertices are keyed by library. */
   // Deeper versions of the same hues, readable on the light theme's white stage.
   private readonly G_COLORS_LIGHT: Record<GraphNode['kind'], string> = {
-    system: '#0D8390', tech: '#007CB0', oss: '#26890D', work: '#C26E00',
+    system: '#0D8390', tech: '#007CB0', oss: '#26890D', work: '#C26E00', practice: '#6B7A00',
   };
   private readonly OSS_COLORS_LIGHT: Record<string, string> = {
-    pypdf: '#26890D', joblib: '#E11D48', 'sent-tf': '#DB2777', nltk: '#A16207', authlib: '#0369A1',
+    pypdf: '#26890D', joblib: '#E11D48', 'sentence-transformers': '#DB2777', nltk: '#A16207', authlib: '#0369A1',
   };
 
   private nodeColor(n: GraphNode): string {
     const light = this.theme() === 'light';
     if (n.kind === 'oss') {
-      const library = n.label.split(' ')[0];
+      const library = n.id.replace(/^oss-/, '');
       return (light ? this.OSS_COLORS_LIGHT : this.OSS_COLORS)[library] ?? (light ? this.G_COLORS_LIGHT : this.G_COLORS).oss;
     }
     return (light ? this.G_COLORS_LIGHT : this.G_COLORS)[n.kind];
@@ -2955,7 +2933,7 @@ export class App implements OnInit, AfterViewInit {
     }
     // order carriers so same-kind nodes end up near each other on the sphere
     const order = [...this.graphNodes.keys()].sort((a, b) => {
-      const rank = { system: 0, oss: 1, tech: 2, work: 3 } as Record<string, number>;
+      const rank = { system: 0, oss: 1, tech: 2, work: 3, practice: 4 } as Record<string, number>;
       return rank[this.graphNodes[a].kind] - rank[this.graphNodes[b].kind];
     }).slice(0, n);
     this.bCarrier = new Array(n);
@@ -2968,6 +2946,8 @@ export class App implements OnInit, AfterViewInit {
     this.gCanvas = canvas;
     this.gCtx = canvas.getContext('2d');
     if (!this.gCtx) return;
+
+    this.buildGraph();
 
     // adjacency, used for hover highlighting
     this.gNeighbours = new Map(this.graphNodes.map(n => [n.id, new Set<string>()]));
@@ -2984,7 +2964,7 @@ export class App implements OnInit, AfterViewInit {
     this.gBodies = this.graphNodes.map(n => ({
       ...n,
       x: 0, y: 0, vx: 0, vy: 0,
-      r: n.kind === 'system' ? 13 : n.kind === 'oss' ? 11 : 10,
+      r: n.kind === 'system' ? 13 : n.kind === 'oss' ? 12 : 10,
       pinned: false,
     }));
 
@@ -3046,7 +3026,7 @@ export class App implements OnInit, AfterViewInit {
       if (id !== this.gHoverId) {
         this.gHoverId = id;
         this.graphHover.set(h ? this.graphNodes.find(n => n.id === id) ?? null : null);
-        canvas.style.cursor = h ? (h.url ? 'pointer' : 'grab') : 'grab';
+        canvas.style.cursor = h && (h.url || h.target) ? 'pointer' : 'grab';
       }
     });
 
@@ -3070,12 +3050,12 @@ export class App implements OnInit, AfterViewInit {
       canvas.style.cursor = this.gHoverId ? 'grab' : 'grab';
     };
     canvas.addEventListener('pointerup', e => {
-      // A click (press and release in the same spot) on an OSS atom opens its
-      // PR. Distance from the press point is the only test that matters --
+      // A click (press and release in the same spot) on a lit atom opens what it
+      // stands for: a library's merged PRs, a project card or a section. Distance from the press point is the only test that matters --
       // `moved` accumulates across the preceding hover sweep too.
       const p = pos(e);
       const wasClick = Math.hypot(p.x - downAt.x, p.y - downAt.y) < 6;
-      if (wasClick && downOn?.url) window.open(downOn.url, '_blank', 'noopener');
+      if (wasClick && downOn) this.openGraphNode(downOn);
       downOn = null;
       release();
     });
@@ -3244,7 +3224,7 @@ export class App implements OnInit, AfterViewInit {
       }
 
       // labels: front-facing systems always, others on hover/neighbour
-      if ((b.kind === 'system' && p.z > -0.1) || isHover || isNear) {
+      if (((b.kind === 'system' || b.kind === 'oss') && p.z > -0.1) || isHover || isNear) {
         ctx.font = `${isHover ? 600 : 500} ${isHover ? 12.5 : 11}px ui-sans-serif, system-ui, sans-serif`;
         ctx.fillStyle = isHover ? color : (light ? 'rgba(0,0,0,0.85)' : 'rgba(226,232,240,0.95)');
         ctx.textAlign = 'center';

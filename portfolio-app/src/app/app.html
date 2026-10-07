@@ -1214,15 +1214,16 @@
     <div class="kg-head">
       <h2 class="kg-h">How It All Connects</h2>
       <p class="kg-sub">
-        Every system, technology, merged contribution and role on this page — carried on a
-        <b>buckminsterfullerene</b>: 60 vertices, 90 bonds, 12 pentagons and 20 hexagons.
-        <b>Drag to spin it</b>, hover a lit vertex to trace what it touches,
-        or click a coloured one to open the merged PR — each library carries its own colour.
+        Everything on this page on one <b>buckminsterfullerene</b>: every project, every job, each
+        open-source library, the technologies and the six steps of how I work. A line means one really uses the other.
+        <b>Drag to spin it</b>, hover a lit atom to trace what it touches, and <b>click one to go there</b>:
+        a project opens its card, a library opens its merged PRs.
       </p>
       <div class="kg-legend">
-        <span class="kg-key"><i class="kg-dot" style="background:#00ABAB;box-shadow:0 0 10px #00ABAB"></i>Systems built</span>
+        <span class="kg-key"><i class="kg-dot" style="background:#00ABAB;box-shadow:0 0 10px #00ABAB"></i>Projects ({{ projects.length }})</span>
+        <span class="kg-key"><i class="kg-dot" style="background:#FFB81C;box-shadow:0 0 10px #FFB81C"></i>Experience ({{ experience.length }})</span>
         <span class="kg-key"><i class="kg-dot" style="background:#62B5E5;box-shadow:0 0 10px #62B5E5"></i>Technologies</span>
-        <span class="kg-key"><i class="kg-dot" style="background:#FFB81C;box-shadow:0 0 10px #FFB81C"></i>Experience</span>
+        <span class="kg-key"><i class="kg-dot" style="background:#C4D600;box-shadow:0 0 10px #C4D600"></i>How I work</span>
         <span class="kg-key"><i class="kg-dot" style="background:#86BC25;box-shadow:0 0 10px #86BC25"></i>pypdf</span>
         <span class="kg-key"><i class="kg-dot" style="background:#fb7185"></i>joblib</span>
         <span class="kg-key"><i class="kg-dot" style="background:#f472b6"></i>sentence-transformers</span>
@@ -1239,19 +1240,21 @@
         <div class="kg-tip" [class.kg-tip--link]="!!n.url">
           <div class="kg-tip-label">{{ n.label }}</div>
           <div class="kg-tip-detail">{{ n.detail }}</div>
-          @if (n.url) { <div class="kg-tip-cta">Click to open the PR ↗</div> }
+          @if (n.url) { <div class="kg-tip-cta">Click to open the merged PRs ↗</div> }
+          @else if (n.target?.startsWith('project-')) { <div class="kg-tip-cta">Click to open the project ↓</div> }
+          @else if (n.target) { <div class="kg-tip-cta">Click to go to this section ↓</div> }
         </div>
       } @else {
-        <div class="kg-hint">C<sub>60</sub> · drag to spin the molecule — hover a glowing atom to trace its links</div>
+        <div class="kg-hint">C<sub>60</sub> · drag to spin — hover a glowing atom to trace its links, click it to go there</div>
       }
     </div>
 
     <!-- Text fallback: the same relationships, for screen readers and no-JS -->
     <p class="kg-a11y">
-      Systems: Aura with Rav, Bench Resource Optimizer, Agentic Growth OS and AI Content Factory —
-      all built with Python, FastAPI, LangGraph and Angular. Merged open-source contributions to
-      pypdf, NLTK, joblib and Hugging Face Sentence Transformers. Currently a Software Engineer II at
-      Deloitte USI (Agentic AI and AI Security); earlier backend work in Java and Spring at Infosys (Bank of America), Nexsys/Accelya and Texala.
+      Projects: @for (p of projects; track p.num) { {{ p.title }}{{ $last ? '.' : ', ' }} }
+      Experience: @for (e of experience; track e.company) { {{ e.company }}{{ $last ? '.' : ', ' }} }
+      Open source: {{ openSource.length }} pull requests merged by maintainers of pypdf, joblib, Sentence Transformers, NLTK and Authlib.
+      How I work: @for (s of deployLoop; track s.name) { {{ s.name }}{{ $last ? '.' : ', ' }} }
     </p>
   </div>
 </section>
