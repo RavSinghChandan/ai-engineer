@@ -465,12 +465,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '71',
+      stat:  '72',
       title: 'PRs merged by outside maintainers.',
       sub:   'Strangers reviewed the code and shipped it — pypdf, fontTools, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '71 merged, all reviewed! ✅',
+      aaravSay: '72 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -1203,6 +1203,16 @@ export class App implements OnInit, AfterViewInit {
       logo: 'fonttools-logo.svg',
       org: 'fonttools',
       stars: '5.3k★',
+      title: 'Pad a short OS/2 Vendor ID with spaces in feaLib',
+      desc: 'A feature file with a short vendor ID such as Vendor "AB" was written as AB followed by two NUL bytes, while the OpenType spec pads a Tag with spaces. feaLib now pads the vendor ID to four characters with spaces, as the fontTools maintainers settled in #3280. Approved and merged by anthrotype.',
+      pr: 'https://github.com/fonttools/fonttools/pull/4259',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'fonttools/fonttools',
+      logo: 'fonttools-logo.svg',
+      org: 'fonttools',
+      stars: '5.3k★',
       title: 'Read CFF font names as latin-1, like the compiler writes them',
       desc: 'fontTools could save a CFF font with a non-ASCII name but not read it back: the Name INDEX was decoded as ASCII while the compiler writes latin-1, so reopening the file made the whole CFF table unreadable. Names are now read the way they are written. Approved and merged by anthrotype.',
       pr: 'https://github.com/fonttools/fonttools/pull/4253',
@@ -1607,7 +1617,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defence','PII protection','Output validation','Secure tool use','Threat modelling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers — and own the outcome.',
-      evidence: '71 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
+      evidence: '72 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
