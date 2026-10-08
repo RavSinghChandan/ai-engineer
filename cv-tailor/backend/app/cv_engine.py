@@ -76,7 +76,7 @@ class CVTemplate:
     def _parse_project_bullets(self, raw: str) -> dict[str, list[str]]:
         out: dict[str, list[str]] = {}
         pattern = re.compile(
-            r"\\textbf\{([^}]+)\} \\textemdash\{\}.*?"
+            r"\\textbf\{([^}]+)\} (?:\\textemdash\{\}|\\textbar\{\}|\\hfill).*?"
             r"\\begin\{projectitems\}(.*?)\\end\{projectitems\}",
             re.DOTALL,
         )
