@@ -351,7 +351,7 @@ Chandan built <strong>5 defence layers</strong> that wrap every LLM call in prod
 
   private _matchEducation(t: string): string | null {
     if (!/\b(graduat|when\s*did\b|2018|2014|b\.?tech\b|bachelor\b|cgpa\b|gpa\b|future\s*institute|kolkata\b|masai\b|bootcamp\b|degree\b|qualif|education\b|college\b|university\b|study\b|studied\b|school\b)\b/i.test(t)) return null;
-    return `<h3 class="h-amber">🎓 Education</h3><ul><li><span class="li-icon">🏛️</span><span class="li-main">B.Tech — Computer Science &amp; Engineering</span><span class="li-sub"><em>Future Institute of Engineering &amp; Management, Kolkata</em><br>2014–2018 · <strong>CGPA: 8.7</strong></span></li><li><span class="li-icon">🚀</span><span class="li-main">Masai School</span><span class="li-sub"><em>Full-Stack &amp; AI Bootcamp</em> — where the AI journey truly began</span></li></ul><hr/><span class="fn">B.Tech CSE → Masai bootcamp → backend engineering → Software Engineer II at Deloitte USI. <em>Self-made. ✨</em></span>`;
+    return `<h3 class="h-amber">🎓 Education</h3><ul><li><span class="li-icon">🏛️</span><span class="li-main">B.Tech</span><span class="li-sub"><em>Future Institute of Engineering &amp; Management, Kolkata</em><br>2014–2018 · <strong>CGPA: 8.7</strong></span></li><li><span class="li-icon">🚀</span><span class="li-main">Masai School</span><span class="li-sub"><em>Full-Stack &amp; AI Bootcamp</em> — where the AI journey truly began</span></li></ul><hr/><span class="fn">B.Tech → Masai bootcamp → backend engineering → Software Engineer II at Deloitte USI. <em>Self-made. ✨</em></span>`;
   }
 
   private _matchStory(t: string): string | null {
