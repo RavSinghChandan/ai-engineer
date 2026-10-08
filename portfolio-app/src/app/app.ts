@@ -465,12 +465,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '72',
+      stat:  '73',
       title: 'PRs merged by outside maintainers.',
       sub:   'Strangers reviewed the code and shipped it — pypdf, fontTools, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '72 merged, all reviewed! ✅',
+      aaravSay: '73 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -1193,6 +1193,16 @@ export class App implements OnInit, AfterViewInit {
       logo: 'pypdf-logo.svg',
       org: 'py-pdf',
       stars: '10.1k★',
+      title: 'Skip a TJ operator whose operand is not an array',
+      desc: 'A TJ text operator with a number instead of an array made extract_text() raise a TypeError, in plain and layout mode alike. Such a TJ is now skipped and the text around it is kept. Merged by stefan6419846.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4166',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
       title: 'Skip a Do operator without an operand in extract_text',
       desc: 'A content stream with a bare Do operator made extract_text() raise an IndexError, from inside its own warning. A Do without an operand is now skipped, as the image extraction loop already did, and the text around it is kept.',
       pr: 'https://github.com/py-pdf/pypdf/pull/4165',
@@ -1617,7 +1627,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defence','PII protection','Output validation','Secure tool use','Threat modelling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers — and own the outcome.',
-      evidence: '72 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
+      evidence: '73 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
