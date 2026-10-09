@@ -466,12 +466,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '75',
+      stat:  '76',
       title: 'PRs merged by outside maintainers.',
       sub:   'Strangers reviewed the code and shipped it — pypdf, fontTools, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '75 merged, all reviewed! ✅',
+      aaravSay: '76 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -1194,6 +1194,16 @@ export class App implements OnInit, AfterViewInit {
       logo: 'fonttools-logo.svg',
       org: 'fonttools',
       stars: '5.3k★',
+      title: 'Raise a clear error for a UnicodeRange bit outside 0-127',
+      desc: 'A feature file with UnicodeRange 200 was accepted by the parser and then failed while building with a bare ValueError and no line number. The parser now checks each bit and raises FeatureLibError at the right line. Merged by anthrotype.',
+      pr: 'https://github.com/fonttools/fonttools/pull/4266',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'fonttools/fonttools',
+      logo: 'fonttools-logo.svg',
+      org: 'fonttools',
+      stars: '5.3k★',
       title: 'Raise a clear error for a BASE script list without a matching tag list',
       desc: 'A feature file with a BaseScriptList before its BaseTagList crashed feaLib with UnboundLocalError, and a default baseline missing from the tag list failed later with a bare ValueError. Both now raise FeatureLibError with the line number. Merged by anthrotype.',
       pr: 'https://github.com/fonttools/fonttools/pull/4263',
@@ -1648,7 +1658,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defence','PII protection','Output validation','Secure tool use','Threat modelling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers — and own the outcome.',
-      evidence: '75 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
+      evidence: '76 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
