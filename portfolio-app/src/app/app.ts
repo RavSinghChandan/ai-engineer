@@ -466,12 +466,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '73',
+      stat:  '75',
       title: 'PRs merged by outside maintainers.',
       sub:   'Strangers reviewed the code and shipped it — pypdf, fontTools, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '73 merged, all reviewed! ✅',
+      aaravSay: '75 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -1190,6 +1190,26 @@ export class App implements OnInit, AfterViewInit {
       merged: 'Oct 2026',
     },
     {
+      repo: 'fonttools/fonttools',
+      logo: 'fonttools-logo.svg',
+      org: 'fonttools',
+      stars: '5.3k★',
+      title: 'Raise a clear error for a BASE script list without a matching tag list',
+      desc: 'A feature file with a BaseScriptList before its BaseTagList crashed feaLib with UnboundLocalError, and a default baseline missing from the tag list failed later with a bare ValueError. Both now raise FeatureLibError with the line number. Merged by anthrotype.',
+      pr: 'https://github.com/fonttools/fonttools/pull/4263',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Skip a Tj operator whose operand is not a string',
+      desc: 'A Tj text operator with a number instead of a string made extract_text() raise a TypeError, in plain and layout mode alike. Such a Tj is now skipped and the text around it is kept. Merged by stefan6419846.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4171',
+      merged: 'Oct 2026',
+    },
+    {
       repo: 'py-pdf/pypdf',
       logo: 'pypdf-logo.svg',
       org: 'py-pdf',
@@ -1628,7 +1648,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defence','PII protection','Output validation','Secure tool use','Threat modelling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers — and own the outcome.',
-      evidence: '73 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
+      evidence: '75 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
