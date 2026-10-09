@@ -135,9 +135,7 @@
   <div class="container">
     <div class="eyebrow">Forward Deployed Engineering</div>
     <h2>Built for Forward Deployed Work</h2>
-    <p class="section-sub">A forward deployed engineer is four people in one: <b>an agentic AI engineer, a full-stack builder,
-      a production engineer and a communicator</b> — embedded with the problem and accountable for the outcome.
-      Here is each part, with receipts.</p>
+    <p class="section-sub">Six steps from a vague ask to a running system, and the skills behind each.</p>
 
     <!-- How I deploy: the loop, drawn as a 24-spoke chakra -->
     <div class="chakra-wrap fade-up" #fadeEl (pointerenter)="pauseLoop()" (pointerleave)="resumeLoop()" (focusin)="pauseLoop()">
@@ -192,7 +190,6 @@
             <proof-viz kind="SECURITY" class="fde-viz" />
           }
           <p class="fde-what">{{ skill.what }}</p>
-          <div class="fde-evidence"><span class="fde-ev-label">Evidence</span>{{ skill.evidence }}</div>
           <div class="skill-items">
             @for (item of skill.labels; track item) {
               <span class="skill-item tag" [ngClass]="'tag-' + skill.color">{{ item }}</span>
@@ -210,7 +207,7 @@
   <div class="container">
     <div class="eyebrow">Engineering Evidence</div>
     <h2>Systems I've Built</h2>
-    <p class="section-sub"><b>Real problems. Real constraints. Real engineering tradeoffs.</b> I build systems where AI has to work with software, data, users and operational constraints — not just generate an impressive demo.</p>
+    <p class="section-sub">Real problems, real constraints, running in production.</p>
 
     <!-- Animated AI Agent Constellation -->
     <div class="projects-constellation fade-up" #fadeEl aria-hidden="true">
@@ -384,9 +381,11 @@
             <div class="project-subtitle">{{ project.subtitle }}</div>
             <p class="project-desc">{{ project.desc }}</p>
             @if (project.story) {
-              <dl class="proj-story" cycleRows>
+              <dl class="proj-story">
                 @for (row of project.story; track row.k) {
-                  <div class="ps-row"><dt>{{ row.k }}</dt><dd>{{ row.v }}</dd></div>
+                  @if (row.k === 'Problem' || row.k === 'Result') {
+                    <div class="ps-row"><dt>{{ row.k }}</dt><dd>{{ row.v }}</dd></div>
+                  }
                 }
               </dl>
             }
@@ -450,7 +449,18 @@
           }
         </div>
 
-        <div class="challenges-table" cycleRows=".ct-row" [cycleMs]="2400">
+        <details class="proj-more">
+        <summary>How it was built <span class="pm-n">{{ project.challenges.length }} engineering problems solved</span></summary>
+        @if (project.story) {
+          <dl class="proj-story proj-story--more">
+            @for (row of project.story; track row.k) {
+              @if (row.k !== 'Problem' && row.k !== 'Result') {
+                <div class="ps-row"><dt>{{ row.k }}</dt><dd>{{ row.v }}</dd></div>
+              }
+            }
+          </dl>
+        }
+        <div class="challenges-table">
           <div class="ct-header">
             <div class="ct-col-p">Engineering Challenge</div>
             <div class="ct-col-s">How It Was Solved</div>
@@ -468,6 +478,7 @@
             </div>
           }
         </div>
+        </details>
 
         @if (demoData[project.num]?.length) {
           <project-reel [slides]="demoData[project.num]" (open)="openDemo(project)" />
@@ -505,7 +516,7 @@
   <div class="container">
     <div class="eyebrow">Proof of Work</div>
     <h2>Engineering Proof</h2>
-    <p class="section-sub">Forward deployed work is judged by outcomes, not tools: <b>is it live, does it fit the customer’s stack, is it fast and affordable, will security sign off, and can the team trust it?</b> Every number below is real and verifiable — not slides.</p>
+    <p class="section-sub">Every number is real and checkable.</p>
 
     <div class="proof-grid">
       @for (p of proofStats; track p.stat) {
@@ -518,7 +529,6 @@
           <div class="proof-num">{{ p.stat }}</div>
           <proof-viz [kind]="p.tag" [prs]="openSource" />
           <div class="proof-title">{{ p.title }}</div>
-          <div class="proof-sub">{{ p.sub }}</div>
           @if (p.link) { <a class="proof-live-link" [href]="p.link" target="_blank" rel="noopener">Visit aurawithrav.com →</a> }
 
 
@@ -777,7 +787,7 @@
             <proof-viz kind="TENURE" [period]="job.period" [maxMonths]="24" class="tl-tenure" />
             <div class="tl-content-row">
               <ul class="tl-points">
-                @for (pt of job.points; track pt) {
+                @for (pt of job.points.slice(0, 3); track pt) {
                   <li>{{ pt }}</li>
                 }
               </ul>
@@ -1081,7 +1091,7 @@
           </svg>
         </span>
         <div class="stl-label">First Chapter</div>
-        <div class="stl-sub">CS graduate<br>learning how software works</div>
+        <div class="stl-sub">B.Tech graduate<br>learning how software works</div>
         <div class="stl-year">2018</div>
       </div>
       <div class="stl-step stl-step--2">
@@ -1167,17 +1177,11 @@
         <div class="eyebrow">The Person Behind the Code</div>
         <h2 class="story-headline">From Backend Engineer to Forward Deployed Engineer</h2>
         <p class="story-body">
-          I started where real systems live — Java, Spring Boot, APIs, databases and Kafka, at aviation and banking scale.
-          That taught me how enterprise software actually runs, and where it breaks.
+          Four years of Java, Kafka and APIs at banking and aviation scale taught me where real systems break.
+          Then I learned AI and saw the gap: <b>demos are easy, production is not.</b>
         </p>
         <p class="story-body">
-          Then I learned AI deeply and saw the gap: <b>demos are easy, production is not.</b> So I build the whole thing —
-          I scope the problem, build the agents and the interface, wire it into what already exists, harden it, ship it and run it.
-          Three of those systems are live in production and I own each one end to end: Aura with Rav (aurawithrav.com), Aaina for salons
-          and Poultry 360 for farmers, each with multi-tenant sign-in, cost caps and health checks. At Deloitte USI I bring the same approach to agentic AI and security.
-        </p>
-        <p class="story-body">
-          The goal is simple: <b>be the engineer a team trusts to turn a messy problem into a working system.</b>
+          So I build the whole thing and run it. Three AI products are live today, and at Deloitte USI I bring the same approach to agentic AI and security.
         </p>
         <div class="story-stats">
           <div class="st-stat"><span class="st-num">3 LIVE</span><span class="st-lbl">AI products in production</span></div>
@@ -1204,12 +1208,7 @@
   <div class="container">
     <div class="kg-head">
       <h2 class="kg-h">How It All Connects</h2>
-      <p class="kg-sub">
-        Everything on this page on one <b>buckminsterfullerene</b>: every project, every job, each
-        open-source library, the technologies and the six steps of how I work. A line means one really uses the other.
-        <b>Drag to spin it</b>, hover a lit atom to trace what it touches, and <b>click one to go there</b>:
-        a project opens its card, a library opens its merged PRs.
-      </p>
+      <p class="kg-sub">Every project, job, library and skill on one model. <b>Drag to spin, click an atom to jump there.</b></p>
       <div class="kg-legend">
         <span class="kg-key"><i class="kg-dot" style="background:#00ABAB;box-shadow:0 0 10px #00ABAB"></i>Projects ({{ projects.length }})</span>
         <span class="kg-key"><i class="kg-dot" style="background:#FFB81C;box-shadow:0 0 10px #FFB81C"></i>Experience ({{ experience.length }})</span>
