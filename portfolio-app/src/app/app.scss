@@ -3032,3 +3032,39 @@ footer {
   .proj-story--more { margin: 0 1rem 1rem; }
   .challenges-table { border-width: 1px 0 0; border-radius: 0; }
 }
+
+/* ---------- story: a full portrait, a headline, one line, three numbers ---------- */
+.story-photo {
+  width: 240px !important; height: auto !important; aspect-ratio: 3 / 4; border-radius: 14px !important;
+  object-fit: cover; object-position: 50% 20%;
+  border: 2px solid var(--accent) !important; box-shadow: 0 18px 40px -18px color-mix(in srgb, var(--accent) 55%, transparent) !important;
+}
+.story-inner { align-items: center !important; }
+.story-headline { font-size: clamp(1.6rem, 3.2vw, 2.4rem) !important; }
+.story-body { font-size: 1.1rem !important; margin-bottom: 1.4rem !important; }
+.story-stats .st-num { font-size: 2rem !important; }
+
+/* ---------- contact: one line, two buttons, the cards ---------- */
+.contact-cta { display: flex; flex-wrap: wrap; gap: 0.8rem; margin: 1.4rem 0 2rem; }
+
+/* ---------- footer: one row ---------- */
+footer .footer-row { display: flex; align-items: center; gap: 1rem; padding-top: 1.4rem; padding-bottom: 1.4rem; }
+footer .footer-copy { color: var(--muted); font-size: 0.85rem; }
+footer .footer-social { margin-left: auto; display: flex; gap: 0.4rem; }
+footer .footer-social a {
+  display: grid; place-items: center; width: 38px; height: 38px; color: var(--muted);
+  border: 1px solid var(--border); transition: color 0.2s, border-color 0.2s;
+  &:hover { color: var(--accent); border-color: var(--accent); }
+}
+@media (max-width: 520px) {
+  footer .footer-row { flex-wrap: wrap; justify-content: center; text-align: center; }
+  footer .footer-social { margin-left: 0; width: 100%; justify-content: center; }
+}
+.story-stats { gap: 2.5rem !important; }
+.contact-card .cc-value { white-space: normal !important; overflow: visible !important; text-overflow: clip !important; overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+  .story-stats { gap: 1.2rem !important; flex-wrap: nowrap !important; justify-content: center; }
+  .story-stats .st-num { font-size: 1.6rem !important; }
+  .story-stats .st-lbl { font-size: 0.62rem !important; }
+  .story-photo { width: 200px !important; }
+}
