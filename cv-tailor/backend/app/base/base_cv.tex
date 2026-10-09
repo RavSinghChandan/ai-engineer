@@ -120,13 +120,13 @@
 
 \begin{projectitems}
 \resumeitem{Farmers count birds by hand and guess feed. Built a YOLO11 (ONNX) model that counts birds from a photo or video on a plain CPU, and feed advice drawn only from cited NRC/BIS tables.}
-\resumeitem{Made for low-literacy users: 13 Indian languages, read-aloud, picture-first screens; multi-tenant sign-in with signed keys and daily cost caps; 222 automated tests.}
+\resumeitem{Made for low-literacy users: 13 Indian languages, read-aloud; evals in CI caught Hinglish sick-flock reports misrouted (5/13) and fixed routing and the invented-number guard to 100\%; ops panel, multi-tenant.}
 \end{projectitems}
 
 \noindent\textbf{Aaina} \textbar{} \href{https://aaina-ai.vercel.app}{aaina-ai.vercel.app} \hfill \textit{\small\color{subtle}Live $\cdot$ multi-agent, MediaPipe, FastAPI, Angular}
 
 \begin{projectitems}
-\resumeitem{AI consultation for salons: seven agents run as a YAML-defined DAG with schema checks and rule fallbacks; face shape is measured on the phone (MediaPipe); a barber finishes in three taps, in 11 languages.}
+\resumeitem{AI consultation for salons in 11 languages: seven agents run as a YAML-defined DAG; live evals found the model broke customers' dislikes in 3 of 15 answers, so the harness now enforces them in code with one repair retry (100\%).}
 \end{projectitems}
 
 \noindent\textbf{Aura with Rav} \textbar{} \href{https://aurawithrav.com}{aurawithrav.com} \hfill \textit{\small\color{subtle}Live $\cdot$ LangGraph, FastAPI, Angular}
@@ -148,7 +148,7 @@
 \section{Skills}
 
 \begin{tabularx}{\textwidth}{@{} l X @{}}
-\textbf{AI \& Agents} & LLMs, LangGraph, LangChain, multi-agent systems, tool calling, RAG, evaluation, ONNX / YOLO \\[1pt]
+\textbf{AI \& Agents} & LLMs, LangGraph, LangChain, multi-agent systems, tool calling, RAG, LLM evals in CI, ONNX / YOLO \\[1pt]
 \textbf{Backend} & Python, Java, FastAPI, Spring Boot, Kafka, REST, SSE / WebSockets, PostgreSQL, Redis \\[1pt]
 \textbf{Frontend} & TypeScript, Angular, React \\[1pt]
 \textbf{Cloud \& Ops} & Docker, Kubernetes, AWS, Vercel, Render, CI/CD, observability \\[1pt]
