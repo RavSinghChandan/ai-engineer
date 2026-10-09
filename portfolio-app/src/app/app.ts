@@ -466,12 +466,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '77',
+      stat:  '78',
       title: 'PRs merged by outside maintainers.',
       sub:   'Strangers reviewed the code and shipped it — pypdf, fontTools, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '77 merged, all reviewed! ✅',
+      aaravSay: '78 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -1194,6 +1194,16 @@ export class App implements OnInit, AfterViewInit {
       logo: 'fonttools-logo.svg',
       org: 'fonttools',
       stars: '5.3k★',
+      title: 'Raise a clear error for a STAT axis location with no or too many values',
+      desc: 'A STAT location takes 1, 2 or 3 values. With none or four, feaLib accepted it, silently skipped the record and then crashed in otlLib with a bare KeyError. The parser now rejects it at the right line. Merged by anthrotype.',
+      pr: 'https://github.com/fonttools/fonttools/pull/4268',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'fonttools/fonttools',
+      logo: 'fonttools-logo.svg',
+      org: 'fonttools',
+      stars: '5.3k★',
       title: 'Raise a clear error for a name string that cannot be encoded or decoded',
       desc: 'An unpaired surrogate such as \\d800 in a Windows name, or an emoji in a Mac Roman name, crashed feaLib with a bare UnicodeError and no line number. It now raises FeatureLibError at the string. Reviewed and merged by anthrotype after one round.',
       pr: 'https://github.com/fonttools/fonttools/pull/4267',
@@ -1668,7 +1678,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defence','PII protection','Output validation','Secure tool use','Threat modelling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers — and own the outcome.',
-      evidence: '77 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
+      evidence: '78 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
