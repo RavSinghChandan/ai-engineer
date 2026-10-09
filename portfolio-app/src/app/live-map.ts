@@ -1,4 +1,5 @@
-import { Component, OnInit, computed, inject, input } from '@angular/core';
+import { Component, OnDestroy, OnInit, PLATFORM_ID, computed, inject, input, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { CheckState, GH_QUERY, LiveStatus } from './live-status.service';
 
 /**
@@ -15,7 +16,7 @@ interface Box { key: string; name: string; href: string; icon: string; state: Ch
     <div class="lm" aria-live="polite">
       <div class="lm-head">
         <span class="lm-title"><span class="lm-rec" aria-hidden="true"></span>Live now</span>
-        <button type="button" class="lm-refresh" (click)="live.refresh()" [disabled]="live.busy()" aria-label="Check again">
+        <button type="button" class="lm-refresh" (click)="recheck()" [disabled]="live.busy()" aria-label="Check again">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" [class.spin]="live.busy()"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>
         </button>
       </div>
@@ -28,7 +29,7 @@ interface Box { key: string; name: string; href: string; icon: string; state: Ch
 
       <div class="lm-grid">
         @for (b of boxes(); track b.key) {
-          <a class="lm-box" [class]="'lm-box ' + b.state" [href]="b.href" target="_blank" rel="noopener" [attr.aria-label]="b.name + ': ' + b.value">
+          <a class="lm-box" [class]="'lm-box ' + b.state" [style.--p]="b.state === 'checking' ? progress() : 1" [href]="b.href" target="_blank" rel="noopener" [attr.aria-label]="b.name + ': ' + b.value">
             <span class="lm-wire" aria-hidden="true"><i></i></span>
             <span class="lm-ico" aria-hidden="true">
               @switch (b.icon) {
@@ -53,7 +54,7 @@ interface Box { key: string; name: string; href: string; icon: string; state: Ch
   `,
   styleUrl: './live-map.scss',
 })
-export class LiveMap implements OnInit {
+export class LiveMap implements OnInit, OnDestroy {
   fallbackCount = input(0);
   readonly live = inject(LiveStatus);
 
@@ -69,10 +70,39 @@ export class LiveMap implements OnInit {
     ];
   });
 
-  ngOnInit() { this.live.start(); }
+  private readonly browser = isPlatformBrowser(inject(PLATFORM_ID));
+  private started = Date.now();
+  private timer: ReturnType<typeof setInterval> | null = null;
+  /** Seconds since the checks began, ticking while any box is still waiting. */
+  readonly elapsed = signal(0);
+  /** How full a waiting box is: eases toward 95% with time, and only the real answer takes it to 100%. */
+  readonly progress = computed(() => Math.min(0.95, 1 - Math.exp(-this.elapsed() / 10)));
+
+  ngOnInit() {
+    this.live.start();
+    this.tick();
+  }
+
+  ngOnDestroy() { if (this.timer) clearInterval(this.timer); }
+
+  recheck() {
+    this.live.refresh();
+    this.tick();
+  }
+
+  private tick() {
+    if (!this.browser) return;
+    this.started = Date.now();
+    this.elapsed.set(0);
+    if (this.timer) clearInterval(this.timer);
+    this.timer = setInterval(() => {
+      this.elapsed.set((Date.now() - this.started) / 1000);
+      if (!this.boxes().some(b => b.state === 'checking')) { clearInterval(this.timer!); this.timer = null; }
+    }, 200);
+  }
 
   private ms(s: { state: CheckState; ms: number }): string {
-    if (s.state === 'checking') return '···';
+    if (s.state === 'checking') return this.elapsed() < 1 ? '···' : `${Math.floor(this.elapsed())} s…`;
     if (s.state === 'down') return 'asleep';
     return s.ms < 1000 ? `${s.ms} ms` : `${(s.ms / 1000).toFixed(1)} s`;
   }

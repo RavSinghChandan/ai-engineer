@@ -38,7 +38,8 @@
 .lm-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.5rem; }
 
 .lm-box {
-  position: relative; display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
+  --p: 0;
+  position: relative; isolation: isolate; display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
   margin-top: 16px; padding: 0.7rem 0.3rem 0.6rem;
   border: 1px solid var(--border); text-decoration: none; color: var(--text);
   transition: border-color 0.3s, transform 0.2s, box-shadow 0.3s;
@@ -69,7 +70,6 @@
   .lm-dot { background: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
   .lm-wire { border-left-color: var(--accent); }
 }
-.lm-box.slow .lm-dot { background: #f5a524; }
 .lm-box.down { opacity: 0.75; .lm-dot { background: #f5a524; } }
 
 .lm-merge {
@@ -94,3 +94,21 @@
 @keyframes lm-blink { 50% { opacity: 0.25; } }
 @keyframes lm-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .lm-wire i, .lm-dot, .lm-rec, .spin { animation: none !important; } }
+
+/* the fill: grows with waiting time, turns solid green when the answer arrives */
+.lm-box::before {
+  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  transform-origin: left center; transform: scaleX(var(--p));
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--accent) 6%, transparent),
+    color-mix(in srgb, var(--accent) 26%, transparent));
+  transition: transform 0.25s linear, background 0.5s ease, opacity 0.4s;
+}
+.lm-box.checking::before { box-shadow: inset -2px 0 0 color-mix(in srgb, var(--accent) 70%, transparent); }
+.lm-box.ok::before, .lm-box.slow::before {
+  transform: scaleX(1);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  transition: transform 0.45s cubic-bezier(.2,.9,.3,1.2), background 0.5s ease;
+}
+.lm-box.down::before { opacity: 0; }
+@media (prefers-reduced-motion: reduce) { .lm-box::before { transition: none; } }
