@@ -47,19 +47,15 @@ interface Node { x: number; y: number; t: string; s: string; layer: Layer; hit?:
           <rect x="-62" y="-15" width="124" height="30" rx="2" class="bp-box"/>
           <rect x="-62" y="-15" width="3" height="30" class="bp-tick"/>
           <path [attr.d]="icons[n.t]" transform="translate(-53 -6)" class="bp-icon"/>
-          <text x="7" y="-2" text-anchor="middle" class="bp-t">{{ n.t }}</text>
-          <text x="7" y="10" text-anchor="middle" class="bp-s">{{ n.s }}</text>
+          <text x="7" y="4" text-anchor="middle" class="bp-t">{{ n.t }}</text>
         </g>
       }
 
       <g [class]="'bp-node bp-prod ' + live.apiState()" [attr.transform]="'translate(' + box().l + ' ' + box().b + ')'">
         <circle r="26" class="bp-halo"/>
         <rect x="-74" y="-19" width="148" height="38" rx="2"/>
-        <text y="-3" text-anchor="middle" class="bp-t">aurawithrav.com</text>
-        <text y="11" text-anchor="middle" class="bp-s">{{ prodLabel() }}</text>
+        <text y="4" text-anchor="middle" class="bp-t">production</text>
       </g>
-
-      <text [attr.x]="box().r + 62" [attr.y]="box().b + 30" text-anchor="end" class="bp-title">fig. 1 · the deployment loop I run</text>
     </svg>
   `,
   styleUrl: './hero-blueprint.scss',

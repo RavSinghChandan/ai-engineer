@@ -2859,7 +2859,8 @@ footer {
 }
 .proof-card { display: flex; flex-direction: column; }
 @media (max-width: 599px) {
-  .hero-stats { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem 1.25rem; }
+  .hero-stats { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem 0.75rem; }
+  .hero-stats .stat-label { font-size: 0.66rem; letter-spacing: 0.06em; }
   .hero-stats .stat-sep { display: none; }
   .hero-stats .stat { text-align: left; }
 }

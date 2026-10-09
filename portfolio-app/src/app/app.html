@@ -57,13 +57,10 @@
 
       <h1>
         Chandan Kumar
-        <span class="hero-title-accent hero-role">Software Engineer II · Agentic AI · AI Security</span>
+        <span class="hero-title-accent hero-role">Forward Deployed AI Engineer</span>
       </h1>
 
-      <p class="hero-desc">
-        <strong class="hero-lede">I build AI systems that don't stop at the demo.</strong>
-        <span class="hero-pos">Forward deployed AI engineering, problem to production. Live today: <a href="https://aurawithrav.com" target="_blank" rel="noopener">Aura with Rav</a> · <a href="https://aaina-ai.vercel.app" target="_blank" rel="noopener">Aaina</a> · <a href="https://poultry-360.onrender.com" target="_blank" rel="noopener">Poultry 360</a>.</span>
-      </p>
+      <p class="hero-desc"><strong class="hero-lede">I take AI from problem to production.</strong></p>
 
 
       <div class="hero-cta">
@@ -85,26 +82,19 @@
       <div class="hero-stats">
         <div class="stat">
           <div class="stat-num">{{ statOss() }}</div>
-          <div class="stat-label">Merged OSS PRs</div>
+          <div class="stat-label">Merged PRs</div>
+        </div>
+        <div class="stat-sep"></div>
+        <div class="stat">
+          <div class="stat-num">3</div>
+          <div class="stat-label">Live AI products</div>
         </div>
         <div class="stat-sep"></div>
         <div class="stat">
           <div class="stat-num">{{ statTests() }}<span>+</span></div>
-          <div class="stat-label">Tests Passing</div>
-        </div>
-        <div class="stat-sep"></div>
-        <div class="stat">
-          <div class="stat-num">{{ statAgents() }}<span>+</span></div>
-          <div class="stat-label">AI Agents Built</div>
-        </div>
-        <div class="stat-sep"></div>
-        <div class="stat">
-          <div class="stat-num">{{ statProjects() }}</div>
-          <div class="stat-label">AI Systems Built</div>
+          <div class="stat-label">Tests passing</div>
         </div>
       </div>
-
-      <deploy-line />
     </div>
 
     <!-- RIGHT: Photo + card -->
@@ -118,7 +108,7 @@
         <div class="hero-photo-ring"></div>
       </div>
 
-      <live-proof class="hero-proof" [fallbackCount]="openSource.length" />
+      <live-map class="hero-proof" [fallbackCount]="openSource.length" />
     </div>
 
   </div>
