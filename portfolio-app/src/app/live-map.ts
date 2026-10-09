@@ -1,13 +1,32 @@
 import { Component, OnDestroy, OnInit, PLATFORM_ID, computed, inject, input, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { CheckState, GH_QUERY, LiveStatus } from './live-status.service';
+import { MergedPr, REPO_COLOR } from './proof-viz';
 
 /**
  * The hero's live proof as a diagram: the visitor's browser at the top, wired to
  * the three products and GitHub. Each wire carries a pulse while its check runs;
  * the box turns green with the real response time when the answer comes back.
  */
-interface Box { key: string; name: string; href: string; icon: string; state: CheckState; value: string; }
+interface Dot { color: string; label: string; href?: string; }
+interface Box { key: string; name: string; href: string; icon: string; state: CheckState; value: string; dots: Dot[]; cols: number; }
+
+/** What each live product is made of: one square per part, coloured by layer. */
+const C = { ui: '#00ABAB', api: '#F5A524', ai: '#86BC25', guard: '#E5484D', lang: '#7C9CFF', vision: '#C084FC' };
+const times = (n: number, color: string, label: (i: number) => string): Dot[] => Array.from({ length: n }, (_, i) => ({ color, label: label(i) }));
+const STACK: Record<string, Dot[]> = {
+  aura: [{ color: C.ui, label: 'UI · Angular' }, { color: C.api, label: 'API · FastAPI' },
+    ...times(16, C.ai, i => `AI agent ${i + 1} of 16`), ...times(5, C.guard, i => `Guardrail G${i + 1}`)],
+  aaina: [{ color: C.ui, label: 'UI · Angular' }, { color: C.api, label: 'API · FastAPI' },
+    ...times(7, C.ai, i => `AI agent ${i + 1} of 7`), ...times(11, C.lang, i => `Language ${i + 1} of 11`)],
+  poultry: [{ color: C.ui, label: 'UI · Angular' }, { color: C.api, label: 'API · FastAPI' }, { color: C.vision, label: 'Vision · YOLO11 on CPU' },
+    ...['Today', 'Count', 'Feed', 'Health', 'Diary'].map(f => ({ color: C.ai, label: `Feature · ${f}` })),
+    ...times(13, C.lang, i => `Language ${i + 1} of 13`)],
+};
+export const LIVE_LEGEND = [
+  { color: C.ui, label: 'UI' }, { color: C.api, label: 'API' }, { color: C.ai, label: 'AI' },
+  { color: C.guard, label: 'guardrails' }, { color: C.vision, label: 'vision' }, { color: C.lang, label: 'languages' },
+];
 
 @Component({
   selector: 'live-map',
@@ -31,18 +50,20 @@ interface Box { key: string; name: string; href: string; icon: string; state: Ch
         @for (b of boxes(); track b.key) {
           <a class="lm-box" [class]="'lm-box ' + b.state" [style.--p]="b.state === 'checking' ? progress() : 1" [href]="b.href" target="_blank" rel="noopener" [attr.aria-label]="b.name + ': ' + b.value">
             <span class="lm-wire" aria-hidden="true"><i></i></span>
-            <span class="lm-ico" aria-hidden="true">
-              @switch (b.icon) {
-                @case ('globe') { <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg> }
-                @case ('mirror') { <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="10" rx="6" ry="7"/><path d="M12 17v4M8 21h8"/></svg> }
-                @case ('leaf') { <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 19c0-8 6-14 15-14 0 9-6 15-14 15"/><path d="M5 19l7-7"/></svg> }
-                @default { <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="12" r="2.5"/><path d="M6 8.5v7M8.5 6h3a4 4 0 0 1 4 4v-.5"/></svg> }
+            <span class="lm-dots" [style.--cols]="b.cols" aria-hidden="true">
+              @for (d of b.dots; track $index; let i = $index) {
+                <i [style.background]="d.color" [title]="d.label" [class.on]="lit(b, i)"></i>
               }
             </span>
             <span class="lm-name">{{ b.name }}</span>
             <span class="lm-val"><span class="lm-dot"></span>{{ b.value }}</span>
           </a>
         }
+      </div>
+
+      <div class="lm-legend" aria-hidden="true">
+        @for (l of legend; track l.label) { <span><i [style.background]="l.color"></i>{{ l.label }}</span> }
+        <span><i class="lm-rainbow"></i>PRs by library</span>
       </div>
 
       @if (live.latest(); as m) {
@@ -56,17 +77,20 @@ interface Box { key: string; name: string; href: string; icon: string; state: Ch
 })
 export class LiveMap implements OnInit, OnDestroy {
   fallbackCount = input(0);
+  prs = input<MergedPr[]>([]);
+  readonly legend = LIVE_LEGEND;
   readonly live = inject(LiveStatus);
 
   readonly boxes = computed<Box[]>(() => {
     const aura = this.live.stateOf('01'), aaina = this.live.stateOf('08'), poultry = this.live.stateOf('09');
     const count = this.live.liveCount() ?? this.fallbackCount();
     return [
-      { key: 'aura', name: 'Aura', href: 'https://aurawithrav.com', icon: 'globe', state: aura.state, value: this.ms(aura) },
-      { key: 'aaina', name: 'Aaina', href: 'https://aaina-ai.vercel.app', icon: 'mirror', state: aaina.state, value: this.ms(aaina) },
-      { key: 'poultry', name: 'Poultry', href: 'https://poultry-360.onrender.com', icon: 'leaf', state: poultry.state, value: this.ms(poultry) },
+      { key: 'aura', name: 'Aura', href: 'https://aurawithrav.com', icon: 'globe', state: aura.state, value: this.ms(aura), dots: STACK['aura'], cols: 6 },
+      { key: 'aaina', name: 'Aaina', href: 'https://aaina-ai.vercel.app', icon: 'mirror', state: aaina.state, value: this.ms(aaina), dots: STACK['aaina'], cols: 6 },
+      { key: 'poultry', name: 'Poultry', href: 'https://poultry-360.onrender.com', icon: 'leaf', state: poultry.state, value: this.ms(poultry), dots: STACK['poultry'], cols: 6 },
       { key: 'gh', name: 'GitHub', href: 'https://github.com/search?type=pullrequests&q=' + encodeURIComponent(GH_QUERY),
-        icon: 'git', state: this.live.ghState() === 'down' ? 'ok' : this.live.ghState(), value: `${count} PRs` },
+        icon: 'git', state: this.live.ghState() === 'down' ? 'ok' : this.live.ghState(), value: `${count} PRs`,
+        dots: this.prs().map(p => ({ color: REPO_COLOR[p.repo] ?? '#86BC25', label: `${p.repo}: ${p.title}` })), cols: 12 },
     ];
   });
 
@@ -77,6 +101,13 @@ export class LiveMap implements OnInit, OnDestroy {
   readonly elapsed = signal(0);
   /** How full a waiting box is: eases toward 95% with time, and only the real answer takes it to 100%. */
   readonly progress = computed(() => Math.min(0.95, 1 - Math.exp(-this.elapsed() / 10)));
+
+  /** A waiting box lights its squares one by one with the progress; an answered box lights them all. */
+  lit(b: Box, i: number): boolean {
+    if (b.state === 'ok' || b.state === 'slow') return true;
+    if (b.state === 'checking') return i < Math.floor(this.progress() * b.dots.length);
+    return false;
+  }
 
   ngOnInit() {
     this.live.start();

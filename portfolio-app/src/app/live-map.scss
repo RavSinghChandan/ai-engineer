@@ -112,3 +112,29 @@
 }
 .lm-box.down::before { opacity: 0; }
 @media (prefers-reduced-motion: reduce) { .lm-box::before { transition: none; } }
+
+/* one square per part of each product, one per merged PR for GitHub */
+.lm-dots {
+  display: grid; grid-template-columns: repeat(var(--cols, 6), 5px); gap: 3px;
+  justify-content: center; align-content: center; min-height: 38px;
+  i {
+    width: 5px; height: 5px; border-radius: 1px; opacity: 0.14; transform: scale(0.7);
+    transition: opacity 0.25s, transform 0.25s;
+    &.on { opacity: 1; transform: none; }
+  }
+}
+.lm-box:nth-child(4) .lm-dots { gap: 2px; grid-template-columns: repeat(var(--cols, 12), 4px); i { width: 4px; height: 4px; } }
+.lm-box.down .lm-dots i { opacity: 0.1; }
+@media (hover: hover) { .lm-box:hover .lm-dots i.on { transform: scale(1.15); } }
+
+.lm-legend {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 0.35rem 0.8rem; margin-top: 0.7rem;
+  font-size: 0.64rem; color: var(--muted); letter-spacing: 0.02em;
+  span { display: inline-flex; align-items: center; gap: 0.3rem; }
+  i { width: 6px; height: 6px; border-radius: 1px; display: inline-block; }
+  .lm-rainbow { background: linear-gradient(90deg, #86BC25, #7C9CFF, #62B5E5, #FFB81C, #C084FC); width: 14px; }
+}
+@media (max-width: 420px) {
+  .lm-dots { grid-template-columns: repeat(var(--cols, 6), 4px); gap: 2px; i { width: 4px; height: 4px; } }
+  .lm-box:nth-child(4) .lm-dots { grid-template-columns: repeat(10, 3px); i { width: 3px; height: 3px; } }
+}
