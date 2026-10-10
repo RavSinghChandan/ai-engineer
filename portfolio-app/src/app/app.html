@@ -1205,6 +1205,7 @@
         <span class="kg-key"><i class="kg-dot" style="background:#A0DCFF;box-shadow:0 0 10px #A0DCFF"></i>Authlib</span>
         <span class="kg-key"><i class="kg-dot" style="background:#7C9CFF;box-shadow:0 0 10px #7C9CFF"></i>fontTools</span>
         <span class="kg-key"><i class="kg-dot" style="background:#F87171;box-shadow:0 0 10px #F87171"></i>fpdf2</span>
+        <span class="kg-key"><i class="kg-dot" style="background:#FB923C;box-shadow:0 0 10px #FB923C"></i>Pillow</span>
       </div>
     </div>
 
@@ -1229,7 +1230,7 @@
     <p class="kg-a11y">
       Projects: @for (p of projects; track p.num) { {{ p.title }}{{ $last ? '.' : ', ' }} }
       Experience: @for (e of experience; track e.company) { {{ e.company }}{{ $last ? '.' : ', ' }} }
-      Open source: {{ openSource.length }} pull requests merged by maintainers of pypdf, fontTools, fpdf2, joblib, Sentence Transformers, NLTK and Authlib.
+      Open source: {{ openSource.length }} pull requests merged by maintainers of pypdf, fontTools, Pillow, fpdf2, joblib, Sentence Transformers, NLTK and Authlib.
       How I work: @for (s of deployLoop; track s.name) { {{ s.name }}{{ $last ? '.' : ', ' }} }
     </p>
   </div>

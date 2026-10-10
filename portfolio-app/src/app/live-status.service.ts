@@ -17,9 +17,9 @@ const PRODUCT_HEALTH: Record<string, { url: string; label: string; cors: boolean
   '08': { url: 'https://aaina-api.onrender.com/api/health', label: 'Aaina', cors: false },
   '09': { url: 'https://poultry-360.onrender.com/api/health', label: 'Poultry 360', cors: true },
 };
-const LIBS = ['py-pdf/pypdf', 'joblib/joblib', 'huggingface/sentence-transformers', 'nltk/nltk', 'authlib/authlib', 'fonttools/fonttools', 'py-pdf/fpdf2'];
+const LIBS = ['py-pdf/pypdf', 'joblib/joblib', 'huggingface/sentence-transformers', 'nltk/nltk', 'authlib/authlib', 'fonttools/fonttools', 'py-pdf/fpdf2', 'python-pillow/Pillow'];
 export const GH_QUERY = 'is:pr author:RavSinghChandan is:merged ' + LIBS.map(r => `repo:${r}`).join(' ');
-const CACHE_KEY = 'live-proof-v5';
+const CACHE_KEY = 'live-proof-v6';
 const CACHE_MS = 15 * 60_000;
 
 @Injectable({ providedIn: 'root' })

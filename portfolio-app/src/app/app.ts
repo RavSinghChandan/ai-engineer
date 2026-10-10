@@ -466,12 +466,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '80',
+      stat:  '81',
       title: 'PRs merged by outside maintainers.',
-      sub:   'Strangers reviewed the code and shipped it — pypdf, fontTools, fpdf2, Joblib, Sentence Transformers, NLTK and Authlib.',
+      sub:   'Strangers reviewed the code and shipped it — pypdf, fontTools, Pillow, fpdf2, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '80 merged, all reviewed! ✅',
+      aaravSay: '81 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -1190,6 +1190,16 @@ export class App implements OnInit, AfterViewInit {
       merged: 'Oct 2026',
     },
     {
+      repo: 'python-pillow/Pillow',
+      logo: 'pillow-logo.png',
+      org: 'python-pillow',
+      stars: '13.9k★',
+      title: 'Raise OSError for truncated or corrupt gzip FITS data',
+      desc: 'Opening a damaged gzip-compressed FITS image raised a raw zlib.error or EOFError, so code catching OSError, as Pillow documents for broken images, missed it. Both are now raised as OSError, like the BLP decoder already does. Merged by radarhere.',
+      pr: 'https://github.com/python-pillow/Pillow/pull/10146',
+      merged: 'Oct 2026',
+    },
+    {
       repo: 'py-pdf/fpdf2',
       logo: 'fpdf2-logo.png',
       org: 'py-pdf',
@@ -1520,7 +1530,7 @@ export class App implements OnInit, AfterViewInit {
   ];
 
   private readonly GRAPH_LIBRARY_NAMES: Record<string, string> = {
-    'sentence-transformers': 'Sentence Transformers', nltk: 'NLTK', authlib: 'Authlib', fonttools: 'fontTools', fpdf2: 'fpdf2',
+    'sentence-transformers': 'Sentence Transformers', nltk: 'NLTK', authlib: 'Authlib', fonttools: 'fontTools', fpdf2: 'fpdf2', Pillow: 'Pillow',
   };
 
   /** Short hover lines for the projects; anything else falls back to its subtitle. */
@@ -1698,7 +1708,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defence','PII protection','Output validation','Secure tool use','Threat modelling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers — and own the outcome.',
-      evidence: '80 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
+      evidence: '81 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
@@ -2952,6 +2962,7 @@ export class App implements OnInit, AfterViewInit {
     authlib:  '#A0DCFF',  // sky
     fonttools: '#7C9CFF', // periwinkle
     fpdf2:    '#F87171',  // coral, from its logo
+    Pillow:   '#FB923C',  // orange, from its logo
   };
 
   /** Colour for a node: open-source vertices are keyed by library. */
@@ -2960,7 +2971,7 @@ export class App implements OnInit, AfterViewInit {
     system: '#0D8390', tech: '#007CB0', oss: '#26890D', work: '#C26E00', practice: '#6B7A00',
   };
   private readonly OSS_COLORS_LIGHT: Record<string, string> = {
-    pypdf: '#26890D', joblib: '#E11D48', 'sentence-transformers': '#DB2777', nltk: '#A16207', authlib: '#0369A1', fonttools: '#3B5BDB', fpdf2: '#DC2626',
+    pypdf: '#26890D', joblib: '#E11D48', 'sentence-transformers': '#DB2777', nltk: '#A16207', authlib: '#0369A1', fonttools: '#3B5BDB', fpdf2: '#DC2626', Pillow: '#EA580C',
   };
 
   private nodeColor(n: GraphNode): string {
