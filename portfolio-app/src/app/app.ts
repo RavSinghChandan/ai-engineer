@@ -466,12 +466,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '82',
+      stat:  '83',
       title: 'PRs merged by outside maintainers.',
       sub:   'Strangers reviewed the code and shipped it — pypdf, fontTools, Pillow, fpdf2, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '82 merged, all reviewed! ✅',
+      aaravSay: '83 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -1194,6 +1194,16 @@ export class App implements OnInit, AfterViewInit {
       logo: 'fpdf2-logo.png',
       org: 'py-pdf',
       stars: '1.5k★',
+      title: 'Support <ul type="square"> in write_html()',
+      desc: 'square is one of the three standard HTML bullet types, but write_html() raised NotImplementedError for it. It now renders like circle does: ▪ with Unicode fonts, and the closest Windows-1252 bullet with core fonts. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/1989',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
       title: 'Continue lettered list markers past z in write_html()',
       desc: 'Any <ol type="a"> list with more than 26 items crashed write_html() with IndexError. Markers now continue like browsers: a … z, aa, ab. On review I moved the loop into the shared int_to_letters() helper, replacing its recursive version. Approved and merged by andersonhc.',
       pr: 'https://github.com/py-pdf/fpdf2/pull/1987',
@@ -1718,7 +1728,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defence','PII protection','Output validation','Secure tool use','Threat modelling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers — and own the outcome.',
-      evidence: '82 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
+      evidence: '83 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
