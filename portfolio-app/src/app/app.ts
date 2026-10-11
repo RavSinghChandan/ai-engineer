@@ -238,15 +238,15 @@ export class App implements OnInit, AfterViewInit {
     },
     {
       num: '09', accent: 'amber',
-      liveUrl: 'https://poultry-360.onrender.com',
+      liveUrl: 'https://poultry-360.vercel.app',
       inProduction: true,
       title: 'Poultry 360',
-      subtitle: 'Live AI Product — poultry-360.onrender.com',
+      subtitle: 'Live AI Product — poultry-360.vercel.app',
       story: [
         { k: 'Problem', v: 'Small poultry farmers in India count birds by hand, guess feed, and get advice that is not in their language and not traceable to any source.' },
         { k: 'Constraint', v: 'Farmers on cheap phones in a shed, reading Bengali or Hindi; a public app on free hosting with a CPU-only vision model and a paid AI key.' },
         { k: 'Decision', v: 'One Docker image on Render: FastAPI serves the API and the Angular app; a YOLO11 ONNX model counts birds from a photo or video on the CPU; every feed number comes from a published table and the LLM only explains it; farms register, I approve, and they sign in with a signed tenant key.' },
-        { k: 'Result', v: 'Live at poultry-360.onrender.com in 13 Indian languages with read-aloud. Evals on 40 farmer questions found Hinglish trouble reports misrouted (5 of 13 right); fixed to 100%, and the guard against invented feed numbers from 78% to 100%.' },
+        { k: 'Result', v: 'Live at poultry-360.vercel.app in 13 Indian languages with read-aloud. Evals on 40 farmer questions found Hinglish trouble reports misrouted (5 of 13 right); fixed to 100%, and the guard against invented feed numbers from 78% to 100%.' },
       ],
       desc: 'A multi-tenant AI assistant for poultry farms: count the flock from a photo or video, get the exact ration for the birds\' age, and check flock health, in 13 Indian languages. Every number a farmer acts on is traced to a cited source; the model never invents one.',
       github: 'https://github.com/RavSinghChandan/poultry-360',

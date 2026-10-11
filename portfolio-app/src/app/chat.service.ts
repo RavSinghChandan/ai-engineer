@@ -361,7 +361,7 @@ Chandan built <strong>5 defence layers</strong> that wrap every LLM call in prod
 
   private _matchCurrentRole(t: string): string | null {
     if (!/\b(current(ly)?\b|present\b|today\b|now\s*(work|at)\b|where\s*(does|is)\s*he\s*work|senior\s*(engineer|developer|swe)\b)\b/i.test(t)) return null;
-    return `Currently, Chandan is a <strong>Software Engineer II at Deloitte USI</strong> in Bengaluru (Sep 2026–Present), working on Agentic AI and AI Security on an enterprise agentic application / harness platform.<br><br>Before that he was a Senior Software Engineer at Infosys on the Bank of America account (Nov 2025–Sep 2026). He also runs three live AI products end to end: <a href="https://aurawithrav.com" target="_blank" style="color:var(--purple-lt)">aurawithrav.com ↗</a>, <a href="https://aaina-ai.vercel.app" target="_blank" style="color:var(--purple-lt)">Aaina ↗</a> and <a href="https://poultry-360.onrender.com" target="_blank" style="color:var(--purple-lt)">Poultry 360 ↗</a> 🚀`;
+    return `Currently, Chandan is a <strong>Software Engineer II at Deloitte USI</strong> in Bengaluru (Sep 2026–Present), working on Agentic AI and AI Security on an enterprise agentic application / harness platform.<br><br>Before that he was a Senior Software Engineer at Infosys on the Bank of America account (Nov 2025–Sep 2026). He also runs three live AI products end to end: <a href="https://aurawithrav.com" target="_blank" style="color:var(--purple-lt)">aurawithrav.com ↗</a>, <a href="https://aaina-ai.vercel.app" target="_blank" style="color:var(--purple-lt)">Aaina ↗</a> and <a href="https://poultry-360.vercel.app" target="_blank" style="color:var(--purple-lt)">Poultry 360 ↗</a> 🚀`;
   }
 
   private _matchExperience(t: string): string | null {
