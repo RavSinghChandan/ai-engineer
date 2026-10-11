@@ -466,12 +466,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '86',
+      stat:  '88',
       title: 'PRs merged by outside maintainers.',
       sub:   'Strangers reviewed the code and shipped it — pypdf, fontTools, Pillow, fpdf2, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '86 merged, all reviewed! ✅',
+      aaravSay: '88 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -1194,6 +1194,26 @@ export class App implements OnInit, AfterViewInit {
       logo: 'fpdf2-logo.png',
       org: 'py-pdf',
       stars: '1.5k★',
+      title: 'Accept transparent and case-insensitive color keywords in SVG import',
+      desc: 'SVGs exported by design tools often use fill="transparent", and color keywords are case-insensitive, but both made SVG import raise ValueError. transparent now paints nothing like none, and keywords are matched in any case. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/1997',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'Ignore an unsupported align value on table cells in write_html()',
+      desc: '<td align="middle">, a common mix-up with valign, raised ValueError. Unsupported values are now ignored like <p> does. Review caught that <th> lost its centered default; fixed and tested before merge by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/1992',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
       title: 'Accept css rgb() colors in write_html() color and bgcolor',
       desc: 'HTML from editors and email tools often writes colors as rgb(255, 0, 0), which made write_html() raise ValueError. Those values now go through fpdf2\'s existing rgb() parser instead of new code. Approved and merged by andersonhc.',
       pr: 'https://github.com/py-pdf/fpdf2/pull/1991',
@@ -1758,7 +1778,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defence','PII protection','Output validation','Secure tool use','Threat modelling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers — and own the outcome.',
-      evidence: '86 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
+      evidence: '88 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
