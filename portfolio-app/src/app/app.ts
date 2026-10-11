@@ -466,12 +466,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '89',
+      stat:  '90',
       title: 'PRs merged by outside maintainers.',
       sub:   'Strangers reviewed the code and shipped it — pypdf, fontTools, Pillow, fpdf2, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '89 merged, all reviewed! ✅',
+      aaravSay: '90 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -1264,6 +1264,16 @@ export class App implements OnInit, AfterViewInit {
       logo: 'pillow-logo.png',
       org: 'python-pillow',
       stars: '13.9k★',
+      title: 'Fix KeyError on missing Interop or MakerNote IFD',
+      desc: 'Exif.get_ifd() raised KeyError for the Interop or MakerNote IFD whenever an image did not have one, which is most images (151 of the test images). It now returns an empty dict, like the other IFDs. radarhere tightened the test and merged it.',
+      pr: 'https://github.com/python-pillow/Pillow/pull/10177',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'python-pillow/Pillow',
+      logo: 'pillow-logo.png',
+      org: 'python-pillow',
+      stars: '13.9k★',
       title: 'Raise ValueError for posterize bits outside 1-8',
       desc: 'ImageOps.posterize() documents bits as 1-8 but never checked it: 9 crashed with a TypeError and 0 silently returned a black image. It now raises a clear ValueError. radarhere polished the message and merged it.',
       pr: 'https://github.com/python-pillow/Pillow/pull/10173',
@@ -1788,7 +1798,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defence','PII protection','Output validation','Secure tool use','Threat modelling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers — and own the outcome.',
-      evidence: '89 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
+      evidence: '90 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
