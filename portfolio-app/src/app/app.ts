@@ -466,12 +466,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '91',
+      stat:  '94',
       title: 'PRs merged by outside maintainers.',
       sub:   'Strangers reviewed the code and shipped it — pypdf, fontTools, Pillow, fpdf2, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '91 merged, all reviewed! ✅',
+      aaravSay: '94 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -1194,6 +1194,36 @@ export class App implements OnInit, AfterViewInit {
       logo: 'fpdf2-logo.png',
       org: 'py-pdf',
       stars: '1.5k★',
+      title: 'Accept six hex digits without # as an HTML color',
+      desc: 'bgcolor="eeeeee" or <font color="ff0000">, which browsers and many email templates use, made write_html() raise ValueError. Six hex digits without the # are now read as that color, like browsers do. Approved and merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2003',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'Accept <ul type> keywords in any case in write_html()',
+      desc: '<ul type="CIRCLE"> raised NotImplementedError because only lowercase keywords matched. Like browsers, the keywords are now case-insensitive, and a one-letter custom bullet keeps its case. Approved and merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2002',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'Accept css percentages in rgb() colors',
+      desc: 'rgb(100%, 0%, 50%) made SVG import and write_html() raise ValueError. Percentages are now read (100% is 255), with whitespace stripped and values clamped to 0-100% after andersonhc\'s review. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2001',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
       title: 'Draw SVG polygon and polyline points up to the first error',
       desc: 'A <polygon> or <polyline> with an odd number of coordinates or empty points crashed SVG import with IndexError. It now draws up to the last complete point before the first error, as the SVG spec says. andersonhc pointed to the spec\'s stop-at-the-first-error rule, which I added before he merged it.',
       pr: 'https://github.com/py-pdf/fpdf2/pull/2000',
@@ -1808,7 +1838,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defence','PII protection','Output validation','Secure tool use','Threat modelling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers — and own the outcome.',
-      evidence: '91 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
+      evidence: '94 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
