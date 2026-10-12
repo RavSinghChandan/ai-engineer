@@ -466,12 +466,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '94',
+      stat:  '97',
       title: 'PRs merged by outside maintainers.',
       sub:   'Strangers reviewed the code and shipped it — pypdf, fontTools, Pillow, fpdf2, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '94 merged, all reviewed! ✅',
+      aaravSay: '97 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -599,6 +599,36 @@ export class App implements OnInit, AfterViewInit {
   // ── Open Source: merged PRs into major libraries. Append a new entry per merge; the
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
+    {
+      repo: 'pydantic/pydantic-extra-types',
+      logo: 'pydantic-logo.png',
+      org: 'pydantic',
+      stars: '338★',
+      title: 'Accept hyphens and spaces in ISBNs',
+      desc: 'ISBNs are printed with hyphens on almost every book (978-3-16-148410-0), but the ISBN type rejected them with a length error, and a hyphenated ISBN-10 was checked as an ISBN-13. Hyphens and spaces are now removed before validating. Approved and merged by yezz123.',
+      pr: 'https://github.com/pydantic/pydantic-extra-types/pull/440',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.1k★',
+      title: 'Extract text drawn with a font size of zero in layout mode',
+      desc: 'Layout-mode extract_text() divided by a zero width when text used a font size of 0, and the page failed. That text is now extracted. Approved and merged by Stefan.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4174',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'Number an <ol> with an unknown type 1, 2, 3 in write_html()',
+      desc: '<ol type="disc"> or any type other than 1, a, A, i and I raised NotImplementedError. Like browsers, an unknown type now gives a numbered list. Approved and merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2011',
+      merged: 'Oct 2026',
+    },
     {
       repo: 'joblib/joblib',
       logo: 'joblib-logo.svg',
@@ -1660,7 +1690,7 @@ export class App implements OnInit, AfterViewInit {
   ];
 
   private readonly GRAPH_LIBRARY_NAMES: Record<string, string> = {
-    'sentence-transformers': 'Sentence Transformers', nltk: 'NLTK', authlib: 'Authlib', fonttools: 'fontTools', fpdf2: 'fpdf2', Pillow: 'Pillow',
+    'sentence-transformers': 'Sentence Transformers', nltk: 'NLTK', authlib: 'Authlib', fonttools: 'fontTools', fpdf2: 'fpdf2', Pillow: 'Pillow', 'pydantic-extra-types': 'pydantic-extra-types',
   };
 
   /** Short hover lines for the projects; anything else falls back to its subtitle. */
@@ -1838,7 +1868,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defence','PII protection','Output validation','Secure tool use','Threat modelling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers — and own the outcome.',
-      evidence: '94 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
+      evidence: '97 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
@@ -3093,6 +3123,7 @@ export class App implements OnInit, AfterViewInit {
     fonttools: '#7C9CFF', // periwinkle
     fpdf2:    '#F87171',  // coral, from its logo
     Pillow:   '#FB923C',  // orange, from its logo
+    'pydantic-extra-types': '#E92063', // magenta, from its logo
   };
 
   /** Colour for a node: open-source vertices are keyed by library. */
@@ -3101,7 +3132,7 @@ export class App implements OnInit, AfterViewInit {
     system: '#0D8390', tech: '#007CB0', oss: '#26890D', work: '#C26E00', practice: '#6B7A00',
   };
   private readonly OSS_COLORS_LIGHT: Record<string, string> = {
-    pypdf: '#26890D', joblib: '#E11D48', 'sentence-transformers': '#DB2777', nltk: '#A16207', authlib: '#0369A1', fonttools: '#3B5BDB', fpdf2: '#DC2626', Pillow: '#EA580C',
+    pypdf: '#26890D', joblib: '#E11D48', 'sentence-transformers': '#DB2777', nltk: '#A16207', authlib: '#0369A1', fonttools: '#3B5BDB', fpdf2: '#DC2626', Pillow: '#EA580C', 'pydantic-extra-types': '#BE185D',
   };
 
   private nodeColor(n: GraphNode): string {
