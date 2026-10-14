@@ -466,12 +466,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '100',
+      stat:  '102',
       title: 'PRs merged by outside maintainers.',
       sub:   'Strangers reviewed the code and shipped it — pypdf, fontTools, Pillow, fpdf2, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '100 merged, all reviewed! ✅',
+      aaravSay: '102 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -599,6 +599,46 @@ export class App implements OnInit, AfterViewInit {
   // ── Open Source: merged PRs into major libraries. Append a new entry per merge; the
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
+    {
+      repo: 'pydantic/pydantic-extra-types',
+      logo: 'pydantic-logo.png',
+      org: 'pydantic',
+      stars: '338★',
+      title: 'Allow whitespace around a color name',
+      desc: 'Color(" 777 ") and Color(" rgba(0, 0, 128, 0.6) ") were accepted, but a named color with surrounding whitespace such as Color("red ") was rejected. Names and transparent now accept whitespace like every other format. Merged by yezz123.',
+      pr: 'https://github.com/pydantic/pydantic-extra-types/pull/442',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'Fit an HTML table wider than the page to the page width',
+      desc: '<table width="150%"> or width="1000px" made write_html() raise ValueError, and a negative width raised too. The table is now drawn at the page width with a warning, and a negative width is ignored like browsers do. Approved and merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2017',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'Fit over-wide HTML tables to the page width',
+      desc: 'HTML table widths larger than the page raised an exception, and negative widths failed separately. Oversized tables now fit the available page width with a warning, while negative widths are ignored and in-range widths stay unchanged.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2017',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'pydantic/pydantic-extra-types',
+      logo: 'pydantic-logo.png',
+      org: 'pydantic',
+      stars: '338★',
+      title: 'Accept surrounding whitespace in named colors',
+      desc: 'Color accepted surrounding whitespace for numeric and rgb() values but rejected it around named colors. The parser now strips whitespace for lookup while preserving the original input returned by original().',
+      pr: 'https://github.com/pydantic/pydantic-extra-types/pull/442',
+      merged: 'Oct 2026',
+    },
     {
       repo: 'py-pdf/pypdf',
       logo: 'pypdf-logo.svg',
@@ -1898,7 +1938,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defence','PII protection','Output validation','Secure tool use','Threat modelling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers — and own the outcome.',
-      evidence: '100 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
+      evidence: '102 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
