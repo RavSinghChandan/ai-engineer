@@ -27,7 +27,7 @@
 .pv-beat.down { display: none; }
 @keyframes pv-travel-lin { 0% { offset-distance: 0%; } 70%, 100% { offset-distance: 100%; } }
 
-/* 66: one square per merged PR, filling in like a contribution graph */
+/* One square per merged PR, filling in like a contribution graph. */
 .pv-squares { display: grid; grid-template-columns: repeat(22, 1fr); gap: 3px; }
 .pv-sq {
   aspect-ratio: 1; border-radius: 2px; opacity: 0.15; transform: scale(0.6);

@@ -4,7 +4,7 @@ import { LiveStatus } from './live-status.service';
 
 /**
  * Each Engineering Proof card acts out its own claim: the LIVE card beats with the
- * real health check, the 66 card is one square per merged PR, the tests card runs
+ * real health check, the 102 card is one square per merged PR, the tests card runs
  * 637 dots green, and so on. Animations only play while the card is on screen.
  */
 export interface MergedPr { repo: string; title: string; pr: string; }
