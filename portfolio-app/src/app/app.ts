@@ -466,12 +466,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '104',
+      stat:  '106',
       title: 'PRs merged by outside maintainers.',
       sub:   'Strangers reviewed the code and shipped it — pypdf, fontTools, Pillow, fpdf2, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '104 merged, all reviewed! ✅',
+      aaravSay: '106 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -599,6 +599,26 @@ export class App implements OnInit, AfterViewInit {
   // ── Open Source: merged PRs into major libraries. Append a new entry per merge; the
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
+    {
+      repo: 'authlib/authlib',
+      logo: 'authlib-logo.svg',
+      org: 'Authlib',
+      stars: '5.4k★',
+      title: 'Return an empty list for an empty query string in extract_params',
+      desc: 'extract_params documents that an empty string, dict or list all give back []. The dict and list cases did; the empty string fell through a truthiness guard and returned None instead, which every caller treats as "stop", not "empty". Merged by the project lead.',
+      pr: 'https://github.com/authlib/authlib/pull/926',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'Support <ul type="none"> in write_html(), like browsers',
+      desc: '<ul type="none"> raised NotImplementedError, though browsers render it as a plain indented list with no marker. ul_prefix() now returns an empty bullet for it, and after review the item spacing matches a normal list exactly. Approved and merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2013',
+      merged: 'Oct 2026',
+    },
     {
       repo: 'pydantic/pydantic-extra-types',
       logo: 'pydantic-logo.png',
@@ -1938,7 +1958,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defence','PII protection','Output validation','Secure tool use','Threat modelling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers — and own the outcome.',
-      evidence: '104 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
+      evidence: '106 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
