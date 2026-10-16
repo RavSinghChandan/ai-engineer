@@ -2750,88 +2750,73 @@ footer {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   THE DEPLOYMENT CHAKRA — six steps on a 24-spoke wheel
-   Mobile first: 260px wheel, growing to 540px on desktop.
+   HOW I WORK: the five stages of a forward-deployed project
+   One column on phones, two on small tablets, 3 + 2 (last row centred) from 960px.
+   Every item uses the site green (--c); text on the green head is dark.
    ═══════════════════════════════════════════════════════════════ */
-.chakra-wrap { display: flex; justify-content: center; margin: 1rem 0 2.75rem; padding: 54px 0; }
-.chakra {
-  --wheel: 260px;
-  --node-r: calc(var(--wheel) * 0.47);
-  position: relative; width: var(--wheel); height: var(--wheel);
-  @media (min-width: 480px)  { --wheel: 320px; }
-  @media (min-width: 768px)  { --wheel: 420px; }
-  @media (min-width: 1100px) { --wheel: 540px; }
+.fx-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+.how-grid {
+  list-style: none; margin: 1.25rem 0 1.5rem; padding: 0;
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem;
 }
-@media (min-width: 768px) { .chakra-wrap { padding: 70px 0; } }
-.chakra-wheel { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible;
-  filter: drop-shadow(0 0 18px rgba(134,188,37,0.12)); }
-.ck-lunate { fill: var(--geo-b); opacity: 0.7; }
-.ck-sector { transform-box: view-box; transform-origin: 200px 200px; transition: transform 0.9s cubic-bezier(0.65, 0, 0.35, 1); }
-@media (prefers-reduced-motion: no-preference) {
-  .ck-spin { transform-box: view-box; transform-origin: 200px 200px; animation: geo-spin 120s linear infinite; }
-  .ck-spin-rev { transform-box: view-box; transform-origin: 200px 200px; animation: geo-spin 60s linear infinite reverse; }
-}
-
-/* Centre disc: the active step, read like the hub of the wheel */
-.chakra-center {
-  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-  width: calc(var(--wheel) * 0.4); height: calc(var(--wheel) * 0.4); border-radius: 50%;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
-  padding: 0.5rem; gap: 0.15rem;
-  background: radial-gradient(circle at 50% 35%, var(--card-hi), var(--card));
-  box-shadow: 0 0 0 1px var(--border), 0 18px 40px -18px rgba(0,0,0,0.6), inset 0 0 30px rgba(134,188,37,0.08);
-}
-.cc-kicker { font-family: 'Fira Code', monospace; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
-.cc-name { font-size: 1.05rem; font-weight: 800; letter-spacing: -0.02em; color: var(--text); line-height: 1.1; }
-.cc-desc { font-size: 0.7rem; color: var(--text2); line-height: 1.35; max-width: 92%; }
-.cc-foot { font-size: 0.55rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); margin-top: 0.15rem; }
-@media (min-width: 768px) {
-  .cc-kicker { font-size: 0.68rem; } .cc-name { font-size: 1.45rem; } .cc-desc { font-size: 0.85rem; } .cc-foot { font-size: 0.62rem; }
-}
-@media (min-width: 1100px) { .cc-name { font-size: 1.75rem; } .cc-desc { font-size: 0.95rem; } }
-@media (max-width: 767px) { .cc-desc, .cc-foot { font-size: 11.5px !important; } .cc-kicker { font-size: 11px !important; } }
-
-/* Six steps placed on the rim by angle, always upright */
-.chakra-steps { list-style: none; margin: 0; padding: 0; position: absolute; inset: 0; }
-.chakra-step {
-  position: absolute; left: 50%; top: 50%;
-  transform: rotate(var(--a)) translate(var(--node-r)) rotate(calc(-1 * var(--a))) translate(-50%, -50%);
-  transform-origin: 0 0;
-}
-.chakra-node {
-  display: flex; flex-direction: column; align-items: center; gap: 0.05rem;
-  min-width: 78px; min-height: 44px; padding: 0.4rem 0.7rem; cursor: pointer; font: inherit;
-  background: var(--card); color: var(--text); border: 1px solid var(--border2); border-radius: 999px;
-  box-shadow: 0 8px 20px -10px rgba(0,0,0,0.6);
-  transition: transform 0.25s var(--ease), background 0.25s, color 0.25s, border-color 0.25s, box-shadow 0.25s;
-  &:hover { border-color: var(--dl-green); }
-  &:focus-visible { outline: 2px solid var(--dl-green); outline-offset: 3px; }
-  &.is-active {
-    background: var(--dl-green); color: #000; border-color: var(--dl-green); transform: scale(1.08);
-    box-shadow: 0 0 0 6px rgba(134,188,37,0.18), 0 10px 26px -8px rgba(134,188,37,0.55);
-    .cn-n { color: #000; }
+.how-item { --c: #86BC25; position: relative; flex: 1 1 100%; min-width: 0; display: flex; }
+@media (min-width: 640px)  { .how-item { flex: 0 1 calc((100% - 1rem) / 2); } }
+@media (min-width: 960px)  { .how-item { flex: 0 1 calc((100% - 2rem) / 3); } }
+.how-card {
+  position: relative; width: 100%; display: flex; flex-direction: column; overflow: hidden; border-radius: 16px;
+  background: var(--card); border: 1px solid color-mix(in srgb, var(--c) 50%, transparent);
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  &:hover {
+    transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(-4px);
+    box-shadow: 0 18px 40px -22px color-mix(in srgb, var(--c) 75%, transparent);
   }
+  /* glare that follows the pointer */
+  &::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.25s;
+    background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 30%), rgba(255, 255, 255, 0.10), transparent 65%);
+  }
+  &:hover::after { opacity: 1; }
 }
-.cn-n { font-family: 'Fira Code', monospace; font-size: 11px; font-weight: 700; color: var(--accent); line-height: 1; }
-.cn-name { font-size: 0.78rem; font-weight: 700; white-space: nowrap; line-height: 1.2; }
-@media (min-width: 768px) {
-  .chakra-node { min-width: 110px; padding: 0.5rem 1rem; }
-  .cn-name { font-size: 0.95rem; }
+.how-ico { margin-left: auto; flex: none; width: 28px; height: 28px; color: #0b0f0b; opacity: 0.9; svg { display: block; width: 100%; height: 100%; overflow: visible; } }
+.how-n { position: relative; }
+.how-n::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 2px dashed rgba(0, 0, 0, 0.45); }
+/* green head with dark text, the same pairing as the site's primary buttons */
+.how-head { display: flex; align-items: center; gap: 0.7rem; padding: 0.7rem 0.9rem; min-height: 4.6rem; background: var(--c); color: #0b0f0b; }
+.how-n {
+  flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
+  background: #0b0f0b; color: #fff; font-family: 'Fira Code', monospace; font-size: 0.85rem; font-weight: 700;
 }
-:host-context(html[data-theme="light"]) {
-  .chakra-node { box-shadow: 0 8px 20px -12px rgba(0,0,0,0.25); }
-  .chakra-center { box-shadow: 0 0 0 1px rgba(0,0,0,0.06), 0 18px 40px -20px rgba(0,0,0,0.25), inset 0 0 30px rgba(134,188,37,0.06); }
+.how-name { margin: 0; font-size: 1rem; font-weight: 800; line-height: 1.2; letter-spacing: -0.01em; color: #0b0f0b; }
+.how-art {
+  aspect-ratio: 320 / 200; background: color-mix(in srgb, var(--c) 18%, var(--card));
+  svg { display: block; width: 100%; height: 100%; }
 }
-@media (max-width: 767px) {
-  .chakra-center { width: calc(var(--wheel) * 0.455); height: calc(var(--wheel) * 0.455); padding: 0.35rem; gap: 0.1rem; }
-  .cc-foot { display: none; }
-  .cc-name { font-size: 15px; }
-  .cc-desc { font-size: 11px !important; line-height: 1.3; max-width: 96%; }
-  .cc-kicker { font-size: 10px !important; }
+.how-facts { margin: 0; padding: 0.95rem 1rem 1.05rem; display: grid; gap: 0.6rem; flex: 1; align-content: start; }
+.how-facts > div { display: grid; grid-template-columns: 5.4rem 1fr; gap: 0.6rem; align-items: baseline; }
+.how-facts dt { font-family: 'Fira Code', monospace; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); }
+.how-facts dd { margin: 0; font-size: 0.95rem; font-weight: 600; color: var(--text); line-height: 1.3; }
+.how-proof { position: relative; padding-top: 0.7rem; }
+.how-proof::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 0; height: 1px;
+  background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--c) 65%, transparent) 0 6px, transparent 6px 11px);
 }
-.chakra-center { width: calc(var(--wheel) * 0.455); height: calc(var(--wheel) * 0.455); }
-@media (max-width: 1099px) { .cc-foot { display: none; } }
-@media (max-width: 767px) { .cc-kicker { font-size: 11px !important; letter-spacing: 0.06em; } }
+.how-proof dd { color: var(--text2); font-weight: 500; }
+.how-proof b { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; margin-right: 0.15rem; color: color-mix(in srgb, var(--c) 45%, #fff); }
+
+/* What every project leaves behind */
+.how-deliver {
+  list-style: none; margin: 0 0 3rem; padding: 0.4rem; display: flex; flex-wrap: wrap;
+  border-radius: 16px; background: var(--card); border: 1px solid rgba(134, 188, 37, 0.4);
+  li { flex: 1 1 100%; min-width: 0; @media (min-width: 640px) { flex-basis: 50%; } @media (min-width: 1100px) { flex: 1 1 0; } }
+}
+.hd-item {
+  display: flex; align-items: center; gap: 0.75rem; padding: 0.8rem 0.9rem; border-radius: 12px;
+  color: var(--text); text-decoration: none; transition: background 0.2s ease;
+  &:hover, &:focus-visible { background: rgba(134, 188, 37, 0.1); }
+}
+.hd-icon { flex: none; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; background: rgba(134, 188, 37, 0.14); color: var(--accent); svg { width: 20px; height: 20px; } }
+.hd-text { display: grid; line-height: 1.25; b { font-size: 0.92rem; font-weight: 700; } small { font-size: 0.78rem; color: var(--text2); } }
 
 /* Section rhythm for the forward-deployed order:
    hero · how I work · projects · proof · open source · experience · story · map · contact */
@@ -2965,27 +2950,6 @@ footer {
 }
 
 
-/* ── The Ashoka Chakra geometry, in the site's green palette ── */
-.chakra { --ashoka: #86BC25; }
-.chakra-wheel { filter: drop-shadow(0 0 22px rgba(134, 188, 37, 0.18)); }
-.ck-field { fill: var(--card); }
-.ck-field-ring { stroke: rgba(134, 188, 37, 0.45) !important; }
-.ck-ashoka .ck-rim { stroke: url(#ck-green-g); }
-.ck-ashoka .ck-lunates circle { fill: #86BC25; }
-.ck-ashoka .ck-spokes { fill: url(#ck-green-g); }
-.ck-ashoka .ck-hub { fill: url(#ck-green-g); }
-.ck-sector-fill { fill: rgba(134, 188, 37, 0.14); }
-.chakra-center {
-  background: radial-gradient(circle at 50% 35%, var(--card-hi), var(--card)) !important;
-  box-shadow: 0 0 0 3px #86BC25, 0 0 0 8px var(--card), 0 0 0 10px rgba(0, 171, 171, 0.7), 0 14px 34px -14px rgba(0, 0, 0, 0.6) !important;
-  width: calc(var(--wheel) * 0.36) !important; height: calc(var(--wheel) * 0.36) !important;
-}
-.chakra-center .cc-kicker, .chakra-center .cc-foot { color: var(--accent) !important; opacity: 1; }
-.chakra-center .cc-name { color: var(--text) !important; }
-.chakra-center .cc-desc { color: var(--text2) !important; }
-@media (prefers-reduced-motion: no-preference) {
-  .ck-spin.ck-ashoka { animation: geo-spin 48s linear infinite; }
-}
 
 /* "Let's talk." ends with a blinking cursor */
 .contact-talk::after { content: '▍'; margin-left: 0.15em; color: var(--dl-green); animation: talk-caret 1.05s steps(1) infinite; }

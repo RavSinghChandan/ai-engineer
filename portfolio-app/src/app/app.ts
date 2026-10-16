@@ -466,12 +466,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '106',
+      stat:  '111',
       title: 'PRs merged by outside maintainers.',
-      sub:   'Strangers reviewed the code and shipped it — pypdf, fontTools, Pillow, fpdf2, Joblib, Sentence Transformers, NLTK and Authlib.',
+      sub:   'Strangers reviewed the code and shipped it — pypdf, fontTools, Pillow, fpdf2, txtai, kornia, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '106 merged, all reviewed! ✅',
+      aaravSay: '111 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -599,6 +599,56 @@ export class App implements OnInit, AfterViewInit {
   // ── Open Source: merged PRs into major libraries. Append a new entry per merge; the
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
+    {
+      repo: 'python-pillow/Pillow',
+      logo: 'pillow-logo.png',
+      org: 'python-pillow',
+      stars: '13.9k★',
+      title: 'Support invert, posterize and solarize on P images in ImageOps',
+      desc: 'ImageOps.invert(), posterize() and solarize() raised "mode P support coming soon" for a palette image, from a FIXME in _lut(). These three change each pixel on its own, so the lookup table can be applied to the palette instead; the result matches the RGB image and alpha is left alone. autocontrast and equalize still raise, since their tables depend on pixel counts. radarhere merged it.',
+      pr: 'https://github.com/python-pillow/Pillow/pull/10174',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'kornia/kornia',
+      logo: 'kornia-logo.png',
+      org: 'kornia',
+      stars: '11.4k★',
+      title: 'Sharpen integer images in float32 in unsharp_mask',
+      desc: 'unsharp_mask raised "expected dtype float for end but got dtype unsigned char" for a uint8 image, because torch.lerp mixed the float32 blur with the integer input. The image is now promoted with the existing _to_floating helper first, like guided_blur, and returned as float32; floating images are unchanged. Merged by ducha-aiki.',
+      pr: 'https://github.com/kornia/kornia/pull/5946',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'neuml/txtai',
+      logo: 'txtai-logo.png',
+      org: 'neuml',
+      stars: '13k★',
+      title: 'Keep lists inside a blockquote as Markdown lists in HTMLToMarkdown',
+      desc: 'A list inside a blockquote lost its formatting: with compact HTML the items merged into one word ("> FirstSecond"). It is now formatted with the existing list handler and then quoted, so ordered lists keep their numbers, in article mode too. Follow-up to my paragraph fix; merged by the project lead.',
+      pr: 'https://github.com/neuml/txtai/pull/1422',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'neuml/txtai',
+      logo: 'txtai-logo.png',
+      org: 'neuml',
+      stars: '13k★',
+      title: 'Keep the paragraphs of a blockquote on separate lines in HTMLToMarkdown',
+      desc: 'block() used node.text, which joins child paragraphs with nothing between them, so compact HTML such as <blockquote><p>First</p><p>Second</p></blockquote> became "> FirstSecond". Each paragraph now starts on its own line, so compact and pretty-printed HTML agree. Merged by the project lead.',
+      pr: 'https://github.com/neuml/txtai/pull/1408',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'Stop a rowspan past the last row at the last row in write_html()',
+      desc: 'A <td rowspan="99"> near the end of a table, as many HTML generators write, made write_html() raise "Rowspan extends beyond end of table". The HTML spec ends such a rowspan at the last row, which is what browsers draw, so write_html() now applies that before rendering; Table itself still raises for tables built directly. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2031',
+      merged: 'Oct 2026',
+    },
     {
       repo: 'authlib/authlib',
       logo: 'authlib-logo.svg',
@@ -1780,7 +1830,7 @@ export class App implements OnInit, AfterViewInit {
   ];
 
   private readonly GRAPH_LIBRARY_NAMES: Record<string, string> = {
-    'sentence-transformers': 'Sentence Transformers', nltk: 'NLTK', authlib: 'Authlib', fonttools: 'fontTools', fpdf2: 'fpdf2', Pillow: 'Pillow', 'pydantic-extra-types': 'pydantic-extra-types',
+    'sentence-transformers': 'Sentence Transformers', nltk: 'NLTK', authlib: 'Authlib', fonttools: 'fontTools', fpdf2: 'fpdf2', Pillow: 'Pillow', txtai: 'txtai', kornia: 'kornia', 'pydantic-extra-types': 'pydantic-extra-types',
   };
 
   /** Short hover lines for the projects; anything else falls back to its subtitle. */
@@ -1813,7 +1863,7 @@ export class App implements OnInit, AfterViewInit {
       });
       const text = textOf(p.title, p.subtitle, p.desc, p.tags, p.challenges);
       for (const t of this.GRAPH_TECH) if (t.match.test(text)) edges.push([id, t.id]);
-      if (p.inProduction) edges.push([id, 'step-4'], [id, 'step-3']);   // live: integrated and hardened
+      if (p.inProduction) edges.push([id, 'step-4'], [id, 'step-3']);   // live: shipped and demoed
     }
 
     this.experience.forEach((e, i) => {
@@ -1835,12 +1885,12 @@ export class App implements OnInit, AfterViewInit {
         detail: `${count} PR${count === 1 ? '' : 's'} merged by its maintainers`,
         url: `https://github.com/${repo}/pulls?q=is%3Apr+author%3ARavSinghChandan+is%3Amerged`,
       });
-      edges.push([id, 'python'], [id, 'step-4']);                        // open source here is hardening Python libraries
+      edges.push([id, 'python'], [id, 'step-3']);                        // open source here is testing and hardening Python libraries
     }
 
-    this.deployLoop.forEach((s, i) => {
-      nodes.push({ id: `step-${i}`, label: s.name, kind: 'practice', detail: `How I work · ${s.desc}`, target: 'skills' });
-      edges.push([`step-${i}`, `step-${(i + 1) % this.deployLoop.length}`]);
+    this.deployCards.forEach((s, i) => {
+      nodes.push({ id: `step-${i}`, label: s.name, kind: 'practice', detail: `How I work · ${s.is}`, target: 'skills' });
+      edges.push([`step-${i}`, `step-${(i + 1) % this.deployCards.length}`]);
     });
 
     this.graphNodes = nodes;
@@ -1870,22 +1920,73 @@ export class App implements OnInit, AfterViewInit {
   graphReady = signal(false);
 
   // ── Forward deployed engineering: how I work + what I bring, with evidence ──
-  readonly deployLoop = [
-    { name: 'Embed',     desc: 'Sit with users, data and constraints' },
-    { name: 'Scope',     desc: 'Turn ambiguity into a design' },
-    { name: 'Prototype', desc: 'A working agent, fast' },
-    { name: 'Integrate', desc: 'Into existing auth, APIs and data' },
-    { name: 'Harden',    desc: 'Tests, guardrails, evals, cost' },
-    { name: 'Hand over', desc: 'Docs, demos, a team that owns it' },
+  // The five stages of a forward-deployed project, one card each: what the stage is,
+  // what I did, one number that backs it. Every figure is a claim the portfolio already
+  // makes elsewhere (proof-viz, skills, the design blueprint).
+  readonly deployCards: { n: string; name: string; scene: string; color: string; title: string; is: string; did: string; from?: number; to: number; unit: string }[] = [
+    { n: '01', name: 'Discover',  scene: 'discover',  color: '#86BC25', title: 'Client Discovery & Problem Understanding',  is: 'Find the real pain',      did: 'Built for farmers',    to: 13,      unit: 'Indian languages' },
+    { n: '02', name: 'Architect', scene: 'architect', color: '#86BC25', title: 'Requirements & Solution Architecture',      is: 'Stack, design, scope',    did: 'Wrote the trade-offs', to: 15,      unit: 'design patterns written' },
+    { n: '03', name: 'Build',     scene: 'build',     color: '#86BC25', title: 'Build the AI Solution',                     is: 'Working MVP, fast',       did: 'Wired agent graphs',   to: 16,      unit: 'agents, one graph' },
+    { n: '04', name: 'Ship',      scene: 'ship',      color: '#86BC25', title: 'Integration, Testing & Deployment',         is: 'Integrate, test, deploy', did: 'Embedded via SDKs',    to: 637,     unit: 'tests in under 4 s' },
+    { n: '05', name: 'Demo',      scene: 'demo',      color: '#86BC25', title: 'Client Demo & Business Impact',             is: 'Show real results',       did: 'Shipped live demos',   from: 78, to: 4, unit: 'seconds, response time' },
   ];
 
-  // The loop turns forward forever: loopTurn only ever increases, so the
-  // highlighted sector never spins backwards from step 6 to step 1.
-  loopTurn = signal(0);
-  readonly loopStep = computed(() => this.loopTurn() % this.deployLoop.length);
-  private loopHover = false;
-  private loopHoldUntil = 0;                       // any interaction holds auto-play
-  private loopTimer: ReturnType<typeof setInterval> | undefined;
+  // The stage cards come alive while on screen (all motion is CSS, toggled by .how-live),
+  // and their proof numbers count up once the first time they are seen.
+  howProgress = signal(0);
+  howNum(c: { from?: number; to: number }): string {
+    const p = this.howProgress();
+    if (c.from === undefined) return String(Math.round(c.to * p));
+    return `${c.from} → ${Math.round(c.from + (c.to - c.from) * p)}`;
+  }
+  /** Stage cards lean toward the pointer, with a soft glare under it. */
+  howTilt(e: PointerEvent): void {
+    if (e.pointerType !== 'mouse') return;
+    const el = e.currentTarget as HTMLElement, r = el.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+    el.style.setProperty('--ry', `${(x * 8).toFixed(2)}deg`);
+    el.style.setProperty('--rx', `${(-y * 6).toFixed(2)}deg`);
+    el.style.setProperty('--mx', `${e.clientX - r.left}px`);
+    el.style.setProperty('--my', `${e.clientY - r.top}px`);
+  }
+  howTiltReset(e: PointerEvent): void {
+    const el = e.currentTarget as HTMLElement;
+    el.style.setProperty('--rx', '0deg');
+    el.style.setProperty('--ry', '0deg');
+  }
+  private initHowLive(): void {
+    const grid = document.querySelector('.how-grid');
+    if (!grid) return;
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || typeof IntersectionObserver === 'undefined') {
+      this.howProgress.set(1);
+      return;
+    }
+    let counted = false;
+    new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        grid.classList.toggle('how-live', e.isIntersecting);
+        if (e.isIntersecting && !counted) { counted = true; this.countHow(); }
+      });
+    }, { threshold: 0.15 }).observe(grid);
+  }
+  private countHow(): void {
+    const start = performance.now(), dur = 1500;
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / dur);
+      this.howProgress.set(1 - Math.pow(1 - t, 3));
+      if (t < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+
+  /** What a finished project leaves behind (the strip under the cards). */
+  readonly deliverables = [
+    { icon: 'github', title: 'GitHub Repository', sub: 'Clean code + README',          href: 'https://github.com/RavSinghChandan', external: true },
+    { icon: 'demo',   title: 'Live Demo',         sub: 'Try the applications',         href: '#projects',   external: false },
+    { icon: 'docs',   title: 'Documentation',     sub: 'Architecture + details',       href: '#projects',   external: false },
+    { icon: 'skills', title: 'Real-World Skills', sub: 'Engineering + communication',  href: '#experience', external: false },
+    { icon: 'trophy', title: 'Open to FDE Roles', sub: 'Let\'s talk',                  href: '#contact',    external: false },
+  ];
 
   readonly live = inject(LiveStatus);
   readonly prTrack = ['opened', 'review', 'CI', 'merged'];
@@ -1905,21 +2006,6 @@ export class App implements OnInit, AfterViewInit {
     const el = e.currentTarget as HTMLElement, r = el.getBoundingClientRect();
     el.style.setProperty('--mx', `${e.clientX - r.left}px`);
     el.style.setProperty('--my', `${e.clientY - r.top}px`);
-  }
-
-  setLoop(i: number): void {
-    const n = this.deployLoop.length;
-    const cur = this.loopTurn();
-    this.loopTurn.set(cur + ((i - (cur % n)) + n) % n);
-    this.loopHoldUntil = Date.now() + 8000;
-  }
-  pauseLoop(): void { this.loopHover = true; this.loopHoldUntil = Date.now() + 8000; }
-  resumeLoop(): void { this.loopHover = false; }
-  private startLoop(): void {
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
-    this.loopTimer = setInterval(() => {
-      if (!this.loopHover && Date.now() > this.loopHoldUntil) this.loopTurn.update(t => t + 1);
-    }, 2800);
   }
 
   readonly stackLayers = [
@@ -1958,7 +2044,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defence','PII protection','Output validation','Secure tool use','Threat modelling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers — and own the outcome.',
-      evidence: '106 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
+      evidence: '111 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
@@ -2843,6 +2929,7 @@ export class App implements OnInit, AfterViewInit {
       entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
     }, { threshold: 0.08 });
     this.fadeEls.forEach(el => observer.observe(el.nativeElement));
+    this.initHowLive();
 
     // Section diagrams animate only while their section is on screen.
     if (!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
@@ -2890,7 +2977,6 @@ export class App implements OnInit, AfterViewInit {
     }
 
     this.initFloatingGuide();
-    this.startLoop();
 
     // Trigger skill bars when the orbit section scrolls into view
     const skillsEl = document.querySelector('.skills-orbit-wrap');
@@ -3214,6 +3300,8 @@ export class App implements OnInit, AfterViewInit {
     fpdf2:    '#F87171',  // coral, from its logo
     Pillow:   '#FB923C',  // orange, from its logo
     'pydantic-extra-types': '#E92063', // magenta, from its logo
+    txtai:    '#34D399',  // green, from its logo
+    kornia:   '#3B82F6',  // blue, from its logo
   };
 
   /** Colour for a node: open-source vertices are keyed by library. */
@@ -3222,7 +3310,7 @@ export class App implements OnInit, AfterViewInit {
     system: '#0D8390', tech: '#007CB0', oss: '#26890D', work: '#C26E00', practice: '#6B7A00',
   };
   private readonly OSS_COLORS_LIGHT: Record<string, string> = {
-    pypdf: '#26890D', joblib: '#E11D48', 'sentence-transformers': '#DB2777', nltk: '#A16207', authlib: '#0369A1', fonttools: '#3B5BDB', fpdf2: '#DC2626', Pillow: '#EA580C', 'pydantic-extra-types': '#BE185D',
+    pypdf: '#26890D', joblib: '#E11D48', 'sentence-transformers': '#DB2777', nltk: '#A16207', authlib: '#0369A1', fonttools: '#3B5BDB', fpdf2: '#DC2626', Pillow: '#EA580C', 'pydantic-extra-types': '#BE185D', txtai: '#059669', kornia: '#2563EB',
   };
 
   private nodeColor(n: GraphNode): string {
