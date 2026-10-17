@@ -4,7 +4,7 @@ import { LiveStatus } from './live-status.service';
 
 /**
  * Each Engineering Proof card acts out its own claim: the LIVE card beats with the
- * real health check, the 102 card is one square per merged PR, the tests card runs
+ * real health check, the merged-PR card is one square per curated PR, the tests card runs
  * 637 dots green, and so on. Animations only play while the card is on screen.
  */
 export interface MergedPr { repo: string; title: string; pr: string; }
@@ -13,6 +13,7 @@ export const REPO_COLOR: Record<string, string> = {
   'py-pdf/pypdf': '#86BC25', 'joblib/joblib': '#62B5E5', 'UKPLab/sentence-transformers': '#FFB81C',
   'huggingface/sentence-transformers': '#FFB81C', 'nltk/nltk': '#00ABAB', 'authlib/authlib': '#C084FC',
   'fonttools/fonttools': '#7C9CFF', 'py-pdf/fpdf2': '#F87171', 'python-pillow/Pillow': '#FB923C', 'pydantic/pydantic-extra-types': '#E92063',
+  'neuml/txtai': '#14B8A6', 'kornia/kornia': '#A78BFA',
 };
 
 @Component({

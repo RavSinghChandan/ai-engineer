@@ -466,12 +466,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '111',
+      stat:  '112',
       title: 'PRs merged by outside maintainers.',
-      sub:   'Strangers reviewed the code and shipped it — pypdf, fontTools, Pillow, fpdf2, txtai, kornia, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
+      sub:   'Strangers reviewed the code and shipped it — pypdf, fontTools, Pillow, fpdf2, txtai, kornia, tox, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '111 merged, all reviewed! ✅',
+      aaravSay: '112 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -599,6 +599,16 @@ export class App implements OnInit, AfterViewInit {
   // ── Open Source: merged PRs into major libraries. Append a new entry per merge; the
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
+    {
+      repo: 'tox-dev/tox',
+      logo: 'tox-logo.png',
+      org: 'tox-dev',
+      stars: '4k★',
+      title: 'Accept export in set_env env files',
+      desc: 'A set_env env file line like "export DATABASE_URL=..." set a variable named "export DATABASE_URL" and never DATABASE_URL itself. dotenv and Docker Compose, which tox follows for env files, both drop a leading export, so tox now does too; keys that are literally export or only start with it are unchanged. Merged by gaborbernat within hours.',
+      pr: 'https://github.com/tox-dev/tox/pull/4161',
+      merged: 'Oct 2026',
+    },
     {
       repo: 'python-pillow/Pillow',
       logo: 'pillow-logo.png',
@@ -1830,7 +1840,7 @@ export class App implements OnInit, AfterViewInit {
   ];
 
   private readonly GRAPH_LIBRARY_NAMES: Record<string, string> = {
-    'sentence-transformers': 'Sentence Transformers', nltk: 'NLTK', authlib: 'Authlib', fonttools: 'fontTools', fpdf2: 'fpdf2', Pillow: 'Pillow', txtai: 'txtai', kornia: 'kornia', 'pydantic-extra-types': 'pydantic-extra-types',
+    'sentence-transformers': 'Sentence Transformers', nltk: 'NLTK', authlib: 'Authlib', fonttools: 'fontTools', fpdf2: 'fpdf2', Pillow: 'Pillow', txtai: 'txtai', kornia: 'kornia', tox: 'tox', 'pydantic-extra-types': 'pydantic-extra-types',
   };
 
   /** Short hover lines for the projects; anything else falls back to its subtitle. */
@@ -2044,7 +2054,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defence','PII protection','Output validation','Secure tool use','Threat modelling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers — and own the outcome.',
-      evidence: '111 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
+      evidence: '112 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
@@ -3302,6 +3312,7 @@ export class App implements OnInit, AfterViewInit {
     'pydantic-extra-types': '#E92063', // magenta, from its logo
     txtai:    '#34D399',  // green, from its logo
     kornia:   '#3B82F6',  // blue, from its logo
+    tox:      '#C9C96A',  // olive gold, from its globe
   };
 
   /** Colour for a node: open-source vertices are keyed by library. */
@@ -3310,7 +3321,7 @@ export class App implements OnInit, AfterViewInit {
     system: '#0D8390', tech: '#007CB0', oss: '#26890D', work: '#C26E00', practice: '#6B7A00',
   };
   private readonly OSS_COLORS_LIGHT: Record<string, string> = {
-    pypdf: '#26890D', joblib: '#E11D48', 'sentence-transformers': '#DB2777', nltk: '#A16207', authlib: '#0369A1', fonttools: '#3B5BDB', fpdf2: '#DC2626', Pillow: '#EA580C', 'pydantic-extra-types': '#BE185D', txtai: '#059669', kornia: '#2563EB',
+    pypdf: '#26890D', joblib: '#E11D48', 'sentence-transformers': '#DB2777', nltk: '#A16207', authlib: '#0369A1', fonttools: '#3B5BDB', fpdf2: '#DC2626', Pillow: '#EA580C', 'pydantic-extra-types': '#BE185D', txtai: '#059669', kornia: '#2563EB', tox: '#8A8A2E',
   };
 
   private nodeColor(n: GraphNode): string {
