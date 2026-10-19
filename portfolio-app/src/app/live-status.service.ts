@@ -17,15 +17,17 @@ const PRODUCT_HEALTH: Record<string, { url: string; label: string; cors: boolean
   '08': { url: 'https://aaina-api.onrender.com/api/health', label: 'Aaina', cors: false },
   '09': { url: 'https://poultry-360.onrender.com/api/health', label: 'Poultry 360', cors: true },
 };
-// Keep this list aligned with the repositories represented in app.ts's
-// curated `openSource` list; otherwise the live GitHub count silently misses merges.
-const LIBS = [
-  'py-pdf/pypdf', 'joblib/joblib', 'huggingface/sentence-transformers', 'nltk/nltk',
-  'authlib/authlib', 'fonttools/fonttools', 'py-pdf/fpdf2', 'python-pillow/Pillow',
-  'pydantic/pydantic-extra-types', 'neuml/txtai', 'kornia/kornia',
-];
-export const GH_QUERY = 'is:pr author:RavSinghChandan is:merged ' + LIBS.map(r => `repo:${r}`).join(' ');
-const CACHE_KEY = 'live-proof-v8';
+/**
+ * The GitHub search for merged PRs in the given repositories. The live map passes
+ * the repositories of app.ts's `openSource` list, so a newly merged library is
+ * counted without a second list to keep in step (a hand-kept list missed tox and
+ * mistune and showed 114 for 116).
+ */
+export function ghQuery(repos: Iterable<string>): string {
+  const unique = [...new Set(repos)].sort();
+  return 'is:pr author:RavSinghChandan is:merged ' + unique.map(r => `repo:${r}`).join(' ');
+}
+const CACHE_KEY = 'live-proof-v9';
 const CACHE_MS = 15 * 60_000;
 
 @Injectable({ providedIn: 'root' })
@@ -53,6 +55,14 @@ export class LiveStatus {
     const s = Math.max(0, Math.round((this.now() - t) / 1000));
     return s < 5 ? 'checked just now' : s < 60 ? `checked ${s}s ago` : `checked ${Math.round(s / 60)} min ago`;
   });
+
+  /** The search the GitHub count runs. App sets it from the curated PR list. */
+  query = ghQuery([]);
+
+  /** Count merged PRs in these repositories. Called by App before any check starts. */
+  setRepos(repos: Iterable<string>) {
+    this.query = ghQuery(repos);
+  }
 
   /** Runs once per page, however many components ask. */
   start() {
@@ -141,7 +151,7 @@ export class LiveStatus {
     if (useCache) {
       try {
         const c = cached;
-        if (c && Date.now() - c.t < CACHE_MS) {
+        if (c && c.q === this.query && Date.now() - c.t < CACHE_MS) {
           this.apply(c);
           this.searchLog.set({ label: 'GET api.github.com/search/issues', status: 'cache', ms: 0 });
           this.eventsLog.set({ label: 'GET api.github.com/users/…/events', status: 'cache', ms: 0 });
@@ -152,13 +162,13 @@ export class LiveStatus {
     }
     const h = { headers: { Accept: 'application/vnd.github+json' } };
     const [search, events] = await Promise.all([
-      this.timed(`https://api.github.com/search/issues?q=${encodeURIComponent(GH_QUERY)}&sort=updated&per_page=20`, h),
+      this.timed(`https://api.github.com/search/issues?q=${encodeURIComponent(this.query)}&sort=updated&per_page=20`, h),
       this.timed('https://api.github.com/users/RavSinghChandan/events/public?per_page=30', h),
     ]);
     this.searchLog.set({ label: 'GET api.github.com/search/issues', status: search.r ? search.r.status : 'error', ms: search.ms });
     this.eventsLog.set({ label: 'GET api.github.com/users/…/events', status: events.r ? events.r.status : 'error', ms: events.ms });
     if (!search.r?.ok) {
-      if (cached) this.apply(cached);                              // last known values, labelled as such
+      if (cached && cached.q === this.query) this.apply(cached);  // last known values, labelled as such
       this.ghState.set('down');
       return;
     }
@@ -170,6 +180,7 @@ export class LiveStatus {
       const push = ev.find(e => e.type === 'PushEvent');
       const data = {
         t: Date.now(),
+        q: this.query,
         count: s.total_count as number,
         latest: top ? {
           title: top.title.replace(/^[A-Z]{2,5}:\s*/, ''), repo: top.repository_url.split('/').slice(-2).join('/'),
@@ -185,7 +196,7 @@ export class LiveStatus {
     }
   }
 
-  private readCache(): { t: number; count: number; latest: Merge | null; push: { repo: string; at: string } | null } | null {
+  private readCache(): { t: number; q?: string; count: number; latest: Merge | null; push: { repo: string; at: string } | null } | null {
     try { return JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch { return null; }
   }
 

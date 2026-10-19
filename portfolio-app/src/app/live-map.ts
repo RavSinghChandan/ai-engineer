@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit, PLATFORM_ID, computed, inject, input, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { CheckState, GH_QUERY, LiveStatus } from './live-status.service';
+import { CheckState, LiveStatus } from './live-status.service';
 import { MergedPr, REPO_COLOR } from './proof-viz';
 
 /**
@@ -88,7 +88,7 @@ export class LiveMap implements OnInit, OnDestroy {
       { key: 'aura', name: 'Aura', href: 'https://aurawithrav.com', icon: 'globe', state: aura.state, value: this.ms(aura), dots: STACK['aura'], cols: 6 },
       { key: 'aaina', name: 'Aaina', href: 'https://aaina-ai.vercel.app', icon: 'mirror', state: aaina.state, value: this.ms(aaina), dots: STACK['aaina'], cols: 6 },
       { key: 'poultry', name: 'Poultry', href: 'https://poultry-360.vercel.app', icon: 'leaf', state: poultry.state, value: this.ms(poultry), dots: STACK['poultry'], cols: 6 },
-      { key: 'gh', name: 'GitHub', href: 'https://github.com/search?type=pullrequests&q=' + encodeURIComponent(GH_QUERY),
+      { key: 'gh', name: 'GitHub', href: 'https://github.com/search?type=pullrequests&q=' + encodeURIComponent(this.live.query),
         icon: 'git', state: this.live.ghState() === 'down' ? 'ok' : this.live.ghState(), value: `${count} PRs`,
         dots: this.prs().map(p => ({ color: REPO_COLOR[p.repo] ?? '#86BC25', label: `${p.repo}: ${p.title}` })), cols: 12 },
     ];

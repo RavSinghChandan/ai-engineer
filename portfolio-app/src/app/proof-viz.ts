@@ -13,7 +13,7 @@ export const REPO_COLOR: Record<string, string> = {
   'py-pdf/pypdf': '#86BC25', 'joblib/joblib': '#62B5E5', 'UKPLab/sentence-transformers': '#FFB81C',
   'huggingface/sentence-transformers': '#FFB81C', 'nltk/nltk': '#00ABAB', 'authlib/authlib': '#C084FC',
   'fonttools/fonttools': '#7C9CFF', 'py-pdf/fpdf2': '#F87171', 'python-pillow/Pillow': '#FB923C', 'pydantic/pydantic-extra-types': '#E92063',
-  'neuml/txtai': '#14B8A6', 'kornia/kornia': '#A78BFA',
+  'neuml/txtai': '#14B8A6', 'kornia/kornia': '#A78BFA', 'tox-dev/tox': '#38BDF8', 'lepture/mistune': '#F472B6',
 };
 
 @Component({

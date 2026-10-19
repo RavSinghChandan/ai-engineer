@@ -2691,7 +2691,10 @@ export class App implements OnInit, AfterViewInit {
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
     private sanitizer: DomSanitizer
-  ) {}
+  ) {
+    // The live GitHub count searches exactly the libraries listed in openSource.
+    this.live.setRepos(this.openSource.map(o => o.repo));
+  }
 
   private initNeuralCanvas() {
     if (!isPlatformBrowser(this.platformId)) return;
