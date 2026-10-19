@@ -466,12 +466,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '112',
+      stat:  '115',
       title: 'PRs merged by outside maintainers.',
       sub:   'Strangers reviewed the code and shipped it — pypdf, fontTools, Pillow, fpdf2, txtai, kornia, tox, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '112 merged, all reviewed! ✅',
+      aaravSay: '115 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -599,6 +599,36 @@ export class App implements OnInit, AfterViewInit {
   // ── Open Source: merged PRs into major libraries. Append a new entry per merge; the
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.3k★',
+      title: 'Show no text for a \' or " operator without a string in layout mode',
+      desc: 'A \' or " operator with no string to show made layout-mode extract_text() raise TypeError, and a bare \' raised IndexError. The line move is still applied and only the text is skipped, matching plain mode. Reworked after Stefan\'s review into a small helper with a plain condition; approved and merged by Stefan.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4203',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'lepture/mistune',
+      logo: 'mistune-logo.svg',
+      org: 'lepture',
+      stars: '3.1k★',
+      title: 'Render strikethrough, mark and insert in MarkdownRenderer',
+      desc: 'With the strikethrough, mark or insert plugin enabled, MarkdownRenderer raised "No renderer \'strikethrough\'", because these plugins only registered an HTML renderer. It now writes them back with their delimiters (~~, ==, ^^), nested formatting included, and re-parsing the output gives the same HTML. Merged by lepture, the author of mistune.',
+      pr: 'https://github.com/lepture/mistune/pull/501',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'pydantic/pydantic-extra-types',
+      logo: 'pydantic-logo.png',
+      org: 'pydantic',
+      stars: '339★',
+      title: 'Allow whitespace around currency, country and language codes',
+      desc: 'The code types accepted any letter case but rejected " USD " or "India\\n", and for currencies the message was a misleading "at most 3 characters". Ten currency, country and language types now strip surrounding whitespace, the way PaymentCardNumber already did; whitespace inside a code is still rejected. Merged by yezz123.',
+      pr: 'https://github.com/pydantic/pydantic-extra-types/pull/451',
+      merged: 'Oct 2026',
+    },
     {
       repo: 'tox-dev/tox',
       logo: 'tox-logo.png',
@@ -2054,7 +2084,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defence','PII protection','Output validation','Secure tool use','Threat modelling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers — and own the outcome.',
-      evidence: '112 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
+      evidence: '115 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
