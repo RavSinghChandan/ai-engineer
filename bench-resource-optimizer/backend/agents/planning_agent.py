@@ -20,6 +20,7 @@ from typing import List, Optional
 from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 from utils.json_parser import parse_llm_json
+from utils.token_tracker import get_tracker
 from rag.document_store import get_internal_resource, resource_location_for
 from llm import get_llm
 
@@ -79,7 +80,7 @@ async def _get_outline(role: str, missing_skills: List[str], num_days: int, llm)
         "role": role,
         "missing_skills": ", ".join(missing_skills) or "core skills",
         "num_days": num_days,
-    })
+    }, config={"callbacks": [get_tracker()]})
     return _parse_outline(result.content, num_days)
 
 
@@ -105,7 +106,7 @@ async def _generate_one_day(day_info: dict, role: str, llm) -> dict:
             "day": day_info["day"],
             "theme": day_info["theme"],
             "skill": day_info["skill"],
-        })
+        }, config={"callbacks": [get_tracker()]})
     try:
         day = parse_llm_json(result.content)
     except Exception:

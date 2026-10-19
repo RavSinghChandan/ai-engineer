@@ -214,6 +214,8 @@ def _chapter_story(
         for attempt in range(2):
             prompt = user_prompt
             if attempt == 1:
+                from fde import counters as _fde_counters
+                _fde_counters.incr("retries")
                 prompt += (
                     "\n\nIMPORTANT: You MUST use the six labels exactly: "
                     "[HOOK] [TENSION] [TURN] [RESOLUTION] [CLOSING] [REMEDIES]. "
@@ -340,6 +342,9 @@ def _build_chapter(
         story = _build_chapter_story(chapter, name, dob, nums)
         if len(story) >= 500 and _GENERIC_MARKER not in story:
             break  # rich, specific chapter — good
+        if _attempt == 0:
+            from fde import counters as _fde_counters
+            _fde_counters.incr("retries")
     return {
         "chapter_id": chapter["id"],
         "order": int(chapter["order"]),

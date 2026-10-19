@@ -28,6 +28,7 @@ from cache.semantic import semantic_get, semantic_set, semantic_stats
 from cache.redis_store import redis_get, redis_set, redis_stats
 from metrics.ragas_evaluator import evaluate as ragas_evaluate
 from metrics.collector import get_collector, RunRecord
+from fde import counters as fde_counters, ledger as fde_ledger, permissions as fde_perm
 from utils.deepseek_client import get_session_usage, reset_session_usage
 from fastapi import Request
 from guardrails.production import rate_limiter, RateLimiter
@@ -98,6 +99,7 @@ async def run_analysis(
             redis_cached["cache_hit"]    = True
             redis_cached["cache_key"]    = cache_key
             redis_cached["redis_cache"]  = True
+            _record_cache_hit(ctx, "question_report", redis_cached)
             return JSONResponse(content=redis_cached)
 
         # ── In-memory cache (single-instance fast path) ───────────────────────
@@ -105,6 +107,7 @@ async def run_analysis(
         if cached is not None:
             cached["cache_hit"]  = True
             cached["cache_key"]  = cache_key
+            _record_cache_hit(ctx, "question_report", cached)
             return JSONResponse(content=cached)
 
         # ── Semantic cache: similar question from same user ───────────────────
@@ -115,6 +118,7 @@ async def run_analysis(
             sem_cached["cache_hit"]       = True
             sem_cached["cache_key"]       = cache_key
             sem_cached["semantic_cache"]  = True
+            _record_cache_hit(ctx, "question_report", sem_cached)
             return JSONResponse(content=sem_cached)
 
     # ── Cache miss — run the full pipeline ────────────────────────────────────
@@ -149,9 +153,19 @@ async def run_analysis(
     }
 
     reset_session_usage()
+    fde_counters.reset()
+    fde_perm.authorize("question_agent", "read", "user_question")
+    for _agent in ("astrology_agent", "numerology_agent", "palmistry_agent", "tarot_agent", "vastu_agent"):
+        fde_perm.authorize(_agent, "read", "birth_profile")
     t_start = time.time()
     loop = asyncio.get_event_loop()
-    final_state = await loop.run_in_executor(None, run_pipeline, initial_state)
+    try:
+        final_state = await loop.run_in_executor(None, run_pipeline, initial_state)
+    except Exception as exc:
+        fde_ledger.record_task(session_id, tenant_id=ctx.tenant_id, workflow="question_report",
+                             started_at=t_start, ended_at=time.time(), items_total=0,
+                             errors=[exc], error_count=1, failed=True)
+        raise
     t_end = time.time()
 
     session_store.save(session_id, final_state, tenant_id=ctx.tenant_id)
@@ -160,6 +174,8 @@ async def run_analysis(
 
     # ── Collect metrics ───────────────────────────────────────────────────────
     _record_metrics(session_id, final_state, t_start, t_end)
+    _record_outcome(session_id, "question_report", final_state, t_start, t_end, ctx,
+                    items_total=len(final_state.get("admin_review", {}).get("questions", [])))
 
     admin_review = final_state.get("admin_review", {})
 
@@ -267,6 +283,7 @@ async def run_holistic(
         if cached is not None:
             cached["cache_hit"] = True
             cached["cache_key"] = cache_key
+            _record_cache_hit(ctx, "holistic_report", cached)
             return JSONResponse(content=cached)
 
     session_id = str(uuid.uuid4())
@@ -279,15 +296,25 @@ async def run_holistic(
     }
 
     reset_session_usage()
+    fde_counters.reset()
+    fde_perm.authorize("holistic_agent", "read", "birth_profile")
     t_start = time.time()
     loop = asyncio.get_event_loop()
-    final_state = await loop.run_in_executor(None, run_holistic_pipeline, initial_state)
+    try:
+        final_state = await loop.run_in_executor(None, run_holistic_pipeline, initial_state)
+    except Exception as exc:
+        fde_ledger.record_task(session_id, tenant_id=ctx.tenant_id, workflow="holistic_report",
+                             started_at=t_start, ended_at=time.time(), items_total=0,
+                             errors=[exc], error_count=1, failed=True)
+        raise
     t_end = time.time()
 
     session_store.save(session_id, final_state, tenant_id=ctx.tenant_id)
     await store.write_meta(session_id, "state", final_state)
     await store.write_meta(session_id, "profile", profile_dict)
     _record_metrics(session_id, final_state, t_start, t_end)
+    _record_outcome(session_id, "holistic_report", final_state, t_start, t_end, ctx,
+                    items_total=len(final_state.get("holistic_chapters", []) or []))
 
     chapters = final_state.get("holistic_chapters", [])
     review = {
@@ -356,6 +383,8 @@ async def approve_holistic(
     }
 
     session_store.update(req.session_id, "holistic_report", report, tenant_id=ctx.tenant_id)
+    fde_ledger.record_review(req.session_id, approved=len(kept),
+                           rejected=len(chapters) - len(kept), approvals_requested=1)
     await store.write_meta(req.session_id, "holistic_report", report)
 
     return JSONResponse(content={
@@ -416,6 +445,11 @@ async def approve_and_generate(
     reset_session_usage()          # clear accumulator before report generation
     t_approve_start = time.time()
 
+    # Permission matrix: the final report needs a human. This endpoint IS that
+    # human step (ANALYSIS__APPROVE), so record the gate and let the agent write.
+    fde_perm.needs_approval("report_agent", "final_report")
+    fde_perm.authorize("report_agent", "write", "final_report")
+
     report = final_report_agent(
         admin_review = admin_review,
         approved_ids = req.approved_insight_ids,
@@ -429,6 +463,7 @@ async def approve_and_generate(
 
     # Grammar agent — polish all report prose before PDF / translation
     try:
+        fde_perm.authorize("grammar_agent", "write", "final_report")
         report = correct_report(report, use_llm=True)
     except Exception:
         pass  # never block report delivery on grammar failure
@@ -436,6 +471,17 @@ async def approve_and_generate(
     t_approve_end = time.time()
     # Record approve-phase token usage back into the session's run record
     _record_approve_tokens(session_id, t_approve_start, t_approve_end)
+    try:
+        _usage = get_session_usage()
+        _review_cost = (_usage["prompt_tokens"] * 0.14 + _usage["completion_tokens"] * 0.28) / 1_000_000
+        _edited = sum(1 for e in (req.edited_insights or [])
+                      if e.original_text.strip() != e.corrected_text.strip())
+        fde_ledger.record_review(session_id, approved=len(req.approved_insight_ids or []),
+                               rejected=len(req.rejected_insight_ids or []), edited=_edited,
+                               reviewed_at=t_approve_start, review_cost_usd=_review_cost,
+                               approvals_requested=1, permission_checks=2)
+    except Exception:
+        pass  # never block report delivery on metrics
 
     session_store.update(session_id, "final_report", report, tenant_id=ctx.tenant_id)
     await store.write_meta(session_id, "final_report", report)
@@ -627,6 +673,40 @@ def _record_metrics(session_id: str, state: dict, t_start: float, t_end: float) 
         has_persona_injection=bool(state.get("persona_context")),
     )
     get_collector().record(record)
+
+
+def _record_outcome(session_id: str, workflow: str, state: Dict[str, Any],
+                    t_start: float, t_end: float, ctx: TenantContext, items_total: int) -> None:
+    """Persist one task to the FDE outcomes ledger (cost/tokens from the run record)."""
+    rec = next((r for r in reversed(list(get_collector()._runs)) if r.session_id == session_id), None)
+    errors = state.get("errors", []) or []
+    c = fde_counters.snapshot()
+    fde_ledger.record_task(
+        session_id, tenant_id=ctx.tenant_id, workflow=workflow,
+        started_at=t_start, ended_at=t_end, items_total=items_total,
+        error_count=len(errors), errors=errors,
+        cost_usd=rec.cost_usd if rec else 0.0,
+        prompt_tokens=rec.prompt_tokens if rec else 0,
+        completion_tokens=rec.completion_tokens if rec else 0,
+        model_calls=rec.llm_calls if rec else 0,
+        retries=int(c.get("retries", 0)),
+        permission_checks=int(c.get("permission_checks", 0)),
+        permission_denials=int(c.get("permission_denials", 0)),
+        approvals_requested=int(c.get("approvals_requested", 0)),
+        hallucination_risk=rec.hallucination_risk if rec else "unknown",
+        suppressed_insights=rec.suppressed_count if rec else 0,
+    )
+
+
+def _record_cache_hit(ctx: TenantContext, workflow: str, body: Dict[str, Any]) -> None:
+    """A cached answer is still a completed task: near-zero time, zero model cost."""
+    now = time.time()
+    if workflow == "holistic_report":
+        items = len((body.get("holistic_review") or {}).get("chapters", []) or [])
+    else:
+        items = len((body.get("admin_review") or {}).get("questions", []) or [])
+    fde_ledger.record_task(str(uuid.uuid4()), tenant_id=ctx.tenant_id, workflow=workflow,
+                         started_at=now, ended_at=now, items_total=items, cache_hit=True)
 
 
 def _record_approve_tokens(session_id: str, t_start: float, t_end: float) -> None:

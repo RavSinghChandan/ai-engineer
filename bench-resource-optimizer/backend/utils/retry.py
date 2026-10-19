@@ -20,6 +20,8 @@ import time
 from enum import Enum
 from typing import Any, Callable, Optional, TypeVar
 
+from fde import counters
+
 logger = logging.getLogger("bench.retry")
 
 F = TypeVar("F", bound=Callable[..., Any])
@@ -131,4 +133,5 @@ async def with_retry(
             )
             if attempt == max_attempts:
                 raise
+            counters.incr("retries")
             await asyncio.sleep(base_delay * (2 ** (attempt - 1)))

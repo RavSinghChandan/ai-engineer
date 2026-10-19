@@ -37,6 +37,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/metrics/metrics.page').then(m => m.MetricsPage),
   },
   {
+    path: 'fde',
+    canActivate: [adminGuard],
+    loadComponent: () => import('./pages/fde/fde.page').then(m => m.FdePage),
+  },
+  {
     path: 'admin/users',
     canActivate: [superadminGuard],
     loadComponent: () => import('./pages/admin-users/admin-users.page').then(m => m.AdminUsersPage),

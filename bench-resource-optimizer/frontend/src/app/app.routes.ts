@@ -9,6 +9,7 @@ import { MetricsComponent } from './components/metrics/metrics.component';
 import { AdminComponent } from './components/admin/admin.component';
 import { AgentGraphComponent } from './components/agent-graph/agent-graph.component';
 import { MemoryComponent } from './components/memory/memory.component';
+import { FdeDashboardComponent } from './components/fde-dashboard/fde-dashboard.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -20,6 +21,7 @@ export const routes: Routes = [
   { path: 'dashboard', component: DashboardComponent,  canActivate: [authGuard] },
   { path: 'memory',    component: MemoryComponent,     canActivate: [authGuard] },
   { path: 'metrics',   component: MetricsComponent,    canActivate: [authGuard] },
+  { path: 'fde',       component: FdeDashboardComponent, canActivate: [authGuard] },
   { path: 'graph',     component: AgentGraphComponent, canActivate: [authGuard] },
 
   { path: 'admin', component: AdminComponent, canActivate: [authGuard, adminGuard] },

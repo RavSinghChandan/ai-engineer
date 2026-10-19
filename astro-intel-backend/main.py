@@ -149,6 +149,15 @@ app.include_router(metrics_router)       # /api/v1/metrics — ADMIN+
 app.include_router(stream_router)        # /api/v1/stream/{session_id} — SSE
 app.include_router(feedback_router)      # /api/v1/feedback/* — episodic memory + persona
 
+# FDE evidence layer: outcomes ledger, agent permission matrix, model-comparison report.
+# ADMIN sees their own tenant; SUPERADMIN sees all tenants.
+from fde import api as _fde_api
+from auth.rbac import Permission as _Perm, can as _can
+app.include_router(_fde_api.build_router(
+    _can(_Perm.METRICS__VIEW),
+    tenant_scope=lambda ctx: None if ctx.is_superadmin() else ctx.tenant_id,
+))
+
 
 # ── Graceful shutdown ─────────────────────────────────────────────────────────
 import atexit as _atexit

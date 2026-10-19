@@ -153,6 +153,8 @@ def safe_node(
                     )
                     if attempt < attempts:
                         log.info("[Guardrails/%s] Retrying node execution...", node_name)
+                        from fde import counters as _fde_counters
+                        _fde_counters.incr("retries")
                         continue
                     # exhausted retries
                     if node_cfg.strict_mode:

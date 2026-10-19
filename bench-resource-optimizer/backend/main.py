@@ -78,6 +78,7 @@ from utils.prompts import ACTIVE_VERSIONS, list_prompts
 from utils.retry import breaker_status, with_retry
 from utils.security import SecurityError, check_injection
 from utils.token_tracker import get_tracker, reset_tracker
+from fde import api as fde_api, ledger as fde_ledger, permissions as fde_perm
 from guardrails.production import (
     rate_limiter,
     all_guardrail_stats,
@@ -189,6 +190,10 @@ app.add_middleware(
     allow_headers=["*"],
     expose_headers=["X-Request-Id"],
 )
+
+
+# FDE evidence layer: outcomes ledger, permission matrix, model-comparison report
+app.include_router(fde_api.build_router(get_current_user))
 
 
 # ── Route path constants ──────────────────────────────────────────────────────
@@ -609,6 +614,7 @@ async def admin_delete_role(role_id: str, _claims: Annotated[object, Depends(req
 @app.post("/upload-cv", tags=["CV"], response_model=UploadCvResponse,
           responses={400: {"description": "Bad Request"}, 429: {"description": "Too Many Requests"},
                      503: {"description": "Service Unavailable"}, 500: {"description": "Internal Server Error"}})
+@fde_ledger.tracked("cv_parsing")
 async def upload_cv(request: Request, _claims: Annotated[object, Depends(get_current_user)],
                     file: Annotated[UploadFile, File(...)]):
     """
@@ -639,6 +645,7 @@ async def upload_cv(request: Request, _claims: Annotated[object, Depends(get_cur
 
         # Module 2: injection check before LLM call
         check_injection(resume_text, source="cv_upload")
+        fde_perm.authorize("cv_parser_agent", "read", "cv_text")
 
         parsed = await with_retry(
             parse_cv,
@@ -656,6 +663,7 @@ async def upload_cv(request: Request, _claims: Annotated[object, Depends(get_cur
         if not allowed:
             raise HTTPException(429, reason)
 
+        fde_perm.authorize("cv_parser_agent", "write", "user_profile")
         await save_user(user_id, parsed, resume_text[:500])
 
         # Module 4: update long-term user facts (initial skill set)
@@ -697,6 +705,7 @@ async def upload_cv(request: Request, _claims: Annotated[object, Depends(get_cur
           responses={429: {"description": "Too Many Requests"}, 404: {"description": "Not Found"},
                      400: {"description": "Bad Request"}, 503: {"description": "Service Unavailable"},
                      500: {"description": "Internal Server Error"}})
+@fde_ledger.tracked("role_mapping")
 async def map_role_endpoint(request: Request, req: MapRoleRequest,
                             _claims: Annotated[object, Depends(get_current_user)] = None):
     """
@@ -721,6 +730,9 @@ async def map_role_endpoint(request: Request, req: MapRoleRequest,
         # Module 2: injection check on role name
         check_injection(req.target_role, source="role_name")
 
+        fde_perm.authorize("role_mapping_agent", "read", "user_profile")
+        fde_perm.authorize("role_mapping_agent", "read", "role_catalog")
+
         # Module 4: load session memory context
         build_memory_context(req.user_id)
 
@@ -736,6 +748,7 @@ async def map_role_endpoint(request: Request, req: MapRoleRequest,
         result = validate_role_mapping(result)
 
         # Module 4: write session summary to episodic memory
+        fde_perm.authorize("role_mapping_agent", "write", "episodic_memory")
         write_session_summary(req.user_id, {
             "role_explored": req.target_role,
             "match_percentage": result.get("match_percentage", 0),
@@ -758,6 +771,10 @@ async def map_role_endpoint(request: Request, req: MapRoleRequest,
 
         # G5: record agent outcome
         cache_hit = result.pop("_cache_hit", False)
+        fde_ledger.current().cache_hit = bool(cache_hit)
+        fde_ledger.current().set(match_pct=result.get("match_percentage"))
+        # The agent only recommends; staffing someone is a human decision.
+        fde_perm.needs_approval("role_mapping_agent", "deployment_decision")
         degradation_tracker.record_run(rid, {
             "role_mapper": {
                 "status": "partial" if cache_hit else "full",
@@ -797,6 +814,7 @@ async def map_role_endpoint(request: Request, req: MapRoleRequest,
 @app.post("/generate-plan", tags=["Planning"],
           responses={429: {"description": "Too Many Requests"}, 404: {"description": "Not Found"},
                      503: {"description": "Service Unavailable"}, 500: {"description": "Internal Server Error"}})
+@fde_ledger.tracked("plan_generation")
 async def generate_plan_endpoint(request: Request, req: GeneratePlanRequest,
                                  _claims: Annotated[object, Depends(get_current_user)] = None):
     """Async two-phase plan generation with in-memory cache."""
@@ -812,6 +830,7 @@ async def generate_plan_endpoint(request: Request, req: GeneratePlanRequest,
         user = await get_user(req.user_id)
         if not user:
             raise HTTPException(404, f"User '{req.user_id}' not found.")
+        fde_perm.authorize("planning_agent", "read", "user_profile")
 
         # G2: wrap plan generation with named planner circuit breaker
         plan = await with_retry(
@@ -823,7 +842,10 @@ async def generate_plan_endpoint(request: Request, req: GeneratePlanRequest,
         # warm CPU caches could make real LLM calls appear as cache hits, inflating cache stats.
         # Use the explicit _cache_hit flag that generate_plan already sets in the return dict.
         is_cache_hit = bool(plan.pop("_cache_hit", False))
+        fde_ledger.current().cache_hit = is_cache_hit
+        fde_ledger.current().set(plan_days=len(plan.get("plan", []) or []))
 
+        fde_perm.authorize("planning_agent", "write", "learning_plan")
         await save_progress(req.user_id, req.target_role, plan, [])
 
         # Module 4: update user facts with skills being trained
@@ -926,6 +948,7 @@ async def generate_plan_stream(request: Request, req: GeneratePlanRequest,
 
 @app.post("/update-progress", tags=["Progress"], response_model=ReadinessResponse,
           responses={404: {"description": "Not Found"}, 500: {"description": "Internal Server Error"}})
+@fde_ledger.tracked("progress_update")
 async def update_progress(request: Request, req: UpdateProgressRequest,
                           _claims: Annotated[object, Depends(get_current_user)] = None):
     """Pure Python — no LLM call. Returns instantly."""
@@ -935,6 +958,7 @@ async def update_progress(request: Request, req: UpdateProgressRequest,
         if not progress:
             raise HTTPException(404, "No plan found. Generate a plan first.")
 
+        fde_perm.authorize("tracking_agent", "write", "progress")
         updated = await update_completed_tasks(req.user_id, req.completed_task_ids)
         if not updated:
             raise HTTPException(404, "Progress record not found.")
@@ -957,6 +981,8 @@ async def update_progress(request: Request, req: UpdateProgressRequest,
             })
 
         # Phase 4: persist readiness score as a time-series data point
+        fde_perm.authorize("tracking_agent", "write", "readiness_score")
+        fde_ledger.current().set(readiness_score=score)
         await save_readiness_score(req.user_id, progress["role"], score)
 
         _record(request, "/update-progress", t_start, 200)
@@ -1030,6 +1056,7 @@ async def get_memory_endpoint(request: Request, user_id: str,
 
 @app.post("/evaluate", tags=["Evaluation"],
           responses={500: {"description": "Internal Server Error"}})
+@fde_ledger.tracked("output_evaluation")
 async def evaluate_output(request: Request, req: EvaluateRequest):
     """
     LLM-as-Judge endpoint — Module 1 (evaluation when no ground truth).
@@ -1040,6 +1067,7 @@ async def evaluate_output(request: Request, req: EvaluateRequest):
     rid = _req_id(request)
     reset_tracker()
     try:
+        fde_perm.authorize("llm_judge", "read", "evaluation_input")
         scores = await asyncio.get_event_loop().run_in_executor(
             None,
             run_llm_judge,

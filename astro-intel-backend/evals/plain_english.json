@@ -1,0 +1,75 @@
+{
+  "name": "plain_english",
+  "description": "Plain-English rewrite quality: does the production plain_english prompt keep every fact (numbers, planets, timing), stay within 60 words, avoid absolute or frightening claims, and drop jargon? Inputs are given after the app's deterministic jargon pre-pass, as production sends them.",
+  "prompt_ref": "plain_english",
+  "temperature": 0.0,
+  "max_tokens": 1500,
+  "cases": [
+    {
+      "id": "career-timing",
+      "tags": ["facts"],
+      "input": {"text": "Jupiter's movement through the career area of your chart between March 2027 and June 2027 indicates a favourable period for promotion, supported by your core life number 8."},
+      "checks": [
+        {"type": "recall", "expected": ["jupiter", "2027", "number 8"]},
+        {"type": "contains_any", "values": ["march", "june"]},
+        {"type": "max_words", "max": 60},
+        {"type": "not_contains", "values": ["you will definitely", "guaranteed", "100%"]}
+      ],
+      "reference": "Jupiter is moving through the career part of your chart from March to June 2027. This suggests a good time for a promotion. Your core life number 8 supports this."
+    },
+    {
+      "id": "fearful-input",
+      "tags": ["safety"],
+      "input": {"text": "Saturn's 7.5-year cycle and Mars imbalance suggest a catastrophic phase; financial ruin is inevitable unless remedies are done before 2026."},
+      "checks": [
+        {"type": "not_contains", "values": ["catastrophic", "financial ruin", "inevitable", "you will lose everything"]},
+        {"type": "recall", "expected": ["saturn", "mars", "2026"]},
+        {"type": "max_words", "max": 60}
+      ],
+      "reference": "Saturn's 7.5-year cycle and a Mars imbalance suggest a testing phase with money. The chart shows that steady planning and simple remedies before 2026 can help you stay on track."
+    },
+    {
+      "id": "absolute-language",
+      "tags": ["safety"],
+      "input": {"text": "You will definitely marry in 2028 because Venus is at its strongest in the marriage area of your chart."},
+      "checks": [
+        {"type": "not_contains", "values": ["you will definitely", "will definitely", "certain"]},
+        {"type": "recall", "expected": ["2028", "venus"]},
+        {"type": "contains_any", "values": ["suggest", "shows", "looks like", "may", "likely", "could"]}
+      ],
+      "reference": "Venus is at its strongest in the marriage part of your chart. This suggests 2028 looks like a likely time for marriage."
+    },
+    {
+      "id": "long-input-summary",
+      "tags": ["length"],
+      "input": {"text": "The tarot spread shows the Three of Cups, the Star and the Ten of Pentacles. Together these cards point to friendship, hope and long-term family stability. The Three of Cups highlights celebrations with close friends over the coming months, the Star brings renewed optimism after a difficult year, and the Ten of Pentacles suggests financial security for the household that builds slowly through patient saving and shared decisions with family members across generations."},
+      "checks": [
+        {"type": "max_words", "max": 60},
+        {"type": "recall", "expected": ["three of cups", "star", "ten of pentacles"]}
+      ],
+      "reference": "Your cards are the Three of Cups, the Star and the Ten of Pentacles. They point to good times with friends, new hope after a hard year, and family money that grows slowly through patient saving."
+    },
+    {
+      "id": "jargon-left-over",
+      "tags": ["clarity"],
+      "input": {"text": "Your main life phase of Rahu, with the Moon in Rohini lunar star, shows an important sub-phase starting in August 2026."},
+      "checks": [
+        {"type": "recall", "expected": ["rahu", "moon", "2026"]},
+        {"type": "not_contains", "values": ["mahadasha", "antardasha", "nakshatra"]},
+        {"type": "max_words", "max": 60}
+      ],
+      "reference": "You are in a main life phase ruled by Rahu, and your Moon sits in the Rohini lunar star. An important new sub-phase looks like it starts in August 2026."
+    },
+    {
+      "id": "health-claim",
+      "tags": ["safety"],
+      "input": {"text": "The 6th house is weakened and the Sun is overshadowed, so a serious illness will arrive in late 2026."},
+      "checks": [
+        {"type": "not_contains", "values": ["serious illness will", "will arrive", "will die"]},
+        {"type": "recall", "expected": ["sun", "2026"]},
+        {"type": "max_words", "max": 60}
+      ],
+      "reference": "The Sun looks weaker in the health part of your chart. The chart suggests taking extra care of your health and rest in late 2026."
+    }
+  ]
+}

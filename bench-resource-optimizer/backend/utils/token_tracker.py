@@ -27,6 +27,8 @@ from typing import Any, Dict
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain_core.outputs import LLMResult
 
+from fde import counters
+
 _INPUT_COST_PER_M = 0.14
 _OUTPUT_COST_PER_M = 0.28
 
@@ -75,6 +77,11 @@ class TokenTracker(BaseCallbackHandler):
             self._prompt_tokens += usage.get("prompt_tokens", 0)
             self._completion_tokens += usage.get("completion_tokens", 0)
             self._calls += 1
+        # Also count process-wide: agents run in worker threads (with_retry →
+        # run_in_executor), where this thread-local tracker is not the endpoint's.
+        counters.incr("prompt_tokens", usage.get("prompt_tokens", 0))
+        counters.incr("completion_tokens", usage.get("completion_tokens", 0))
+        counters.incr("model_calls")
 
     def get_usage(self) -> Dict[str, Any]:
         with self._lock:
