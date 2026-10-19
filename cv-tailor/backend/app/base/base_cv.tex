@@ -18,8 +18,8 @@
 
 \hypersetup{
   colorlinks=true,
-  urlcolor=accent,
-  linkcolor=accent
+  urlcolor=primary,
+  linkcolor=primary
 }
 
 \renewcommand{\familydefault}{\sfdefault}
@@ -30,7 +30,7 @@
   {}{0em}{}
   [\vspace{1pt}\color{rule}{\titlerule[0.5pt]}]
 
-\titlespacing{\section}{0pt}{7pt}{3pt}
+\titlespacing{\section}{0pt}{5pt}{2pt}
 
 \newcommand{\resumeitem}[1]{\item\small{#1}}
 
@@ -46,7 +46,7 @@
 \setlist[jobitems]{
   label=\textbullet,
   leftmargin=1.2em,
-  itemsep=0.8pt,
+  itemsep=0.4pt,
   topsep=1.5pt,
   parsep=0pt,
   after=\vspace{1.5pt}
@@ -56,7 +56,7 @@
 \setlist[projectitems]{
   label=\textbullet,
   leftmargin=1.2em,
-  itemsep=0.8pt,
+  itemsep=0.4pt,
   topsep=1.5pt,
   parsep=0pt,
   after=\vspace{1.5pt}
@@ -79,7 +79,7 @@
 
 \section{Summary}
 
-\noindent Engineer who takes a messy, real-world problem from first conversation to a product people use. \textbf{4+ years} building backend and distributed systems for banking and aviation; now on \textbf{Agentic AI and AI Security at Deloitte USI}. Built and runs \textbf{three live, multi-tenant AI products} solo, two of them for small businesses whose users may not read English. \textbf{112 pull requests merged} into open-source libraries such as pypdf and fontTools.
+\noindent Engineer who takes a messy, real-world problem from first conversation to a product people use. \textbf{4+ years} building backend and distributed systems for banking and aviation; now on \textbf{Agentic AI and AI Security at Deloitte USI}. Built \textbf{AstroIntel}, a live multi-agent AI product, and \textbf{Bench Resource Optimizer} solo, measured on outcomes: success rate, cost per successful task and model evals. \textbf{112 pull requests merged} into open-source libraries such as pypdf and fontTools.
 
 \section{Experience}
 
@@ -114,41 +114,39 @@
 \resumeitem{Shipped e-commerce, healthcare and e-learning products end to end, including APIs serving thousands of concurrent users.}
 \end{jobitems}
 
-\section{Deployed AI Products \textnormal{\small\color{subtle}--- each scoped, built, shipped and run solo}}
+\section{AI Projects \textnormal{\small\color{subtle}--- each scoped, built, shipped and run solo}}
 
-\noindent\textbf{Poultry 360} \textbar{} \href{https://poultry-360.vercel.app}{poultry-360.vercel.app} \hfill \textit{\small\color{subtle}Live $\cdot$ YOLO11, FastAPI, Angular, Docker}
+\noindent\href{https://aurawithrav.com}{\textbf{AstroIntel (Aura with Rav)}} \hfill \textit{\small\color{subtle}Live $\cdot$ LangGraph, FastAPI, Angular, PostgreSQL, Docker}
 
 \begin{projectitems}
-\resumeitem{Farmers count birds by hand and guess feed. Built a YOLO11 (ONNX) model that counts birds from a photo or video on a plain CPU, and feed advice drawn only from cited NRC/BIS tables.}
-\resumeitem{Made for low-literacy users: 13 Indian languages, read-aloud; evals in CI caught Hinglish sick-flock reports misrouted (5/13) and fixed routing and the invented-number guard to 100\%; ops panel, multi-tenant.}
+\resumeitem{Multi-tenant AI product: LangGraph runs five domain agents in parallel and merges them into consensus insights; prompt-injection, hallucination and PII checks, and a human approves each insight before a report is generated.}
+\resumeitem{Every task stored with status, latency, tokens, retries and cost $\rightarrow$ success rate and \textbf{cost per successful task} dashboard; agent permission matrix (read / write / human approval, default deny) enforced in code.}
+\resumeitem{Reproducible model comparison on the production prompt: deepseek-chat matched deepseek-reasoner (6/6 cases, incl. fear-inducing and absolute claims) at about 14$\times$ lower cost.}
 \end{projectitems}
 
-\noindent\textbf{Aaina} \textbar{} \href{https://aaina-ai.vercel.app}{aaina-ai.vercel.app} \hfill \textit{\small\color{subtle}Live $\cdot$ multi-agent, MediaPipe, FastAPI, Angular}
+\noindent\href{https://github.com/RavSinghChandan/ai-engineer/tree/main/bench-resource-optimizer}{\textbf{Bench Resource Optimizer}} \textbar{} \textit{\small enterprise staffing} \hfill \textit{\small\color{subtle}Hybrid RAG, multi-agent, FastAPI, Angular}
 
 \begin{projectitems}
-\resumeitem{AI consultation for salons in 11 languages: seven agents run as a YAML-defined DAG; live evals found the model broke customers' dislikes in 3 of 15 answers, so the harness now enforces them in code with one repair retry (100\%).}
-\end{projectitems}
-
-\noindent\textbf{Aura with Rav} \textbar{} \href{https://aurawithrav.com}{aurawithrav.com} \hfill \textit{\small\color{subtle}Live $\cdot$ LangGraph, FastAPI, Angular}
-
-\begin{projectitems}
-\resumeitem{Consumer AI product on a custom domain: multi-agent LangGraph pipeline with prompt-injection checks, a hallucination check and human approval before any answer is released.}
-\end{projectitems}
-
-\noindent\textbf{Bench Resource Optimizer} \textbar{} \textit{\small enterprise staffing} \hfill \textit{\small\color{subtle}RAG, multi-agent}
-
-\begin{projectitems}
-\resumeitem{Matches bench engineers to project needs with hybrid RAG (FAISS + BM25) and multi-agent planning; semantic caching, circuit breakers and injection detection.}
+\resumeitem{Matches bench engineers to project roles: a CV-parsing agent, hybrid RAG (FAISS + BM25 + RRF, HyDE, cross-encoder rerank), match \% with skill gaps, then a day-by-day upskilling plan.}
+\resumeitem{Semantic cache, circuit breakers, PII filter and evals (incl. a prompt-injection CV); the outcome ledger exposed under-reported plan cost (tokens lost in worker threads), now fixed and tracked per task.}
 \end{projectitems}
 
 \section{Open Source}
 
-\noindent\textbf{112 merged pull requests} in pypdf (68), fontTools, Pillow, fpdf2, txtai, kornia, tox, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib: bug fixes with regression tests, each reviewed and merged by maintainers. \hfill \href{https://github.com/pulls?q=is\%3Apr+author\%3ARavSinghChandan+is\%3Amerged}{See~all}
+\noindent\textbf{112 merged pull requests across 12 libraries}, each a bug fix with a regression test, merged by maintainers. \hfill \href{https://github.com/pulls?q=is\%3Apr+author\%3ARavSinghChandan+is\%3Amerged}{See~all}
+
+\begin{projectitems}
+\resumeitem{\textbf{pypdf} (68): hardened PDF parsing against malformed files: crash fixes, text extraction and image decoding.}
+\resumeitem{\textbf{Pillow} (13.9k$\star$): \href{https://github.com/python-pillow/Pillow/pull/10174}{invert, posterize and solarize for palette images} in ImageOps, previously ``coming soon''.}
+\resumeitem{\textbf{txtai} (13k$\star$): \href{https://github.com/neuml/txtai/pull/1422}{lists} and \href{https://github.com/neuml/txtai/pull/1408}{paragraphs} inside blockquotes kept intact in HTML-to-Markdown.}
+\resumeitem{\textbf{kornia} (11.4k$\star$): \href{https://github.com/kornia/kornia/pull/5946}{unsharp\_mask works on uint8 images} $\cdot$ \textbf{tox} (4k$\star$): \href{https://github.com/tox-dev/tox/pull/4161}{env files accept \texttt{export KEY=value}}, like dotenv.}
+\resumeitem{\textbf{fontTools} (7), \textbf{fpdf2} (18), \textbf{Authlib}, \textbf{Joblib}, \textbf{pydantic-extra-types}: clear errors for malformed fonts, browser-matching HTML/SVG rendering, input validation.}
+\end{projectitems}
 
 \section{Skills}
 
 \begin{tabularx}{\textwidth}{@{} l X @{}}
-\textbf{AI \& Agents} & LLMs, LangGraph, LangChain, multi-agent systems, tool calling, RAG, LLM evals in CI, ONNX / YOLO \\[1pt]
+\textbf{AI \& Agents} & LLMs, LangGraph, LangChain, multi-agent systems, tool calling, RAG, LLM evals, model comparison \\[1pt]
 \textbf{Backend} & Python, Java, FastAPI, Spring Boot, Kafka, REST, SSE / WebSockets, PostgreSQL, Redis \\[1pt]
 \textbf{Frontend} & TypeScript, Angular, React \\[1pt]
 \textbf{Cloud \& Ops} & Docker, Kubernetes, AWS, Vercel, Render, CI/CD, observability \\[1pt]
