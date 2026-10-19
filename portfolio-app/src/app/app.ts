@@ -466,12 +466,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '115',
+      stat:  '116',
       title: 'PRs merged by outside maintainers.',
       sub:   'Strangers reviewed the code and shipped it — pypdf, fontTools, Pillow, fpdf2, txtai, kornia, tox, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '115 merged, all reviewed! ✅',
+      aaravSay: '116 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -599,6 +599,16 @@ export class App implements OnInit, AfterViewInit {
   // ── Open Source: merged PRs into major libraries. Append a new entry per merge; the
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
+    {
+      repo: 'pydantic/pydantic-extra-types',
+      logo: 'pydantic-logo.png',
+      org: 'pydantic',
+      stars: '339★',
+      title: 'Accept any letter case and surrounding whitespace in ISO 15924 script codes',
+      desc: 'ISO_15924 accepted only the exact form "Latn": "latn", "LATN" and " Latn " were all rejected, unlike the country, currency and language codes beside it. It now strips surrounding whitespace and normalises the case to the canonical initial capital; whitespace inside a code is still rejected. Follow-up to #451, merged by yezz123 the same day.',
+      pr: 'https://github.com/pydantic/pydantic-extra-types/pull/454',
+      merged: 'Oct 2026',
+    },
     {
       repo: 'py-pdf/pypdf',
       logo: 'pypdf-logo.svg',
@@ -2084,7 +2094,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defence','PII protection','Output validation','Secure tool use','Threat modelling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers — and own the outcome.',
-      evidence: '115 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
+      evidence: '116 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
