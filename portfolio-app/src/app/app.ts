@@ -466,12 +466,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '119',
+      stat:  '121',
       title: 'PRs merged by outside maintainers.',
       sub:   'Strangers reviewed the code and shipped it — pypdf, fontTools, Pillow, fpdf2, txtai, kornia, tox, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '119 merged, all reviewed! ✅',
+      aaravSay: '121 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -599,6 +599,26 @@ export class App implements OnInit, AfterViewInit {
   // ── Open Source: merged PRs into major libraries. Append a new entry per merge; the
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
+    {
+      repo: 'docling-project/docling-core',
+      logo: 'docling-logo.png',
+      org: 'docling-project',
+      stars: '294★',
+      title: 'Cap section header depth at six heading levels in the Markdown serializer',
+      desc: 'A section header at level 6 or deeper was written with seven or more #, which Markdown renders as plain text starting with hashes instead of a heading. The count is now capped at six, like the HTML serializer already caps at <h6>; the docstring documents the cap for subclasses, as the reviewer asked. Approved and merged by ceberam.',
+      pr: 'https://github.com/docling-project/docling-core/pull/872',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'Read a CSS font-size with its unit in write_html()',
+      desc: 'A CSS font-size on <font> with a unit, such as style="font-size: 14pt" or "12px", was silently ignored. Like browsers, write_html() now reads the unit; a number without one is still in points. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2034',
+      merged: 'Oct 2026',
+    },
     {
       repo: 'py-pdf/pypdf',
       logo: 'pypdf-logo.svg',
@@ -2124,7 +2144,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defence','PII protection','Output validation','Secure tool use','Threat modelling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers — and own the outcome.',
-      evidence: '119 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
+      evidence: '121 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
