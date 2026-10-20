@@ -782,10 +782,31 @@
       </div>
       <div>
         <h2 class="oss-h">I Don't Just Use Open Source. I Contribute to It.</h2>
-        <p class="oss-sub"><b>{{ openSource.length }} merged contributions</b> across libraries used by the AI/ML and Python ecosystem — pypdf · fontTools · Pillow · fpdf2 · txtai · kornia · tox · Joblib · Sentence Transformers · NLTK · Authlib.</p>
+        <p class="oss-sub"><b>{{ openSource.length }} merged contributions</b> across libraries used by the AI/ML and Python ecosystem — pypdf · fontTools · Pillow · fpdf2 · pydantic-extra-types · txtai · kornia · tox · mistune · Joblib · Sentence Transformers · NLTK · Authlib.</p>
       </div>
     </div>
     <proof-viz kind="MONTHS" [prs]="openSource" class="oss-months" />
+    <!-- In review: my open PRs, read live from GitHub (cached 15 min with the merged count) -->
+    @if (live.openCount(); as openN) {
+      <div class="oss-review">
+        <div class="oss-review-head">
+          <span class="oss-review-dot" aria-hidden="true"></span>
+          <span><b>In review now</b> · {{ openN }} open pull requests awaiting maintainers</span>
+          <a class="oss-review-all" [href]="live.openSearchUrl" target="_blank" rel="noopener">See all on GitHub →</a>
+        </div>
+        <ul class="oss-review-list">
+          @for (p of live.openPrs().slice(0, 8); track p.url) {
+            <li>
+              <a [href]="p.url" target="_blank" rel="noopener">
+                <span class="oss-review-repo">{{ p.repo }}</span>
+                <span class="oss-review-num">#{{ p.number }}</span>
+                <span class="oss-review-title">{{ p.title }}</span>
+              </a>
+            </li>
+          }
+        </ul>
+      </div>
+    }
     <!-- Library filter: colour-coded chips, biggest project first -->
     <div class="oss-controls">
       <div class="oss-chips" role="tablist" aria-label="Filter by library">

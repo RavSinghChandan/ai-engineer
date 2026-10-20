@@ -466,12 +466,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '117',
+      stat:  '119',
       title: 'PRs merged by outside maintainers.',
       sub:   'Strangers reviewed the code and shipped it — pypdf, fontTools, Pillow, fpdf2, txtai, kornia, tox, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '117 merged, all reviewed! ✅',
+      aaravSay: '119 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -599,6 +599,26 @@ export class App implements OnInit, AfterViewInit {
   // ── Open Source: merged PRs into major libraries. Append a new entry per merge; the
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.3k★',
+      title: 'Treat a non-numeric text-state operand as missing in layout mode',
+      desc: 'A name or other non-number as the operand of Tc, Tw, Tz, TL, Ts, Td or Tm made layout-mode extract_text() raise. Such an operand now leaves the parameter unchanged and the text around it is kept, matching plain mode. Reworked after Stefan asked to merge two nearly identical float conversions into one helper; approved and merged by Stefan.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4214',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.3k★',
+      title: 'Handle a Tf operator with a missing size or no operands in layout mode',
+      desc: 'A Tf operator without its size, or with no operands at all, made layout-mode extract_text() raise IndexError. A missing size now keeps the current one and a missing font name falls back to the same placeholder font as an unknown one, so the rest of the page is extracted, as in plain mode. Merged by Stefan.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4228',
+      merged: 'Oct 2026',
+    },
     {
       repo: 'py-pdf/fpdf2',
       logo: 'fpdf2-logo.png',
@@ -2104,7 +2124,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defence','PII protection','Output validation','Secure tool use','Threat modelling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers — and own the outcome.',
-      evidence: '117 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
+      evidence: '119 PRs merged through outside maintainers\' review; teaches AI on YouTube (AI with Rav); wrote the AI System Design Blueprint explaining 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 

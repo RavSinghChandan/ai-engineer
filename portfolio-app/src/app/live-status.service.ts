@@ -10,6 +10,7 @@ import { isPlatformBrowser } from '@angular/common';
 export type CheckState = 'checking' | 'ok' | 'slow' | 'down';
 export interface Merge { title: string; repo: string; number: number; url: string; at: string; }
 export interface RequestLog { label: string; status: number | 'cache' | 'error'; ms: number; }
+export interface OpenPr { title: string; repo: string; number: number; url: string; at: string; }
 
 const API_HEALTH = 'https://astro-intel-api.onrender.com/health';
 /** Every live product's health endpoint, keyed by project number. Aura's is API_HEALTH above. */
@@ -27,7 +28,9 @@ export function ghQuery(repos: Iterable<string>): string {
   const unique = [...new Set(repos)].sort();
   return 'is:pr author:RavSinghChandan is:merged ' + unique.map(r => `repo:${r}`).join(' ');
 }
-const CACHE_KEY = 'live-proof-v9';
+/** PRs still in review, in other people's repositories (not my own projects). */
+const OPEN_QUERY = 'is:pr is:open archived:false author:RavSinghChandan -user:RavSinghChandan';
+const CACHE_KEY = 'live-proof-v10';
 const CACHE_MS = 15 * 60_000;
 
 @Injectable({ providedIn: 'root' })
@@ -40,6 +43,8 @@ export class LiveStatus {
   readonly liveCount = signal<number | null>(null);
   readonly latest = signal<Merge | null>(null);
   readonly lastPush = signal<{ repo: string; at: string } | null>(null);
+  readonly openCount = signal<number | null>(null);
+  readonly openPrs = signal<OpenPr[]>([]);
   readonly checkedAt = signal<number | null>(null);
   readonly busy = signal(false);
   readonly apiLog = signal<RequestLog | null>(null);
@@ -161,9 +166,10 @@ export class LiveStatus {
       } catch { /* storage unavailable */ }
     }
     const h = { headers: { Accept: 'application/vnd.github+json' } };
-    const [search, events] = await Promise.all([
+    const [search, events, open] = await Promise.all([
       this.timed(`https://api.github.com/search/issues?q=${encodeURIComponent(this.query)}&sort=updated&per_page=20`, h),
       this.timed('https://api.github.com/users/RavSinghChandan/events/public?per_page=30', h),
+      this.timed(`https://api.github.com/search/issues?q=${encodeURIComponent(OPEN_QUERY)}&sort=created&order=desc&per_page=12`, h),
     ]);
     this.searchLog.set({ label: 'GET api.github.com/search/issues', status: search.r ? search.r.status : 'error', ms: search.ms });
     this.eventsLog.set({ label: 'GET api.github.com/users/…/events', status: events.r ? events.r.status : 'error', ms: events.ms });
@@ -178,6 +184,7 @@ export class LiveStatus {
       const top = items.filter(i => i.closed_at).sort((a, b) => b.closed_at.localeCompare(a.closed_at))[0];
       const ev: any[] = events.r?.ok ? await events.r.json() : [];
       const push = ev.find(e => e.type === 'PushEvent');
+      const o = open.r?.ok ? await open.r.json() : null;
       const data = {
         t: Date.now(),
         q: this.query,
@@ -187,6 +194,11 @@ export class LiveStatus {
           number: top.number, url: top.html_url, at: top.closed_at,
         } : null,
         push: push ? { repo: push.repo.name, at: push.created_at } : (cached?.push ?? null),
+        openCount: o ? (o.total_count as number) : (cached?.openCount ?? null),
+        openPrs: o ? (o.items ?? []).map((i: any) => ({
+          title: i.title.replace(/^[A-Z]{2,5}:\s*/, ''), repo: i.repository_url.split('/').slice(-2).join('/'),
+          number: i.number, url: i.html_url, at: i.created_at,
+        })) : (cached?.openPrs ?? []),
       };
       this.apply(data);
       this.ghState.set('ok');
@@ -196,13 +208,18 @@ export class LiveStatus {
     }
   }
 
-  private readCache(): { t: number; q?: string; count: number; latest: Merge | null; push: { repo: string; at: string } | null } | null {
+  private readCache(): { t: number; q?: string; count: number; latest: Merge | null; push: { repo: string; at: string } | null; openCount?: number | null; openPrs?: OpenPr[] } | null {
     try { return JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch { return null; }
   }
 
-  private apply(d: { count: number; latest: Merge | null; push: { repo: string; at: string } | null }) {
+  private apply(d: { count: number; latest: Merge | null; push: { repo: string; at: string } | null; openCount?: number | null; openPrs?: OpenPr[] }) {
     this.liveCount.set(d.count);
     this.latest.set(d.latest);
     this.lastPush.set(d.push);
+    this.openCount.set(d.openCount ?? null);
+    this.openPrs.set(d.openPrs ?? []);
   }
+
+  /** GitHub's own list of my open PRs in other people's repositories. */
+  readonly openSearchUrl = 'https://github.com/pulls?q=' + encodeURIComponent(OPEN_QUERY);
 }
