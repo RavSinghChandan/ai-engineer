@@ -155,7 +155,7 @@ Chandan runs <strong>637 automated tests</strong> across all 4 AI systems and th
     if (/\b(78\s*s(ec)?|78\s*second|latency|4\s*second|95\s*%|reduce\s*latency|78s|4s\b)\b/i.test(t))
       return `<div style="margin:0.9rem 0 0.5rem;padding:0.22rem 0.7rem;border-left:3px solid #a78bfa;background:rgba(167,139,250,0.07);border-radius:0 5px 5px 0;font-size:0.7rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#a78bfa">⚡ 78s → 4s — 95% Latency Reduction</div>
 <div style="color:var(--cb-text);font-size:0.82rem;line-height:1.6">
-Aura with Rav originally took <strong>78 seconds</strong> per analysis. Chandan brought it down to <strong>4 seconds</strong> through three measured optimisations:<br><br>
+Aura with Rav originally took <strong>78 seconds</strong> per analysis. Chandan brought it down to <strong>4 seconds</strong> through three measured optimizations:<br><br>
 <strong>Step 1 — Parallel agents (78s → 15s)</strong><br>
 • 5 domain agents (Astrology, Numerology, Palmistry, Tarot, Vastu) ran <em>sequentially</em><br>
 • Converted to <strong>LangGraph parallel branches using <code>Send()</code></strong> — all 5 fire simultaneously<br><br>
@@ -178,7 +178,7 @@ Aura with Rav coordinates <strong>16 AI agents</strong> across 5 spiritual domai
 • <strong>Node 1</strong> — Question Normalization Agent (parses intent, detects sub-intent)<br>
 • <strong>Nodes 2–6 (parallel)</strong> — Astrology · Numerology · Palmistry · Tarot · Vastu — each with 3 sub-agents (e.g. Vedic/KP/Western for Astrology)<br>
 • <strong>Node 7</strong> — Meta Consensus Agent (3+ domains = HIGH, 2 = MEDIUM, 1 = LOW confidence)<br>
-• <strong>Node 8</strong> — Remedy Agent (habits, mantras, colours)<br>
+• <strong>Node 8</strong> — Remedy Agent (habits, mantras, colors)<br>
 • <strong>Node 9</strong> — Admin Review (human-in-the-loop, <code>interrupt_before=["approve"]</code>)<br><br>
 <strong>Why no conflicts?</strong><br>
 • <strong>Immutable state</strong> — each node returns a state delta, never mutates shared state<br>
@@ -231,7 +231,7 @@ RunbookAI is a <strong>RAGless architecture</strong> — the LLM is used once at
     if (/\b(g1.{0,4}g5|g[1-5]\s*(guard|to\s*g)|production\s*guardrail|guardrail.*built|rate\s*limit.*pii|pii.*inject|injection.*faithful)\b/i.test(t))
       return `<div style="margin:0.9rem 0 0.5rem;padding:0.22rem 0.7rem;border-left:3px solid #ef4444;background:rgba(239,68,68,0.07);border-radius:0 5px 5px 0;font-size:0.7rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#ef4444">🛡️ G1–G5 Production Guardrails</div>
 <div style="color:var(--cb-text);font-size:0.82rem;line-height:1.6">
-Chandan built <strong>5 defence layers</strong> that wrap every LLM call in production:<br><br>
+Chandan built <strong>5 defense layers</strong> that wrap every LLM call in production:<br><br>
 <div style="display:grid;grid-template-columns:2.5rem 1fr;gap:0.25rem 0.5rem;margin:0.4rem 0">
   <span style="font-weight:800;color:#ef4444">G1</span><span><strong>Rate Limiting</strong> — per IP/user, blocks abuse before the LLM is ever touched</span>
   <span style="font-weight:800;color:#ef4444">G2</span><span><strong>Injection Detection</strong> — regex + pattern scanning catches jailbreak / prompt injection in every input (CV text, user queries)</span>
