@@ -69,8 +69,7 @@ const ARMS: Record<Exclude<CkPose, 'none' | 'climb'>, Arm> = {
             <path d="M84 170C70 174 50 178 40 186C34 192 34 204 36 216L34 326Q100 334 166 326L164 216C166 204 166 192 160 186C150 178 130 174 116 170Z" class="ckg-kurta"/>
             <path d="M39 292L36 326M161 292L164 326" class="ckg-slit"/>
           }
-          <path d="M37 220C37 256 36 292 35 324L48 326C47 292 47 256 49 222ZM163 220C163 256 164 292 165 322L152 324C153 292 153 256 151 222Z" class="ckg-shade"/>
-          <path d="M66 248q-2 36-4 74M134 248q2 36 4 70M58 262q9 6 7 17M142 262q-9 6-7 17" class="ckg-fold"/>
+          <path d="M78 196q-8 6-14 10M122 196q8 6 14 10M72 306q2 8 1 16M128 306q-2 8-1 16M100 262v56" class="ckg-fold"/>
           <path d="M82 168C88 180 112 180 118 168L120 176C112 190 88 190 80 176Z" fill="#fbfcfe" stroke="#3d4350" stroke-width="1.6"/>
           <path d="M96 184H104V246L100 250L96 246Z" fill="#f3f5f9" stroke="#3d4350" stroke-width="1.1" stroke-linejoin="round"/>
           <circle cx="100" cy="196" r="2.3" class="ckg-btn"/><circle cx="100" cy="212" r="2.3" class="ckg-btn"/><circle cx="100" cy="228" r="2.3" class="ckg-btn"/>
