@@ -58,20 +58,22 @@ const ARMS: Record<Exclude<CkPose, 'none' | 'climb'>, Arm> = {
     <svg class="ckg-svg" [attr.viewBox]="box()" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
       @if (form() === 'full') {
         <g class="ckg-bob" [class.ckg-walk]="walking()">
-          <!-- legs first; the knee-length kurta covers the hips, as in the photo -->
+          <!-- a men's kurta, cut like the one in the photo: broad squared shoulders, straight
+               sides, straight knee-length hem with side slits, pajama legs and mojari below -->
+          <g class="ckg-leg ckg-leg--a"><path d="M82 296V400" class="ckg-pant-ink"/><path d="M82 296V400" class="ckg-pant"/><path d="M72 388q10 3 20 0" class="ckg-gather"/><path d="M64 400H96Q110 404 112 416H62Q58 408 64 400Z" class="ckg-shoe"/></g>
           @if (pose() === 'climb') {
-            <g class="ckg-leg ckg-leg--a"><path d="M86 300V372" class="ckg-pant-ink"/><path d="M86 300V372" class="ckg-pant"/><path d="M78 360q8 3 16 0M78 366q8 3 16 0" class="ckg-gather"/><path d="M70 372H98Q110 376 113 386H68Q64 379 70 372Z" class="ckg-shoe"/></g>
-            <g class="ckg-leg ckg-leg--up"><path d="M116 300L160 308L162 326" class="ckg-pant-ink"/><path d="M116 300L160 308L162 326" class="ckg-pant"/><path d="M146 326H176Q188 330 190 338H144Q140 331 146 326Z" class="ckg-shoe"/></g>
-            <path d="M24 218H176C178 252 188 284 198 306Q162 312 132 326Q80 346 26 338C25 302 24 262 24 218Z" class="ckg-kurta"/>
+            <g class="ckg-leg ckg-leg--up"><path d="M118 296L158 316L162 348" class="ckg-pant-ink"/><path d="M118 296L158 316L162 348" class="ckg-pant"/><path d="M150 348H182Q194 352 196 360H148Q144 353 150 348Z" class="ckg-shoe"/></g>
+            <path d="M84 170C70 174 50 178 40 186C34 192 34 204 36 216L34 326Q78 334 116 322Q146 312 170 294L164 216C166 204 166 192 160 186C150 178 130 174 116 170Z" class="ckg-kurta"/>
           } @else {
-            <g class="ckg-leg ckg-leg--a"><path d="M86 300V372" class="ckg-pant-ink"/><path d="M86 300V372" class="ckg-pant"/><path d="M78 360q8 3 16 0M78 366q8 3 16 0" class="ckg-gather"/><path d="M70 372H98Q110 376 113 386H68Q64 379 70 372Z" class="ckg-shoe"/></g>
-            <g class="ckg-leg ckg-leg--b"><path d="M114 300V372" class="ckg-pant-ink"/><path d="M114 300V372" class="ckg-pant"/><path d="M106 360q8 3 16 0M106 366q8 3 16 0" class="ckg-gather"/><path d="M98 372H126Q138 376 141 386H96Q92 379 98 372Z" class="ckg-shoe"/></g>
-            <path d="M24 218H176C176 262 175 302 174 338Q100 348 26 338C25 302 24 262 24 218Z" class="ckg-kurta"/>
-            <path d="M25 224C25 264 26 304 27 338L42 340C40 304 39 264 40 224ZM175 224C175 264 174 304 173 338L158 340C160 304 161 264 160 224Z" class="ckg-shade"/>
-            <path d="M30 302L27 338M170 302L173 338" class="ckg-slit"/>
+            <g class="ckg-leg ckg-leg--b"><path d="M118 296V400" class="ckg-pant-ink"/><path d="M118 296V400" class="ckg-pant"/><path d="M108 388q10 3 20 0" class="ckg-gather"/><path d="M100 400H132Q146 404 148 416H98Q94 408 100 400Z" class="ckg-shoe"/></g>
+            <path d="M84 170C70 174 50 178 40 186C34 192 34 204 36 216L34 326Q100 334 166 326L164 216C166 204 166 192 160 186C150 178 130 174 116 170Z" class="ckg-kurta"/>
+            <path d="M39 292L36 326M161 292L164 326" class="ckg-slit"/>
           }
-          <path d="M64 244q-3 40-6 86M136 244q3 40 6 86M100 236v96" class="ckg-fold"/>
-          <use href="#fx-body"/>
+          <path d="M37 220C37 256 36 292 35 324L48 326C47 292 47 256 49 222ZM163 220C163 256 164 292 165 322L152 324C153 292 153 256 151 222Z" class="ckg-shade"/>
+          <path d="M66 248q-2 36-4 74M134 248q2 36 4 70M58 262q9 6 7 17M142 262q-9 6-7 17" class="ckg-fold"/>
+          <path d="M82 168C88 180 112 180 118 168L120 176C112 190 88 190 80 176Z" fill="#fbfcfe" stroke="#3d4350" stroke-width="1.6"/>
+          <path d="M96 184H104V246L100 250L96 246Z" fill="#f3f5f9" stroke="#3d4350" stroke-width="1.1" stroke-linejoin="round"/>
+          <circle cx="100" cy="196" r="2.3" class="ckg-btn"/><circle cx="100" cy="212" r="2.3" class="ckg-btn"/><circle cx="100" cy="228" r="2.3" class="ckg-btn"/>
           <ng-container [ngTemplateOutlet]="top"/>
         </g>
       } @else {
@@ -173,7 +175,7 @@ export class CkGuide {
   });
   readonly box = computed(() => {
     switch (this.form()) {
-      case 'full': return '0 4 230 392';
+      case 'full': return '0 0 230 424';
       case 'face': return '36 8 128 168';
       default: return '0 4 230 222';
     }

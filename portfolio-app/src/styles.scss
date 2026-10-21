@@ -563,24 +563,25 @@ html[data-theme="light"] .how-item .how-card .how-proof b { color: #26890D; }
 .ckg-svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .ckg-kurta { fill: url(#fx-kurta); stroke: #3d4350; stroke-width: 2.2; stroke-linejoin: round; }
 .ckg-shade { fill: #aeb6c4; opacity: .4; }
+.ckg-btn { fill: #fff; stroke: #8b93a3; stroke-width: .9; }
 .ckg-slit { fill: none; stroke: #3d4350; stroke-width: 1.6; stroke-linecap: round; }
 .ckg-fold { fill: none; stroke: #b3bac7; stroke-width: 1.6; stroke-linecap: round; opacity: .8; }
-.ckg-pant-ink { fill: none; stroke: #3d4350; stroke-width: 22; stroke-linecap: round; stroke-linejoin: round; }
-.ckg-pant { fill: none; stroke: #f6f7fa; stroke-width: 17.5; stroke-linecap: round; stroke-linejoin: round; }
+.ckg-pant-ink { fill: none; stroke: #3d4350; stroke-width: 28; stroke-linecap: round; stroke-linejoin: round; }
+.ckg-pant { fill: none; stroke: #f6f7fa; stroke-width: 23.5; stroke-linecap: round; stroke-linejoin: round; }
 .ckg-gather { fill: none; stroke: #b3bac7; stroke-width: 1.4; stroke-linecap: round; }
 .ckg-shoe { fill: #8a5530; stroke: #3b2414; stroke-width: 1.8; stroke-linejoin: round; }
 @media (prefers-reduced-motion: no-preference) {
   .ckg:not(.ckg-live) * { animation-play-state: paused !important; }
   .ckg-bob.ckg-walk { animation: ckg-bob 0.45s ease-in-out infinite; }
-  .ckg-walk .ckg-leg { transform-origin: 100px 300px; animation: ckg-step 0.9s ease-in-out infinite alternate; }
-  .ckg-walk .ckg-leg--b { animation-direction: alternate-reverse; }
+  .ckg-walk .ckg-leg { transform-origin: 82px 296px; animation: ckg-step 0.9s ease-in-out infinite alternate; }
+  .ckg-walk .ckg-leg--b { transform-origin: 118px 296px; animation-direction: alternate-reverse; }
   .ckg-arm--swing { transform-origin: 150px 190px; animation: ckg-swing 0.9s ease-in-out infinite alternate-reverse; }
   .ckg-arm--swing-b { animation-direction: alternate; }
   .ckg-arm--cheer { transform-origin: 150px 190px; animation: ckg-cheer 0.9s ease-in-out infinite; }
-  .ckg-leg--up { transform-origin: 116px 300px; animation: ckg-climb 1.6s ease-in-out infinite; }
+  .ckg-leg--up { transform-origin: 118px 296px; animation: ckg-climb 1.6s ease-in-out infinite; }
 }
 @keyframes ckg-bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -4px; } }
-@keyframes ckg-step { from { rotate: -16deg; } to { rotate: 16deg; } }
+@keyframes ckg-step { from { rotate: -13deg; } to { rotate: 13deg; } }
 @keyframes ckg-swing { from { rotate: -14deg; } to { rotate: 14deg; } }
 @keyframes ckg-cheer { 0%, 100% { rotate: 0deg; } 50% { rotate: -9deg; } }
 @keyframes ckg-climb { 0%, 100% { rotate: 0deg; } 50% { rotate: -4deg; } }

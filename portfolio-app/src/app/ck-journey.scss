@@ -58,19 +58,19 @@
 .ckj-flag svg { width: 100%; height: 100%; overflow: visible; }
 .ckj-flag-cloth { fill: var(--ck-hi); stroke: var(--ckj-ink); stroke-width: 1.2; stroke-linejoin: round; transform-origin: 5px 12px; }
 .ckj-walker {
-  position: absolute; height: clamp(96px, 64cqh, 140px); aspect-ratio: 230 / 392; transform: translate(-48%, -97%);
+  position: absolute; height: clamp(96px, 64cqh, 140px); aspect-ratio: 230 / 424; transform: translate(-43.5%, -98.1%);
   filter: drop-shadow(0 6px 6px rgba(0,0,0,0.3));
 }
 .ckj-walker .ckg { width: 100%; height: 100%; }
 
 /* welcome band: the staircase in the seven milestone colours */
 .ckj--stairs { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-.ckj-climb { position: relative; width: min(400px, 100%); aspect-ratio: 370 / 180; justify-self: end; }
-.ckj-steps { position: absolute; left: 16.76%; bottom: 0; width: 83.24%; height: 93.33%; overflow: visible; }
+.ckj-climb { position: relative; width: min(400px, 100%); aspect-ratio: 366 / 180; justify-self: end; }
+.ckj-steps { position: absolute; left: 15.85%; bottom: 0; width: 84.15%; height: 93.33%; overflow: visible; }
 .ckj-step { stroke: none; }
 .ckj-step-n { fill: rgba(255,255,255,0.85); font-size: 11px; font-weight: 900; text-anchor: middle; }
 .ckj-steps-ink { fill: none; stroke: #0d0f14; stroke-width: 2.6; stroke-linejoin: round; }
-.ckj-climber { position: absolute; left: 0; bottom: 0; height: 100%; aspect-ratio: 230 / 392; filter: drop-shadow(0 6px 6px rgba(0,0,0,0.35)); }
+.ckj-climber { position: absolute; left: 0; bottom: 0; height: 100%; aspect-ratio: 230 / 424; filter: drop-shadow(0 6px 6px rgba(0,0,0,0.35)); }
 .ckj-climber .ckg { width: 100%; height: 100%; }
 
 @media (prefers-reduced-motion: no-preference) {
