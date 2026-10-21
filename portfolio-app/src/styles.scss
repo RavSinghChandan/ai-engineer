@@ -555,3 +555,23 @@ html[data-theme="light"] .how-item .how-card .how-proof b { color: #26890D; }
 @keyframes fx-march { to { background-position: 11px 0; } }
 @keyframes fx-row   { from { opacity: 0; translate: -10px 0; } to { opacity: 1; translate: 0 0; } }
 @keyframes fx-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -3px; } }
+
+/* The Chandan caricature (ck-guide): sizing, legs, walking and cheering. Global because Angular
+   renames component keyframes unevenly. */
+.ckg { display: inline-block; line-height: 0; }
+.ckg-svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.ckg-pant { fill: none; stroke: #e6dfcf; stroke-width: 20; stroke-linecap: round; stroke-linejoin: round; }
+.ckg-shoe { fill: #3b2a20; stroke: #1c120c; stroke-width: 1.5; stroke-linejoin: round; }
+@media (prefers-reduced-motion: no-preference) {
+  .ckg:not(.ckg-live) * { animation-play-state: paused !important; }
+  .ckg-walk.ckg-bob, .ckg-bob.ckg-walk { transform-box: fill-box; animation: ckg-bob 0.9s ease-in-out infinite; }
+  .ckg-walk .ckg-leg { transform-origin: 100px 298px; animation: ckg-step 0.9s ease-in-out infinite alternate; }
+  .ckg-walk .ckg-leg--b { animation-direction: alternate-reverse; }
+  .ckg-arm--cheer { transform-origin: 150px 190px; animation: ckg-cheer 0.9s ease-in-out infinite; }
+  .ckg-leg--up { transform-origin: 116px 298px; animation: ckg-climb 1.6s ease-in-out infinite; }
+}
+@keyframes ckg-bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -3px; } }
+@keyframes ckg-step { from { rotate: -17deg; } to { rotate: 17deg; } }
+@keyframes ckg-cheer { 0%, 100% { rotate: 0deg; } 50% { rotate: -9deg; } }
+@keyframes ckg-climb { 0%, 100% { rotate: 0deg; } 50% { rotate: -4deg; } }
+.ckj-welcome-wrap { padding-top: 2.4rem; }

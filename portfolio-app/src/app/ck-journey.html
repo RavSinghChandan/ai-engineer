@@ -1,0 +1,39 @@
+<section class="ckj" [class.ckj--stairs]="mode() === 'stairs'" [attr.aria-label]="'Step ' + step() + ' of ' + total + ': ' + place()">
+  <div class="ckj-text">
+    <span class="ckj-pill">
+      @if (mode() === 'stairs') { Step 0: start here } @else { You are on Step {{ step() }} <small>of {{ total }}</small> }
+    </span>
+    <p class="ckj-welcome">Welcome to</p>
+    <h2 class="ckj-place">{{ place() }}</h2>
+    @if (note()) { <p class="ckj-note">{{ note() }}</p> }
+  </div>
+
+  @if (mode() === 'path') {
+    <div class="ckj-scene" aria-hidden="true">
+      <svg class="ckj-path" viewBox="0 0 100 100" preserveAspectRatio="none" focusable="false">
+        <path class="ckj-line ckj-line--ahead" [attr.d]="d" pathLength="1" vector-effect="non-scaling-stroke"/>
+      </svg>
+      <svg class="ckj-path ckj-path--done" viewBox="0 0 100 100" preserveAspectRatio="none" focusable="false" [style.clip-path]="'inset(0 ' + (100 - me().x) + '% 0 0)'">
+        <path class="ckj-line ckj-line--done" [attr.d]="d" vector-effect="non-scaling-stroke"/>
+      </svg>
+      @for (s of stops; track s.n) {
+        <span class="ckj-stop" [class.ckj-stop--done]="s.n < step()" [class.ckj-stop--here]="s.n === step()" [style.left.%]="s.x" [style.top.%]="s.y"></span>
+      }
+      <span class="ckj-flag" [style.left.%]="flagX" [style.top.%]="flagY">
+        <svg viewBox="0 0 30 44" focusable="false"><path d="M4 42V3" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/><path class="ckj-flag-cloth" d="M5 4C12 1 17 8 28 5V20C17 23 12 16 5 19Z"/></svg>
+      </span>
+      <span class="ckj-walker" [style.left.%]="me().x" [style.top.%]="me().y">
+        <ck-guide form="full" [mood]="mood()" [pose]="pose()" [walking]="true"/>
+      </span>
+    </div>
+  } @else {
+    <div class="ckj-climb" aria-hidden="true">
+      <svg class="ckj-steps" viewBox="0 0 280 130" focusable="false">
+        <path d="M2 114H98V74H178V34H278V128H2Z" class="ckj-steps-fill"/>
+        <path d="M30 124Q120 119 270 123M118 86Q180 82 262 86M198 46Q240 43 270 46" class="ckj-steps-stain"/>
+        <path d="M2 114H98V74H178V34H278V128H2Z" class="ckj-steps-ink"/>
+      </svg>
+      <span class="ckj-climber"><ck-guide form="full" [mood]="mood()" pose="climb"/></span>
+    </div>
+  }
+</section>

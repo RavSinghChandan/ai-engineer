@@ -3,6 +3,8 @@ import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ChatService } from './chat.service';
+import { CkGuide } from './ck-guide';
+import { CkJourney } from './ck-journey';
 import { LiveMap } from './live-map';
 import { Magnetic } from './magnetic';
 import { ProofViz } from './proof-viz';
@@ -32,7 +34,7 @@ interface GraphBody extends GraphNode {
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, FormsModule, LiveMap, Magnetic, ProofViz, HeroBlueprint, CycleRows, ScrollFill, CityLights, ProjectReel],
+  imports: [CommonModule, FormsModule, LiveMap, Magnetic, ProofViz, HeroBlueprint, CycleRows, ScrollFill, CityLights, ProjectReel, CkGuide, CkJourney],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
