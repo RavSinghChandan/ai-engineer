@@ -1,59 +1,86 @@
-/* The step banner. The chalkboard is artwork, so its blue stays the same in both themes. */
+/* Milestone banners. Each board takes its colours from --ck-a / --ck-b / --ck-hi (set per step in
+   ck-journey.ts); the boards are artwork, so they keep their colours in both themes, framed by
+   the theme's border and shadow tokens. */
 .ckj {
-  --ckj-board: #1f3d6d;
-  --ckj-board-2: #172f55;
-  --ckj-chalk: #f4f1e6;
-  position: relative; display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr); align-items: center;
-  gap: 1rem 2rem; margin: 0 auto 2.4rem; padding: 1.4rem 2rem 1rem; max-width: 1100px;
-  border-radius: 22px; color: var(--ckj-chalk); overflow: hidden;
+  --ckj-ink: #fffdf6;
+  position: relative; isolation: isolate; display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.4fr);
+  align-items: center; gap: 0.8rem 2rem; margin: 0 auto 2.4rem; max-width: 1100px;
+  padding: clamp(1rem, 2.2vw, 1.5rem) clamp(1rem, 3vw, 2.2rem) clamp(0.6rem, 1.4vw, 1rem);
+  border-radius: 24px; color: var(--ckj-ink); overflow: hidden;
   background:
-    radial-gradient(120% 90% at 20% 0%, rgba(255,255,255,0.10), transparent 60%),
-    linear-gradient(160deg, var(--ckj-board), var(--ckj-board-2));
+    radial-gradient(90% 120% at 100% 0%, color-mix(in srgb, var(--ck-hi) 26%, transparent), transparent 60%),
+    radial-gradient(70% 90% at 0% 100%, rgba(0,0,0,0.28), transparent 65%),
+    linear-gradient(150deg, var(--ck-a), var(--ck-b));
   border: 1px solid var(--border2); box-shadow: var(--card-shadow);
 }
-.ckj::before { /* chalk dust */
-  content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0.5;
-  background: radial-gradient(60% 40% at 80% 100%, rgba(255,255,255,0.12), transparent 70%);
+.ckj::after { /* chalk grain */
+  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: 0.35;
+  background-image: radial-gradient(rgba(255,255,255,0.18) 1px, transparent 1.2px); background-size: 14px 14px;
+  mask-image: linear-gradient(90deg, transparent, #000 60%);
 }
-.ckj-text { position: relative; z-index: 1; min-width: 0; }
+.ckj-num {
+  position: absolute; right: clamp(0.8rem, 2vw, 1.6rem); top: -0.6rem; z-index: -1;
+  font-size: clamp(5rem, 13vw, 9.5rem); font-weight: 900; line-height: 1; letter-spacing: -0.06em;
+  color: transparent; -webkit-text-stroke: 2px color-mix(in srgb, var(--ck-hi) 40%, transparent); pointer-events: none;
+}
+.ckj-text { position: relative; min-width: 0; }
 .ckj-pill {
-  display: inline-block; padding: 0.28rem 0.8rem; border-radius: 999px; font-size: 0.78rem; font-weight: 800;
-  letter-spacing: 0.04em; color: #1b2a46; background: #f7c873; box-shadow: 0 2px 0 rgba(0,0,0,0.25);
+  display: inline-block; padding: 0.3rem 0.85rem; border-radius: 999px; font-size: 0.78rem; font-weight: 800;
+  letter-spacing: 0.03em; color: #10131a; background: var(--ck-hi); box-shadow: 0 2px 0 rgba(0,0,0,0.3);
   small { font-weight: 700; opacity: 0.7; }
 }
-.ckj-welcome { margin: 0.9rem 0 0; font-size: 0.95rem; letter-spacing: 0.06em; opacity: 0.8; text-transform: uppercase; }
-.ckj-place { margin: 0.1rem 0 0; font-size: clamp(1.5rem, 3.2vw, 2.3rem); line-height: 1.12; color: var(--ckj-chalk); letter-spacing: -0.01em; }
-.ckj-note { margin: 0.55rem 0 0; font-size: 0.92rem; line-height: 1.5; opacity: 0.82; max-width: 34ch; }
-
-.ckj-scene { position: relative; height: 200px; min-width: 0; }
-.ckj-path { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-.ckj-line { fill: none; stroke: var(--ckj-chalk); stroke-linecap: round; stroke-linejoin: round; }
-.ckj-line--ahead { stroke-width: 3; stroke-dasharray: 0.012 0.018; opacity: 0.5; }
-.ckj-line--done { stroke-width: 4; }
-.ckj-stop {
-  position: absolute; width: 11px; height: 11px; transform: translate(-50%, -50%); border-radius: 50%;
-  border: 2px solid var(--ckj-chalk); background: var(--ckj-board);
+.ckj-welcome { margin: 0.85rem 0 0; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ck-hi); }
+.ckj-place {
+  display: flex; align-items: center; gap: 0.55rem; margin: 0.15rem 0 0;
+  font-size: clamp(1.45rem, 3.1vw, 2.3rem); line-height: 1.12; letter-spacing: -0.01em; color: var(--ckj-ink);
 }
-.ckj-stop--done { background: var(--ckj-chalk); }
-.ckj-stop--here { background: #f7c873; border-color: #f7c873; box-shadow: 0 0 0 5px rgba(247,200,115,0.28); }
-.ckj-flag { position: absolute; width: 30px; height: 44px; transform: translate(-13%, -100%); color: var(--ckj-chalk); }
-.ckj-flag svg { width: 100%; height: 100%; overflow: visible; }
-.ckj-flag-cloth { fill: #e8743b; stroke: var(--ckj-chalk); stroke-width: 1.2; stroke-linejoin: round; }
-.ckj-walker { position: absolute; height: 112px; aspect-ratio: 230 / 392; transform: translate(-50%, -96%); }
-.ckj-walker .ckg { height: 100%; }
+.ckj-medal {
+  flex: none; display: grid; place-items: center; width: 1.55em; height: 1.55em; border-radius: 50%;
+  background: color-mix(in srgb, var(--ck-hi) 20%, transparent); border: 2px solid var(--ck-hi);
+  svg { width: 58%; height: 58%; fill: none; stroke: var(--ck-hi); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+}
+.ckj-note { margin: 0.5rem 0 0; font-size: 0.93rem; line-height: 1.5; color: rgba(255,253,246,0.86); max-width: 36ch; }
 
-.ckj--stairs { grid-template-columns: minmax(0, 1fr) auto; }
-.ckj-climb { position: relative; width: 340px; height: 190px; max-width: 100%; }
-.ckj-steps { position: absolute; left: 56px; bottom: 0; width: 280px; height: 130px; }
-.ckj-steps-fill { fill: #d9c690; }
-.ckj-steps-stain { fill: none; stroke: #b79d62; stroke-width: 7; stroke-linecap: round; opacity: 0.45; }
-.ckj-steps-ink { fill: none; stroke: #101010; stroke-width: 3; stroke-linejoin: round; }
-.ckj-climber { position: absolute; left: 0; bottom: 0; height: 170px; aspect-ratio: 230 / 392; }
-.ckj-climber .ckg { height: 100%; }
+.ckj-scene { position: relative; height: clamp(176px, 19vw, 220px); min-width: 0; container-type: size; }
+.ckj-path { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.ckj-line { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.ckj-line--ahead { stroke: rgba(255,253,246,0.45); stroke-width: 3; stroke-dasharray: 2 7; }
+.ckj-line--done { stroke: var(--ck-hi); stroke-width: 4.5; }
+.ckj-stop {
+  position: absolute; display: grid; place-items: center; width: 18px; height: 18px; transform: translate(-50%, -50%);
+  border-radius: 50%; border: 2.5px solid var(--stop); background: var(--ck-b);
+  b { font-size: 9px; line-height: 1; font-weight: 900; color: var(--stop); }
+}
+.ckj-stop--done { background: var(--stop); b { color: #10131a; } }
+.ckj-stop--here { background: var(--stop); b { color: #10131a; } }
+.ckj--arrived .ckj-stop--here { animation: ckj-ping 1.8s ease-out 2; }
+.ckj-flag { position: absolute; width: 30px; height: 44px; transform: translate(-13%, -100%); color: var(--ckj-ink); }
+.ckj-flag svg { width: 100%; height: 100%; overflow: visible; }
+.ckj-flag-cloth { fill: var(--ck-hi); stroke: var(--ckj-ink); stroke-width: 1.2; stroke-linejoin: round; transform-origin: 5px 12px; }
+.ckj-walker {
+  position: absolute; height: clamp(96px, 64cqh, 140px); aspect-ratio: 230 / 392; transform: translate(-48%, -97%);
+  filter: drop-shadow(0 6px 6px rgba(0,0,0,0.3));
+}
+.ckj-walker .ckg { width: 100%; height: 100%; }
+
+/* welcome band: the staircase in the seven milestone colours */
+.ckj--stairs { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.ckj-climb { position: relative; width: min(400px, 100%); aspect-ratio: 370 / 180; justify-self: end; }
+.ckj-steps { position: absolute; left: 16.76%; bottom: 0; width: 83.24%; height: 93.33%; overflow: visible; }
+.ckj-step { stroke: none; }
+.ckj-step-n { fill: rgba(255,255,255,0.85); font-size: 11px; font-weight: 900; text-anchor: middle; }
+.ckj-steps-ink { fill: none; stroke: #0d0f14; stroke-width: 2.6; stroke-linejoin: round; }
+.ckj-climber { position: absolute; left: 0; bottom: 0; height: 100%; aspect-ratio: 230 / 392; filter: drop-shadow(0 6px 6px rgba(0,0,0,0.35)); }
+.ckj-climber .ckg { width: 100%; height: 100%; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .ckj-flag-cloth { animation: ckj-flutter 2.4s ease-in-out infinite; }
+}
+@keyframes ckj-ping { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--stop) 70%, transparent); } 100% { box-shadow: 0 0 0 16px transparent; } }
+@keyframes ckj-flutter { 0%, 100% { scale: 1 1; } 50% { scale: 0.86 1.06; } }
 
 @media (max-width: 760px) {
-  .ckj, .ckj--stairs { grid-template-columns: minmax(0, 1fr); padding: 1.1rem 1.1rem 0.8rem; }
-  .ckj-scene { height: 180px; }
+  .ckj, .ckj--stairs { grid-template-columns: minmax(0, 1fr); }
   .ckj-note { max-width: none; }
   .ckj-climb { justify-self: center; }
 }

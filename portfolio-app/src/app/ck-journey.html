@@ -1,37 +1,50 @@
-<section class="ckj" [class.ckj--stairs]="mode() === 'stairs'" [attr.aria-label]="'Step ' + step() + ' of ' + total + ': ' + place()">
+<section class="ckj" [class.ckj--stairs]="mode() === 'stairs'" [class.ckj--arrived]="arrived()"
+         [attr.aria-label]="mode() === 'stairs' ? 'Start of the portfolio' : 'Step ' + clamped() + ' of ' + total + ': ' + place()">
+  @if (mode() === 'path') {
+    <span class="ckj-num" aria-hidden="true">{{ num() }}</span>
+  }
   <div class="ckj-text">
     <span class="ckj-pill">
-      @if (mode() === 'stairs') { Step 0: start here } @else { You are on Step {{ step() }} <small>of {{ total }}</small> }
+      @if (mode() === 'stairs') { Step 0: start here } @else { You are on Step {{ clamped() }} <small>of {{ total }}</small> }
     </span>
     <p class="ckj-welcome">Welcome to</p>
-    <h2 class="ckj-place">{{ place() }}</h2>
+    <h2 class="ckj-place">
+      @if (mode() === 'path') {
+        <span class="ckj-medal" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path [attr.d]="theme().icon"/></svg></span>
+      }
+      {{ place() }}
+    </h2>
     @if (note()) { <p class="ckj-note">{{ note() }}</p> }
   </div>
 
   @if (mode() === 'path') {
     <div class="ckj-scene" aria-hidden="true">
       <svg class="ckj-path" viewBox="0 0 100 100" preserveAspectRatio="none" focusable="false">
-        <path class="ckj-line ckj-line--ahead" [attr.d]="d" pathLength="1" vector-effect="non-scaling-stroke"/>
+        <path class="ckj-line ckj-line--ahead" [attr.d]="d" vector-effect="non-scaling-stroke"/>
       </svg>
-      <svg class="ckj-path ckj-path--done" viewBox="0 0 100 100" preserveAspectRatio="none" focusable="false" [style.clip-path]="'inset(0 ' + (100 - me().x) + '% 0 0)'">
+      <svg class="ckj-path" viewBox="0 0 100 100" preserveAspectRatio="none" focusable="false" [style.clip-path]="'inset(-10% ' + (100 - walkX()) + '% -10% 0)'">
         <path class="ckj-line ckj-line--done" [attr.d]="d" vector-effect="non-scaling-stroke"/>
       </svg>
       @for (s of stops; track s.n) {
-        <span class="ckj-stop" [class.ckj-stop--done]="s.n < step()" [class.ckj-stop--here]="s.n === step()" [style.left.%]="s.x" [style.top.%]="s.y"></span>
+        <span class="ckj-stop" [style.--stop]="s.hi" [class.ckj-stop--done]="s.n < clamped()" [class.ckj-stop--here]="s.n === clamped()"
+              [style.left.%]="s.x" [style.top.%]="s.y"><b>{{ s.n }}</b></span>
       }
       <span class="ckj-flag" [style.left.%]="flagX" [style.top.%]="flagY">
         <svg viewBox="0 0 30 44" focusable="false"><path d="M4 42V3" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/><path class="ckj-flag-cloth" d="M5 4C12 1 17 8 28 5V20C17 23 12 16 5 19Z"/></svg>
       </span>
-      <span class="ckj-walker" [style.left.%]="me().x" [style.top.%]="me().y">
-        <ck-guide form="full" [mood]="mood()" [pose]="pose()" [walking]="true"/>
+      <span class="ckj-walker" [style.left.%]="walkX()" [style.top.%]="walkY()">
+        <ck-guide form="full" [mood]="guideMood()" [pose]="guidePose()" [walking]="!arrived()"/>
       </span>
     </div>
   } @else {
     <div class="ckj-climb" aria-hidden="true">
-      <svg class="ckj-steps" viewBox="0 0 280 130" focusable="false">
-        <path d="M2 114H98V74H178V34H278V128H2Z" class="ckj-steps-fill"/>
-        <path d="M30 124Q120 119 270 123M118 86Q180 82 262 86M198 46Q240 43 270 46" class="ckj-steps-stain"/>
-        <path d="M2 114H98V74H178V34H278V128H2Z" class="ckj-steps-ink"/>
+      <svg class="ckj-steps" viewBox="0 0 308 168" preserveAspectRatio="none" focusable="false">
+        @for (m of milestones; track $index; let i = $index) {
+          <rect [attr.x]="i * 44" [attr.y]="168 - 24 * (i + 1)" width="44" [attr.height]="24 * (i + 1)" [attr.fill]="m.a" class="ckj-step"/>
+          <rect [attr.x]="i * 44" [attr.y]="168 - 24 * (i + 1)" width="44" height="5" [attr.fill]="m.hi" opacity=".9"/>
+          <text [attr.x]="i * 44 + 22" [attr.y]="168 - 24 * (i + 1) + 19" class="ckj-step-n">{{ i + 1 }}</text>
+        }
+        <path d="M0 168V144H44V120H88V96H132V72H176V48H220V24H264V0H308V168Z" class="ckj-steps-ink"/>
       </svg>
       <span class="ckj-climber"><ck-guide form="full" [mood]="mood()" pose="climb"/></span>
     </div>

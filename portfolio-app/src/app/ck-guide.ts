@@ -2,7 +2,7 @@ import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, afterNextRender, computed, inject, input } from '@angular/core';
 
 export type CkMood = 'smile' | 'excited' | 'think' | 'confident' | 'wow' | 'wink' | 'laugh';
-export type CkPose = 'none' | 'wave' | 'point' | 'think' | 'type' | 'present' | 'cheer' | 'climb';
+export type CkPose = 'none' | 'swing' | 'wave' | 'point' | 'think' | 'type' | 'present' | 'cheer' | 'climb';
 export type CkForm = 'bust' | 'full' | 'face';
 
 interface Arm {
@@ -18,8 +18,15 @@ const WAVE: Arm = {
   fore: 'M189.5 188.9L199.2 159.9L180.8 152.1L166.5 179.1Z', crease: 'M187.2 180.3Q181.9 174.8 176.2 175.6',
   cuff: 'M198.2 166L201.2 159.2L180 150.1L177.1 157Z', hand: 'open', handAt: 'translate(190 156) rotate(-72.8)', cls: 'fx-arm--wave',
 };
+/** Arm hanging at the side: shoulder (150,190), elbow (162,232), wrist (166,268). */
+const HANG: Arm = {
+  shoulder: [150, 190], upper: 'M164.4 185.9L174 228.6L150 235.4L135.6 194.1Z', elbow: [162, 232],
+  fore: 'M174.4 230.6L175.9 266.9L156.1 269.1L149.6 233.4Z', crease: 'M170.5 236Q163 240 156 236',
+  cuff: 'M177 261L177.6 270L154.6 272.4L154 263.4Z', hand: 'open', handAt: 'translate(166 270) rotate(84)', cls: 'ckg-arm--still',
+};
 const ARMS: Record<Exclude<CkPose, 'none' | 'climb'>, Arm> = {
   wave: WAVE,
+  swing: { ...HANG, cls: 'ckg-arm--swing' },
   cheer: { ...WAVE, hand: 'fist', cls: 'ckg-arm--cheer' },
   point: {
     shoulder: [150, 190], upper: 'M158.9 202.1L195.4 172.1L180.6 151.9L141.1 177.9Z', elbow: [188, 162],
@@ -51,17 +58,19 @@ const ARMS: Record<Exclude<CkPose, 'none' | 'climb'>, Arm> = {
     <svg class="ckg-svg" [attr.viewBox]="box()" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
       @if (form() === 'full') {
         <g class="ckg-bob" [class.ckg-walk]="walking()">
-          <!-- legs and shoes first; the long kurta covers the hips -->
+          <!-- legs first; the knee-length kurta covers the hips, as in the photo -->
           @if (pose() === 'climb') {
-            <g class="ckg-leg ckg-leg--a"><path d="M86 298L86 372" class="ckg-pant"/><path d="M72 372H104Q108 382 102 388H66Q64 378 72 372Z" class="ckg-shoe"/></g>
-            <g class="ckg-leg ckg-leg--up"><path d="M116 298L158 322L162 356" class="ckg-pant"/><path d="M148 352H182Q187 360 182 366H148Z" class="ckg-shoe"/></g>
+            <g class="ckg-leg ckg-leg--a"><path d="M86 300V372" class="ckg-pant-ink"/><path d="M86 300V372" class="ckg-pant"/><path d="M78 360q8 3 16 0M78 366q8 3 16 0" class="ckg-gather"/><path d="M70 372H98Q110 376 113 386H68Q64 379 70 372Z" class="ckg-shoe"/></g>
+            <g class="ckg-leg ckg-leg--up"><path d="M116 300L160 308L162 326" class="ckg-pant-ink"/><path d="M116 300L160 308L162 326" class="ckg-pant"/><path d="M146 326H176Q188 330 190 338H144Q140 331 146 326Z" class="ckg-shoe"/></g>
+            <path d="M24 218H176C178 252 188 284 198 306Q162 312 132 326Q80 346 26 338C25 302 24 262 24 218Z" class="ckg-kurta"/>
           } @else {
-            <g class="ckg-leg ckg-leg--a"><path d="M86 298L86 372" class="ckg-pant"/><path d="M72 372H106Q110 382 104 388H66Q64 378 72 372Z" class="ckg-shoe"/></g>
-            <g class="ckg-leg ckg-leg--b"><path d="M114 298L114 372" class="ckg-pant"/><path d="M100 372H134Q138 382 132 388H94Q92 378 100 372Z" class="ckg-shoe"/></g>
+            <g class="ckg-leg ckg-leg--a"><path d="M86 300V372" class="ckg-pant-ink"/><path d="M86 300V372" class="ckg-pant"/><path d="M78 360q8 3 16 0M78 366q8 3 16 0" class="ckg-gather"/><path d="M70 372H98Q110 376 113 386H68Q64 379 70 372Z" class="ckg-shoe"/></g>
+            <g class="ckg-leg ckg-leg--b"><path d="M114 300V372" class="ckg-pant-ink"/><path d="M114 300V372" class="ckg-pant"/><path d="M106 360q8 3 16 0M106 366q8 3 16 0" class="ckg-gather"/><path d="M98 372H126Q138 376 141 386H96Q92 379 98 372Z" class="ckg-shoe"/></g>
+            <path d="M24 218H176C176 262 175 302 174 338Q100 348 26 338C25 302 24 262 24 218Z" class="ckg-kurta"/>
+            <path d="M25 224C25 264 26 304 27 338L42 340C40 304 39 264 40 224ZM175 224C175 264 174 304 173 338L158 340C160 304 161 264 160 224Z" class="ckg-shade"/>
+            <path d="M30 302L27 338M170 302L173 338" class="ckg-slit"/>
           }
-          <path d="M24 218H176C177 248 181 278 186 306Q100 324 14 306C19 278 23 248 24 218Z" fill="url(#fx-kurta)"/>
-          <path d="M14 306Q100 324 186 306" stroke="#1a3055" stroke-width="2" fill="none" opacity=".7"/>
-          <path d="M44 232C42 262 38 286 32 304M156 232C158 262 162 286 168 304" stroke="#162c4f" stroke-width="2" fill="none" opacity=".35"/>
+          <path d="M64 244q-3 40-6 86M136 244q3 40 6 86M100 236v96" class="ckg-fold"/>
           <use href="#fx-body"/>
           <ng-container [ngTemplateOutlet]="top"/>
         </g>
@@ -121,21 +130,21 @@ const ARMS: Record<Exclude<CkPose, 'none' | 'climb'>, Arm> = {
       </svg:g>
       @if (arm(); as a) {
         <ng-container [ngTemplateOutlet]="armTpl" [ngTemplateOutletContext]="{ a: a, mirror: false }"/>
-        @if (pose() === 'climb') { <svg:g transform="translate(200 0) scale(-1 1)"><ng-container [ngTemplateOutlet]="armTpl" [ngTemplateOutletContext]="{ a: a, mirror: true }"/></svg:g> }
+        @if (form() === 'full') { <svg:g transform="translate(200 0) scale(-1 1)"><ng-container [ngTemplateOutlet]="armTpl" [ngTemplateOutletContext]="{ a: otherArm(), mirror: true }"/></svg:g> }
       }
     </ng-template>
 
     <ng-template #armTpl let-a="a" let-mirror="mirror">
-      <svg:g [class]="'fx-arm ' + (mirror ? 'ckg-arm--still' : a.cls)">
-        <g fill="#1a3055" stroke="#1a3055" stroke-width="3" stroke-linejoin="round">
+      <svg:g [class]="'fx-arm ' + a.cls + (mirror ? ' ckg-arm--mirror' : '')">
+        <g fill="#3d4350" stroke="#3d4350" stroke-width="3" stroke-linejoin="round">
           <path [attr.d]="a.upper"/><circle [attr.cx]="a.elbow[0]" [attr.cy]="a.elbow[1]" r="12.5"/><path [attr.d]="a.fore"/>
         </g>
         <g fill="url(#fx-sleeve)">
           <circle [attr.cx]="a.shoulder[0]" [attr.cy]="a.shoulder[1]" r="15"/><path [attr.d]="a.upper"/>
           <circle [attr.cx]="a.elbow[0]" [attr.cy]="a.elbow[1]" r="12.5"/><path [attr.d]="a.fore"/>
         </g>
-        <path [attr.d]="a.crease" stroke="#1a3055" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-        <path [attr.d]="a.cuff" fill="#4a70aa" stroke="#1a3055" stroke-width="1.3" stroke-linejoin="round"/>
+        <path [attr.d]="a.crease" stroke="#a3abba" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <path [attr.d]="a.cuff" fill="#fbfcfe" stroke="#3d4350" stroke-width="1.3" stroke-linejoin="round"/>
         <use [attr.href]="'#fx-hand-' + a.hand" [attr.transform]="a.handAt"/>
       </svg:g>
     </ng-template>
@@ -151,8 +160,16 @@ export class CkGuide {
 
   readonly arm = computed<Arm | null>(() => {
     const p = this.pose();
-    if (p === 'none' || this.form() === 'face') return null;
-    return p === 'climb' ? { ...ARMS.cheer, cls: 'ckg-arm--still' } : ARMS[p];
+    if (this.form() === 'face') return null;
+    if (p === 'climb') return { ...ARMS.cheer, cls: 'ckg-arm--still' };
+    // the full body always shows the second arm, so 'none' there means both arms hang
+    return p === 'none' ? (this.form() === 'full' ? HANG : null) : ARMS[p];
+  });
+  /** The left arm of the full body (drawn mirrored). */
+  readonly otherArm = computed<Arm>(() => {
+    const p = this.pose();
+    if (p === 'climb') return { ...ARMS.cheer, cls: 'ckg-arm--still' };
+    return p === 'swing' ? { ...HANG, cls: 'ckg-arm--swing ckg-arm--swing-b' } : HANG;
   });
   readonly box = computed(() => {
     switch (this.form()) {

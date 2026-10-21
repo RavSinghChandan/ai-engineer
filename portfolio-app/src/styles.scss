@@ -556,22 +556,32 @@ html[data-theme="light"] .how-item .how-card .how-proof b { color: #26890D; }
 @keyframes fx-row   { from { opacity: 0; translate: -10px 0; } to { opacity: 1; translate: 0 0; } }
 @keyframes fx-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -3px; } }
 
-/* The Chandan caricature (ck-guide): sizing, legs, walking and cheering. Global because Angular
-   renames component keyframes unevenly. */
+/* The Chandan caricature (ck-guide): attire from the photo (white cotton kurta, white churidar,
+   brown mojari), inked like a hand-drawn illustration. Global because Angular renames component
+   keyframes unevenly. */
 .ckg { display: inline-block; line-height: 0; }
 .ckg-svg { display: block; width: 100%; height: 100%; overflow: visible; }
-.ckg-pant { fill: none; stroke: #e6dfcf; stroke-width: 20; stroke-linecap: round; stroke-linejoin: round; }
-.ckg-shoe { fill: #3b2a20; stroke: #1c120c; stroke-width: 1.5; stroke-linejoin: round; }
+.ckg-kurta { fill: url(#fx-kurta); stroke: #3d4350; stroke-width: 2.2; stroke-linejoin: round; }
+.ckg-shade { fill: #aeb6c4; opacity: .4; }
+.ckg-slit { fill: none; stroke: #3d4350; stroke-width: 1.6; stroke-linecap: round; }
+.ckg-fold { fill: none; stroke: #b3bac7; stroke-width: 1.6; stroke-linecap: round; opacity: .8; }
+.ckg-pant-ink { fill: none; stroke: #3d4350; stroke-width: 22; stroke-linecap: round; stroke-linejoin: round; }
+.ckg-pant { fill: none; stroke: #f6f7fa; stroke-width: 17.5; stroke-linecap: round; stroke-linejoin: round; }
+.ckg-gather { fill: none; stroke: #b3bac7; stroke-width: 1.4; stroke-linecap: round; }
+.ckg-shoe { fill: #8a5530; stroke: #3b2414; stroke-width: 1.8; stroke-linejoin: round; }
 @media (prefers-reduced-motion: no-preference) {
   .ckg:not(.ckg-live) * { animation-play-state: paused !important; }
-  .ckg-walk.ckg-bob, .ckg-bob.ckg-walk { transform-box: fill-box; animation: ckg-bob 0.9s ease-in-out infinite; }
-  .ckg-walk .ckg-leg { transform-origin: 100px 298px; animation: ckg-step 0.9s ease-in-out infinite alternate; }
+  .ckg-bob.ckg-walk { animation: ckg-bob 0.45s ease-in-out infinite; }
+  .ckg-walk .ckg-leg { transform-origin: 100px 300px; animation: ckg-step 0.9s ease-in-out infinite alternate; }
   .ckg-walk .ckg-leg--b { animation-direction: alternate-reverse; }
+  .ckg-arm--swing { transform-origin: 150px 190px; animation: ckg-swing 0.9s ease-in-out infinite alternate-reverse; }
+  .ckg-arm--swing-b { animation-direction: alternate; }
   .ckg-arm--cheer { transform-origin: 150px 190px; animation: ckg-cheer 0.9s ease-in-out infinite; }
-  .ckg-leg--up { transform-origin: 116px 298px; animation: ckg-climb 1.6s ease-in-out infinite; }
+  .ckg-leg--up { transform-origin: 116px 300px; animation: ckg-climb 1.6s ease-in-out infinite; }
 }
-@keyframes ckg-bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -3px; } }
-@keyframes ckg-step { from { rotate: -17deg; } to { rotate: 17deg; } }
+@keyframes ckg-bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -4px; } }
+@keyframes ckg-step { from { rotate: -16deg; } to { rotate: 16deg; } }
+@keyframes ckg-swing { from { rotate: -14deg; } to { rotate: 14deg; } }
 @keyframes ckg-cheer { 0%, 100% { rotate: 0deg; } 50% { rotate: -9deg; } }
 @keyframes ckg-climb { 0%, 100% { rotate: 0deg; } 50% { rotate: -4deg; } }
 .ckj-welcome-wrap { padding-top: 2.4rem; }
