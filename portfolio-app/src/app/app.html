@@ -798,7 +798,7 @@
       </div>
       <div>
         <h2 class="oss-h">I Don't Just Use Open Source. I Contribute to It.</h2>
-        <p class="oss-sub"><b>{{ openSource.length }} merged contributions</b> to libraries that Python and AI developers use every day: pypdf · fontTools · Pillow · fpdf2 · pydantic-extra-types · txtai · kornia · tox · mistune · Docling · Joblib · Sentence Transformers · NLTK · Authlib.</p>
+        <p class="oss-sub"><b>{{ openSource.length }} merged contributions</b> to libraries that Python and AI developers use every day: pypdf · fontTools · Pillow · fpdf2 · trafilatura · pydantic-extra-types · txtai · kornia · tox · mistune · Docling · Joblib · Sentence Transformers · NLTK · Authlib.</p>
       </div>
     </div>
     <proof-viz kind="MONTHS" [prs]="openSource" class="oss-months" />
@@ -1502,7 +1502,7 @@
     <p class="kg-a11y">
       Projects: @for (p of projects; track p.num) { {{ p.title }}{{ $last ? '.' : ', ' }} }
       Experience: @for (e of experience; track e.company) { {{ e.company }}{{ $last ? '.' : ', ' }} }
-      Open source: {{ openSource.length }} pull requests merged by maintainers of pypdf, fontTools, Pillow, fpdf2, txtai, kornia, tox, pydantic-extra-types, joblib, Sentence Transformers, NLTK and Authlib.
+      Open source: {{ openSource.length }} pull requests merged by maintainers of pypdf, fontTools, Pillow, fpdf2, trafilatura, txtai, kornia, tox, mistune, Docling, pydantic-extra-types, joblib, Sentence Transformers, NLTK and Authlib.
       How I work: @for (s of deployCards; track s.name) { {{ s.name }}{{ $last ? '.' : ', ' }} }
     </p>
   </div>

@@ -468,12 +468,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '122',
+      stat:  '125',
       title: 'Pull requests merged by other projects\' maintainers.',
-      sub:   'People I had never met reviewed my code and accepted it: pypdf, fontTools, Pillow, fpdf2, txtai, kornia, tox, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
+      sub:   'People I had never met reviewed my code and accepted it: pypdf, fontTools, Pillow, fpdf2, trafilatura, txtai, kornia, tox, mistune, Docling, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '122 merged, all reviewed! ✅',
+      aaravSay: '125 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -601,6 +601,36 @@ export class App implements OnInit, AfterViewInit {
   // ── Open Source: merged PRs into major libraries. Append a new entry per merge; the
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'Let table cells without a width share the rest in write_html()',
+      desc: 'A table whose first row gave a width to only some cells, such as <td width="50%">, made write_html() raise ValueError. Like browsers, the cells without a width now share the space that is left. Reworked after andersonhc found two cases in review (a colspan in the first row, and cellspacing); merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2035',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.3k★',
+      title: 'Handle a TD operator with a missing or non-numeric ty',
+      desc: 'A TD operator with a name instead of a number made extract_text() raise TypeError in both plain and layout mode, and a TD with too few operands raised IndexError in layout mode. The text spacing is now only changed when the value is a number, so the rest of the page is still extracted. Merged by Stefan.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4233',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'adbar/trafilatura',
+      logo: 'trafilatura-logo.png',
+      org: 'adbar',
+      stars: '7.0k★',
+      title: 'Indent a list nested in a numbered item to the item text in Markdown output',
+      desc: 'A list inside a numbered item was indented by 2 spaces, but Markdown needs it to line up with the item text (3 spaces after "1. "). Renderers showed the nested items as siblings. The indent now matches the width of the parent marker, so the Markdown nests exactly like the HTML. Merged by adbar, the author of trafilatura.',
+      pr: 'https://github.com/adbar/trafilatura/pull/984',
+      merged: 'Oct 2026',
+    },
     {
       repo: 'py-pdf/fpdf2',
       logo: 'fpdf2-logo.png',
@@ -2156,7 +2186,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defense','PII protection','Output validation','Secure tool use','Threat modeling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers, and own the result.',
-      evidence: '122 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
+      evidence: '125 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
