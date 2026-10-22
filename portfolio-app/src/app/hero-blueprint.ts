@@ -20,9 +20,9 @@ interface Node { x: number; y: number; t: string; s: string; layer: Layer; hit?:
           <path d="M40 0 H0 V40" fill="none" class="bp-gridline"/>
         </pattern>
         <linearGradient id="bp-layers" gradientUnits="userSpaceOnUse" x1="0" y1="0" [attr.x2]="w()" [attr.y2]="h()">
-          <stop offset="0" stop-color="#F37021"/><stop offset="0.5" stop-color="#E0A526"/><stop offset="1" stop-color="#F37021"/>
+          <stop offset="0" stop-color="#86BC25"/><stop offset="0.5" stop-color="#00ABAB"/><stop offset="1" stop-color="#86BC25"/>
         </linearGradient>
-        <radialGradient id="bp-mist-g"><stop offset="0" stop-color="#F37021" stop-opacity="0.16"/><stop offset="0.6" stop-color="#E0A526" stop-opacity="0.06"/><stop offset="1" stop-color="#E0A526" stop-opacity="0"/></radialGradient>
+        <radialGradient id="bp-mist-g"><stop offset="0" stop-color="#86BC25" stop-opacity="0.16"/><stop offset="0.6" stop-color="#00ABAB" stop-opacity="0.06"/><stop offset="1" stop-color="#00ABAB" stop-opacity="0"/></radialGradient>
         <filter id="bp-soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="30"/></filter>
       </defs>
       <rect [attr.width]="w()" [attr.height]="h()" fill="url(#bp-grid)" class="bp-gridrect"/>

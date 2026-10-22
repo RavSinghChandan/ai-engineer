@@ -52,8 +52,7 @@
               }
             ],
             "styles": [
-              "src/styles.scss",
-              "src/isha-theme.scss"
+              "src/styles.scss"
             ]
           },
           "configurations": {
