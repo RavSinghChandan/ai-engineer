@@ -1,7 +1,7 @@
 :host {
   display: block; margin: 0 0 1rem; padding: 0.7rem 0.75rem 0.55rem;
   border: 1px solid var(--border); background: rgba(127, 127, 127, 0.04);
-  --pv-a: var(--dl-green, #86BC25); --pv-b: var(--dl-teal, #00ABAB);
+  --pv-a: var(--dl-green, #F37021); --pv-b: var(--dl-teal, #E0A526);
 }
 /* nothing moves until the card is on screen */
 :host:not(.play) * { animation-play-state: paused !important; }
@@ -57,7 +57,7 @@
 
 /* G1-G5: a request clears every gate; an injection is stopped at G2 */
 .pv-gate rect { fill: none; stroke: var(--muted); stroke-width: 1.4; animation: pv-gate 4s linear infinite; }
-@keyframes pv-gate { 0% { stroke: var(--muted); } 8%, 40% { stroke: var(--pv-a); fill: rgba(134, 188, 37, 0.18); } 60%, 100% { stroke: var(--muted); fill: none; } }
+@keyframes pv-gate { 0% { stroke: var(--muted); } 8%, 40% { stroke: var(--pv-a); fill: rgba(243, 112, 33, 0.18); } 60%, 100% { stroke: var(--muted); fill: none; } }
 .pv-req { fill: var(--pv-a); offset-path: path('M8 30 H292'); animation: pv-req 4s linear infinite; }
 @keyframes pv-req { 0% { offset-distance: 0%; opacity: 0; } 5% { opacity: 1; } 95% { opacity: 1; } 100% { offset-distance: 100%; opacity: 0; } }
 .pv-bad { fill: var(--red, #DA291C); offset-path: path('M8 30 H96'); animation: pv-bad 8s linear infinite; animation-delay: 4s; opacity: 0; }
@@ -83,12 +83,12 @@
 }
 .pv-step rect, .pv-step-t { animation: inherit; animation-name: pv-step-lit; }
 @keyframes pv-step-lit {
-  0%, 24% { stroke: var(--pv-a); fill: rgba(134, 188, 37, 0.14); color: var(--pv-a); }
+  0%, 24% { stroke: var(--pv-a); fill: rgba(243, 112, 33, 0.14); color: var(--pv-a); }
   30%, 100% { stroke: var(--border); fill: var(--bg); }
 }
 .pv-step .pv-step-t { animation-name: pv-step-text; }
 @keyframes pv-step-text { 0%, 24% { fill: var(--text); } 30%, 100% { fill: var(--muted); } }
-.pv-step-live rect { stroke: var(--green, #86BC25); }
+.pv-step-live rect { stroke: var(--green, #F37021); }
 .pv-packet-lin { animation-name: pv-travel-lin2; animation-timing-function: linear; }
 @keyframes pv-travel-lin2 { 0% { offset-distance: 0%; } 100% { offset-distance: 100%; } }
 .pv.pv-compact { height: 30px; }
@@ -97,7 +97,7 @@
 .pv-orbit { fill: var(--pv-a); offset-path: path('M150 10 A118 22 0 0 1 268 32 A118 22 0 0 1 150 54 A118 22 0 0 1 32 32 A118 22 0 0 1 150 10'); animation: pv-travel-lin2 3.6s linear infinite; }
 
 /* SECURITY: inputs meet the guard */
-.pv-shield { fill: rgba(134, 188, 37, 0.08); stroke: var(--pv-a); stroke-width: 1.4; }
+.pv-shield { fill: rgba(243, 112, 33, 0.08); stroke: var(--pv-a); stroke-width: 1.4; }
 .pv-shield-t { font-family: 'Fira Code', monospace; font-size: 12px; font-weight: 800; fill: var(--pv-a); }
 .pv-verdict { font-family: 'Fira Code', monospace; font-size: 10px; font-weight: 700; }
 .pv-input { opacity: 0; animation: pv-in 3.6s ease-out infinite; }

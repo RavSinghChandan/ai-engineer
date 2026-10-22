@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&family=Fira+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -6,10 +6,10 @@
    nav toggle (html[data-theme="light"]). Component styles only read these
    tokens, because Angular's emulated encapsulation cannot match html[...]. */
 :root {
-  --dl-green:   #86BC25;
-  --dl-teal:    #00ABAB;
+  --dl-green:   #F37021;
+  --dl-teal:    #E0A526;
   --dl-blue:    #62B5E5;
-  --dl-grad:    linear-gradient(100deg, #86BC25 0%, #43B02A 45%, #00ABAB 100%);
+  --dl-grad:    linear-gradient(100deg, #F37021 0%, #E8862E 45%, #E0A526 100%);
   --ease:       cubic-bezier(0.4, 0, 0.2, 1);
   --red:        #DA291C;
 }
@@ -27,21 +27,21 @@
   --text2:   #C8C9C7;
   --text3:   #8E9093;
   --muted:   #A7A8AA;
-  --accent:   #86BC25;
-  --accent-2: #A6D86E;
-  --purple:    #86BC25;
-  --purple-lt: #A6D86E;
-  --green:     #86BC25;
-  --cyan:      #00ABAB;
+  --accent:   #F37021;
+  --accent-2: #FFB27A;
+  --purple:    #F37021;
+  --purple-lt: #FFB27A;
+  --green:     #F37021;
+  --cyan:      #E0A526;
   --amber:     #FFB81C;
   --blue:      #62B5E5;
-  --glow:    rgba(134,188,37,0.22);
+  --glow:    rgba(243,112,33,0.22);
   --shadow:  0 0 0 1px rgba(255,255,255,0.06), 0 10px 30px -12px rgba(0,0,0,0.8);
   --card-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 18px 40px -20px rgba(0,0,0,0.9);
-  --card-shadow-hover: inset 0 3px 0 #86BC25, inset 0 1px 0 rgba(255,255,255,0.05), 0 28px 60px -24px rgba(134,188,37,0.25);
+  --card-shadow-hover: inset 0 3px 0 #F37021, inset 0 1px 0 rgba(255,255,255,0.05), 0 28px 60px -24px rgba(243,112,33,0.25);
   --chip-active-bg: #FFFFFF;
   --chip-active-fg: #000000;
-  --geo-a: #86BC25; --geo-b: #00ABAB; --geo-c: #62B5E5; --geo-line: rgba(255,255,255,0.6); --geo-opacity: 0.55; --geo-opacity-badge: 0.85;
+  --geo-a: #F37021; --geo-b: #E0A526; --geo-c: #62B5E5; --geo-line: rgba(255,255,255,0.6); --geo-opacity: 0.55; --geo-opacity-badge: 0.85;
 }
 
 html[data-theme="light"] {
@@ -57,31 +57,31 @@ html[data-theme="light"] {
   --text2:   #53565A;
   --text3:   #75787B;
   --muted:   #53565A;
-  --accent:   #26890D;
-  --accent-2: #046A38;
-  --purple:    #26890D;
-  --purple-lt: #046A38;
-  --green:     #26890D;
+  --accent:   #CF4520;
+  --accent-2: #A8361A;
+  --purple:    #CF4520;
+  --purple-lt: #A8361A;
+  --green:     #CF4520;
   --cyan:      #0D8390;
   --amber:     #B35A00;
   --blue:      #007CB0;
-  --glow:    rgba(134,188,37,0.18);
+  --glow:    rgba(243,112,33,0.18);
   --shadow:  0 0 0 1px #E1E1DF, 0 2px 12px rgba(0,0,0,0.05);
   --card-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 10px 30px -12px rgba(0,0,0,0.12);
-  --card-shadow-hover: inset 0 3px 0 #86BC25, 0 2px 4px rgba(0,0,0,0.04), 0 24px 48px -16px rgba(0,0,0,0.22);
+  --card-shadow-hover: inset 0 3px 0 #F37021, 0 2px 4px rgba(0,0,0,0.04), 0 24px 48px -16px rgba(0,0,0,0.22);
   --chip-active-bg: #000000;
   --chip-active-fg: #FFFFFF;
-  --geo-a: #26890D; --geo-b: #0D8390; --geo-c: #007CB0; --geo-line: rgba(0,0,0,0.5); --geo-opacity: 0.4; --geo-opacity-badge: 0.7;
+  --geo-a: #CF4520; --geo-b: #0D8390; --geo-c: #007CB0; --geo-line: rgba(0,0,0,0.5); --geo-opacity: 0.4; --geo-opacity-badge: 0.7;
 }
 
 /* Tags: tinted on dark, pastel on light */
-.tag-purple, .tag-green { background: rgba(134,188,37,0.12); color: #A6D86E; border: 1px solid rgba(134,188,37,0.28); }
+.tag-purple, .tag-green { background: rgba(243,112,33,0.12); color: #FFB27A; border: 1px solid rgba(243,112,33,0.28); }
 .tag-cyan   { background: rgba(0,171,171,0.12);  color: #5FD3D3; border: 1px solid rgba(0,171,171,0.3); }
 .tag-amber  { background: rgba(255,184,28,0.10); color: #FFCF66; border: 1px solid rgba(255,184,28,0.28); }
 .tag-red    { background: rgba(218,41,28,0.12);  color: #FF8A80; border: 1px solid rgba(218,41,28,0.3); }
 .tag-blue   { background: rgba(98,181,229,0.12); color: #9FD3F2; border: 1px solid rgba(98,181,229,0.3); }
 html[data-theme="light"] {
-  .tag-purple { background: #EEF6E0; color: #046A38; border-color: #C5E09A; }
+  .tag-purple { background: #FBEADC; color: #A8361A; border-color: #F5C9A8; }
   .tag-cyan   { background: #E1F1F2; color: #0A6670; border-color: #A6D3D8; }
   .tag-green  { background: #E6F2E2; color: #1E6E0A; border-color: #B4D9A8; }
   .tag-amber  { background: #FDF0DE; color: #8A4F00; border-color: #F2C98A; }
@@ -129,7 +129,7 @@ a { text-decoration: none; color: inherit; }
 .btn-primary {
   background: var(--purple); color: #fff;
   box-shadow: 0 0 0 0 var(--glow);
-  &:hover { background: #046A38; transform: translateY(-1px); box-shadow: 0 4px 20px var(--glow); }
+  &:hover { background: #A8361A; transform: translateY(-1px); box-shadow: 0 4px 20px var(--glow); }
 }
 .btn-ghost {
   background: transparent; color: var(--text2);
@@ -229,12 +229,12 @@ h2 {
   /* Code */
   code {
     font-family: 'Fira Code', monospace; font-size: 0.71rem;
-    background: rgba(134,188,37,0.14); color: #26890D;
-    border: 1px solid rgba(134,188,37,0.25); border-radius: 4px;
+    background: rgba(243,112,33,0.14); color: #CF4520;
+    border: 1px solid rgba(243,112,33,0.25); border-radius: 4px;
     padding: 0.05rem 0.32rem;
   }
   pre {
-    background: #0d0d1a; border: 1px solid rgba(134,188,37,0.22);
+    background: #0d0d1a; border: 1px solid rgba(243,112,33,0.22);
     border-radius: 8px; padding: 0.7rem 0.9rem; margin: 0.5rem 0;
     font-size: 0.71rem; line-height: 1.6;
     white-space: pre-wrap; word-break: break-all; max-width: 100%;
@@ -253,8 +253,8 @@ h2 {
   --cb-text2:        #94a3b8;
   --cb-text3:        #64748b;
   --cb-head-bg:      #1e1b4b;
-  --cb-head-color:   #26890D;
-  --cb-head-border:  #26890D;
+  --cb-head-color:   #CF4520;
+  --cb-head-border:  #CF4520;
   --cb-chip-bg:      #312e81;
   --cb-chip-color:   #c7d2fe;
   --cb-btn-bg:       #312e81;
@@ -262,9 +262,9 @@ h2 {
   --cb-btn-border:   #4338ca;
   /* outline chips — same as btn in dark mode */
   --cb-chip-ol-bg:      #1e1b4b;
-  --cb-chip-ol-color:   #26890D;
+  --cb-chip-ol-color:   #CF4520;
   --cb-chip-ol-border:  #4338ca;
-  --cb-link:         #26890D;
+  --cb-link:         #CF4520;
   --cb-divider:      rgba(255,255,255,0.1);
   --cb-input-bg:     #1a1a2e;
   --cb-input-color:  #f1f5f9;
@@ -279,19 +279,19 @@ html[data-theme="light"] {
   --cb-text:         #0f172a;
   --cb-text2:        #475569;
   --cb-text3:        #94a3b8;
-  --cb-head-bg:      #EEF6E0;
+  --cb-head-bg:      #FBEADC;
   --cb-head-color:   #4c1d95;
-  --cb-head-border:  #26890D;
-  --cb-chip-bg:      #26890D;
+  --cb-head-border:  #CF4520;
+  --cb-chip-bg:      #CF4520;
   --cb-chip-color:   #ffffff;
-  --cb-btn-bg:       #26890D;
+  --cb-btn-bg:       #CF4520;
   --cb-btn-color:    #ffffff;
-  --cb-btn-border:   #046A38;
+  --cb-btn-border:   #A8361A;
   /* outline chips (followup + quick prompt) — dark text on tinted bg */
-  --cb-chip-ol-bg:      #EEF6E0;
+  --cb-chip-ol-bg:      #FBEADC;
   --cb-chip-ol-color:   #4c1d95;
-  --cb-chip-ol-border:  #26890D;
-  --cb-link:         #046A38;
+  --cb-chip-ol-border:  #CF4520;
+  --cb-link:         #A8361A;
   --cb-divider:      #e2e8f0;
   --cb-input-bg:     #f8fafc;
   --cb-input-color:  #0f172a;
@@ -383,12 +383,12 @@ html[data-theme="light"] {
 .cfx-car { animation-timing-function: linear; animation-iteration-count: infinite; }
 .cfx-car.east { animation-name: cfx-east; }
 .cfx-car.west { animation-name: cfx-west; }
-.cfx-body { fill: #86BC25; opacity: 0.85; }
-.cfx-car.west .cfx-body { fill: #00ABAB; }
+.cfx-body { fill: #F37021; opacity: 0.85; }
+.cfx-car.west .cfx-body { fill: #E0A526; }
 .cfx-head { fill: #FFE9A8; filter: drop-shadow(0 0 1.5px rgba(255, 233, 168, 0.9)); }
 .cfx-tail { fill: #FF4D4D; }
 .cfx-train { animation: cfx-train 14s linear infinite; }
-.cfx-coach { fill: #00ABAB; opacity: 0.9; }
+.cfx-coach { fill: #E0A526; opacity: 0.9; }
 .cfx-cw { fill: #FFE9A8; }
 /* the street only moves while the skyline is on screen */
 [cityLights]:not(.city-live) .cfx * , [cityLights]:not(.city-live) .cfx { animation-play-state: paused !important; }
@@ -412,7 +412,7 @@ html[data-theme="light"] {
 
 /* Light theme: the proof figure uses Deloitte's deep green for contrast on white (global, because
    Angular's scoping would also tag the leading html selector and never match). */
-html[data-theme="light"] .how-item .how-card .how-proof b { color: #26890D; }
+html[data-theme="light"] .how-item .how-card .how-proof b { color: #CF4520; }
 
 /* ═══════════════════════════════════════════════════════════════
    HOW I WORK: the five scenes are alive.
@@ -476,7 +476,7 @@ html[data-theme="light"] .how-item .how-card .how-proof b { color: #26890D; }
   .how-deliver { position: relative; overflow: hidden; }
   .how-deliver::after {
     content: ''; position: absolute; inset: 0; pointer-events: none; translate: -100% 0;
-    background: linear-gradient(100deg, transparent 38%, rgba(134, 188, 37, 0.16) 50%, transparent 62%);
+    background: linear-gradient(100deg, transparent 38%, rgba(243, 112, 33, 0.16) 50%, transparent 62%);
     animation: fx-sheen 7s ease-in-out infinite;
   }
 }

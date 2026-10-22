@@ -12,7 +12,7 @@
 }
 @keyframes bp-flow { to { stroke-dashoffset: -1000; } }
 
-.bp-packet { fill: var(--dl-green, #86BC25); offset-distance: 0%; animation: bp-run 18s linear infinite; filter: drop-shadow(0 0 4px rgba(134, 188, 37, 0.8)); }
+.bp-packet { fill: var(--dl-green, #F37021); offset-distance: 0%; animation: bp-run 18s linear infinite; filter: drop-shadow(0 0 4px rgba(243, 112, 33, 0.8)); }
 @keyframes bp-run { to { offset-distance: 100%; } }
 
 .bp-node rect { fill: var(--bg); stroke: var(--border); stroke-width: 1.2; }
@@ -23,9 +23,9 @@
 /* the last node is the real product, lit by the real health check */
 .bp-prod rect { stroke: var(--muted); stroke-width: 1.5; }
 .bp-prod .bp-halo { fill: none; stroke: none; }
-.bp-prod.ok rect { stroke: var(--green, #86BC25); }
-.bp-prod.ok .bp-s { fill: var(--green, #86BC25); }
-.bp-prod.ok .bp-halo { stroke: var(--green, #86BC25); stroke-width: 2; transform-box: fill-box; transform-origin: center; animation: bp-halo 2.4s ease-out infinite; }
+.bp-prod.ok rect { stroke: var(--green, #F37021); }
+.bp-prod.ok .bp-s { fill: var(--green, #F37021); }
+.bp-prod.ok .bp-halo { stroke: var(--green, #F37021); stroke-width: 2; transform-box: fill-box; transform-origin: center; animation: bp-halo 2.4s ease-out infinite; }
 .bp-prod.slow rect { stroke: var(--amber, #FFB81C); }
 .bp-prod.down rect { stroke: var(--red, #DA291C); }
 @keyframes bp-halo { from { transform: scale(0.8); opacity: 0.7; } to { transform: scale(3.4); opacity: 0; } }
@@ -38,9 +38,9 @@
 }
 
 /* one Deloitte palette: green outlines, teal accents, neutral text */
-.bp-node rect:first-of-type { stroke: rgba(134, 188, 37, 0.42); }
-.bp-node .bp-tick { fill: var(--dl-green, #86BC25); }
-.bp-node .bp-s { fill: color-mix(in srgb, var(--dl-teal, #00ABAB) 60%, var(--muted)); }
+.bp-node rect:first-of-type { stroke: rgba(243, 112, 33, 0.42); }
+.bp-node .bp-tick { fill: var(--dl-green, #F37021); }
+.bp-node .bp-s { fill: color-mix(in srgb, var(--dl-teal, #E0A526) 60%, var(--muted)); }
 
 /* a soft green-teal mist drifting behind the loop */
 .bp-mist ellipse { transform-box: fill-box; transform-origin: center; }
@@ -57,11 +57,11 @@
 @media (prefers-reduced-motion: reduce) { .bp-mist ellipse { animation: none !important; } }
 
 /* icons, and a box lights up each time a request passes through it */
-.bp-icon { fill: none; stroke: var(--dl-green, #86BC25); stroke-width: 1.1; stroke-linecap: round; stroke-linejoin: round; opacity: 0.9; }
+.bp-icon { fill: none; stroke: var(--dl-green, #F37021); stroke-width: 1.1; stroke-linecap: round; stroke-linejoin: round; opacity: 0.9; }
 .bp-node .bp-box { animation: bp-hit 4.5s linear infinite; animation-delay: var(--hit, 0s); }
 @keyframes bp-hit {
-  0% { stroke: rgba(134, 188, 37, 1); fill: rgba(134, 188, 37, 0.18); }
-  14%, 100% { stroke: rgba(134, 188, 37, 0.42); fill: var(--bg); }
+  0% { stroke: rgba(243, 112, 33, 1); fill: rgba(243, 112, 33, 0.18); }
+  14%, 100% { stroke: rgba(243, 112, 33, 0.42); fill: var(--bg); }
 }
-.bp-trail { fill: var(--dl-teal, #00ABAB); offset-distance: 0%; animation: bp-run 18s linear infinite; }
+.bp-trail { fill: var(--dl-teal, #E0A526); offset-distance: 0%; animation: bp-run 18s linear infinite; }
 @media (prefers-reduced-motion: reduce) { .bp-node .bp-box, .bp-trail { animation: none !important; } .bp-trail { display: none; } }

@@ -1,0 +1,214 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Isha / Inner Engineering design language, applied to the whole portfolio.
+   Taken from isha.sadhguru.org and its Inner Engineering page: warm cream and
+   white sections with slanted edges, a dark brown nav bar with dividers, a deep
+   navy hero, Inner Engineering orange for every call to action, slate headings,
+   gold check marks, maroon-barred cards and the orange side tab. No Isha
+   images, logos, illustrations or licensed fonts are used: Fira Sans and
+   Merriweather (free) stand in for Fedra Sans and Fedra Serif.
+   Every rule starts with html[data-theme] so it outranks component styles.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  --ie-orange: #F37021;      /* Inner Engineering buttons and side tab */
+  --ie-orange-dk: #CF4520;   /* Isha links and text accents (AA on white) */
+  --ie-navy: #12166F;        /* IE hero, headings in programme copy */
+  --ie-navy-dk: #00005B;
+  --ie-cream: #F1EBDF;       /* section background */
+  --ie-sand: #E0D7C8;        /* utility strip */
+  --ie-brown: #463F38;       /* nav bar */
+  --ie-ink: #28231E;         /* darkest text */
+  --ie-slate: #3B444B;       /* section headings */
+  --ie-gold: #E0A526;        /* check marks, outline icons */
+  --ie-maroon: #A81D28;      /* card title bar */
+  --ie-muted: #AEA493;       /* large quiet headings */
+  --ie-serif: 'Merriweather', Georgia, 'Times New Roman', serif;
+  --ie-sans: 'Fira Sans', 'Segoe UI', Helvetica, Arial, sans-serif;
+  --ie-cut: clamp(28px, 4vw, 56px); /* depth of the slanted section edges */
+}
+
+/* Light theme = the Isha site itself */
+html[data-theme="light"] {
+  --bg: #FFFFFF; --bg-alt: var(--ie-cream); --surface: var(--ie-cream);
+  --card: #FFFFFF; --card-hi: #FFFFFF;
+  --border: rgba(40, 35, 30, 0.10); --border2: #DBD4C6;
+  --text: var(--ie-ink); --text2: #433F3C; --text3: #6D6358; --muted: #6D6358;
+  --accent: var(--ie-orange-dk); --accent-2: var(--ie-orange);
+  --purple: var(--ie-orange-dk); --purple-lt: var(--ie-orange);
+  --green: #3D7A1E; --cyan: var(--ie-navy); --amber: #B7791F; --blue: var(--ie-navy);
+  --glow: rgba(243, 112, 33, 0.22);
+  --shadow: 0 1px 2px rgba(40, 35, 30, 0.06), 0 8px 24px -14px rgba(40, 35, 30, 0.35);
+  --card-shadow: 0 1px 2px rgba(40, 35, 30, 0.06), 0 10px 26px -18px rgba(40, 35, 30, 0.45);
+  --card-shadow-hover: inset 0 3px 0 var(--ie-orange), 0 18px 40px -22px rgba(40, 35, 30, 0.5);
+  --chip-active-bg: var(--ie-ink); --chip-active-fg: #FFFFFF;
+  --geo-a: var(--ie-orange); --geo-b: var(--ie-gold); --geo-c: var(--ie-navy);
+  --geo-line: rgba(40, 35, 30, 0.35); --geo-opacity: 0.32; --geo-opacity-badge: 0.6;
+}
+/* Dark theme = the same design at night: brown instead of cream */
+html[data-theme="dark"] {
+  --bg: #1E1A16; --bg-alt: #28231E; --surface: #28231E;
+  --card: #2E2822; --card-hi: #352E27;
+  --border: rgba(250, 247, 240, 0.09); --border2: rgba(250, 247, 240, 0.18);
+  --text: #FAF7F0; --text2: #DBD4C6; --text3: #AEA493; --muted: #AEA493;
+  --accent: #F68A4B; --accent-2: #FFB27A; --purple: #F68A4B; --purple-lt: #FFB27A;
+  --green: #8CC152; --cyan: #9BA5F5; --amber: var(--ie-gold); --blue: #9BA5F5;
+  --glow: rgba(243, 112, 33, 0.25);
+  --card-shadow: 0 12px 30px -20px rgba(0, 0, 0, 0.8);
+  --card-shadow-hover: inset 0 3px 0 var(--ie-orange), 0 20px 44px -24px rgba(0, 0, 0, 0.85);
+  --chip-active-bg: #FAF7F0; --chip-active-fg: var(--ie-ink);
+  --geo-a: var(--ie-orange); --geo-b: var(--ie-gold); --geo-c: #9BA5F5;
+}
+
+/* ── type ── */
+html[data-theme] body { font-family: var(--ie-sans); }
+html[data-theme] h1, html[data-theme] h2 { font-family: var(--ie-sans); font-weight: 500; letter-spacing: -0.015em; }
+html[data-theme="light"] h2 { color: var(--ie-slate); }
+html[data-theme] h3 { font-family: var(--ie-sans); }
+html[data-theme] .section-sub { font-family: var(--ie-serif); font-size: 1rem; line-height: 1.7; }
+html[data-theme] .eyebrow {
+  font-family: var(--ie-serif); font-size: 0.82rem; font-weight: 400; font-style: italic;
+  text-transform: none; letter-spacing: 0.01em; color: var(--accent);
+  &::before { display: none; }
+}
+/* Isha's leaf-and-line flourish under every section heading (drawn here, not copied) */
+html[data-theme] section > .container > h2::after,
+html[data-theme] section > .container > div > h2::after {
+  content: ''; display: block; width: 190px; height: 18px; margin-top: 0.7rem;
+  background: no-repeat left center / contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 190 18' fill='none' stroke='%23C9912D' stroke-width='1.4' stroke-linecap='round'%3E%3Cpath d='M4 9h68M118 9h68M10 12h40M140 12h40'/%3E%3Cpath d='M78 9c6-7 12-7 17 0c5-7 11-7 17 0c-6 7-12 7-17 0c-5 7-11 7-17 0z' fill='%23E0A526' fill-opacity='.25'/%3E%3Ccircle cx='95' cy='9' r='1.8' fill='%23C9912D'/%3E%3C/svg%3E");
+}
+html[data-theme] .ckj h2::after { display: none; }
+html[data-theme] .ckj .ckj-place { color: var(--ckj-ink); font-weight: 600; }
+
+/* ── buttons: Isha's square-ish orange ── */
+html[data-theme] .btn { border-radius: 3px; font-family: var(--ie-sans); font-weight: 500; letter-spacing: 0.01em; }
+html[data-theme] .btn-primary {
+  background: var(--ie-orange); color: #FFFFFF; box-shadow: 0 6px 16px -8px rgba(243, 112, 33, 0.7);
+  &:hover { background: #DB5F14; box-shadow: 0 10px 22px -10px rgba(243, 112, 33, 0.8); }
+}
+html[data-theme] .btn-ghost { border-radius: 3px; }
+
+/* ── nav: utility strip + dark brown bar with dividers ── */
+html[data-theme] nav[aria-label="Main navigation"] {
+  background: var(--ie-brown) !important; backdrop-filter: none !important; border-bottom: 0 !important;
+  box-shadow: 0 2px 10px -4px rgba(0, 0, 0, 0.4);
+  &.scrolled { background: var(--ie-brown) !important; }
+}
+html[data-theme] .isha-util {
+  background: var(--ie-sand); color: #5B5348; font-size: 0.78rem;
+  .container { display: flex; justify-content: flex-end; gap: 1.4rem; height: 30px; align-items: center; }
+  a { display: inline-flex; align-items: center; gap: 0.35rem; color: #5B5348; transition: color 0.2s; }
+  a:hover { color: var(--ie-ink); }
+  svg { width: 14px; height: 14px; }
+  @media (max-width: 640px) { .container { justify-content: center; gap: 1rem; } .isha-util-label { display: none; } }
+}
+html[data-theme] .nav-logo { color: #FAF7F0; font-family: var(--ie-serif); font-weight: 700; font-style: italic; span { color: var(--ie-orange); } }
+html[data-theme] .nav-links {
+  gap: 0;
+  a {
+    color: #FAF7F0; font-size: 0.92rem; font-weight: 500; text-transform: none; letter-spacing: 0;
+    padding: 0.35rem 0.85rem; border-left: 1px solid rgba(250, 247, 240, 0.28);
+    &:first-child { border-left: 0; }
+    &::after { left: 0.85rem; right: 0.85rem; width: auto; transform: scaleX(0); transform-origin: left; background: var(--ie-orange); transition: transform 0.2s var(--ease); }
+    &:hover, &.nav-active { color: #FFFFFF; &::after { transform: scaleX(1); width: auto; } }
+  }
+}
+@media (max-width: 768px) {
+  html[data-theme] .nav-mobile-open .nav-links { background: var(--ie-brown); top: 90px; a { border-left: 0; border-bottom: 1px solid rgba(250, 247, 240, 0.15); } }
+}
+html[data-theme] .theme-btn, html[data-theme] .hamburger-btn { color: #FAF7F0; border-color: rgba(250, 247, 240, 0.3); border-radius: 3px; }
+html[data-theme] .theme-btn:hover { color: #FFFFFF; border-color: rgba(250, 247, 240, 0.6); }
+html[data-theme] section[id], html[data-theme] .project-card { scroll-margin-top: 96px; }
+
+/* ── hero: the Inner Engineering navy panel ── */
+html[data-theme] .hero {
+  --text: #FFFFFF; --text2: #E3E5F7; --text3: #B8BDE8; --muted: #B8BDE8;
+  --border: rgba(255, 255, 255, 0.16); --border2: rgba(255, 255, 255, 0.3);
+  --card: rgba(255, 255, 255, 0.07); --card-hi: rgba(255, 255, 255, 0.1); --surface: rgba(255, 255, 255, 0.06);
+  --accent: #FFB27A; --purple: #FFB27A; --green: #9BE37A; --amber: #FFD182; --cyan: #B8BDE8;
+  color: #FFFFFF; padding-top: 8rem;
+  background:
+    radial-gradient(60% 70% at 78% 30%, rgba(80, 96, 230, 0.35), transparent 70%),
+    radial-gradient(50% 60% at 10% 90%, rgba(0, 0, 60, 0.55), transparent 70%),
+    linear-gradient(160deg, #161B86, var(--ie-navy) 55%, #0B0E57) !important;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--ie-cut)), 0 100%);
+  &::before { opacity: 0.5; }
+}
+html[data-theme] .hero h1 { color: #FFFFFF; font-family: var(--ie-serif); font-weight: 700; }
+html[data-theme] .hero .hero-title-accent { color: #FFB27A; font-family: var(--ie-sans); font-weight: 500; }
+html[data-theme] .hero hero-blueprint { opacity: 0.35; }
+html[data-theme] .hero .btn-ghost { color: #FFFFFF; border-color: rgba(255, 255, 255, 0.55); &:hover { border-color: #FFFFFF; } }
+
+/* ── sections: white and cream, joined by slanted edges like the Isha home page ── */
+html[data-theme="light"] #skills, html[data-theme="light"] .proof-panel, html[data-theme="light"] #experience {
+  background: var(--ie-cream) !important;
+}
+html[data-theme="dark"] #skills, html[data-theme="dark"] .proof-panel, html[data-theme="dark"] #experience {
+  background: #28231E !important;
+}
+html[data-theme] #skills, html[data-theme] .proof-panel, html[data-theme] #experience {
+  clip-path: polygon(0 var(--ie-cut), 100% 0, 100% calc(100% - var(--ie-cut)), 0 100%);
+  padding-top: calc(5.5rem + var(--ie-cut)); padding-bottom: calc(5.5rem + var(--ie-cut));
+  margin-top: calc(-1 * var(--ie-cut) / 2); margin-bottom: calc(-1 * var(--ie-cut) / 2);
+  position: relative;
+}
+
+/* ── contact: navy closing panel like the #MyInnerEngineering band ── */
+html[data-theme] .contact-section, html[data-theme] #contact {
+  --text: #FFFFFF; --text2: #E3E5F7; --text3: #B8BDE8; --muted: #B8BDE8;
+  --border: rgba(255, 255, 255, 0.16); --border2: rgba(255, 255, 255, 0.3);
+  --card: #FFFFFF; --card-hi: #FFFFFF; --accent: #FFB27A; --purple: #FFB27A;
+  color: #FFFFFF;
+  background:
+    radial-gradient(60% 80% at 85% 20%, rgba(80, 96, 230, 0.3), transparent 70%),
+    linear-gradient(160deg, #161B86, var(--ie-navy) 60%, #0B0E57) !important;
+  clip-path: polygon(0 var(--ie-cut), 100% 0, 100% 100%, 0 100%);
+  padding-top: calc(5.5rem + var(--ie-cut));
+}
+html[data-theme] #contact h2 { color: #FFFFFF; }
+html[data-theme] #contact .contact-card { color: var(--ie-ink); --text: var(--ie-ink); --text2: #433F3C; --text3: #6D6358; --accent: var(--ie-orange-dk); --border: rgba(40, 35, 30, 0.1); border-radius: 3px; }
+
+/* ── cards: Isha's flat, warm, barely rounded panels ── */
+html[data-theme] .oss-card, html[data-theme] .skill-card, html[data-theme] .proof-card,
+html[data-theme] .project-card, html[data-theme] .tl-body, html[data-theme] .edu-card,
+html[data-theme] .how-card, html[data-theme] .contact-card, html[data-theme] .challenges-table {
+  border-radius: 3px;
+}
+html[data-theme] .oss-card:hover { border-color: var(--ie-orange); }
+/* the "Continued Support" card: maroon bar beside the title */
+html[data-theme] .skill-card h3, html[data-theme] .proof-card h3, html[data-theme] .edu-card h3 {
+  border-left: 4px solid var(--ie-maroon); padding-left: 0.7rem; margin-left: -0.2rem;
+}
+html[data-theme="light"] .skill-card h3, html[data-theme="light"] .edu-card h3 { color: var(--ie-maroon); }
+html[data-theme] .ct-header { background: var(--ie-navy); color: #FFFFFF; }
+
+/* ── lists: Inner Engineering gold check marks ── */
+html[data-theme] .tl-points {
+  list-style: none; padding-left: 0;
+  li { position: relative; padding-left: 1.7rem; }
+  li::before {
+    content: ''; position: absolute; left: 0; top: 0.32em; width: 1.05rem; height: 0.8rem;
+    background: no-repeat center / contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 15' fill='none' stroke='%23E0A526' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 8.5l5 4.5L18 2'/%3E%3C/svg%3E");
+  }
+}
+
+/* ── the orange side tab ("Register Now" on the Inner Engineering page) ── */
+html[data-theme] .isha-tab {
+  position: fixed; right: 0; top: 34vh; z-index: 180;
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  width: 150px; padding: 0.95rem 1rem; border-radius: 8px 0 0 8px;
+  background: var(--ie-orange); color: #FFFFFF; font-family: var(--ie-sans);
+  font-size: 1.15rem; font-weight: 600; line-height: 1.25;
+  box-shadow: -8px 12px 30px -8px rgba(243, 112, 33, 0.55), 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: transform 0.25s var(--ease), background 0.2s;
+  &:hover { background: #DB5F14; transform: translateX(-4px); }
+  &:focus-visible { outline: 3px solid var(--ie-navy); outline-offset: 2px; }
+  @media (max-width: 1100px) { width: 118px; font-size: 1rem; padding: 0.8rem 0.7rem; }
+  @media (max-width: 760px) { display: none; }
+}
+
+/* ── back to top: the white circle with a dark arrow ── */
+html[data-theme] .back-to-top {
+  background: #FFFFFF; color: var(--ie-ink);
+  box-shadow: 0 4px 16px rgba(40, 35, 30, 0.25);
+}
+html[data-theme] .scroll-progress-bar { background: var(--ie-orange); }

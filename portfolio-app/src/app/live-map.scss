@@ -132,7 +132,7 @@
   font-size: 0.64rem; color: var(--muted); letter-spacing: 0.02em;
   span { display: inline-flex; align-items: center; gap: 0.3rem; }
   i { width: 6px; height: 6px; border-radius: 1px; display: inline-block; }
-  .lm-rainbow { background: linear-gradient(90deg, #86BC25, #7C9CFF, #62B5E5, #FFB81C, #C084FC); width: 14px; }
+  .lm-rainbow { background: linear-gradient(90deg, #F37021, #7C9CFF, #62B5E5, #FFB81C, #C084FC); width: 14px; }
 }
 @media (max-width: 420px) {
   .lm-dots { grid-template-columns: repeat(var(--cols, 6), 4px); gap: 2px; i { width: 4px; height: 4px; } }

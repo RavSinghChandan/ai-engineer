@@ -41,7 +41,7 @@ interface GraphBody extends GraphNode {
 export class App implements OnInit, AfterViewInit {
 
   // Dark by default; the nav toggle switches to light and remembers the choice.
-  theme = signal<'dark' | 'light'>('dark');
+  theme = signal<'dark' | 'light'>('light');
   typedText = signal('');
   scrolled = signal(false);
   mobileNavOpen = signal(false);
@@ -444,7 +444,7 @@ export class App implements OnInit, AfterViewInit {
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="24" cy="24" r="16" stroke="currentColor" stroke-width="2"/>
         <path d="M8 24h32M24 8c5 5 5 27 0 32M24 8c-5 5-5 27 0 32" stroke="currentColor" stroke-width="1.5" opacity="0.6"/>
-        <circle cx="38" cy="10" r="5" fill="#26890D"/>
+        <circle cx="38" cy="10" r="5" fill="#CF4520"/>
       </svg>`,
     },
     {
@@ -458,10 +458,10 @@ export class App implements OnInit, AfterViewInit {
       aaravSay: 'Build once, plug in anywhere! 🔌',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="24" cy="24" r="6" stroke="currentColor" stroke-width="2"/>
-        <rect x="4" y="6" width="10" height="8" rx="1.5" stroke="#26890D" stroke-width="2"/>
-        <rect x="34" y="6" width="10" height="8" rx="1.5" stroke="#26890D" stroke-width="2"/>
-        <rect x="4" y="34" width="10" height="8" rx="1.5" stroke="#26890D" stroke-width="2"/>
-        <rect x="34" y="34" width="10" height="8" rx="1.5" stroke="#26890D" stroke-width="2"/>
+        <rect x="4" y="6" width="10" height="8" rx="1.5" stroke="#CF4520" stroke-width="2"/>
+        <rect x="34" y="6" width="10" height="8" rx="1.5" stroke="#CF4520" stroke-width="2"/>
+        <rect x="4" y="34" width="10" height="8" rx="1.5" stroke="#CF4520" stroke-width="2"/>
+        <rect x="34" y="34" width="10" height="8" rx="1.5" stroke="#CF4520" stroke-width="2"/>
         <path d="M14 12l6 7M34 12l-6 7M14 36l6-7M34 36l-6-7" stroke="currentColor" stroke-width="1.5" opacity="0.6"/>
       </svg>`,
     },
@@ -477,9 +477,9 @@ export class App implements OnInit, AfterViewInit {
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
-        <circle cx="34" cy="20" r="4" stroke="#26890D" stroke-width="2"/>
+        <circle cx="34" cy="20" r="4" stroke="#CF4520" stroke-width="2"/>
         <path d="M14 14v20M34 24c0 8-8 8-16 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        <path d="M29 36l3 3 6-6" stroke="#26890D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M29 36l3 3 6-6" stroke="#CF4520" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>`,
     },
     {
@@ -493,11 +493,11 @@ export class App implements OnInit, AfterViewInit {
       aaravSay: '78s → 4s. Ask me how! ⚡',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="24" cy="24" r="16" stroke="currentColor" stroke-width="2" opacity="0.3"/>
-        <path d="M24 12v12l7 4" stroke="#26890D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M24 12v12l7 4" stroke="#CF4520" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
         <path d="M8 24h4M36 24h4M24 8v4M24 40v-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
         <path d="M10 38 L20 28" stroke="#ef4444" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
-        <path d="M38 10 L28 20" stroke="#046A38" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
-        <circle cx="24" cy="24" r="3" fill="#26890D"/>
+        <path d="M38 10 L28 20" stroke="#A8361A" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+        <circle cx="24" cy="24" r="3" fill="#CF4520"/>
       </svg>`,
     },
     {
@@ -525,8 +525,8 @@ export class App implements OnInit, AfterViewInit {
       aaravImg: 'guide-chandan-wow.svg',
       aaravSay: 'Zero hallucinations. Real. 🎯',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="24" cy="24" r="16" stroke="#046A38" stroke-width="2"/>
-        <path d="M17 24l5 5 9-10" stroke="#046A38" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="24" cy="24" r="16" stroke="#A8361A" stroke-width="2"/>
+        <path d="M17 24l5 5 9-10" stroke="#A8361A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
         <path d="M10 10 L38 38" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round" opacity="0.3" stroke-dasharray="3 2"/>
         <rect x="13" y="20" width="10" height="3" rx="1" stroke="currentColor" stroke-width="1" opacity="0.25"/>
         <rect x="13" y="25" width="7" height="3" rx="1" stroke="currentColor" stroke-width="1" opacity="0.25"/>
@@ -558,10 +558,10 @@ export class App implements OnInit, AfterViewInit {
       aaravSay: '637 tests, zero flakes! 🤩',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect x="6" y="10" width="36" height="28" rx="4" stroke="currentColor" stroke-width="2"/>
-        <path d="M14 22l4 4 8-8" stroke="#046A38" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M14 22l4 4 8-8" stroke="#A8361A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
         <path d="M30 20h6M30 24h4M30 28h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
-        <circle cx="38" cy="36" r="7" fill="#09090b" stroke="#046A38" stroke-width="2"/>
-        <path d="M35 36l2 2 4-4" stroke="#046A38" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="38" cy="36" r="7" fill="#09090b" stroke="#A8361A" stroke-width="2"/>
+        <path d="M35 36l2 2 4-4" stroke="#A8361A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>`,
     },
     {
@@ -574,9 +574,9 @@ export class App implements OnInit, AfterViewInit {
       aaravImg: 'guide-chandan.svg',
       aaravSay: '16 agents, zero conflicts! 🤖',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="24" cy="10" r="5" stroke="#26890D" stroke-width="2"/>
+        <circle cx="24" cy="10" r="5" stroke="#CF4520" stroke-width="2"/>
         <circle cx="10" cy="34" r="5" stroke="#0D8390" stroke-width="2"/>
-        <circle cx="38" cy="34" r="5" stroke="#046A38" stroke-width="2"/>
+        <circle cx="38" cy="34" r="5" stroke="#A8361A" stroke-width="2"/>
         <circle cx="24" cy="34" r="5" stroke="#ED8B00" stroke-width="2"/>
         <path d="M24 15 L10 29M24 15 L38 29M24 15 L24 29" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2" opacity="0.5"/>
         <path d="M15 34 L19 34M29 34 L33 34" stroke="currentColor" stroke-width="1.5" opacity="0.4"/>
@@ -2066,11 +2066,11 @@ export class App implements OnInit, AfterViewInit {
   // what I did, one number that backs it. Every figure is a claim the portfolio already
   // makes elsewhere (proof-viz, skills, the design blueprint).
   readonly deployCards: { n: string; name: string; scene: string; color: string; title: string; is: string; did: string; from?: number; to: number; unit: string }[] = [
-    { n: '01', name: 'Discover',  scene: 'discover',  color: '#86BC25', title: 'Understand the Real Problem',  is: 'Find the real problem',      did: 'Built for farmers',    to: 13,      unit: 'Indian languages' },
-    { n: '02', name: 'Architect', scene: 'architect', color: '#86BC25', title: 'Plan the Solution',      is: 'Pick the tools and plan',    did: 'Wrote down the pros and cons', to: 15,      unit: 'design patterns written up' },
-    { n: '03', name: 'Build',     scene: 'build',     color: '#86BC25', title: 'Build the AI Solution',                     is: 'A working first version, fast',       did: 'Connected the AI agents',   to: 16,      unit: 'agents working together' },
-    { n: '04', name: 'Ship',      scene: 'ship',      color: '#86BC25', title: 'Connect, Test and Launch',         is: 'Connect, test and launch', did: 'Plugged in with SDKs',    to: 637,     unit: 'tests that run in under 4 s' },
-    { n: '05', name: 'Demo',      scene: 'demo',      color: '#86BC25', title: 'Demo and Business Results',             is: 'Show real results',       did: 'Gave live demos',   from: 78, to: 4, unit: 'seconds per answer' },
+    { n: '01', name: 'Discover',  scene: 'discover',  color: '#F37021', title: 'Understand the Real Problem',  is: 'Find the real problem',      did: 'Built for farmers',    to: 13,      unit: 'Indian languages' },
+    { n: '02', name: 'Architect', scene: 'architect', color: '#F37021', title: 'Plan the Solution',      is: 'Pick the tools and plan',    did: 'Wrote down the pros and cons', to: 15,      unit: 'design patterns written up' },
+    { n: '03', name: 'Build',     scene: 'build',     color: '#F37021', title: 'Build the AI Solution',                     is: 'A working first version, fast',       did: 'Connected the AI agents',   to: 16,      unit: 'agents working together' },
+    { n: '04', name: 'Ship',      scene: 'ship',      color: '#F37021', title: 'Connect, Test and Launch',         is: 'Connect, test and launch', did: 'Plugged in with SDKs',    to: 637,     unit: 'tests that run in under 4 s' },
+    { n: '05', name: 'Demo',      scene: 'demo',      color: '#F37021', title: 'Demo and Business Results',             is: 'Show real results',       did: 'Gave live demos',   from: 78, to: 4, unit: 'seconds per answer' },
   ];
 
   // The stage cards come alive while on screen (all motion is CSS, toggled by .how-live),
@@ -2818,7 +2818,7 @@ export class App implements OnInit, AfterViewInit {
 
     interface Cluster { cx: number; cy: number; color: string; }
     // luminous violet→cyan spectrum, tuned for additive glow on dark bg
-    const CLUSTER_COLORS = ['#26890D', '#0D8390', '#6366f1', '#2dd4bf', '#a855f7', '#3b82f6'];
+    const CLUSTER_COLORS = ['#CF4520', '#0D8390', '#6366f1', '#2dd4bf', '#a855f7', '#3b82f6'];
 
     let W = 0, H = 0;
     let clusters: Cluster[] = [];
@@ -3064,7 +3064,7 @@ export class App implements OnInit, AfterViewInit {
     if (isPlatformBrowser(this.platformId)) {
       let saved: string | null = null;
       try { saved = localStorage.getItem('ck-theme'); } catch { /* storage blocked */ }
-      this.applyTheme(saved === 'light' ? 'light' : 'dark');
+      this.applyTheme(saved === 'dark' ? 'dark' : 'light');
     }
   }
 
@@ -3427,7 +3427,7 @@ export class App implements OnInit, AfterViewInit {
   private readonly G_COLORS: Record<GraphNode['kind'], string> = {
     system: '#00ABAB',  // teal       — things I built
     tech:   '#62B5E5',  // light blue — technologies
-    oss:    '#86BC25',  // green      — merged open source
+    oss:    '#F37021',  // orange     — merged open source
     work:   '#FFB81C',  // gold       — experience
     practice: '#C4D600', // lime      — how I work
   };
@@ -3436,7 +3436,7 @@ export class App implements OnInit, AfterViewInit {
   //  with the open-source vertices split by the library they landed in so a
   //  glance shows the spread rather than one wall of green.
   private readonly OSS_COLORS: Record<string, string> = {
-    pypdf:    '#86BC25',  // Deloitte green
+    pypdf:    '#F37021',  // Inner Engineering orange
     joblib:   '#fb7185',  // rose
     'sentence-transformers': '#f472b6', // pink
     nltk:     '#E3E48D',  // pale lime
@@ -3453,10 +3453,10 @@ export class App implements OnInit, AfterViewInit {
   /** Colour for a node: open-source vertices are keyed by library. */
   // Deeper versions of the same hues, readable on the light theme's white stage.
   private readonly G_COLORS_LIGHT: Record<GraphNode['kind'], string> = {
-    system: '#0D8390', tech: '#007CB0', oss: '#26890D', work: '#C26E00', practice: '#6B7A00',
+    system: '#0D8390', tech: '#007CB0', oss: '#CF4520', work: '#C26E00', practice: '#6B7A00',
   };
   private readonly OSS_COLORS_LIGHT: Record<string, string> = {
-    pypdf: '#26890D', joblib: '#E11D48', 'sentence-transformers': '#DB2777', nltk: '#A16207', authlib: '#0369A1', fonttools: '#3B5BDB', fpdf2: '#DC2626', Pillow: '#EA580C', 'pydantic-extra-types': '#BE185D', txtai: '#059669', kornia: '#2563EB', tox: '#8A8A2E',
+    pypdf: '#CF4520', joblib: '#E11D48', 'sentence-transformers': '#DB2777', nltk: '#A16207', authlib: '#0369A1', fonttools: '#3B5BDB', fpdf2: '#DC2626', Pillow: '#EA580C', 'pydantic-extra-types': '#BE185D', txtai: '#059669', kornia: '#2563EB', tox: '#8A8A2E',
   };
 
   private nodeColor(n: GraphNode): string {
@@ -3735,11 +3735,11 @@ export class App implements OnInit, AfterViewInit {
       const a = 0.14 + depth * 0.62;
       const grad = ctx.createLinearGradient(A.x, A.y, B.x, B.y);
       if (light) {
-        grad.addColorStop(0, `rgba(38,137,13,${a})`);
+        grad.addColorStop(0, `rgba(207,69,32,${a})`);
         grad.addColorStop(0.5, `rgba(13,131,144,${Math.min(1, a * 1.15)})`);
         grad.addColorStop(1, `rgba(0,124,176,${a})`);
       } else {
-        grad.addColorStop(0, `rgba(134,188,37,${a})`);         // Deloitte green
+        grad.addColorStop(0, `rgba(243,112,33,${a})`);         // Inner Engineering orange
         grad.addColorStop(0.5, `rgba(0,171,171,${a * 1.15})`);  // teal
         grad.addColorStop(1, `rgba(98,181,229,${a})`);         // light blue
       }
@@ -3750,7 +3750,7 @@ export class App implements OnInit, AfterViewInit {
       ctx.lineWidth = 0.7 + depth * 2.0;
       // front-facing bonds get a soft bloom so the cage reads as lit glass
       if (depth > 0.62) {
-        ctx.shadowColor = light ? `rgba(38,137,13,${(depth - 0.62) * 0.35})` : `rgba(134,188,37,${(depth - 0.62) * 0.9})`;
+        ctx.shadowColor = light ? `rgba(207,69,32,${(depth - 0.62) * 0.35})` : `rgba(243,112,33,${(depth - 0.62) * 0.9})`;
         ctx.shadowBlur = 7;
       }
       ctx.stroke();
@@ -3783,7 +3783,7 @@ export class App implements OnInit, AfterViewInit {
       const mx = (A.x + B.x) / 2 - cx, my = (A.y + B.y) / 2 - cy;
       const bow = 1.18;
       ctx.quadraticCurveTo(cx + mx * bow, cy + my * bow, B.x, B.y);
-      ctx.strokeStyle = lit ? (light ? 'rgba(38,137,13,0.9)' : 'rgba(166,216,110,0.9)') : (light ? 'rgba(83,86,90,0.14)' : 'rgba(148,163,184,0.16)');
+      ctx.strokeStyle = lit ? (light ? 'rgba(207,69,32,0.9)' : 'rgba(166,216,110,0.9)') : (light ? 'rgba(83,86,90,0.14)' : 'rgba(148,163,184,0.16)');
       ctx.lineWidth = lit ? 2 : 0.7;
       ctx.stroke();
     }
