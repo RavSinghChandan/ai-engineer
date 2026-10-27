@@ -3324,7 +3324,7 @@ export class App implements OnInit, AfterViewInit {
     // back-to-top threshold
     this.showBackToTop.set(sy > document.documentElement.scrollHeight * 0.35);
     // active nav section
-    const sections = ['skills','projects','by-numbers','opensource','experience','story','contact'];
+    const sections = ['projects','by-numbers','experience','skills','opensource','story','contact'];
     let current = '';
     for (const id of sections) {
       const el = document.getElementById(id);

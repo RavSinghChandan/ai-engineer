@@ -6,11 +6,11 @@
   <div class="nav-inner container">
     <a href="#" class="nav-logo">ck<span>.</span></a>
     <div class="nav-links">
-      <a href="#skills"     [class.nav-active]="activeSection()==='skills'"     (click)="closeMobileNav()">How I Work</a>
       <a href="#projects"   [class.nav-active]="activeSection()==='projects'"   (click)="closeMobileNav()">Projects</a>
       <a href="#by-numbers" [class.nav-active]="activeSection()==='by-numbers'" (click)="closeMobileNav()">Proof</a>
-      <a href="#opensource" [class.nav-active]="activeSection()==='opensource'" (click)="closeMobileNav()">Open Source</a>
       <a href="#experience" [class.nav-active]="activeSection()==='experience'" (click)="closeMobileNav()">Experience</a>
+      <a href="#skills"     [class.nav-active]="activeSection()==='skills'"     (click)="closeMobileNav()">How I Work</a>
+      <a href="#opensource" [class.nav-active]="activeSection()==='opensource'" (click)="closeMobileNav()">Open Source</a>
       <a href="#story"      [class.nav-active]="activeSection()==='story'"      (click)="closeMobileNav()">Story</a>
       <a href="#contact"    [class.nav-active]="activeSection()==='contact'"    (click)="closeMobileNav()">Contact</a>
     </div>
@@ -131,327 +131,11 @@
   </div>
 </section>
 
-<!-- SKILLS -->
-<section id="skills" class="skills-section" data-guide="skills">
-  <svg class="sec-geo sec-geo--fde" viewBox="0 0 600 600" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><!-- outward spiral --><defs><linearGradient id="geo-fde-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" style="stop-color:var(--geo-a)"/><stop offset="55%" style="stop-color:var(--geo-b)"/><stop offset="100%" style="stop-color:var(--geo-c)"/></linearGradient></defs><polyline points="306,300 307,301 308,301 309,302 310,303 311,305 312,306 312,308 313,309 313,311 313,313 313,315 312,317 311,319 310,321 309,322 308,324 306,326 304,328 302,329 300,330 298,331 295,332 292,333 289,333 286,334 283,334 280,333 276,332 273,331 270,330 267,328 264,326 261,324 258,322 255,319 253,315 250,312 248,308 247,304 245,300 244,296 244,291 243,286 243,282 244,277 245,272 246,267 248,262 250,257 253,253 256,248 259,244 263,240 267,236 272,233 277,229 282,227 288,224 294,222 300,221 306,220 313,220 319,220 326,220 333,221 339,223 346,225 352,228 358,232 364,236 370,240 376,245 381,250 386,256 390,263 394,270 397,277 400,284 402,292 403,300 404,308 405,317 404,325 403,333 401,342 399,350 395,358 392,366 387,374 382,382 376,389 369,395 362,402 355,407 347,412 338,417 329,421 320,424 310,426 300,428 290,429 280,429 269,428 259,426 249,424 239,420 229,416 219,411 210,405 201,399 193,392 185,384 178,375 171,366 165,356 160,345 156,335 152,323 150,312 148,300 147,288 147,276 149,264 151,251 154,239 158,228 163,216 169,205 176,194 184,184 193,174 202,165 212,157 223,149 235,143 247,137 260,132 273,128 286,125 300,124 314,123 328,123 342,125 356,128 370,131 383,136 397,142 409,149 422,158 433,167 444,177 455,188 464,200 472,212 480,225 486,239 492,254 496,269 499,284 501,300 501,316 501,332 499,348 496,364 491,379 485,394 478,409 470,424 461,438 451,451 439,463 427,474 413,485 399,494 384,502 368,509 352,515 335,520 318,523 300,525 282,526 264,525 247,522 229,519 212,514 194,507 178,499 162,490 147,480 132,468 119,455 106,441 95,426 84,410 75,393 67,376 61,357 56,339 53,319 51,300 50,280 51,261 54,241 58,221 64,202 71,183 80,165 90,148 102,131 115,115 129,100 145,86 161,74 179,63 198,53 217,44" fill="none" stroke="url(#geo-fde-g)" stroke-width="1.6" opacity="0.85"/><circle cx="306.0" cy="300.0" r="1.2" style="fill:var(--geo-b)" opacity="0.40"/><circle cx="312.4" cy="307.6" r="1.3" style="fill:var(--geo-b)" opacity="0.42"/><circle cx="310.5" cy="320.5" r="1.4" style="fill:var(--geo-b)" opacity="0.44"/><circle cx="297.5" cy="331.5" r="1.5" style="fill:var(--geo-b)" opacity="0.46"/><circle cx="276.4" cy="332.4" r="1.7" style="fill:var(--geo-b)" opacity="0.48"/><circle cx="255.1" cy="318.6" r="1.8" style="fill:var(--geo-b)" opacity="0.50"/><circle cx="243.6" cy="291.1" r="1.9" style="fill:var(--geo-b)" opacity="0.52"/><circle cx="250.1" cy="257.4" r="2.0" style="fill:var(--geo-b)" opacity="0.54"/><circle cx="277.1" cy="229.5" r="2.1" style="fill:var(--geo-b)" opacity="0.55"/><circle cx="319.3" cy="219.6" r="2.2" style="fill:var(--geo-b)" opacity="0.57"/><circle cx="364.5" cy="235.5" r="2.4" style="fill:var(--geo-b)" opacity="0.59"/><circle cx="397.0" cy="276.7" r="2.5" style="fill:var(--geo-b)" opacity="0.61"/><circle cx="403.0" cy="333.5" r="2.6" style="fill:var(--geo-b)" opacity="0.63"/><circle cx="375.8" cy="388.8" r="2.7" style="fill:var(--geo-b)" opacity="0.65"/><circle cx="319.6" cy="423.8" r="2.8" style="fill:var(--geo-b)" opacity="0.67"/><circle cx="248.8" cy="423.6" r="2.9" style="fill:var(--geo-b)" opacity="0.69"/><circle cx="184.8" cy="383.7" r="3.1" style="fill:var(--geo-b)" opacity="0.71"/><circle cx="149.6" cy="311.8" r="3.2" style="fill:var(--geo-b)" opacity="0.73"/><circle cx="158.0" cy="227.6" r="3.3" style="fill:var(--geo-b)" opacity="0.75"/><circle cx="212.3" cy="156.8" r="3.4" style="fill:var(--geo-b)" opacity="0.77"/><circle cx="300.0" cy="123.6" r="3.5" style="fill:var(--geo-b)" opacity="0.79"/><circle cx="396.6" cy="142.3" r="3.6" style="fill:var(--geo-b)" opacity="0.81"/><circle cx="472.4" cy="212.2" r="3.8" style="fill:var(--geo-b)" opacity="0.83"/><circle cx="501.4" cy="315.8" r="3.9" style="fill:var(--geo-b)" opacity="0.85"/><circle cx="470.3" cy="423.7" r="4.0" style="fill:var(--geo-b)" opacity="0.86"/><circle cx="383.8" cy="502.4" r="4.1" style="fill:var(--geo-b)" opacity="0.88"/><circle cx="264.4" cy="524.8" r="4.2" style="fill:var(--geo-b)" opacity="0.90"/><circle cx="146.7" cy="479.5" r="4.3" style="fill:var(--geo-b)" opacity="0.92"/><circle cx="67.4" cy="375.6" r="4.5" style="fill:var(--geo-b)" opacity="0.94"/><circle cx="53.9" cy="240.9" r="4.6" style="fill:var(--geo-b)" opacity="0.96"/><circle cx="115.0" cy="115.0" r="4.7" style="fill:var(--geo-b)" opacity="0.98"/><path d="M440,258 L470,300 L440,342" fill="none" stroke="url(#geo-fde-g)" stroke-width="5" stroke-linecap="square" opacity="0.35" class="geo-chev geo-chev--0"/><path d="M478,258 L508,300 L478,342" fill="none" stroke="url(#geo-fde-g)" stroke-width="5" stroke-linecap="square" opacity="0.65" class="geo-chev geo-chev--1"/><path d="M516,258 L546,300 L516,342" fill="none" stroke="url(#geo-fde-g)" stroke-width="5" stroke-linecap="square" opacity="0.95" class="geo-chev geo-chev--2"/><circle cx="300" cy="300" r="6" style="fill:var(--geo-a)"/></svg>
-  <div class="container">
-    <ck-journey [step]="1" place="How I Work" mood="think" pose="point" note="Five steps from an unclear request to a working system."/>
-    <div class="eyebrow">Forward Deployed Engineering</div>
-    <h2>Built for Forward Deployed Work</h2>
-    <p class="section-sub">Five steps from an unclear request to a working system, and the skills behind them.</p>
-
-    <!-- How I work: five stages, one caricature scene each. Static parts of the character
-         (body, head, hands) live in <defs>; the parts that move by themselves (eyes,
-         brows, mouth) are templates rendered as real elements so CSS can animate them. -->
-    <svg class="fx-defs" width="0" height="0" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <radialGradient id="fx-skin" cx="38%" cy="32%" r="78%"><stop offset="0" stop-color="#ecb688"/><stop offset=".7" stop-color="#d4925f"/><stop offset="1" stop-color="#b9764a"/></radialGradient>
-        <linearGradient id="fx-kurta" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#e2e6ee"/></linearGradient>
-        <linearGradient id="fx-sleeve" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d5dbe5"/></linearGradient>
-        <linearGradient id="fx-hairg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2f2b3a"/><stop offset="1" stop-color="#121018"/></linearGradient>
-        <linearGradient id="fx-lens" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#dbeafe" stop-opacity=".28"/><stop offset="1" stop-color="#93c5fd" stop-opacity=".08"/></linearGradient>
-        <radialGradient id="fx-iris" cx="40%" cy="38%" r="70%"><stop offset="0" stop-color="#7a553a"/><stop offset="1" stop-color="#3a2416"/></radialGradient>
-        <linearGradient id="fx-screen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#111c33"/><stop offset="1" stop-color="#0a1020"/></linearGradient>
-
-        <!-- white cotton kurta (from the photo): mandarin collar, white-button placket, ink outline, cotton creases -->
-        <g id="fx-body">
-          <path d="M20 226C20 192 46 173 80 167L120 167C154 173 180 192 180 226Z" fill="url(#fx-kurta)"/>
-          <path d="M20 226C20 192 46 173 80 167L120 167C154 173 180 192 180 226" fill="none" stroke="#3d4350" stroke-width="2.2" stroke-linejoin="round"/>
-          <path d="M80 194q-8 6-14 10M120 194q8 6 14 10M100 232v-6" stroke="#b3bac7" stroke-width="1.4" fill="none" stroke-linecap="round"/>
-          <path d="M82 165C88 180 112 180 118 165L120 174C112 190 88 190 80 174Z" fill="#fbfcfe" stroke="#3d4350" stroke-width="1.6"/>
-          <path d="M96 185H104V226H96Z" fill="#f3f5f9" stroke="#3d4350" stroke-width="1.1"/>
-          <circle cx="100" cy="195" r="2.3" fill="#fff" stroke="#8b93a3" stroke-width=".9"/><circle cx="100" cy="208" r="2.3" fill="#fff" stroke="#8b93a3" stroke-width=".9"/><circle cx="100" cy="221" r="2.3" fill="#fff" stroke="#8b93a3" stroke-width=".9"/>
-        </g>
-
-        <!-- head: swept-up textured hair, sideburns into a full beard, thick rectangular glasses -->
-        <g id="fx-head">
-          <path d="M84 146H116V178C108 186 92 186 84 178Z" fill="#b97446"/>
-          <path d="M84 150C92 160 108 160 116 150V161C108 169 92 169 84 161Z" fill="#9a5c35" opacity=".75"/>
-          <ellipse cx="46" cy="98" rx="8.5" ry="13" fill="url(#fx-skin)"/><ellipse cx="154" cy="98" rx="8.5" ry="13" fill="url(#fx-skin)"/>
-          <path d="M44.5 92q-3 6 0 12M155.5 92q3 6 0 12" stroke="#a8673d" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-          <path d="M47 88C47 50 71 30 100 30C129 30 153 50 153 88C153 116 146 136 132 149C122 158 112 162 100 162C88 162 78 158 68 149C54 136 47 116 47 88Z" fill="url(#fx-skin)"/>
-          <path d="M45 94C41 70 46 50 58 37C62 25 74 16 88 15C95 9 108 9 115 14C128 13 141 21 147 33C157 45 160 68 155 94C153 82 150 72 145 64C143 58 139 54 134 51C130 47 125 47 121 48C115 44 107 45 101 47C95 44 87 45 81 48C75 47 69 50 64 54C57 60 51 70 49 80C47 85 46 90 45 94Z" fill="url(#fx-hairg)"/>
-          <path d="M82 19C88 5 104 2 113 9C106 9 100 11 95 16Z" fill="url(#fx-hairg)"/><path d="M110 12C121 6 135 10 140 19C132 16 124 15 117 16Z" fill="url(#fx-hairg)"/><path d="M60 34C63 24 72 18 80 17C74 22 69 28 66 35Z" fill="url(#fx-hairg)"/>
-          <path d="M66 36C76 24 92 18 108 18M74 44C86 32 104 26 124 28M96 12C102 9 108 9 112 11M126 30C136 33 144 40 148 50M58 52C62 44 68 39 74 36" stroke="#4a4458" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".85"/>
-          <path d="M86 22C96 18 108 18 118 21" stroke="#5b556b" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".7"/>
-          <path d="M45 90C46 99 47 104 48.5 109L55 109C53 102 51.5 96 51.5 89Z" fill="#1b1921"/><path d="M155 90C154 99 153 104 151.5 109L145 109C147 102 148.5 96 148.5 89Z" fill="#1b1921"/>
-          <path d="M48 104C49 126 57 143 70 154C80 163 90 168 100 168C110 168 120 163 130 154C143 143 151 126 152 104C148 114 142 120 134 122C128 125 120 125 114 122C109 120 104 119 100 119C96 119 91 120 86 122C80 125 72 125 66 122C58 120 52 114 48 104Z" fill="#1b1921"/>
-          <path d="M62 132l3 5M72 142l2 6M86 151l1 6M114 151l-1 6M128 142l-2 6M138 132l-3 5M78 158l1 4M122 158l-1 4M56 120l3 4M144 120l-3 4M94 160l.5 5M106 160l-.5 5" stroke="#34303d" stroke-width="1.6" stroke-linecap="round"/>
-          <path d="M76 128C83 120 93 118 100 121C107 118 117 120 124 128C117 131 107 130 100 127C93 130 83 131 76 128Z" fill="#111016"/>
-          <ellipse cx="64" cy="112" rx="8" ry="4.5" fill="#e07a5f" opacity=".2"/><ellipse cx="136" cy="112" rx="8" ry="4.5" fill="#e07a5f" opacity=".2"/>
-          <path d="M100 84C97 98 92 106 91 111C90 117 95 120 100 119C105 120 110 117 109 111C108 106 103 98 100 84Z" fill="#c9845a"/>
-          <path d="M99 88C98 96 97 102 96 106" stroke="#f0bf94" stroke-width="2" stroke-linecap="round" opacity=".7"/>
-          <path d="M93 114q3 2.6 6 1.2M107 114q-3 2.6-6 1.2" stroke="#8a5233" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-          <rect x="53" y="77" width="41" height="29" rx="8" fill="url(#fx-lens)" stroke="#121115" stroke-width="3.8"/>
-          <rect x="106" y="77" width="41" height="29" rx="8" fill="url(#fx-lens)" stroke="#121115" stroke-width="3.8"/>
-          <path d="M94 87Q100 84 106 87M53 86L45 84M147 86L155 84" stroke="#121115" stroke-width="3.4" fill="none" stroke-linecap="round"/>
-        </g>
-
-        <!-- hands at human scale: palm, four jointed fingers, thumb, creases, nails -->
-        <g id="fx-hand-open"><path d="M-2 -11.5C6 -13.5 15 -14.5 22 -13.5C25.5 -6 25.5 6 22 13.5C14 14.5 6 13.5 -2 11.5Z" fill="#d99a68" stroke="#b5703f" stroke-opacity=".5" stroke-width=".9"/><rect x="18" y="-13.6" width="23" height="6.6" rx="3.3" fill="#e3a676" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9"/><rect x="18" y="-6.5" width="25" height="6.8" rx="3.4" fill="#e3a676" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9"/><rect x="18" y="0.6" width="23" height="6.6" rx="3.3" fill="#e3a676" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9"/><rect x="17" y="7.5" width="17" height="6" rx="3" fill="#e3a676" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9"/><rect x="3" y="-22" width="8.5" height="19" rx="4.25" fill="#e3a676" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9" transform="rotate(40 7 -12)"/><ellipse cx="38.3" cy="-10.3" rx="1.9" ry="1.6" fill="#f6d3b4" opacity=".85"/><ellipse cx="40.4" cy="-3.1" rx="1.9" ry="1.6" fill="#f6d3b4" opacity=".85"/><ellipse cx="38.3" cy="3.9" rx="1.9" ry="1.6" fill="#f6d3b4" opacity=".85"/><ellipse cx="31.4" cy="10.5" rx="1.9" ry="1.6" fill="#f6d3b4" opacity=".85"/><path d="M30 -12v3.6M32 -5v3.6M30 2v3.6M26 8.8v3.2" stroke="#9a5a33" stroke-opacity=".45" stroke-width="1.1" fill="none" stroke-linecap="round"/></g>
-        <g id="fx-hand-point"><path d="M-2 -11.5C6 -13.5 15 -14.5 22 -13.5C25.5 -6 25.5 6 22 13.5C14 14.5 6 13.5 -2 11.5Z" fill="#d99a68" stroke="#b5703f" stroke-opacity=".5" stroke-width=".9"/><rect x="18" y="-13.6" width="27" height="6.6" rx="3.3" fill="#e3a676" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9"/><rect x="16" y="-6.6" width="11" height="7" rx="3.5" fill="#cf8d5c" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9"/><rect x="16" y="0.4" width="10.5" height="7" rx="3.5" fill="#cf8d5c" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9"/><rect x="15" y="7.2" width="9" height="6.2" rx="3.1" fill="#cf8d5c" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9"/><rect x="6" y="-7" width="17" height="7.6" rx="3.8" fill="#e3a676" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9" transform="rotate(14 14 -3)"/><ellipse cx="42.3" cy="-10.3" rx="1.9" ry="1.6" fill="#f6d3b4" opacity=".85"/><path d="M31 -12v3.6M36 -12v3.6" stroke="#9a5a33" stroke-opacity=".45" stroke-width="1.1" fill="none" stroke-linecap="round"/></g>
-        <g id="fx-hand-fist"><path d="M-2 -11.5C6 -13.5 15 -14.5 22 -13.5C25.5 -6 25.5 6 22 13.5C14 14.5 6 13.5 -2 11.5Z" fill="#d99a68" stroke="#b5703f" stroke-opacity=".5" stroke-width=".9"/><rect x="16" y="-13.4" width="12" height="7" rx="3.5" fill="#cf8d5c" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9"/><rect x="16" y="-6.4" width="12.5" height="7" rx="3.5" fill="#cf8d5c" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9"/><rect x="16" y="0.6" width="12" height="7" rx="3.5" fill="#cf8d5c" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9"/><rect x="15" y="7.4" width="10" height="6.2" rx="3.1" fill="#cf8d5c" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9"/><rect x="4" y="-20" width="8.5" height="20" rx="4.25" fill="#e3a676" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9" transform="rotate(62 8 -10)"/><path d="M22 -11v4M22 -4v4M22 3v4" stroke="#9a5a33" stroke-opacity=".45" stroke-width="1.1" fill="none" stroke-linecap="round"/></g>
-        <g id="fx-hand-flat"><path d="M-2 -11.5C6 -13.5 15 -14.5 22 -13.5C25.5 -6 25.5 6 22 13.5C14 14.5 6 13.5 -2 11.5Z" fill="#d99a68" stroke="#b5703f" stroke-opacity=".5" stroke-width=".9"/><rect x="18" y="-14.2" width="22" height="6.4" rx="3.2" fill="#e3a676" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9" transform="rotate(-7 18 -11)"/><rect x="18" y="-6.6" width="24" height="6.6" rx="3.3" fill="#e3a676" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9"/><rect x="18" y="0.8" width="22" height="6.4" rx="3.2" fill="#e3a676" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9" transform="rotate(5 18 4)"/><rect x="17" y="7.8" width="16" height="5.8" rx="2.9" fill="#e3a676" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9" transform="rotate(10 17 10.7)"/><rect x="3" y="-22" width="8.5" height="19" rx="4.25" fill="#e3a676" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9" transform="rotate(40 7 -12)"/><path d="M29 -12v3.4M31 -5v3.4M29 2v3.4" stroke="#9a5a33" stroke-opacity=".45" stroke-width="1.1" fill="none" stroke-linecap="round"/></g>
-      </defs>
-
-      <ng-template #fxEyes let-dx="dx" let-dy="dy">
-        <g class="fx-eyes">
-          <ellipse cx="73.5" cy="92" rx="10" ry="7.6" fill="#fff"/><ellipse cx="126.5" cy="92" rx="10" ry="7.6" fill="#fff"/>
-          <g [attr.transform]="'translate(' + dx + ' ' + dy + ')'"><g class="fx-look">
-            <circle cx="73.5" cy="92" r="5.3" fill="url(#fx-iris)"/><circle cx="126.5" cy="92" r="5.3" fill="url(#fx-iris)"/>
-            <circle cx="73.5" cy="92" r="2.7" fill="#0f0805"/><circle cx="126.5" cy="92" r="2.7" fill="#0f0805"/>
-            <circle cx="75.4" cy="90" r="1.5" fill="#fff"/><circle cx="128.4" cy="90" r="1.5" fill="#fff"/>
-            <circle cx="72" cy="94" r=".75" fill="#fff" opacity=".7"/><circle cx="125" cy="94" r=".75" fill="#fff" opacity=".7"/>
-          </g></g>
-          <path d="M63 90Q73.5 81.5 84 90M116 90Q126.5 81.5 137 90" stroke="#1b1316" stroke-width="2.6" fill="none" stroke-linecap="round"/>
-          <path d="M65 96.5Q73.5 100.5 82 96.5M118 96.5Q126.5 100.5 135 96.5" stroke="#b47a55" stroke-width="1" fill="none" opacity=".6"/>
-        </g>
-        <path d="M58 83L66 83M111 83L119 83" stroke="#fff" opacity=".55" stroke-width="2.6" stroke-linecap="round"/>
-      </ng-template>
-
-      <!-- expressions: brows + mouth (drawn over the eyes) -->
-      <ng-template #fxExSmile>
-        <g class="fx-brows"><path d="M56 71C64 63 78 61 91 66C91 69 90 71 89 72C78 68 67 69 58 75C56 74 55 72 56 71Z" fill="#17151d"/><path d="M144 71C136 63 122 61 109 66C109 69 110 71 111 72C122 68 133 69 142 75C144 74 145 72 144 71Z" fill="#17151d"/></g>
-        <g class="fx-mouth"><path d="M81 133C87 151 113 151 119 133C112 136.5 88 136.5 81 133Z" fill="#4a1414"/><path d="M84.5 134C92 136.8 108 136.8 115.5 134C114 138 108 139.6 100 139.6C92 139.6 86 138 84.5 134Z" fill="#fff"/><path d="M91 144.5C96 142 104 142 109 144.5C104 147.6 96 147.6 91 144.5Z" fill="#c2544a"/></g>
-      </ng-template>
-      <ng-template #fxExThink>
-        <g class="fx-brows"><path d="M56 66C64 56 78 54 91 60C91 63 90 65 89 66C78 62 67 63 58 70C56 69 55 67 56 66Z" fill="#17151d"/><path d="M144 75C136 70 122 69 109 72C109 75 110 77 111 78C122 75 133 75 142 79C144 78 145 76 144 75Z" fill="#17151d"/></g>
-        <path d="M89 140C95 137 103 136.5 110 139.5C104 141.5 96 142 89 140Z" fill="#8f3f33"/>
-      </ng-template>
-      <ng-template #fxExExcited>
-        <g class="fx-brows"><path d="M56 66C64 57 78 55 91 61C91 64 90 66 89 67C78 63 67 64 58 70C56 69 55 67 56 66Z" fill="#17151d"/><path d="M144 66C136 57 122 55 109 61C109 64 110 66 111 67C122 63 133 64 142 70C144 69 145 67 144 66Z" fill="#17151d"/></g>
-        <g class="fx-mouth"><path d="M82 132C84 153 116 153 118 132C110 135 90 135 82 132Z" fill="#4a1414"/><path d="M85 133C92 135.6 108 135.6 115 133C114 136.6 108 138 100 138C92 138 86 136.6 85 133Z" fill="#fff"/><path d="M88 146.5C95 143 105 143 112 146.5C106 151 94 151 88 146.5Z" fill="#c2544a"/></g>
-      </ng-template>
-      <ng-template #fxExConfident>
-        <g class="fx-brows"><path d="M56 72C64 66 78 64 91 68C91 71 90 73 89 74C78 71 67 71 58 77C56 76 55 74 56 72Z" fill="#17151d"/><path d="M144 72C136 66 122 64 109 68C109 71 110 73 111 74C122 71 133 71 142 77C144 76 145 74 144 72Z" fill="#17151d"/></g>
-        <path d="M83 134.5Q100 147.5 117 133.5Q100 141 83 134.5Z" fill="#8f3f33"/><path d="M85.5 135Q100 140 114.5 134.5" stroke="#f3e5d8" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-      </ng-template>
-    </svg>
-
-    <div class="how-grid" role="list" aria-label="How I take a problem to production">
-      <div class="how-center" role="presentation">
-        <span class="how-center-kicker">The FDE delivery loop</span>
-        <h3 class="how-center-title">Forward Deployed Engineering</h3>
-        <p class="how-center-copy">Work alongside users to find the real problem, fit the solution into their workflow, and stay through launch.</p>
-        <p class="how-center-flow">Discover <i>→</i> Architect <i>→</i> Build <i>→</i> Ship <i>→</i> Demo</p>
-        <div class="how-center-proof" aria-label="Delivery evidence">
-          <span><b>3</b><small>live AI products</small></span>
-          <span><b>637</b><small>automated tests</small></span>
-          <span><b>13</b><small>Indian languages</small></span>
-        </div>
-      </div>
-      @for (card of deployCards; track card.name; let i = $index) {
-        <div class="how-item fade-up" role="listitem" #fadeEl [style.--c]="card.color" [style.--i]="$index">
-          <article class="how-card" (pointermove)="howTilt($event)" (pointerleave)="howTiltReset($event)">
-            <header class="how-head">
-              <span class="how-n">{{ card.n }}</span>
-              <h3 class="how-name">{{ card.title }}</h3>
-              <span class="how-ico" aria-hidden="true">
-                @switch (card.scene) {
-                @case ('discover') { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><g class="ic-scan"><circle cx="10" cy="10" r="6"/><path d="M14.5 14.5L20 20"/></g></svg> }
-                @case ('architect') { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path class="ic-flow" d="M7.5 6h9M6.3 8.2l4.4 7.6M17.7 8.2l-4.4 7.6" stroke-dasharray="2.2 2.2"/><circle cx="5" cy="6" r="2.5" fill="currentColor"/><circle cx="19" cy="6" r="2.5" fill="currentColor"/><circle cx="12" cy="18" r="2.5" fill="currentColor"/></svg> }
-                @case ('build') { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/><path class="ic-caret" d="M12 7.5v9"/></svg> }
-                @case ('ship') { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g class="ic-rocket"><path d="M12 2.5c3 2.2 5 6.2 4 11.5H8C7 8.7 9 4.7 12 2.5z"/><circle cx="12" cy="8.5" r="1.7"/><path d="M8 14l-2.4 3.4H9M16 14l2.4 3.4H15"/><path class="ic-flame" d="M10.4 17.6L12 21.5l1.6-3.9" stroke="#fde047"/></g></svg> }
-                @case ('demo') { <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 20.5h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect class="ic-bar ic-b1" x="5" y="12" width="3.4" height="7" rx="1"/><rect class="ic-bar ic-b2" x="10.3" y="8" width="3.4" height="11" rx="1"/><rect class="ic-bar ic-b3" x="15.6" y="4" width="3.4" height="15" rx="1"/></svg> }
-                }
-              </span>
-            </header>
-
-            <div class="how-art" aria-hidden="true">
-              @switch (card.scene) {
-
-                @case ('discover') {
-                  <svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" focusable="false">
-                    <circle class="fx-halo" cx="82" cy="112" r="84" style="fill:var(--c)" opacity=".15"/>
-                    <rect x="170" y="12" width="144" height="122" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="3"/>
-                    <text x="182" y="34" font-family="'Fira Code', monospace" font-size="11.5" font-weight="700" fill="#1e293b">Client Problem</text>
-                    <g font-family="'Fira Code', monospace" font-size="9" fill="#334155">
-                      <g class="fx-pop fx-p1"><circle cx="186" cy="50" r="2" fill="#43B02A"/><text x="194" y="53">Pain points?</text></g>
-                      <g class="fx-pop fx-p2"><circle cx="186" cy="66" r="2" fill="#43B02A"/><text x="194" y="69">Goals?</text></g>
-                      <g class="fx-pop fx-p3"><circle cx="186" cy="82" r="2" fill="#43B02A"/><text x="194" y="85">Users?</text></g>
-                      <g class="fx-pop fx-p4"><circle cx="186" cy="98" r="2" fill="#43B02A"/><text x="194" y="101">Current process?</text></g>
-                      <g class="fx-pop fx-p5"><circle cx="186" cy="114" r="2" fill="#43B02A"/><text x="194" y="117">Success metrics?</text></g>
-                    </g>
-                    <g class="fx-bob">
-                      <path d="M258 203C258 183 270 175 288 173C306 175 318 183 318 203Z" fill="#cdb48f"/>
-                      <path d="M281 174L288 187L295 174Z" fill="#f8fafc"/><path d="M270 182q4 8 3 21M306 182q-4 8-3 21" stroke="#b89c74" stroke-width="1.4" fill="none"/>
-                      <rect x="283.5" y="160" width="9" height="15" rx="3" fill="#c98a5e"/>
-                      <ellipse cx="288" cy="151" rx="13.5" ry="15.5" fill="#e2a982"/>
-                      <path d="M273.5 152C272 135 282 129 290 130C300 130 305 139 303 152C300 142 292 139 284 140C279 141 275.5 145 273.5 152Z" fill="#2a1d18"/>
-                      <path d="M273.5 149C272.5 157 274 163 277 167L279.5 157Z" fill="#2a1d18"/><path d="M302.5 149C303.5 157 302 163 299 167L296.5 157Z" fill="#2a1d18"/><circle cx="298" cy="129" r="7" fill="#2a1d18"/>
-                      <path d="M279 146q3-2 6 0M291 146q3-2 6 0" stroke="#2a1d18" stroke-width="1.3" fill="none" stroke-linecap="round"/>
-                      <ellipse cx="282.5" cy="151" rx="2.4" ry="2.2" fill="#fff"/><ellipse cx="293.5" cy="151" rx="2.4" ry="2.2" fill="#fff"/>
-                      <circle cx="283" cy="151.3" r="1.5" fill="#2a1d18"/><circle cx="294" cy="151.3" r="1.5" fill="#2a1d18"/>
-                      <path d="M287 154q1 3 2 0" stroke="#b9764a" stroke-width="1.1" fill="none" stroke-linecap="round"/>
-                      <path d="M283 158.5Q288 163 293 158.5" stroke="#9b3f37" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-                      <ellipse cx="279" cy="156" rx="2.6" ry="1.5" fill="#e07a5f" opacity=".3"/><ellipse cx="297" cy="156" rx="2.6" ry="1.5" fill="#e07a5f" opacity=".3"/>
-                    </g>
-                    <g transform="translate(4 20) scale(.76)"><g class="fx-breathe">
-                      <use href="#fx-body"/>
-                      <g class="fx-headmove"><use href="#fx-head"/><ng-container *ngTemplateOutlet="fxEyes; context: {dx: 3, dy: 0}"/><ng-container *ngTemplateOutlet="fxExSmile"/></g>
-                      <g class="fx-arm fx-arm--point"><g fill="#3d4350" stroke="#3d4350" stroke-width="3" stroke-linejoin="round"><path d="M158.9 202.1L195.4 172.1L180.6 151.9L141.1 177.9Z"/><circle cx="188" cy="162" r="12.5"/><path d="M198.2 169.2L220.2 133.8L203.8 122.2L177.8 154.8Z"/></g><g fill="url(#fx-sleeve)"><circle cx="150" cy="190" r="15.0"/><path d="M158.9 202.1L195.4 172.1L180.6 151.9L141.1 177.9Z"/><circle cx="188" cy="162" r="12.5"/><path d="M198.2 169.2L220.2 133.8L203.8 122.2L177.8 154.8Z"/></g><path d="M197.8 160.3Q193.8 153.8 188 153.4" stroke="#a3abba" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M217.9 139.5L222.3 133.4L203.5 120.1L199.1 126.3Z" fill="#fbfcfe" stroke="#3d4350" stroke-width="1.3" stroke-linejoin="round"/><use href="#fx-hand-point" transform="translate(212 128) rotate(-54.8)"/></g>
-                    </g></g>
-                  </svg>
-                }
-
-                @case ('architect') {
-                  <svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" focusable="false">
-                    <circle class="fx-halo" cx="82" cy="112" r="84" style="fill:var(--c)" opacity=".15"/>
-                    <rect x="168" y="12" width="148" height="140" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="3"/>
-                    <text x="176" y="30" font-family="'Fira Code', monospace" font-size="10.5" font-weight="700" fill="#1e293b">Requirements</text>
-                    <g font-family="'Fira Code', monospace" font-size="8.5" fill="#334155">
-                      <circle cx="180" cy="42" r="1.8" fill="#43B02A"/><text x="187" y="45">User Stories</text>
-                      <circle cx="180" cy="55" r="1.8" fill="#43B02A"/><text x="187" y="58">Data Sources</text>
-                      <circle cx="180" cy="68" r="1.8" fill="#43B02A"/><text x="187" y="71">Constraints</text>
-                      <circle cx="180" cy="81" r="1.8" fill="#43B02A"/><text x="187" y="84">MVP Scope</text>
-                    </g>
-                    <g class="fx-wiggle fx-w1"><rect x="262" y="22" width="22" height="18" fill="#d9f99d" transform="rotate(-6 273 31)"/></g><g class="fx-wiggle fx-w2"><rect x="288" y="40" width="22" height="18" fill="#99f6e4" transform="rotate(5 299 49)"/></g><g class="fx-wiggle fx-w3"><rect x="264" y="46" width="20" height="16" fill="#bbf7d0" transform="rotate(4 274 54)"/></g>
-                    <g font-family="'Fira Code', monospace" font-size="8" fill="#1e293b">
-                      <rect class="fx-lit fx-l1" x="176" y="96" width="40" height="20" rx="3" fill="#f1f8e6" stroke="#43B02A"/><text x="196" y="109" text-anchor="middle">Frontend</text>
-                      <rect class="fx-lit fx-l2" x="226" y="96" width="26" height="20" rx="3" fill="#f1f8e6" stroke="#43B02A"/><text x="239" y="109" text-anchor="middle">API</text>
-                      <rect class="fx-lit fx-l3" x="262" y="96" width="28" height="20" rx="3" fill="#f1f8e6" stroke="#43B02A"/><text x="276" y="109" text-anchor="middle">LLM</text>
-                      <rect class="fx-lit fx-l4" x="222" y="128" width="40" height="18" rx="3" fill="#f1f8e6" stroke="#43B02A"/><text x="242" y="140" text-anchor="middle">VectorDB</text>
-                      <rect class="fx-lit fx-l5" x="270" y="128" width="40" height="18" rx="3" fill="#f1f8e6" stroke="#43B02A"/><text x="290" y="140" text-anchor="middle">Tools</text>
-                    </g>
-                    <path class="fx-flow" d="M216 106h10M252 106h10M239 116v12M276 116v12" stroke="#43B02A" stroke-width="1.8" stroke-dasharray="3 3" fill="none"/><path d="M222 102l5 4-5 4zM258 102l5 4-5 4z" fill="#43B02A"/>
-                    <g transform="translate(4 20) scale(.76)"><g class="fx-breathe">
-                      <use href="#fx-body"/>
-                      <g class="fx-headmove"><use href="#fx-head"/><ng-container *ngTemplateOutlet="fxEyes; context: {dx: 3, dy: -2.5}"/><ng-container *ngTemplateOutlet="fxExThink"/></g>
-                      <g class="fx-arm fx-arm--chin"><g fill="#3d4350" stroke="#3d4350" stroke-width="3" stroke-linejoin="round"><path d="M133.8 187.3L128.1 212L151.9 220L162.2 196.7Z"/><circle cx="140" cy="216" r="12.5"/><path d="M150.8 209.6L122.6 166.9L105.4 177.1L129.2 222.4Z"/></g><g fill="url(#fx-sleeve)"><circle cx="148" cy="192" r="15.0"/><path d="M133.8 187.3L128.1 212L151.9 220L162.2 196.7Z"/><circle cx="140" cy="216" r="12.5"/><path d="M150.8 209.6L122.6 166.9L105.4 177.1L129.2 222.4Z"/></g><path d="M142.5 206.4Q134.9 207.4 132.1 212.5" stroke="#a3abba" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M127 171.3L123.1 164.9L103.3 176.6L107.2 183Z" fill="#fbfcfe" stroke="#3d4350" stroke-width="1.3" stroke-linejoin="round"/><use href="#fx-hand-fist" transform="translate(114 172) rotate(-128.6)"/></g>
-                    </g></g>
-                  </svg>
-                }
-
-                @case ('build') {
-                  <svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" focusable="false">
-                    <circle class="fx-halo" cx="82" cy="112" r="84" style="fill:var(--c)" opacity=".15"/>
-                    <circle class="fx-halo" cx="240" cy="88" r="70" style="fill:var(--c)" opacity=".15"/>
-                    <rect x="150" y="46" width="160" height="100" rx="7" fill="url(#fx-screen)" stroke="#475569" stroke-width="3"/>
-                    <circle cx="160" cy="55" r="2.2" fill="#f87171"/><circle cx="168" cy="55" r="2.2" fill="#fbbf24"/><circle cx="176" cy="55" r="2.2" fill="#4ade80"/>
-                    <g stroke-width="4.2" stroke-linecap="round" fill="none">
-                      <path class="fx-type fx-t1" d="M160 70h34" stroke="#86BC25"/><path class="fx-type fx-t2" d="M160 82h58" stroke="#2dd4bf"/><path class="fx-type fx-t3" d="M172 94h42" stroke="#d9f99d"/><path class="fx-type fx-t4" d="M172 106h30" stroke="#e2e8f0"/><path class="fx-type fx-t5" d="M160 118h50" stroke="#86BC25"/>
-                      <path class="fx-type fx-t6" d="M226 70h66" stroke="#5eead4"/><path class="fx-type fx-t7" d="M226 82h40" stroke="#bef264"/><path class="fx-type fx-t8" d="M238 94h48" stroke="#2dd4bf"/><path class="fx-type fx-t9" d="M226 106h58" stroke="#d9f99d"/><path class="fx-type fx-t10" d="M226 118h30" stroke="#e2e8f0"/>
-                    </g>
-                    <path d="M138 148H318L328 166H128Z" fill="#cbd5e1"/><path d="M138 148H318" stroke="#94a3b8" stroke-width="2"/>
-                    <path class="fx-flash" d="M286 8l-16 26h12l-7 24 21-31h-13z" fill="#a3e635" stroke="#43B02A" stroke-width="1.6" stroke-linejoin="round"/>
-                    <path class="fx-twinkle" d="M214 20l2.6 7.4 7.4 2.6-7.4 2.6-2.6 7.4-2.6-7.4-7.4-2.6 7.4-2.6z M246 36l1.8 5 5 1.8-5 1.8-1.8 5-1.8-5-5-1.8 5-1.8z" fill="#fff" opacity=".95"/>
-                    <g transform="translate(4 20) scale(.76)"><g class="fx-breathe">
-                      <use href="#fx-body"/>
-                      <g class="fx-headmove"><use href="#fx-head"/><ng-container *ngTemplateOutlet="fxEyes; context: {dx: 3.5, dy: 2}"/><ng-container *ngTemplateOutlet="fxExExcited"/></g>
-                      <g class="fx-arm fx-arm--type"><g fill="#3d4350" stroke="#3d4350" stroke-width="3" stroke-linejoin="round"><path d="M139.4 200.6L163.2 220.8L180.8 203.2L160.6 179.4Z"/><circle cx="172" cy="212" r="12.5"/><path d="M179.9 221.7L210.3 193.8L197.7 178.2L164.1 202.3Z"/></g><g fill="url(#fx-sleeve)"><circle cx="150" cy="190" r="15.0"/><path d="M139.4 200.6L163.2 220.8L180.8 203.2L160.6 179.4Z"/><circle cx="172" cy="212" r="12.5"/><path d="M179.9 221.7L210.3 193.8L197.7 178.2L164.1 202.3Z"/></g><path d="M181.8 213Q179.8 205.7 174.3 203.7" stroke="#a3abba" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M206.6 198.7L212.4 194L197.9 176.1L192.1 180.9Z" fill="#fbfcfe" stroke="#3d4350" stroke-width="1.3" stroke-linejoin="round"/><use href="#fx-hand-flat" transform="translate(204 186) rotate(-3.1)"/></g>
-                    </g></g>
-                  </svg>
-                }
-
-                @case ('ship') {
-                  <svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" focusable="false">
-                    <circle class="fx-halo" cx="82" cy="112" r="84" style="fill:var(--c)" opacity=".15"/>
-                    <rect x="164" y="10" width="152" height="140" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="3"/>
-                    <text x="172" y="28" font-family="'Fira Code', monospace" font-size="8.5" font-weight="700" fill="#1e293b">Testing &amp; Deploy</text>
-                    <g font-family="'Fira Code', monospace" font-size="8" fill="#334155">
-                      <g class="fx-pop fx-p1"><circle cx="178" cy="44" r="5" fill="#43B02A"/><path d="M175.5 44l2 2 3.6-4" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><text x="187" y="47">API Integration</text></g>
-                      <g class="fx-pop fx-p2"><circle cx="178" cy="62" r="5" fill="#43B02A"/><path d="M175.5 62l2 2 3.6-4" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><text x="187" y="65">AI Evaluation</text></g>
-                      <g class="fx-pop fx-p3"><circle cx="178" cy="80" r="5" fill="#43B02A"/><path d="M175.5 80l2 2 3.6-4" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><text x="187" y="83">Security Checks</text></g>
-                      <g class="fx-pop fx-p4"><circle cx="178" cy="98" r="5" fill="#43B02A"/><path d="M175.5 98l2 2 3.6-4" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><text x="187" y="101">Performance</text></g>
-                      <g class="fx-pop fx-p5"><circle cx="178" cy="116" r="5" fill="#43B02A"/><path d="M175.5 116l2 2 3.6-4" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><text x="187" y="119">Deploy to Cloud</text></g>
-                    </g>
-                    <path d="M264 18V140" stroke="#e2e8f0" stroke-width="2"/>
-                    <text x="290" y="42" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="800" fill="#232f3e">aws</text><path d="M276 47Q290 55 304 47" stroke="#ff9900" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                    <g class="fx-bob" fill="#2496ed"><rect x="276" y="76" width="8" height="7"/><rect x="286" y="76" width="8" height="7"/><rect x="296" y="76" width="8" height="7"/><rect x="286" y="68" width="8" height="7"/><path d="M272 85H308C308 98 296 104 284 104C276 104 272 96 272 85Z"/></g>
-                    <g class="fx-spin"><circle cx="290" cy="124" r="11" fill="none" stroke="#326ce5" stroke-width="3.4"/><circle cx="290" cy="124" r="3" fill="#326ce5"/><path d="M290 113v-6M290 135v6M279 124h-6M301 124h6M282 116l-4-4M298 132l4 4M298 116l4-4M282 132l-4 4" stroke="#326ce5" stroke-width="2.4" stroke-linecap="round"/></g>
-                    <g transform="translate(4 20) scale(.76)"><g class="fx-breathe">
-                      <use href="#fx-body"/>
-                      <g class="fx-headmove"><use href="#fx-head"/><ng-container *ngTemplateOutlet="fxEyes; context: {dx: 2.5, dy: -0.5}"/><ng-container *ngTemplateOutlet="fxExConfident"/></g>
-                      <g class="fx-arm fx-arm--point"><g fill="#3d4350" stroke="#3d4350" stroke-width="3" stroke-linejoin="round"><path d="M156.2 203.7L177.2 191.4L166.8 168.6L143.8 176.3Z"/><circle cx="172" cy="180" r="12.5"/><path d="M183.2 185.6L194.9 156.5L177.1 147.5L160.8 174.4Z"/></g><g fill="url(#fx-sleeve)"><circle cx="150" cy="190" r="15.0"/><path d="M156.2 203.7L177.2 191.4L166.8 168.6L143.8 176.3Z"/><circle cx="172" cy="180" r="12.5"/><path d="M183.2 185.6L194.9 156.5L177.1 147.5L160.8 174.4Z"/></g><path d="M181.4 176.9Q176.5 171.1 170.7 171.5" stroke="#a3abba" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M193.6 162.5L197 155.8L176.4 145.5L173 152.2Z" fill="#fbfcfe" stroke="#3d4350" stroke-width="1.3" stroke-linejoin="round"/><use href="#fx-hand-open" transform="translate(186 152) rotate(-67.4)"/></g>
-                    </g></g>
-                  </svg>
-                }
-
-                @case ('demo') {
-                  <svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" focusable="false">
-                    <circle class="fx-halo" cx="82" cy="112" r="84" style="fill:var(--c)" opacity=".15"/>
-                    <rect x="158" y="12" width="156" height="128" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="3"/>
-                    <text x="168" y="31" font-family="'Fira Code', monospace" font-size="11" font-weight="700" fill="#1e293b">Final Demo</text>
-                    <g font-family="'Fira Code', monospace" font-size="8.5" fill="#334155">
-                      <g class="fx-pop fx-p1"><rect x="168" y="40" width="8" height="8" rx="1.5" fill="#43B02A"/><path d="M169.6 44l2 2 3-3.6" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><text x="182" y="47.5">Working Product</text></g>
-                      <g class="fx-pop fx-p2"><rect x="168" y="54" width="8" height="8" rx="1.5" fill="#43B02A"/><path d="M169.6 58l2 2 3-3.6" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><text x="182" y="61.5">Business Impact</text></g>
-                      <g class="fx-pop fx-p3"><rect x="168" y="68" width="8" height="8" rx="1.5" fill="#43B02A"/><path d="M169.6 72l2 2 3-3.6" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><text x="182" y="75.5">Cost &amp; Scalability</text></g>
-                      <g class="fx-pop fx-p4"><rect x="168" y="82" width="8" height="8" rx="1.5" fill="#43B02A"/><path d="M169.6 86l2 2 3-3.6" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><text x="182" y="89.5">Next Steps</text></g>
-                    </g>
-                    <g fill="#86BC25"><rect class="fx-grow fx-g1" x="236" y="110" width="12" height="18" rx="2"/><rect class="fx-grow fx-g2" x="252" y="102" width="12" height="26" rx="2"/><rect class="fx-grow fx-g3" x="268" y="94" width="12" height="34" rx="2"/><rect class="fx-grow fx-g4" x="284" y="84" width="12" height="44" rx="2"/></g>
-                    <path class="fx-draw" d="M232 106L256 96L274 90L300 68" stroke="#00ABAB" stroke-width="3" stroke-dasharray="80" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path class="fx-arrowhead" d="M290 66L302 66L302 78" stroke="#00ABAB" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M168 128H224" stroke="#e2e8f0" stroke-width="2" stroke-linecap="round"/>
-                    <g transform="translate(4 20) scale(.76)"><g class="fx-breathe">
-                      <use href="#fx-body"/>
-                      <g class="fx-headmove"><use href="#fx-head"/><ng-container *ngTemplateOutlet="fxEyes; context: {dx: 0, dy: 0}"/><ng-container *ngTemplateOutlet="fxExSmile"/></g>
-                      <g class="fx-arm fx-arm--wave"><g fill="#3d4350" stroke="#3d4350" stroke-width="3" stroke-linejoin="round"><path d="M153.1 204.7L180.6 196.2L175.4 171.8L146.9 175.3Z"/><circle cx="178" cy="184" r="12.5"/><path d="M189.5 188.9L199.2 159.9L180.8 152.1L166.5 179.1Z"/></g><g fill="url(#fx-sleeve)"><circle cx="150" cy="190" r="15.0"/><path d="M153.1 204.7L180.6 196.2L175.4 171.8L146.9 175.3Z"/><circle cx="178" cy="184" r="12.5"/><path d="M189.5 188.9L199.2 159.9L180.8 152.1L166.5 179.1Z"/></g><path d="M187.2 180.3Q181.9 174.8 176.2 175.6" stroke="#a3abba" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M198.2 166L201.2 159.2L180 150.1L177.1 157Z" fill="#fbfcfe" stroke="#3d4350" stroke-width="1.3" stroke-linejoin="round"/><use href="#fx-hand-open" transform="translate(190 156) rotate(-72.8)"/></g>
-                    </g></g>
-                  </svg>
-                }
-              }
-            </div>
-
-            <dl class="how-facts">
-              <div><dt>What it is</dt><dd>{{ card.is }}</dd></div>
-              <div><dt>What I did</dt><dd>{{ card.did }}</dd></div>
-              <div class="how-proof"><dt>Proof</dt><dd><b>{{ howNum(card) }}</b> {{ card.unit }}</dd></div>
-            </dl>
-          </article>
-        </div>
-      }
-    </div>
-
-    <!-- What a finished project leaves behind -->
-    <ul class="how-deliver" aria-label="What every project leaves behind">
-      @for (d of deliverables; track d.title) {
-        <li>
-          <a class="hd-item" [href]="d.href" [attr.target]="d.external ? '_blank' : null" [attr.rel]="d.external ? 'noopener' : null">
-            <span class="hd-icon" aria-hidden="true">
-              @switch (d.icon) {
-                @case ('github') { <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 0-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3"/></svg> }
-                @case ('demo') { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M10 8.5l5 2.5-5 2.5z" fill="currentColor"/></svg> }
-                @case ('docs') { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8M8 9h3"/></svg> }
-                @case ('skills') { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg> }
-                @case ('trophy') { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg> }
-              }
-            </span>
-            <span class="hd-text"><b>{{ d.title }}</b><small>{{ d.sub }}</small></span>
-          </a>
-        </li>
-      }
-    </ul>
-
-    <div class="skills-grid fde-grid">
-      @for (skill of skills; track skill.title) {
-        <div class="skill-card fde-card fade-up" #fadeEl>
-          <div class="fde-card-top">
-            <div class="skill-title" [ngClass]="'color-' + skill.color">{{ skill.title }}</div>
-            <img [src]="getSkillIconUrl(skill.items)" [alt]="skill.title" class="skill-logos fde-logos"/>
-          </div>
-          @if (fdeViz(skill.title); as v) {
-            <proof-viz kind="STEPS" [labels]="v.labels" [caption]="v.caption" [liveLast]="v.live" class="fde-viz" />
-          } @else if (skill.title === 'Agentic AI Engineering') {
-            <proof-viz kind="AGENT" class="fde-viz" />
-          } @else if (skill.title === 'AI Security') {
-            <proof-viz kind="SECURITY" class="fde-viz" />
-          }
-          <p class="fde-what">{{ skill.what }}</p>
-          <div class="skill-items">
-            @for (item of skill.labels; track item) {
-              <span class="skill-item tag" [ngClass]="'tag-' + skill.color">{{ item }}</span>
-            }
-          </div>
-        </div>
-      }
-    </div>
-  </div>
-</section>
-
 <!-- PROJECTS -->
 <section id="projects" data-guide="projects">
   <svg class="sec-geo sec-geo--projects" viewBox="0 0 600 600" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><!-- isometric lattice --><defs><linearGradient id="geo-proj-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" style="stop-color:var(--geo-a)"/><stop offset="55%" style="stop-color:var(--geo-b)"/><stop offset="100%" style="stop-color:var(--geo-c)"/></linearGradient><g id="geo-cube"><path d="M0,-46.0 L39.8,-23.0 L0,0 L-39.8,-23.0 Z" style="fill:var(--geo-a)" fill-opacity="0.22" stroke="url(#geo-proj-g)" stroke-width="1.2"/><path d="M-39.8,-23.0 L0,0 L0,46 L-39.8,23.0 Z" style="fill:var(--geo-b)" fill-opacity="0.12" stroke="url(#geo-proj-g)" stroke-width="1.2"/><path d="M39.8,-23.0 L0,0 L0,46 L39.8,23.0 Z" style="fill:var(--geo-c)" fill-opacity="0.06" stroke="url(#geo-proj-g)" stroke-width="1.2"/></g></defs><use href="#geo-cube" x="300.0" y="191.0" opacity="0.60"/><use href="#geo-cube" x="260.2" y="225.5" opacity="0.75"/><use href="#geo-cube" x="339.8" y="225.5" opacity="0.75"/><use href="#geo-cube" x="300.0" y="260.0" opacity="1.00"/><use href="#geo-cube" x="260.2" y="294.5" opacity="0.85"/><use href="#geo-cube" x="339.8" y="294.5" opacity="0.85"/><use href="#geo-cube" x="300.0" y="329.0" opacity="0.70"/><use href="#geo-cube" x="220.3" y="329.0" opacity="0.55"/><use href="#geo-cube" x="379.7" y="329.0" opacity="0.55"/><use href="#geo-cube" x="260.2" y="363.5" opacity="0.45"/><use href="#geo-cube" x="339.8" y="363.5" opacity="0.45"/><use href="#geo-cube" x="180.5" y="363.5" opacity="0.30"/><use href="#geo-cube" x="419.5" y="363.5" opacity="0.30"/></svg>
   <div class="container">
-    <ck-journey [step]="2" place="My Products" mood="excited" pose="present" note="Live AI products you can open and try."/>
+    <ck-journey [step]="1" place="My Products" mood="excited" pose="present" note="Live AI products you can open and try."/>
     <div class="eyebrow">Engineering Evidence</div>
     <h2>Systems I've Built</h2>
     <p class="section-sub">Real problems, real limits, and all of it running live.</p>
@@ -761,7 +445,7 @@
 <section class="proof-panel" id="by-numbers">
   <svg class="sec-geo sec-geo--proof" viewBox="0 0 600 600" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><!-- calibration dial --><defs><linearGradient id="geo-proof-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" style="stop-color:var(--geo-a)"/><stop offset="55%" style="stop-color:var(--geo-b)"/><stop offset="100%" style="stop-color:var(--geo-c)"/></linearGradient></defs><circle cx="300" cy="300" r="70" fill="none" style="stroke:var(--geo-line)" stroke-width="1" opacity="0.35"/><circle cx="300" cy="300" r="120" fill="none" style="stroke:var(--geo-line)" stroke-width="1" opacity="0.44999999999999996"/><circle cx="300" cy="300" r="170" fill="none" style="stroke:var(--geo-line)" stroke-width="1" opacity="0.55"/><circle cx="300" cy="300" r="220" fill="none" style="stroke:var(--geo-line)" stroke-width="1" opacity="0.65"/><circle cx="300" cy="300" r="257" fill="none" style="stroke:var(--geo-line)" stroke-width="8" stroke-dasharray="1 25.9" opacity="0.5" transform="rotate(-90 300 300)"/><circle cx="300" cy="300" r="256" fill="none" style="stroke:var(--geo-line)" stroke-width="18" stroke-dasharray="1.6 132.4" opacity="0.85" transform="rotate(-90 300 300)"/><path d="M300.0,80.0 A220,220 0 1 1 109.5,190.0" fill="none" stroke="url(#geo-proof-g)" stroke-width="5" stroke-linecap="round"/><circle cx="109.5" cy="190.0" r="7" style="fill:var(--geo-a)"/><line x1="260" y1="300" x2="340" y2="300" style="stroke:var(--geo-line)" opacity="0.5"/><line x1="300" y1="260" x2="300" y2="340" style="stroke:var(--geo-line)" opacity="0.5"/><circle cx="300" cy="300" r="10" fill="none" stroke="url(#geo-proof-g)" stroke-width="2"/></svg>
   <div class="container">
-    <ck-journey [step]="3" place="Proof in Numbers" mood="wow" pose="point" note="Real numbers that you can check yourself."/>
+    <ck-journey [step]="2" place="Proof in Numbers" mood="wow" pose="point" note="Real numbers that you can check yourself."/>
     <div class="eyebrow">Proof of Work</div>
     <h2>Engineering Proof</h2>
     <p class="section-sub">Every number is real, and you can check it.</p>
@@ -786,125 +470,11 @@
   </div>
 </section>
 
-<!-- OPEN SOURCE CONTRIBUTION — grows with each merge -->
-<section id="opensource" class="oss-section">
-  <svg class="sec-geo sec-geo--oss" viewBox="0 0 600 600" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><!-- converging rings --><defs><linearGradient id="geo-oss-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" style="stop-color:var(--geo-a)"/><stop offset="55%" style="stop-color:var(--geo-b)"/><stop offset="100%" style="stop-color:var(--geo-c)"/></linearGradient></defs><circle cx="300.0" cy="300.0" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.9"/><circle cx="378.0" cy="300.0" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.7"/><circle cx="339.0" cy="367.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.7"/><circle cx="261.0" cy="367.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.7"/><circle cx="222.0" cy="300.0" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.7"/><circle cx="261.0" cy="232.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.7"/><circle cx="339.0" cy="232.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.7"/><circle cx="417.0" cy="367.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.4"/><circle cx="300.0" cy="435.1" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.4"/><circle cx="183.0" cy="367.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.4"/><circle cx="183.0" cy="232.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.4"/><circle cx="300.0" cy="164.9" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.4"/><circle cx="417.0" cy="232.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.4"/><circle cx="378.0" cy="300.0" r="3.2" style="fill:var(--geo-a)"/><circle cx="339.0" cy="367.5" r="3.2" style="fill:var(--geo-a)"/><circle cx="261.0" cy="367.5" r="3.2" style="fill:var(--geo-a)"/><circle cx="222.0" cy="300.0" r="3.2" style="fill:var(--geo-a)"/><circle cx="261.0" cy="232.5" r="3.2" style="fill:var(--geo-a)"/><circle cx="339.0" cy="232.5" r="3.2" style="fill:var(--geo-a)"/><circle cx="300" cy="300" r="5" style="fill:var(--geo-a)"/><circle cx="300" cy="300" r="262" fill="none" stroke="url(#geo-oss-g)" stroke-width="1" stroke-dasharray="2 7" opacity="0.6" class="geo-spin-slow"/></svg>
-  <div class="container">
-    <ck-journey [step]="4" place="Open Source" mood="laugh" pose="cheer" note="My code, accepted into libraries that many developers use."/>
-    <div class="oss-head">
-      <div class="oss-logos">
-        <img class="oss-hf" src="huggingface-logo.svg" alt="Hugging Face" />
-        <img class="oss-hf" src="joblib-logo.svg" alt="joblib" />
-      </div>
-      <div>
-        <h2 class="oss-h">I Don't Just Use Open Source. I Contribute to It.</h2>
-        <p class="oss-sub"><b>{{ openSource.length }} merged contributions</b> to libraries that Python and AI developers use every day: pypdf · fontTools · Pillow · fpdf2 · trafilatura · pydantic-extra-types · txtai · kornia · tox · mistune · Docling · Joblib · Sentence Transformers · NLTK · Authlib.</p>
-      </div>
-    </div>
-    <proof-viz kind="MONTHS" [prs]="openSource" class="oss-months" />
-    <!-- In review: my open PRs, read live from GitHub (cached 15 min with the merged count) -->
-    @if (live.openCount(); as openN) {
-      <div class="oss-review">
-        <div class="oss-review-head">
-          <span class="oss-review-dot" aria-hidden="true"></span>
-          <span><b>In review now</b> · {{ openN }} open pull requests waiting for review</span>
-          <a class="oss-review-all" [href]="live.openSearchUrl" target="_blank" rel="noopener">See all on GitHub →</a>
-        </div>
-        <ul class="oss-review-list">
-          @for (p of live.openPrs().slice(0, 8); track p.url) {
-            <li>
-              <a [href]="p.url" target="_blank" rel="noopener">
-                <span class="oss-review-repo">{{ p.repo }}</span>
-                <span class="oss-review-num">#{{ p.number }}</span>
-                <span class="oss-review-title">{{ p.title }}</span>
-              </a>
-            </li>
-          }
-        </ul>
-      </div>
-    }
-    <!-- Library filter: colour-coded chips, biggest project first -->
-    <div class="oss-controls">
-      <div class="oss-chips" role="tablist" aria-label="Filter by library">
-        <button type="button" role="tab" class="oss-chip"
-                [class.is-active]="ossLibrary() === 'all'"
-                [attr.aria-selected]="ossLibrary() === 'all'"
-                (click)="setOssLibrary('all')">
-          All <span class="oss-chip-n">{{ openSource.length }}</span>
-        </button>
-        @for (lib of ossLibraries(); track lib.repo) {
-          <button type="button" role="tab" class="oss-chip"
-                  [attr.data-lib]="lib.slug"
-                  [class.is-active]="ossLibrary() === lib.repo"
-                  [attr.aria-selected]="ossLibrary() === lib.repo"
-                  (click)="setOssLibrary(lib.repo)">
-            <img class="oss-chip-logo" [src]="lib.logo" [alt]="" aria-hidden="true" />
-            {{ lib.repo.split('/')[1] }} <span class="oss-chip-n">{{ lib.n }}</span>
-          </button>
-        }
-      </div>
-
-      <div class="oss-sortbar">
-        <span class="oss-range">{{ ossRangeLabel() }}</span>
-        <label class="oss-sort">
-          <span class="oss-sort-label">Sort</span>
-          <select [value]="ossSort()"
-                  (change)="setOssSort($any($event.target).value)"
-                  aria-label="Sort merged pull requests">
-            <option value="newest">Newest first</option>
-            <option value="oldest">Oldest first</option>
-            <option value="stars">Most stars</option>
-            <option value="library">By library</option>
-          </select>
-        </label>
-      </div>
-    </div>
-
-    <div class="oss-grid">
-      @for (o of ossVisible(); track o.pr) {
-        <a class="oss-card" [href]="o.pr" target="_blank" rel="noopener">
-          <div class="oss-top">
-            <span class="oss-repo">
-              <img class="oss-card-logo" [src]="o.logo" [alt]="o.org" />
-              {{ o.repo }}
-            </span>
-            <span class="oss-stars">{{ o.stars }}</span>
-          </div>
-          <div class="oss-title">{{ o.title }}</div>
-          <div class="oss-desc">{{ o.desc }}</div>
-          <proof-viz kind="STEPS" [labels]="prTrack" [compact]="true" class="oss-track" />
-          <div class="oss-foot">
-            <span class="oss-merged">✓ Merged · {{ o.merged }}</span>
-            <span class="oss-view">View PR ↗</span>
-          </div>
-        </a>
-      }
-    </div>
-
-    @if (ossTotalPages() > 1) {
-      <nav class="oss-pager" aria-label="Merged pull request pages">
-        <button type="button" class="oss-page-btn oss-page-arrow"
-                [disabled]="ossPage() <= 1"
-                (click)="goOssPage(ossPage() - 1)" aria-label="Previous page">&larr;</button>
-        @for (n of ossPageNumbers(); track n) {
-          <button type="button" class="oss-page-btn"
-                  [class.is-active]="ossPage() === n"
-                  [attr.aria-current]="ossPage() === n ? 'page' : null"
-                  (click)="goOssPage(n)">{{ n }}</button>
-        }
-        <button type="button" class="oss-page-btn oss-page-arrow"
-                [disabled]="ossPage() >= ossTotalPages()"
-                (click)="goOssPage(ossPage() + 1)" aria-label="Next page">&rarr;</button>
-      </nav>
-    }
-  </div>
-</section>
-
 <!-- EXPERIENCE -->
 <section id="experience" class="exp-section" data-guide="experience">
   <svg class="sec-geo sec-geo--experience" viewBox="0 0 600 600" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><!-- growth rings --><defs><linearGradient id="geo-exp-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" style="stop-color:var(--geo-a)"/><stop offset="55%" style="stop-color:var(--geo-b)"/><stop offset="100%" style="stop-color:var(--geo-c)"/></linearGradient></defs><circle cx="200" cy="400" r="22" fill="none" stroke="url(#geo-exp-g)" stroke-width="1.10" opacity="0.25"/><circle cx="208" cy="394" r="48" fill="none" stroke="url(#geo-exp-g)" stroke-width="1.22" opacity="0.33"/><circle cx="216" cy="388" r="74" fill="none" stroke="url(#geo-exp-g)" stroke-width="1.34" opacity="0.41"/><circle cx="224" cy="382" r="100" fill="none" stroke="url(#geo-exp-g)" stroke-width="1.46" opacity="0.49"/><circle cx="232" cy="376" r="126" fill="none" stroke="url(#geo-exp-g)" stroke-width="1.58" opacity="0.57"/><circle cx="240" cy="370" r="152" fill="none" stroke="url(#geo-exp-g)" stroke-width="1.70" opacity="0.65"/><circle cx="248" cy="364" r="178" fill="none" stroke="url(#geo-exp-g)" stroke-width="1.82" opacity="0.73"/><circle cx="256" cy="358" r="204" fill="none" stroke="url(#geo-exp-g)" stroke-width="1.94" opacity="0.81"/><circle cx="264" cy="352" r="230" fill="none" stroke="url(#geo-exp-g)" stroke-width="2.06" opacity="0.89"/><circle cx="440.2" cy="204.2" r="12" fill="none" style="stroke:var(--geo-a)" stroke-width="2" class="geo-pulse"/><circle cx="440.2" cy="204.2" r="5" style="fill:var(--geo-a)"/><circle cx="200" cy="400" r="4" style="fill:var(--geo-b)"/></svg>
   <div class="container">
-    <ck-journey [step]="5" place="My Work Experience" mood="confident" pose="wave" note="Where I learned to build software for real users."/>
+    <ck-journey [step]="3" place="My Work Experience" mood="confident" pose="wave" note="Where I learned to build software for real users."/>
     <div class="eyebrow">Career Timeline</div>
     <h2>Professional Experience</h2>
 
@@ -1339,6 +909,436 @@
                 </svg>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section id="skills" class="skills-section" data-guide="skills">
+  <svg class="sec-geo sec-geo--fde" viewBox="0 0 600 600" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><!-- outward spiral --><defs><linearGradient id="geo-fde-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" style="stop-color:var(--geo-a)"/><stop offset="55%" style="stop-color:var(--geo-b)"/><stop offset="100%" style="stop-color:var(--geo-c)"/></linearGradient></defs><polyline points="306,300 307,301 308,301 309,302 310,303 311,305 312,306 312,308 313,309 313,311 313,313 313,315 312,317 311,319 310,321 309,322 308,324 306,326 304,328 302,329 300,330 298,331 295,332 292,333 289,333 286,334 283,334 280,333 276,332 273,331 270,330 267,328 264,326 261,324 258,322 255,319 253,315 250,312 248,308 247,304 245,300 244,296 244,291 243,286 243,282 244,277 245,272 246,267 248,262 250,257 253,253 256,248 259,244 263,240 267,236 272,233 277,229 282,227 288,224 294,222 300,221 306,220 313,220 319,220 326,220 333,221 339,223 346,225 352,228 358,232 364,236 370,240 376,245 381,250 386,256 390,263 394,270 397,277 400,284 402,292 403,300 404,308 405,317 404,325 403,333 401,342 399,350 395,358 392,366 387,374 382,382 376,389 369,395 362,402 355,407 347,412 338,417 329,421 320,424 310,426 300,428 290,429 280,429 269,428 259,426 249,424 239,420 229,416 219,411 210,405 201,399 193,392 185,384 178,375 171,366 165,356 160,345 156,335 152,323 150,312 148,300 147,288 147,276 149,264 151,251 154,239 158,228 163,216 169,205 176,194 184,184 193,174 202,165 212,157 223,149 235,143 247,137 260,132 273,128 286,125 300,124 314,123 328,123 342,125 356,128 370,131 383,136 397,142 409,149 422,158 433,167 444,177 455,188 464,200 472,212 480,225 486,239 492,254 496,269 499,284 501,300 501,316 501,332 499,348 496,364 491,379 485,394 478,409 470,424 461,438 451,451 439,463 427,474 413,485 399,494 384,502 368,509 352,515 335,520 318,523 300,525 282,526 264,525 247,522 229,519 212,514 194,507 178,499 162,490 147,480 132,468 119,455 106,441 95,426 84,410 75,393 67,376 61,357 56,339 53,319 51,300 50,280 51,261 54,241 58,221 64,202 71,183 80,165 90,148 102,131 115,115 129,100 145,86 161,74 179,63 198,53 217,44" fill="none" stroke="url(#geo-fde-g)" stroke-width="1.6" opacity="0.85"/><circle cx="306.0" cy="300.0" r="1.2" style="fill:var(--geo-b)" opacity="0.40"/><circle cx="312.4" cy="307.6" r="1.3" style="fill:var(--geo-b)" opacity="0.42"/><circle cx="310.5" cy="320.5" r="1.4" style="fill:var(--geo-b)" opacity="0.44"/><circle cx="297.5" cy="331.5" r="1.5" style="fill:var(--geo-b)" opacity="0.46"/><circle cx="276.4" cy="332.4" r="1.7" style="fill:var(--geo-b)" opacity="0.48"/><circle cx="255.1" cy="318.6" r="1.8" style="fill:var(--geo-b)" opacity="0.50"/><circle cx="243.6" cy="291.1" r="1.9" style="fill:var(--geo-b)" opacity="0.52"/><circle cx="250.1" cy="257.4" r="2.0" style="fill:var(--geo-b)" opacity="0.54"/><circle cx="277.1" cy="229.5" r="2.1" style="fill:var(--geo-b)" opacity="0.55"/><circle cx="319.3" cy="219.6" r="2.2" style="fill:var(--geo-b)" opacity="0.57"/><circle cx="364.5" cy="235.5" r="2.4" style="fill:var(--geo-b)" opacity="0.59"/><circle cx="397.0" cy="276.7" r="2.5" style="fill:var(--geo-b)" opacity="0.61"/><circle cx="403.0" cy="333.5" r="2.6" style="fill:var(--geo-b)" opacity="0.63"/><circle cx="375.8" cy="388.8" r="2.7" style="fill:var(--geo-b)" opacity="0.65"/><circle cx="319.6" cy="423.8" r="2.8" style="fill:var(--geo-b)" opacity="0.67"/><circle cx="248.8" cy="423.6" r="2.9" style="fill:var(--geo-b)" opacity="0.69"/><circle cx="184.8" cy="383.7" r="3.1" style="fill:var(--geo-b)" opacity="0.71"/><circle cx="149.6" cy="311.8" r="3.2" style="fill:var(--geo-b)" opacity="0.73"/><circle cx="158.0" cy="227.6" r="3.3" style="fill:var(--geo-b)" opacity="0.75"/><circle cx="212.3" cy="156.8" r="3.4" style="fill:var(--geo-b)" opacity="0.77"/><circle cx="300.0" cy="123.6" r="3.5" style="fill:var(--geo-b)" opacity="0.79"/><circle cx="396.6" cy="142.3" r="3.6" style="fill:var(--geo-b)" opacity="0.81"/><circle cx="472.4" cy="212.2" r="3.8" style="fill:var(--geo-b)" opacity="0.83"/><circle cx="501.4" cy="315.8" r="3.9" style="fill:var(--geo-b)" opacity="0.85"/><circle cx="470.3" cy="423.7" r="4.0" style="fill:var(--geo-b)" opacity="0.86"/><circle cx="383.8" cy="502.4" r="4.1" style="fill:var(--geo-b)" opacity="0.88"/><circle cx="264.4" cy="524.8" r="4.2" style="fill:var(--geo-b)" opacity="0.90"/><circle cx="146.7" cy="479.5" r="4.3" style="fill:var(--geo-b)" opacity="0.92"/><circle cx="67.4" cy="375.6" r="4.5" style="fill:var(--geo-b)" opacity="0.94"/><circle cx="53.9" cy="240.9" r="4.6" style="fill:var(--geo-b)" opacity="0.96"/><circle cx="115.0" cy="115.0" r="4.7" style="fill:var(--geo-b)" opacity="0.98"/><path d="M440,258 L470,300 L440,342" fill="none" stroke="url(#geo-fde-g)" stroke-width="5" stroke-linecap="square" opacity="0.35" class="geo-chev geo-chev--0"/><path d="M478,258 L508,300 L478,342" fill="none" stroke="url(#geo-fde-g)" stroke-width="5" stroke-linecap="square" opacity="0.65" class="geo-chev geo-chev--1"/><path d="M516,258 L546,300 L516,342" fill="none" stroke="url(#geo-fde-g)" stroke-width="5" stroke-linecap="square" opacity="0.95" class="geo-chev geo-chev--2"/><circle cx="300" cy="300" r="6" style="fill:var(--geo-a)"/></svg>
+  <div class="container">
+    <ck-journey [step]="4" place="How I Work" mood="think" pose="point" note="Five steps from an unclear request to a working system."/>
+    <div class="eyebrow">Forward Deployed Engineering</div>
+    <h2>Built for Forward Deployed Work</h2>
+    <p class="section-sub">Five steps from an unclear request to a working system, and the skills behind them.</p>
+
+    <!-- How I work: five stages, one caricature scene each. Static parts of the character
+         (body, head, hands) live in <defs>; the parts that move by themselves (eyes,
+         brows, mouth) are templates rendered as real elements so CSS can animate them. -->
+    <svg class="fx-defs" width="0" height="0" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="fx-skin" cx="38%" cy="32%" r="78%"><stop offset="0" stop-color="#ecb688"/><stop offset=".7" stop-color="#d4925f"/><stop offset="1" stop-color="#b9764a"/></radialGradient>
+        <linearGradient id="fx-kurta" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#e2e6ee"/></linearGradient>
+        <linearGradient id="fx-sleeve" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d5dbe5"/></linearGradient>
+        <linearGradient id="fx-hairg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2f2b3a"/><stop offset="1" stop-color="#121018"/></linearGradient>
+        <linearGradient id="fx-lens" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#dbeafe" stop-opacity=".28"/><stop offset="1" stop-color="#93c5fd" stop-opacity=".08"/></linearGradient>
+        <radialGradient id="fx-iris" cx="40%" cy="38%" r="70%"><stop offset="0" stop-color="#7a553a"/><stop offset="1" stop-color="#3a2416"/></radialGradient>
+        <linearGradient id="fx-screen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#111c33"/><stop offset="1" stop-color="#0a1020"/></linearGradient>
+
+        <!-- white cotton kurta (from the photo): mandarin collar, white-button placket, ink outline, cotton creases -->
+        <g id="fx-body">
+          <path d="M20 226C20 192 46 173 80 167L120 167C154 173 180 192 180 226Z" fill="url(#fx-kurta)"/>
+          <path d="M20 226C20 192 46 173 80 167L120 167C154 173 180 192 180 226" fill="none" stroke="#3d4350" stroke-width="2.2" stroke-linejoin="round"/>
+          <path d="M80 194q-8 6-14 10M120 194q8 6 14 10M100 232v-6" stroke="#b3bac7" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+          <path d="M82 165C88 180 112 180 118 165L120 174C112 190 88 190 80 174Z" fill="#fbfcfe" stroke="#3d4350" stroke-width="1.6"/>
+          <path d="M96 185H104V226H96Z" fill="#f3f5f9" stroke="#3d4350" stroke-width="1.1"/>
+          <circle cx="100" cy="195" r="2.3" fill="#fff" stroke="#8b93a3" stroke-width=".9"/><circle cx="100" cy="208" r="2.3" fill="#fff" stroke="#8b93a3" stroke-width=".9"/><circle cx="100" cy="221" r="2.3" fill="#fff" stroke="#8b93a3" stroke-width=".9"/>
+        </g>
+
+        <!-- head: swept-up textured hair, sideburns into a full beard, thick rectangular glasses -->
+        <g id="fx-head">
+          <path d="M84 146H116V178C108 186 92 186 84 178Z" fill="#b97446"/>
+          <path d="M84 150C92 160 108 160 116 150V161C108 169 92 169 84 161Z" fill="#9a5c35" opacity=".75"/>
+          <ellipse cx="46" cy="98" rx="8.5" ry="13" fill="url(#fx-skin)"/><ellipse cx="154" cy="98" rx="8.5" ry="13" fill="url(#fx-skin)"/>
+          <path d="M44.5 92q-3 6 0 12M155.5 92q3 6 0 12" stroke="#a8673d" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+          <path d="M47 88C47 50 71 30 100 30C129 30 153 50 153 88C153 116 146 136 132 149C122 158 112 162 100 162C88 162 78 158 68 149C54 136 47 116 47 88Z" fill="url(#fx-skin)"/>
+          <path d="M45 94C41 70 46 50 58 37C62 25 74 16 88 15C95 9 108 9 115 14C128 13 141 21 147 33C157 45 160 68 155 94C153 82 150 72 145 64C143 58 139 54 134 51C130 47 125 47 121 48C115 44 107 45 101 47C95 44 87 45 81 48C75 47 69 50 64 54C57 60 51 70 49 80C47 85 46 90 45 94Z" fill="url(#fx-hairg)"/>
+          <path d="M82 19C88 5 104 2 113 9C106 9 100 11 95 16Z" fill="url(#fx-hairg)"/><path d="M110 12C121 6 135 10 140 19C132 16 124 15 117 16Z" fill="url(#fx-hairg)"/><path d="M60 34C63 24 72 18 80 17C74 22 69 28 66 35Z" fill="url(#fx-hairg)"/>
+          <path d="M66 36C76 24 92 18 108 18M74 44C86 32 104 26 124 28M96 12C102 9 108 9 112 11M126 30C136 33 144 40 148 50M58 52C62 44 68 39 74 36" stroke="#4a4458" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".85"/>
+          <path d="M86 22C96 18 108 18 118 21" stroke="#5b556b" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".7"/>
+          <path d="M45 90C46 99 47 104 48.5 109L55 109C53 102 51.5 96 51.5 89Z" fill="#1b1921"/><path d="M155 90C154 99 153 104 151.5 109L145 109C147 102 148.5 96 148.5 89Z" fill="#1b1921"/>
+          <path d="M48 104C49 126 57 143 70 154C80 163 90 168 100 168C110 168 120 163 130 154C143 143 151 126 152 104C148 114 142 120 134 122C128 125 120 125 114 122C109 120 104 119 100 119C96 119 91 120 86 122C80 125 72 125 66 122C58 120 52 114 48 104Z" fill="#1b1921"/>
+          <path d="M62 132l3 5M72 142l2 6M86 151l1 6M114 151l-1 6M128 142l-2 6M138 132l-3 5M78 158l1 4M122 158l-1 4M56 120l3 4M144 120l-3 4M94 160l.5 5M106 160l-.5 5" stroke="#34303d" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M76 128C83 120 93 118 100 121C107 118 117 120 124 128C117 131 107 130 100 127C93 130 83 131 76 128Z" fill="#111016"/>
+          <ellipse cx="64" cy="112" rx="8" ry="4.5" fill="#e07a5f" opacity=".2"/><ellipse cx="136" cy="112" rx="8" ry="4.5" fill="#e07a5f" opacity=".2"/>
+          <path d="M100 84C97 98 92 106 91 111C90 117 95 120 100 119C105 120 110 117 109 111C108 106 103 98 100 84Z" fill="#c9845a"/>
+          <path d="M99 88C98 96 97 102 96 106" stroke="#f0bf94" stroke-width="2" stroke-linecap="round" opacity=".7"/>
+          <path d="M93 114q3 2.6 6 1.2M107 114q-3 2.6-6 1.2" stroke="#8a5233" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+          <rect x="53" y="77" width="41" height="29" rx="8" fill="url(#fx-lens)" stroke="#121115" stroke-width="3.8"/>
+          <rect x="106" y="77" width="41" height="29" rx="8" fill="url(#fx-lens)" stroke="#121115" stroke-width="3.8"/>
+          <path d="M94 87Q100 84 106 87M53 86L45 84M147 86L155 84" stroke="#121115" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+        </g>
+
+        <!-- hands at human scale: palm, four jointed fingers, thumb, creases, nails -->
+        <g id="fx-hand-open"><path d="M-2 -11.5C6 -13.5 15 -14.5 22 -13.5C25.5 -6 25.5 6 22 13.5C14 14.5 6 13.5 -2 11.5Z" fill="#d99a68" stroke="#b5703f" stroke-opacity=".5" stroke-width=".9"/><rect x="18" y="-13.6" width="23" height="6.6" rx="3.3" fill="#e3a676" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9"/><rect x="18" y="-6.5" width="25" height="6.8" rx="3.4" fill="#e3a676" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9"/><rect x="18" y="0.6" width="23" height="6.6" rx="3.3" fill="#e3a676" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9"/><rect x="17" y="7.5" width="17" height="6" rx="3" fill="#e3a676" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9"/><rect x="3" y="-22" width="8.5" height="19" rx="4.25" fill="#e3a676" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9" transform="rotate(40 7 -12)"/><ellipse cx="38.3" cy="-10.3" rx="1.9" ry="1.6" fill="#f6d3b4" opacity=".85"/><ellipse cx="40.4" cy="-3.1" rx="1.9" ry="1.6" fill="#f6d3b4" opacity=".85"/><ellipse cx="38.3" cy="3.9" rx="1.9" ry="1.6" fill="#f6d3b4" opacity=".85"/><ellipse cx="31.4" cy="10.5" rx="1.9" ry="1.6" fill="#f6d3b4" opacity=".85"/><path d="M30 -12v3.6M32 -5v3.6M30 2v3.6M26 8.8v3.2" stroke="#9a5a33" stroke-opacity=".45" stroke-width="1.1" fill="none" stroke-linecap="round"/></g>
+        <g id="fx-hand-point"><path d="M-2 -11.5C6 -13.5 15 -14.5 22 -13.5C25.5 -6 25.5 6 22 13.5C14 14.5 6 13.5 -2 11.5Z" fill="#d99a68" stroke="#b5703f" stroke-opacity=".5" stroke-width=".9"/><rect x="18" y="-13.6" width="27" height="6.6" rx="3.3" fill="#e3a676" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9"/><rect x="16" y="-6.6" width="11" height="7" rx="3.5" fill="#cf8d5c" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9"/><rect x="16" y="0.4" width="10.5" height="7" rx="3.5" fill="#cf8d5c" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9"/><rect x="15" y="7.2" width="9" height="6.2" rx="3.1" fill="#cf8d5c" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9"/><rect x="6" y="-7" width="17" height="7.6" rx="3.8" fill="#e3a676" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9" transform="rotate(14 14 -3)"/><ellipse cx="42.3" cy="-10.3" rx="1.9" ry="1.6" fill="#f6d3b4" opacity=".85"/><path d="M31 -12v3.6M36 -12v3.6" stroke="#9a5a33" stroke-opacity=".45" stroke-width="1.1" fill="none" stroke-linecap="round"/></g>
+        <g id="fx-hand-fist"><path d="M-2 -11.5C6 -13.5 15 -14.5 22 -13.5C25.5 -6 25.5 6 22 13.5C14 14.5 6 13.5 -2 11.5Z" fill="#d99a68" stroke="#b5703f" stroke-opacity=".5" stroke-width=".9"/><rect x="16" y="-13.4" width="12" height="7" rx="3.5" fill="#cf8d5c" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9"/><rect x="16" y="-6.4" width="12.5" height="7" rx="3.5" fill="#cf8d5c" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9"/><rect x="16" y="0.6" width="12" height="7" rx="3.5" fill="#cf8d5c" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9"/><rect x="15" y="7.4" width="10" height="6.2" rx="3.1" fill="#cf8d5c" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9"/><rect x="4" y="-20" width="8.5" height="20" rx="4.25" fill="#e3a676" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9" transform="rotate(62 8 -10)"/><path d="M22 -11v4M22 -4v4M22 3v4" stroke="#9a5a33" stroke-opacity=".45" stroke-width="1.1" fill="none" stroke-linecap="round"/></g>
+        <g id="fx-hand-flat"><path d="M-2 -11.5C6 -13.5 15 -14.5 22 -13.5C25.5 -6 25.5 6 22 13.5C14 14.5 6 13.5 -2 11.5Z" fill="#d99a68" stroke="#b5703f" stroke-opacity=".5" stroke-width=".9"/><rect x="18" y="-14.2" width="22" height="6.4" rx="3.2" fill="#e3a676" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9" transform="rotate(-7 18 -11)"/><rect x="18" y="-6.6" width="24" height="6.6" rx="3.3" fill="#e3a676" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9"/><rect x="18" y="0.8" width="22" height="6.4" rx="3.2" fill="#e3a676" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9" transform="rotate(5 18 4)"/><rect x="17" y="7.8" width="16" height="5.8" rx="2.9" fill="#e3a676" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9" transform="rotate(10 17 10.7)"/><rect x="3" y="-22" width="8.5" height="19" rx="4.25" fill="#e3a676" stroke="#b5703f" stroke-opacity=".55" stroke-width=".9" transform="rotate(40 7 -12)"/><path d="M29 -12v3.4M31 -5v3.4M29 2v3.4" stroke="#9a5a33" stroke-opacity=".45" stroke-width="1.1" fill="none" stroke-linecap="round"/></g>
+      </defs>
+
+      <ng-template #fxEyes let-dx="dx" let-dy="dy">
+        <g class="fx-eyes">
+          <ellipse cx="73.5" cy="92" rx="10" ry="7.6" fill="#fff"/><ellipse cx="126.5" cy="92" rx="10" ry="7.6" fill="#fff"/>
+          <g [attr.transform]="'translate(' + dx + ' ' + dy + ')'"><g class="fx-look">
+            <circle cx="73.5" cy="92" r="5.3" fill="url(#fx-iris)"/><circle cx="126.5" cy="92" r="5.3" fill="url(#fx-iris)"/>
+            <circle cx="73.5" cy="92" r="2.7" fill="#0f0805"/><circle cx="126.5" cy="92" r="2.7" fill="#0f0805"/>
+            <circle cx="75.4" cy="90" r="1.5" fill="#fff"/><circle cx="128.4" cy="90" r="1.5" fill="#fff"/>
+            <circle cx="72" cy="94" r=".75" fill="#fff" opacity=".7"/><circle cx="125" cy="94" r=".75" fill="#fff" opacity=".7"/>
+          </g></g>
+          <path d="M63 90Q73.5 81.5 84 90M116 90Q126.5 81.5 137 90" stroke="#1b1316" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+          <path d="M65 96.5Q73.5 100.5 82 96.5M118 96.5Q126.5 100.5 135 96.5" stroke="#b47a55" stroke-width="1" fill="none" opacity=".6"/>
+        </g>
+        <path d="M58 83L66 83M111 83L119 83" stroke="#fff" opacity=".55" stroke-width="2.6" stroke-linecap="round"/>
+      </ng-template>
+
+      <!-- expressions: brows + mouth (drawn over the eyes) -->
+      <ng-template #fxExSmile>
+        <g class="fx-brows"><path d="M56 71C64 63 78 61 91 66C91 69 90 71 89 72C78 68 67 69 58 75C56 74 55 72 56 71Z" fill="#17151d"/><path d="M144 71C136 63 122 61 109 66C109 69 110 71 111 72C122 68 133 69 142 75C144 74 145 72 144 71Z" fill="#17151d"/></g>
+        <g class="fx-mouth"><path d="M81 133C87 151 113 151 119 133C112 136.5 88 136.5 81 133Z" fill="#4a1414"/><path d="M84.5 134C92 136.8 108 136.8 115.5 134C114 138 108 139.6 100 139.6C92 139.6 86 138 84.5 134Z" fill="#fff"/><path d="M91 144.5C96 142 104 142 109 144.5C104 147.6 96 147.6 91 144.5Z" fill="#c2544a"/></g>
+      </ng-template>
+      <ng-template #fxExThink>
+        <g class="fx-brows"><path d="M56 66C64 56 78 54 91 60C91 63 90 65 89 66C78 62 67 63 58 70C56 69 55 67 56 66Z" fill="#17151d"/><path d="M144 75C136 70 122 69 109 72C109 75 110 77 111 78C122 75 133 75 142 79C144 78 145 76 144 75Z" fill="#17151d"/></g>
+        <path d="M89 140C95 137 103 136.5 110 139.5C104 141.5 96 142 89 140Z" fill="#8f3f33"/>
+      </ng-template>
+      <ng-template #fxExExcited>
+        <g class="fx-brows"><path d="M56 66C64 57 78 55 91 61C91 64 90 66 89 67C78 63 67 64 58 70C56 69 55 67 56 66Z" fill="#17151d"/><path d="M144 66C136 57 122 55 109 61C109 64 110 66 111 67C122 63 133 64 142 70C144 69 145 67 144 66Z" fill="#17151d"/></g>
+        <g class="fx-mouth"><path d="M82 132C84 153 116 153 118 132C110 135 90 135 82 132Z" fill="#4a1414"/><path d="M85 133C92 135.6 108 135.6 115 133C114 136.6 108 138 100 138C92 138 86 136.6 85 133Z" fill="#fff"/><path d="M88 146.5C95 143 105 143 112 146.5C106 151 94 151 88 146.5Z" fill="#c2544a"/></g>
+      </ng-template>
+      <ng-template #fxExConfident>
+        <g class="fx-brows"><path d="M56 72C64 66 78 64 91 68C91 71 90 73 89 74C78 71 67 71 58 77C56 76 55 74 56 72Z" fill="#17151d"/><path d="M144 72C136 66 122 64 109 68C109 71 110 73 111 74C122 71 133 71 142 77C144 76 145 74 144 72Z" fill="#17151d"/></g>
+        <path d="M83 134.5Q100 147.5 117 133.5Q100 141 83 134.5Z" fill="#8f3f33"/><path d="M85.5 135Q100 140 114.5 134.5" stroke="#f3e5d8" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+      </ng-template>
+    </svg>
+
+    <div class="how-grid" role="list" aria-label="How I take a problem to production">
+      <div class="how-center" role="presentation">
+        <span class="how-center-kicker">The FDE delivery loop</span>
+        <h3 class="how-center-title">Forward Deployed Engineering</h3>
+        <p class="how-center-copy">Work alongside users to find the real problem, fit the solution into their workflow, and stay through launch.</p>
+        <p class="how-center-flow">Discover <i>→</i> Architect <i>→</i> Build <i>→</i> Ship <i>→</i> Demo</p>
+        <div class="how-center-proof" aria-label="Delivery evidence">
+          <span><b>3</b><small>live AI products</small></span>
+          <span><b>637</b><small>automated tests</small></span>
+          <span><b>13</b><small>Indian languages</small></span>
+        </div>
+      </div>
+      @for (card of deployCards; track card.name; let i = $index) {
+        <div class="how-item fade-up" role="listitem" #fadeEl [style.--c]="card.color" [style.--i]="$index">
+          <article class="how-card" (pointermove)="howTilt($event)" (pointerleave)="howTiltReset($event)">
+            <header class="how-head">
+              <span class="how-n">{{ card.n }}</span>
+              <h3 class="how-name">{{ card.title }}</h3>
+              <span class="how-ico" aria-hidden="true">
+                @switch (card.scene) {
+                @case ('discover') { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><g class="ic-scan"><circle cx="10" cy="10" r="6"/><path d="M14.5 14.5L20 20"/></g></svg> }
+                @case ('architect') { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path class="ic-flow" d="M7.5 6h9M6.3 8.2l4.4 7.6M17.7 8.2l-4.4 7.6" stroke-dasharray="2.2 2.2"/><circle cx="5" cy="6" r="2.5" fill="currentColor"/><circle cx="19" cy="6" r="2.5" fill="currentColor"/><circle cx="12" cy="18" r="2.5" fill="currentColor"/></svg> }
+                @case ('build') { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/><path class="ic-caret" d="M12 7.5v9"/></svg> }
+                @case ('ship') { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g class="ic-rocket"><path d="M12 2.5c3 2.2 5 6.2 4 11.5H8C7 8.7 9 4.7 12 2.5z"/><circle cx="12" cy="8.5" r="1.7"/><path d="M8 14l-2.4 3.4H9M16 14l2.4 3.4H15"/><path class="ic-flame" d="M10.4 17.6L12 21.5l1.6-3.9" stroke="#fde047"/></g></svg> }
+                @case ('demo') { <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 20.5h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect class="ic-bar ic-b1" x="5" y="12" width="3.4" height="7" rx="1"/><rect class="ic-bar ic-b2" x="10.3" y="8" width="3.4" height="11" rx="1"/><rect class="ic-bar ic-b3" x="15.6" y="4" width="3.4" height="15" rx="1"/></svg> }
+                }
+              </span>
+            </header>
+
+            <div class="how-art" aria-hidden="true">
+              @switch (card.scene) {
+
+                @case ('discover') {
+                  <svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" focusable="false">
+                    <circle class="fx-halo" cx="82" cy="112" r="84" style="fill:var(--c)" opacity=".15"/>
+                    <rect x="170" y="12" width="144" height="122" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="3"/>
+                    <text x="182" y="34" font-family="'Fira Code', monospace" font-size="11.5" font-weight="700" fill="#1e293b">Client Problem</text>
+                    <g font-family="'Fira Code', monospace" font-size="9" fill="#334155">
+                      <g class="fx-pop fx-p1"><circle cx="186" cy="50" r="2" fill="#43B02A"/><text x="194" y="53">Pain points?</text></g>
+                      <g class="fx-pop fx-p2"><circle cx="186" cy="66" r="2" fill="#43B02A"/><text x="194" y="69">Goals?</text></g>
+                      <g class="fx-pop fx-p3"><circle cx="186" cy="82" r="2" fill="#43B02A"/><text x="194" y="85">Users?</text></g>
+                      <g class="fx-pop fx-p4"><circle cx="186" cy="98" r="2" fill="#43B02A"/><text x="194" y="101">Current process?</text></g>
+                      <g class="fx-pop fx-p5"><circle cx="186" cy="114" r="2" fill="#43B02A"/><text x="194" y="117">Success metrics?</text></g>
+                    </g>
+                    <g class="fx-bob">
+                      <path d="M258 203C258 183 270 175 288 173C306 175 318 183 318 203Z" fill="#cdb48f"/>
+                      <path d="M281 174L288 187L295 174Z" fill="#f8fafc"/><path d="M270 182q4 8 3 21M306 182q-4 8-3 21" stroke="#b89c74" stroke-width="1.4" fill="none"/>
+                      <rect x="283.5" y="160" width="9" height="15" rx="3" fill="#c98a5e"/>
+                      <ellipse cx="288" cy="151" rx="13.5" ry="15.5" fill="#e2a982"/>
+                      <path d="M273.5 152C272 135 282 129 290 130C300 130 305 139 303 152C300 142 292 139 284 140C279 141 275.5 145 273.5 152Z" fill="#2a1d18"/>
+                      <path d="M273.5 149C272.5 157 274 163 277 167L279.5 157Z" fill="#2a1d18"/><path d="M302.5 149C303.5 157 302 163 299 167L296.5 157Z" fill="#2a1d18"/><circle cx="298" cy="129" r="7" fill="#2a1d18"/>
+                      <path d="M279 146q3-2 6 0M291 146q3-2 6 0" stroke="#2a1d18" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+                      <ellipse cx="282.5" cy="151" rx="2.4" ry="2.2" fill="#fff"/><ellipse cx="293.5" cy="151" rx="2.4" ry="2.2" fill="#fff"/>
+                      <circle cx="283" cy="151.3" r="1.5" fill="#2a1d18"/><circle cx="294" cy="151.3" r="1.5" fill="#2a1d18"/>
+                      <path d="M287 154q1 3 2 0" stroke="#b9764a" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+                      <path d="M283 158.5Q288 163 293 158.5" stroke="#9b3f37" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                      <ellipse cx="279" cy="156" rx="2.6" ry="1.5" fill="#e07a5f" opacity=".3"/><ellipse cx="297" cy="156" rx="2.6" ry="1.5" fill="#e07a5f" opacity=".3"/>
+                    </g>
+                    <g transform="translate(4 20) scale(.76)"><g class="fx-breathe">
+                      <use href="#fx-body"/>
+                      <g class="fx-headmove"><use href="#fx-head"/><ng-container *ngTemplateOutlet="fxEyes; context: {dx: 3, dy: 0}"/><ng-container *ngTemplateOutlet="fxExSmile"/></g>
+                      <g class="fx-arm fx-arm--point"><g fill="#3d4350" stroke="#3d4350" stroke-width="3" stroke-linejoin="round"><path d="M158.9 202.1L195.4 172.1L180.6 151.9L141.1 177.9Z"/><circle cx="188" cy="162" r="12.5"/><path d="M198.2 169.2L220.2 133.8L203.8 122.2L177.8 154.8Z"/></g><g fill="url(#fx-sleeve)"><circle cx="150" cy="190" r="15.0"/><path d="M158.9 202.1L195.4 172.1L180.6 151.9L141.1 177.9Z"/><circle cx="188" cy="162" r="12.5"/><path d="M198.2 169.2L220.2 133.8L203.8 122.2L177.8 154.8Z"/></g><path d="M197.8 160.3Q193.8 153.8 188 153.4" stroke="#a3abba" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M217.9 139.5L222.3 133.4L203.5 120.1L199.1 126.3Z" fill="#fbfcfe" stroke="#3d4350" stroke-width="1.3" stroke-linejoin="round"/><use href="#fx-hand-point" transform="translate(212 128) rotate(-54.8)"/></g>
+                    </g></g>
+                  </svg>
+                }
+
+                @case ('architect') {
+                  <svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" focusable="false">
+                    <circle class="fx-halo" cx="82" cy="112" r="84" style="fill:var(--c)" opacity=".15"/>
+                    <rect x="168" y="12" width="148" height="140" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="3"/>
+                    <text x="176" y="30" font-family="'Fira Code', monospace" font-size="10.5" font-weight="700" fill="#1e293b">Requirements</text>
+                    <g font-family="'Fira Code', monospace" font-size="8.5" fill="#334155">
+                      <circle cx="180" cy="42" r="1.8" fill="#43B02A"/><text x="187" y="45">User Stories</text>
+                      <circle cx="180" cy="55" r="1.8" fill="#43B02A"/><text x="187" y="58">Data Sources</text>
+                      <circle cx="180" cy="68" r="1.8" fill="#43B02A"/><text x="187" y="71">Constraints</text>
+                      <circle cx="180" cy="81" r="1.8" fill="#43B02A"/><text x="187" y="84">MVP Scope</text>
+                    </g>
+                    <g class="fx-wiggle fx-w1"><rect x="262" y="22" width="22" height="18" fill="#d9f99d" transform="rotate(-6 273 31)"/></g><g class="fx-wiggle fx-w2"><rect x="288" y="40" width="22" height="18" fill="#99f6e4" transform="rotate(5 299 49)"/></g><g class="fx-wiggle fx-w3"><rect x="264" y="46" width="20" height="16" fill="#bbf7d0" transform="rotate(4 274 54)"/></g>
+                    <g font-family="'Fira Code', monospace" font-size="8" fill="#1e293b">
+                      <rect class="fx-lit fx-l1" x="176" y="96" width="40" height="20" rx="3" fill="#f1f8e6" stroke="#43B02A"/><text x="196" y="109" text-anchor="middle">Frontend</text>
+                      <rect class="fx-lit fx-l2" x="226" y="96" width="26" height="20" rx="3" fill="#f1f8e6" stroke="#43B02A"/><text x="239" y="109" text-anchor="middle">API</text>
+                      <rect class="fx-lit fx-l3" x="262" y="96" width="28" height="20" rx="3" fill="#f1f8e6" stroke="#43B02A"/><text x="276" y="109" text-anchor="middle">LLM</text>
+                      <rect class="fx-lit fx-l4" x="222" y="128" width="40" height="18" rx="3" fill="#f1f8e6" stroke="#43B02A"/><text x="242" y="140" text-anchor="middle">VectorDB</text>
+                      <rect class="fx-lit fx-l5" x="270" y="128" width="40" height="18" rx="3" fill="#f1f8e6" stroke="#43B02A"/><text x="290" y="140" text-anchor="middle">Tools</text>
+                    </g>
+                    <path class="fx-flow" d="M216 106h10M252 106h10M239 116v12M276 116v12" stroke="#43B02A" stroke-width="1.8" stroke-dasharray="3 3" fill="none"/><path d="M222 102l5 4-5 4zM258 102l5 4-5 4z" fill="#43B02A"/>
+                    <g transform="translate(4 20) scale(.76)"><g class="fx-breathe">
+                      <use href="#fx-body"/>
+                      <g class="fx-headmove"><use href="#fx-head"/><ng-container *ngTemplateOutlet="fxEyes; context: {dx: 3, dy: -2.5}"/><ng-container *ngTemplateOutlet="fxExThink"/></g>
+                      <g class="fx-arm fx-arm--chin"><g fill="#3d4350" stroke="#3d4350" stroke-width="3" stroke-linejoin="round"><path d="M133.8 187.3L128.1 212L151.9 220L162.2 196.7Z"/><circle cx="140" cy="216" r="12.5"/><path d="M150.8 209.6L122.6 166.9L105.4 177.1L129.2 222.4Z"/></g><g fill="url(#fx-sleeve)"><circle cx="148" cy="192" r="15.0"/><path d="M133.8 187.3L128.1 212L151.9 220L162.2 196.7Z"/><circle cx="140" cy="216" r="12.5"/><path d="M150.8 209.6L122.6 166.9L105.4 177.1L129.2 222.4Z"/></g><path d="M142.5 206.4Q134.9 207.4 132.1 212.5" stroke="#a3abba" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M127 171.3L123.1 164.9L103.3 176.6L107.2 183Z" fill="#fbfcfe" stroke="#3d4350" stroke-width="1.3" stroke-linejoin="round"/><use href="#fx-hand-fist" transform="translate(114 172) rotate(-128.6)"/></g>
+                    </g></g>
+                  </svg>
+                }
+
+                @case ('build') {
+                  <svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" focusable="false">
+                    <circle class="fx-halo" cx="82" cy="112" r="84" style="fill:var(--c)" opacity=".15"/>
+                    <circle class="fx-halo" cx="240" cy="88" r="70" style="fill:var(--c)" opacity=".15"/>
+                    <rect x="150" y="46" width="160" height="100" rx="7" fill="url(#fx-screen)" stroke="#475569" stroke-width="3"/>
+                    <circle cx="160" cy="55" r="2.2" fill="#f87171"/><circle cx="168" cy="55" r="2.2" fill="#fbbf24"/><circle cx="176" cy="55" r="2.2" fill="#4ade80"/>
+                    <g stroke-width="4.2" stroke-linecap="round" fill="none">
+                      <path class="fx-type fx-t1" d="M160 70h34" stroke="#86BC25"/><path class="fx-type fx-t2" d="M160 82h58" stroke="#2dd4bf"/><path class="fx-type fx-t3" d="M172 94h42" stroke="#d9f99d"/><path class="fx-type fx-t4" d="M172 106h30" stroke="#e2e8f0"/><path class="fx-type fx-t5" d="M160 118h50" stroke="#86BC25"/>
+                      <path class="fx-type fx-t6" d="M226 70h66" stroke="#5eead4"/><path class="fx-type fx-t7" d="M226 82h40" stroke="#bef264"/><path class="fx-type fx-t8" d="M238 94h48" stroke="#2dd4bf"/><path class="fx-type fx-t9" d="M226 106h58" stroke="#d9f99d"/><path class="fx-type fx-t10" d="M226 118h30" stroke="#e2e8f0"/>
+                    </g>
+                    <path d="M138 148H318L328 166H128Z" fill="#cbd5e1"/><path d="M138 148H318" stroke="#94a3b8" stroke-width="2"/>
+                    <path class="fx-flash" d="M286 8l-16 26h12l-7 24 21-31h-13z" fill="#a3e635" stroke="#43B02A" stroke-width="1.6" stroke-linejoin="round"/>
+                    <path class="fx-twinkle" d="M214 20l2.6 7.4 7.4 2.6-7.4 2.6-2.6 7.4-2.6-7.4-7.4-2.6 7.4-2.6z M246 36l1.8 5 5 1.8-5 1.8-1.8 5-1.8-5-5-1.8 5-1.8z" fill="#fff" opacity=".95"/>
+                    <g transform="translate(4 20) scale(.76)"><g class="fx-breathe">
+                      <use href="#fx-body"/>
+                      <g class="fx-headmove"><use href="#fx-head"/><ng-container *ngTemplateOutlet="fxEyes; context: {dx: 3.5, dy: 2}"/><ng-container *ngTemplateOutlet="fxExExcited"/></g>
+                      <g class="fx-arm fx-arm--type"><g fill="#3d4350" stroke="#3d4350" stroke-width="3" stroke-linejoin="round"><path d="M139.4 200.6L163.2 220.8L180.8 203.2L160.6 179.4Z"/><circle cx="172" cy="212" r="12.5"/><path d="M179.9 221.7L210.3 193.8L197.7 178.2L164.1 202.3Z"/></g><g fill="url(#fx-sleeve)"><circle cx="150" cy="190" r="15.0"/><path d="M139.4 200.6L163.2 220.8L180.8 203.2L160.6 179.4Z"/><circle cx="172" cy="212" r="12.5"/><path d="M179.9 221.7L210.3 193.8L197.7 178.2L164.1 202.3Z"/></g><path d="M181.8 213Q179.8 205.7 174.3 203.7" stroke="#a3abba" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M206.6 198.7L212.4 194L197.9 176.1L192.1 180.9Z" fill="#fbfcfe" stroke="#3d4350" stroke-width="1.3" stroke-linejoin="round"/><use href="#fx-hand-flat" transform="translate(204 186) rotate(-3.1)"/></g>
+                    </g></g>
+                  </svg>
+                }
+
+                @case ('ship') {
+                  <svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" focusable="false">
+                    <circle class="fx-halo" cx="82" cy="112" r="84" style="fill:var(--c)" opacity=".15"/>
+                    <rect x="164" y="10" width="152" height="140" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="3"/>
+                    <text x="172" y="28" font-family="'Fira Code', monospace" font-size="8.5" font-weight="700" fill="#1e293b">Testing &amp; Deploy</text>
+                    <g font-family="'Fira Code', monospace" font-size="8" fill="#334155">
+                      <g class="fx-pop fx-p1"><circle cx="178" cy="44" r="5" fill="#43B02A"/><path d="M175.5 44l2 2 3.6-4" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><text x="187" y="47">API Integration</text></g>
+                      <g class="fx-pop fx-p2"><circle cx="178" cy="62" r="5" fill="#43B02A"/><path d="M175.5 62l2 2 3.6-4" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><text x="187" y="65">AI Evaluation</text></g>
+                      <g class="fx-pop fx-p3"><circle cx="178" cy="80" r="5" fill="#43B02A"/><path d="M175.5 80l2 2 3.6-4" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><text x="187" y="83">Security Checks</text></g>
+                      <g class="fx-pop fx-p4"><circle cx="178" cy="98" r="5" fill="#43B02A"/><path d="M175.5 98l2 2 3.6-4" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><text x="187" y="101">Performance</text></g>
+                      <g class="fx-pop fx-p5"><circle cx="178" cy="116" r="5" fill="#43B02A"/><path d="M175.5 116l2 2 3.6-4" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><text x="187" y="119">Deploy to Cloud</text></g>
+                    </g>
+                    <path d="M264 18V140" stroke="#e2e8f0" stroke-width="2"/>
+                    <text x="290" y="42" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="800" fill="#232f3e">aws</text><path d="M276 47Q290 55 304 47" stroke="#ff9900" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                    <g class="fx-bob" fill="#2496ed"><rect x="276" y="76" width="8" height="7"/><rect x="286" y="76" width="8" height="7"/><rect x="296" y="76" width="8" height="7"/><rect x="286" y="68" width="8" height="7"/><path d="M272 85H308C308 98 296 104 284 104C276 104 272 96 272 85Z"/></g>
+                    <g class="fx-spin"><circle cx="290" cy="124" r="11" fill="none" stroke="#326ce5" stroke-width="3.4"/><circle cx="290" cy="124" r="3" fill="#326ce5"/><path d="M290 113v-6M290 135v6M279 124h-6M301 124h6M282 116l-4-4M298 132l4 4M298 116l4-4M282 132l-4 4" stroke="#326ce5" stroke-width="2.4" stroke-linecap="round"/></g>
+                    <g transform="translate(4 20) scale(.76)"><g class="fx-breathe">
+                      <use href="#fx-body"/>
+                      <g class="fx-headmove"><use href="#fx-head"/><ng-container *ngTemplateOutlet="fxEyes; context: {dx: 2.5, dy: -0.5}"/><ng-container *ngTemplateOutlet="fxExConfident"/></g>
+                      <g class="fx-arm fx-arm--point"><g fill="#3d4350" stroke="#3d4350" stroke-width="3" stroke-linejoin="round"><path d="M156.2 203.7L177.2 191.4L166.8 168.6L143.8 176.3Z"/><circle cx="172" cy="180" r="12.5"/><path d="M183.2 185.6L194.9 156.5L177.1 147.5L160.8 174.4Z"/></g><g fill="url(#fx-sleeve)"><circle cx="150" cy="190" r="15.0"/><path d="M156.2 203.7L177.2 191.4L166.8 168.6L143.8 176.3Z"/><circle cx="172" cy="180" r="12.5"/><path d="M183.2 185.6L194.9 156.5L177.1 147.5L160.8 174.4Z"/></g><path d="M181.4 176.9Q176.5 171.1 170.7 171.5" stroke="#a3abba" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M193.6 162.5L197 155.8L176.4 145.5L173 152.2Z" fill="#fbfcfe" stroke="#3d4350" stroke-width="1.3" stroke-linejoin="round"/><use href="#fx-hand-open" transform="translate(186 152) rotate(-67.4)"/></g>
+                    </g></g>
+                  </svg>
+                }
+
+                @case ('demo') {
+                  <svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" focusable="false">
+                    <circle class="fx-halo" cx="82" cy="112" r="84" style="fill:var(--c)" opacity=".15"/>
+                    <rect x="158" y="12" width="156" height="128" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="3"/>
+                    <text x="168" y="31" font-family="'Fira Code', monospace" font-size="11" font-weight="700" fill="#1e293b">Final Demo</text>
+                    <g font-family="'Fira Code', monospace" font-size="8.5" fill="#334155">
+                      <g class="fx-pop fx-p1"><rect x="168" y="40" width="8" height="8" rx="1.5" fill="#43B02A"/><path d="M169.6 44l2 2 3-3.6" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><text x="182" y="47.5">Working Product</text></g>
+                      <g class="fx-pop fx-p2"><rect x="168" y="54" width="8" height="8" rx="1.5" fill="#43B02A"/><path d="M169.6 58l2 2 3-3.6" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><text x="182" y="61.5">Business Impact</text></g>
+                      <g class="fx-pop fx-p3"><rect x="168" y="68" width="8" height="8" rx="1.5" fill="#43B02A"/><path d="M169.6 72l2 2 3-3.6" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><text x="182" y="75.5">Cost &amp; Scalability</text></g>
+                      <g class="fx-pop fx-p4"><rect x="168" y="82" width="8" height="8" rx="1.5" fill="#43B02A"/><path d="M169.6 86l2 2 3-3.6" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><text x="182" y="89.5">Next Steps</text></g>
+                    </g>
+                    <g fill="#86BC25"><rect class="fx-grow fx-g1" x="236" y="110" width="12" height="18" rx="2"/><rect class="fx-grow fx-g2" x="252" y="102" width="12" height="26" rx="2"/><rect class="fx-grow fx-g3" x="268" y="94" width="12" height="34" rx="2"/><rect class="fx-grow fx-g4" x="284" y="84" width="12" height="44" rx="2"/></g>
+                    <path class="fx-draw" d="M232 106L256 96L274 90L300 68" stroke="#00ABAB" stroke-width="3" stroke-dasharray="80" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path class="fx-arrowhead" d="M290 66L302 66L302 78" stroke="#00ABAB" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M168 128H224" stroke="#e2e8f0" stroke-width="2" stroke-linecap="round"/>
+                    <g transform="translate(4 20) scale(.76)"><g class="fx-breathe">
+                      <use href="#fx-body"/>
+                      <g class="fx-headmove"><use href="#fx-head"/><ng-container *ngTemplateOutlet="fxEyes; context: {dx: 0, dy: 0}"/><ng-container *ngTemplateOutlet="fxExSmile"/></g>
+                      <g class="fx-arm fx-arm--wave"><g fill="#3d4350" stroke="#3d4350" stroke-width="3" stroke-linejoin="round"><path d="M153.1 204.7L180.6 196.2L175.4 171.8L146.9 175.3Z"/><circle cx="178" cy="184" r="12.5"/><path d="M189.5 188.9L199.2 159.9L180.8 152.1L166.5 179.1Z"/></g><g fill="url(#fx-sleeve)"><circle cx="150" cy="190" r="15.0"/><path d="M153.1 204.7L180.6 196.2L175.4 171.8L146.9 175.3Z"/><circle cx="178" cy="184" r="12.5"/><path d="M189.5 188.9L199.2 159.9L180.8 152.1L166.5 179.1Z"/></g><path d="M187.2 180.3Q181.9 174.8 176.2 175.6" stroke="#a3abba" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M198.2 166L201.2 159.2L180 150.1L177.1 157Z" fill="#fbfcfe" stroke="#3d4350" stroke-width="1.3" stroke-linejoin="round"/><use href="#fx-hand-open" transform="translate(190 156) rotate(-72.8)"/></g>
+                    </g></g>
+                  </svg>
+                }
+              }
+            </div>
+
+            <dl class="how-facts">
+              <div><dt>What it is</dt><dd>{{ card.is }}</dd></div>
+              <div><dt>What I did</dt><dd>{{ card.did }}</dd></div>
+              <div class="how-proof"><dt>Proof</dt><dd><b>{{ howNum(card) }}</b> {{ card.unit }}</dd></div>
+            </dl>
+          </article>
+        </div>
+      }
+    </div>
+
+    <!-- What a finished project leaves behind -->
+    <ul class="how-deliver" aria-label="What every project leaves behind">
+      @for (d of deliverables; track d.title) {
+        <li>
+          <a class="hd-item" [href]="d.href" [attr.target]="d.external ? '_blank' : null" [attr.rel]="d.external ? 'noopener' : null">
+            <span class="hd-icon" aria-hidden="true">
+              @switch (d.icon) {
+                @case ('github') { <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 0-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3"/></svg> }
+                @case ('demo') { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M10 8.5l5 2.5-5 2.5z" fill="currentColor"/></svg> }
+                @case ('docs') { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8M8 9h3"/></svg> }
+                @case ('skills') { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg> }
+                @case ('trophy') { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg> }
+              }
+            </span>
+            <span class="hd-text"><b>{{ d.title }}</b><small>{{ d.sub }}</small></span>
+          </a>
+        </li>
+      }
+    </ul>
+
+    <div class="skills-grid fde-grid">
+      @for (skill of skills; track skill.title) {
+        <div class="skill-card fde-card fade-up" #fadeEl>
+          <div class="fde-card-top">
+            <div class="skill-title" [ngClass]="'color-' + skill.color">{{ skill.title }}</div>
+            <img [src]="getSkillIconUrl(skill.items)" [alt]="skill.title" class="skill-logos fde-logos"/>
+          </div>
+          @if (fdeViz(skill.title); as v) {
+            <proof-viz kind="STEPS" [labels]="v.labels" [caption]="v.caption" [liveLast]="v.live" class="fde-viz" />
+          } @else if (skill.title === 'Agentic AI Engineering') {
+            <proof-viz kind="AGENT" class="fde-viz" />
+          } @else if (skill.title === 'AI Security') {
+            <proof-viz kind="SECURITY" class="fde-viz" />
+          }
+          <p class="fde-what">{{ skill.what }}</p>
+          <div class="skill-items">
+            @for (item of skill.labels; track item) {
+              <span class="skill-item tag" [ngClass]="'tag-' + skill.color">{{ item }}</span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- OPEN SOURCE CONTRIBUTION — grows with each merge -->
+<section id="opensource" class="oss-section">
+  <svg class="sec-geo sec-geo--oss" viewBox="0 0 600 600" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><!-- converging rings --><defs><linearGradient id="geo-oss-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" style="stop-color:var(--geo-a)"/><stop offset="55%" style="stop-color:var(--geo-b)"/><stop offset="100%" style="stop-color:var(--geo-c)"/></linearGradient></defs><circle cx="300.0" cy="300.0" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.9"/><circle cx="378.0" cy="300.0" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.7"/><circle cx="339.0" cy="367.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.7"/><circle cx="261.0" cy="367.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.7"/><circle cx="222.0" cy="300.0" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.7"/><circle cx="261.0" cy="232.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.7"/><circle cx="339.0" cy="232.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.7"/><circle cx="417.0" cy="367.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.4"/><circle cx="300.0" cy="435.1" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.4"/><circle cx="183.0" cy="367.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.4"/><circle cx="183.0" cy="232.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.4"/><circle cx="300.0" cy="164.9" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.4"/><circle cx="417.0" cy="232.5" r="78" fill="none" stroke="url(#geo-oss-g)" stroke-width="1.4" opacity="0.4"/><circle cx="378.0" cy="300.0" r="3.2" style="fill:var(--geo-a)"/><circle cx="339.0" cy="367.5" r="3.2" style="fill:var(--geo-a)"/><circle cx="261.0" cy="367.5" r="3.2" style="fill:var(--geo-a)"/><circle cx="222.0" cy="300.0" r="3.2" style="fill:var(--geo-a)"/><circle cx="261.0" cy="232.5" r="3.2" style="fill:var(--geo-a)"/><circle cx="339.0" cy="232.5" r="3.2" style="fill:var(--geo-a)"/><circle cx="300" cy="300" r="5" style="fill:var(--geo-a)"/><circle cx="300" cy="300" r="262" fill="none" stroke="url(#geo-oss-g)" stroke-width="1" stroke-dasharray="2 7" opacity="0.6" class="geo-spin-slow"/></svg>
+  <div class="container">
+    <ck-journey [step]="5" place="Open Source" mood="laugh" pose="cheer" note="My code, accepted into libraries that many developers use."/>
+    <div class="oss-head">
+      <div class="oss-logos">
+        <img class="oss-hf" src="huggingface-logo.svg" alt="Hugging Face" />
+        <img class="oss-hf" src="joblib-logo.svg" alt="joblib" />
+      </div>
+      <div>
+        <h2 class="oss-h">I Don't Just Use Open Source. I Contribute to It.</h2>
+        <p class="oss-sub"><b>{{ openSource.length }} merged contributions</b> to libraries that Python and AI developers use every day: pypdf · fontTools · Pillow · fpdf2 · trafilatura · pydantic-extra-types · txtai · kornia · tox · mistune · Docling · Joblib · Sentence Transformers · NLTK · Authlib.</p>
+      </div>
+    </div>
+    <proof-viz kind="MONTHS" [prs]="openSource" class="oss-months" />
+    <!-- In review: my open PRs, read live from GitHub (cached 15 min with the merged count) -->
+    @if (live.openCount(); as openN) {
+      <div class="oss-review">
+        <div class="oss-review-head">
+          <span class="oss-review-dot" aria-hidden="true"></span>
+          <span><b>In review now</b> · {{ openN }} open pull requests waiting for review</span>
+          <a class="oss-review-all" [href]="live.openSearchUrl" target="_blank" rel="noopener">See all on GitHub →</a>
+        </div>
+        <ul class="oss-review-list">
+          @for (p of live.openPrs().slice(0, 8); track p.url) {
+            <li>
+              <a [href]="p.url" target="_blank" rel="noopener">
+                <span class="oss-review-repo">{{ p.repo }}</span>
+                <span class="oss-review-num">#{{ p.number }}</span>
+                <span class="oss-review-title">{{ p.title }}</span>
+              </a>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+    <!-- Library filter: colour-coded chips, biggest project first -->
+    <div class="oss-controls">
+      <div class="oss-chips" role="tablist" aria-label="Filter by library">
+        <button type="button" role="tab" class="oss-chip"
+                [class.is-active]="ossLibrary() === 'all'"
+                [attr.aria-selected]="ossLibrary() === 'all'"
+                (click)="setOssLibrary('all')">
+          All <span class="oss-chip-n">{{ openSource.length }}</span>
+        </button>
+        @for (lib of ossLibraries(); track lib.repo) {
+          <button type="button" role="tab" class="oss-chip"
+                  [attr.data-lib]="lib.slug"
+                  [class.is-active]="ossLibrary() === lib.repo"
+                  [attr.aria-selected]="ossLibrary() === lib.repo"
+                  (click)="setOssLibrary(lib.repo)">
+            <img class="oss-chip-logo" [src]="lib.logo" [alt]="" aria-hidden="true" />
+            {{ lib.repo.split('/')[1] }} <span class="oss-chip-n">{{ lib.n }}</span>
+          </button>
+        }
+      </div>
+
+      <div class="oss-sortbar">
+        <span class="oss-range">{{ ossRangeLabel() }}</span>
+        <label class="oss-sort">
+          <span class="oss-sort-label">Sort</span>
+          <select [value]="ossSort()"
+                  (change)="setOssSort($any($event.target).value)"
+                  aria-label="Sort merged pull requests">
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="stars">Most stars</option>
+            <option value="library">By library</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <div class="oss-grid">
+      @for (o of ossVisible(); track o.pr) {
+        <a class="oss-card" [href]="o.pr" target="_blank" rel="noopener">
+          <div class="oss-top">
+            <span class="oss-repo">
+              <img class="oss-card-logo" [src]="o.logo" [alt]="o.org" />
+              {{ o.repo }}
+            </span>
+            <span class="oss-stars">{{ o.stars }}</span>
+          </div>
+          <div class="oss-title">{{ o.title }}</div>
+          <div class="oss-desc">{{ o.desc }}</div>
+          <proof-viz kind="STEPS" [labels]="prTrack" [compact]="true" class="oss-track" />
+          <div class="oss-foot">
+            <span class="oss-merged">✓ Merged · {{ o.merged }}</span>
+            <span class="oss-view">View PR ↗</span>
+          </div>
+        </a>
+      }
+    </div>
+
+    @if (ossTotalPages() > 1) {
+      <nav class="oss-pager" aria-label="Merged pull request pages">
+        <button type="button" class="oss-page-btn oss-page-arrow"
+                [disabled]="ossPage() <= 1"
+                (click)="goOssPage(ossPage() - 1)" aria-label="Previous page">&larr;</button>
+        @for (n of ossPageNumbers(); track n) {
+          <button type="button" class="oss-page-btn"
+                  [class.is-active]="ossPage() === n"
+                  [attr.aria-current]="ossPage() === n ? 'page' : null"
+                  (click)="goOssPage(n)">{{ n }}</button>
+        }
+        <button type="button" class="oss-page-btn oss-page-arrow"
+                [disabled]="ossPage() >= ossTotalPages()"
+                (click)="goOssPage(ossPage() + 1)" aria-label="Next page">&rarr;</button>
+      </nav>
+    }
   </div>
 </section>
 
