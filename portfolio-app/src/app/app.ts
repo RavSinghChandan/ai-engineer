@@ -468,12 +468,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '140',
+      stat:  '144',
       title: 'Pull requests merged by other projects\' maintainers.',
       sub:   'People I had never met reviewed my code and accepted it: pypdf, fontTools, Pillow, fpdf2, trafilatura, txtai, kornia, tox, mistune, Docling, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '140 merged, all reviewed! ✅',
+      aaravSay: '144 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -601,6 +601,46 @@ export class App implements OnInit, AfterViewInit {
   // ── Open Source: merged PRs into major libraries. Append a new entry per merge; the
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'Raise a clear error in regular_polygon() for numSides below 1',
+      desc: 'regular_polygon(numSides=0) silently wrote a broken path with no points into the PDF. It now raises a clear ValueError that names the bad value. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2069',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'Compute an ink annotation\'s rectangle from the x coordinates',
+      desc: 'ink_annotation() built the left edge of the annotation rectangle from a y coordinate, so the rectangle did not enclose the drawn path and could even lie outside the page. The rectangle now uses the smallest x, and the reference PDFs were regenerated. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2068',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'Raise a clear error for a page label start below 1',
+      desc: 'set_page_label() and add_page() accepted label_start=0 or a negative number and wrote an invalid /St value, which the PDF specification requires to be 1 or more. They now raise a clear ValueError before changing anything. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2067',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'Raise a clear error in star() for corners below 1',
+      desc: 'star(corners=0) crashed with a ZeroDivisionError, and a negative value silently drew nothing. Both now raise a clear ValueError that names the bad value. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2066',
+      merged: 'Oct 2026',
+    },
     {
       repo: 'py-pdf/pypdf',
       logo: 'pypdf-logo.svg',
@@ -2336,7 +2376,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defense','PII protection','Output validation','Secure tool use','Threat modeling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers, and own the result.',
-      evidence: '140 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
+      evidence: '144 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
