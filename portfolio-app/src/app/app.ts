@@ -204,6 +204,22 @@ export class App implements OnInit, AfterViewInit {
         { p: 'Reports in 23 Indian languages', s: 'Language-aware prompt templating + dynamic PDF rendering per locale' },
         { p: 'Reliable tests that do not call the real LLM', s: '415 tests that finish in seconds, not minutes. They cover the full stack with a mock LLM and never fail at random' },
       ],
+      permissions: {
+        source: 'fde/config.py → PERMISSION_MATRIX, checked by fde/permissions.py',
+        note: 'Default deny: anything not granted is refused, and every check is counted and logged. No agent can read a customer\'s email, phone or sign-in data.',
+        rows: [
+          { who: 'Question agent', human: false, read: ['user question'], create: ['normalized questions'], update: [], approve: [] },
+          { who: '5 domain agents', human: false, detail: 'astrology, numerology, palmistry, tarot, vastu', read: ['birth profile', 'normalized questions', 'module inputs'], create: ['domain readings'], update: [], approve: [] },
+          { who: 'Meta agent', human: false, detail: 'never sees raw birth details', read: ['domain readings'], create: ['consolidated insights'], update: [], approve: [] },
+          { who: 'Remedy agent', human: false, read: ['consolidated insights'], create: ['remedies'], update: [], approve: [] },
+          { who: 'Admin review agent', human: false, read: ['consolidated insights', 'remedies', 'past corrections'], create: ['review draft'], update: [], approve: [] },
+          { who: 'Holistic agent', human: false, detail: 'the 14-chapter 360° report', read: ['birth profile'], create: ['review draft'], update: [], approve: [] },
+          { who: 'Report agent', human: false, read: ['review draft', 'remedies'], create: ['final report'], update: [], approve: [], gate: 'final report needs a human first' },
+          { who: 'Grammar agent', human: false, detail: 'wording only, may not change facts', read: ['final report'], create: [], update: ['final report'], approve: [] },
+          { who: 'Translation agent', human: false, read: ['final report'], create: ['translated report'], update: [], approve: [] },
+          { who: 'Human reviewer', human: true, read: ['everything'], create: ['past corrections'], update: ['review draft', 'final report'], approve: ['final report'] },
+        ],
+      },
       imgSrc: 'project-aura.png',
     },
     {
@@ -299,6 +315,18 @@ export class App implements OnInit, AfterViewInit {
         { p: 'Role data is stuck in hard-coded JSON', s: 'Admin CRUD API + async FAISS/BM25 rebuild — live updates, zero downtime' },
         { p: 'Testing the whole enterprise stack', s: '222 tests that finish in seconds, not minutes, with no outside services needed in CI' },
       ],
+      permissions: {
+        source: 'backend/fde/config.py → PERMISSION_MATRIX, checked by fde/permissions.py',
+        note: 'Default deny: anything not granted is refused, and every check is counted and logged. An agent can recommend a person for a role, but only HR decides staffing.',
+        rows: [
+          { who: 'CV parser agent', human: false, read: ['CV text'], create: ['profile'], update: [], approve: [] },
+          { who: 'Role mapping agent', human: false, read: ['profile', 'role catalog', 'search index', 'memory'], create: ['role match'], update: ['memory'], approve: [], gate: 'staffing decision needs HR' },
+          { who: 'Planning agent', human: false, read: ['profile', 'role match'], create: ['learning plan'], update: [], approve: [] },
+          { who: 'Tracking agent', human: false, detail: 'rule-based', read: ['learning plan', 'progress'], create: [], update: ['progress', 'readiness score', 'memory'], approve: [] },
+          { who: 'LLM judge', human: false, detail: 'scores quality, changes nothing else', read: ['role match', 'learning plan', 'evaluation input'], create: ['quality scores'], update: [], approve: [] },
+          { who: 'HR admin', human: true, read: ['everything'], create: ['roles', 'staffing decision'], update: ['role catalog', 'search index'], approve: ['staffing decision'] },
+        ],
+      },
       imgSrc: 'project-bench.png',
     },
     {

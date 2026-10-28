@@ -3065,3 +3065,31 @@ footer .footer-social a {
   .story-stats .st-lbl { font-size: 0.62rem !important; }
   .story-photo { width: 200px !important; }
 }
+
+/* ── Agent permission matrix (project cards) ── */
+.perm-more { margin-top: 0.75rem; }
+.perm-wrap { border: 1px solid var(--border); overflow-x: auto; }
+.perm-table {
+  width: 100%; border-collapse: collapse; font-size: 0.78rem; color: var(--text2);
+  th, td { padding: 0.55rem 0.7rem; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+  thead th { background: var(--surface); font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text3); }
+  tbody th { font-weight: 600; color: var(--text); min-width: 9rem; }
+  tbody tr:last-child th, tbody tr:last-child td { border-bottom: none; }
+  tr.perm-human { background: var(--surface); }
+  @media (max-width: 640px) {
+    thead { display: none; }
+    tr { display: block; border-bottom: 1px solid var(--border); }
+    th, td { display: block; border-bottom: none; padding: 0.35rem 0.7rem; }
+    td::before { content: attr(data-label); display: block; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text3); }
+  }
+}
+.perm-detail { display: block; font-weight: 400; font-size: 0.7rem; color: var(--text3); }
+.perm-tag { margin-left: 0.4rem; font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 0.1rem 0.35rem; background: rgba(134,188,37,0.18); color: var(--dl-green); }
+.perm-chip { display: inline-block; margin: 0 0.25rem 0.25rem 0; padding: 0.1rem 0.4rem; border: 1px solid var(--border); font-size: 0.72rem; white-space: nowrap; }
+.perm-c { border-color: rgba(59,130,246,0.45); }
+.perm-u { border-color: rgba(245,158,11,0.5); }
+.perm-a { border-color: rgba(134,188,37,0.6); color: var(--dl-green); font-weight: 600; }
+.perm-gate { display: inline-block; font-size: 0.72rem; color: var(--text3); }
+.perm-none { color: var(--text3); }
+.perm-note { margin-top: 0.6rem; font-size: 0.76rem; color: var(--text3); }
+.perm-src { display: block; margin-top: 0.2rem; code { font-size: 0.7rem; } }

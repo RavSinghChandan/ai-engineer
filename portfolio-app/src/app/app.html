@@ -411,6 +411,38 @@
         </div>
         </details>
 
+        @if (project.permissions; as perm) {
+          <details class="proj-more perm-more">
+            <summary>Agent permissions <span class="pm-n">who can read, create, update or approve</span></summary>
+            <div class="perm-wrap">
+              <table class="perm-table">
+                <thead>
+                  <tr><th scope="col">Agent</th><th scope="col">Read</th><th scope="col">Create</th><th scope="col">Update</th><th scope="col">Approve</th></tr>
+                </thead>
+                <tbody>
+                  @for (r of perm.rows; track r.who) {
+                    <tr [class.perm-human]="r.human">
+                      <th scope="row">
+                        {{ r.who }}@if (r.human) { <span class="perm-tag">human</span> }
+                        @if (r.detail) { <span class="perm-detail">{{ r.detail }}</span> }
+                      </th>
+                      <td data-label="Read">@for (x of r.read; track x) { <span class="perm-chip">{{ x }}</span> } @empty { <span class="perm-none">—</span> }</td>
+                      <td data-label="Create">@for (x of r.create; track x) { <span class="perm-chip perm-c">{{ x }}</span> } @empty { <span class="perm-none">—</span> }</td>
+                      <td data-label="Update">@for (x of r.update; track x) { <span class="perm-chip perm-u">{{ x }}</span> } @empty { <span class="perm-none">—</span> }</td>
+                      <td data-label="Approve">
+                        @for (x of r.approve; track x) { <span class="perm-chip perm-a">✓ {{ x }}</span> }
+                        @if (r.gate) { <span class="perm-gate">🔒 {{ r.gate }}</span> }
+                        @if (!r.approve.length && !r.gate) { <span class="perm-none">—</span> }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+            <p class="perm-note">{{ perm.note }} <span class="perm-src">Source: <code>{{ perm.source }}</code></span></p>
+          </details>
+        }
+
         @if (demoData[project.num]?.length) {
           <project-reel [slides]="demoData[project.num]" (open)="openDemo(project)" />
         } @else if (project.imgSrc) {
