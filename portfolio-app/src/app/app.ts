@@ -496,12 +496,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '151',
+      stat:  '152',
       title: 'Pull requests merged by other projects\' maintainers.',
-      sub:   'People I had never met reviewed my code and accepted it: pypdf, fontTools, Pillow, fpdf2, trafilatura, txtai, kornia, tox, mistune, Docling, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
+      sub:   'People I had never met reviewed my code and accepted it: pypdf, fontTools, Pillow, fpdf2, trafilatura, txtai, kornia, tox, mistune, Docling, docTR, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '151 merged, all reviewed! ✅',
+      aaravSay: '152 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -629,6 +629,16 @@ export class App implements OnInit, AfterViewInit {
   // ── Open Source: merged PRs into major libraries. Append a new entry per merge; the
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
+    {
+      repo: 'mindee/doctr',
+      logo: 'doctr-logo.png',
+      org: 'mindee',
+      stars: '6.4k★',
+      title: 'Resolve the geometry of a document block that only has artefacts',
+      desc: 'A Block built with artefacts (such as a logo or signature) but no text lines crashed with IndexError, because its box shape was read from the first line. It now falls back to the first artefact, and the exporters already handle such blocks. Merged by felixdittrich92.',
+      pr: 'https://github.com/mindee/doctr/pull/2187',
+      merged: 'Oct 2026',
+    },
     {
       repo: 'py-pdf/fpdf2',
       logo: 'fpdf2-logo.png',
@@ -2474,7 +2484,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defense','PII protection','Output validation','Secure tool use','Threat modeling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers, and own the result.',
-      evidence: '151 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
+      evidence: '152 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
@@ -3739,6 +3749,7 @@ export class App implements OnInit, AfterViewInit {
     trafilatura: '#FACC15', // amber
     mistune:  '#E879F9',  // fuchsia, apart from sentence-transformers pink
     'docling-core': '#818CF8', // indigo
+    doctr:    '#22D3EE',  // cyan
   };
 
   /** Colour for a node: open-source vertices are keyed by library. */
@@ -3747,7 +3758,7 @@ export class App implements OnInit, AfterViewInit {
     system: '#0D8390', tech: '#007CB0', oss: '#26890D', work: '#C26E00', practice: '#6B7A00',
   };
   private readonly OSS_COLORS_LIGHT: Record<string, string> = {
-    pypdf: '#26890D', joblib: '#E11D48', 'sentence-transformers': '#DB2777', nltk: '#A16207', authlib: '#0369A1', fonttools: '#3B5BDB', fpdf2: '#DC2626', Pillow: '#EA580C', 'pydantic-extra-types': '#BE185D', txtai: '#059669', kornia: '#2563EB', tox: '#8A8A2E', trafilatura: '#B45309', mistune: '#C026D3', 'docling-core': '#4F46E5',
+    pypdf: '#26890D', joblib: '#E11D48', 'sentence-transformers': '#DB2777', nltk: '#A16207', authlib: '#0369A1', fonttools: '#3B5BDB', fpdf2: '#DC2626', Pillow: '#EA580C', 'pydantic-extra-types': '#BE185D', txtai: '#059669', kornia: '#2563EB', tox: '#8A8A2E', trafilatura: '#B45309', mistune: '#C026D3', 'docling-core': '#4F46E5', doctr: '#0891B2',
   };
 
   /** libColor bound for child components (the merged-PR squares and month bars). */
