@@ -491,7 +491,7 @@
 
           <div class="proof-tag">{{ p.tag }}</div>
           <div class="proof-num">{{ p.stat }}</div>
-          <proof-viz [kind]="p.tag" [prs]="openSource" />
+          <proof-viz [kind]="p.tag" [prs]="openSource" [colorOf]="libColorOf" />
           <div class="proof-title">{{ p.title }}</div>
           @if (p.link) { <a class="proof-live-link" [href]="p.link" target="_blank" rel="noopener">Visit aurawithrav.com →</a> }
 
@@ -1275,7 +1275,7 @@
         <p class="oss-sub"><b>{{ openSource.length }} merged contributions</b> to libraries that Python and AI developers use every day: pypdf · fontTools · Pillow · fpdf2 · trafilatura · pydantic-extra-types · txtai · kornia · tox · mistune · Docling · Joblib · Sentence Transformers · NLTK · Authlib.</p>
       </div>
     </div>
-    <proof-viz kind="MONTHS" [prs]="openSource" class="oss-months" />
+    <proof-viz kind="MONTHS" [prs]="openSource" [colorOf]="libColorOf" class="oss-months" />
     <!-- In review: my open PRs, read live from GitHub (cached 15 min with the merged count) -->
     @if (live.openCount(); as openN) {
       <div class="oss-review">

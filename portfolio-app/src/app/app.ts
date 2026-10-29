@@ -3736,6 +3736,9 @@ export class App implements OnInit, AfterViewInit {
     txtai:    '#34D399',  // green, from its logo
     kornia:   '#3B82F6',  // blue, from its logo
     tox:      '#C9C96A',  // olive gold, from its globe
+    trafilatura: '#FACC15', // amber
+    mistune:  '#E879F9',  // fuchsia, apart from sentence-transformers pink
+    'docling-core': '#818CF8', // indigo
   };
 
   /** Colour for a node: open-source vertices are keyed by library. */
@@ -3746,6 +3749,9 @@ export class App implements OnInit, AfterViewInit {
   private readonly OSS_COLORS_LIGHT: Record<string, string> = {
     pypdf: '#26890D', joblib: '#E11D48', 'sentence-transformers': '#DB2777', nltk: '#A16207', authlib: '#0369A1', fonttools: '#3B5BDB', fpdf2: '#DC2626', Pillow: '#EA580C', 'pydantic-extra-types': '#BE185D', txtai: '#059669', kornia: '#2563EB', tox: '#8A8A2E', trafilatura: '#B45309', mistune: '#C026D3', 'docling-core': '#4F46E5',
   };
+
+  /** libColor bound for child components (the merged-PR squares and month bars). */
+  readonly libColorOf = (repo: string): string => this.libColor(repo);
 
   /** Library colour for the open-source chips and cards: the graph's hue, so pypdf and fpdf2 never look alike. */
   libColor(repo: string): string {

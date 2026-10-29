@@ -165,10 +165,13 @@ export const REPO_COLOR: Record<string, string> = {
         <div class="pv-months">
           @for (m of months(); track m.label) {
             <div class="pv-month">
-              <div class="pv-stack" [style.height.%]="m.total / monthMax() * 100">
-                @for (seg of m.segs; track seg.repo) {
-                  <span [style.flex-grow]="seg.n" [style.background]="color(seg.repo)" [title]="seg.repo + ': ' + seg.n"></span>
-                }
+              <!-- the bar has its own plot area, so its height is exactly total / max -->
+              <div class="pv-plot">
+                <div class="pv-stack" [style.height.%]="m.total / monthMax() * 100" [title]="m.label + ': ' + m.total">
+                  @for (seg of m.segs; track seg.repo) {
+                    <span [style.flex-grow]="seg.n" [style.background]="color(seg.repo)" [title]="seg.repo + ': ' + seg.n"></span>
+                  }
+                </div>
               </div>
               <b>{{ m.total }}</b>
               <small>{{ m.label }}</small>
@@ -200,6 +203,8 @@ export class ProofViz implements AfterViewInit, OnDestroy {
   /** TENURE: "Aug 2022 – May 2023" or "Sep 2026 – Present", scaled against maxMonths. */
   period = input('');
   maxMonths = input(24);
+  /** Library colour, so the squares and month bars match the open-source cards and chips. */
+  colorOf = input<((repo: string) => string) | undefined>(undefined);
   readonly live = inject(LiveStatus);
   private readonly el = inject(ElementRef<HTMLElement>);
   private readonly browser = isPlatformBrowser(inject(PLATFORM_ID));
@@ -285,7 +290,7 @@ export class ProofViz implements AfterViewInit, OnDestroy {
     }
   });
 
-  color(repo: string) { return REPO_COLOR[repo] ?? '#86BC25'; }
+  color(repo: string) { return this.colorOf()?.(repo) ?? REPO_COLOR[repo] ?? '#86BC25'; }
 
   ngAfterViewInit() {
     if (!this.browser) return;
