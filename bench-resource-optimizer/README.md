@@ -2,6 +2,7 @@
 
 > AI-powered platform to identify skill gaps in bench employees, map them to project roles using Hybrid RAG, and generate personalised training roadmaps.
 
+**Case study:** [customer problem, architecture, deployment plan, security, evaluation and business outcome](docs/CASE_STUDY.md)  
 **GitHub Repo:** https://github.com/RavSinghChandan/ai-engineer  
 **Folder:** `bench-resource-optimizer/`
 
