@@ -1309,6 +1309,7 @@
         @for (lib of ossLibraries(); track lib.repo) {
           <button type="button" role="tab" class="oss-chip"
                   [attr.data-lib]="lib.slug"
+                  [style.--chip]="libColor(lib.repo)"
                   [class.is-active]="ossLibrary() === lib.repo"
                   [attr.aria-selected]="ossLibrary() === lib.repo"
                   (click)="setOssLibrary(lib.repo)">
@@ -1336,9 +1337,10 @@
 
     <div class="oss-grid">
       @for (o of ossVisible(); track o.pr) {
-        <a class="oss-card" [href]="o.pr" target="_blank" rel="noopener">
+        <a class="oss-card" [href]="o.pr" target="_blank" rel="noopener" [style.--lib]="libColor(o.repo)">
           <div class="oss-top">
             <span class="oss-repo">
+              <i class="oss-lib-dot" aria-hidden="true"></i>
               <img class="oss-card-logo" [src]="o.logo" [alt]="o.org" />
               {{ o.repo }}
             </span>
@@ -1346,7 +1348,7 @@
           </div>
           <div class="oss-title">{{ o.title }}</div>
           <div class="oss-desc">{{ o.desc }}</div>
-          <proof-viz kind="STEPS" [labels]="prTrack" [compact]="true" class="oss-track" />
+          <proof-viz kind="STEPS" [labels]="prTrack" [compact]="true" class="oss-track" [style.--pv-a]="libColor(o.repo)" />
           <div class="oss-foot">
             <span class="oss-merged">✓ Merged · {{ o.merged }}</span>
             <span class="oss-view">View PR ↗</span>

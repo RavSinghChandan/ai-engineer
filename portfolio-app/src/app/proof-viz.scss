@@ -83,7 +83,7 @@
 }
 .pv-step rect, .pv-step-t { animation: inherit; animation-name: pv-step-lit; }
 @keyframes pv-step-lit {
-  0%, 24% { stroke: var(--pv-a); fill: rgba(134, 188, 37, 0.14); color: var(--pv-a); }
+  0%, 24% { stroke: var(--pv-a); fill: color-mix(in srgb, var(--pv-a) 14%, transparent); color: var(--pv-a); }
   30%, 100% { stroke: var(--border); fill: var(--bg); }
 }
 .pv-step .pv-step-t { animation-name: pv-step-text; }

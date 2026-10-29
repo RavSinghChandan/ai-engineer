@@ -439,6 +439,7 @@ h1 {
 .oss-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; }
 .oss-repo { font-family: monospace; font-size: 0.8rem; color: var(--accent); font-weight: 600; display: inline-flex; align-items: center; gap: 0.45rem; }
 .oss-card-logo { width: 20px; height: 20px; flex-shrink: 0; border-radius: 5px; }
+.oss-lib-dot { width: 9px; height: 9px; flex-shrink: 0; border-radius: 50%; background: var(--lib, var(--accent)); box-shadow: 0 0 8px var(--lib, var(--accent)); }
 .oss-stars { font-size: 0.75rem; color: var(--amber); font-weight: 700; }
 .oss-title { font-size: 0.95rem; font-weight: 700; color: var(--text); margin-bottom: 0.35rem; }
 .oss-desc { font-size: 0.78rem; color: var(--text2); line-height: 1.5; margin-bottom: 0.9rem; }
@@ -2206,13 +2207,6 @@ footer {
   }
   &:focus-visible { outline: 2px solid var(--chip); outline-offset: 2px; }
 
-  /* per-library accent, same hues as the graph */
-  &[data-lib="pypdf"]                 { --chip: #26890D; }
-  &[data-lib="joblib"]                { --chip: #fb7185; }
-  &[data-lib="sentence-transformers"] { --chip: #f472b6; }
-  &[data-lib="nltk"]                  { --chip: #facc15; }
-  &[data-lib="authlib"]               { --chip: #007CB0; }
-  &[data-lib="fonttools"]             { --chip: #3B5BDB; }
 }
 .oss-chip-logo { width: 15px; height: 15px; object-fit: contain; }
 .oss-chip-n {
@@ -2389,6 +2383,7 @@ nav[aria-label="Main navigation"], nav[aria-label="Main navigation"].scrolled {
   box-shadow: var(--card-shadow) !important;
   transition: transform .25s var(--ease), box-shadow .25s var(--ease), border-color .25s !important;
 }
+.oss-card { border-top: 3px solid var(--lib, var(--border)) !important; }
 .oss-card:hover, .skill-card:hover, .proof-card:hover, .tl-body:hover {
   transform: translateY(-3px); box-shadow: var(--card-shadow-hover) !important;
 }
@@ -2423,10 +2418,6 @@ nav[aria-label="Main navigation"], nav[aria-label="Main navigation"].scrolled {
 .oss-chip.is-active { color: #000 !important; background: var(--chip) !important; border-color: var(--chip) !important; }
 .oss-chip:not([data-lib]).is-active { background: var(--chip-active-bg) !important; color: var(--chip-active-fg) !important; border-color: var(--chip-active-bg) !important;
   .oss-chip-n { background: var(--dl-green); color: #000; } }
-.oss-chip[data-lib="pypdf"] { --chip: #86BC25; }
-.oss-chip[data-lib="nltk"] { --chip: #E3E48D; }
-.oss-chip[data-lib="authlib"] { --chip: #A0DCFF; }
-.oss-chip[data-lib="fonttools"] { --chip: #7C9CFF; }
 .tag-chip { background: var(--card) !important; color: var(--text2) !important; border-color: var(--border2) !important; }
 .tag-chip--active { background: var(--chip-active-bg) !important; color: var(--chip-active-fg) !important; border-color: var(--chip-active-bg) !important; }
 
