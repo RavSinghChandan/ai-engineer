@@ -202,7 +202,7 @@ class TestSimplifyBulletsEndpoint:
 
 class TestRemediesEndpoint:
     def test_remedies_returns_200_with_empty_list_on_no_rag(self, client):
-        with patch("numerology_rag.retriever.retrieve_remedy", return_value=""):
+        with patch("numerology_rag.retriever.retrieve_remedy_chunks", return_value=[]):
             resp = client.post(
                 "/api/v1/analysis/remedies",
                 json={"life_path": 5, "intent": "career", "top_k": 5},
@@ -211,7 +211,7 @@ class TestRemediesEndpoint:
         assert "remedies" in resp.json()
 
     def test_remedies_exception_returns_empty(self, client):
-        with patch("numerology_rag.retriever.retrieve_remedy", side_effect=RuntimeError("rag down")):
+        with patch("numerology_rag.retriever.retrieve_remedy_chunks", side_effect=RuntimeError("rag down")):
             resp = client.post(
                 "/api/v1/analysis/remedies",
                 json={"life_path": 3, "intent": "health"},

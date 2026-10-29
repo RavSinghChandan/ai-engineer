@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { OrchestratorService } from '../../services/orchestrator.service';
-import { ApiService, LanguageOption } from '../../services/api.service';
+import { ApiService, LanguageOption, RagCitation, RagEvidence } from '../../services/api.service';
 import { AdminInsight, AdminQuestion, InsightDetail } from '../../models/astro.models';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
@@ -623,6 +623,13 @@ const BACKEND = environment.apiUrl;
             <div class="q-meta">
               <span class="intent-tag" style="background:rgba(212,175,55,0.1);color:#92600a;border-color:rgba(212,175,55,0.3)">RAG · Numerology Library</span>
               <span class="q-stat">{{ ragRemedies().length }} remedies</span>
+              @if (ragEvidence(); as ev) {
+                <span class="ev-badge" data-testid="rag-evidence-badge"
+                      [class.ev-badge-warn]="ev.unsupported.length || ev.quarantined.length || ev.blocked.length"
+                      [title]="ev.method">
+                  ✓ Evidence check: {{ ev.supported }}/{{ ev.checked }} supported
+                </span>
+              }
             </div>
           </div>
           @if (ragRemediesLoading()) {
@@ -671,6 +678,13 @@ const BACKEND = environment.apiUrl;
                   } @else {
                     <p class="branch-text">{{ getRemedyContent(rem.id, rem.text) }}</p>
                   }
+                  @if (rem.sources?.length) {
+                    <div class="src-chips" data-testid="rag-remedy-sources">
+                      @for (sid of rem.sources; track sid) {
+                        <span class="src-chip" [title]="citationFor(sid)?.snippet ?? ''">📖 {{ sid }} · {{ citationFor(sid)?.title ?? 'source' }}</span>
+                      }
+                    </div>
+                  }
 
                   @if (selectedBranchIds().has(rem.id)) {
                     <div class="branch-actions">
@@ -696,6 +710,26 @@ const BACKEND = environment.apiUrl;
                 </div>
               }
             </div>
+            <details class="ev-panel" data-testid="rag-evidence-panel">
+              <summary>Sources and evidence ({{ ragCitations().length }} passages)</summary>
+              <ol class="ev-sources">
+                @for (c of ragCitations(); track c.id) {
+                  <li [class.ev-unused]="!c.used"><b>{{ c.id }}</b> {{ c.title }} — <span>{{ c.snippet }}</span></li>
+                }
+              </ol>
+              @if (ragEvidence(); as ev) {
+                @for (u of ev.unsupported; track $index) {
+                  <p class="ev-note ev-dropped" data-testid="rag-dropped">Removed: “{{ u.claim }}” — {{ u.reason }}</p>
+                }
+                @for (q of ev.quarantined; track q.id) {
+                  <p class="ev-note ev-quarantine" data-testid="rag-quarantined">Quarantined passage: {{ q.title }} (contains {{ q.reasons.join(', ') }})</p>
+                }
+                @if (ev.blocked.length) {
+                  <p class="ev-note ev-quarantine">Answer blocked: {{ ev.blocked.join(', ') }}</p>
+                }
+                <p class="ev-method">{{ ev.method }}</p>
+              }
+            </details>
           </div>
         } @else if (!ragRemediesLoading()) {
           <p class="branch-text" style="padding:16px 20px;color:#6b7280">
@@ -1943,6 +1977,22 @@ const BACKEND = environment.apiUrl;
   border-color: #b8962e !important;
 }
 
+.ev-badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+  background: rgba(22,163,74,0.1); color: #15803d; border: 1px solid rgba(22,163,74,0.3); }
+.ev-badge-warn { background: rgba(217,119,6,0.1); color: #b45309; border-color: rgba(217,119,6,0.35); }
+.src-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.src-chip { font-size: 11px; padding: 2px 7px; border-radius: 6px; background: #faf5e6; color: #7a5a12;
+  border: 1px solid rgba(212,175,55,0.35); cursor: help; }
+.ev-panel { margin: 10px 20px 16px; font-size: 12.5px; color: #374151; }
+.ev-panel summary { cursor: pointer; font-weight: 700; color: #92600a; }
+.ev-sources { margin: 8px 0; padding-left: 18px; }
+.ev-sources li { margin: 4px 0; }
+.ev-sources li span { color: #6b7280; }
+.ev-unused { opacity: 0.6; }
+.ev-note { margin: 4px 0; padding: 6px 8px; border-radius: 6px; }
+.ev-dropped { background: #fef3c7; color: #92400e; }
+.ev-quarantine { background: #fee2e2; color: #991b1b; }
+.ev-method { color: #6b7280; font-style: italic; margin-top: 6px; }
 .branch-text {
   margin: 0; padding: 12px 14px;
   font-size: 13px; color: #374151; line-height: 1.75;
@@ -2053,7 +2103,12 @@ export class ReviewPage {
   readonly remedyData     = computed(() => (this.orch.rawOutputs() as any)?.remedies ?? null);
 
   // RAG remedies from numerology books (with stable IDs for branch-card tracking)
-  readonly ragRemedies = signal<Array<{ id: string; icon: string; category: string; text: string }>>([]);
+  readonly ragRemedies = signal<Array<{ id: string; icon: string; category: string; text: string; sources?: string[]; support?: number }>>([]);
+  readonly ragCitations = signal<RagCitation[]>([]);
+  readonly ragEvidence = signal<RagEvidence | null>(null);
+  citationFor(id: string): RagCitation | undefined {
+    return this.ragCitations().find(c => c.id === id);
+  }
   readonly ragRemediesLoading = signal(false);
   private _ragLoaded = false;
 
@@ -2089,6 +2144,8 @@ export class ReviewPage {
       next: res => {
         const items = (res.remedies ?? []).map((r, i) => ({ ...r, id: `rag_rem_${i}` }));
         this.ragRemedies.set(items);
+        this.ragCitations.set(res.citations ?? []);
+        this.ragEvidence.set(res.evidence ?? null);
         this.ragRemediesLoading.set(false);
       },
       error: () => this.ragRemediesLoading.set(false),

@@ -219,6 +219,24 @@ export interface TranslateResponse {
   final_report: FinalReportPayload;
 }
 
+/** A retrieved passage the answer may cite (S1, S2, …). */
+export interface RagCitation { id: string; title: string; snippet: string; used: boolean; score?: number; }
+
+/** How the answer was checked against the retrieved passages. */
+export interface RagEvidence {
+  checked: number;
+  supported: number;
+  score: number | null;
+  unsupported: Array<{ claim: string; sources: string[]; reason?: string }>;
+  quarantined: Array<{ id: string; title: string; reasons: string[] }>;
+  blocked: string[];
+  method: string;
+}
+
+export interface RagRemedy { icon: string; category: string; text: string; sources?: string[]; support?: number; }
+
+export interface RagRemediesResponse { remedies: RagRemedy[]; citations?: RagCitation[]; evidence?: RagEvidence | null; }
+
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   constructor(private http: HttpClient) {}
@@ -265,10 +283,10 @@ export class ApiService {
       .pipe(timeout(60_000), catchError(() => of({ bullets })));
   }
 
-  getRagRemedies(life_path: number, intent: string = 'general'): Observable<{ remedies: Array<{ icon: string; category: string; text: string }> }> {
+  getRagRemedies(life_path: number, intent: string = 'general'): Observable<RagRemediesResponse> {
     return this.http
-      .post<{ remedies: Array<{ icon: string; category: string; text: string }> }>(`${BACKEND}/api/v1/analysis/remedies`, { life_path, intent, top_k: 5 })
-      .pipe(timeout(20_000), catchError(() => of({ remedies: [] })));
+      .post<RagRemediesResponse>(`${BACKEND}/api/v1/analysis/remedies`, { life_path, intent, top_k: 5 })
+      .pipe(timeout(20_000), catchError(() => of({ remedies: [] } as RagRemediesResponse)));
   }
 
   mergeStory(bullets: string[], question: string, intent: string, subject: string = '', life_path: number = 0): Observable<{ story: string }> {

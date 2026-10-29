@@ -28,6 +28,17 @@ from utils.token_tracker import get_tracker
 from utils.security import audit_llm_call
 from utils.guardrails import validate_role_mapping
 from guardrails.hallucination import check_faithfulness
+from guardrails.grounding import (
+    check_term,
+    citation_ids,
+    drop_unknown_keys,
+    guard_output,
+    number_sources,
+    public_citations,
+    render_context,
+    screen_sources,
+    summarize,
+)
 from rag.advanced_retrieval import (
     hybrid_retrieve,
     crag_retrieve,
@@ -51,20 +62,76 @@ def _build_retrieval_query(target_role: str, llm: ChatOpenAI, use_hyde: bool, re
         return target_role
 
 
+# Fields the role mapper may return. Anything else the model adds (a smuggled
+# "tool_call", an "admin_password") is dropped before the response leaves the server.
+_MAPPING_KEYS = (
+    "role", "match_percentage", "matched_skills", "missing_skills",
+    "experience_gap", "recommendation", "readiness_level", "sources",
+)
+
+
+def _retrieve_docs(retrieval_query: str, vector_store: FAISS, use_hybrid: bool) -> list:
+    """Run hybrid or CRAG retrieval and return the role documents."""
+    if use_hybrid:
+        return list(hybrid_retrieve(retrieval_query, vector_store, top_n=2) or [])
+    docs, _crag_score, _crag_quality = crag_retrieve(retrieval_query, vector_store, k=1)
+    return list(docs[:1]) if docs else []
+
+
 def _retrieve_context(retrieval_query: str, target_role: str, vector_store: FAISS, use_hybrid: bool):
     """Run hybrid or CRAG retrieval. Returns (role_context, role_metadata)."""
-    if use_hybrid:
-        docs = hybrid_retrieve(retrieval_query, vector_store, top_n=2)
-        role_context = "\n\n".join(d.page_content for d in docs) if docs else ""
-        role_metadata = docs[0].metadata if docs else {}
-    else:
-        docs, _crag_score, _crag_quality = crag_retrieve(retrieval_query, vector_store, k=1)
-        role_context = docs[0].page_content if docs else ""
-        role_metadata = docs[0].metadata if docs else {}
+    docs = _retrieve_docs(retrieval_query, vector_store, use_hybrid)
+    role_context = "\n\n".join(d.page_content for d in docs)
+    role_metadata = docs[0].metadata if docs else {}
 
     if not role_context:
         role_context = f"Role: {target_role}\nRequired skills: Not found in knowledge base."
     return role_context, role_metadata
+
+
+def _role_sources(docs: list) -> list:
+    """Number the retrieved role documents S1, S2, … with their title and skill list."""
+    return number_sources(
+        [
+            {
+                "text": d.page_content,
+                "title": (d.metadata or {}).get("title") or "Role document",
+                "role_id": (d.metadata or {}).get("role_id"),
+                "required_skills": list((d.metadata or {}).get("required_skills") or []),
+            }
+            for d in docs
+        ],
+        meta_keys=("role_id", "required_skills"),
+    )
+
+
+def _check_evidence(mapping: dict, sources: list, candidate_skills: list, quarantined: list, blocked: list) -> dict:
+    """Keep only the skills the retrieved role documents (and the CV) actually support."""
+    cited = citation_ids(mapping.get("sources")) or [s.id for s in sources]
+    mapping["sources"] = cited
+    if not sources:
+        evidence = summarize([], quarantined, blocked)
+        evidence["note"] = "No role document was retrieved, so the skills could not be checked."
+        return evidence
+
+    have = {str(x).strip().lower() for x in candidate_skills}
+    checks, missing, matched = [], [], []
+    for skill in mapping.get("missing_skills") or []:
+        check = check_term(str(skill), cited, sources, field="required_skills")
+        check["field"] = "missing_skills"
+        checks.append(check)
+        if check["supported"]:
+            missing.append(skill)
+    for skill in mapping.get("matched_skills") or []:
+        check = check_term(str(skill), cited, sources, field="required_skills")
+        check["field"] = "matched_skills"
+        if check["supported"] and str(skill).strip().lower() not in have:
+            check.update(supported=False, support=0.0, reason="not in the candidate's CV profile")
+        checks.append(check)
+        if check["supported"]:
+            matched.append(skill)
+    mapping["missing_skills"], mapping["matched_skills"] = missing, matched
+    return summarize(checks, quarantined, blocked)
 
 
 def map_role(
@@ -104,7 +171,17 @@ def map_role(
 
     # ── HyDE + retrieval ──────────────────────────────────────────────────────
     retrieval_query = _build_retrieval_query(target_role, effective_llm, use_hyde, request_id)
-    role_context, role_metadata = _retrieve_context(retrieval_query, target_role, vector_store, use_hybrid)
+    docs = _retrieve_docs(retrieval_query, vector_store, use_hybrid)
+    role_metadata = docs[0].metadata if docs else {}
+
+    # ── Citations + retrieved-content defence ────────────────────────────────
+    # Retrieved role documents are numbered S1..Sn; a document carrying
+    # instructions for the model is quarantined and never reaches the prompt.
+    sources, quarantined = screen_sources(_role_sources(docs))
+    role_context = (
+        render_context(sources, max_chars_each=500) if sources
+        else f"Role: {target_role}\nRequired skills: Not found in knowledge base."
+    )
 
     # ── LLM call with prompt versioning + token tracking ─────────────────────
     prompt_def = get_active("role_mapper")
@@ -122,7 +199,7 @@ def map_role(
             "candidate_skills": candidate_skills,
             "experience_years": experience_years,
             "role_title": target_role,
-            "role_context": role_context[:600],
+            "role_context": role_context[:1200],
         },
         config={"callbacks": [tracker]},
     )
@@ -139,8 +216,20 @@ def map_role(
     )
 
     # ── Parse + validate ──────────────────────────────────────────────────────
+    blocked = guard_output(result.content)
     mapping = parse_llm_json(result.content)
+    if isinstance(mapping, dict):
+        mapping, dropped_keys = drop_unknown_keys(mapping, _MAPPING_KEYS)
+        if dropped_keys:
+            logger.warning('{"event":"role_mapper_keys_dropped","keys":%s,"request_id":"%s"}',
+                           dropped_keys[:5], request_id)
     mapping = validate_role_mapping(mapping)
+    if blocked:
+        # The answer asked for a tool or carried a secret: keep only the numbers.
+        mapping["recommendation"] = "Needs further assessment."
+    mapping["evidence"] = _check_evidence(
+        mapping, sources, parsed_cv.get("skills", []), quarantined, blocked)
+    mapping["citations"] = public_citations(sources, mapping["sources"])
     mapping["role_metadata"] = role_metadata
     mapping["faithfulness_score"] = round(faith_score, 3)
     mapping["prompt_version"] = f"{prompt_def.name}@{prompt_def.version}"

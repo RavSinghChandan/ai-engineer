@@ -31,6 +31,32 @@ export interface RoleMapping {
   role_metadata?: Record<string, any>;
   _faithfulness_warning?: string;
   _cache_hit?: boolean;
+  // RAG grounding: the role documents the answer cites, and how it was checked
+  sources?: string[];
+  citations?: RagCitation[];
+  evidence?: RagEvidence;
+}
+
+/** A retrieved role document the answer may cite (S1, S2, …). */
+export interface RagCitation {
+  id: string;
+  title: string;
+  snippet: string;
+  used: boolean;
+  role_id?: string;
+  required_skills?: string[];
+}
+
+/** Every skill in the answer, checked against the cited role documents. */
+export interface RagEvidence {
+  checked: number;
+  supported: number;
+  score: number | null;
+  unsupported: Array<{ claim: string; field?: string; reason?: string }>;
+  quarantined: Array<{ id: string; title: string; reasons: string[] }>;
+  blocked: string[];
+  method: string;
+  note?: string;
 }
 
 export interface Task {

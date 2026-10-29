@@ -64,6 +64,11 @@ import { DayPlan, Plan, Role, RoleMapping, StreamEvent } from '../../models/type
             <span *ngIf="mapping.prompt_version" class="meta-badge badge-gray">
               {{ mapping.prompt_version }}
             </span>
+            <span *ngIf="mapping.evidence as ev" class="meta-badge" data-testid="evidence-badge"
+                  [ngClass]="ev.unsupported.length || ev.quarantined.length || ev.blocked.length ? 'badge-amber' : 'badge-green-soft'"
+                  [title]="ev.method">
+              ✓ Evidence: {{ ev.supported }}/{{ ev.checked }} skills supported
+            </span>
           </div>
         </div>
         <div class="score-ring" [class]="scoreClass">
@@ -114,6 +119,29 @@ import { DayPlan, Plan, Role, RoleMapping, StreamEvent } from '../../models/type
           <p *ngIf="!mapping.missing_skills.length"
              style="color:var(--text-muted); font-size:13px;">No gaps! 🎉</p>
         </div>
+      </div>
+
+      <!-- ── Sources + evidence ───────────────────────────────────────── -->
+      <div *ngIf="mapping.citations?.length || mapping.evidence" class="evidence-box" data-testid="evidence-panel">
+        <h3 style="margin-bottom:8px;">📚 Sources</h3>
+        <div *ngFor="let c of mapping.citations" class="source-row" [class.source-unused]="!c.used">
+          <span class="source-id">{{ c.id }}</span>
+          <div>
+            <b>{{ c.title }}</b>
+            <p class="source-snippet">{{ c.snippet }}</p>
+          </div>
+        </div>
+        <ng-container *ngIf="mapping.evidence as ev">
+          <p *ngIf="ev.note" class="ev-note">{{ ev.note }}</p>
+          <p *ngFor="let u of ev.unsupported" class="ev-note ev-removed" data-testid="evidence-removed">
+            Removed “{{ u.claim }}” from {{ u.field === 'matched_skills' ? 'skills you have' : 'missing skills' }}: {{ u.reason }}
+          </p>
+          <p *ngFor="let q of ev.quarantined" class="ev-note ev-quarantine" data-testid="evidence-quarantined">
+            Quarantined document: {{ q.title }} (contains {{ q.reasons.join(', ') }})
+          </p>
+          <p *ngIf="ev.blocked.length" class="ev-note ev-quarantine">Answer flagged: {{ ev.blocked.join(', ') }}</p>
+          <p class="ev-method">{{ ev.method }}</p>
+        </ng-container>
       </div>
 
       <!-- ── Days chooser ──────────────────────────────────────────────── -->
@@ -221,6 +249,18 @@ import { DayPlan, Plan, Role, RoleMapping, StreamEvent } from '../../models/type
     .badge-gray   { background: #f1f5f9; color: #475569; border-color: #e2e8f0; }
 
     /* Faithfulness row */
+    .badge-green-soft { background: rgba(34,197,94,0.12); color: #16a34a; border: 1px solid rgba(34,197,94,0.35); }
+    .badge-amber { background: rgba(245,158,11,0.12); color: #d97706; border: 1px solid rgba(245,158,11,0.35); }
+    .evidence-box { margin-top: 24px; padding: 14px 16px; border: 1px solid var(--border, #334155); border-radius: 10px; }
+    .source-row { display: flex; gap: 10px; align-items: flex-start; margin: 8px 0; font-size: 13px; }
+    .source-unused { opacity: 0.55; }
+    .source-id { font-family: monospace; font-weight: 700; padding: 1px 6px; border-radius: 5px;
+      background: rgba(99,102,241,0.15); color: #818cf8; }
+    .source-snippet { color: var(--text-muted); white-space: pre-line; margin-top: 2px; font-size: 12px; }
+    .ev-note { font-size: 12.5px; margin: 6px 0; padding: 6px 8px; border-radius: 6px; }
+    .ev-removed { background: rgba(245,158,11,0.12); color: #d97706; }
+    .ev-quarantine { background: rgba(239,68,68,0.12); color: #ef4444; }
+    .ev-method { font-size: 12px; color: var(--text-muted); font-style: italic; margin-top: 8px; }
     .faithfulness-row {
       display: flex; align-items: center; gap: 10px;
       margin-top: 14px; padding: 10px 14px;

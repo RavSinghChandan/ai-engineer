@@ -486,7 +486,7 @@ class TestRoleMappingAgent:
              patch("agents.role_mapping_agent.get_tracker", return_value=fake_tracker), \
              patch("agents.role_mapping_agent.check_faithfulness", return_value=(0.9, True, "ok")), \
              patch("agents.role_mapping_agent._build_retrieval_query", return_value="python engineer"), \
-             patch("agents.role_mapping_agent._retrieve_context", return_value=("Python Engineer role context", {})), \
+             patch("agents.role_mapping_agent._retrieve_docs", return_value=[]), \
              patch("agents.role_mapping_agent.audit_llm_call"), \
              patch("agents.role_mapping_agent.l1_get", return_value=None), \
              patch("agents.role_mapping_agent.l1_set"), \

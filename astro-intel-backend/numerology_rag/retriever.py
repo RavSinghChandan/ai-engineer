@@ -175,6 +175,19 @@ def retrieve_for_ragless_anchor(
     return "\n".join(c["text"][:400] for c in chunks)
 
 
+def retrieve_remedy_chunks(
+    life_path: int,
+    intent: str,
+    top_k: int = 3,
+) -> list[dict[str, Any]]:
+    """Remedy / spiritual practice passages from the numerology book corpus, with their book."""
+    query = (
+        f"Life Path {life_path} remedy mantra gemstone colour daily practice "
+        f"spiritual habit {intent} numerology"
+    )
+    return retrieve(query, intent=intent, numbers=[life_path], top_k=top_k, min_score=0.20)
+
+
 def retrieve_remedy(
     life_path: int,
     intent: str,
@@ -183,13 +196,11 @@ def retrieve_remedy(
     """
     Retrieve remedy / spiritual practice passages from the numerology book corpus.
     Used by the storytelling agent to weave a RAG-sourced remedy into the narrative.
-    Returns plain text ready to inject into the LLM prompt.
+    Returns plain text ready to inject into the LLM prompt. Passages that carry
+    instructions aimed at the model are left out (guardrails.grounding).
     """
-    query = (
-        f"Life Path {life_path} remedy mantra gemstone colour daily practice "
-        f"spiritual habit {intent} numerology"
-    )
-    chunks = retrieve(query, intent=intent, numbers=[life_path], top_k=top_k, min_score=0.20)
+    from guardrails.grounding import scan_text
+    chunks = [c for c in retrieve_remedy_chunks(life_path, intent, top_k) if not scan_text(c["text"])]
     if not chunks:
         return ""
     parts = []

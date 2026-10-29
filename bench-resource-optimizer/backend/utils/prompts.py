@@ -55,7 +55,7 @@ def list_prompts() -> Dict[str, list]:
 
 ACTIVE_VERSIONS: Dict[str, str] = {
     "cv_parser": "v2",
-    "role_mapper": "v2",
+    "role_mapper": "v3",
     "planner": "v1",
     "hyde": "v1",
     "llm_judge": "v1",
@@ -148,6 +148,29 @@ Return ONLY this exact JSON:
 Candidate skills: {candidate_skills}
 Candidate experience: {experience_years} years
 Role requirements:
+{role_context}""",
+))
+
+
+register(PromptVersion(
+    name="role_mapper",
+    version="v3",
+    system=load_system_prompt("role_mapper", "v3"),
+    user="""Evaluate candidate fit for the target role.
+Return ONLY this exact JSON:
+{{
+  "role": "{role_title}",
+  "match_percentage": <integer 0-100, base on skill overlap and experience>,
+  "matched_skills": [<skills from candidate that match role requirements>],
+  "missing_skills": [<required role skills the candidate lacks, ordered by importance>],
+  "experience_gap": <years needed minus years candidate has, negative means candidate exceeds>,
+  "recommendation": "<one sentence, max 15 words, actionable>",
+  "readiness_level": "<one of: not_ready|needs_training|almost_ready|ready>",
+  "sources": [<ids of the role documents you used, e.g. "S1">]
+}}
+Candidate skills: {candidate_skills}
+Candidate experience: {experience_years} years
+Role documents:
 {role_context}""",
 ))
 

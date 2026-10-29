@@ -153,6 +153,9 @@ def load_prompt(ref: str) -> Tuple[str, str, str]:
     if ref == "plain_english":
         from agents.plain_english_agent import _SYSTEM
         return _SYSTEM, "{text}", "plain_english_agent._SYSTEM"
+    if ref == "remedies":
+        from agents.remedies_agent import REMEDIES_SYSTEM, REMEDIES_USER
+        return REMEDIES_SYSTEM, REMEDIES_USER, "remedies_agent.REMEDIES_SYSTEM"
     if ref == "grammar":
         from agents.grammar_agent import _GRAMMAR_SYSTEM
         return _GRAMMAR_SYSTEM, "{text}", "grammar_agent._GRAMMAR_SYSTEM"

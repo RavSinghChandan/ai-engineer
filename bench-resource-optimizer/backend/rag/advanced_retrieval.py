@@ -417,9 +417,14 @@ def get_reranker() -> CrossEncoderReranker:
 
 
 def init_bm25_from_roles(roles: List[dict]) -> None:
-    """Build BM25 index from roles knowledge base at startup."""
+    """Build the BM25 index from the roles knowledge base (startup and after every role change).
+
+    The index is rebuilt from scratch: appending to the old one after an admin role
+    change kept every earlier copy, and the duplicates each scored again in RRF.
+    """
     from langchain.schema import Document as LCDoc
-    bm25 = get_bm25_index()
+    global _bm25_index
+    bm25 = _bm25_index = BM25Index()
     docs = []
     for role in roles:
         skills_text = ", ".join(role.get("required_skills", []))

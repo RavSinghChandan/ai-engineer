@@ -67,11 +67,17 @@ test('the admin runs a reading, reviews the insights and publishes the report @l
   await expect(page.locator('.launch-err')).toHaveCount(0);
   await expect(page).toHaveURL(/\/review/, { timeout: 480_000 });
 
+  // Remedies come from the numerology books with sources, every bullet checked against them.
+  const badge = page.getByTestId('rag-evidence-badge');
+  await expect(badge).toHaveText(/Evidence check: \d+\/\d+ supported/, { timeout: 120_000 });
+  await expect(page.getByTestId('rag-remedy-sources').first()).toContainText(/S\d+ · /);
+  console.log('Remedies evidence:', (await badge.innerText()).trim());
+
   const progress = page.locator('.progress-label');
   await expect(progress).toHaveText(/^0\/[1-9]\d*$/);
+  const total = (await progress.innerText()).split('/')[1];
   await page.getByRole('button', { name: 'Approve All' }).click();
-  const [approved, total] = (await progress.innerText()).split('/');
-  expect(approved).toBe(total);
+  await expect(progress).toHaveText(`${total}/${total}`);
 
   await page.getByRole('button', { name: /Generate Report/ }).click();
   await expect(page.locator('.generate-err')).toHaveCount(0);
