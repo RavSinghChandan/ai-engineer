@@ -496,12 +496,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '162',
+      stat:  '164',
       title: 'Pull requests merged by other projects\' maintainers.',
       sub:   'People I had never met reviewed my code and accepted it: pypdf, fontTools, Pillow, fpdf2, trafilatura, txtai, kornia, tox, mistune, Docling, docTR, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '162 merged, all reviewed! ✅',
+      aaravSay: '164 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -629,6 +629,26 @@ export class App implements OnInit, AfterViewInit {
   // ── Open Source: merged PRs into major libraries. Append a new entry per merge; the
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
+    {
+      repo: 'mindee/doctr',
+      logo: 'doctr-logo.png',
+      org: 'mindee',
+      stars: '6.4k★',
+      title: 'Crop an image that has no text boxes',
+      desc: 'crop_detection and crop_boxes crashed with a ValueError on an image without any box (e.g. a page with no text), because they read the largest coordinate of an empty array. Empty box arrays are now returned as is and the image is still cropped. Merged by felixdittrich92.',
+      pr: 'https://github.com/mindee/doctr/pull/2191',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'mindee/doctr',
+      logo: 'doctr-logo.png',
+      org: 'mindee',
+      stars: '6.4k★',
+      title: 'Rotate integer coordinates correctly',
+      desc: 'rotate_abs_points and rotate_boxes built the rotation matrix in the input dtype, so integer coordinates got a matrix truncated to 0 and 1 and collapsed onto the origin or the page center. The matrix is now built in floating point. Merged by felixdittrich92.',
+      pr: 'https://github.com/mindee/doctr/pull/2193',
+      merged: 'Oct 2026',
+    },
     {
       repo: 'mindee/doctr',
       logo: 'doctr-logo.png',
@@ -2584,7 +2604,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defense','PII protection','Output validation','Secure tool use','Threat modeling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers, and own the result.',
-      evidence: '162 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
+      evidence: '164 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
