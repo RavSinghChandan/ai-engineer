@@ -496,12 +496,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '175',
+      stat:  '177',
       title: 'Pull requests merged by other projects\' maintainers.',
       sub:   'People I had never met reviewed my code and accepted it: pypdf, fontTools, Pillow, fpdf2, trafilatura, txtai, kornia, tox, mistune, Docling, docTR, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '175 merged, all reviewed! ✅',
+      aaravSay: '177 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -629,6 +629,26 @@ export class App implements OnInit, AfterViewInit {
   // ── Open Source: merged PRs into major libraries. Append a new entry per merge; the
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
+    {
+      repo: 'JoshData/python-email-validator',
+      logo: 'email-validator-logo.svg',
+      org: 'JoshData',
+      stars: '1.5k★',
+      title: 'Accept the IPv6 tag of a domain literal in any case',
+      desc: 'With domain literals allowed, me@[IPv6:::1] was accepted but me@[ipv6:::1] and me@[IPV6:::1] were rejected, although RFC 5321 defines the tag as a case-insensitive ABNF literal. The tag is now matched in any case. Merged by JoshData.',
+      pr: 'https://github.com/JoshData/python-email-validator/pull/183',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'Raise a clear error for a negative page display duration',
+      desc: 'add_page(duration=-1) wrote /Dur -1 into the page, a display duration with no meaning. It now raises a clear ValueError before the page is added, like an invalid label_start. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2090',
+      merged: 'Oct 2026',
+    },
     {
       repo: 'mindee/doctr',
       logo: 'doctr-logo.png',
@@ -2714,7 +2734,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defense','PII protection','Output validation','Secure tool use','Threat modeling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers, and own the result.',
-      evidence: '175 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
+      evidence: '177 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
@@ -3980,6 +4000,7 @@ export class App implements OnInit, AfterViewInit {
     mistune:  '#E879F9',  // fuchsia, apart from sentence-transformers pink
     'docling-core': '#818CF8', // indigo
     doctr:    '#22D3EE',  // cyan
+    'python-email-validator': '#2DD4BF', // teal
   };
 
   /** Colour for a node: open-source vertices are keyed by library. */
@@ -3988,7 +4009,7 @@ export class App implements OnInit, AfterViewInit {
     system: '#0D8390', tech: '#007CB0', oss: '#26890D', work: '#C26E00', practice: '#6B7A00',
   };
   private readonly OSS_COLORS_LIGHT: Record<string, string> = {
-    pypdf: '#26890D', joblib: '#E11D48', 'sentence-transformers': '#DB2777', nltk: '#A16207', authlib: '#0369A1', fonttools: '#3B5BDB', fpdf2: '#DC2626', Pillow: '#EA580C', 'pydantic-extra-types': '#BE185D', txtai: '#059669', kornia: '#2563EB', tox: '#8A8A2E', trafilatura: '#B45309', mistune: '#C026D3', 'docling-core': '#4F46E5', doctr: '#0891B2',
+    pypdf: '#26890D', joblib: '#E11D48', 'sentence-transformers': '#DB2777', nltk: '#A16207', authlib: '#0369A1', fonttools: '#3B5BDB', fpdf2: '#DC2626', Pillow: '#EA580C', 'pydantic-extra-types': '#BE185D', txtai: '#059669', kornia: '#2563EB', tox: '#8A8A2E', trafilatura: '#B45309', mistune: '#C026D3', 'docling-core': '#4F46E5', doctr: '#0891B2', 'python-email-validator': '#0F766E',
   };
 
   /** libColor bound for child components (the merged-PR squares and month bars). */
