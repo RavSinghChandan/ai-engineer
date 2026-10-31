@@ -496,12 +496,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '179',
+      stat:  '182',
       title: 'Pull requests merged by other projects\' maintainers.',
       sub:   'People I had never met reviewed my code and accepted it: pypdf, fontTools, Pillow, fpdf2, trafilatura, txtai, kornia, tox, mistune, Docling, docTR, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '179 merged, all reviewed! ✅',
+      aaravSay: '182 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -629,6 +629,36 @@ export class App implements OnInit, AfterViewInit {
   // ── Open Source: merged PRs into major libraries. Append a new entry per merge; the
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
+    {
+      repo: 'mindee/doctr',
+      logo: 'doctr-logo.png',
+      org: 'mindee',
+      stars: '6.4k★',
+      title: 'Invert an empty list or dict in invert_data_structure',
+      desc: 'invert_data_structure([]) raised an IndexError and invert_data_structure({}) complained about lists of different lengths when there were no lists at all. An empty list now gives an empty dict and an empty dict an empty list. Merged by felixdittrich92.',
+      pr: 'https://github.com/mindee/doctr/pull/2211',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'mindee/doctr',
+      logo: 'doctr-logo.png',
+      org: 'mindee',
+      stars: '6.4k★',
+      title: 'Only read a real hash from the file name in download_from_url',
+      desc: 'A URL ending in checkpoint-10.pt or model-face.pt had "10" or "face" read as its hash, so a correct download was deleted and reported as corrupted. The pattern now needs the 8+ hex digits docTR file names actually use. Merged by felixdittrich92.',
+      pr: 'https://github.com/mindee/doctr/pull/2209',
+      merged: 'Oct 2026',
+    },
+    {
+      repo: 'mindee/doctr',
+      logo: 'doctr-logo.png',
+      org: 'mindee',
+      stars: '6.4k★',
+      title: 'Download to a temporary file, so an interrupted download leaves no truncated file',
+      desc: 'An interrupted download left a truncated file at the final path, and later calls reused it, so loading failed until it was deleted by hand. Downloads now go to a .part file that is moved into place only when complete. Merged by felixdittrich92.',
+      pr: 'https://github.com/mindee/doctr/pull/2204',
+      merged: 'Oct 2026',
+    },
     {
       repo: 'py-pdf/pypdf',
       logo: 'pypdf-logo.svg',
@@ -2754,7 +2784,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defense','PII protection','Output validation','Secure tool use','Threat modeling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers, and own the result.',
-      evidence: '179 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
+      evidence: '182 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
