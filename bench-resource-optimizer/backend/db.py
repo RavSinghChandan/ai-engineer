@@ -105,6 +105,9 @@ async def init_db() -> None:
             CREATE INDEX IF NOT EXISTS idx_readiness_user
             ON readiness_history(user_id, ts DESC)
         """)
+        from audit.agent_audit_log import DDL as _AGENT_AUDIT_DDL
+        for statement in _AGENT_AUDIT_DDL:
+            await db.execute(statement)
         await db.commit()
 
 

@@ -98,3 +98,26 @@ async def get_metrics_prometheus(
     dashboard = get_collector().dashboard()
     text = dashboard_to_prometheus(dashboard)
     return PlainTextResponse(content=text, media_type="text/plain; version=0.0.4; charset=utf-8")
+
+
+@router.get("/agent-audit")
+async def get_agent_audit_log(
+    correlation_id: str = "",
+    agent_id: str = "",
+    resource_id: str = "",
+    status: str = "",
+    tenant_id: str = "",
+    limit: int = 100,
+    ctx: TenantContext = Depends(can(Permission.METRICS__VIEW)),
+) -> JSONResponse:
+    """
+    Rows of agent_audit_log, newest first: which agent ran which tool on which
+    resource, for which user, with what outcome. Filter by correlation_id to see
+    everything one request did. Admins see their own tenant only; a superadmin
+    can pass tenant_id (or omit it to see every tenant).
+    """
+    from audit.agent_audit_log import query
+    scope = (tenant_id or None) if ctx.is_superadmin() else ctx.tenant_id
+    rows = query(tenant_id=scope, correlation_id=correlation_id, agent_id=agent_id,
+                 resource_id=resource_id, status=status, limit=limit)
+    return JSONResponse(content={"count": len(rows), "rows": rows})

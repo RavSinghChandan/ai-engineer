@@ -79,6 +79,7 @@ from utils.retry import breaker_status, with_retry
 from utils.security import SecurityError, check_injection
 from utils.token_tracker import get_tracker, reset_tracker
 from fde import api as fde_api, ledger as fde_ledger, permissions as fde_perm
+import audit.agent_audit_log as agent_audit
 from guardrails.production import (
     rate_limiter,
     all_guardrail_stats,
@@ -165,6 +166,8 @@ async def lifespan(app: FastAPI):
 
 
 # ── App ───────────────────────────────────────────────────────────────────────
+
+fde_perm.add_listener(agent_audit.record_permission)  # persist agent permission decisions
 
 app = FastAPI(
     title="Bench Resource Optimization API — Enterprise",
@@ -647,16 +650,18 @@ async def upload_cv(request: Request, _claims: Annotated[object, Depends(get_cur
         check_injection(resume_text, source="cv_upload")
         fde_perm.authorize("cv_parser_agent", "read", "cv_text")
 
-        parsed = await with_retry(
-            parse_cv,
-            resume_text,
-            _llm,
-            rid,
-            breaker_name="cv_parser",
-        )
+        with agent_audit.agent_run("cv_parser_agent", "parse_cv", resource_id="cv_text"):
+            parsed = await with_retry(
+                parse_cv,
+                resume_text,
+                _llm,
+                rid,
+                breaker_name="cv_parser",
+            )
         parsed = validate_parsed_profile(parsed)
 
         user_id = str(uuid.uuid4())[:8]
+        agent_audit.set_subject(user_id=user_id)
 
         # G1: per-user rate check (after user_id is assigned)
         allowed, reason = rate_limiter.is_allowed(user_id)
@@ -723,6 +728,7 @@ async def map_role_endpoint(request: Request, req: MapRoleRequest,
         if not allowed:
             raise HTTPException(429, reason)
 
+        agent_audit.set_subject(user_id=req.user_id)
         user = await get_user(req.user_id)
         if not user:
             raise HTTPException(404, f"User '{req.user_id}' not found.")
@@ -736,15 +742,16 @@ async def map_role_endpoint(request: Request, req: MapRoleRequest,
         # Module 4: load session memory context
         build_memory_context(req.user_id)
 
-        result = await with_retry(
-            map_role,
-            user["profile"],
-            req.target_role,
-            _vector_store,
-            _llm,
-            rid,
-            breaker_name="role_mapper",
-        )
+        with agent_audit.agent_run("role_mapping_agent", "map_role", resource_id=req.target_role):
+            result = await with_retry(
+                map_role,
+                user["profile"],
+                req.target_role,
+                _vector_store,
+                _llm,
+                rid,
+                breaker_name="role_mapper",
+            )
         result = validate_role_mapping(result)
 
         # Module 4: write session summary to episodic memory
@@ -827,17 +834,19 @@ async def generate_plan_endpoint(request: Request, req: GeneratePlanRequest,
         if not allowed:
             raise HTTPException(429, reason)
 
+        agent_audit.set_subject(user_id=req.user_id)
         user = await get_user(req.user_id)
         if not user:
             raise HTTPException(404, f"User '{req.user_id}' not found.")
         fde_perm.authorize("planning_agent", "read", "user_profile")
 
         # G2: wrap plan generation with named planner circuit breaker
-        plan = await with_retry(
-            generate_plan,
-            req.target_role, req.missing_skills, _llm, req.num_days,
-            breaker_name="planner",
-        )
+        with agent_audit.agent_run("planning_agent", "generate_plan", resource_id=req.target_role):
+            plan = await with_retry(
+                generate_plan,
+                req.target_role, req.missing_skills, _llm, req.num_days,
+                breaker_name="planner",
+            )
         # BUG FIX: timing heuristic (< 0.05s = cache hit) was unreliable — fast servers or
         # warm CPU caches could make real LLM calls appear as cache hits, inflating cache stats.
         # Use the explicit _cache_hit flag that generate_plan already sets in the return dict.
@@ -915,11 +924,13 @@ async def generate_plan_stream(request: Request, req: GeneratePlanRequest,
             yield f"data: {json.dumps({'event': 'start', 'role': req.target_role, 'total_days': req.num_days})}\n\n"
 
             # G2: planner circuit breaker on SSE path too
-            plan = await with_retry(
-                generate_plan,
-                req.target_role, req.missing_skills, _llm, req.num_days,
-                breaker_name="planner",
-            )
+            agent_audit.set_subject(user_id=req.user_id)
+            with agent_audit.agent_run("planning_agent", "generate_plan", resource_id=req.target_role):
+                plan = await with_retry(
+                    generate_plan,
+                    req.target_role, req.missing_skills, _llm, req.num_days,
+                    breaker_name="planner",
+                )
 
             await save_progress(req.user_id, req.target_role, plan, [])
 
@@ -954,6 +965,7 @@ async def update_progress(request: Request, req: UpdateProgressRequest,
     """Pure Python — no LLM call. Returns instantly."""
     t_start = time.time()
     try:
+        agent_audit.set_subject(user_id=req.user_id)
         progress = await get_progress(req.user_id)
         if not progress:
             raise HTTPException(404, "No plan found. Generate a plan first.")
@@ -963,10 +975,11 @@ async def update_progress(request: Request, req: UpdateProgressRequest,
         if not updated:
             raise HTTPException(404, "Progress record not found.")
 
-        result = calculate_readiness(
-            progress["plan"],
-            req.completed_task_ids,
-        )
+        with agent_audit.agent_run("tracking_agent", "calculate_readiness", resource_id=progress["role"]):
+            result = calculate_readiness(
+                progress["plan"],
+                req.completed_task_ids,
+            )
 
         # Module 4: update user facts + episodic memory on progress save
         covered = result.get("covered_skills", [])
@@ -1068,15 +1081,16 @@ async def evaluate_output(request: Request, req: EvaluateRequest):
     reset_tracker()
     try:
         fde_perm.authorize("llm_judge", "read", "evaluation_input")
-        scores = await asyncio.get_event_loop().run_in_executor(
-            None,
-            run_llm_judge,
-            req.question,
-            req.context,
-            req.output,
-            _llm,
-            rid,
-        )
+        with agent_audit.agent_run("llm_judge", "run_llm_judge", resource_id="evaluation_input"):
+            scores = await asyncio.get_event_loop().run_in_executor(
+                None,
+                run_llm_judge,
+                req.question,
+                req.context,
+                req.output,
+                _llm,
+                rid,
+            )
         usage = get_tracker().get_usage()
         _record(request, "/evaluate", t_start, 200,
                 prompt_tokens=usage["prompt_tokens"],
@@ -1188,6 +1202,20 @@ async def admin_upload_resource(
         "source": "company-internal",
         "message": "Document indexed successfully into internal knowledge base.",
     }
+
+
+@app.get("/admin/agent-audit", tags=["Admin"])
+async def list_agent_audit_log(correlation_id: str = "", agent_id: str = "", user_id: str = "",
+                               status: str = "", limit: int = 100,
+                               _claims: Annotated[object, Depends(require_admin)] = None):
+    """
+    Rows of agent_audit_log, newest first: which agent ran which tool on which resource,
+    for which user, with what outcome. Filter by correlation_id (the X-Request-Id header of a
+    response) to see everything one request did.
+    """
+    rows = agent_audit.query(correlation_id=correlation_id, agent_id=agent_id, user_id=user_id,
+                             status=status, limit=limit)
+    return {"count": len(rows), "rows": rows}
 
 
 @app.get("/admin/resources", tags=["Admin"])

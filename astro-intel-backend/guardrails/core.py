@@ -83,6 +83,12 @@ def _fallback_state(node_name: str, state: Dict[str, Any], reason: str) -> Dict[
 
 # ── main wrapper ─────────────────────────────────────────────────────────────
 
+def _audit_node(node_name: str, node_fn: NodeFn, status: str, t0: float) -> None:
+    from audit.agent_audit_log import record
+    record(node_name, "invoke", status, tool_name=getattr(node_fn, "__name__", ""),
+           duration_ms=(time.perf_counter() - t0) * 1000)
+
+
 def safe_node(
     node_fn: NodeFn,
     node_name: str,
@@ -99,6 +105,19 @@ def safe_node(
     out_validator = OUTPUT_VALIDATORS.get(node_name)
 
     def _wrapped(state: Dict[str, Any]) -> Dict[str, Any]:
+        # One agent_audit_log row per execution; a fallback adds a guardrail warning
+        t0 = time.perf_counter()
+        warnings_before = len(state.get("guardrail_warnings", []))
+        try:
+            result = _guarded(state)
+        except Exception:
+            _audit_node(node_name, node_fn, "error", t0)
+            raise
+        fell_back = len(result.get("guardrail_warnings", [])) > warnings_before
+        _audit_node(node_name, node_fn, "fallback" if fell_back else "success", t0)
+        return result
+
+    def _guarded(state: Dict[str, Any]) -> Dict[str, Any]:
         t0 = time.perf_counter()
         log.info("[Guardrails/%s] ▶ ENTER (strict=%s)", node_name, node_cfg.strict_mode)
 

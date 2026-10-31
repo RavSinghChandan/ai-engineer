@@ -29,6 +29,7 @@ from cache.redis_store import redis_get, redis_set, redis_stats
 from metrics.ragas_evaluator import evaluate as ragas_evaluate
 from metrics.collector import get_collector, RunRecord
 from fde import counters as fde_counters, ledger as fde_ledger, permissions as fde_perm
+import audit.agent_audit_log as agent_audit
 from utils.deepseek_client import get_session_usage, reset_session_usage
 from fastapi import Request
 from guardrails.production import rate_limiter, RateLimiter
@@ -39,6 +40,11 @@ import session_store
 from utils.event_bus import emit as _emit
 
 router = APIRouter(prefix="/api/v1/analysis", tags=["Analysis"])
+
+
+def _audit_user(ctx: TenantContext, req: Any) -> str:
+    """Who an agent_audit_log row is for: the signed-in user, else the user_id sent, else the API key."""
+    return ctx.user_id or ctx.email or (getattr(req, "user_id", "") or "") or "api-key"
 
 
 def _now_iso() -> str:
@@ -154,13 +160,17 @@ async def run_analysis(
 
     reset_session_usage()
     fde_counters.reset()
-    fde_perm.authorize("question_agent", "read", "user_question")
-    for _agent in ("astrology_agent", "numerology_agent", "palmistry_agent", "tarot_agent", "vastu_agent"):
-        fde_perm.authorize(_agent, "read", "birth_profile")
+    # Every agent permission decision and node run below is written to agent_audit_log for this request
+    with agent_audit.audit_context(user_id=_audit_user(ctx, req), tenant_id=ctx.tenant_id,
+                                   resource_id=session_id):
+        fde_perm.authorize("question_agent", "read", "user_question")
+        for _agent in ("astrology_agent", "numerology_agent", "palmistry_agent", "tarot_agent", "vastu_agent"):
+            fde_perm.authorize(_agent, "read", "birth_profile")
+        audited_pipeline = agent_audit.bind(run_pipeline)
     t_start = time.time()
     loop = asyncio.get_event_loop()
     try:
-        final_state = await loop.run_in_executor(None, run_pipeline, initial_state)
+        final_state = await loop.run_in_executor(None, audited_pipeline, initial_state)
     except Exception as exc:
         fde_ledger.record_task(session_id, tenant_id=ctx.tenant_id, workflow="question_report",
                              started_at=t_start, ended_at=time.time(), items_total=0,
@@ -297,11 +307,14 @@ async def run_holistic(
 
     reset_session_usage()
     fde_counters.reset()
-    fde_perm.authorize("holistic_agent", "read", "birth_profile")
+    with agent_audit.audit_context(user_id=_audit_user(ctx, req), tenant_id=ctx.tenant_id,
+                                   resource_id=session_id):
+        fde_perm.authorize("holistic_agent", "read", "birth_profile")
+        audited_pipeline = agent_audit.bind(run_holistic_pipeline)
     t_start = time.time()
     loop = asyncio.get_event_loop()
     try:
-        final_state = await loop.run_in_executor(None, run_holistic_pipeline, initial_state)
+        final_state = await loop.run_in_executor(None, audited_pipeline, initial_state)
     except Exception as exc:
         fde_ledger.record_task(session_id, tenant_id=ctx.tenant_id, workflow="holistic_report",
                              started_at=t_start, ended_at=time.time(), items_total=0,

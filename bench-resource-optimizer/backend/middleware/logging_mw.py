@@ -31,6 +31,8 @@ import uuid
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
+import audit.agent_audit_log as agent_audit
+
 logger = logging.getLogger("bench.request")
 
 
@@ -40,7 +42,9 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         request.state.request_id = request_id
         request.state.started_at = time.time()
 
-        response = await call_next(request)
+        # Every agent_audit_log row written for this request shares its request id
+        with agent_audit.request_context(correlation_id=request_id):
+            response = await call_next(request)
 
         latency_ms = (time.time() - request.state.started_at) * 1000
         client_ip = request.headers.get("x-forwarded-for", "")

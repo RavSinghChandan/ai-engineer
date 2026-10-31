@@ -44,6 +44,9 @@ import session_store as _session_store
 
 # ── Bootstrap database ───────────────────────────────────────────────────────
 _database.init_db()           # CREATE TABLE IF NOT EXISTS (idempotent)
+from fde import permissions as _fde_permissions
+from audit.agent_audit_log import record_permission as _audit_permission
+_fde_permissions.add_listener(_audit_permission)  # persist agent permission decisions
 _database.migrate_from_json() # one-shot INSERT OR IGNORE from legacy JSON files
 _session_store.sweep_expired() # purge stale sessions from previous runs
 auth_store.load()

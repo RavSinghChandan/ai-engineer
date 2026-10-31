@@ -28,7 +28,7 @@ from __future__ import annotations
 import threading
 import time
 from collections import deque
-from typing import Any, Deque, Dict, List
+from typing import Any, Callable, Deque, Dict, List
 
 from fde import config, counters
 
@@ -41,6 +41,13 @@ class PermissionDenied(PermissionError):
 
 _audit: Deque[Dict[str, Any]] = deque(maxlen=200)
 _lock = threading.Lock()
+# Called with (agent, action, resource, decision) for every decision, e.g. to persist it.
+_listeners: List[Callable[[str, str, str, str], None]] = []
+
+
+def add_listener(fn: Callable[[str, str, str, str], None]) -> None:
+    if fn not in _listeners:
+        _listeners.append(fn)
 
 
 def _allowed(entry: Dict[str, Any], action: str, resource: str) -> bool:
@@ -52,6 +59,8 @@ def _log(agent: str, action: str, resource: str, decision: str) -> None:
     with _lock:
         _audit.appendleft({"ts": time.time(), "agent": agent, "action": action,
                            "resource": resource, "decision": decision})
+    for fn in _listeners:
+        fn(agent, action, resource, decision)
 
 
 def check(agent: str, action: str, resource: str) -> bool:

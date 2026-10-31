@@ -247,6 +247,9 @@ def init_db() -> None:
     from memory.episodic import init_episodic_tables
     init_episodic_tables()
     print("[DB] Episodic memory tables ready.")
+    from audit.agent_audit_log import init_table as init_agent_audit_table
+    init_agent_audit_table()
+    print("[DB] agent_audit_log table ready.")
 
 
 def migrate_from_json() -> None:
