@@ -496,12 +496,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '182',
+      stat:  '187',
       title: 'Pull requests merged by other projects\' maintainers.',
       sub:   'People I had never met reviewed my code and accepted it: pypdf, fontTools, Pillow, fpdf2, trafilatura, txtai, kornia, tox, mistune, Docling, docTR, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '182 merged, all reviewed! ✅',
+      aaravSay: '187 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -629,6 +629,56 @@ export class App implements OnInit, AfterViewInit {
   // ── Open Source: merged PRs into major libraries. Append a new entry per merge; the
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
+    {
+      repo: 'mindee/doctr',
+      logo: 'doctr-logo.png',
+      org: 'mindee',
+      stars: '6.4k★',
+      title: 'Keep the shadow base corner when it is rounded onto the tip corner',
+      desc: 'RandomShadow sometimes crashed with a bare ValueError: after rotating and rounding to pixels, a corner of the shadow base could land on the tip corner, leaving a line with no direction. That corner is now kept, so augmentation no longer fails at random. Merged by felixdittrich92.',
+      pr: 'https://github.com/mindee/doctr/pull/2212',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'mindee/doctr',
+      logo: 'doctr-logo.png',
+      org: 'mindee',
+      stars: '6.4k★',
+      title: 'Keep at least one pixel per side when RandomResize scales a small image',
+      desc: 'RandomResize rounded a side under 4 pixels down to 0, so Resize raised a RuntimeError or ZeroDivisionError on thin crops such as a dash or a dot. Each side is now kept at least one pixel. Merged by felixdittrich92.',
+      pr: 'https://github.com/mindee/doctr/pull/2213',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'mindee/doctr',
+      logo: 'doctr-logo.png',
+      org: 'mindee',
+      stars: '6.4k★',
+      title: 'Detach the scores of an empty list of pages in detach_scores',
+      desc: 'detach_scores([]) raised a ValueError from unpacking an empty zip. It now returns ([], []), matching what a page without any box already gives. Merged by felixdittrich92.',
+      pr: 'https://github.com/mindee/doctr/pull/2214',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'mindee/doctr',
+      logo: 'doctr-logo.png',
+      org: 'mindee',
+      stars: '6.4k★',
+      title: 'Encode an empty batch of sequences in encode_sequences',
+      desc: 'Without a fixed target_size, encode_sequences([]) crashed on max() of an empty list. It now returns an empty (0, 1) array, like the fixed-size case already returns an empty array. Merged by felixdittrich92.',
+      pr: 'https://github.com/mindee/doctr/pull/2210',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'set_margins: raise a clear error for a negative margin',
+      desc: 'set_margins() and the single-side setters accepted a negative margin, so text was written past the edge of the page. They now raise a clear ValueError, and set_margins() checks every margin before changing any. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2094',
+      merged: 'Nov 2026',
+    },
     {
       repo: 'mindee/doctr',
       logo: 'doctr-logo.png',
@@ -2784,7 +2834,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defense','PII protection','Output validation','Secure tool use','Threat modeling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers, and own the result.',
-      evidence: '182 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
+      evidence: '187 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
