@@ -50,9 +50,9 @@ export const LIVE_LEGEND = [
         @for (b of boxes(); track b.key) {
           <a class="lm-box" [class]="'lm-box ' + b.state" [style.--p]="b.state === 'checking' ? progress() : 1" [href]="b.href" target="_blank" rel="noopener" [attr.aria-label]="b.name + ': ' + b.value">
             <span class="lm-wire" aria-hidden="true"><i></i></span>
-            <span class="lm-dots" [style.--cols]="b.cols" aria-hidden="true">
+            <span class="lm-dots ck-spark-dense" [style.--cols]="b.cols" aria-hidden="true">
               @for (d of b.dots; track $index; let i = $index) {
-                <i class="ck-spark" [style.background]="d.color" [title]="d.label" [class.on]="lit(b, i)"></i>
+                <i [class.ck-spark]="sparkles(i)" [style.background]="d.color" [title]="d.label" [class.on]="lit(b, i)"></i>
               }
             </span>
             <span class="lm-name">{{ b.name }}</span>
@@ -76,6 +76,8 @@ export const LIVE_LEGEND = [
   styleUrl: './live-map.scss',
 })
 export class LiveMap implements OnInit, OnDestroy {
+  /** In a dense grid only some dots sparkle, scattered, so it twinkles instead of fizzing. */
+  sparkles(i: number) { return (i * 37) % 5 < 2; }
   fallbackCount = input(0);
   prs = input<MergedPr[]>([]);
   readonly legend = LIVE_LEGEND;

@@ -4469,8 +4469,8 @@ export class App implements OnInit, AfterViewInit {
   /** Mostly 0, rising to 1 in a short flash now and then: a star's twinkle. */
   private twinkle(seed: number, now: number): number {
     if (!now) return 0;
-    const s = Math.sin(now / 1000 * (0.7 + (seed % 7) * 0.09) + seed * 2.399);
-    return s > 0 ? s ** 12 : 0;
+    const s = Math.sin(now / 1000 * (0.45 + (seed % 7) * 0.06) + seed * 2.399);
+    return s > 0 ? s ** 18 : 0;
   }
 
   /** A four-point star of light centred on (x, y). */

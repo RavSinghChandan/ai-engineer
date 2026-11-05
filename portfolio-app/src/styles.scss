@@ -628,9 +628,11 @@ html[data-theme="light"] .ck-spark::before { filter: drop-shadow(0 0 1px rgba(0,
 :nth-child(2n) > .ck-spark:only-of-type, :nth-child(2n) > .ck-spark:first-child:not(:nth-last-child(n+3)) { --tw-dur: 3.9s; }
 
 @media (prefers-reduced-motion: no-preference) {
-  .ck-spark::after  { animation: ck-twinkle var(--tw-dur) ease-in-out var(--tw-delay) infinite; }
-  .ck-spark::before { animation: ck-glint calc(var(--tw-dur) * 2.2) ease-in-out var(--tw-delay) infinite; }
+  .ck-spark::after  { animation: ck-twinkle calc(var(--tw-dur) * var(--tw-slow, 1)) ease-in-out var(--tw-delay) infinite; }
+  .ck-spark::before { animation: ck-glint calc(var(--tw-dur) * var(--tw-slow, 1) * 2.2) ease-in-out var(--tw-delay) infinite; }
 }
+/* many dots close together: each one twinkles more slowly */
+.ck-spark-dense { --tw-slow: 1.35; }
 /* a dot reporting a problem should not sparkle */
 .ck-spark.is-down::before, .ck-spark.is-down::after,
 .is-down .ck-spark::before, .is-down .ck-spark::after,

@@ -43,9 +43,9 @@ export const REPO_COLOR: Record<string, string> = {
         </svg>
       }
       @case ('TRUSTED') {
-        <div class="pv-squares" role="list" aria-label="One square per merged pull request">
+        <div class="pv-squares ck-spark-dense" role="list" aria-label="One square per merged pull request">
           @for (m of merges(); track m.pr; let i = $index) {
-            <a role="listitem" class="pv-sq ck-spark" [href]="m.pr" target="_blank" rel="noopener" [title]="m.repo + ': ' + m.title"
+            <a role="listitem" class="pv-sq" [class.ck-spark]="(i * 37) % 5 < 2" [href]="m.pr" target="_blank" rel="noopener" [title]="m.repo + ': ' + m.title"
                [style.background]="color(m.repo)" [style.animation-delay]="i * 18 + 'ms'"></a>
           }
         </div>
