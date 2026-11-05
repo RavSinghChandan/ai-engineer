@@ -4463,6 +4463,34 @@ export class App implements OnInit, AfterViewInit {
     window.addEventListener('resize', () => this.resizeGraph());
   }
 
+  /** No twinkling for visitors who asked for reduced motion. */
+  private readonly gStill = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+  /** Mostly 0, rising to 1 in a short flash now and then: a star's twinkle. */
+  private twinkle(seed: number, now: number): number {
+    if (!now) return 0;
+    const s = Math.sin(now / 1000 * (0.7 + (seed % 7) * 0.09) + seed * 2.399);
+    return s > 0 ? s ** 12 : 0;
+  }
+
+  /** A four-point star of light centred on (x, y). */
+  private glint(ctx: CanvasRenderingContext2D, x: number, y: number, size: number, color: string, alpha: number) {
+    ctx.save();
+    ctx.globalAlpha *= Math.min(1, alpha);
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    const w = size * 0.13;
+    for (let k = 0; k < 4; k++) {
+      const dx = Math.cos(k * Math.PI / 2), dy = Math.sin(k * Math.PI / 2);
+      ctx.moveTo(x + dx * size, y + dy * size);
+      ctx.lineTo(x - dy * w, y + dx * w);
+      ctx.lineTo(x + dy * w, y - dx * w);
+      ctx.closePath();
+    }
+    ctx.fill();
+    ctx.restore();
+  }
+
   private stepGraph() {
     const ctx = this.gCtx, canvas = this.gCanvas;
     if (!ctx || !canvas) return;
@@ -4470,6 +4498,7 @@ export class App implements OnInit, AfterViewInit {
     const W = rect.width, H = rect.height;
     const cx = W / 2, cy = H / 2;
     const light = this.theme() === 'light';
+    const now = this.gStill ? 0 : performance.now();
 
     // ---- rotate ----
     if (!this.bDragging) { this.bRotX += this.bSpinX; this.bRotY += this.bSpinY; }
@@ -4544,10 +4573,12 @@ export class App implements OnInit, AfterViewInit {
       if (carrierOf.has(i)) continue;
       const p = this.bProj[i];
       const depth = (p.z + 1) / 2;
+      const tw = this.twinkle(i, now);
       ctx.beginPath();
-      ctx.arc(p.x, p.y, 1.8 + depth * 2.4, 0, Math.PI * 2);
-      ctx.fillStyle = light ? `rgba(83,86,90,${0.18 + depth * 0.5})` : `rgba(186,209,232,${0.22 + depth * 0.62})`;
+      ctx.arc(p.x, p.y, (1.8 + depth * 2.4) * (1 + tw * 0.5), 0, Math.PI * 2);
+      ctx.fillStyle = light ? `rgba(83,86,90,${0.18 + depth * 0.5 + tw * 0.3})` : `rgba(186,209,232,${0.22 + depth * 0.62 + tw * 0.3})`;
       ctx.fill();
+      if (tw > 0.05) this.glint(ctx, p.x, p.y, (5 + depth * 5) * tw, light ? '#26890D' : '#ffffff', tw * (0.35 + depth * 0.65));
     }
 
     // 3. relationship chords between real nodes, drawn across the sphere
@@ -4583,6 +4614,7 @@ export class App implements OnInit, AfterViewInit {
       const color = this.nodeColor(b);
       const depth = (p.z + 1) / 2;
       const r = b.r * (0.62 + depth * 0.55);
+      const tw = dim ? 0 : this.twinkle(this.bCarrier[this.gBodies.indexOf(b)] + 61, now);
 
       ctx.globalAlpha = dim ? 0.18 : 0.35 + depth * 0.65;
 
@@ -4592,7 +4624,7 @@ export class App implements OnInit, AfterViewInit {
       halo.addColorStop(0.45, color + (light ? '18' : '33'));
       halo.addColorStop(1, color + '00');
       ctx.beginPath();
-      ctx.arc(p.x, p.y, r * 3.4, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, r * (3.4 + tw * 1.6), 0, Math.PI * 2);
       ctx.fillStyle = halo;
       ctx.fill();
 
@@ -4605,6 +4637,11 @@ export class App implements OnInit, AfterViewInit {
       ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
       ctx.fillStyle = body;
       ctx.fill();
+      // sparkle: a four-point star of light in the atom's own colour
+      if (tw > 0.05) {
+        this.glint(ctx, p.x, p.y, r * 2.6 * tw, color, tw);
+        this.glint(ctx, p.x, p.y, r * 1.5 * tw, '#ffffff', tw);
+      }
 
       if (isHover) {
         ctx.beginPath();

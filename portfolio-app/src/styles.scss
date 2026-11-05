@@ -585,3 +585,64 @@ html[data-theme="light"] .how-item .how-card .how-proof b { color: #26890D; }
 @keyframes ckg-cheer { 0%, 100% { rotate: 0deg; } 50% { rotate: -9deg; } }
 @keyframes ckg-climb { 0%, 100% { rotate: 0deg; } 50% { rotate: -4deg; } }
 .ckj-welcome-wrap { padding-top: 2.4rem; }
+
+/* ── Sparkle: every coloured dot twinkles like a star, in its own colour.
+   Add class="ck-spark" to a dot. Only its ::before/::after are animated, so the
+   dot's own animations (pop-in, lit/unlit, hover) are untouched. Global on
+   purpose: keyframes in component styles get scoped. ── */
+.ck-spark { position: relative; }
+.ck-spark::before, .ck-spark::after {
+  content: ''; position: absolute; left: 50%; top: 50%; translate: -50% -50%;
+  pointer-events: none; opacity: 0;
+}
+/* halo: the dot's own background, faded out radially */
+.ck-spark::after {
+  width: 360%; height: 360%; border-radius: 50%; background: inherit;
+  -webkit-mask: radial-gradient(closest-side, #000, rgba(0, 0, 0, 0.4) 45%, transparent);
+          mask: radial-gradient(closest-side, #000, rgba(0, 0, 0, 0.4) 45%, transparent);
+}
+/* glint: a four-point star of light */
+.ck-spark::before {
+  z-index: 1; width: 440%; height: 440%;
+  background:
+    linear-gradient(90deg, transparent 44%, var(--ck-glint, #fff) 50%, transparent 56%),
+    linear-gradient(0deg, transparent 44%, var(--ck-glint, #fff) 50%, transparent 56%);
+  -webkit-mask: radial-gradient(closest-side, #000 10%, transparent);
+          mask: radial-gradient(closest-side, #000 10%, transparent);
+}
+html[data-theme="light"] .ck-spark { --ck-glint: rgba(255, 255, 255, 0.95); }
+html[data-theme="light"] .ck-spark::before { filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.35)); }
+
+/* each dot gets its own rhythm, so they twinkle like stars, not in step */
+.ck-spark { --tw-dur: 3.4s; --tw-delay: 0s; }
+.ck-spark:nth-child(2n)     { --tw-dur: 4.3s; }
+.ck-spark:nth-child(3n)     { --tw-dur: 2.8s; }
+.ck-spark:nth-child(4n+3)   { --tw-delay: -3.1s; }
+.ck-spark:nth-child(5n+1)   { --tw-delay: -1.6s; }
+.ck-spark:nth-child(7n+2)   { --tw-delay: -2.4s; }
+.ck-spark:nth-child(11n+5)  { --tw-delay: -0.7s; }
+.ck-spark:nth-child(13n+8)  { --tw-delay: -3.9s; }
+/* a dot that is the only one in its chip/row: stagger it by its parent's place instead */
+:nth-child(3n+2) > .ck-spark:only-of-type, :nth-child(3n+2) > .ck-spark:first-child:not(:nth-last-child(n+3)) { --tw-delay: -1.2s; }
+:nth-child(3n) > .ck-spark:only-of-type, :nth-child(3n) > .ck-spark:first-child:not(:nth-last-child(n+3)) { --tw-delay: -2.5s; }
+:nth-child(2n) > .ck-spark:only-of-type, :nth-child(2n) > .ck-spark:first-child:not(:nth-last-child(n+3)) { --tw-dur: 3.9s; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .ck-spark::after  { animation: ck-twinkle var(--tw-dur) ease-in-out var(--tw-delay) infinite; }
+  .ck-spark::before { animation: ck-glint calc(var(--tw-dur) * 2.2) ease-in-out var(--tw-delay) infinite; }
+}
+/* a dot reporting a problem should not sparkle */
+.ck-spark.is-down::before, .ck-spark.is-down::after,
+.is-down .ck-spark::before, .is-down .ck-spark::after,
+.down .ck-spark::before, .down .ck-spark::after { animation: none; opacity: 0; }
+
+@keyframes ck-twinkle {
+  0%, 100% { opacity: 0; scale: 0.45; }
+  42%      { opacity: 0.3; }
+  50%      { opacity: 1; scale: 1; }
+  62%      { opacity: 0.25; }
+}
+@keyframes ck-glint {
+  0%, 18%, 30%, 100% { opacity: 0; scale: 0.15; rotate: 0deg; }
+  23%                { opacity: 1; scale: 1; rotate: 45deg; }
+}

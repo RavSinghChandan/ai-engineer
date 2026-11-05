@@ -52,18 +52,18 @@ export const LIVE_LEGEND = [
             <span class="lm-wire" aria-hidden="true"><i></i></span>
             <span class="lm-dots" [style.--cols]="b.cols" aria-hidden="true">
               @for (d of b.dots; track $index; let i = $index) {
-                <i [style.background]="d.color" [title]="d.label" [class.on]="lit(b, i)"></i>
+                <i class="ck-spark" [style.background]="d.color" [title]="d.label" [class.on]="lit(b, i)"></i>
               }
             </span>
             <span class="lm-name">{{ b.name }}</span>
-            <span class="lm-val"><span class="lm-dot"></span>{{ b.value }}</span>
+            <span class="lm-val"><span class="lm-dot ck-spark"></span>{{ b.value }}</span>
           </a>
         }
       </div>
 
       <div class="lm-legend" aria-hidden="true">
-        @for (l of legend; track l.label) { <span><i [style.background]="l.color"></i>{{ l.label }}</span> }
-        <span><i class="lm-rainbow"></i>PRs by library</span>
+        @for (l of legend; track l.label) { <span><i class="ck-spark" [style.background]="l.color"></i>{{ l.label }}</span> }
+        <span><i class="lm-rainbow ck-spark"></i>PRs by library</span>
       </div>
 
       @if (live.latest(); as m) {

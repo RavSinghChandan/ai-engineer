@@ -241,14 +241,14 @@
       <div class="pcon-legend">
         <div class="pcon-title">Every project comes with:</div>
         <div class="pcon-items">
-          <div class="pcon-item"><span class="pcon-dot" style="background:#26890D"></span>Orchestrator</div>
-          <div class="pcon-item"><span class="pcon-dot" style="background:#0D8390;animation-delay:.3s"></span>RAG Brain</div>
-          <div class="pcon-item"><span class="pcon-dot" style="background:#ED8B00;animation-delay:.6s"></span>Guardrails</div>
-          <div class="pcon-item"><span class="pcon-dot" style="background:#26890D;animation-delay:.9s"></span>Streaming</div>
-          <div class="pcon-item"><span class="pcon-dot" style="background:#26890D;animation-delay:1.2s"></span>Retriever</div>
-          <div class="pcon-item"><span class="pcon-dot" style="background:#0D8390;animation-delay:1.5s"></span>Evaluator</div>
-          <div class="pcon-item"><span class="pcon-dot" style="background:#ED8B00;animation-delay:1.8s"></span>Auth Gate</div>
-          <div class="pcon-item"><span class="pcon-dot" style="background:#26890D;animation-delay:2.1s"></span>Memory</div>
+          <div class="pcon-item"><span class="pcon-dot ck-spark" style="background:#26890D"></span>Orchestrator</div>
+          <div class="pcon-item"><span class="pcon-dot ck-spark" style="background:#0D8390;animation-delay:.3s"></span>RAG Brain</div>
+          <div class="pcon-item"><span class="pcon-dot ck-spark" style="background:#ED8B00;animation-delay:.6s"></span>Guardrails</div>
+          <div class="pcon-item"><span class="pcon-dot ck-spark" style="background:#26890D;animation-delay:.9s"></span>Streaming</div>
+          <div class="pcon-item"><span class="pcon-dot ck-spark" style="background:#26890D;animation-delay:1.2s"></span>Retriever</div>
+          <div class="pcon-item"><span class="pcon-dot ck-spark" style="background:#0D8390;animation-delay:1.5s"></span>Evaluator</div>
+          <div class="pcon-item"><span class="pcon-dot ck-spark" style="background:#ED8B00;animation-delay:1.8s"></span>Auth Gate</div>
+          <div class="pcon-item"><span class="pcon-dot ck-spark" style="background:#26890D;animation-delay:2.1s"></span>Memory</div>
         </div>
       </div>
     </div>
@@ -307,7 +307,7 @@
       <div class="project-card fade-up" #fadeEl [ngClass]="'accent-' + project.accent" [id]="'project-' + project.num">
         <div class="project-top">
           <div class="project-left">
-            <div class="project-num" [ngClass]="'num-' + project.accent">✦ Project {{ project.num }}@if (isFlagship(project.num)) {<span class="flagship-badge">Flagship</span>}@if (project.inProduction) {@let ps = live.stateOf(project.num);<span class="prod-badge" [class.is-down]="ps.state === 'down'"><span class="prod-dot"></span>{{ ps.state === 'ok' ? 'Live now · ' + ps.ms + ' ms' : ps.state === 'down' ? 'Live product · not answering now' : 'Live in production' }}</span>}</div>
+            <div class="project-num" [ngClass]="'num-' + project.accent">✦ Project {{ project.num }}@if (isFlagship(project.num)) {<span class="flagship-badge">Flagship</span>}@if (project.inProduction) {@let ps = live.stateOf(project.num);<span class="prod-badge" [class.is-down]="ps.state === 'down'"><span class="prod-dot ck-spark"></span>{{ ps.state === 'ok' ? 'Live now · ' + ps.ms + ' ms' : ps.state === 'down' ? 'Live product · not answering now' : 'Live in production' }}</span>}</div>
             <h3 class="project-title">{{ project.title }}</h3>
             <div class="project-subtitle">{{ project.subtitle }}</div>
             <p class="project-desc">{{ project.desc }}</p>
@@ -1280,7 +1280,7 @@
     @if (live.openCount(); as openN) {
       <div class="oss-review">
         <div class="oss-review-head">
-          <span class="oss-review-dot" aria-hidden="true"></span>
+          <span class="oss-review-dot ck-spark" aria-hidden="true"></span>
           <span><b>In review now</b> · {{ openN }} open pull requests waiting for review</span>
           <a class="oss-review-all" [href]="live.openSearchUrl" target="_blank" rel="noopener">See all on GitHub →</a>
         </div>
@@ -1340,7 +1340,7 @@
         <a class="oss-card" [href]="o.pr" target="_blank" rel="noopener" [style.--lib]="libColor(o.repo)">
           <div class="oss-top">
             <span class="oss-repo">
-              <i class="oss-lib-dot" aria-hidden="true"></i>
+              <i class="oss-lib-dot ck-spark" aria-hidden="true"></i>
               <img class="oss-card-logo" [src]="o.logo" [alt]="o.org" />
               {{ o.repo }}
             </span>
@@ -1500,18 +1500,18 @@
       <h2 class="kg-h">How It All Connects</h2>
       <p class="kg-sub">Every project, job, library and skill in one picture. <b>Drag to spin it. Click a dot to jump there.</b></p>
       <div class="kg-legend">
-        <span class="kg-key"><i class="kg-dot" style="background:#00ABAB;box-shadow:0 0 10px #00ABAB"></i>Projects ({{ projects.length }})</span>
-        <span class="kg-key"><i class="kg-dot" style="background:#FFB81C;box-shadow:0 0 10px #FFB81C"></i>Experience ({{ experience.length }})</span>
-        <span class="kg-key"><i class="kg-dot" style="background:#62B5E5;box-shadow:0 0 10px #62B5E5"></i>Technologies</span>
-        <span class="kg-key"><i class="kg-dot" style="background:#C4D600;box-shadow:0 0 10px #C4D600"></i>How I work</span>
-        <span class="kg-key"><i class="kg-dot" style="background:#86BC25;box-shadow:0 0 10px #86BC25"></i>pypdf</span>
-        <span class="kg-key"><i class="kg-dot" style="background:#fb7185"></i>joblib</span>
-        <span class="kg-key"><i class="kg-dot" style="background:#f472b6"></i>sentence-transformers</span>
-        <span class="kg-key"><i class="kg-dot" style="background:#E3E48D;box-shadow:0 0 10px #E3E48D"></i>NLTK</span>
-        <span class="kg-key"><i class="kg-dot" style="background:#A0DCFF;box-shadow:0 0 10px #A0DCFF"></i>Authlib</span>
-        <span class="kg-key"><i class="kg-dot" style="background:#7C9CFF;box-shadow:0 0 10px #7C9CFF"></i>fontTools</span>
-        <span class="kg-key"><i class="kg-dot" style="background:#F87171;box-shadow:0 0 10px #F87171"></i>fpdf2</span>
-        <span class="kg-key"><i class="kg-dot" style="background:#FB923C;box-shadow:0 0 10px #FB923C"></i>Pillow</span>
+        <span class="kg-key"><i class="kg-dot ck-spark" style="background:#00ABAB;box-shadow:0 0 10px #00ABAB"></i>Projects ({{ projects.length }})</span>
+        <span class="kg-key"><i class="kg-dot ck-spark" style="background:#FFB81C;box-shadow:0 0 10px #FFB81C"></i>Experience ({{ experience.length }})</span>
+        <span class="kg-key"><i class="kg-dot ck-spark" style="background:#62B5E5;box-shadow:0 0 10px #62B5E5"></i>Technologies</span>
+        <span class="kg-key"><i class="kg-dot ck-spark" style="background:#C4D600;box-shadow:0 0 10px #C4D600"></i>How I work</span>
+        <span class="kg-key"><i class="kg-dot ck-spark" style="background:#86BC25;box-shadow:0 0 10px #86BC25"></i>pypdf</span>
+        <span class="kg-key"><i class="kg-dot ck-spark" style="background:#fb7185"></i>joblib</span>
+        <span class="kg-key"><i class="kg-dot ck-spark" style="background:#f472b6"></i>sentence-transformers</span>
+        <span class="kg-key"><i class="kg-dot ck-spark" style="background:#E3E48D;box-shadow:0 0 10px #E3E48D"></i>NLTK</span>
+        <span class="kg-key"><i class="kg-dot ck-spark" style="background:#A0DCFF;box-shadow:0 0 10px #A0DCFF"></i>Authlib</span>
+        <span class="kg-key"><i class="kg-dot ck-spark" style="background:#7C9CFF;box-shadow:0 0 10px #7C9CFF"></i>fontTools</span>
+        <span class="kg-key"><i class="kg-dot ck-spark" style="background:#F87171;box-shadow:0 0 10px #F87171"></i>fpdf2</span>
+        <span class="kg-key"><i class="kg-dot ck-spark" style="background:#FB923C;box-shadow:0 0 10px #FB923C"></i>Pillow</span>
       </div>
     </div>
 
@@ -1635,7 +1635,7 @@
       <!-- Header -->
       <div class="demo-header" [ngClass]="'demo-header--' + demoProject()!.accent">
         <div class="demo-header-left">
-          <span class="demo-live-dot"></span>
+          <span class="demo-live-dot ck-spark"></span>
           <span class="demo-title">{{ demoProject()!.title }}</span>
           <span class="demo-slide-label">{{ demoProject()!.slides[demoSlide()].label }}</span>
         </div>
