@@ -438,7 +438,7 @@ h1 {
 .oss-card:hover { border-color: #046A38; transform: translateY(-2px); }
 .oss-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; }
 .oss-repo { font-family: monospace; font-size: 0.8rem; color: var(--lib, var(--accent)); font-weight: 600; display: inline-flex; align-items: center; gap: 0.45rem; }
-.oss-card-logo { width: 20px; height: 20px; flex-shrink: 0; border-radius: 5px; }
+.oss-card-logo { width: 20px; height: 20px; flex-shrink: 0; border-radius: 5px; object-fit: contain; }
 .oss-lib-dot { width: 9px; height: 9px; flex-shrink: 0; border-radius: 50%; background: var(--lib, var(--accent)); box-shadow: 0 0 8px var(--lib, var(--accent)); }
 .oss-stars { font-size: 0.75rem; color: var(--amber); font-weight: 700; }
 .oss-title { font-size: 0.95rem; font-weight: 700; color: var(--text); margin-bottom: 0.35rem; }
