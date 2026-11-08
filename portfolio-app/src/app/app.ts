@@ -496,12 +496,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '209',
+      stat:  '216',
       title: 'Pull requests merged by other projects\' maintainers.',
-      sub:   'People I had never met reviewed my code and accepted it: pypdf, fontTools, Pillow, fpdf2, trafilatura, txtai, kornia, tox, mistune, Docling, docTR, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
+      sub:   'People I had never met reviewed my code and accepted it: pypdf, fontTools, Pillow, fpdf2, trafilatura, txtai, kornia, tox, mistune, Docling, docTR, pikepdf, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '209 merged, all reviewed! ✅',
+      aaravSay: '216 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -629,6 +629,76 @@ export class App implements OnInit, AfterViewInit {
   // ── Open Source: merged PRs into major libraries. Append a new entry per merge; the
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'add_page/set_page_label: also reject a NaN or infinite label_start',
+      desc: 'set_page_label(label_start=float("nan")) passed the below-1 check and wrote /St nan into the page labels. add_page() had the same gap. Both now raise the existing ValueError. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2129',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'rect: raise a clear error for a NaN or infinite corner_radius',
+      desc: 'A rounded rect() with corner_radius=inf wrote inf and nan coordinates into the page, and NaN crashed with "cannot convert float NaN to integer". Both now raise a clear ValueError. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2128',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'pikepdf/pikepdf',
+      logo: 'pikepdf-logo.png',
+      org: 'pikepdf',
+      stars: '2.8k★',
+      title: 'Take an ICC image\'s mode from its profile when /N is missing',
+      desc: 'Some PDFs omit the required /N on an ICC profile stream, so PdfImage.mode and as_pil_image() raised KeyError. The mode now comes from the colour space the profile itself records. The maintainer extended it into a shared icc_ncomponents() helper. Merged by jbarlow83.',
+      pr: 'https://github.com/pikepdf/pikepdf/pull/751',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'arc: raise a clear error for a zero or non-finite axis or angle',
+      desc: 'arc() and solid_arc() crashed with ZeroDivisionError for a zero-size arc and with "cannot convert float NaN to integer" for a NaN size or angle. They now raise a clear ValueError naming the axes or angles. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2127',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'Annotations: raise a clear error for a NaN or infinite position or size',
+      desc: 'link(), text_annotation(), free_text_annotation() and the other annotation methods wrote /Rect [nan ...] into the page for a NaN position or size. The shared annotation class now raises a clear ValueError. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2126',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'write_html: ignore a NaN or infinite line-height, like an invalid one',
+      desc: '<p line-height="inf"> made write_html() hang forever, and line-height="nan" dropped list items. A non-finite line-height on <p>, <ul> and <ol> is now ignored like an invalid one. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2125',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'write_html: handle a NaN or infinite percentage width like an invalid one',
+      desc: 'A width="nan%" or "inf%" on a table, cell or <hr> wrote nan coordinates. It is now handled like any invalid percentage width. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2119',
+      merged: 'Nov 2026',
+    },
     {
       repo: 'py-pdf/fpdf2',
       logo: 'fpdf2-logo.png',
@@ -3054,7 +3124,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defense','PII protection','Output validation','Secure tool use','Threat modeling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers, and own the result.',
-      evidence: '209 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
+      evidence: '216 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
@@ -4321,6 +4391,7 @@ export class App implements OnInit, AfterViewInit {
     'docling-core': '#818CF8', // indigo
     doctr:    '#22D3EE',  // cyan
     'python-email-validator': '#2DD4BF', // teal
+    pikepdf:  '#84CC16',  // pike green
   };
 
   /** Colour for a node: open-source vertices are keyed by library. */
@@ -4329,7 +4400,7 @@ export class App implements OnInit, AfterViewInit {
     system: '#0D8390', tech: '#007CB0', oss: '#26890D', work: '#C26E00', practice: '#6B7A00',
   };
   private readonly OSS_COLORS_LIGHT: Record<string, string> = {
-    pypdf: '#26890D', joblib: '#E11D48', 'sentence-transformers': '#DB2777', nltk: '#A16207', authlib: '#0369A1', fonttools: '#3B5BDB', fpdf2: '#DC2626', Pillow: '#EA580C', 'pydantic-extra-types': '#BE185D', txtai: '#059669', kornia: '#2563EB', tox: '#8A8A2E', trafilatura: '#B45309', mistune: '#C026D3', 'docling-core': '#4F46E5', doctr: '#0891B2', 'python-email-validator': '#0F766E',
+    pypdf: '#26890D', joblib: '#E11D48', 'sentence-transformers': '#DB2777', nltk: '#A16207', authlib: '#0369A1', fonttools: '#3B5BDB', fpdf2: '#DC2626', Pillow: '#EA580C', 'pydantic-extra-types': '#BE185D', txtai: '#059669', kornia: '#2563EB', tox: '#8A8A2E', trafilatura: '#B45309', mistune: '#C026D3', 'docling-core': '#4F46E5', doctr: '#0891B2', 'python-email-validator': '#0F766E', pikepdf: '#4D7C0F',
   };
 
   /** libColor bound for child components (the merged-PR squares and month bars). */
