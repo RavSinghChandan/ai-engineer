@@ -496,12 +496,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '216',
+      stat:  '218',
       title: 'Pull requests merged by other projects\' maintainers.',
       sub:   'People I had never met reviewed my code and accepted it: pypdf, fontTools, Pillow, fpdf2, trafilatura, txtai, kornia, tox, mistune, Docling, docTR, pikepdf, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '216 merged, all reviewed! ✅',
+      aaravSay: '218 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -657,6 +657,26 @@ export class App implements OnInit, AfterViewInit {
       title: 'Take an ICC image\'s mode from its profile when /N is missing',
       desc: 'Some PDFs omit the required /N on an ICC profile stream, so PdfImage.mode and as_pil_image() raised KeyError. The mode now comes from the colour space the profile itself records. The maintainer extended it into a shared icc_ncomponents() helper. Merged by jbarlow83.',
       pr: 'https://github.com/pikepdf/pikepdf/pull/751',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'pikepdf/pikepdf',
+      logo: 'pikepdf-logo.png',
+      org: 'pikepdf',
+      stars: '2.8k★',
+      title: 'Warn instead of raising KeyError for an unknown page label style',
+      desc: 'Reading page.label raised KeyError when a page label used a style name outside D, R, r, A, a. An unknown style now warns and keeps the prefix, like other invalid styles, so one malformed label no longer stops code that lists page labels. Merged to main by jbarlow83.',
+      pr: 'https://github.com/pikepdf/pikepdf/pull/749',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'pikepdf/pikepdf',
+      logo: 'pikepdf-logo.png',
+      org: 'pikepdf',
+      stars: '2.8k★',
+      title: 'Decode a Cal colour space without its dictionary as the device space',
+      desc: 'An image with /ColorSpace [/CalRGB] and no parameter dictionary failed in as_pil_image() with IndexError. It now falls back to the device colour space, as a missing /WhitePoint already did. Merged to main by jbarlow83.',
+      pr: 'https://github.com/pikepdf/pikepdf/pull/750',
       merged: 'Nov 2026',
     },
     {
@@ -3124,7 +3144,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defense','PII protection','Output validation','Secure tool use','Threat modeling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers, and own the result.',
-      evidence: '216 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
+      evidence: '218 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
