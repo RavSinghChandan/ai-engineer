@@ -190,6 +190,7 @@ def _llm_grammar_fix(text: str) -> str:
             user=text,
             temperature=0,
             max_tokens=min(len(text.split()) * 2 + 50, 400),
+            agent_id="grammar_agent",
         )
         if result and len(result.strip()) > 5:
             return result.strip()
@@ -216,6 +217,7 @@ def _llm_grammar_fix_batch(texts: List[str]) -> List[str]:
             user=combined,
             temperature=0,
             max_tokens=min(total_words * 2 + len(valid) * 20, 2000),
+            agent_id="grammar_agent",
         )
         if result:
             parts = result.split(sep.strip())

@@ -1870,6 +1870,7 @@ def _llm_hw_bullets(
     Returns parsed dict or None on failure (caller falls back to static lookup).
     """
     try:
+        import audit.agent_audit_log as agent_audit
         from utils.deepseek_client import call as ds_call
     except ImportError:
         return None
@@ -1884,7 +1885,8 @@ def _llm_hw_bullets(
         import json as _j
         from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeout
         with ThreadPoolExecutor(max_workers=1) as pool:
-            future = pool.submit(ds_call, system=_HW_SYSTEM, user=user_prompt, temperature=0.3, max_tokens=350)
+            future = pool.submit(agent_audit.bind(ds_call), system=_HW_SYSTEM, user=user_prompt,
+                                 temperature=0.3, max_tokens=350, agent_id="simplify_agent")
             try:
                 raw = future.result(timeout=8)
             except FuturesTimeout:

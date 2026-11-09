@@ -21,6 +21,7 @@ import copy
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Dict, List
 
+import audit.agent_audit_log as agent_audit
 from utils.numerics import (
     life_path,
     destiny_number,
@@ -226,6 +227,7 @@ def _chapter_story(
                 user=prompt,
                 temperature=0.55 if attempt == 0 else 0.4,
                 max_tokens=560,
+                agent_id="holistic_agent",
             )
             story = (result or "").strip()
             if len(story) > 120 and "[HOOK]" in story:
@@ -409,7 +411,7 @@ def build_holistic_chapters(name: str, dob: str) -> List[Dict[str, Any]]:
     # limits and return empty readings (which forced short fallbacks).
     with ThreadPoolExecutor(max_workers=4) as ex:
         futures = {
-            ex.submit(_build_chapter, ch, name, dob, nums): int(ch["order"])
+            ex.submit(agent_audit.bind(_build_chapter), ch, name, dob, nums): int(ch["order"])
             for ch in CHAPTERS
         }
         for fut in as_completed(futures):

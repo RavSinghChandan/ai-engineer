@@ -52,7 +52,8 @@ _ALLOWED_KEYS = ("icon", "category", "text", "sources")
 
 def _default_llm(system: str, user: str) -> Optional[str]:
     from utils.deepseek_client import call as ds_call
-    return ds_call(system=system, user=user, temperature=0.1, max_tokens=500)
+    return ds_call(system=system, user=user, temperature=0.1, max_tokens=500,
+                   agent_id="remedies_agent")
 
 
 def _parse(raw: str) -> List[Any]:

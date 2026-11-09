@@ -6,6 +6,7 @@ using actual computed numbers — not generic category text.
 """
 from __future__ import annotations
 from typing import Any, Dict, List
+import audit.agent_audit_log as agent_audit
 from agents.agent_prompts import build_prompt, get_prompt
 from utils.numerics import (
     life_path, destiny_number, letter_map_indian, letter_map_chaldean,
@@ -222,7 +223,9 @@ def _analyze_question(name: str, dob: str, question: str, intent: str, q_idx: in
 
     # Run 3 tradition sub-agents in parallel — cuts 3×serial → 1× wall-clock time
     with ThreadPoolExecutor(max_workers=3) as pool:
-        sub_results = list(pool.map(_run, tradition_items))
+        # one bound context per task: a context can't be entered by two threads at once
+        futures = [pool.submit(agent_audit.bind(_run), item) for item in tradition_items]
+        sub_results = [f.result() for f in futures]
 
     lp = sub_results[0]["extra"]["core_numbers"]["life_path"]
     traits_str = ", ".join(sub_results[0]["traits"][:2])

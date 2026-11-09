@@ -163,7 +163,7 @@ class TestDeepseekClient:
         dc._KEY = ""
         with patch("utils.deepseek_client._load_key", return_value=""):
             try:
-                dc.call(system="sys", user="user")
+                dc.call(system="sys", user="user", agent_id="holistic_agent")
                 raised = False
             except RuntimeError:
                 raised = True
@@ -188,7 +188,7 @@ class TestDeepseekClient:
 
         with patch("utils.deepseek_client._KEY", "fake-key"):
             with patch("urllib.request.urlopen", return_value=mock_resp):
-                result = dc.call(system="You are helpful.", user="Say hi.")
+                result = dc.call(system="You are helpful.", user="Say hi.", agent_id="holistic_agent")
         assert result == "Hello!"
 
     def test_call_tracks_usage(self):
@@ -208,7 +208,7 @@ class TestDeepseekClient:
 
         with patch("utils.deepseek_client._KEY", "fake-key"):
             with patch("urllib.request.urlopen", return_value=mock_resp):
-                dc.call(system="sys", user="msg")
+                dc.call(system="sys", user="msg", agent_id="holistic_agent")
         usage = dc.get_session_usage()
         assert usage["calls"] == 1
         assert usage["prompt_tokens"] == 20
@@ -219,7 +219,7 @@ class TestDeepseekClient:
         with patch("utils.deepseek_client._KEY", "fake-key"):
             with patch("urllib.request.urlopen", side_effect=urllib.error.URLError("timeout")):
                 try:
-                    dc.call(system="sys", user="msg")
+                    dc.call(system="sys", user="msg", agent_id="holistic_agent")
                     raised = False
                 except (RuntimeError, Exception):
                     raised = True

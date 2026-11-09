@@ -114,11 +114,12 @@ def hybrid_numerology_answer(
     user_prompt += f"\nWrite the detailed {tradition} reading now (4-5 sentences, all numbers named, tradition-specific remedy included):"
 
     try:
+        import audit.agent_audit_log as agent_audit
         from utils.deepseek_client import call as ds_call
         with ThreadPoolExecutor(max_workers=1) as _ex:
-            _fut = _ex.submit(ds_call,
+            _fut = _ex.submit(agent_audit.bind(ds_call),
                 system=system, user=user_prompt,
-                temperature=0.20, max_tokens=530,
+                temperature=0.20, max_tokens=530, agent_id="numerology_agent",
             )
             result = _fut.result(timeout=timeout_seconds)
         answer = (result or "").strip()

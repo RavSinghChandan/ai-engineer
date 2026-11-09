@@ -89,7 +89,7 @@ class TestDeepseekClientFull:
         mock_resp.__exit__ = MagicMock(return_value=False)
         with patch("utils.deepseek_client._KEY", "fake-key"):
             with patch("urllib.request.urlopen", return_value=mock_resp):
-                result = dc.call(system="sys", user="msg")
+                result = dc.call(system="sys", user="msg", agent_id="holistic_agent")
         assert "```" not in result
 
     def test_call_circuit_open_raises_runtime(self):
@@ -98,7 +98,7 @@ class TestDeepseekClientFull:
         with patch("utils.deepseek_client._KEY", "fake-key"):
             with patch.object(dc.llm_circuit_breaker, "call", side_effect=CircuitOpenError("open")):
                 try:
-                    dc.call(system="sys", user="msg")
+                    dc.call(system="sys", user="msg", agent_id="holistic_agent")
                     raised = False
                 except RuntimeError:
                     raised = True

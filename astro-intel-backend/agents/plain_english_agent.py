@@ -145,6 +145,7 @@ def _llm_rewrite(text: str) -> str:
             user=text,
             temperature=0.3,
             max_tokens=120,
+            agent_id="plain_english_agent",
         )
         if result and len(result.strip()) > 10:
             return _safety_filter(result.strip())

@@ -110,6 +110,7 @@ def numerology_story(
             user=user_prompt,
             temperature=0.30,
             max_tokens=600,
+            agent_id="storytelling_agent",
         )
 
         story = (result or "").strip()

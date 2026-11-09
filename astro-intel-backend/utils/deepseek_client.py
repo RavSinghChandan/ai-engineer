@@ -77,12 +77,23 @@ def call(
     temperature: float = 0.7,
     max_tokens: int = 800,
     model: str = "deepseek-chat",
+    agent_id: str = "",
 ) -> str:
     """
     Call DeepSeek chat completions API.
     Returns the raw text content of the first choice.
     Raises RuntimeError if key is missing or API returns an error.
+    Raises policy.PolicyViolation if the AgentPolicyGuard refuses the call
+    (agent_id names the calling agent; an unnamed caller is refused).
     """
+    from policy import enforce
+    enforce(agent_id, "llm.chat", {
+        "model": model,
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+        "prompt_chars": len(system or "") + len(user or ""),
+    })
+
     global _KEY
     if not _KEY:
         _KEY = _load_key()

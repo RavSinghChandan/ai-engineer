@@ -30,6 +30,7 @@ from metrics.ragas_evaluator import evaluate as ragas_evaluate
 from metrics.collector import get_collector, RunRecord
 from fde import counters as fde_counters, ledger as fde_ledger, permissions as fde_perm
 import audit.agent_audit_log as agent_audit
+import policy as policy_guard
 from utils.deepseek_client import get_session_usage, reset_session_usage
 from fastapi import Request
 from guardrails.production import rate_limiter, RateLimiter
@@ -463,23 +464,38 @@ async def approve_and_generate(
     fde_perm.needs_approval("report_agent", "final_report")
     fde_perm.authorize("report_agent", "write", "final_report")
 
-    report = final_report_agent(
-        admin_review = admin_review,
-        approved_ids = req.approved_insight_ids,
-        rejected_ids = req.rejected_insight_ids,
-        brand_name   = req.brand_name,
-        logo_url     = req.logo_url,
-        image_url    = req.image_url,
-        memory       = memory,
-        remedies     = remedies,
-    )
+    with agent_audit.audit_context(user_id=_audit_user(ctx, req), tenant_id=ctx.tenant_id,
+                                   resource_id=session_id):
+        # AgentPolicyGuard: the admin's approval is recorded for this session,
+        # then report.generate is checked like any other agent tool call.
+        policy_guard.get_guard().grant_approval(session_id, "report_agent", "report.generate",
+                                                approver=_audit_user(ctx, req))
+        try:
+            policy_guard.enforce("report_agent", "report.generate", {
+                "approved_count": len(req.approved_insight_ids or []),
+                "rejected_count": len(req.rejected_insight_ids or []),
+                "brand_name":     req.brand_name,
+            })
+        except policy_guard.PolicyViolation as exc:
+            raise HTTPException(status_code=403, detail=str(exc)) from exc
 
-    # Grammar agent — polish all report prose before PDF / translation
-    try:
-        fde_perm.authorize("grammar_agent", "write", "final_report")
-        report = correct_report(report, use_llm=True)
-    except Exception:
-        pass  # never block report delivery on grammar failure
+        report = final_report_agent(
+            admin_review = admin_review,
+            approved_ids = req.approved_insight_ids,
+            rejected_ids = req.rejected_insight_ids,
+            brand_name   = req.brand_name,
+            logo_url     = req.logo_url,
+            image_url    = req.image_url,
+            memory       = memory,
+            remedies     = remedies,
+        )
+
+        # Grammar agent — polish all report prose before PDF / translation
+        try:
+            fde_perm.authorize("grammar_agent", "write", "final_report")
+            report = correct_report(report, use_llm=True)
+        except Exception:
+            pass  # never block report delivery on grammar failure
 
     t_approve_end = time.time()
     # Record approve-phase token usage back into the session's run record
@@ -915,6 +931,7 @@ async def simplify_bullets(req: SimplifyBulletsRequest, request: Request) -> JSO
                 user=preprocessed,
                 temperature=0.25,
                 max_tokens=120,
+                agent_id="plain_english_agent",
             )
             if rewritten and len(rewritten.strip()) > 8:
                 results.append(_safety_filter(rewritten.strip()))

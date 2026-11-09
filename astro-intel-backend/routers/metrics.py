@@ -3,7 +3,7 @@ GET /api/v1/metrics          — Live pipeline metrics dashboard (ADMIN+)
 GET /api/v1/metrics/prometheus — OpenMetrics text for Grafana scraping (ADMIN+)
 """
 from __future__ import annotations
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse, PlainTextResponse
 from metrics import get_collector
 from metrics.prometheus_exporter import dashboard_to_prometheus
@@ -121,3 +121,36 @@ async def get_agent_audit_log(
     rows = query(tenant_id=scope, correlation_id=correlation_id, agent_id=agent_id,
                  resource_id=resource_id, status=status, limit=limit)
     return JSONResponse(content={"count": len(rows), "rows": rows})
+
+
+@router.get("/policy-decisions")
+async def get_policy_decisions(
+    session_id: str = "",
+    agent_id: str = "",
+    tool_name: str = "",
+    outcome: str = "",
+    tenant_id: str = "",
+    limit: int = 100,
+    ctx: TenantContext = Depends(can(Permission.METRICS__VIEW)),
+) -> JSONResponse:
+    """
+    Rows of the immutable policy_decision_log, newest first: every AgentPolicyGuard
+    decision (allow / deny / require_approval / suspend / approval_granted) with
+    the five checks and the reasons. Tenant scoping as for /agent-audit.
+    """
+    from policy.decision_log import query
+    scope = (tenant_id or None) if ctx.is_superadmin() else ctx.tenant_id
+    rows = query(tenant_id=scope, session_id=session_id, agent_id=agent_id,
+                 tool_name=tool_name, outcome=outcome, limit=limit)
+    return JSONResponse(content={"count": len(rows), "rows": rows})
+
+
+@router.get("/policy-decisions/verify")
+async def verify_policy_decisions(
+    ctx: TenantContext = Depends(can(Permission.METRICS__VIEW)),
+) -> JSONResponse:
+    """Recompute the hash chain of policy_decision_log (superadmin: it spans every tenant)."""
+    if not ctx.is_superadmin():
+        raise HTTPException(status_code=403, detail="Only a superadmin can verify the whole log.")
+    from policy.decision_log import verify_chain
+    return JSONResponse(content=verify_chain())
