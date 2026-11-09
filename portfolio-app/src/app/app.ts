@@ -496,12 +496,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '232',
+      stat:  '234',
       title: 'Pull requests merged by other projects\' maintainers.',
       sub:   'People I had never met reviewed my code and accepted it: pypdf, fontTools, Pillow, fpdf2, trafilatura, txtai, kornia, tox, mistune, Docling, docTR, pikepdf, ezdxf, svglib, pdfannots, python-markdown2, marko, PyMuPDF, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '232 merged, all reviewed! ✅',
+      aaravSay: '234 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -647,6 +647,26 @@ export class App implements OnInit, AfterViewInit {
       title: 'Keep a multi-line setext heading setext when re-rendering Markdown',
       desc: 'Re-rendering Markdown turned every setext heading into a one-line ATX heading, so a heading over several lines lost all but its first line to a new paragraph. Multi-line headings now stay setext. Merged by frostming.',
       pr: 'https://github.com/frostming/marko/pull/304',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.3k★',
+      title: 'Treat a page /Contents that is not a stream or an array as missing',
+      desc: 'page.get_contents() raised AttributeError when a malformed page had a number, string or plain dictionary as /Contents, and so did compress_content_streams(), scale_by(), merge_page() and remove_text(). It now logs a warning and treats the contents as missing, like extract_text() already did. Merged by stefan6419846.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4376',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'deeplook/svglib',
+      logo: 'svglib-logo.svg',
+      org: 'deeplook',
+      stars: '371★',
+      title: "Don't apply the px-to-pt factor twice to a nested <svg> viewport",
+      desc: 'Content of a nested <svg viewBox> was drawn at 75% of the size its width and height ask for, because the px-to-pt factor was applied a second time. It now fills its viewport, as in browsers. deeplook reproduced it and merged after asking for a clear changelog note.',
+      pr: 'https://github.com/deeplook/svglib/pull/540',
       merged: 'Nov 2026',
     },
     {
@@ -3284,7 +3304,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defense','PII protection','Output validation','Secure tool use','Threat modeling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers, and own the result.',
-      evidence: '232 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
+      evidence: '234 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
