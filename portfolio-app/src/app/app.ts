@@ -496,12 +496,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '219',
+      stat:  '222',
       title: 'Pull requests merged by other projects\' maintainers.',
-      sub:   'People I had never met reviewed my code and accepted it: pypdf, fontTools, Pillow, fpdf2, trafilatura, txtai, kornia, tox, mistune, Docling, docTR, pikepdf, ezdxf, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
+      sub:   'People I had never met reviewed my code and accepted it: pypdf, fontTools, Pillow, fpdf2, trafilatura, txtai, kornia, tox, mistune, Docling, docTR, pikepdf, ezdxf, svglib, pdfannots, python-markdown2, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '219 merged, all reviewed! ✅',
+      aaravSay: '222 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -629,6 +629,36 @@ export class App implements OnInit, AfterViewInit {
   // ── Open Source: merged PRs into major libraries. Append a new entry per merge; the
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
+    {
+      repo: 'trentm/python-markdown2',
+      logo: 'markdown2-logo.svg',
+      org: 'trentm',
+      stars: '2.8k★',
+      title: 'Don\'t add an empty footnotes block when no footnote is referenced',
+      desc: 'With the footnotes extra on, a document that defined footnotes but referenced none still got an empty footnotes block, which renders as a stray horizontal rule at the end of the page. The block is now left out. Merged by nicholasserra.',
+      pr: 'https://github.com/trentm/python-markdown2/pull/758',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'deeplook/svglib',
+      logo: 'svglib-logo.svg',
+      org: 'deeplook',
+      stars: '371★',
+      title: 'Read CSS font-size keywords such as large and smaller',
+      desc: 'font-size="large" or a font shorthand like "bold x-large serif" made svg2rlg() fail with ValueError, so the whole drawing was lost. Absolute keywords now use the CSS Fonts scale for a 16px medium, and larger/smaller scale by 1.2. Merged by deeplook.',
+      pr: 'https://github.com/deeplook/svglib/pull/537',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: '0xabu/pdfannots',
+      logo: 'pdfannots-logo.svg',
+      org: '0xabu',
+      stars: '674★',
+      title: 'Resolve an annotation\'s /Subtype and /Contents when they are indirect objects',
+      desc: 'A PDF annotation whose /Contents or /Subtype was stored as an indirect object crashed the whole extraction run. Both are now resolved with resolve1(), like the other entries the extractor already read. Merged by 0xabu.',
+      pr: 'https://github.com/0xabu/pdfannots/pull/125',
+      merged: 'Nov 2026',
+    },
     {
       repo: 'mozman/ezdxf',
       logo: 'ezdxf-logo.svg',
@@ -3154,7 +3184,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defense','PII protection','Output validation','Secure tool use','Threat modeling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers, and own the result.',
-      evidence: '219 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
+      evidence: '222 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
@@ -4423,6 +4453,9 @@ export class App implements OnInit, AfterViewInit {
     'python-email-validator': '#2DD4BF', // teal
     pikepdf:  '#84CC16',  // pike green
     ezdxf:    '#38BDF8',  // sky blue, from its logo
+    pdfannots: '#A78BFA', // violet
+    svglib:   '#E0A96D',  // tan
+    'python-markdown2': '#CBD5E1', // silver, like the Markdown mark
   };
 
   /** Colour for a node: open-source vertices are keyed by library. */
@@ -4431,7 +4464,7 @@ export class App implements OnInit, AfterViewInit {
     system: '#0D8390', tech: '#007CB0', oss: '#26890D', work: '#C26E00', practice: '#6B7A00',
   };
   private readonly OSS_COLORS_LIGHT: Record<string, string> = {
-    pypdf: '#26890D', joblib: '#E11D48', 'sentence-transformers': '#DB2777', nltk: '#A16207', authlib: '#0369A1', fonttools: '#3B5BDB', fpdf2: '#DC2626', Pillow: '#EA580C', 'pydantic-extra-types': '#BE185D', txtai: '#059669', kornia: '#2563EB', tox: '#8A8A2E', trafilatura: '#B45309', mistune: '#C026D3', 'docling-core': '#4F46E5', doctr: '#0891B2', 'python-email-validator': '#0F766E', pikepdf: '#4D7C0F', ezdxf: '#0284C7',
+    pypdf: '#26890D', joblib: '#E11D48', 'sentence-transformers': '#DB2777', nltk: '#A16207', authlib: '#0369A1', fonttools: '#3B5BDB', fpdf2: '#DC2626', Pillow: '#EA580C', 'pydantic-extra-types': '#BE185D', txtai: '#059669', kornia: '#2563EB', tox: '#8A8A2E', trafilatura: '#B45309', mistune: '#C026D3', 'docling-core': '#4F46E5', doctr: '#0891B2', 'python-email-validator': '#0F766E', pikepdf: '#4D7C0F', ezdxf: '#0284C7', pdfannots: '#7C3AED', svglib: '#9A6B3F', 'python-markdown2': '#475569',
   };
 
   /** libColor bound for child components (the merged-PR squares and month bars). */
