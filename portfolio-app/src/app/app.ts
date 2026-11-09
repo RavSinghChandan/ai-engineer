@@ -496,12 +496,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '226',
+      stat:  '230',
       title: 'Pull requests merged by other projects\' maintainers.',
-      sub:   'People I had never met reviewed my code and accepted it: pypdf, fontTools, Pillow, fpdf2, trafilatura, txtai, kornia, tox, mistune, Docling, docTR, pikepdf, ezdxf, svglib, pdfannots, python-markdown2, marko, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
+      sub:   'People I had never met reviewed my code and accepted it: pypdf, fontTools, Pillow, fpdf2, trafilatura, txtai, kornia, tox, mistune, Docling, docTR, pikepdf, ezdxf, svglib, pdfannots, python-markdown2, marko, PyMuPDF, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '226 merged, all reviewed! ✅',
+      aaravSay: '230 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -629,6 +629,46 @@ export class App implements OnInit, AfterViewInit {
   // ── Open Source: merged PRs into major libraries. Append a new entry per merge; the
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
+    {
+      repo: 'pymupdf/PyMuPDF',
+      logo: 'pymupdf-logo.svg',
+      org: 'pymupdf',
+      stars: '11.1k★',
+      title: 'Continue letter page labels with AA, BB, ... after Z, as the PDF spec says',
+      desc: 'Page labels in the letter styles (/S /A and /S /a) went on with punctuation after Z instead of AA, BB, ... as the PDF specification defines. Fixed and approved by JorjMcKie, who wrote the original function. Merged by the PyMuPDF team.',
+      pr: 'https://github.com/pymupdf/PyMuPDF/pull/5264',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'frostming/marko',
+      logo: 'marko-logo.svg',
+      org: 'frostming',
+      stars: '470★',
+      title: 'Keep a multi-line setext heading setext when re-rendering Markdown',
+      desc: 'Re-rendering Markdown turned every setext heading into a one-line ATX heading, so a heading over several lines lost all but its first line to a new paragraph. Multi-line headings now stay setext. Merged by frostming.',
+      pr: 'https://github.com/frostming/marko/pull/304',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'drawing: omit an arc whose end point is its start point, like SVG',
+      desc: 'An SVG arc whose end point equals its start point was drawn as a full circle. The SVG specification says to omit such an arc, and fpdf2 now does. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2132',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'mindee/doctr',
+      logo: 'doctr-logo.png',
+      org: 'mindee',
+      stars: '6.4k★',
+      title: '[metrics] Raise a clear error for self-intersecting ground truth boxes',
+      desc: 'A self-intersecting ground-truth polygon crashed the detection metrics deep inside GEOS. The metrics now raise a clear ValueError naming the broken boxes, so the dataset can be fixed instead of the error being hidden. Merged by felixdittrich92.',
+      pr: 'https://github.com/mindee/doctr/pull/2219',
+      merged: 'Nov 2026',
+    },
     {
       repo: 'frostming/marko',
       logo: 'marko-logo.svg',
@@ -3224,7 +3264,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defense','PII protection','Output validation','Secure tool use','Threat modeling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers, and own the result.',
-      evidence: '226 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
+      evidence: '230 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
@@ -4497,6 +4537,7 @@ export class App implements OnInit, AfterViewInit {
     svglib:   '#E0A96D',  // tan
     'python-markdown2': '#CBD5E1', // silver, like the Markdown mark
     marko:    '#67E8F9',  // light cyan
+    PyMuPDF:  '#F59E0B',  // amber, from its logo
   };
 
   /** Colour for a node: open-source vertices are keyed by library. */
@@ -4505,7 +4546,7 @@ export class App implements OnInit, AfterViewInit {
     system: '#0D8390', tech: '#007CB0', oss: '#26890D', work: '#C26E00', practice: '#6B7A00',
   };
   private readonly OSS_COLORS_LIGHT: Record<string, string> = {
-    pypdf: '#26890D', joblib: '#E11D48', 'sentence-transformers': '#DB2777', nltk: '#A16207', authlib: '#0369A1', fonttools: '#3B5BDB', fpdf2: '#DC2626', Pillow: '#EA580C', 'pydantic-extra-types': '#BE185D', txtai: '#059669', kornia: '#2563EB', tox: '#8A8A2E', trafilatura: '#B45309', mistune: '#C026D3', 'docling-core': '#4F46E5', doctr: '#0891B2', 'python-email-validator': '#0F766E', pikepdf: '#4D7C0F', ezdxf: '#0284C7', pdfannots: '#7C3AED', svglib: '#9A6B3F', 'python-markdown2': '#475569', marko: '#0E7490',
+    pypdf: '#26890D', joblib: '#E11D48', 'sentence-transformers': '#DB2777', nltk: '#A16207', authlib: '#0369A1', fonttools: '#3B5BDB', fpdf2: '#DC2626', Pillow: '#EA580C', 'pydantic-extra-types': '#BE185D', txtai: '#059669', kornia: '#2563EB', tox: '#8A8A2E', trafilatura: '#B45309', mistune: '#C026D3', 'docling-core': '#4F46E5', doctr: '#0891B2', 'python-email-validator': '#0F766E', pikepdf: '#4D7C0F', ezdxf: '#0284C7', pdfannots: '#7C3AED', svglib: '#9A6B3F', 'python-markdown2': '#475569', marko: '#0E7490', PyMuPDF: '#B45309',
   };
 
   /** libColor bound for child components (the merged-PR squares and month bars). */
