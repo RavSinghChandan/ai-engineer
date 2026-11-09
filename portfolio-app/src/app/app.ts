@@ -496,12 +496,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '223',
+      stat:  '225',
       title: 'Pull requests merged by other projects\' maintainers.',
-      sub:   'People I had never met reviewed my code and accepted it: pypdf, fontTools, Pillow, fpdf2, trafilatura, txtai, kornia, tox, mistune, Docling, docTR, pikepdf, ezdxf, svglib, pdfannots, python-markdown2, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
+      sub:   'People I had never met reviewed my code and accepted it: pypdf, fontTools, Pillow, fpdf2, trafilatura, txtai, kornia, tox, mistune, Docling, docTR, pikepdf, ezdxf, svglib, pdfannots, python-markdown2, marko, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '223 merged, all reviewed! ✅',
+      aaravSay: '225 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -629,6 +629,26 @@ export class App implements OnInit, AfterViewInit {
   // ── Open Source: merged PRs into major libraries. Append a new entry per merge; the
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
+    {
+      repo: 'frostming/marko',
+      logo: 'marko-logo.svg',
+      org: 'frostming',
+      stars: '470★',
+      title: 'Keep the quote markers on blank lines when re-rendering Markdown',
+      desc: 'Re-rendering Markdown wrote blank lines inside a block quote without their ">", so a quote with two paragraphs came back as two separate quotes and different HTML. Blank lines and loose-list separators now keep the quote markers. Merged by frostming.',
+      pr: 'https://github.com/frostming/marko/pull/302',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'deeplook/svglib',
+      logo: 'svglib-logo.svg',
+      org: 'deeplook',
+      stars: '371★',
+      title: 'Read color keywords and function names regardless of case',
+      desc: 'fill="White" or stroke="RED" left the shape without a fill or stroke, because color names were looked up case-sensitively. CSS keywords and function names such as RGB(...) are now read in any case, as browsers do. Merged by deeplook.',
+      pr: 'https://github.com/deeplook/svglib/pull/541',
+      merged: 'Nov 2026',
+    },
     {
       repo: '0xabu/pdfannots',
       logo: 'pdfannots-logo.svg',
@@ -3194,7 +3214,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defense','PII protection','Output validation','Secure tool use','Threat modeling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers, and own the result.',
-      evidence: '223 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
+      evidence: '225 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
@@ -4466,6 +4486,7 @@ export class App implements OnInit, AfterViewInit {
     pdfannots: '#A78BFA', // violet
     svglib:   '#E0A96D',  // tan
     'python-markdown2': '#CBD5E1', // silver, like the Markdown mark
+    marko:    '#67E8F9',  // light cyan
   };
 
   /** Colour for a node: open-source vertices are keyed by library. */
@@ -4474,7 +4495,7 @@ export class App implements OnInit, AfterViewInit {
     system: '#0D8390', tech: '#007CB0', oss: '#26890D', work: '#C26E00', practice: '#6B7A00',
   };
   private readonly OSS_COLORS_LIGHT: Record<string, string> = {
-    pypdf: '#26890D', joblib: '#E11D48', 'sentence-transformers': '#DB2777', nltk: '#A16207', authlib: '#0369A1', fonttools: '#3B5BDB', fpdf2: '#DC2626', Pillow: '#EA580C', 'pydantic-extra-types': '#BE185D', txtai: '#059669', kornia: '#2563EB', tox: '#8A8A2E', trafilatura: '#B45309', mistune: '#C026D3', 'docling-core': '#4F46E5', doctr: '#0891B2', 'python-email-validator': '#0F766E', pikepdf: '#4D7C0F', ezdxf: '#0284C7', pdfannots: '#7C3AED', svglib: '#9A6B3F', 'python-markdown2': '#475569',
+    pypdf: '#26890D', joblib: '#E11D48', 'sentence-transformers': '#DB2777', nltk: '#A16207', authlib: '#0369A1', fonttools: '#3B5BDB', fpdf2: '#DC2626', Pillow: '#EA580C', 'pydantic-extra-types': '#BE185D', txtai: '#059669', kornia: '#2563EB', tox: '#8A8A2E', trafilatura: '#B45309', mistune: '#C026D3', 'docling-core': '#4F46E5', doctr: '#0891B2', 'python-email-validator': '#0F766E', pikepdf: '#4D7C0F', ezdxf: '#0284C7', pdfannots: '#7C3AED', svglib: '#9A6B3F', 'python-markdown2': '#475569', marko: '#0E7490',
   };
 
   /** libColor bound for child components (the merged-PR squares and month bars). */
