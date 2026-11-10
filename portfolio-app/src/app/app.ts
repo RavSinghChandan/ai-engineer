@@ -496,12 +496,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '243',
+      stat:  '248',
       title: 'Pull requests merged by other projects\' maintainers.',
       sub:   'People I had never met reviewed my code and accepted it: pypdf, fontTools, Pillow, fpdf2, trafilatura, txtai, kornia, tox, mistune, Docling, docTR, pikepdf, ezdxf, svglib, pdfannots, python-markdown2, marko, PyMuPDF, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '243 merged, all reviewed! ✅',
+      aaravSay: '248 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -629,6 +629,56 @@ export class App implements OnInit, AfterViewInit {
   // ── Open Source: merged PRs into major libraries. Append a new entry per merge; the
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'SVG: build every clip path reference the way browsers do',
+      desc: 'clip-path="none", which Inkscape writes, crashed with an AssertionError, and a clip path id containing - or . was cut short, so url(#clip-1) silently clipped with another path or failed. Any url(#id) reference now finds its clip path. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2143',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'SVG: handle empty path data like a path without d',
+      desc: 'PyMuPDF and ezdxf write <path d=""/>, which made fpdf2 fail with "Path does not start with move item". SVG says empty path data just disables rendering, so such paths are now skipped. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2144',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'SVG: accept a gray text color in a styled <tspan>',
+      desc: 'Inkscape writes every text inside a styled <tspan>, and black or gray text there failed with an AssertionError, so SVGs from Pillow and tox docs could not be drawn. Gray text colors are now accepted. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2153',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.3k★',
+      title: 'Do not crash on merging pages whose resources are not a dictionary',
+      desc: 'merge_page() raised TypeError when a page from a malformed file had /Resources that was a number, array, string or null. Malformed resources are now logged and treated as empty, and the other page still merges. Merged by stefan6419846.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4350',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'frostming/marko',
+      logo: 'marko-logo.svg',
+      org: 'frostming',
+      stars: '470★',
+      title: 'Keep the delimiter of ordered list markers when re-rendering Markdown',
+      desc: 'Re-rendering turned every 1) list into a 1. list, so a ) list that followed a . list merged into it and the HTML changed. The delimiter is now kept. Merged by frostming.',
+      pr: 'https://github.com/frostming/marko/pull/305',
+      merged: 'Nov 2026',
+    },
     {
       repo: '0xabu/pdfannots',
       logo: 'pdfannots-logo.svg',
@@ -3394,7 +3444,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defense','PII protection','Output validation','Secure tool use','Threat modeling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers, and own the result.',
-      evidence: '243 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
+      evidence: '248 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
