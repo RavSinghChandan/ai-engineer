@@ -49,40 +49,36 @@
   } @else {
     <span class="ckj-host" aria-hidden="true"><ck-guide form="full" [mood]="mood()" pose="wave"/></span>
     <nav class="ckj-climb" aria-label="The seven steps">
-      <svg class="ckj-steps" viewBox="0 0 308 63" preserveAspectRatio="none" focusable="false" aria-hidden="true">
-        @for (m of milestones; track $index; let i = $index) {
-          <rect [attr.x]="i * 44" [attr.y]="63 - 9 * (i + 1)" width="44" [attr.height]="9 * (i + 1)" [attr.fill]="m.a" class="ckj-step"/>
-          <rect [attr.x]="i * 44" [attr.y]="63 - 9 * (i + 1)" width="44" height="2.2" [attr.fill]="m.hi" opacity=".9"/>
-          <text [attr.x]="i * 44 + 22" [attr.y]="63 - 9 * (i + 1) + 6.4" class="ckj-step-n">{{ i + 1 }}</text>
+      <div class="ckj-cols">
+        @for (g of goals; track g.n; let i = $index) {
+          <div class="ckj-col" [style.--sn]="g.n" [style.--w]="g.weight" [style.--a]="g.a" [style.--hi]="g.hi" [style.--d]="g.delay">
+            <a class="ckj-mini" [href]="'#' + g.id" [title]="'Step ' + g.n + ': ' + g.place" [attr.aria-label]="'Step ' + g.n + ': ' + g.place">
+              <span class="ckj-mini-dance">
+                <span class="ckj-mini-me" aria-hidden="true"><ck-guide form="full" mood="excited" pose="cheer"/></span>
+                <svg class="ckj-mini-flag" viewBox="0 0 62 46" focusable="false" aria-hidden="true">
+                  <g class="ckj-mini-wave">
+                    <path class="ckj-mini-cloth" d="M60 1C49 -2 41 5 30 2C19 -1 11 5 1 2V20C11 23 19 17 30 20C41 23 49 16 60 19Z"/>
+                    <text x="30.5" y="11" class="ckj-mini-word" [attr.textLength]="g.flag.length > 6 ? 54 : null" lengthAdjust="spacingAndGlyphs">{{ g.flag }}</text>
+                  </g>
+                  <path d="M60 0V46" class="ckj-mini-pole"/>
+                </svg>
+              </span>
+            </a>
+            <div class="ckj-face">
+              <span class="ckj-face-n" aria-hidden="true">{{ g.n }}</span>
+              <div class="ckj-face-text">
+                @for (f of faces()[i] ?? []; track $index; let j = $index) {
+                  @if (f.href) {
+                    <a class="ckj-win" [href]="f.href" [style.--j]="j">{{ f.head }}<wbr>{{ f.tail }}</a>
+                  } @else {
+                    <span class="ckj-win" [style.--j]="j">{{ count(f.text, i) }}</span>
+                  }
+                }
+              </div>
+            </div>
+          </div>
         }
-        <path d="M0 63V54H44V45H88V36H132V27H176V18H220V9H264V0H308V63Z" class="ckj-steps-ink"/>
-      </svg>
-      @for (g of goals; track g.n; let i = $index) {
-        <a class="ckj-mini" [class.ckj-mini--on]="shown() === i" [href]="'#' + g.id"
-           [title]="'Step ' + g.n + ': ' + g.place + (wins()[i]?.length ? ' · ' + wins()[i].join(' · ') : '')"
-           [attr.aria-label]="'Step ' + g.n + ': ' + g.place + (wins()[i]?.length ? ', ' + wins()[i].join(', ') : '')"
-           [style.left.%]="g.left" [style.--sn]="g.n" [style.--d]="g.delay"
-           (mouseenter)="hold(i)" (mouseleave)="hold(null)" (focus)="hold(i)" (blur)="hold(null)">
-          <span class="ckj-mini-dance">
-            <span class="ckj-mini-me" aria-hidden="true"><ck-guide form="full" mood="excited" pose="cheer"/></span>
-            <svg class="ckj-mini-flag" viewBox="0 0 62 46" focusable="false" aria-hidden="true">
-              <g class="ckj-mini-wave">
-                <path class="ckj-mini-cloth" d="M60 1C49 -2 41 5 30 2C19 -1 11 5 1 2V20C11 23 19 17 30 20C41 23 49 16 60 19Z"/>
-                <text x="30.5" y="11" class="ckj-mini-word" [attr.textLength]="g.flag.length > 6 ? 54 : null" lengthAdjust="spacingAndGlyphs">{{ g.flag }}</text>
-              </g>
-              <path d="M60 0V46" class="ckj-mini-pole"/>
-            </svg>
-          </span>
-        </a>
-      }
-      @if (shownWins().length) {
-        @let g = shownGoal();
-        <span class="ckj-stack" aria-hidden="true" [attr.data-n]="g.n" [style.--sx]="g.left" [style.--sn]="g.n">
-          @for (w of shownWins(); track shown() + w; let j = $index) {
-            <span class="ckj-sub" [style.--c]="flagColors[(g.n + 2 * j) % flagColors.length]" [style.--j]="j">{{ w }}</span>
-          }
-        </span>
-      }
+      </div>
     </nav>
   }
 </section>

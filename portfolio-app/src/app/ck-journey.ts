@@ -32,8 +32,10 @@ export const STEP_GOALS = [
   { id: 'story', place: 'My Story', flag: 'Story' },
   { id: 'contact', place: 'Contact Me', flag: 'Contact' },
 ];
-/** How long each step keeps its achievement flags raised before the next one takes over. */
-const SPOTLIGHT_MS = 3200;
+/** How long the numbers on the steps take to count up when the card comes into view. */
+const COUNT_MS = 1400;
+/** Relative width of each step: the higher ones carry more text (Contact holds an email address). */
+const STEP_WEIGHTS = [1, 1.18, 1.05, 1.12, 1.15, 1.0, 1.55];
 
 /** Height of the path (0 = top, 100 = bottom of the scene) at a percent of the width: a gentle hill. */
 function pathY(x: number): number {
@@ -61,6 +63,69 @@ const ease = (t: number) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2);
   },
 })
 export class CkJourney {
+  /**
+   * Widen the staircase into the free room beside it, never under the text or the big me, and
+   * size each step's text to fit its face (from 12.5px, never below 9px).
+   */
+  private layoutStairs(el: HTMLElement): void {
+    const climb = el.querySelector<HTMLElement>('.ckj-climb');
+    if (!climb) return;
+    const card = el.querySelector<HTMLElement>('.ckj')!.getBoundingClientRect();
+    const box = climb.getBoundingClientRect();
+    const twoColumns = box.top < el.querySelector<HTMLElement>('.ckj-text')!.getBoundingClientRect().bottom;
+    let left = card.left + 22;
+    if (twoColumns) {
+      const blockers = [...el.querySelectorAll<HTMLElement>('.ckj-text > *, .ckj-host')]
+        .map(n => n.getBoundingClientRect()).filter(r => r.width && r.height);
+      const text = el.querySelector<HTMLElement>('.ckj-text')!;
+      const range = document.createRange();
+      const rights = blockers.map(r => r.right);
+      for (const node of text.querySelectorAll('p, h2, li, .ckj-pill')) {
+        range.selectNodeContents(node);
+        rights.push(range.getBoundingClientRect().right);
+      }
+      left = Math.max(...rights) + 14;
+    }
+    climb.style.setProperty('--spill-l', `${Math.max(0, box.left - left)}px`);
+    climb.style.setProperty('--spill-r', `${twoColumns ? 0 : Math.max(0, card.right - 10 - box.right)}px`);
+    // Width of each step from its content: the longest word it must show (a line wraps at a
+    // space or before the @ of an address, never inside a word), at the largest size at which
+    // all seven fit; the room left over is shared out by STEP_WEIGHTS.
+    const cols = [...el.querySelectorAll<HTMLElement>('.ckj-col')];
+    const faceTexts = cols.map(c => c.querySelector<HTMLElement>('.ckj-face-text')!);
+    const total = el.querySelector<HTMLElement>('.ckj-cols')!.getBoundingClientRect().width;
+    const miniH = cols[0].querySelector<HTMLElement>('.ckj-mini')!.getBoundingClientRect().height;
+    const minCol = miniH * 1.26; // neighbouring green flags never reach each other's pole
+    const ctx = document.createElement('canvas').getContext('2d')!;
+    const style = getComputedStyle(faceTexts[0]);
+    const family = style.fontFamily;
+    const weight = style.fontWeight;
+    const spacing = (parseFloat(style.letterSpacing) || 0) / parseFloat(style.fontSize); // in em
+    const words = faceTexts.map(t => [...t.querySelectorAll('.ckj-win')]
+      .flatMap(w => (w.textContent ?? '').replace(/@/, ' @').split(/\s+/)).filter(Boolean));
+    const need = (size: number) => words.map(ws => {
+      ctx.font = `${weight} ${size}px ${family}`;
+      ctx.letterSpacing = `${spacing * size}px`;
+      return Math.max(minCol, ...ws.map(w => ctx.measureText(w).width + 5));
+    });
+    let size = 12.5;
+    while (size > 9 && need(size).reduce((a, b) => a + b, 0) > total) size -= 0.5;
+    const widths = need(size);
+    const spare = Math.max(0, total - widths.reduce((a, b) => a + b, 0));
+    const weightSum = STEP_WEIGHTS.reduce((a, b) => a + b, 0);
+    cols.forEach((c, i) => c.style.flex = `0 0 ${widths[i] + (spare * STEP_WEIGHTS[i]) / weightSum}px`);
+    for (const face of faceTexts) {
+      let fit = size;
+      face.style.fontSize = `${fit}px`;
+      const overflows = () => face.scrollHeight > face.clientHeight + 0.5 ||
+        [...face.querySelectorAll<HTMLElement>('.ckj-win')].some(w => w.scrollWidth > face.clientWidth + 0.5);
+      while (fit > 9 && overflows()) {
+        fit -= 0.5;
+        face.style.fontSize = `${fit}px`;
+      }
+    }
+  }
+
   readonly step = input(1);
   readonly place = input('');
   readonly note = input('');
@@ -89,23 +154,31 @@ export class CkJourney {
   readonly flagY = pathY(FLAG_AT);
   /** A little me on every step of the welcome staircase, cheering with that step's goal on a flag. */
   readonly goals = STEP_GOALS.map((g, i) => ({
-    ...g, n: i + 1, a: MILESTONES[i].a, hi: MILESTONES[i].hi,
-    left: ((i + 0.5) / STEPS) * 100,
+    ...g, n: i + 1, a: MILESTONES[i].a, hi: MILESTONES[i].hi, weight: STEP_WEIGHTS[i],
     delay: `${-0.17 * i}s`,
   }));
 
   /**
-   * One step at a time raises its achievement flags up its pole: they need more room than the
-   * card has for all seven at once. The spotlight moves 1 → 7 on its own while the card is on
-   * screen; hovering or focusing a step holds it there.
+   * What each step has achieved, written on its own face of the staircase: all seven at once,
+   * each inside its step, so they never overlap. An address breaks after the @ when it must;
+   * on Contact the lines are links.
    */
-  readonly spot = signal(0);
-  readonly held = signal<number | null>(null);
-  readonly shown = computed(() => this.held() ?? this.spot());
-  readonly shownGoal = computed(() => this.goals[this.shown()]);
-  readonly shownWins = computed(() => this.wins()[this.shown()] ?? []);
-  readonly flagColors = MILESTONES.map(m => m.hi);
-  hold(i: number | null) { this.held.set(i); }
+  readonly faces = computed(() => this.wins().map((lines, i) => lines.map(text => {
+    const at = text.indexOf('@');
+    const contact = STEP_GOALS[i].id === 'contact';
+    return {
+      text, head: at > 0 ? text.slice(0, at) : text, tail: at > 0 ? text.slice(at) : '',
+      href: !contact ? '' : at > 0 ? `mailto:${text}` : `tel:${text.replace(/[^+\d]/g, '')}`,
+    };
+  })));
+
+  /** 0 → 1 once, when the card first comes into view: the numbers on the steps count up. */
+  readonly progress = signal(1);
+  count(text: string, i: number): string {
+    const p = this.progress();
+    if (p >= 1 || STEP_GOALS[i].id === 'contact') return text;
+    return text.replace(/\d+/g, n => String(Math.round(Number(n) * p)));
+  }
 
   readonly stops = Array.from({ length: STEPS }, (_, i) => ({ n: i + 1, x: xOf(i + 1), y: pathY(xOf(i + 1)), hi: MILESTONES[i].hi }));
 
@@ -125,14 +198,26 @@ export class CkJourney {
       const still = matchMedia('(prefers-reduced-motion: reduce)').matches || typeof IntersectionObserver === 'undefined';
       if (this.mode() === 'stairs') {
         this.walkX.set(to); this.arrived.set(true);
+        const ro = new ResizeObserver(() => this.layoutStairs(el));
+        ro.observe(el);
+        destroyRef.onDestroy(() => ro.disconnect());
+        this.layoutStairs(el);
         if (still) return;
-        let timer = 0;
+        this.progress.set(0);
+        let raf = 0;
         const io = new IntersectionObserver(([e]) => {
-          clearInterval(timer);
-          if (e.isIntersecting) timer = window.setInterval(() => this.spot.update(i => (i + 1) % STEPS), SPOTLIGHT_MS);
+          if (!e.isIntersecting) return;
+          io.disconnect();
+          const t0 = performance.now();
+          const tick = (now: number) => {
+            const t = Math.min(1, (now - t0) / COUNT_MS);
+            this.progress.set(1 - (1 - t) ** 3);
+            if (t < 1) raf = requestAnimationFrame(tick); else this.layoutStairs(el);
+          };
+          raf = requestAnimationFrame(tick);
         }, { threshold: 0.3 });
         io.observe(el);
-        destroyRef.onDestroy(() => { io.disconnect(); clearInterval(timer); });
+        destroyRef.onDestroy(() => { io.disconnect(); cancelAnimationFrame(raf); });
         return;
       }
       if (still) { this.walkX.set(to); this.arrived.set(true); return; }

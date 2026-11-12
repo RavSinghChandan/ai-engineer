@@ -90,16 +90,41 @@
 .ckj-climb {
   position: relative; width: min(400px, 100%); aspect-ratio: 366 / 180; justify-self: end; container-type: inline-size;
   --mini-h: 9.5cqw;
-  --stairs: 42%; /* share of the height for the steps; the rest is sky for the flags */
+  --stairs: 66%; /* height of the top step; the rest is sky for the little ones */
+  --base: 20%;   /* height of the first step, so even it has room for a line */
 }
-.ckj-steps { position: absolute; left: 0; bottom: 0; width: 100%; height: var(--stairs); overflow: visible; }
-.ckj-step { stroke: none; }
-.ckj-step-n { fill: rgba(255,255,255,0.9); font-size: 6.4px; font-weight: 900; text-anchor: middle; dominant-baseline: middle; }
-.ckj-steps-ink { fill: none; stroke: #0d0f14; stroke-width: 1.4; stroke-linejoin: round; }
+/* the staircase may widen into the free room beside it (--spill-l / --spill-r, set in code) */
+.ckj-cols {
+  position: absolute; top: 0; bottom: 0; left: calc(-1 * var(--spill-l, 0px)); right: calc(-1 * var(--spill-r, 0px));
+  display: flex; align-items: flex-end;
+}
+.ckj-col {
+  position: relative; flex: var(--w) 1 0; min-width: 0; height: 100%;
+  display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+}
+.ckj-face {
+  position: relative; align-self: stretch; height: calc(var(--base) + (var(--stairs) - var(--base)) * (var(--sn) - 1) / 6);
+  display: flex; padding: 2px 1px 3px;
+  background:
+    linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.16) 50%, transparent 65%) -150% 0 / 250% 100% no-repeat,
+    linear-gradient(180deg, color-mix(in srgb, var(--a) 82%, white), var(--a) 55%);
+  border-top: 3px solid var(--hi); box-shadow: inset 0 0 0 1.2px #0d0f14;
+}
+.ckj-face-n {
+  position: absolute; left: 3px; bottom: 2px; font-size: 9px; font-weight: 900; line-height: 1; color: rgba(255,255,255,0.7);
+}
+/* what the step has achieved: as big as its face allows (fitted in code), always inside it */
+.ckj-face-text {
+  flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 1px;
+  overflow: hidden; text-align: center; font-size: 12.5px; line-height: 1.12; font-weight: 800; color: #fff;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.35); overflow-wrap: normal; word-break: normal; hyphens: none;
+}
+.ckj-win { display: block; max-width: 100%; color: inherit; text-decoration: none; }
+a.ckj-win { border-bottom: 1px dashed rgba(255,255,255,0.55); }
+a.ckj-win:hover, a.ckj-win:focus-visible { border-bottom-style: solid; outline: none; }
 
 .ckj-mini {
-  position: absolute; z-index: 2; height: var(--mini-h); aspect-ratio: 230 / 424; translate: -50% 0;
-  bottom: calc(var(--stairs) * var(--sn) / 7);
+  position: relative; z-index: 2; flex: none; height: var(--mini-h); aspect-ratio: 230 / 424;
   border-radius: 8px; outline: none; -webkit-tap-highlight-color: transparent;
 }
 .ckj-mini-dance { position: absolute; inset: 0; transform-origin: 50% 100%; }
@@ -114,44 +139,27 @@
 .ckj-mini-wave { transform-origin: 60px 10px; }
 .ckj-mini-word { fill: #0d0f14; font-size: 9.4px; font-weight: 900; text-anchor: middle; dominant-baseline: middle; }
 .ckj-mini-pole { stroke: #f4f1e8; stroke-width: 2; stroke-linecap: round; fill: none; }
-.ckj-mini:hover, .ckj-mini:focus-visible, .ckj-mini--on { z-index: 3; }
-.ckj-mini--on .ckj-mini-me { filter: drop-shadow(0 0 3px var(--ckj-green)) drop-shadow(0 3px 3px rgba(0,0,0,0.35)); }
+.ckj-mini:hover, .ckj-mini:focus-visible { z-index: 3; }
 .ckj-mini:focus-visible .ckj-mini-me { filter: drop-shadow(0 0 0 #fff) drop-shadow(0 0 4px var(--ckj-green)); }
-
-/* the achievement flags of the step in the spotlight: big, readable, rising up its pole above
-   the green flag and flying to the left over the lower steps, which leaves them clear */
-.ckj-stack {
-  position: absolute; z-index: 4; pointer-events: none; display: flex; flex-direction: column; align-items: flex-end;
-  left: calc(var(--sx) * 1% + var(--mini-h) * 0.179 + 1px); translate: -100% 0;
-  bottom: calc(var(--stairs) * var(--sn) / 7 + var(--mini-h) * 1.66 + 8px);
-  padding-bottom: 1px;
-}
-.ckj-stack::after { /* the pole, carried on up past the flags */
-  content: ''; position: absolute; right: -1px; bottom: 0; top: -4px; width: 2px; border-radius: 1px; background: #f4f1e8;
-}
-.ckj-sub {
-  display: block; margin-right: 1px; padding: 0 0.5rem 0 0.75rem; height: 19px; line-height: 19px;
-  font-size: 12px; font-weight: 900; letter-spacing: 0.01em; white-space: nowrap; color: #10131a; background: var(--c);
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 6px 50%);
-  transform-origin: 100% 50%; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.18);
-}
 
 @media (prefers-reduced-motion: no-preference) {
   .ckj-flag-cloth { animation: ckj-flutter 2.4s ease-in-out infinite; }
   .ckj-mini-dance { animation: ckj-dance 1.1s ease-in-out infinite; animation-delay: var(--d, 0s); }
   .ckj-mini-wave { animation: ckj-flutter 1.3s ease-in-out infinite; animation-delay: var(--d, 0s); }
-  .ckj-sub { animation: ckj-raise 0.45s cubic-bezier(.2,.9,.3,1.3) both, ckj-sub-wave 1.6s ease-in-out 0.45s infinite;
-             animation-delay: calc(var(--j) * 90ms), calc(var(--j) * 90ms + 0.45s); }
+  .ckj-win { animation: ckj-rise-in 0.5s cubic-bezier(.2,.9,.3,1.2) both; animation-delay: calc(var(--sn) * 120ms + var(--j) * 90ms); }
+  .ckj-face { animation: ckj-shine 6s ease-in-out infinite; animation-delay: calc(var(--sn) * 0.35s); }
+  .ckj-mini:hover .ckj-mini-dance, .ckj-mini:focus-visible .ckj-mini-dance { animation: ckj-hop 0.5s ease-out infinite alternate; }
 }
 @keyframes ckj-ping { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--stop) 70%, transparent); } 100% { box-shadow: 0 0 0 16px transparent; } }
 @keyframes ckj-dance {
   0%, 100% { transform: translateY(0) rotate(0deg); }
-  25% { transform: translateY(-9%) rotate(-7deg); }
+  25% { transform: translateY(-9%) rotate(-5deg); }
   50% { transform: translateY(0) rotate(0deg); }
-  75% { transform: translateY(-9%) rotate(7deg); }
+  75% { transform: translateY(-9%) rotate(5deg); }
 }
-@keyframes ckj-raise { from { opacity: 0; transform: translateY(14px) scaleX(0.2); } to { opacity: 1; transform: none; } }
-@keyframes ckj-sub-wave { 0%, 100% { transform: skewY(0deg) scaleX(1); } 50% { transform: skewY(-3deg) scaleX(0.96); } }
+@keyframes ckj-rise-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes ckj-shine { 0%, 60% { background-position: -150% 0, 0 0; } 85%, 100% { background-position: 250% 0, 0 0; } }
+@keyframes ckj-hop { from { transform: translateY(0) scale(1); } to { transform: translateY(-14%) scale(1.08); } }
 @keyframes ckj-flutter { 0%, 100% { scale: 1 1; } 50% { scale: 0.9 1.06; } }
 
 @media (min-width: 761px) and (max-width: 960px) {
@@ -162,24 +170,21 @@
 @media (max-width: 760px) {
   .ckj, .ckj--stairs { grid-template-columns: minmax(0, 1fr); }
   .ckj-note { max-width: none; }
-  .ckj-climb { justify-self: center; --stairs: 36%; }
-  /* no room to the left of the first two poles: their flags fly to the right instead, raised
-     above the green flags of the next three steps they pass over */
-  .ckj-stack[data-n="1"], .ckj-stack[data-n="2"] {
-    translate: 0 0; left: calc(var(--sx) * 1% + var(--mini-h) * 0.179 - 1px); align-items: flex-start;
-    bottom: calc(var(--stairs) * (var(--sn) + 3) / 7 + var(--mini-h) * 1.66 + 8px);
-    /* the pole reaches back down the three rises to the hand: a rise is the climb's height
-       (180/366 of its width) times --stairs (36%) over 7 steps, 2.53cqw */
-    &::after { right: auto; left: -1px; bottom: calc(-3 * 2.53cqw - 9px); }
-    .ckj-sub { margin: 0 0 0 1px; padding: 0 0.65rem 0 0.4rem; clip-path: polygon(0 0, 100% 0, calc(100% - 6px) 50%, 100% 100%, 0 100%); transform-origin: 0 50%; }
-  }
+  .ckj-climb { justify-self: center; --stairs: 66%; --base: 27%; --mini-h: 8.5cqw; }
+  /* seven steps across a phone: a touch lighter and tighter, so the words stay big */
+  .ckj-face-text { font-weight: 700; letter-spacing: -0.015em; }
   /* one column: the big me stands beside the title, the steps below */
   .ckj-host { left: auto; right: 0.6rem; top: clamp(1rem, 2.2vw, 1.5rem); translate: none; height: 74px; }
   .ckj-role { font-size: 0.88rem; }
   .ckj-facts li { font-size: 0.64rem; padding: 0.08rem 0.4rem; }
 }
+@media (min-width: 403px) and (max-width: 760px) {
+  /* one column, wide enough that the line this card replaced fit on one line: keep that height
+     with the role alone; the facts are on the steps below anyway */
+  .ckj-card { height: calc(0.93rem * 1.5); align-content: center; }
+  .ckj-facts { display: none; }
+}
 @media (max-width: 420px) {
   .ckj-facts li:nth-child(n + 4) { display: none; } /* "4+ yrs" is also on the Experience flag */
-  .ckj-sub { font-size: 11.5px; padding: 0 0.4rem 0 0.65rem; }
   .ckj--stairs .ckj-welcome { letter-spacing: 0.05em; }
 }
