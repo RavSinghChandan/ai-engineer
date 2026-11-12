@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, ViewEncapsulation, afterNextRender, computed, inject, input, signal } from '@angular/core';
-import { CkGuide, CkMood, CkPose } from './ck-guide';
+import { CkGuide, CkMood } from './ck-guide';
 
 const STEPS = 7;
 const PATH_FROM = 6;     // percent of the width where the first waypoint sits
@@ -130,7 +130,6 @@ export class CkJourney {
   readonly place = input('');
   readonly note = input('');
   readonly mood = input<CkMood>('smile');
-  readonly pose = input<CkPose>('wave');
   readonly mode = input<'path' | 'stairs'>('path');
   /** Welcome card only: the role line, short facts under it, and what each step has achieved. */
   readonly role = input('');
@@ -187,7 +186,18 @@ export class CkJourney {
   readonly walkY = computed(() => pathY(this.walkX()));
   readonly arrived = signal(false);
   readonly guideMood = computed<CkMood>(() => (this.arrived() ? this.mood() : 'smile'));
-  readonly guidePose = computed<CkPose>(() => (this.arrived() ? this.pose() : 'swing'));
+  /** The goal of this step, whose word the big me carries on its green flag. */
+  readonly goal = computed(() => STEP_GOALS[this.clamped() - 1]);
+  /** True when the carried flag would cross the left edge of the card, so it flies right instead. */
+  readonly flagRight = signal(false);
+
+  private placeFlag(el: HTMLElement): void {
+    const pole = el.querySelector('.ckj-carry .ckj-mini-pole')?.getBoundingClientRect();
+    const cloth = el.querySelector('.ckj-carry .ckj-mini-cloth')?.getBoundingClientRect();
+    if (!pole || !cloth) return;
+    const card = el.querySelector<HTMLElement>('.ckj')!.getBoundingClientRect();
+    this.flagRight.set(pole.left - cloth.width < card.left + 8);
+  }
 
   constructor() {
     const el = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
@@ -220,6 +230,9 @@ export class CkJourney {
         destroyRef.onDestroy(() => { io.disconnect(); cancelAnimationFrame(raf); });
         return;
       }
+      const ro = new ResizeObserver(() => this.placeFlag(el));
+      ro.observe(el);
+      destroyRef.onDestroy(() => ro.disconnect());
       if (still) { this.walkX.set(to); this.arrived.set(true); return; }
       this.walkX.set(from);
       let raf = 0;
@@ -230,6 +243,7 @@ export class CkJourney {
         const tick = (now: number) => {
           const t = Math.min(1, (now - t0) / WALK_MS);
           this.walkX.set(from + (to - from) * ease(t));
+          this.placeFlag(el);
           if (t < 1) raf = requestAnimationFrame(tick); else this.arrived.set(true);
         };
         raf = requestAnimationFrame(tick);

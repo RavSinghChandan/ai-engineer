@@ -2,7 +2,7 @@
    ck-journey.ts); the boards are artwork, so they keep their colours in both themes, framed by
    the theme's border and shadow tokens. */
 .ckj {
-  --ckj-ink: #fffdf6;
+  --ckj-ink: #fffdf6; --ckj-green: #86bc25;
   position: relative; isolation: isolate; display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.4fr);
   align-items: center; gap: 0.8rem 2rem; margin: 0 auto 2.4rem; max-width: 1100px;
   padding: clamp(1rem, 2.2vw, 1.5rem) clamp(1rem, 3vw, 2.2rem) clamp(0.6rem, 1.4vw, 1rem);
@@ -78,11 +78,12 @@
   filter: drop-shadow(0 6px 6px rgba(0,0,0,0.3));
 }
 .ckj-walker .ckg { width: 100%; height: 100%; }
+.ckj-carry { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
 
 /* welcome band: the staircase in the seven milestone colours, a little me cheering on every
    step with that step's goal on a Deloitte-green flag, and the big me waving next to the title */
 .ckj--stairs {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); --ckj-green: #86bc25;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   /* a golden hairline: the card keeps a clear edge wherever a screenshot of it lands, on a
      black page (3:1 or more) as on a white one */
   border-color: color-mix(in srgb, #f7c873 38%, #1e293b);
@@ -142,6 +143,7 @@ a.ckj-win:hover, a.ckj-win:focus-visible { border-bottom-style: solid; outline: 
 }
 .ckj-mini-cloth { fill: var(--ckj-green); stroke: #0d0f14; stroke-width: 1; stroke-linejoin: round; }
 .ckj-mini-wave { transform-origin: 60px 10px; }
+.ckj-mini-wave--right { transform-origin: 2px 10px; }
 .ckj-mini-word { fill: #0d0f14; font-size: 9.4px; font-weight: 900; text-anchor: middle; dominant-baseline: middle; }
 .ckj-mini-pole { stroke: #f4f1e8; stroke-width: 2; stroke-linecap: round; fill: none; }
 .ckj-mini:hover, .ckj-mini:focus-visible { z-index: 3; }
@@ -151,6 +153,8 @@ a.ckj-win:hover, a.ckj-win:focus-visible { border-bottom-style: solid; outline: 
   .ckj-flag-cloth { animation: ckj-flutter 2.4s ease-in-out infinite; }
   .ckj-mini-dance { animation: ckj-dance 1.1s ease-in-out infinite; animation-delay: var(--d, 0s); }
   .ckj-mini-wave { animation: ckj-flutter 1.3s ease-in-out infinite; animation-delay: var(--d, 0s); }
+  /* the carried flag pauses with the caricature off screen, so its pole never leaves the fist */
+  .ckj-walker:has(> .ckg:not(.ckg-live)) .ckj-carry * { animation-play-state: paused !important; }
   .ckj-win { animation: ckj-rise-in 0.5s cubic-bezier(.2,.9,.3,1.2) both; animation-delay: calc(var(--sn) * 120ms + var(--j) * 90ms); }
   .ckj-face { animation: ckj-shine 6s ease-in-out infinite; animation-delay: calc(var(--sn) * 0.35s); }
   .ckj-mini:hover .ckj-mini-dance, .ckj-mini:focus-visible .ckj-mini-dance { animation: ckj-hop 0.5s ease-out infinite alternate; }

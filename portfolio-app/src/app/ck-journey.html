@@ -43,7 +43,26 @@
         <svg viewBox="0 0 30 44" focusable="false"><path d="M4 42V3" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/><path class="ckj-flag-cloth" d="M5 4C12 1 17 8 28 5V20C17 23 12 16 5 19Z"/></svg>
       </span>
       <span class="ckj-walker" [style.left.%]="walkX()" [style.top.%]="walkY()">
-        <ck-guide form="full" [mood]="guideMood()" [pose]="guidePose()" [walking]="!arrived()"/>
+        <ck-guide form="full" [mood]="guideMood()" pose="cheer" [walking]="!arrived()"/>
+        <!-- the green goal flag of this step, as the little ones carry it on the welcome stairs: drawn
+             in the caricature's own units and moved by the same bob and cheer animations, so the
+             pole stays in the raised fist -->
+        <svg class="ckj-carry" viewBox="0 0 230 424" focusable="false" aria-hidden="true">
+          <g class="ckg-bob" [class.ckg-walk]="!arrived()">
+            <g class="ckg-arm--cheer">
+              <!-- the cloth flies left of the pole, like the little ones', unless the card edge is
+                   too close on that side (Step 1 on a phone): then it flies right -->
+              <svg [attr.x]="flagRight() ? 181.8 : -55.8" y="-32" width="254" height="188" viewBox="0 0 62 46" overflow="visible">
+                <g class="ckj-mini-wave" [class.ckj-mini-wave--right]="flagRight()">
+                  <path class="ckj-mini-cloth" d="M60 1C49 -2 41 5 30 2C19 -1 11 5 1 2V20C11 23 19 17 30 20C41 23 49 16 60 19Z"
+                        [attr.transform]="flagRight() ? 'translate(62 0) scale(-1 1)' : null"/>
+                  <text [attr.x]="flagRight() ? 31.5 : 30.5" y="11" class="ckj-mini-word" [attr.textLength]="goal().flag.length > 6 ? 54 : null" lengthAdjust="spacingAndGlyphs">{{ goal().flag }}</text>
+                </g>
+                <path [attr.d]="flagRight() ? 'M2 0V46' : 'M60 0V46'" class="ckj-mini-pole"/>
+              </svg>
+            </g>
+          </g>
+        </svg>
       </span>
     </div>
   } @else {
