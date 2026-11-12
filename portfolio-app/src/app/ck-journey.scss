@@ -81,7 +81,12 @@
 
 /* welcome band: the staircase in the seven milestone colours, a little me cheering on every
    step with that step's goal on a Deloitte-green flag, and the big me waving next to the title */
-.ckj--stairs { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); --ckj-green: #86bc25; }
+.ckj--stairs {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); --ckj-green: #86bc25;
+  /* a golden hairline: the card keeps a clear edge wherever a screenshot of it lands, on a
+     black page (3:1 or more) as on a white one */
+  border-color: color-mix(in srgb, #f7c873 38%, #1e293b);
+}
 .ckj-host {
   position: absolute; z-index: 1; left: calc(50% - 1rem); top: 50%; translate: -100% -50%;
   height: min(76%, 180px); aspect-ratio: 230 / 424; filter: drop-shadow(0 6px 6px rgba(0,0,0,0.35)); pointer-events: none;
