@@ -496,12 +496,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '265',
+      stat:  '270',
       title: 'Pull requests merged by other projects\' maintainers.',
       sub:   'People I had never met reviewed my code and accepted it: pypdf, fontTools, Pillow, fpdf2, trafilatura, txtai, kornia, tox, mistune, Docling, docTR, pikepdf, ezdxf, svglib, pdfannots, python-markdown2, marko, PyMuPDF, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '265 merged, all reviewed! ✅',
+      aaravSay: '270 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -629,6 +629,56 @@ export class App implements OnInit, AfterViewInit {
   // ── Open Source: merged PRs into major libraries. Append a new entry per merge; the
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
+    {
+      repo: 'deeplook/svglib',
+      logo: 'svglib-logo.svg',
+      org: 'deeplook',
+      stars: '371★',
+      title: 'Read a light-dark() color as its light color',
+      desc: 'draw.io writes light-dark() colors in its SVG exports, and svglib could not read them, so shapes lost their fill or stroke (the outline of Python-Markdown\'s docs icon vanished). The first, light color is now used, as CSS does without a dark color-scheme. Merged by deeplook.',
+      pr: 'https://github.com/deeplook/svglib/pull/546',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'frostming/marko',
+      logo: 'marko-logo.svg',
+      org: 'frostming',
+      stars: '470★',
+      title: 'Keep an email autolink without mailto: when re-rendering Markdown',
+      desc: 'MarkdownRenderer wrote <foo@bar.example.com> back as <mailto:foo@bar.example.com>, which changed the visible link text. Email autolinks, common in AUTHORS and CODE_OF_CONDUCT files, now round-trip unchanged. Merged by frostming.',
+      pr: 'https://github.com/frostming/marko/pull/320',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'frostming/marko',
+      logo: 'marko-logo.svg',
+      org: 'frostming',
+      stars: '470★',
+      title: 'Look for a link after a closing bracket in linear time',
+      desc: 'Long runs of brackets made parsing quadratic: 16,000 bytes took 2.7 s. The link after a ] is now looked for before the bracket pairing check, so the work no longer grows with every bracket, with every result unchanged. Merged by frostming.',
+      pr: 'https://github.com/frostming/marko/pull/319',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'SVG: do not draw an element with display="none"',
+      desc: 'display="none" was ignored, so hidden Inkscape layers and hidden <tspan>s were printed. An element, group or root <svg> hidden by attribute, style or CSS class is now skipped, while a <use> can still draw a hidden element. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2158',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'deeplook/svglib',
+      logo: 'svglib-logo.svg',
+      org: 'deeplook',
+      stars: '371★',
+      title: 'Read hsl() hues that have a CSS angle unit',
+      desc: 'fill="hsl(120deg, 100%, 50%)" was drawn black instead of green: the hue only accepted a plain number. deg, grad, rad and turn are now read, as in CSS Color 4. Merged by deeplook.',
+      pr: 'https://github.com/deeplook/svglib/pull/543',
+      merged: 'Nov 2026',
+    },
     {
       repo: 'py-pdf/fpdf2',
       logo: 'fpdf2-logo.png',
@@ -3614,7 +3664,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defense','PII protection','Output validation','Secure tool use','Threat modeling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers, and own the result.',
-      evidence: '265 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
+      evidence: '270 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
