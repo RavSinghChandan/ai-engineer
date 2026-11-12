@@ -496,12 +496,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '262',
+      stat:  '265',
       title: 'Pull requests merged by other projects\' maintainers.',
       sub:   'People I had never met reviewed my code and accepted it: pypdf, fontTools, Pillow, fpdf2, trafilatura, txtai, kornia, tox, mistune, Docling, docTR, pikepdf, ezdxf, svglib, pdfannots, python-markdown2, marko, PyMuPDF, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '262 merged, all reviewed! ✅',
+      aaravSay: '265 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -629,6 +629,36 @@ export class App implements OnInit, AfterViewInit {
   // ── Open Source: merged PRs into major libraries. Append a new entry per merge; the
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'SVG: support <use> in <clipPath> and <clipPath> outside <defs>, as Illustrator writes them',
+      desc: 'Adobe Illustrator writes a <clipPath> outside <defs> with a <use> of the clipping shape, as in the icons of the PyMuPDF docs, and fpdf2 failed with KeyError or clipped nothing. Both forms now clip, also when the <clipPath> comes after the element it clips. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2145',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'write_html: make an id or <a name> a target for href="#..." links, like browsers',
+      desc: 'Internal links like <a href="#intro"> raised "Named destination was referenced but never set". An id, or the name of an <a>, is now a named destination set where it is rendered: an inline target on its own line, an image at its top, a table row or cell at its row, also after a page break. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2048',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'drawing: do not fail on an arc whose scaled-up radii look too small after rounding',
+      desc: 'Font Awesome\'s instagram.svg failed with "math domain error": the radii of an arc, scaled up to reach its end point, looked slightly too small again after rounding. That case is now handled. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2163',
+      merged: 'Nov 2026',
+    },
     {
       repo: 'frostming/marko',
       logo: 'marko-logo.svg',
@@ -3584,7 +3614,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defense','PII protection','Output validation','Secure tool use','Threat modeling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers, and own the result.',
-      evidence: '262 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
+      evidence: '265 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
