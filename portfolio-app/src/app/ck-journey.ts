@@ -67,6 +67,10 @@ export class CkJourney {
   readonly mood = input<CkMood>('smile');
   readonly pose = input<CkPose>('wave');
   readonly mode = input<'path' | 'stairs'>('path');
+  /** Welcome card only: the role line, short facts under it, and what each step has achieved. */
+  readonly role = input('');
+  readonly facts = input<string[]>([]);
+  readonly wins = input<string[]>([]);
   readonly total = STEPS;
   readonly milestones = MILESTONES;
 
@@ -85,7 +89,7 @@ export class CkJourney {
   readonly flagY = pathY(FLAG_AT);
   /** A little me on every step of the welcome staircase, cheering with that step's goal on a flag. */
   readonly goals = STEP_GOALS.map((g, i) => ({
-    ...g, n: i + 1, a: MILESTONES[i].a,
+    ...g, n: i + 1, a: MILESTONES[i].a, hi: MILESTONES[i].hi,
     left: ((i + 0.5) / STEPS) * 100,
     bottom: (STAIRS_H * (i + 1)) / STEPS,
     delay: `${-0.17 * i}s`,

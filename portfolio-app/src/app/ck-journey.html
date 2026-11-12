@@ -7,13 +7,23 @@
     <span class="ckj-pill">
       @if (mode() === 'stairs') { Step 0: start here } @else { You are on Step {{ clamped() }} <small>of {{ total }}</small> }
     </span>
-    <p class="ckj-welcome">Welcome to</p>
+    <p class="ckj-welcome">@if (mode() === 'stairs') { Welcome to the portfolio of } @else { Welcome to }</p>
     <h2 class="ckj-place">
       @if (mode() === 'path') {
         <span class="ckj-medal" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path [attr.d]="theme().icon"/></svg></span>
       }
       {{ place() }}
     </h2>
+    @if (role() || facts().length) {
+      <div class="ckj-card">
+        @if (role()) { <p class="ckj-role">{{ role() }}</p> }
+        @if (facts().length) {
+          <ul class="ckj-facts">
+            @for (f of facts(); track $index) { <li [style.--fact]="milestones[($index * 2) % milestones.length].hi">{{ f }}</li> }
+          </ul>
+        }
+      </div>
+    }
     @if (note()) { <p class="ckj-note">{{ note() }}</p> }
   </div>
 
@@ -48,12 +58,19 @@
         <path d="M0 119V102H44V85H88V68H132V51H176V34H220V17H264V0H308V119Z" class="ckj-steps-ink"/>
       </svg>
       @for (g of goals; track g.n) {
-        <a class="ckj-mini" [href]="'#' + g.id" [title]="'Step ' + g.n + ': ' + g.place"
-           [attr.aria-label]="'Step ' + g.n + ': ' + g.place"
+        <a class="ckj-mini" [href]="'#' + g.id" [title]="'Step ' + g.n + ': ' + g.place + (wins()[$index] ? ' · ' + wins()[$index] : '')"
+           [attr.aria-label]="'Step ' + g.n + ': ' + g.place + (wins()[$index] ? ', ' + wins()[$index] : '')"
            [style.left.%]="g.left" [style.bottom.%]="g.bottom" [style.--d]="g.delay">
           <span class="ckj-mini-dance">
             <span class="ckj-mini-me" aria-hidden="true"><ck-guide form="full" mood="excited" pose="cheer"/></span>
-            <svg class="ckj-mini-flag" viewBox="0 0 62 46" focusable="false" aria-hidden="true">
+            <svg class="ckj-mini-flag" viewBox="0 0 98 46" focusable="false" aria-hidden="true">
+              @if (wins()[$index]; as win) {
+                <g class="ckj-mini-win">
+                  <path d="M60 4.5H96L90 11.5L96 18.5H60Z" [attr.fill]="g.a" class="ckj-mini-pennant"/>
+                  <text x="75.5" y="11.6" class="ckj-mini-win-text" [attr.fill]="g.hi"
+                        [attr.textLength]="win.length > 6 ? 27 : null" lengthAdjust="spacingAndGlyphs">{{ win }}</text>
+                </g>
+              }
               <g class="ckj-mini-wave">
                 <path class="ckj-mini-cloth" d="M60 2C49 -1 41 6 30 3C19 0 11 6 2 3V19C11 22 19 16 30 19C41 22 49 15 60 18Z"/>
                 <text x="31" y="11" class="ckj-mini-word" [attr.textLength]="g.flag.length > 7 ? 50 : null" lengthAdjust="spacingAndGlyphs">{{ g.flag }}</text>

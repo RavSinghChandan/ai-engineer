@@ -3786,6 +3786,24 @@ export class App implements OnInit, AfterViewInit {
   // handles the walk-in animation when the element enters the viewport.
   // No signals needed — pure CSS scroll-driven animations.
 
+  // ── Welcome card (Step 0): who I am in one line, and what each of the seven steps has to show.
+  //    The PR and library counts follow openSource, so they update with every merge. ──
+  readonly introFacts = [
+    `${this.openSource.length} PRs merged`,
+    `${new Set(this.openSource.map(o => o.repo)).size} libraries`,
+    '3 AI apps live',
+    '4+ yrs',
+  ];
+  readonly stepWins = [
+    '3 live',
+    `${this.proofStats.find(s => s.tag === 'RELIABLE')?.stat ?? '637'} tests`,
+    '4+ yrs',
+    '5 steps',
+    `${this.openSource.length} PRs`,
+    'Bank→AI',
+    'Open now',
+  ];
+
   readonly guideBanners = [
     {
       id: 'gb-hero',
