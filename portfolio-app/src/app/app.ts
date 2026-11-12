@@ -3794,14 +3794,15 @@ export class App implements OnInit, AfterViewInit {
     '3 AI apps live',
     '4+ yrs',
   ];
-  readonly stepWins = [
-    '3 live',
-    `${this.proofStats.find(s => s.tag === 'RELIABLE')?.stat ?? '637'} tests`,
-    '4+ yrs',
-    '5 steps',
-    `${this.openSource.length} PRs`,
-    'Bank→AI',
-    'Open now',
+  /** What each step has achieved, bottom flag first; the flags rise up that step's pole. */
+  readonly stepWins: string[][] = [
+    ['3 live'],
+    [`${this.openSource.length} PRs merged`],
+    ['4+ years'],
+    ['AI Security team'],
+    [`${this.openSource.length} PRs merged`, `in ${new Set(this.openSource.map(o => o.repo)).size} repos`],
+    ['Banks', 'Airlines', 'Now AI'],
+    ['ravchandan15@gmail.com', '+91 62909 09518'],
   ];
 
   readonly guideBanners = [

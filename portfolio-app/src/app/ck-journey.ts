@@ -32,8 +32,8 @@ export const STEP_GOALS = [
   { id: 'story', place: 'My Story', flag: 'Story' },
   { id: 'contact', place: 'Contact Me', flag: 'Contact' },
 ];
-/** The staircase takes this share of the climb's height, leaving room above for the little ones. */
-const STAIRS_H = 62;
+/** How long each step keeps its achievement flags raised before the next one takes over. */
+const SPOTLIGHT_MS = 3200;
 
 /** Height of the path (0 = top, 100 = bottom of the scene) at a percent of the width: a gentle hill. */
 function pathY(x: number): number {
@@ -70,7 +70,7 @@ export class CkJourney {
   /** Welcome card only: the role line, short facts under it, and what each step has achieved. */
   readonly role = input('');
   readonly facts = input<string[]>([]);
-  readonly wins = input<string[]>([]);
+  readonly wins = input<string[][]>([]);
   readonly total = STEPS;
   readonly milestones = MILESTONES;
 
@@ -91,10 +91,21 @@ export class CkJourney {
   readonly goals = STEP_GOALS.map((g, i) => ({
     ...g, n: i + 1, a: MILESTONES[i].a, hi: MILESTONES[i].hi,
     left: ((i + 0.5) / STEPS) * 100,
-    bottom: (STAIRS_H * (i + 1)) / STEPS,
     delay: `${-0.17 * i}s`,
   }));
-  readonly stairsH = STAIRS_H;
+
+  /**
+   * One step at a time raises its achievement flags up its pole: they need more room than the
+   * card has for all seven at once. The spotlight moves 1 → 7 on its own while the card is on
+   * screen; hovering or focusing a step holds it there.
+   */
+  readonly spot = signal(0);
+  readonly held = signal<number | null>(null);
+  readonly shown = computed(() => this.held() ?? this.spot());
+  readonly shownGoal = computed(() => this.goals[this.shown()]);
+  readonly shownWins = computed(() => this.wins()[this.shown()] ?? []);
+  readonly flagColors = MILESTONES.map(m => m.hi);
+  hold(i: number | null) { this.held.set(i); }
 
   readonly stops = Array.from({ length: STEPS }, (_, i) => ({ n: i + 1, x: xOf(i + 1), y: pathY(xOf(i + 1)), hi: MILESTONES[i].hi }));
 
@@ -112,7 +123,19 @@ export class CkJourney {
       const to = xOf(this.clamped());
       const from = this.clamped() > 1 ? xOf(this.clamped() - 1) : 0;
       const still = matchMedia('(prefers-reduced-motion: reduce)').matches || typeof IntersectionObserver === 'undefined';
-      if (still || this.mode() === 'stairs') { this.walkX.set(to); this.arrived.set(true); return; }
+      if (this.mode() === 'stairs') {
+        this.walkX.set(to); this.arrived.set(true);
+        if (still) return;
+        let timer = 0;
+        const io = new IntersectionObserver(([e]) => {
+          clearInterval(timer);
+          if (e.isIntersecting) timer = window.setInterval(() => this.spot.update(i => (i + 1) % STEPS), SPOTLIGHT_MS);
+        }, { threshold: 0.3 });
+        io.observe(el);
+        destroyRef.onDestroy(() => { io.disconnect(); clearInterval(timer); });
+        return;
+      }
+      if (still) { this.walkX.set(to); this.arrived.set(true); return; }
       this.walkX.set(from);
       let raf = 0;
       const io = new IntersectionObserver(([e]) => {
