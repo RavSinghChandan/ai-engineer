@@ -38,7 +38,7 @@ JWT_EXPIRY = int(os.getenv("JWT_EXPIRY_SECONDS", "86400"))
 
 class TokenPayload(BaseModel):
     sub: str        # user_id
-    role: str       # "user" | "admin"
+    role: str       # "user" | "admin" | "project_manager"
     exp: int        # unix expiry timestamp
     iat: int        # issued-at
 
@@ -67,6 +67,15 @@ if not _user_password:
 
 ADMIN_CREDENTIALS: dict[str, str] = {"admin": _admin_password}
 DEFAULT_USER_PASSWORD = _user_password
+# Optional: the managers named on projects in data/ontology.json log in with it as
+# "project_manager" and see only their projects (ontology.access).
+PROJECT_MANAGER_PASSWORD = os.getenv("PROJECT_MANAGER_PASSWORD", "")
+
+
+def _is_project_manager(user_id: str) -> bool:
+    from ontology import access, model
+
+    return user_id in access.manager_ids(model.get())
 
 
 def _check_credentials(user_id: str, password: str) -> Optional[str]:
@@ -76,6 +85,12 @@ def _check_credentials(user_id: str, password: str) -> Optional[str]:
     # hmac.compare_digest runs in constant time regardless of where strings diverge.
     if user_id in ADMIN_CREDENTIALS:
         return "admin" if hmac.compare_digest(ADMIN_CREDENTIALS[user_id], password) else None
+    if PROJECT_MANAGER_PASSWORD and _is_project_manager(user_id):
+        return (
+            "project_manager"
+            if hmac.compare_digest(PROJECT_MANAGER_PASSWORD, password)
+            else None
+        )
     return "user" if hmac.compare_digest(DEFAULT_USER_PASSWORD, password) else None
 
 

@@ -787,35 +787,24 @@ class TestSessionStore:
 
 class TestLoggingMiddleware:
 
-    @pytest.mark.asyncio
-    async def test_middleware_logs_and_adds_request_id(self):
+    def test_middleware_logs_and_adds_request_id(self):
+        # Through a real ASGI app: a mocked receive() never sends http.disconnect,
+        # which BaseHTTPMiddleware waits for, so the call never returned.
+        from starlette.applications import Starlette
+        from starlette.responses import PlainTextResponse
+        from starlette.routing import Route
+        from starlette.testclient import TestClient
         from middleware.logging_mw import RequestLoggingMiddleware
 
-        async def fake_app(scope, receive, send):
-            await send({"type": "http.response.start", "status": 200, "headers": []})
-            await send({"type": "http.response.body", "body": b""})
-
-        middleware = RequestLoggingMiddleware(fake_app)
-
-        scope = {
-            "type": "http",
-            "method": "GET",
-            "path": "/health",
-            "query_string": b"",
-            "headers": [],
-            "client": ("127.0.0.1", 1234),
-        }
-        receive = AsyncMock()
-        sent_messages = []
-
-        async def capture_send(message):
-            sent_messages.append(message)
-            await AsyncMock()(message)
+        app = Starlette(routes=[Route("/health", lambda request: PlainTextResponse("ok"))])
+        app.add_middleware(RequestLoggingMiddleware)
 
         with patch("middleware.logging_mw.logger") as mock_logger:
-            await middleware(scope, receive, capture_send)
-            mock_logger.info.assert_called()
-        assert len(sent_messages) >= 1
+            response = TestClient(app).get("/health")
+            mock_logger.info.assert_called_once()
+        assert response.status_code == 200
+        assert len(response.headers["X-Request-Id"]) == 8
+        assert '"path": "/health"' in mock_logger.info.call_args[0][0]
 
     def test_configure_logging(self):
         from middleware.logging_mw import configure_logging
@@ -881,12 +870,20 @@ class TestRateLimit:
             response = client.get("/test")
         assert response.status_code == 429
 
-    def test_client_ip_from_forwarded_header(self):
+    def test_client_ip_from_real_ip_header(self):
+        # X-Real-IP is set by the proxy; X-Forwarded-For is client-controlled and
+        # would let a client rotate IPs to get around the limit, so it is ignored.
         from middleware.rate_limit import _client_ip
         request = MagicMock()
-        request.headers.get.return_value = self.TEST_IP_B + ", 10.0.0.1"
-        ip = _client_ip(request)
-        assert ip == self.TEST_IP_B
+        request.headers = {"x-real-ip": f" {self.TEST_IP_B} ", "x-forwarded-for": "10.0.0.1"}
+        assert _client_ip(request) == self.TEST_IP_B
+
+    def test_client_ip_ignores_forwarded_header(self):
+        from middleware.rate_limit import _client_ip
+        request = MagicMock()
+        request.headers = {"x-forwarded-for": f"{self.TEST_IP_B}, 10.0.0.1"}
+        request.client.host = self.TEST_IP_C
+        assert _client_ip(request) == self.TEST_IP_C
 
     def test_client_ip_fallback_to_client_host(self):
         from middleware.rate_limit import _client_ip

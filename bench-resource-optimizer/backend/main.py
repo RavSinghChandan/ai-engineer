@@ -80,6 +80,7 @@ from utils.security import SecurityError, check_injection
 from utils.token_tracker import get_tracker, reset_tracker
 from fde import api as fde_api, ledger as fde_ledger, permissions as fde_perm
 import audit.agent_audit_log as agent_audit
+from ontology import api as ontology_api
 from guardrails.production import (
     rate_limiter,
     all_guardrail_stats,
@@ -197,6 +198,8 @@ app.add_middleware(
 
 # FDE evidence layer: outcomes ledger, permission matrix, model-comparison report
 app.include_router(fde_api.build_router(get_current_user))
+# Business ontology: employees, skills, projects, roles, allocations, with role-based access
+app.include_router(ontology_api.build_router(get_current_user))
 
 
 # ── Route path constants ──────────────────────────────────────────────────────

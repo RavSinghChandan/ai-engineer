@@ -506,6 +506,14 @@ ng serve --proxy-config proxy.conf.json --port 4200
 | `/admin/roles` | POST | Admin | Create new role |
 | `/admin/upload-resource` | POST | Admin | Upload internal training document |
 | `/admin/resources` | GET | Admin | List indexed internal documents |
+| `/ontology/schema` | GET | Admin, PM | Entity types (Employee, Skill, Project, Role, Allocation) and their relations |
+| `/ontology/employees` | GET | Admin, PM | Employees the caller may see; a PM gets those on their projects or the bench, without email, phone or cost |
+| `/ontology/projects` · `/ontology/allocations` | GET | Admin, PM | A PM sees only the projects they manage and their allocations |
+| `/ontology/skills` · `/ontology/roles` | GET | Admin, PM | Shared skill and role catalogues |
+| `/ontology/recommendations` | POST | Admin, PM | Ranked candidates for an open role on a project (`min_skill_match_pct`, default 20); every claim lists its source records |
+| `/ontology/access-log` | GET | Admin | Allow/deny decisions on ontology data |
+
+**Ontology access.** PM = `project_manager`: a user id named in a project's `manager_ids` in `backend/data/ontology.json`, logging in with `PROJECT_MANAGER_PASSWORD`. Anything outside a PM's projects answers 404, the same as a record that does not exist; an allocation on another project is cited in a recommendation only as a count and a percentage.
 
 Full interactive docs: **http://localhost:8000/docs**
 
