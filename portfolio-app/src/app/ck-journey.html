@@ -52,13 +52,15 @@
             <g class="ckg-arm--cheer">
               <!-- the cloth flies left of the pole, like the little ones', unless the card edge is
                    too close on that side (Step 1 on a phone): then it flies right -->
-              <svg [attr.x]="flagRight() ? 181.8 : -55.8" y="-32" width="254" height="188" viewBox="0 0 62 46" overflow="visible">
+              <!-- the cloth flies wholly above the head (its top is at y 57), even at the top of the
+                   cheer, and the pole runs down to the fist at (190, 156) -->
+              <svg [attr.x]="flagRight() ? 182.9 : -22.9" y="-57" width="220" height="163.2" viewBox="0 0 62 46" overflow="visible">
                 <g class="ckj-mini-wave" [class.ckj-mini-wave--right]="flagRight()">
                   <path class="ckj-mini-cloth" d="M60 1C49 -2 41 5 30 2C19 -1 11 5 1 2V20C11 23 19 17 30 20C41 23 49 16 60 19Z"
                         [attr.transform]="flagRight() ? 'translate(62 0) scale(-1 1)' : null"/>
                   <text [attr.x]="flagRight() ? 31.5 : 30.5" y="11" class="ckj-mini-word" [attr.textLength]="goal().flag.length > 6 ? 54 : null" lengthAdjust="spacingAndGlyphs">{{ goal().flag }}</text>
                 </g>
-                <path [attr.d]="flagRight() ? 'M2 0V46' : 'M60 0V46'" class="ckj-mini-pole"/>
+                <path [attr.d]="flagRight() ? 'M2 0V60' : 'M60 0V60'" class="ckj-mini-pole"/>
               </svg>
             </g>
           </g>

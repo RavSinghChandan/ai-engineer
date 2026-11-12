@@ -195,5 +195,7 @@ a.ckj-win:hover, a.ckj-win:focus-visible { border-bottom-style: solid; outline: 
 }
 @media (max-width: 420px) {
   .ckj-facts li:nth-child(n + 4) { display: none; } /* "4+ yrs" is also on the Experience flag */
+  /* a little room above the path, so the flag carried on the high steps clears the note above */
+  .ckj-scene { margin-top: 0.4rem; }
   .ckj--stairs .ckj-welcome { letter-spacing: 0.05em; }
 }
