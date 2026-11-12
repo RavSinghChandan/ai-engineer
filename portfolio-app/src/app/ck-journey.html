@@ -37,16 +37,32 @@
       </span>
     </div>
   } @else {
-    <div class="ckj-climb" aria-hidden="true">
-      <svg class="ckj-steps" viewBox="0 0 308 168" preserveAspectRatio="none" focusable="false">
+    <span class="ckj-host" aria-hidden="true"><ck-guide form="full" [mood]="mood()" pose="wave"/></span>
+    <nav class="ckj-climb" aria-label="The seven steps">
+      <svg class="ckj-steps" [style.height.%]="stairsH" viewBox="0 0 308 119" preserveAspectRatio="none" focusable="false" aria-hidden="true">
         @for (m of milestones; track $index; let i = $index) {
-          <rect [attr.x]="i * 44" [attr.y]="168 - 24 * (i + 1)" width="44" [attr.height]="24 * (i + 1)" [attr.fill]="m.a" class="ckj-step"/>
-          <rect [attr.x]="i * 44" [attr.y]="168 - 24 * (i + 1)" width="44" height="5" [attr.fill]="m.hi" opacity=".9"/>
-          <text [attr.x]="i * 44 + 22" [attr.y]="168 - 24 * (i + 1) + 19" class="ckj-step-n">{{ i + 1 }}</text>
+          <rect [attr.x]="i * 44" [attr.y]="119 - 17 * (i + 1)" width="44" [attr.height]="17 * (i + 1)" [attr.fill]="m.a" class="ckj-step"/>
+          <rect [attr.x]="i * 44" [attr.y]="119 - 17 * (i + 1)" width="44" height="4" [attr.fill]="m.hi" opacity=".9"/>
+          <text [attr.x]="i * 44 + 22" [attr.y]="119 - 17 * (i + 1) + 14.5" class="ckj-step-n">{{ i + 1 }}</text>
         }
-        <path d="M0 168V144H44V120H88V96H132V72H176V48H220V24H264V0H308V168Z" class="ckj-steps-ink"/>
+        <path d="M0 119V102H44V85H88V68H132V51H176V34H220V17H264V0H308V119Z" class="ckj-steps-ink"/>
       </svg>
-      <span class="ckj-climber"><ck-guide form="full" [mood]="mood()" pose="climb"/></span>
-    </div>
+      @for (g of goals; track g.n) {
+        <a class="ckj-mini" [href]="'#' + g.id" [title]="'Step ' + g.n + ': ' + g.place"
+           [attr.aria-label]="'Step ' + g.n + ': ' + g.place"
+           [style.left.%]="g.left" [style.bottom.%]="g.bottom" [style.--d]="g.delay">
+          <span class="ckj-mini-dance">
+            <span class="ckj-mini-me" aria-hidden="true"><ck-guide form="full" mood="excited" pose="cheer"/></span>
+            <svg class="ckj-mini-flag" viewBox="0 0 62 46" focusable="false" aria-hidden="true">
+              <g class="ckj-mini-wave">
+                <path class="ckj-mini-cloth" d="M60 2C49 -1 41 6 30 3C19 0 11 6 2 3V19C11 22 19 16 30 19C41 22 49 15 60 18Z"/>
+                <text x="31" y="11" class="ckj-mini-word" [attr.textLength]="g.flag.length > 7 ? 50 : null" lengthAdjust="spacingAndGlyphs">{{ g.flag }}</text>
+              </g>
+              <path d="M60 1V46" class="ckj-mini-pole"/>
+            </svg>
+          </span>
+        </a>
+      }
+    </nav>
   }
 </section>

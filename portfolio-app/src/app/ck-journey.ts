@@ -22,6 +22,19 @@ export const MILESTONES = [
   { a: '#b45309', b: '#4a2306', hi: '#fde68a', icon: 'M4 5h16v10.5H9.5L4 20z' },                                                       // 7 contact
 ];
 
+/** What each step of the welcome staircase leads to: the section it opens, and the word on its flag. */
+export const STEP_GOALS = [
+  { id: 'projects', place: 'My Products', flag: 'Products' },
+  { id: 'by-numbers', place: 'Proof in Numbers', flag: 'Numbers' },
+  { id: 'experience', place: 'My Work Experience', flag: 'Experience' },
+  { id: 'skills', place: 'How I Work', flag: 'How I Work' },
+  { id: 'opensource', place: 'Open Source', flag: 'Open Source' },
+  { id: 'story', place: 'My Story', flag: 'Story' },
+  { id: 'contact', place: 'Contact Me', flag: 'Contact' },
+];
+/** The staircase takes this share of the climb's height, leaving room above for the little ones. */
+const STAIRS_H = 62;
+
 /** Height of the path (0 = top, 100 = bottom of the scene) at a percent of the width: a gentle hill. */
 function pathY(x: number): number {
   const t = x / 100;
@@ -70,6 +83,15 @@ export class CkJourney {
   })();
   readonly flagX = FLAG_AT;
   readonly flagY = pathY(FLAG_AT);
+  /** A little me on every step of the welcome staircase, cheering with that step's goal on a flag. */
+  readonly goals = STEP_GOALS.map((g, i) => ({
+    ...g, n: i + 1, a: MILESTONES[i].a,
+    left: ((i + 0.5) / STEPS) * 100,
+    bottom: (STAIRS_H * (i + 1)) / STEPS,
+    delay: `${-0.17 * i}s`,
+  }));
+  readonly stairsH = STAIRS_H;
+
   readonly stops = Array.from({ length: STEPS }, (_, i) => ({ n: i + 1, x: xOf(i + 1), y: pathY(xOf(i + 1)), hi: MILESTONES[i].hi }));
 
   /** Where the caricature is right now (percent of the width); y always comes from the path. */
