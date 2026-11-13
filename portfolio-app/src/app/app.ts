@@ -496,12 +496,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '282',
+      stat:  '284',
       title: 'Pull requests merged by other projects\' maintainers.',
       sub:   'People I had never met reviewed my code and accepted it: pypdf, fontTools, Pillow, fpdf2, trafilatura, txtai, kornia, tox, mistune, Docling, docTR, pikepdf, ezdxf, svglib, pdfannots, python-markdown2, marko, PyMuPDF, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '282 merged, all reviewed! ✅',
+      aaravSay: '284 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -629,6 +629,26 @@ export class App implements OnInit, AfterViewInit {
   // ── Open Source: merged PRs into major libraries. Append a new entry per merge; the
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'Map the CSS Fonts 4 generic families to core fonts',
+      desc: 'font-family="system-ui", as in the social preview image of react-window, failed with KeyError. system-ui and the other CSS Fonts 4 generic families now map to core fonts, in SVG text and in write_html(). Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2180',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'SVG: read the x and y of a <use> as lengths',
+      desc: 'A <use> placed with units, such as x="20px" y="1in", failed with ValueError, also inside a <clipPath>. Its x and y are now read as lengths, like those of <svg>, <text> and <image>. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2176',
+      merged: 'Nov 2026',
+    },
     {
       repo: 'py-pdf/fpdf2',
       logo: 'fpdf2-logo.png',
@@ -3784,7 +3804,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defense','PII protection','Output validation','Secure tool use','Threat modeling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers, and own the result.',
-      evidence: '282 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
+      evidence: '284 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
