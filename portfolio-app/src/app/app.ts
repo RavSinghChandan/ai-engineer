@@ -496,12 +496,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '298',
+      stat:  '302',
       title: 'Pull requests merged by other projects\' maintainers.',
       sub:   'People I had never met reviewed my code and accepted it: pypdf, fontTools, Pillow, fpdf2, trafilatura, txtai, kornia, tox, mistune, Docling, docTR, pikepdf, ezdxf, svglib, pdfannots, python-markdown2, marko, PyMuPDF, Soup Sieve, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '298 merged, all reviewed! ✅',
+      aaravSay: '302 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -629,6 +629,46 @@ export class App implements OnInit, AfterViewInit {
   // ── Open Source: merged PRs into major libraries. Append a new entry per merge; the
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'SVG: read rgb() with a fractional or percentage alpha',
+      desc: 'Mermaid writes stroke="rgb(0,0,0, 0.5)" around the blocks of sequence diagrams, which failed with ValueError. A fraction or a percentage after three commas is now the 0-1 alpha of CSS Color 4, while an integer alpha keeps fpdf2\'s 0-255 scale. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2197',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'SVG: draw a <use> that references another <use>, or a later element',
+      desc: 'Inkscape writes clones of clones, and browsers draw a <use> of an element defined later in the file. Both failed or drew nothing. A <use> now registers itself so it can be referenced, and forward references are built on demand. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2193',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'SVG: skip at-rules without a block, such as @import, in a <style>',
+      desc: 'An @import of a Google Font at the start of a <style> hid the CSS rule after it, and a ";" in its URL broke parsing. At-rules without a block are now skipped by a linear scanner that knows quotes, escapes, parentheses and declarations. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2178',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'SVG: read oklch() and oklab() colors',
+      desc: "oklch() and oklab() colors of CSS Color 4, as in the social preview images of react-window, failed with ValueError. They are now converted to sRGB with Ottosson's matrices, with components clamped as CSS does. Merged by andersonhc.",
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2199',
+      merged: 'Nov 2026',
+    },
     {
       repo: 'facelessuser/soupsieve',
       logo: 'soupsieve-logo.svg',
@@ -3944,7 +3984,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defense','PII protection','Output validation','Secure tool use','Threat modeling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers, and own the result.',
-      evidence: '298 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
+      evidence: '302 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
