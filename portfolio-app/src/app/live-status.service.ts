@@ -30,7 +30,17 @@ export function ghQuery(repos: Iterable<string>): string {
 }
 /** PRs still in review, in other people's repositories (not my own projects). */
 const OPEN_QUERY = 'is:pr is:open archived:false author:RavSinghChandan -user:RavSinghChandan';
-const CACHE_KEY = 'live-proof-v10';
+/**
+ * PRs a maintainer landed by pushing the commits to main themselves, so GitHub
+ * shows them as "closed", not "merged", and the search above never finds them.
+ * Each one is confirmed by the maintainer's closing comment on the PR.
+ */
+export const MANUALLY_MERGED = [
+  'facelessuser/soupsieve#362', // facelessuser: "I manually merged your fix locally and pushed it"
+  'pikepdf/pikepdf#749',        // jbarlow83: "merged to main as 6beda634"
+  'pikepdf/pikepdf#750',        // jbarlow83: "merged to main as 65519f80"
+];
+const CACHE_KEY = 'live-proof-v11';
 const CACHE_MS = 15 * 60_000;
 
 @Injectable({ providedIn: 'root' })
@@ -188,7 +198,7 @@ export class LiveStatus {
       const data = {
         t: Date.now(),
         q: this.query,
-        count: s.total_count as number,
+        count: (s.total_count as number) + MANUALLY_MERGED.length,
         latest: top ? {
           title: top.title.replace(/^[A-Z]{2,5}:\s*/, ''), repo: top.repository_url.split('/').slice(-2).join('/'),
           number: top.number, url: top.html_url, at: top.closed_at,
