@@ -159,15 +159,22 @@ class TestDeepseekClient:
 
     def test_call_no_api_key_raises(self):
         import utils.deepseek_client as dc
-        orig_key = dc._KEY
-        dc._KEY = ""
-        with patch("utils.deepseek_client._load_key", return_value=""):
+        from credentials import ToolCredentialBroker, get_broker, set_broker
+
+        class _NoSecrets:
+            def get(self, name):
+                return ""
+
+        orig = get_broker()
+        set_broker(ToolCredentialBroker(source=_NoSecrets()))
+        try:
             try:
                 dc.call(system="sys", user="user", agent_id="holistic_agent")
                 raised = False
             except RuntimeError:
                 raised = True
-        dc._KEY = orig_key
+        finally:
+            set_broker(orig)
         assert raised
 
     def test_call_success(self):
@@ -186,7 +193,7 @@ class TestDeepseekClient:
         mock_resp.__enter__ = lambda s: s
         mock_resp.__exit__ = MagicMock(return_value=False)
 
-        with patch("utils.deepseek_client._KEY", "fake-key"):
+        with patch.dict("os.environ", {"DEEPSEEK_API_KEY": "fake-key"}):
             with patch("urllib.request.urlopen", return_value=mock_resp):
                 result = dc.call(system="You are helpful.", user="Say hi.", agent_id="holistic_agent")
         assert result == "Hello!"
@@ -206,7 +213,7 @@ class TestDeepseekClient:
         mock_resp.__enter__ = lambda s: s
         mock_resp.__exit__ = MagicMock(return_value=False)
 
-        with patch("utils.deepseek_client._KEY", "fake-key"):
+        with patch.dict("os.environ", {"DEEPSEEK_API_KEY": "fake-key"}):
             with patch("urllib.request.urlopen", return_value=mock_resp):
                 dc.call(system="sys", user="msg", agent_id="holistic_agent")
         usage = dc.get_session_usage()
@@ -216,7 +223,7 @@ class TestDeepseekClient:
     def test_call_http_error_raises(self):
         import utils.deepseek_client as dc
         import urllib.error
-        with patch("utils.deepseek_client._KEY", "fake-key"):
+        with patch.dict("os.environ", {"DEEPSEEK_API_KEY": "fake-key"}):
             with patch("urllib.request.urlopen", side_effect=urllib.error.URLError("timeout")):
                 try:
                     dc.call(system="sys", user="msg", agent_id="holistic_agent")

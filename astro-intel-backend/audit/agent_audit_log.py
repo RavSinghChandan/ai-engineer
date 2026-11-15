@@ -167,6 +167,11 @@ def record(agent_id: str, action: str, status: str, *, tool_name: str = "",
                 conn.execute(sql, row)
     except Exception as exc:  # noqa: BLE001 — auditing must not fail the request
         log.warning("agent_audit_log write failed for %s/%s: %s", agent_id, action, exc)
+    # The same record, outside the app database (audit/audit_service.py). Never raises.
+    from audit import audit_service
+    audit_service.emit("agent", action, status, agent_id=agent_id, tool_name=tool_name,
+                       session_id=row[4] or "", user_id=row[1], tenant_id=row[2],
+                       correlation_id=row[7], detail={"duration_ms": row[9]})
 
 
 def record_permission(agent: str, action: str, resource: str, decision: str) -> None:

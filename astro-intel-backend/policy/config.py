@@ -54,6 +54,17 @@ REPORT_GENERATE: Dict[str, Any] = {
     },
 }
 
+# The admin translate endpoint sends a whole report section, so it gets a larger budget.
+LLM_CHAT_TRANSLATE: Dict[str, Any] = {
+    "approval": False,
+    "arguments": {
+        "model":        {"type": "str", "one_of": ["deepseek-chat"]},
+        "temperature":  {"type": "number", "min": 0.0, "max": 1.0},
+        "max_tokens":   {"type": "int", "min": 1, "max": 8192},
+        "prompt_chars": {"type": "int", "min": 1, "max": 200_000},
+    },
+}
+
 TOOL_POLICY: Dict[str, Dict[str, Any]] = {
     "holistic_agent":      {"description": "Writes the chapters of the 360° report",
                             "tools": {"llm.chat": LLM_CHAT}},
@@ -69,6 +80,8 @@ TOOL_POLICY: Dict[str, Dict[str, Any]] = {
                             "tools": {"llm.chat": LLM_CHAT}},
     "grammar_agent":       {"description": "Polishes wording; may not change facts",
                             "tools": {"llm.chat": LLM_CHAT}},
+    "translation_agent":   {"description": "Translates an approved report (admin endpoint)",
+                            "tools": {"llm.chat": LLM_CHAT_TRANSLATE}},
     "report_agent":        {"description": "Generates the final report from approved insights",
                             "tools": {"report.generate": REPORT_GENERATE}},
 }

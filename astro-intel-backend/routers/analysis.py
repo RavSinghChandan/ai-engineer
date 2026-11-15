@@ -808,45 +808,44 @@ async def translate_report(
             detail="No report found. Provide report in request body or run /approve first."
         )
 
-    import os, json as _json
-    deepseek_key = os.environ.get("DEEPSEEK_API_KEY", "")
-    if not deepseek_key:
-        # try loading from .env in project root
-        try:
-            root_env = os.path.join(os.path.dirname(__file__), "..", "..", ".env")
-            with open(root_env) as f:
-                for line in f:
-                    line = line.strip()
-                    if line.startswith("DEEPSEEK_API_KEY="):
-                        deepseek_key = line.split("=", 1)[1].strip()
-                        break
-        except Exception:
-            pass
-
-    if not deepseek_key:
+    import json as _json
+    from credentials import get_broker
+    from policy import enforce as _enforce
+    broker = get_broker()
+    if not broker.has_secret("llm.chat"):
         raise HTTPException(status_code=503, detail="DEEPSEEK_API_KEY not set. Add it to your .env file.")
 
     import urllib.request as _urllib
 
     def llm_caller(prompt: Dict[str, Any]) -> str:
+        temperature = prompt.get("temperature", 0)
+        max_tokens = prompt.get("max_tokens", 4096)
+        # Same path as every agent LLM call: the guard decides, the broker hands out a
+        # one-use key scoped to translation_agent / llm.chat / this session.
+        _enforce("translation_agent", "llm.chat", {
+            "model": "deepseek-chat", "temperature": temperature, "max_tokens": max_tokens,
+            "prompt_chars": len(prompt.get("system") or "") + len(prompt.get("user") or ""),
+        })
+        cred = broker.issue("translation_agent", "llm.chat", session_id=req.session_id or "")
         payload = _json.dumps({
             "model": "deepseek-chat",
-            "temperature": prompt.get("temperature", 0),
-            "max_tokens": prompt.get("max_tokens", 4096),
+            "temperature": temperature,
+            "max_tokens": max_tokens,
             "messages": [
                 {"role": "system", "content": prompt["system"]},
                 {"role": "user",   "content": prompt["user"]},
             ],
         }).encode()
-        req_obj = _urllib.Request(
-            "https://api.deepseek.com/chat/completions",
-            data=payload,
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {deepseek_key}",
-            },
-            method="POST",
-        )
+        with broker.use(cred, "llm.chat") as key:
+            req_obj = _urllib.Request(
+                "https://api.deepseek.com/chat/completions",
+                data=payload,
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {key}",
+                },
+                method="POST",
+            )
         with _urllib.urlopen(req_obj, timeout=30) as resp:
             data = _json.loads(resp.read().decode())
         raw = data["choices"][0]["message"]["content"]

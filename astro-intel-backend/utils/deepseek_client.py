@@ -17,7 +17,6 @@ Token economics tracking:
 """
 from __future__ import annotations
 import json
-import os
 import threading
 import urllib.request
 from typing import Any, Dict, Optional
@@ -50,25 +49,10 @@ def reset_session_usage() -> None:
         _global_usage.update({"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "calls": 0})
 
 
-def _load_key() -> str:
-    key = os.environ.get("DEEPSEEK_API_KEY", "")
-    if key:
-        return key
-    # Walk up from this file to find .env
-    search = os.path.dirname(__file__)
-    for _ in range(4):
-        env_path = os.path.join(search, ".env")
-        if os.path.isfile(env_path):
-            with open(env_path) as f:
-                for line in f:
-                    line = line.strip()
-                    if line.startswith("DEEPSEEK_API_KEY="):
-                        return line.split("=", 1)[1].strip()
-        search = os.path.dirname(search)
-    return ""
-
-
-_KEY: Optional[str] = None
+def _session_id() -> str:
+    from audit import current_context
+    ctx = current_context()
+    return ctx.resource_id or ctx.correlation_id
 
 
 def call(
@@ -94,11 +78,11 @@ def call(
         "prompt_chars": len(system or "") + len(user or ""),
     })
 
-    global _KEY
-    if not _KEY:
-        _KEY = _load_key()
-    if not _KEY:
-        raise RuntimeError("DEEPSEEK_API_KEY not set. Add it to your .env file.")
+    # The key comes from the ToolCredentialBroker: a handle scoped to this agent, this
+    # tool and this session, valid for one use. The secret exists only inside `with`.
+    from credentials import get_broker
+    broker = get_broker()
+    cred = broker.issue(agent_id, "llm.chat", session_id=_session_id())
 
     payload = json.dumps({
         "model": model,
@@ -110,15 +94,16 @@ def call(
         ],
     }).encode()
 
-    http_req = urllib.request.Request(
-        "https://api.deepseek.com/chat/completions",
-        data=payload,
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {_KEY}",
-        },
-        method="POST",
-    )
+    with broker.use(cred, "llm.chat") as key:
+        http_req = urllib.request.Request(
+            "https://api.deepseek.com/chat/completions",
+            data=payload,
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {key}",
+            },
+            method="POST",
+        )
 
     def _do_http_call():
         with urllib.request.urlopen(http_req, timeout=8) as resp:

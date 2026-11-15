@@ -40,6 +40,7 @@ from dataclasses import dataclass, field
 from types import MappingProxyType
 from typing import Any, Dict, List, Mapping, Optional, Protocol, Set, Tuple
 
+from audit import audit_service
 from audit.agent_audit_log import current_context
 from fde import counters
 from policy import config as policy_config
@@ -228,6 +229,7 @@ class DefaultAgentPolicyGuard:
                                    else "suspended_high_risk_attempt")
                     outcome = SUSPEND
                     self._suspended.add(session_id)
+                    _revoke_credentials(session_id)
 
         decision = PolicyDecision(outcome, agent_id, tool_name, tuple(reasons), checks,
                                   session_id, uuid.uuid4().hex)
@@ -255,6 +257,18 @@ class DefaultAgentPolicyGuard:
             reasons=decision.reasons, checks=decision.checks, session_id=decision.session_id,
             user_id=ctx.user_id, tenant_id=ctx.tenant_id, correlation_id=ctx.correlation_id,
         )
+        audit_service.emit("policy", "decision", decision.outcome, agent_id=decision.agent_id,
+                           tool_name=decision.tool_name, session_id=decision.session_id,
+                           detail={"decision_id": decision.decision_id, "reasons": list(decision.reasons)})
+
+
+def _revoke_credentials(session_id: str) -> None:
+    """A suspended session loses every credential the broker issued it. Never raises."""
+    try:
+        from credentials import get_broker
+        get_broker().revoke_session(session_id, reason="policy_suspended")
+    except Exception as exc:  # noqa: BLE001
+        log.error("credentials of suspended session %s not revoked: %s", session_id, exc)
 
 
 def _session_id() -> str:

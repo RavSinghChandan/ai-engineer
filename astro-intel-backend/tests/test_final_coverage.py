@@ -51,13 +51,13 @@ class TestLoggingConfigFull:
 
 class TestDeepseekClientFull:
     def test_load_key_from_env(self):
-        import utils.deepseek_client as dc
+        from credentials import EnvSecretSource
         with patch.dict(os.environ, {"DEEPSEEK_API_KEY": "env-key-123"}):
-            key = dc._load_key()
+            key = EnvSecretSource().get("DEEPSEEK_API_KEY")
         assert key == "env-key-123"
 
     def test_load_key_from_env_file(self):
-        import utils.deepseek_client as dc
+        from credentials import EnvSecretSource
         import tempfile
         import shutil
         tmpdir = tempfile.mkdtemp()
@@ -66,8 +66,7 @@ class TestDeepseekClientFull:
             f.write("DEEPSEEK_API_KEY=file-key-abc\n")
         orig_env = os.environ.pop("DEEPSEEK_API_KEY", None)
         try:
-            with patch("utils.deepseek_client.os.path.dirname", return_value=tmpdir):
-                key = dc._load_key()
+            key = EnvSecretSource(start_dir=tmpdir).get("DEEPSEEK_API_KEY")
         finally:
             if orig_env is not None:
                 os.environ["DEEPSEEK_API_KEY"] = orig_env
@@ -87,7 +86,7 @@ class TestDeepseekClientFull:
         mock_resp.read.return_value = response_body
         mock_resp.__enter__ = lambda s: s
         mock_resp.__exit__ = MagicMock(return_value=False)
-        with patch("utils.deepseek_client._KEY", "fake-key"):
+        with patch.dict(os.environ, {"DEEPSEEK_API_KEY": "fake-key"}):
             with patch("urllib.request.urlopen", return_value=mock_resp):
                 result = dc.call(system="sys", user="msg", agent_id="holistic_agent")
         assert "```" not in result
@@ -95,7 +94,7 @@ class TestDeepseekClientFull:
     def test_call_circuit_open_raises_runtime(self):
         import utils.deepseek_client as dc
         from guardrails.production import CircuitOpenError
-        with patch("utils.deepseek_client._KEY", "fake-key"):
+        with patch.dict(os.environ, {"DEEPSEEK_API_KEY": "fake-key"}):
             with patch.object(dc.llm_circuit_breaker, "call", side_effect=CircuitOpenError("open")):
                 try:
                     dc.call(system="sys", user="msg", agent_id="holistic_agent")
