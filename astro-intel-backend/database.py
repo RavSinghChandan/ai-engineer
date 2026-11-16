@@ -250,6 +250,9 @@ def init_db() -> None:
     from audit.agent_audit_log import init_table as init_agent_audit_table
     init_agent_audit_table()
     print("[DB] agent_audit_log table ready.")
+    from workflow import init_tables as init_workflow_tables
+    init_workflow_tables()
+    print("[DB] workflow tables ready.")
 
 
 def migrate_from_json() -> None:

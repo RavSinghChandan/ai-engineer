@@ -43,6 +43,29 @@ _worker_threads: list[threading.Thread] = []
 
 # ── Job execution ─────────────────────────────────────────────────────────────
 
+def initial_state_from_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    """Pipeline input for a job payload. Shared with the durable workflow (workflow/runner.py)."""
+    return {
+        "user_profile":         payload.get("user_profile", {}),
+        "user_question":        payload.get("user_question", "").strip(),
+        "questions":            payload.get("questions", []),
+        "selected_modules":     payload.get("selected_modules"),
+        "module_inputs":        payload.get("module_inputs", {}),
+        "geocode":              payload.get("geocode", {}),
+        "normalized_questions": [],
+        "focus_context":        {},
+        "memory":               {},
+        "consolidated":         {},
+        "question_consensus":   [],
+        "admin_review_data":    {},
+        "remedies":             {},
+        "admin_review":         {},
+        "final_report":         {},
+        "agent_log":            [],
+        "errors":               [],
+    }
+
+
 def _execute_job(payload: dict[str, Any]) -> dict[str, Any]:
     """
     Run the full analysis pipeline for a job payload.
@@ -63,25 +86,7 @@ def _execute_job(payload: dict[str, Any]) -> dict[str, Any]:
     extra_questions = payload.get("questions", [])
 
     session_id = str(uuid.uuid4())
-    initial_state: dict[str, Any] = {
-        "user_profile":         profile_dict,
-        "user_question":        final_question,
-        "questions":            extra_questions,
-        "selected_modules":     payload.get("selected_modules"),
-        "module_inputs":        payload.get("module_inputs", {}),
-        "geocode":              payload.get("geocode", {}),
-        "normalized_questions": [],
-        "focus_context":        {},
-        "memory":               {},
-        "consolidated":         {},
-        "question_consensus":   [],
-        "admin_review_data":    {},
-        "remedies":             {},
-        "admin_review":         {},
-        "final_report":         {},
-        "agent_log":            [],
-        "errors":               [],
-    }
+    initial_state = initial_state_from_payload(payload)
 
     t_start     = time.time()
     final_state = run_pipeline(initial_state)

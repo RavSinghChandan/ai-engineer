@@ -191,32 +191,35 @@ def domain_agents_parallel(state: Dict[str, Any]) -> Dict[str, Any]:
     return state
 
 
+# ── Steps, in order ─────────────────────────────────────────────────────────
+# The durable workflow (workflow/runner.py) builds its graph from this same list,
+# so both run exactly the same agents.
+PIPELINE_STEPS = [
+    # Node -1: persona injection — runs first, before security or any domain agent
+    ("persona_injection",   persona_injection_node),
+    # Node 0: security gate — validates input before any agent sees it
+    ("security_check",      run_security_check),
+    ("question_agent",      safe_node(question_agent_node,     "question_agent")),
+    ("domain_agents",       safe_node(domain_agents_parallel,  "domain_agents")),
+    ("meta_agent",          safe_node(meta_agent_node,         "meta_agent")),
+    ("hallucination_check", run_hallucination_check),
+    ("remedy_agent",        safe_node(remedy_agent_node,       "remedy_agent")),
+    ("admin_review_agent",  safe_node(admin_review_agent_node, "admin_review_agent")),
+    ("grammar_agent",       safe_node(grammar_agent_node,      "grammar_agent")),
+]
+
+
 # ── Build the graph ─────────────────────────────────────────────────────────
 def build_graph() -> Any:
     builder = StateGraph(dict)
+    for name, fn in PIPELINE_STEPS:
+        builder.add_node(name, fn)
 
-    # Node -1: persona injection — runs first, before security or any domain agent
-    builder.add_node("persona_injection",     persona_injection_node)
-    # Node 0: security gate — validates input before any agent sees it
-    builder.add_node("security_check",        run_security_check)
-    builder.add_node("question_agent",        safe_node(question_agent_node,     "question_agent"))
-    builder.add_node("domain_agents",         safe_node(domain_agents_parallel,  "domain_agents"))
-    builder.add_node("meta_agent",            safe_node(meta_agent_node,         "meta_agent"))
-    builder.add_node("hallucination_check",   run_hallucination_check)
-    builder.add_node("remedy_agent",          safe_node(remedy_agent_node,       "remedy_agent"))
-    builder.add_node("admin_review_agent",    safe_node(admin_review_agent_node, "admin_review_agent"))
-    builder.add_node("grammar_agent",         safe_node(grammar_agent_node,      "grammar_agent"))
-
-    builder.set_entry_point("persona_injection")
-    builder.add_edge("persona_injection",    "security_check")
-    builder.add_edge("security_check",       "question_agent")
-    builder.add_edge("question_agent",       "domain_agents")
-    builder.add_edge("domain_agents",        "meta_agent")
-    builder.add_edge("meta_agent",           "hallucination_check")
-    builder.add_edge("hallucination_check",  "remedy_agent")
-    builder.add_edge("remedy_agent",         "admin_review_agent")
-    builder.add_edge("admin_review_agent",   "grammar_agent")
-    builder.add_edge("grammar_agent",        END)
+    names = [name for name, _ in PIPELINE_STEPS]
+    builder.set_entry_point(names[0])
+    for current, following in zip(names, names[1:]):
+        builder.add_edge(current, following)
+    builder.add_edge(names[-1], END)
 
     return builder.compile()
 

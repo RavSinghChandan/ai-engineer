@@ -29,6 +29,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from routers import analysis_router, async_analysis_router, geocode_router, metrics_router, stream_router
 from routers.feedback import router as feedback_router
+from routers.workflow import router as workflow_router
 from auth.router import router as auth_router
 from leads.router import router as leads_router
 from auth.dependencies import require_role, get_tenant_ctx
@@ -67,6 +68,10 @@ _threading.Thread(target=_warm_rag, daemon=True).start()
 # ── Start Kafka consumer (no-op when KAFKA_ENABLED=false) ────────────────────
 from pipeline_queue.consumer import start_consumer as _start_consumer, stop_consumer as _stop_consumer
 _start_consumer()
+
+# ── Resume durable workflow tasks a previous process left unfinished ─────────
+from workflow.runner import start_recovery_loop as _start_workflow_recovery
+_start_workflow_recovery()
 
 # ── App factory ──────────────────────────────────────────────────────────────
 app = FastAPI(
@@ -151,6 +156,7 @@ app.include_router(geocode_router)
 app.include_router(metrics_router)       # /api/v1/metrics — ADMIN+
 app.include_router(stream_router)        # /api/v1/stream/{session_id} — SSE
 app.include_router(feedback_router)      # /api/v1/feedback/* — episodic memory + persona
+app.include_router(workflow_router)      # /api/v1/workflow/* — durable, resumable pipeline tasks
 
 # FDE evidence layer: outcomes ledger, agent permission matrix, model-comparison report.
 # ADMIN sees their own tenant; SUPERADMIN sees all tenants.
