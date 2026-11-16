@@ -80,6 +80,7 @@ from utils.security import SecurityError, check_injection
 from utils.token_tracker import get_tracker, reset_tracker
 from fde import api as fde_api, ledger as fde_ledger, permissions as fde_perm
 import audit.agent_audit_log as agent_audit
+from business_metrics import api as business_api, store as allocation_store
 from ontology import api as ontology_api
 from guardrails.production import (
     rate_limiter,
@@ -198,7 +199,8 @@ app.add_middleware(
 
 # FDE evidence layer: outcomes ledger, permission matrix, model-comparison report
 app.include_router(fde_api.build_router(get_current_user))
-# Business ontology: employees, skills, projects, roles, allocations, with role-based access
+# AgentBusinessMetrics: staffing recommendations from suggestion to allocation outcome
+app.include_router(business_api.build_router(get_current_user))
 app.include_router(ontology_api.build_router(get_current_user))
 
 
@@ -785,6 +787,18 @@ async def map_role_endpoint(request: Request, req: MapRoleRequest,
         fde_ledger.current().set(match_pct=result.get("match_percentage"))
         # The agent only recommends; staffing someone is a human decision.
         fde_perm.needs_approval("role_mapping_agent", "deployment_decision")
+        # AgentBusinessMetrics: the manager accepts or rejects this recommendation_id later.
+        # Recording it must never fail the request.
+        reasons = allocation_store.help_reasons(result)
+        result["needs_help"] = reasons
+        try:
+            result["recommendation_id"] = allocation_store.create_ai(
+                task_id=fde_ledger.current().task_id, candidate_id=req.user_id,
+                target_role=req.target_role, match_pct=result.get("match_percentage"),
+                reasons=reasons, requested_at=t_start)
+        except Exception as exc:
+            logger.warning('{"event":"recommendation_record_failed","error":"%s"}', str(exc)[:120])
+            result["recommendation_id"] = None
         degradation_tracker.record_run(rid, {
             "role_mapper": {
                 "status": "partial" if cache_hit else "full",

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, Subject } from 'rxjs';
 import {
-  AdminUploadResponse, HealthReady, JudgeScores, MetricsData,
+  AdminUploadResponse, AllocationDecision, HealthReady, JudgeScores, MetricsData,
   Plan, ResourceRegistryResponse, Role, RoleMapping,
   StreamEvent, TrackingResult, UploadCvResponse
 } from '../models/types';
@@ -115,6 +115,23 @@ export class ApiService {
       output,
       request_id: requestId,
     });
+  }
+
+  decideAllocation(recId: string, decision: AllocationDecision, note = ''): Observable<any> {
+    return this.http.post(`${this.base}/allocations/${recId}/decision`, { decision, note });
+  }
+
+  recordAllocationOutcome(recId: string, outcome: 'success' | 'failed', note = ''): Observable<any> {
+    return this.http.post(`${this.base}/allocations/${recId}/outcome`, { outcome, note });
+  }
+
+  logManualAllocation(candidateId: string, targetRole: string, minutes: number, note = ''): Observable<any> {
+    return this.http.post(`${this.base}/allocations/manual`,
+      { candidate_id: candidateId, target_role: targetRole, minutes, note });
+  }
+
+  getBusinessMetrics(days: number): Observable<any> {
+    return this.http.get<any>(`${this.base}/business-metrics?days=${days}`);
   }
 
   getMetrics(): Observable<any> {

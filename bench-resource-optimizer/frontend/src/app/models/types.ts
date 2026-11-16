@@ -35,7 +35,12 @@ export interface RoleMapping {
   sources?: string[];
   citations?: RagCitation[];
   evidence?: RagEvidence;
+  // AgentBusinessMetrics: the manager decides on this recommendation
+  recommendation_id?: string | null;
+  needs_help?: string[];
 }
+
+export type AllocationDecision = 'accepted' | 'modified' | 'rejected';
 
 /** A retrieved role document the answer may cite (S1, S2, …). */
 export interface RagCitation {

@@ -1,15 +1,15 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { StateService } from '../../services/state.service';
-import { DayPlan, Plan, Role, RoleMapping, StreamEvent } from '../../models/types';
+import { AllocationDecision, DayPlan, Plan, Role, RoleMapping, StreamEvent } from '../../models/types';
 
 @Component({
   selector: 'app-role-mapping',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   template: `
     <h1 style="margin-bottom:8px;">Role Mapping</h1>
     <p style="color:var(--text-muted); margin-bottom:24px;">
@@ -144,6 +144,27 @@ import { DayPlan, Plan, Role, RoleMapping, StreamEvent } from '../../models/type
         </ng-container>
       </div>
 
+      <!-- ── Manager decision (AgentBusinessMetrics) ──────────────────── -->
+      <div *ngIf="mapping.recommendation_id" class="decision-card" data-testid="allocation-decision">
+        <div class="decision-head">
+          <strong>Staffing decision</strong>
+          <span class="decision-sub">The agent only recommends. Allocating {{ state.userId }} to {{ mapping.role }} is your call.</span>
+        </div>
+        <p *ngIf="mapping.needs_help?.length" class="decision-help">
+          ⚠ The agent asked for a closer look: {{ mapping.needs_help!.join('; ') }}
+        </p>
+        <div *ngIf="!decision" class="decision-actions">
+          <button class="btn btn-primary" [disabled]="deciding" (click)="decide('accepted')">✓ Accept</button>
+          <button class="btn btn-secondary" [disabled]="deciding" (click)="decide('modified')">✎ Accept with changes</button>
+          <button class="btn btn-secondary decision-reject" [disabled]="deciding" (click)="decide('rejected')">✕ Reject</button>
+        </div>
+        <p *ngIf="decision" class="decision-done">
+          Recorded: <strong>{{ decisionLabel }}</strong>. It now counts on the
+          <a routerLink="/business-metrics">Business Metrics</a> dashboard.
+        </p>
+        <p *ngIf="decisionError" class="decision-error">{{ decisionError }}</p>
+      </div>
+
       <!-- ── Days chooser ──────────────────────────────────────────────── -->
       <div class="days-chooser" style="margin-top:28px;">
         <div class="days-header">
@@ -215,6 +236,14 @@ import { DayPlan, Plan, Role, RoleMapping, StreamEvent } from '../../models/type
     </div>
   `,
   styles: [`
+    .decision-card { margin-top: 24px; padding: 16px; border: 1px solid var(--border, #e2e8f0); border-radius: 12px; }
+    .decision-head { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+    .decision-sub { font-size: 13px; color: var(--text-muted, #64748b); }
+    .decision-help { font-size: 13px; color: var(--warning); margin: 0 0 10px; }
+    .decision-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .decision-reject { color: var(--danger); }
+    .decision-done { margin: 0; font-size: 14px; }
+    .decision-error { margin: 8px 0 0; color: var(--danger); font-size: 13px; }
     .match-header {
       display: flex;
       justify-content: space-between;
@@ -338,6 +367,11 @@ export class RoleMappingComponent implements OnInit, OnDestroy {
   error = '';
   numDays = 7;
 
+  // Manager decision on the recommendation (AgentBusinessMetrics)
+  decision: AllocationDecision | null = null;
+  deciding = false;
+  decisionError = '';
+
   // Streaming state
   streamDaysReceived = 0;
   private streamedDays: DayPlan[] = [];
@@ -425,12 +459,32 @@ export class RoleMappingComponent implements OnInit, OnDestroy {
     this.api.mapRole(this.state.userId, this.selectedRole).subscribe({
       next: res => {
         this.mapping = res;
+        this.decision = null;
+        this.decisionError = '';
         this.state.setMapping(res);
         this.loading = false;
       },
       error: err => {
         this.error = err.error?.detail ?? 'Failed to map role.';
         this.loading = false;
+      },
+    });
+  }
+
+  get decisionLabel(): string {
+    return { accepted: 'accepted', modified: 'accepted with changes', rejected: 'rejected' }[this.decision!];
+  }
+
+  decide(decision: AllocationDecision) {
+    const recId = this.mapping?.recommendation_id;
+    if (!recId) return;
+    this.deciding = true;
+    this.decisionError = '';
+    this.api.decideAllocation(recId, decision).subscribe({
+      next: () => { this.decision = decision; this.deciding = false; },
+      error: err => {
+        this.decisionError = err.error?.detail ?? 'Could not record the decision.';
+        this.deciding = false;
       },
     });
   }

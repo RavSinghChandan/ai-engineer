@@ -10,6 +10,7 @@ import { AdminComponent } from './components/admin/admin.component';
 import { AgentGraphComponent } from './components/agent-graph/agent-graph.component';
 import { MemoryComponent } from './components/memory/memory.component';
 import { FdeDashboardComponent } from './components/fde-dashboard/fde-dashboard.component';
+import { AgentBusinessMetricsComponent } from './components/agent-business-metrics/agent-business-metrics.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -22,6 +23,7 @@ export const routes: Routes = [
   { path: 'memory',    component: MemoryComponent,     canActivate: [authGuard] },
   { path: 'metrics',   component: MetricsComponent,    canActivate: [authGuard] },
   { path: 'fde',       component: FdeDashboardComponent, canActivate: [authGuard] },
+  { path: 'business-metrics', component: AgentBusinessMetricsComponent, canActivate: [authGuard] },
   { path: 'graph',     component: AgentGraphComponent, canActivate: [authGuard] },
 
   { path: 'admin', component: AdminComponent, canActivate: [authGuard, adminGuard] },

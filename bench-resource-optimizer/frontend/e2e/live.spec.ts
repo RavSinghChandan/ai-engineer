@@ -49,6 +49,11 @@ test('a CV is parsed, mapped to a role and turned into a study plan @live', asyn
   await expect(page.getByTestId('evidence-panel')).toContainText('S1');
   console.log('Evidence:', (await page.getByTestId('evidence-badge').innerText()).trim());
 
+  // The manager accepts the recommendation; it is recorded for the Business Metrics dashboard.
+  const decision = page.getByTestId('allocation-decision');
+  await decision.getByRole('button', { name: '✓ Accept' }).click();
+  await expect(decision).toContainText('Recorded: accepted');
+
   // 3. The AI streams a day-by-day plan; the dashboard opens with its tasks.
   await page.getByRole('button', { name: /Generate \d+-Day Plan/ }).click();
   await expect(page).toHaveURL(/\/dashboard$/, { timeout: 420_000 });
@@ -64,6 +69,14 @@ test('a CV is parsed, mapped to a role and turned into a study plan @live', asyn
   const tokens = (await (await request.get('http://127.0.0.1:8000/metrics')).json()).token_economics;
   console.log('DeepSeek usage:', JSON.stringify({ avg_tokens: tokens.avg_total_tokens, cost_usd: tokens.total_cost_usd }));
   expect(tokens.has_real_data).toBe(true);
+
+  // Business Metrics counts the accepted recommendation, with its real model cost.
+  await page.goto('/business-metrics');
+  await expect(page.locator('[data-metric="acceptance_rate"]')).toContainText('100.0%');
+  const row = page.locator('tbody tr').first();          // newest: the role fit above
+  await expect(row).toContainText(role.trim());
+  await expect(row).toContainText('accepted');
+  console.log('Business metrics:', (await page.locator('.kpis').innerText()).replace(/\s+/g, ' ').trim());
   expect(errors).toEqual([]);
 });
 

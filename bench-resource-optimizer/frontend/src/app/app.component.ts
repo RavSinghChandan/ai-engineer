@@ -24,6 +24,7 @@ import { BenchAgentComponent } from './components/bench-agent/bench-agent.compon
           <a routerLink="/memory"    routerLinkActive="nav-active" class="nav-link nav-link-memory">Memory</a>
           <a routerLink="/metrics"   routerLinkActive="nav-active" class="nav-link nav-link-outline">Metrics</a>
           <a routerLink="/fde"       routerLinkActive="nav-active" class="nav-link nav-link-outline">FDE Outcomes</a>
+          <a routerLink="/business-metrics" routerLinkActive="nav-active" class="nav-link nav-link-outline">Business Metrics</a>
           <a routerLink="/admin"     routerLinkActive="nav-active" class="nav-link nav-link-admin"
              *ngIf="auth.isAdmin()">HR Admin</a>
           <a routerLink="/graph"     routerLinkActive="nav-active" class="nav-link nav-link-graph">Agent Graph</a>
