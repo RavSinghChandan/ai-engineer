@@ -496,12 +496,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '302',
+      stat:  '308',
       title: 'Pull requests merged by other projects\' maintainers.',
-      sub:   'People I had never met reviewed my code and accepted it: pypdf, fontTools, Pillow, fpdf2, trafilatura, txtai, kornia, tox, mistune, Docling, docTR, pikepdf, ezdxf, svglib, pdfannots, python-markdown2, marko, PyMuPDF, Soup Sieve, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
+      sub:   'People I had never met reviewed my code and accepted it: pypdf, fontTools, Pillow, fpdf2, trafilatura, txtai, kornia, tox, mistune, Docling, docTR, pikepdf, ezdxf, svglib, pdfannots, python-markdown2, marko, PyMuPDF, Soup Sieve, Camelot, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '302 merged, all reviewed! ✅',
+      aaravSay: '308 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -629,6 +629,66 @@ export class App implements OnInit, AfterViewInit {
   // ── Open Source: merged PRs into major libraries. Append a new entry per merge; the
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'SVG: resolve em and ex lengths of shapes against their font size',
+      desc: 'A <rect>, <circle>, <ellipse> or <line> sized in em or ex, as in svglib\'s units.svg sample, failed with ValueError. As in CSS, these shapes now resolve em and ex against their own inherited font size (16px when none is set), like text already did. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2175',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'SVG: apply the CSS rules for a light color scheme',
+      desc: 'Rules inside @media blocks were applied whatever the query, so dark-mode rules won: the overpass-turbo logo was drawn white on the white page. Only the @media blocks that match a light color scheme, the browser default, now apply, found in one linear pass. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2194',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'Explain that a font without a head table is not supported',
+      desc: 'The bitmap-only NISC18030.ttf that ships with macOS has no head table, and add_font() failed with a bare KeyError: \'head\'. It now raises NotImplementedError saying the font is not supported and why, like the existing error for fonts without a usable cmap. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2202',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'SVG: clip away an element whose clipPath is empty',
+      desc: 'A clip-path pointing at an empty <clipPath>, or at something that is not a clipPath, failed with KeyError, as in several resvg test files. An empty clipping path now clips the element away as the SVG spec says, and a wrong reference is ignored with a warning, as in browsers. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2205',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'SVG: accept a <line> in a <clipPath>',
+      desc: 'A <line> inside a <clipPath> failed with TypeError because its shape builder did not take the clipping-path argument the other shapes take. It does now; a line has no area, so it clips everything away, as browsers do (checked with Poppler). Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2206',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'camelot-dev/camelot',
+      logo: 'camelot-logo.png',
+      org: 'camelot-dev',
+      stars: '3.9k★',
+      title: 'Reject page numbers outside the PDF in the pages spec',
+      desc: 'pages="0" became index -1 and silently returned the tables of the last page, labelled with that page\'s number; a page past the end failed later with a bare IndexError. Both now raise a ValueError naming the page and the page count before any page is parsed. Merged by bosd.',
+      pr: 'https://github.com/camelot-dev/camelot/pull/866',
+      merged: 'Nov 2026',
+    },
     {
       repo: 'py-pdf/fpdf2',
       logo: 'fpdf2-logo.png',
@@ -3984,7 +4044,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defense','PII protection','Output validation','Secure tool use','Threat modeling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers, and own the result.',
-      evidence: '302 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
+      evidence: '308 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
