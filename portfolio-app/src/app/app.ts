@@ -496,12 +496,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '308',
+      stat:  '314',
       title: 'Pull requests merged by other projects\' maintainers.',
       sub:   'People I had never met reviewed my code and accepted it: pypdf, fontTools, Pillow, fpdf2, trafilatura, txtai, kornia, tox, mistune, Docling, docTR, pikepdf, ezdxf, svglib, pdfannots, python-markdown2, marko, PyMuPDF, Soup Sieve, Camelot, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '308 merged, all reviewed! ✅',
+      aaravSay: '314 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -629,6 +629,66 @@ export class App implements OnInit, AfterViewInit {
   // ── Open Source: merged PRs into major libraries. Append a new entry per merge; the
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
+    {
+      repo: 'deeplook/svglib',
+      logo: 'svglib-logo.svg',
+      org: 'deeplook',
+      stars: '371★',
+      title: 'Use the color property for currentColor in any case',
+      desc: 'fill="currentcolor", "CURRENTCOLOR" or "currentColor !important" drew the shape black instead of in the color of its parent. The value is now stripped first and compared without regard to case, so it reaches the color lookup. Merged by deeplook.',
+      pr: 'https://github.com/deeplook/svglib/pull/548',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'deeplook/svglib',
+      logo: 'svglib-logo.svg',
+      org: 'deeplook',
+      stars: '371★',
+      title: 'Read width and height auto like no width and height',
+      desc: 'Figma exports write width="auto" height="auto" with a viewBox, as the country flags of the ProtonVPN apps do, and svg2rlg() failed with ValueError: Can\'t convert \'auto\' to length. auto is the initial value in SVG 2, so it now gives the same result as a missing attribute. Merged by deeplook.',
+      pr: 'https://github.com/deeplook/svglib/pull/550',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'deeplook/svglib',
+      logo: 'svglib-logo.svg',
+      org: 'deeplook',
+      stars: '371★',
+      title: 'Read the x and y of a <use> as lengths',
+      desc: '<use href="#r" x="20px" y="1in"/> drew the element at the origin, because the units made the translate unreadable and it was dropped. The x and y are now converted as lengths first, so units, percentages and em work as for other positions. Merged by deeplook.',
+      pr: 'https://github.com/deeplook/svglib/pull/551',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'SVG: give currentColor the color property when the SVG sets one',
+      desc: 'currentColor was always read as inherit, so the color property never reached it, and icon sets written with fill="currentColor" came out black. The color is now carried down like the font properties, and also given to the fill or stroke of groups, paths, shapes and text. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2184',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.3k★',
+      title: 'BUG: Label a page that lies between the /Limits of two page label kids',
+      desc: 'In a /PageLabels number tree, a page between the /Limits of two kids got its page number and a warning, because /Limits only bound the keys of each kid. It belongs to the range started by the last key before it. On tika-982336.pdf, page 59 is now labelled 4-5-2 instead of 60. Merged by stefan6419846.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4385',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.svg',
+      org: 'py-pdf',
+      stars: '10.3k★',
+      title: 'BUG: Collect the fonts of an appearance stream without /Type and of each appearance state',
+      desc: '_get_fonts_walk() took an appearance stream without the optional /Type for a dictionary of states and walked its keys, so page._get_fonts() failed with TypeError on germanfields.pdf. It now reads the stream itself, and the fonts of every state of a dictionary of appearances. Merged by stefan6419846.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4399',
+      merged: 'Nov 2026',
+    },
     {
       repo: 'py-pdf/fpdf2',
       logo: 'fpdf2-logo.png',
@@ -4044,7 +4104,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defense','PII protection','Output validation','Secure tool use','Threat modeling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers, and own the result.',
-      evidence: '308 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
+      evidence: '314 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
