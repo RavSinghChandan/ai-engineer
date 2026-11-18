@@ -496,12 +496,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '314',
+      stat:  '321',
       title: 'Pull requests merged by other projects\' maintainers.',
       sub:   'People I had never met reviewed my code and accepted it: pypdf, fontTools, Pillow, fpdf2, trafilatura, txtai, kornia, tox, mistune, Docling, docTR, pikepdf, ezdxf, svglib, pdfannots, python-markdown2, marko, PyMuPDF, Soup Sieve, Camelot, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '314 merged, all reviewed! ✅',
+      aaravSay: '321 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -629,6 +629,76 @@ export class App implements OnInit, AfterViewInit {
   // ── Open Source: merged PRs into major libraries. Append a new entry per merge; the
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'Read SVG and percent-encoded data: URIs in image()',
+      desc: 'WordPress puts a placeholder data:image/svg+xml,%3Csvg... in the src of every lazy-loaded image, and write_html() and pdf.image() failed on it with NotImplementedError. Percent-encoded data: URIs are now read as RFC 2397 says, together with the SVG ones. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2190',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'SVG: apply the letter-spacing of text',
+      desc: 'The labels of spaCy\'s displaCy diagrams use letter-spacing: 2px and Inkscape writes it on every text, but fpdf2 ignored it. It is now applied with the PDF character spacing operator, inherited, with em and ex relative to the font size, and kept in the widths so text-anchor stays right. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2204',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'SVG: read rgb() with channels that are not integers',
+      desc: 'Mermaid writes its theme colors as rgb(45,179.9999999999,184.5), and an rgb() with a channel that is not an integer failed with ValueError. It is now read as in CSS Color 4, while integers and percentages still use fpdf2\'s own parser and malformed values are rejected. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2207',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'SVG: apply a gradient that is not in a <defs>',
+      desc: 'Gradients were only found in a <defs>, so shapes using one anywhere else got no fill or stroke. Mermaid writes one in the group of each link of a Sankey diagram, so every link was missing. A gradient is now parsed the first time a url() refers to it. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2210',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'SVG: draw a solid line for a stroke-dasharray of zeros',
+      desc: 'stroke-dasharray: 0 was written as a PDF dash array of zeros, which is invalid and made viewers draw nothing. Mermaid gives all its solid edges that value, so every edge of its flowcharts and class, state and ER diagrams was missing. All-zero values now mean a solid line, as in SVG. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2211',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'SVG: place the viewBox in the unit of the document once',
+      desc: 'draw_to_page() on a document in mm, cm or in converted the origin and the alignment of the viewBox to the unit of the document twice, so drawings were shifted or fell outside the page. The transforms are now composed in user units, with the conversion last, and give the same place in every unit. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2216',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'SVG: size a percentage width or height in the units of the document',
+      desc: 'On a document in mm, an SVG with width="50%" drawn with draw_to_page() came out 2.8 times too small, 33 mm instead of 95 mm on A4, because the percentage of the page was converted to the unit of the document twice. It is now sized in points like the other sizes. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2217',
+      merged: 'Nov 2026',
+    },
     {
       repo: 'deeplook/svglib',
       logo: 'svglib-logo.svg',
@@ -4104,7 +4174,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defense','PII protection','Output validation','Secure tool use','Threat modeling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers, and own the result.',
-      evidence: '314 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
+      evidence: '321 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
