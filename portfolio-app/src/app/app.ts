@@ -496,12 +496,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '321',
+      stat:  '325',
       title: 'Pull requests merged by other projects\' maintainers.',
       sub:   'People I had never met reviewed my code and accepted it: pypdf, fontTools, Pillow, fpdf2, trafilatura, txtai, kornia, tox, mistune, Docling, docTR, pikepdf, ezdxf, svglib, pdfannots, python-markdown2, marko, PyMuPDF, Soup Sieve, Camelot, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '321 merged, all reviewed! ✅',
+      aaravSay: '325 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -629,6 +629,46 @@ export class App implements OnInit, AfterViewInit {
   // ── Open Source: merged PRs into major libraries. Append a new entry per merge; the
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.png',
+      org: 'py-pdf',
+      stars: '10.3k★',
+      title: 'BUG: Ignore a missing or null normal appearance when collecting fonts',
+      desc: '_get_fonts_walk() read the normal appearance /AP /N with ["/N"].get_object(), so an annotation whose appearance dictionary only had /D raised KeyError, and a widget with /N pointing to the free object 0 (test_4614.pdf from the PyMuPDF test files) raised AttributeError. A missing or null /N now collects nothing and anything else logs a warning, while the fonts of the annotation itself are still collected. Merged by stefan6419846.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4442',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/pypdf',
+      logo: 'pypdf-logo.png',
+      org: 'py-pdf',
+      stars: '10.3k★',
+      title: 'ROB: Read an ICC profile without /N with the known number of components',
+      desc: 'The stream of an /ICCBased color space must have /N, but pdf-bad-color-space.pdf from the unstructured example files has a profile with only /Filter, so page.images failed with KeyError: \'/N\'. The profile is now read with the number of components already known from the image (3 for the JPEG of that file), and an /N that is given still wins. Merged by stefan6419846.',
+      pr: 'https://github.com/py-pdf/pypdf/pull/4443',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'SVG: apply the transforms of a userSpaceOnUse gradient from the inner group outwards',
+      desc: 'A userSpaceOnUse gradient on a shape inside nested transformed groups got the transforms of the groups in the wrong order, so with scale(2) around translate(10 0) its /Matrix moved by 10 instead of 20 and the gradient was misaligned with its shape. It now uses the same order as the shape itself, as bounding-box gradients and pattern cells already do. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2218',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'SVG: place a bounding-box gradient with the transforms of its ancestors',
+      desc: 'A gradient in objectBoundingBox units (the default) on a shape inside a transformed group was placed as if the group had no transform, which is how Graphviz draws every graph, so its radial gradient nodes came out as a single color. The same transforms that a userSpaceOnUse gradient already got are now applied to the bounding box. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2212',
+      merged: 'Nov 2026',
+    },
     {
       repo: 'py-pdf/fpdf2',
       logo: 'fpdf2-logo.png',
@@ -4174,7 +4214,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defense','PII protection','Output validation','Secure tool use','Threat modeling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers, and own the result.',
-      evidence: '321 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
+      evidence: '325 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
