@@ -13,6 +13,13 @@ from provenance.books import get_index
 from provenance.sentences import NumberFacts, fragments, number_refs, sentence_trail, split_sentences
 from provenance.sources import attach_chapter_sources, attach_sources, locate_given
 
+# The FAISS index is a build artefact (git-ignored): the tests that retrieve passages need it.
+from pathlib import Path as _Path
+needs_index = pytest.mark.skipif(
+    not (_Path(__file__).resolve().parent.parent / "numerology_rag" / "index" / "faiss.index").exists(),
+    reason="numerology_rag/index/faiss.index is not built",
+)
+
 PROFILE = {"full_name": "Rohan Mehta", "date_of_birth": "1994-08-14"}
 
 
@@ -208,6 +215,7 @@ def test_a_failure_while_tracing_sentences_leaves_an_empty_trail_and_keeps_the_s
     assert ins["sentences"] == [] and ins["sources"]
 
 
+@needs_index
 def test_the_retriever_loads_once_even_when_chapters_ask_at_the_same_time():
     from concurrent.futures import ThreadPoolExecutor
     from numerology_rag import retriever

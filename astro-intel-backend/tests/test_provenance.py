@@ -22,6 +22,13 @@ from provenance.sources import (
     sources_for_insight,
 )
 
+# The FAISS index is a build artefact (git-ignored): the tests that retrieve passages need it.
+from pathlib import Path as _Path
+needs_index = pytest.mark.skipif(
+    not (_Path(__file__).resolve().parent.parent / "numerology_rag" / "index" / "faiss.index").exists(),
+    reason="numerology_rag/index/faiss.index is not built",
+)
+
 PROFILE = {
     "full_name": "Chandan Kumar",
     "date_of_birth": "1991-03-14",
@@ -470,6 +477,7 @@ def test_a_finding_written_by_the_ai_lists_the_passages_it_was_given():
     assert summary["kinds"] == ["book", "calculation", "ai"]
 
 
+@needs_index
 def test_the_numerology_agent_keeps_the_passages_the_ai_was_given():
     from agents.numerology_agent import _run_sub_agent
     from utils.numerics import letter_map_indian
@@ -485,6 +493,7 @@ def test_the_numerology_agent_keeps_the_passages_the_ai_was_given():
     assert template["extra"]["given_passages"] == []      # nothing was given to an AI that did not write it
 
 
+@needs_index
 def test_a_chapter_written_by_the_ai_lists_its_passages_and_drops_the_raw_text():
     story = (
         "[HOOK] You came here to lead. " + "x" * 80 + "\n[TENSION] But leading alone is heavy.\n[TURN] Allow help.\n"
