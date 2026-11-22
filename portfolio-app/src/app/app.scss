@@ -121,6 +121,8 @@ nav[aria-label="Main navigation"] {
   &:hover { border-color: var(--border2); color: var(--text); }
 }
 .nav-hire { @media (max-width: 480px) { display: none; } }
+/* Academic CV sits beside Hire Me; between the hamburger and wide-desktop breakpoints the nav row is too tight for both, so it steps aside. */
+.nav-academic { @media (min-width: 769px) and (max-width: 979px) { display: none; } }
 .hamburger-btn {
   display: none; width: 38px; height: 38px; border-radius: 8px; background: transparent;
   border: 1px solid var(--border); align-items: center; justify-content: center;

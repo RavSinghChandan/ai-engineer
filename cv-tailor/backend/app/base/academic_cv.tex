@@ -1,0 +1,174 @@
+\documentclass[10pt, letterpaper]{article}
+
+\usepackage[top=0.32in, bottom=0.32in, left=0.55in, right=0.55in]{geometry}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{hyperref}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{tabularx}
+
+% Contact icons drawn straight from the Font Awesome 5 fonts. The fontawesome5
+% package scans every glyph name at load time, which crashes current Tectonic.
+\DeclareFontFamily{TU}{fasolid}{}
+\DeclareFontShape{TU}{fasolid}{m}{n}{<-> "[FontAwesome5Free-Solid-900.otf]"}{}
+\DeclareFontFamily{TU}{fabrands}{}
+\DeclareFontShape{TU}{fabrands}{m}{n}{<-> "[FontAwesome5Brands-Regular-400.otf]"}{}
+\newcommand{\faSolid}[1]{{\usefont{TU}{fasolid}{m}{n}\symbol{#1}}}
+\newcommand{\faBrand}[1]{{\usefont{TU}{fabrands}{m}{n}\symbol{#1}}}
+\newcommand{\faMapMarkerAlt}{\faSolid{"F3C5}}
+\newcommand{\faPhone}{\faSolid{"F095}}
+\newcommand{\faEnvelope}{\faSolid{"F0E0}}
+\newcommand{\faGlobe}{\faSolid{"F0AC}}
+\newcommand{\faGithub}{\faBrand{"F09B}}
+\newcommand{\faLinkedin}{\faBrand{"F08C}}
+
+\definecolor{primary}{RGB}{0,0,0}
+\definecolor{subtle}{RGB}{85,85,85}
+\definecolor{accent}{RGB}{0,51,153}
+\definecolor{rule}{RGB}{0,0,0}
+
+\hypersetup{
+  colorlinks=true,
+  urlcolor=primary,
+  linkcolor=primary
+}
+
+\renewcommand{\familydefault}{\sfdefault}
+\pagestyle{empty}
+
+\titleformat{\section}
+  {\large\bfseries\color{primary}}
+  {}{0em}{}
+  [\vspace{1pt}\color{rule}{\titlerule[0.5pt]}]
+
+\titlespacing{\section}{0pt}{5pt}{2pt}
+
+\newcommand{\resumeitem}[1]{\item\small{#1}}
+
+\newcommand{\jobheading}[4]{%
+  \noindent
+  \begin{tabularx}{\textwidth}{@{}X r@{}}
+    \textbf{\color{primary}#1} \textbar{} \textit{\small\color{subtle}#2} &
+    \small\color{subtle}#3 \textbar{} \textit{\small #4}
+  \end{tabularx}%
+}
+
+\newlist{jobitems}{itemize}{1}
+\setlist[jobitems]{
+  label=\textbullet,
+  leftmargin=1.2em,
+  itemsep=0.4pt,
+  topsep=1.5pt,
+  parsep=0pt,
+  after=\vspace{1.5pt}
+}
+
+\newlist{projectitems}{itemize}{1}
+\setlist[projectitems]{
+  label=\textbullet,
+  leftmargin=1.2em,
+  itemsep=0.4pt,
+  topsep=1.5pt,
+  parsep=0pt,
+  after=\vspace{1.5pt}
+}
+
+\begin{document}
+\begin{center}
+{\LARGE\bfseries\color{primary} Chandan Kumar}\\[3pt]
+{\normalsize\color{primary} Software Engineer \,\textbar\, Agentic AI $\cdot$ AI Security $\cdot$ Full-Stack Engineering}\\[4pt]
+
+\footnotesize\color{subtle}
+\faMapMarkerAlt\ Bengaluru, India \hspace{0.55em}
+\faPhone\ \href{tel:+916290909518}{+91 62909 09518} \hspace{0.55em}
+\faEnvelope\ \href{mailto:ravchandan15@gmail.com}{ravchandan15@gmail.com} \hspace{0.55em}
+\faGithub\ \href{https://github.com/RavSinghChandan}{github.com/RavSinghChandan} \hspace{0.55em}
+\faLinkedin\ \href{https://www.linkedin.com/in/rav-chandan-kumar-singh-767374315/}{LinkedIn} \hspace{0.55em}
+\faGlobe\ \href{https://chandankumar-engineer.vercel.app/}{Portfolio}
+\end{center}
+\vspace{-4pt}
+
+\section{Summary}
+
+\noindent Engineer who takes a messy, real-world problem from first conversation to a product people use. \textbf{4+ years} building backend and distributed systems for banking and aviation; now on \textbf{Agentic AI and AI Security at Deloitte USI}. Built \textbf{AstroIntel}, a live multi-agent AI product, and \textbf{Bench Resource Optimizer} solo, measured on outcomes: success rate, cost per successful task and model evals. \textbf{326 pull requests merged} into open-source libraries such as pypdf and fontTools.
+
+\section{Experience}
+
+\jobheading{Deloitte USI}{Software Engineer II, Agentic AI \& AI Security}{Sep 2026 -- Present}{Bengaluru}
+
+\begin{jobitems}
+\resumeitem{Build agentic AI capabilities on an enterprise agent platform used for engineering and security workflows.}
+\resumeitem{Focus on fitting agents into existing workflows, making them reliable, and adopting AI securely.}
+\end{jobitems}
+
+\jobheading{Infosys --- Bank of America}{Senior Software Engineer}{Nov 2025 -- Sep 2026}{Pune}
+
+\begin{jobitems}
+\resumeitem{Integrated LLM APIs into Spring Boot services and built event-driven AI microservices on Kafka in a regulated banking environment, improving system efficiency by 40\%.}
+\end{jobitems}
+
+\jobheading{Nexsys --- Accelya}{Software Engineer}{Dec 2023 -- Oct 2025}{Mumbai}
+
+\begin{jobitems}
+\resumeitem{Built and scaled Java microservices for airline systems handling 500K+ transactions a day.}
+\end{jobitems}
+
+\jobheading{Texala}{Software Engineer}{May 2023 -- Dec 2023}{Pune}
+
+\begin{jobitems}
+\resumeitem{Built production microservices and enterprise REST APIs.}
+\end{jobitems}
+
+\jobheading{Flyboard Ventures}{Software Engineer}{Aug 2022 -- May 2023}{Chandigarh}
+
+\begin{jobitems}
+\resumeitem{Shipped e-commerce, healthcare and e-learning products end to end, including APIs serving thousands of concurrent users.}
+\end{jobitems}
+
+\section{AI Projects \textnormal{\small\color{subtle}--- each scoped, built, shipped and run solo}}
+
+\noindent\href{https://aurawithrav.com}{\textbf{AstroIntel (Aura with Rav)}} \hfill \textit{\small\color{subtle}Live $\cdot$ LangGraph, FastAPI, Angular, PostgreSQL, Docker}
+
+\begin{projectitems}
+\resumeitem{Multi-tenant AI product: LangGraph runs five domain agents in parallel and merges them into consensus insights; prompt-injection, hallucination and PII checks, and a human approves each insight before a report is generated.}
+\resumeitem{Every task stored with status, latency, tokens, retries and cost $\rightarrow$ success rate and \textbf{cost per successful task} dashboard; agent permission matrix (read / write / human approval, default deny) enforced in code.}
+\resumeitem{Reproducible model comparison on the production prompt: deepseek-chat matched deepseek-reasoner (6/6 cases, incl. fear-inducing and absolute claims) at about 14$\times$ lower cost.}
+\end{projectitems}
+
+\noindent\href{https://github.com/RavSinghChandan/ai-engineer/tree/main/bench-resource-optimizer}{\textbf{Bench Resource Optimizer}} \textbar{} \textit{\small enterprise staffing} \hfill \textit{\small\color{subtle}Hybrid RAG, multi-agent, FastAPI, Angular}
+
+\begin{projectitems}
+\resumeitem{Matches bench engineers to project roles: a CV-parsing agent, hybrid RAG (FAISS + BM25 + RRF, HyDE, cross-encoder rerank), match \% with skill gaps, then a day-by-day upskilling plan.}
+\resumeitem{Semantic cache, circuit breakers, PII filter and evals (incl. a prompt-injection CV); the outcome ledger exposed under-reported plan cost (tokens lost in worker threads), now fixed and tracked per task.}
+\end{projectitems}
+
+\section{Open Source}
+
+\noindent\textbf{326 merged pull requests across 26 libraries}, each a bug fix with a regression test, merged by maintainers. \hfill \href{https://github.com/pulls?q=is\%3Apr+author\%3ARavSinghChandan+is\%3Amerged}{See~all}
+
+\begin{projectitems}
+\resumeitem{\textbf{pypdf} (86): hardened PDF parsing against malformed files: crash fixes, text extraction and image decoding.}
+\resumeitem{\textbf{Pillow} (13.9k$\star$): \href{https://github.com/python-pillow/Pillow/pull/10174}{invert, posterize and solarize for palette images} in ImageOps, previously ``coming soon''.}
+\resumeitem{\textbf{txtai} (13k$\star$): \href{https://github.com/neuml/txtai/pull/1422}{lists} and \href{https://github.com/neuml/txtai/pull/1408}{paragraphs} inside blockquotes kept intact in HTML-to-Markdown.}
+\resumeitem{\textbf{kornia} (11.4k$\star$): \href{https://github.com/kornia/kornia/pull/5946}{unsharp\_mask works on uint8 images} $\cdot$ \textbf{tox} (4k$\star$): \href{https://github.com/tox-dev/tox/pull/4161}{env files accept \texttt{export KEY=value}}, like dotenv.}
+\resumeitem{\textbf{fontTools} (7), \textbf{fpdf2} (134), \textbf{trafilatura}, \textbf{Authlib}, \textbf{Joblib}, \textbf{pydantic-extra-types}: clear errors for malformed fonts, browser-matching HTML/SVG rendering, input validation.}
+\end{projectitems}
+
+\section{Skills}
+
+\begin{tabularx}{\textwidth}{@{} l X @{}}
+\textbf{AI Security} & Prompt-injection defence, PII protection, output validation, guardrails, multi-tenant auth (JWT / RBAC) \\[1pt]
+\textbf{AI \& Agents} & LLMs, LangGraph, LangChain, multi-agent systems, tool calling, RAG, LLM evals, model comparison \\[1pt]
+\textbf{Backend} & Python, Java, FastAPI, Spring Boot, Kafka, REST, SSE / WebSockets, PostgreSQL, Redis \\[1pt]
+\textbf{Frontend} & TypeScript, Angular, React \\[1pt]
+\textbf{Cloud \& Ops} & Docker, Kubernetes, AWS, Vercel, Render, CI/CD, observability \\
+\end{tabularx}
+
+\section{Education}
+
+\jobheading{Future Institute of Engineering and Management}{Bachelor of Technology (Mechanical Engineering)}{2014 -- 2018}{CGPA: 8.7}
+
+\end{document}
