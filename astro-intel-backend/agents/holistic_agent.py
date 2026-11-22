@@ -181,6 +181,7 @@ def _chapter_story(
     nums: Dict[str, Any],
     reading: str,
     rag_remedy: str,
+    origin: Dict[str, str] | None = None,
 ) -> str:
     """Turn a chapter's RAG reading into a UNIQUE story arc for this chapter.
 
@@ -231,6 +232,8 @@ def _chapter_story(
             )
             story = (result or "").strip()
             if len(story) > 120 and "[HOOK]" in story:
+                if origin is not None:
+                    origin["by"] = "ai"
                 return _trim_beats(story)
             # Keep the best unlabelled-but-warm prose the model produced — it is
             # still second-person story voice, just missing the labels.
@@ -245,7 +248,11 @@ def _chapter_story(
     # clean chapter. Prefer the model's own prose over the textbook RAG reading.
     prose = last_prose if len(last_prose) > 120 else (reading or "").strip()
     if len(prose) > 120:
+        if origin is not None:
+            origin["by"] = "ai"          # the prose is the model's (or the model's reading of the books)
         return _trim_beats(_arc_from_prose(prose))
+    if origin is not None:
+        origin["by"] = "template"
     return (
         f"[HOOK] This chapter looks at {chapter['title'].lower()}.\n"
         f"[TENSION] Every strength here carries a matching challenge.\n"
@@ -340,8 +347,10 @@ def _build_chapter(
     """
     intent = chapter["intent"]
     story = ""
+    origin: Dict[str, str] = {}
     for _attempt in range(2):
-        story = _build_chapter_story(chapter, name, dob, nums)
+        origin = {}
+        story = _build_chapter_story(chapter, name, dob, nums, origin)
         if len(story) >= 500 and _GENERIC_MARKER not in story:
             break  # rich, specific chapter — good
         if _attempt == 0:
@@ -354,6 +363,9 @@ def _build_chapter(
         "intent": intent,
         "story": story,
         "numbers": nums,
+        "text_origin": origin.get("by", "template"),
+        # the passages the AI was given; turned into sources, then dropped (see holistic_agent_node)
+        "_passages": origin.get("passages", []) if origin.get("by") == "ai" else [],
     }
 
 
@@ -362,11 +374,13 @@ def _build_chapter_story(
     name: str,
     dob: str,
     nums: Dict[str, Any],
+    origin: Dict[str, str] | None = None,
 ) -> str:
     """One attempt: RAG reading -> unique story arc. Reuses the Q&A engine."""
     intent = chapter["intent"]
     guide = chapter["guide"]
 
+    given: list = []          # the book passages the AI is given for this chapter
     # 1) Grounded reading from the existing hybrid RAG answerer (book + LLM).
     reading = ""
     try:
@@ -382,6 +396,7 @@ def _build_chapter_story(
             intent=intent,
             question=guide,
             static_fallback="",
+            sink=given,
         )
     except Exception:
         reading = ""
@@ -392,7 +407,7 @@ def _build_chapter_story(
         from numerology_rag.retriever import retrieve_for_rag
         rag_remedy = retrieve_for_rag(
             life_path=nums["life_path"], intent=intent,
-            tradition="Indian Vedic Numerology", question=guide, top_k=3,
+            tradition="Indian Vedic Numerology", question=guide, top_k=3, sink=given,
         )
     except Exception:
         rag_remedy = ""
@@ -400,7 +415,9 @@ def _build_chapter_story(
     # 3) Weave into a story arc that is UNIQUE to this chapter — its own angle,
     #    its own opening, its own timing lens. This is what stops all 14 chapters
     #    reading the same. Falls back to the RAG reading if the LLM call fails.
-    return _chapter_story(chapter, name, nums, reading, rag_remedy)
+    if origin is not None:
+        origin["passages"] = given
+    return _chapter_story(chapter, name, nums, reading, rag_remedy, origin)
 
 
 def build_holistic_chapters(name: str, dob: str) -> List[Dict[str, Any]]:
@@ -437,6 +454,16 @@ def holistic_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
     dob = profile.get("date_of_birth", "")
 
     chapters = build_holistic_chapters(name, dob)
+    # Where each chapter comes from: book page and lines, and the numbers with their steps.
+    try:
+        from provenance.sources import attach_chapter_sources
+        attach_chapter_sources(chapters, profile)
+        for chapter in chapters:
+            chapter.pop("_passages", None)
+    except Exception as exc:  # the report must never fail because a source trail could not be built
+        for chapter in chapters:
+            chapter.pop("_passages", None)
+        state.setdefault("agent_log", []).append({"agent": "holistic_sources", "status": f"skipped: {exc}"})
     state["holistic_chapters"] = chapters
     state.setdefault("agent_log", []).append(
         {"agent": "holistic_agent", "status": "ok", "chapters": len(chapters)}

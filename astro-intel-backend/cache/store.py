@@ -60,6 +60,9 @@ def make_profile_key(profile: dict) -> str:
     return f"profile__{name_slug}__{hashed}"
 
 
+RESPONSE_SCHEMA = "v2-sources"
+
+
 def make_key(user_id: str, questions: list, user_question: str,
              profile: dict = None) -> str:
     """
@@ -79,7 +82,8 @@ def make_key(user_id: str, questions: list, user_question: str,
 
     query_blob  = "|".join(sorted(all_q))
     profile_key = make_profile_key(profile) if profile else "noprofile"
-    raw_key     = f"{profile_key}__{query_blob}"
+    # RESPONSE_SCHEMA changes when the shape of a stored response changes (v2: findings carry sources)
+    raw_key     = f"{RESPONSE_SCHEMA}__{profile_key}__{query_blob}"
     hashed      = hashlib.sha256(raw_key.encode()).hexdigest()[:16]
     return f"session__{hashed}"
 

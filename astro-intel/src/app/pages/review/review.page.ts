@@ -5,7 +5,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { OrchestratorService } from '../../services/orchestrator.service';
 import { ApiService, LanguageOption, RagCitation, RagEvidence } from '../../services/api.service';
-import { AdminInsight, AdminQuestion, InsightDetail } from '../../models/astro.models';
+import { AdminInsight, AdminQuestion, InsightDetail, SentenceTrail, SourceRef, SourceSummary } from '../../models/astro.models';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { AppFooterComponent } from '../../components/shared/app-footer.component';
@@ -174,6 +174,38 @@ const BACKEND = environment.apiUrl;
         </div>
       }
 
+      <!-- A finding sentence by sentence: the sentence, then the book page and lines, the calculation or the
+           note that it is the AI's own wording. Review only: none of it is printed in the report. -->
+      <ng-template #sentenceTrail let-sentences>
+        <div class="sent-list" data-testid="sentence-trail">
+          @for (sent of sentences; track $index; let n = $index) {
+            <div class="sent-row" data-testid="sentence-row">
+              <p class="sent-text"><span class="sent-no">{{ n + 1 }}</span>{{ sent.text }}</p>
+              <div class="sent-refs">
+                @for (r of sent.refs; track $index) {
+                  <div class="sent-ref" [attr.data-kind]="r.kind" [attr.data-relation]="r.relation"
+                       [class.sent-ref-warn]="r.ok === false">
+                    <span class="sent-tag">{{ sentenceTag(r) }}</span>
+                    <span class="sent-ref-body">
+                      @if (r.kind === 'book') {
+                        <b>{{ r.title }}</b> · {{ r.location }}
+                        @if (r.part) { <span class="sent-part"> · the part “{{ r.part }}”</span> }
+                        <em class="sent-quote">“{{ r.quote }}”</em>
+                      } @else if (r.kind === 'ai') {
+                        <span class="sent-line">{{ r.detail?.[0] }}</span>
+                      } @else {
+                        <b>{{ r.title }}</b>
+                        @for (line of r.detail ?? []; track $index) { <span class="sent-line">{{ line }}</span> }
+                      }
+                    </span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </ng-template>
+
       @for (qBlock of questionBlocks(); track qBlock.question; let qi = $index) {
         <div class="q-card">
 
@@ -230,14 +262,48 @@ const BACKEND = environment.apiUrl;
                       }
                     </div>
 
-                    <!-- Finding text -->
+                    <!-- Finding text: sentence by sentence, each with where it comes from -->
                     @if (editingId() === branch.insightId) {
                       <textarea class="ins-editor"
                         [value]="branch.content"
                         (input)="onEdit(branch.insightId, $event)"
                         rows="4"></textarea>
+                    } @else if (branch.sentences.length && !branch.edited) {
+                      <ng-container *ngTemplateOutlet="sentenceTrail; context: { $implicit: branch.sentences }"></ng-container>
                     } @else {
                       <p class="branch-text">{{ branch.content }}</p>
+                      @if (branch.sentences.length) {
+                        <div class="src-block">
+                          <details class="ev-panel src-panel" data-testid="edited-sentence-trail">
+                            <summary>You edited this finding · where each sentence of the original text came from</summary>
+                            <ng-container *ngTemplateOutlet="sentenceTrail; context: { $implicit: branch.sentences }"></ng-container>
+                          </details>
+                        </div>
+                      }
+                    }
+
+                    <!-- All the sources of the finding, in one list -->
+                    @if (branch.sources.length) {
+                      <div class="src-block" data-testid="finding-sources">
+                        <details class="ev-panel src-panel">
+                          <summary>Sources and evidence · {{ branch.sourceSummary?.headline }}</summary>
+                          <ol class="ev-sources">
+                            @for (s of branch.sources; track $index) {
+                              <li data-testid="finding-source">
+                                <b>{{ sourceKind(s) }}</b> {{ s.title }}
+                                @if (s.kind === 'book') {
+                                  <span>— {{ s.series }}, {{ s.location }} · {{ sourceRelation(s) }}</span>
+                                  <blockquote class="src-quote">“{{ s.quote }}”</blockquote>
+                                } @else {
+                                  @for (line of s.detail ?? []; track $index) {
+                                    <div class="src-line">{{ line }}</div>
+                                  }
+                                }
+                              </li>
+                            }
+                          </ol>
+                        </details>
+                      </div>
                     }
 
                     <!-- Domain-specific structured detail panel -->
@@ -681,7 +747,7 @@ const BACKEND = environment.apiUrl;
                   @if (rem.sources?.length) {
                     <div class="src-chips" data-testid="rag-remedy-sources">
                       @for (sid of rem.sources; track sid) {
-                        <span class="src-chip" [title]="citationFor(sid)?.snippet ?? ''">📖 {{ sid }} · {{ citationFor(sid)?.title ?? 'source' }}</span>
+                        <span class="src-chip" [title]="citationFor(sid)?.snippet ?? ''">📖 {{ sid }} · {{ citationFor(sid)?.title ?? 'source' }}{{ citationFor(sid)?.location ? ' · ' + citationFor(sid)?.location : '' }}</span>
                       }
                     </div>
                   }
@@ -714,7 +780,7 @@ const BACKEND = environment.apiUrl;
               <summary>Sources and evidence ({{ ragCitations().length }} passages)</summary>
               <ol class="ev-sources">
                 @for (c of ragCitations(); track c.id) {
-                  <li [class.ev-unused]="!c.used"><b>{{ c.id }}</b> {{ c.title }} — <span>{{ c.snippet }}</span></li>
+                  <li [class.ev-unused]="!c.used"><b>{{ c.id }}</b> {{ c.title }}{{ c.location ? ', ' + c.location : '' }} — <span>{{ c.snippet }}</span></li>
                 }
               </ol>
               @if (ragEvidence(); as ev) {
@@ -1993,6 +2059,39 @@ const BACKEND = environment.apiUrl;
 .ev-dropped { background: #fef3c7; color: #92400e; }
 .ev-quarantine { background: #fee2e2; color: #991b1b; }
 .ev-method { color: #6b7280; font-style: italic; margin-top: 6px; }
+.src-block { padding: 0 14px 8px; }
+.src-block .src-chips { margin-top: 0; }
+.src-chip-book { background: #eef6ff; color: #1e4e8c; border-color: rgba(30,78,140,0.25); }
+.src-panel { margin: 6px 0 0; }
+.src-quote { margin: 4px 0 0; padding: 4px 10px; border-left: 3px solid #d4af37; background: rgba(212,175,55,0.06);
+  color: #374151; font-style: italic; font-family: Georgia, serif; }
+.src-line { margin-top: 3px; color: #4b5563; }
+
+/* ── A finding sentence by sentence, with the source of each sentence ── */
+.sent-list { display: flex; flex-direction: column; }
+.sent-row { padding: 10px 14px; border-top: 1px dashed rgba(0,0,0,0.07); }
+.sent-row:first-child { border-top: none; }
+.sent-text { margin: 0; font-size: 13px; color: #374151; line-height: 1.7; font-family: Georgia, serif; }
+.sent-no {
+  display: inline-block; min-width: 18px; margin-right: 6px; padding: 0 5px; border-radius: 9px; text-align: center;
+  font: 700 10px/16px system-ui, sans-serif; color: #92600a; background: #faf5e6; border: 1px solid rgba(212,175,55,0.35);
+}
+.sent-refs { display: flex; flex-direction: column; gap: 4px; margin: 5px 0 0 24px; }
+.sent-ref {
+  display: flex; gap: 8px; align-items: baseline; font-size: 11.5px; line-height: 1.5; color: #4b5563;
+  padding: 3px 8px; border-radius: 6px; background: #faf8f2; border-left: 3px solid rgba(212,175,55,0.55);
+}
+.sent-ref[data-kind=book] { background: #eef6ff; border-left-color: rgba(30,78,140,0.5); }
+.sent-ref[data-kind=calculation] { background: #f3faf4; border-left-color: rgba(22,163,74,0.5); }
+.sent-ref[data-kind=ai], .sent-ref[data-kind=rule] { background: #f7f7f8; border-left-color: rgba(107,114,128,0.45); padding-top: 1px; padding-bottom: 1px; }
+.sent-ref[data-kind=ai] { font-size: 10.5px; color: #6b7280; }
+.sent-ref-warn { background: #fff4e5 !important; border-left-color: #d97706 !important; color: #92400e; }
+.sent-tag { flex: 0 0 auto; min-width: 92px; font-size: 9px; font-weight: 800; letter-spacing: 0.05em; color: #6b7280; }
+.sent-ref-warn .sent-tag { color: #b45309; }
+.sent-ref-body { flex: 1; }
+.sent-line { display: block; color: #4b5563; }
+.sent-part { color: #1e4e8c; }
+.sent-quote { display: block; margin-top: 1px; color: #4b5563; font-family: Georgia, serif; }
 .branch-text {
   margin: 0; padding: 12px 14px;
   font-size: 13px; color: #374151; line-height: 1.75;
@@ -2409,6 +2508,7 @@ export class ReviewPage {
       insightId: string; branchKey: string; branchLabel: string;
       content: string; confidence: string; edited: boolean;
       detail: InsightDetail;
+      sources: SourceRef[]; sourceSummary?: SourceSummary; sentences: SentenceTrail[];
     }>;
   }> {
     const qBlock = this.questionBlocks().find(q => q.question === question);
@@ -2454,9 +2554,37 @@ export class ReviewPage {
             confidence:  ins.confidence,
             edited:      !!ins.edited || !!this._branchEdits[ins.id],
             detail:      (ins.detail ?? {}) as InsightDetail,
+            sources:     ins.sources ?? [],
+            sourceSummary: ins.source_summary,
+            sentences:   ins.sentences ?? [],
           };
         }),
       }));
+  }
+
+  // ── Sources of a finding ─────────────────────────────────────────────────
+  sourceKind(s: SourceRef): string {
+    return ({ book: 'BOOK', calculation: 'CALCULATED', input: 'YOUR INPUT', rule: 'BUILT-IN TABLE', ai: 'AI WRITTEN' } as Record<string, string>)[s.kind] ?? s.kind;
+  }
+  sourceChip(s: SourceRef): string {
+    if (s.kind === 'book') return `📖 ${s.title} · ${s.location}`;
+    if (s.kind === 'calculation') return '🧮 Calculated from your details';
+    if (s.kind === 'input') return '✎ Your input';
+    if (s.kind === 'ai') return '✦ Written by the AI';
+    return '📋 Built-in table';
+  }
+  sourceRelation(s: SourceRef): string {
+    return s.relation === 'given_to_ai' ? 'the passage the AI was given' : 'says the same';
+  }
+  sentenceTag(r: SourceRef): string {
+    if (r.kind === 'book') {
+      return ({ says_same: 'BOOK', part_says_same: 'BOOK · PART', closest_given: 'BOOK · CLOSEST' } as Record<string, string>)[r.relation ?? ''] ?? 'BOOK';
+    }
+    if (r.kind === 'calculation') return r.ok === false ? 'CHECK THE NUMBER' : 'CALCULATED';
+    return ({ ai: "AI'S OWN WORDING", rule: 'BUILT-IN TEXT' } as Record<string, string>)[r.kind] ?? r.kind;
+  }
+  sourceTitle(s: SourceRef): string {
+    return s.kind === 'book' ? `“${s.quote}”` : s.title;
   }
 
   private _toTitleCase(s: string): string {

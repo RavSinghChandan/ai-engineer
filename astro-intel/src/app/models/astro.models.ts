@@ -77,6 +77,51 @@ export interface InsightDetail {
   [key: string]: any;
 }
 
+// ── Where a finding comes from ─────────────────────────────────────────────
+// book         a passage of the numerology books: exact title, page, lines and quote
+// calculation  a computation made from the birth details, with its steps
+// input        something the client entered in the form
+// rule         a table built into AstroIntel (not from a published book)
+// ai           wording written by the AI model from the numbers and book passages it was given
+export type SourceKind = 'book' | 'calculation' | 'input' | 'rule' | 'ai';
+
+export interface SourceRef {
+  kind: SourceKind;
+  title: string;
+  // book only
+  series?: string;
+  publisher?: string;
+  page?: number;
+  line_start?: number;
+  line_end?: number;
+  location?: string;      // e.g. "page 2, lines 15-17"
+  quote?: string;
+  page_end?: number;
+  match?: number;                       // share of the statement's key words the passage has
+  relation?: 'says_same' | 'part_says_same' | 'closest_given' | 'given_to_ai';
+  // says_same: the book says the same; part_says_same: a quoted phrase or clause is in the book;
+  // closest_given: the closest sentence of a passage the AI was given; given_to_ai: the passage the AI was given
+  part?: string;                        // the words of the sentence that the book says (part_says_same)
+  ok?: boolean;                         // a calculation: false when the sentence states a different number
+  retrieval_score?: number;
+  // calculation, input and rule
+  detail?: string[];
+}
+
+// One sentence of a finding with where it comes from (review page only: never printed in the PDF)
+export interface SentenceTrail {
+  text: string;
+  refs: SourceRef[];
+}
+
+export interface SourceSummary {
+  statements: number;
+  backed: number;
+  book_passages: number;
+  kinds: SourceKind[];
+  headline: string;
+}
+
 export interface AdminInsight {
   id: string;
   content: string;
@@ -87,6 +132,9 @@ export interface AdminInsight {
   editable: boolean;
   edited?: boolean;
   detail?: InsightDetail;
+  sources?: SourceRef[];
+  source_summary?: SourceSummary;
+  sentences?: SentenceTrail[];
 }
 
 export interface AdminQuestion {

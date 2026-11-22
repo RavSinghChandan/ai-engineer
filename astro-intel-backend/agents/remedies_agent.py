@@ -103,6 +103,27 @@ def build_remedies(
     used = {sid for r in remedies for sid in r["sources"]}
     return {
         "remedies": remedies,
-        "citations": public_citations(clean, used),
+        "citations": _with_locations(public_citations(clean, used), clean),
         "evidence": summarize(checks, quarantined),
     }
+
+
+def _with_locations(citations: List[Dict[str, Any]], sources: List[Any]) -> List[Dict[str, Any]]:
+    """Add the exact page and lines of the book to each citation (the part the AI was given)."""
+    try:
+        from provenance.books import get_index, location
+        index = get_index()
+        if index is None:
+            return citations
+        by_id = {s.id: s for s in sources}
+        for citation in citations:
+            src = by_id.get(citation["id"])
+            found = index.locate_passage(src.title, src.text[:400], (src.meta or {}).get("score", 0.0)) if src else None
+            if found:
+                citation.update({
+                    "series": found["series"], "page": found["page"], "page_end": found["page_end"],
+                    "line_start": found["line_start"], "line_end": found["line_end"], "location": location(found),
+                })
+    except Exception:  # a missing location must never lose the remedies
+        pass
+    return citations

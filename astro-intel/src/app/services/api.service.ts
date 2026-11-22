@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError, of } from 'rxjs';
 import { catchError, timeout } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
+import { SentenceTrail, SourceRef, SourceSummary } from '../models/astro.models';
 
 const BACKEND = environment.apiUrl;
 
@@ -101,6 +102,9 @@ export interface HolisticChapter {
   intent: string;
   story: string;
   numbers: Record<string, any>;
+  sources?: SourceRef[];
+  source_summary?: SourceSummary;
+  sentences?: SentenceTrail[];
 }
 
 export interface HolisticReview {
@@ -220,7 +224,11 @@ export interface TranslateResponse {
 }
 
 /** A retrieved passage the answer may cite (S1, S2, …). */
-export interface RagCitation { id: string; title: string; snippet: string; used: boolean; score?: number; }
+export interface RagCitation {
+  id: string; title: string; snippet: string; used: boolean; score?: number;
+  // where the passage is in the book (added by the backend when it can be found)
+  series?: string; page?: number; page_end?: number; line_start?: number; line_end?: number; location?: string;
+}
 
 /** How the answer was checked against the retrieved passages. */
 export interface RagEvidence {
