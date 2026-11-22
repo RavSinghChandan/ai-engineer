@@ -496,12 +496,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '326',
+      stat:  '328',
       title: 'Pull requests merged by other projects\' maintainers.',
       sub:   'People I had never met reviewed my code and accepted it: pypdf, fontTools, Pillow, fpdf2, trafilatura, txtai, kornia, tox, mistune, Docling, docTR, pikepdf, ezdxf, svglib, pdfannots, python-markdown2, marko, PyMuPDF, Soup Sieve, Camelot, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '326 merged, all reviewed! ✅',
+      aaravSay: '328 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -629,6 +629,26 @@ export class App implements OnInit, AfterViewInit {
   // ── Open Source: merged PRs into major libraries. Append a new entry per merge; the
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
+    {
+      repo: 'deeplook/svglib',
+      logo: 'svglib-logo.svg',
+      org: 'deeplook',
+      stars: '371★',
+      title: 'Read oklch() and oklab() colors',
+      desc: 'oklch() and oklab() of CSS Color 4, which appear in the SVG of design tools and in social preview images, were not read: the shape was not drawn. They are converted to sRGB with the matrices of Björn Ottosson, with the lightness as a number or a percentage, the hue with deg, grad, rad or turn units, none as 0 and an opacity after the slash. Merged by deeplook.',
+      pr: 'https://github.com/deeplook/svglib/pull/555',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'deeplook/svglib',
+      logo: 'svglib-logo.svg',
+      org: 'deeplook',
+      stars: '371★',
+      title: 'Clip away the elements of a clipPath without shapes',
+      desc: 'A <clipPath> without any shape clips everything away in browsers, because its clip region is empty. svglib returned no clipping path for it, so clip-path="url(#clip)" drew the whole element. Such an element is now clipped away. Merged by deeplook.',
+      pr: 'https://github.com/deeplook/svglib/pull/553',
+      merged: 'Nov 2026',
+    },
     {
       repo: 'camelot-dev/camelot',
       logo: 'camelot-logo.png',
@@ -4224,7 +4244,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defense','PII protection','Output validation','Secure tool use','Threat modeling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers, and own the result.',
-      evidence: '326 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
+      evidence: '328 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
