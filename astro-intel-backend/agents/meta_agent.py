@@ -101,6 +101,8 @@ def _build_structured_detail(domain: str, sub_agent: str, extra: Dict[str, Any],
         detail["strengths"]     = extra.get("strengths", [])
         detail["weaknesses"]    = extra.get("weaknesses", [])
         detail["traits"]        = traits
+        detail["text_origin"]   = extra.get("text_origin")
+        detail["given_passages"] = extra.get("given_passages")
 
     elif domain == "palmistry":
         detail["focus_insight"]       = extra.get("focus_insight", "")

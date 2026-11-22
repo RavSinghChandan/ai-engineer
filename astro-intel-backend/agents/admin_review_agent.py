@@ -220,6 +220,14 @@ def admin_review_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
     profile = state.get("user_profile", {})
     admin_review, scrub_count = filter_pii_from_admin_review(admin_review, profile)
 
+    # Where each finding comes from: book page and lines, or the calculation / table it rests on.
+    # Added after the PII filter on purpose: the source lines show the inputs a finding was made from.
+    try:
+        from provenance.sources import attach_sources
+        attach_sources(admin_review, state)
+    except Exception as exc:  # the review must never fail because a source trail could not be built
+        state.setdefault("agent_log", []).append(f"[AdminReviewAgent] sources skipped: {exc}")
+
     state["admin_review"] = admin_review
     total_insights = sum(len(q["insights"]) for q in admin_review["questions"])
     state.setdefault("agent_log", []).append(

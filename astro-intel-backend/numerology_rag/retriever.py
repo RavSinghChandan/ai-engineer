@@ -16,6 +16,7 @@ Controlled by env var RERANKER_ENABLED=true (default: false).
 from __future__ import annotations
 import json
 import os
+import threading
 import numpy as np
 from pathlib import Path
 from typing import Any
@@ -31,15 +32,25 @@ _model     = None
 _reranker  = None
 
 
+_load_lock = threading.Lock()
+
+
 def _load():
     global _index, _metadata, _model
-    if _index is not None:
+    if _model is not None:
         return
-    import faiss
-    from sentence_transformers import SentenceTransformer
-    _index    = faiss.read_index(str(INDEX_DIR / "faiss.index"))
-    _metadata = json.loads((INDEX_DIR / "metadata.json").read_text())
-    _model    = SentenceTransformer("all-MiniLM-L6-v2")
+    # The 360 report builds its chapters in parallel threads: without the lock a thread could see
+    # the index loaded but the model not yet, fail, and the chapter would get no book passages.
+    with _load_lock:
+        if _model is not None:
+            return
+        import faiss
+        from sentence_transformers import SentenceTransformer
+        index    = faiss.read_index(str(INDEX_DIR / "faiss.index"))
+        metadata = json.loads((INDEX_DIR / "metadata.json").read_text())
+        model    = SentenceTransformer("all-MiniLM-L6-v2")
+        _index, _metadata = index, metadata
+        _model = model          # set last: _model is what says everything is loaded
 
 
 def _load_reranker():
@@ -134,10 +145,13 @@ def retrieve_for_rag(
     question: str,
     personal_year: int | None = None,
     top_k: int = 4,
+    sink: list | None = None,
 ) -> str:
     """
     Build a RAG context string for injection into the LLM synthesis prompt.
-    Returns formatted text ready to paste into a prompt.
+    Returns formatted text ready to paste into a prompt. When `sink` is a list, the passages
+    that were put in the prompt are appended to it ({book, text, score}), so the caller can
+    say where the AI's material came from.
     """
     # Build a rich semantic query
     py_str = f"personal year {personal_year}" if personal_year else ""
@@ -155,6 +169,8 @@ def retrieve_for_rag(
     for i, c in enumerate(chunks, 1):
         lines.append(f"\n[Source {i}: {c['book']}]")
         lines.append(c["text"][:600])   # cap per chunk to control token cost
+        if sink is not None:
+            sink.append({"book": c["book"], "text": c["text"][:600], "score": c.get("score", 0.0)})
     return "\n".join(lines)
 
 

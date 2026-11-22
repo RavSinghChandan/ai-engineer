@@ -303,6 +303,9 @@ export class OrchestratorService {
           is_common:  true,
           editable:   true,
           edited:     false,
+          sources:        ch.sources ?? [],
+          source_summary: ch.source_summary,
+          sentences:      ch.sentences ?? [],
         }],
       })),
     };
@@ -350,9 +353,15 @@ export class OrchestratorService {
       qq.insights.some(i => (i.domains?.includes('numerology')) || /numerolog/i.test(i.sub_agent ?? ''))
     );
     const sections = await Promise.all(review.questions.map(async (q, qIndex) => {
+      // The sources and the sentence by sentence trail are for the admin's review only:
+      // they never go into the report that is printed and sent.
+      const forReport = (i: AdminInsight) => {
+        const { sources, source_summary, sentences, ...rest } = i;
+        return { ...rest, approved: true };
+      };
       const approved = q.insights
         .filter(i => approvedIds.includes(i.id))
-        .map(i => ({ ...i, approved: true }));
+        .map(forReport);
       // Build domain breakdown — exclude remedy/consensus insights
       const domain_breakdown: Record<string, string[]> = {};
       for (const ins of approved) {
@@ -363,7 +372,7 @@ export class OrchestratorService {
         }
       }
 
-      const insightsToGroup = approved.length > 0 ? approved : q.insights.map(i => ({ ...i, approved: true }));
+      const insightsToGroup = approved.length > 0 ? approved : q.insights.map(forReport);
 
       // First pass: collect insights per domain in order
       const domainInsightList: Record<string, Array<{content: string; sub_agent: string}>> = {};
@@ -492,7 +501,7 @@ export class OrchestratorService {
       const narrative = insightsToGroup.map(i => i.content.replace(/\.$/, '')).join('. ') + (insightsToGroup.length ? '.' : '');
       const simple_narrative = narrative;
 
-      const finalInsights = approved.length > 0 ? approved : q.insights.map(i => ({ ...i, approved: true }));
+      const finalInsights = approved.length > 0 ? approved : q.insights.map(forReport);
       return { question: q.question, intent: q.intent, narrative, simple_narrative, domain_summary, insights: finalInsights, domain_breakdown };
     }));
 
@@ -620,6 +629,9 @@ export class OrchestratorService {
             is_common:  i.is_common ?? false,
             editable:   true,
             edited:     false,
+            sources:        i.sources ?? [],
+            source_summary: i.source_summary,
+            sentences:      i.sentences ?? [],
           })),
         })),
       };

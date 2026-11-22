@@ -72,6 +72,7 @@ def hybrid_numerology_answer(
     question: str,
     static_fallback: str,
     timeout_seconds: int = 8,
+    sink: list | None = None,
 ) -> str:
     """
     Single-call hybrid: fetch RAG chunks (FAISS, fast) then one rich LLM call
@@ -89,7 +90,7 @@ def hybrid_numerology_answer(
         rag_context = retrieve_for_rag(
             life_path=life_path, intent=intent,
             tradition=tradition, question=question,
-            personal_year=py_now, top_k=4,
+            personal_year=py_now, top_k=4, sink=sink,
         )
     except Exception:
         pass

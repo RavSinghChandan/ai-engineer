@@ -174,6 +174,7 @@ def _run_sub_agent(name: str, dob: str, lmap: Dict[str, int], tradition: str, fo
 
     # Hybrid RAGless + RAG pipeline — falls back to static if it fails
     prediction = static_prediction
+    given: list = []          # the book passages the AI is given for this reading
     try:
         from numerology_rag.hybrid_engine import hybrid_numerology_answer
         prediction = hybrid_numerology_answer(
@@ -183,6 +184,7 @@ def _run_sub_agent(name: str, dob: str, lmap: Dict[str, int], tradition: str, fo
             tradition=tradition, intent=focus, question=question,
             static_fallback=static_prediction,
             timeout_seconds=7,
+            sink=given,
         )
     except Exception:
         pass  # keep static_prediction
@@ -194,6 +196,8 @@ def _run_sub_agent(name: str, dob: str, lmap: Dict[str, int], tradition: str, fo
         "traits":           t["traits"][:3],
         "confidence_hint":  "high" if lp in (1,3,5,7,9,11,22,33) else "medium",
         "extra": {
+            "text_origin": "ai" if prediction != static_prediction else "template",
+            "given_passages": given if prediction != static_prediction else [],
             "core_numbers": {
                 "life_path":   lp,
                 "destiny":     dest,

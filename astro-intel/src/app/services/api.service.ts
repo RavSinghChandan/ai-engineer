@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError, of } from 'rxjs';
 import { catchError, timeout } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
+import { SentenceTrail, SourceRef, SourceSummary } from '../models/astro.models';
 
 const BACKEND = environment.apiUrl;
 
@@ -101,6 +102,9 @@ export interface HolisticChapter {
   intent: string;
   story: string;
   numbers: Record<string, any>;
+  sources?: SourceRef[];
+  source_summary?: SourceSummary;
+  sentences?: SentenceTrail[];
 }
 
 export interface HolisticReview {
