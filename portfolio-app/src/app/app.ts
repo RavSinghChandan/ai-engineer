@@ -107,8 +107,8 @@ export class App implements OnInit, AfterViewInit {
   // ── Projects browser: sort + paginate, same pattern as open source ──────
   //    Each project card is long (challenges + screenshots), so one per page.
   readonly projPageSize = 1;
-  /** Flagship order: the three most forward-deployed stories lead. */
-  private readonly featuredOrder = ['01', '08', '09', '02', '05', '06', '03', '04', '07'];
+  /** Flagship order: Aura with Rav (AstroIntel) first, then Bench Resource Optimizer. */
+  private readonly featuredOrder = ['01', '02', '08', '09', '05', '06', '03', '04', '07'];
   isFlagship(num: string): boolean { return this.featuredOrder.indexOf(num) < 4; }
   projSort = signal<'featured' | 'newest' | 'oldest' | 'az' | 'tests'>('featured');
   projPage = signal(1);
@@ -181,7 +181,7 @@ export class App implements OnInit, AfterViewInit {
       liveUrl: 'https://aurawithrav.com',
       inProduction: true,
       title: 'Aura with Rav',
-      subtitle: 'Live AI Product — aurawithrav.com',
+      subtitle: 'AstroIntel · Live AI Product — aurawithrav.com',
       story: [
         { k: 'Problem', v: 'People want numerology and astrology readings in plain language, without jargon, and they want to ask their own questions.' },
         { k: 'Constraint', v: 'It is a public product: real sign-ups, untrusted input, AI cost and speed, and readings that must not make up facts.' },
