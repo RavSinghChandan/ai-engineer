@@ -496,12 +496,12 @@ export class App implements OnInit, AfterViewInit {
     {
       tag:   'TRUSTED',
       link:  '',
-      stat:  '339',
+      stat:  '342',
       title: 'Pull requests merged by other projects\' maintainers.',
       sub:   'People I had never met reviewed my code and accepted it: pypdf, fontTools, Pillow, fpdf2, trafilatura, txtai, kornia, tox, mistune, Docling, docTR, pikepdf, ezdxf, svglib, pdfannots, python-markdown2, marko, PyMuPDF, Soup Sieve, Camelot, pydantic-extra-types, Joblib, Sentence Transformers, NLTK and Authlib.',
       askQuestion: 'What kind of open-source contributions has Chandan merged?',
       aaravImg: 'guide-chandan-wow.svg',
-      aaravSay: '339 merged, all reviewed! ✅',
+      aaravSay: '342 merged, all reviewed! ✅',
       svgIcon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="10" r="4" stroke="currentColor" stroke-width="2"/>
         <circle cx="14" cy="38" r="4" stroke="currentColor" stroke-width="2"/>
@@ -657,6 +657,36 @@ export class App implements OnInit, AfterViewInit {
       title: 'Apply CSS rules to the stops of a gradient',
       desc: 'The stop-color and stop-opacity of a stop were read from its attributes and style attribute only, so a stop styled by a CSS rule was black. Illustrator exports gradients this way, with a class for each stop. The rules of every style element are now known before the gradients are read, and a style element applies to the whole document. Merged by deeplook.',
       pr: 'https://github.com/deeplook/svglib/pull/558',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'deeplook/svglib',
+      logo: 'svglib-logo.svg',
+      org: 'deeplook',
+      stars: '371★',
+      title: 'Limit the offset of a gradient stop to 0 to 1 and to at least the previous one',
+      desc: 'A gradient stop with an offset above 1, below 0 or before the previous stop was placed where the offset said, so the colors ran backwards or past the end of the gradient. The offset is now kept between 0 and 1 and is at least the offset of the previous stop, as in the specification. Merged by deeplook.',
+      pr: 'https://github.com/deeplook/svglib/pull/564',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'deeplook/svglib',
+      logo: 'svglib-logo.svg',
+      org: 'deeplook',
+      stars: '371★',
+      title: 'Take the attributes a gradient does not set from the gradient it refers to',
+      desc: 'A gradient that refers to another one with href did not take its coordinates, units and spread method from it, so a gradient that only added stops lost its direction. Each attribute the gradient does not set is now taken from the one it refers to, and the ones it sets are kept. Merged by deeplook.',
+      pr: 'https://github.com/deeplook/svglib/pull/563',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'deeplook/svglib',
+      logo: 'svglib-logo.svg',
+      org: 'deeplook',
+      stars: '371★',
+      title: 'Read var() in the stop-color and stop-opacity of a gradient stop',
+      desc: 'Figma writes the colors of a gradient as stop-color var(--fill-0, #171D25), and svglib did not read var() in a stop, so the stop and the whole gradient were black. The var() is now replaced by the custom property of the stop or of an ancestor, or by its fallback. I compared 6 gradients with Chrome. Merged by deeplook.',
+      pr: 'https://github.com/deeplook/svglib/pull/562',
       merged: 'Nov 2026',
     },
     {
@@ -4354,7 +4384,7 @@ export class App implements OnInit, AfterViewInit {
       labels: ['Prompt-injection defense','PII protection','Output validation','Secure tool use','Threat modeling'] },
     { title: 'Communication & Ownership', color: 'cyan', items: ['github','md','linkedin'],
       what: 'Explain the system to engineers, leaders and reviewers, and own the result.',
-      evidence: '339 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
+      evidence: '342 PRs merged after review by other projects\' maintainers. I teach AI on YouTube (AI with Rav) and wrote the AI System Design Blueprint, which explains 15 production patterns.',
       labels: ['Technical writing','Demos','Stakeholder updates','Code review','Teaching'] },
   ];
 
