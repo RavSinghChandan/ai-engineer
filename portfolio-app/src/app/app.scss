@@ -398,35 +398,78 @@ h1 {
 
 /* Community recognition: NeuML txtai v9.15.0 announcement */
 .rec-card {
+  --rec-g1: #86BC25; --rec-g2: #A6D86E; --rec-g3: #046A38;
+  position: relative; overflow: hidden;
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 1.6rem; align-items: center;
-  margin: 1.25rem 0 1.5rem; padding: 1.4rem; border: 1px solid var(--border); border-radius: 16px;
-  background: linear-gradient(135deg, var(--card-hi), var(--card)); box-shadow: var(--shadow);
-  animation: rec-in .7s ease both;
+  margin: 1.25rem 0 1.5rem; padding: 1.4rem; border: 1px solid rgba(134, 188, 37, 0.35); border-radius: 16px;
+  background:
+    radial-gradient(120% 90% at 0% 0%, rgba(134, 188, 37, 0.14), transparent 55%),
+    linear-gradient(135deg, var(--card-hi), var(--card));
+  box-shadow: var(--shadow); animation: rec-in .7s ease both;
 }
-.rec-copy { min-width: 0; }
+.rec-card::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(105deg, transparent 40%, rgba(166, 216, 110, 0.10) 50%, transparent 60%);
+  background-size: 250% 100%; animation: rec-sweep 7s ease-in-out infinite;
+}
+.rec-copy { min-width: 0; position: relative; }
+.rec-top { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1rem; }
+.rec-badge {
+  position: relative; display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.35rem 0.9rem 0.35rem 0.4rem;
+  border-radius: 999px; background: linear-gradient(135deg, rgba(134, 188, 37, 0.22), rgba(4, 106, 56, 0.25));
+  border: 1px solid rgba(166, 216, 110, 0.55); overflow: hidden;
+  box-shadow: 0 0 18px rgba(134, 188, 37, 0.25);
+}
+.rec-badge img { width: 38px; height: 38px; border-radius: 50%; background: #fff; padding: 3px; object-fit: contain; position: relative; }
+.rec-badge-ring { position: absolute; left: 0.4rem; width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--rec-g2); animation: rec-ring 2.4s ease-out infinite; }
+.rec-badge-text { display: flex; flex-direction: column; line-height: 1.15; position: relative; }
+.rec-badge-text b { font-size: 0.95rem; color: var(--text); letter-spacing: 0.02em; }
+.rec-badge-text i { font-style: normal; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--rec-g2); }
+.rec-badge::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, 0.35) 50%, transparent 65%);
+  transform: translateX(-120%); animation: rec-sheen 4.5s ease-in-out infinite;
+}
 .rec-eyebrow {
   display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.72rem; font-weight: 700;
   letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent-2);
 }
 .rec-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px rgba(134, 188, 37, 0.2); }
-.rec-h { font-size: clamp(1.25rem, 2.4vw, 1.6rem); line-height: 1.25; margin: 0.6rem 0 0.7rem; color: var(--text); }
-.rec-p { font-size: 0.95rem; line-height: 1.65; color: var(--text2); margin: 0 0 0.9rem; }
-.rec-thanks { font-style: italic; color: var(--text); }
-.rec-facts { list-style: none; margin: 0 0 0.95rem; padding: 0; display: flex; flex-wrap: wrap; gap: 0.6rem; }
-.rec-facts li {
-  display: flex; flex-direction: column; min-width: 6.2rem; padding: 0.55rem 0.8rem;
-  border: 1px solid var(--border); border-radius: 10px; background: var(--surface);
-  b { font-size: 1.35rem; line-height: 1.1; color: var(--accent-2); }
-  span { font-size: 0.74rem; color: var(--text3); margin-top: 0.15rem; }
+.rec-h { font-size: clamp(1.25rem, 2.4vw, 1.6rem); line-height: 1.25; margin: 0.8rem 0 0.8rem; color: var(--text); }
+.rec-glow {
+  background: linear-gradient(90deg, var(--rec-g3), var(--rec-g1), var(--rec-g2), var(--rec-g1), var(--rec-g3));
+  background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+  -webkit-text-fill-color: transparent; animation: rec-shimmer 4s linear infinite;
 }
-.rec-links { display: flex; flex-wrap: wrap; gap: 0.5rem 0.9rem; }
-.rec-links a { font-size: 0.84rem; color: var(--accent); text-decoration: none; }
-.rec-links a:hover, .rec-links a:focus-visible { text-decoration: underline; }
-.rec-fig { margin: 0; min-width: 0; }
+.rec-points { list-style: none; margin: 0 0 0.9rem; padding: 0; display: grid; gap: 0.5rem; }
+.rec-points li {
+  position: relative; padding-left: 1.7rem; font-size: 0.95rem; line-height: 1.45; color: var(--text2);
+  opacity: 0; transform: translateX(-10px); animation: rec-rise .6s ease calc(0.35s + var(--i) * 0.18s) forwards;
+}
+.rec-points b { color: var(--accent-2); font-weight: 700; }
+.rec-points a { color: var(--accent); text-decoration: none; font-weight: 600; }
+.rec-points a:hover, .rec-points a:focus-visible { text-decoration: underline; }
+.rec-tick {
+  position: absolute; left: 0; top: 0.2em; width: 1.1rem; height: 1.1rem; border-radius: 50%;
+  background: rgba(134, 188, 37, 0.2); border: 1px solid var(--accent);
+}
+.rec-tick::after {
+  content: ""; position: absolute; left: 0.3rem; top: 0.12rem; width: 0.28rem; height: 0.5rem;
+  border: solid var(--accent-2); border-width: 0 2px 2px 0; transform: rotate(45deg);
+}
+.rec-thanks { font-size: 0.95rem; line-height: 1.6; font-style: italic; color: var(--text); margin: 0 0 0.9rem; }
+.rec-hl { font-style: normal; font-weight: 700; color: var(--text); animation: rec-hl 7.5s ease-in-out infinite; animation-delay: var(--d); }
+.rec-links { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.rec-links a {
+  font-size: 0.82rem; font-weight: 600; color: var(--accent-2); text-decoration: none; padding: 0.35rem 0.8rem;
+  border: 1px solid rgba(134, 188, 37, 0.5); border-radius: 999px; transition: background .2s, transform .2s;
+}
+.rec-links a:hover, .rec-links a:focus-visible { background: rgba(134, 188, 37, 0.18); transform: translateY(-1px); }
+.rec-fig { margin: 0; min-width: 0; position: relative; }
 .rec-fig figcaption { margin-top: 0.5rem; font-size: 0.74rem; color: var(--text3); text-align: center; }
 .rec-shot {
   position: relative; display: block; width: 100%; padding: 0; border: 1px solid var(--border2); border-radius: 12px;
-  overflow: hidden; background: #111; cursor: zoom-in; line-height: 0;
+  overflow: hidden; background: #111; cursor: zoom-in; line-height: 0; container-type: inline-size;
   transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
 }
 .rec-shot img { display: block; width: 100%; height: auto; }
@@ -436,26 +479,61 @@ h1 {
   font-size: 0.74rem; font-weight: 600; color: #fff; background: rgba(0, 0, 0, 0.65); border: 1px solid rgba(255, 255, 255, 0.18);
   backdrop-filter: blur(4px);
 }
+/* The green ring and arrow on my photo in the contributor wall: placed in % of the image */
+.rec-mark { position: absolute; left: 61.9%; top: 34.2%; width: 6.8%; aspect-ratio: 1; transform: translate(-50%, -50%); pointer-events: none; container-type: inline-size; }
+.rec-mark-ring {
+  position: absolute; inset: -6%; border-radius: 50%; border: 3px solid #86BC25;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.35), 0 0 16px 3px rgba(134, 188, 37, 0.9);
+  animation: rec-ping 1.8s ease-in-out infinite;
+}
+.rec-mark-ring::after {
+  content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid #A6D86E; opacity: 0;
+  animation: rec-ring 1.8s ease-out infinite;
+}
+.rec-mark-arrow {
+  position: absolute; left: 112%; top: 50%; display: flex; align-items: center; transform: translateY(-50%);
+  animation: rec-nudge 1.2s ease-in-out infinite; white-space: nowrap;
+}
+.rec-mark-arrow svg { width: 150cqw; min-width: 22px; height: auto; fill: #86BC25; filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 6px rgba(134, 188, 37, 0.8)); }
+.rec-mark-arrow em {
+  margin-left: -2px; padding: 0.15em 0.55em; border-radius: 999px; font-style: normal; font-weight: 800; line-height: 1.2;
+  font-size: clamp(0.55rem, 62cqw, 0.85rem); color: #0b1a00; background: #A6D86E; box-shadow: 0 0 10px rgba(134, 188, 37, 0.8);
+}
+/* Light theme: darker greens, so the text stays readable on a light card */
+:host-context([data-theme="light"]) .rec-badge-text i,
+:host-context([data-theme="light"]) .rec-points b,
+:host-context([data-theme="light"]) .rec-links a { color: #046A38; }
+:host-context([data-theme="light"]) .rec-hl { animation-name: rec-hl-light; }
+@keyframes rec-hl-light { 0%, 36%, 100% { color: var(--text); } 8%, 28% { color: #046A38; } }
 @keyframes rec-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes rec-rise { to { opacity: 1; transform: none; } }
+@keyframes rec-shimmer { to { background-position: -250% 0; } }
+@keyframes rec-sweep { 0% { background-position: 120% 0; } 60%, 100% { background-position: -120% 0; } }
+@keyframes rec-sheen { 0%, 55% { transform: translateX(-120%); } 85%, 100% { transform: translateX(120%); } }
+@keyframes rec-ring { 0% { transform: scale(0.9); opacity: 0.9; } 100% { transform: scale(1.7); opacity: 0; } }
+@keyframes rec-ping { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+@keyframes rec-nudge { 0%, 100% { transform: translate(0, -50%); } 50% { transform: translate(-14%, -50%); } }
+@keyframes rec-hl { 0%, 36%, 100% { color: var(--text); text-shadow: none; } 8%, 28% { color: #A6D86E; text-shadow: 0 0 14px rgba(134, 188, 37, 0.85); } }
 @media (max-width: 860px) {
   .rec-card { grid-template-columns: 1fr; padding: 1.1rem; gap: 1.1rem; }
   .rec-fig { order: -1; }
 }
 @media (max-width: 520px) {
-  .rec-facts { flex-wrap: nowrap; gap: 0.4rem; }
-  .rec-facts li { flex: 1 1 0; min-width: 0; padding: 0.5rem 0.55rem; }
-  .rec-facts li b { font-size: 1.2rem; }
-  .rec-facts li span { font-size: 0.68rem; }
+  .rec-points li { font-size: 0.9rem; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .rec-card { animation: none; }
+  .rec-card, .rec-card::before, .rec-badge::after, .rec-badge-ring, .rec-glow, .rec-points li, .rec-mark-ring,
+  .rec-mark-ring::after, .rec-mark-arrow, .rec-hl { animation: none; }
+  .rec-points li { opacity: 1; transform: none; }
   .rec-shot { transition: none; }
 }
 .shot-overlay {
   position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center;
   padding: 3.2rem 1rem 1rem; background: rgba(0, 0, 0, 0.88); cursor: zoom-out; animation: rec-fade .2s ease both;
 }
-.shot-img { max-width: 100%; max-height: 100%; width: auto; height: auto; border-radius: 10px; cursor: default; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6); }
+.shot-wrap { position: relative; display: flex; max-width: 100%; max-height: 100%; cursor: default; }
+.shot-img { display: block; max-width: 100%; max-height: calc(100vh - 4.5rem); width: auto; height: auto; border-radius: 10px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6); }
+.shot-wrap .rec-mark-ring { border-width: 4px; }
 .shot-close {
   position: absolute; top: 0.8rem; right: 0.9rem; width: 2.4rem; height: 2.4rem; border-radius: 50%;
   border: 1px solid var(--border2); background: rgba(255, 255, 255, 0.08); color: #fff; font-size: 1rem; cursor: pointer;
@@ -464,7 +542,8 @@ h1 {
 @media (max-width: 700px) {
   /* A phone is too narrow to read the screenshot fitted to the screen: show it larger and let it scroll */
   .shot-overlay { display: block; overflow: auto; padding: 3.2rem 0.5rem 1rem; -webkit-overflow-scrolling: touch; }
-  .shot-img { max-width: none; width: 980px; height: auto; display: block; }
+  .shot-wrap { display: block; width: 980px; max-width: none; max-height: none; }
+  .shot-img { max-width: none; max-height: none; width: 100%; height: auto; }
 }
 @keyframes rec-fade { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .shot-overlay { animation: none; } }

@@ -1279,26 +1279,38 @@
     <!-- Community recognition: NeuML's txtai v9.15.0 release announcement -->
     <article class="rec-card" aria-labelledby="rec-h">
       <div class="rec-copy">
-        <span class="rec-eyebrow"><i class="rec-dot ck-spark" aria-hidden="true"></i>Community Recognition</span>
-        <h3 class="rec-h" id="rec-h">Recognition from the open-source community</h3>
-        <p class="rec-p">An especially meaningful milestone in my open-source journey. NeuML, the team behind txtai, announced the txtai v9.15.0 release on LinkedIn with a wall of its contributors, and my photo is on it. The release notes credit two of my merged pull requests.</p>
-        <ul class="rec-facts" aria-label="txtai v9.15.0 in numbers, from the announcement">
-          <li><b>240+</b><span>issues resolved</span></li>
-          <li><b>58</b><span>contributors</span></li>
-          <li><b>49</b><span>first-time contributors</span></li>
+        <div class="rec-top">
+          <div class="rec-badge" role="img" aria-label="txtai v9.15.0 contributor badge">
+            <span class="rec-badge-ring" aria-hidden="true"></span>
+            <img src="txtai-logo.png" alt="" width="44" height="44" />
+            <span class="rec-badge-text"><b>txtai</b><i>v9.15.0 contributor</i></span>
+          </div>
+          <span class="rec-eyebrow"><i class="rec-dot ck-spark" aria-hidden="true"></i>Community Recognition</span>
+        </div>
+        <h3 class="rec-h" id="rec-h">Recognition from the <span class="rec-glow">open-source community</span></h3>
+        <ul class="rec-points">
+          <li style="--i:0"><span class="rec-tick" aria-hidden="true"></span>Featured in NeuML's <b>txtai v9.15.0</b> release announcement</li>
+          <li style="--i:1"><span class="rec-tick" aria-hidden="true"></span><b>2 merged PRs</b> credited in the release notes:
+            <a href="https://github.com/neuml/txtai/pull/1408" target="_blank" rel="noopener">#1408</a>,
+            <a href="https://github.com/neuml/txtai/pull/1422" target="_blank" rel="noopener">#1422</a></li>
+          <li style="--i:2"><span class="rec-tick" aria-hidden="true"></span>One of <b>58 contributors</b>, <b>49 first-timers</b>, <b>240+ issues</b> resolved</li>
         </ul>
-        <p class="rec-p rec-thanks">Grateful to be part of a community that believes in building, sharing and learning together.</p>
+        <p class="rec-thanks">Grateful to be part of a community that believes in
+          <b class="rec-hl" style="--d:0s">building</b>, <b class="rec-hl" style="--d:2.5s">sharing</b> and
+          <b class="rec-hl" style="--d:5s">learning</b> together.</p>
         <div class="rec-links">
-          <a href="https://github.com/neuml/txtai/releases/tag/v9.15.0" target="_blank" rel="noopener">txtai v9.15.0 release notes ↗</a>
-          <a href="https://github.com/neuml/txtai/pull/1408" target="_blank" rel="noopener">My PR #1408 ↗</a>
-          <a href="https://github.com/neuml/txtai/pull/1422" target="_blank" rel="noopener">My PR #1422 ↗</a>
+          <a href="https://github.com/neuml/txtai/releases/tag/v9.15.0" target="_blank" rel="noopener">Release notes ↗</a>
           <a href="https://github.com/RavSinghChandan" target="_blank" rel="noopener">GitHub profile ↗</a>
         </div>
       </div>
       <figure class="rec-fig">
         <button type="button" class="rec-shot" (click)="openShot()" aria-label="Open the full-size screenshot of the NeuML announcement">
           <img src="txtai-v9-15-recognition.jpg" width="2000" height="1111" loading="lazy" decoding="async"
-               alt="Screenshot of NeuML's LinkedIn post announcing txtai v9.15.0. A wall of 58 contributor photos is shown, and a comment thread beside it." />
+               alt="Screenshot of NeuML's LinkedIn post announcing txtai v9.15.0. A wall of 58 contributor photos is shown, with mine marked by a green arrow, and a comment thread beside it." />
+          <span class="rec-mark" aria-hidden="true">
+            <span class="rec-mark-ring"></span>
+            <span class="rec-mark-arrow"><svg viewBox="0 0 40 24"><path d="M2 12 L16 2 V8 H38 V16 H16 V22 Z"/></svg><em>That's me</em></span>
+          </span>
           <span class="rec-zoom" aria-hidden="true">⤢ View larger</span>
         </button>
         <figcaption>NeuML's LinkedIn announcement of txtai v9.15.0 (screenshot)</figcaption>
@@ -1655,8 +1667,14 @@
 @if (shotOpen()) {
   <div class="shot-overlay" (click)="closeShot()" role="dialog" aria-modal="true" aria-label="NeuML txtai v9.15.0 announcement, full size">
     <button type="button" class="shot-close" (click)="closeShot()" aria-label="Close">✕</button>
-    <img class="shot-img" src="txtai-v9-15-recognition.jpg" (click)="$event.stopPropagation()"
-         alt="Full-size screenshot of NeuML's LinkedIn post announcing txtai v9.15.0, with the contributor wall and comments." />
+    <div class="shot-wrap" (click)="$event.stopPropagation()">
+      <img class="shot-img" src="txtai-v9-15-recognition.jpg"
+           alt="Full-size screenshot of NeuML's LinkedIn post announcing txtai v9.15.0, with the contributor wall, my photo marked by a green arrow, and comments." />
+      <span class="rec-mark" aria-hidden="true">
+        <span class="rec-mark-ring"></span>
+        <span class="rec-mark-arrow"><svg viewBox="0 0 40 24"><path d="M2 12 L16 2 V8 H38 V16 H16 V22 Z"/></svg><em>That's me</em></span>
+      </span>
+    </div>
   </div>
 }
 
