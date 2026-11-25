@@ -1276,6 +1276,34 @@
         <p class="oss-sub"><b>{{ openSource.length }} merged contributions</b> to libraries that Python and AI developers use every day: pypdf · fontTools · Pillow · fpdf2 · trafilatura · pydantic-extra-types · txtai · kornia · tox · mistune · Docling · docTR · Joblib · Sentence Transformers · NLTK · Authlib.</p>
       </div>
     </div>
+    <!-- Community recognition: NeuML's txtai v9.15.0 release announcement -->
+    <article class="rec-card" aria-labelledby="rec-h">
+      <div class="rec-copy">
+        <span class="rec-eyebrow"><i class="rec-dot ck-spark" aria-hidden="true"></i>Community Recognition</span>
+        <h3 class="rec-h" id="rec-h">Recognition from the open-source community</h3>
+        <p class="rec-p">An especially meaningful milestone in my open-source journey. NeuML, the team behind txtai, announced the txtai v9.15.0 release on LinkedIn with a wall of its contributors, and my photo is on it. The release notes credit two of my merged pull requests.</p>
+        <ul class="rec-facts" aria-label="txtai v9.15.0 in numbers, from the announcement">
+          <li><b>240+</b><span>issues resolved</span></li>
+          <li><b>58</b><span>contributors</span></li>
+          <li><b>49</b><span>first-time contributors</span></li>
+        </ul>
+        <p class="rec-p rec-thanks">Grateful to be part of a community that believes in building, sharing and learning together.</p>
+        <div class="rec-links">
+          <a href="https://github.com/neuml/txtai/releases/tag/v9.15.0" target="_blank" rel="noopener">txtai v9.15.0 release notes ↗</a>
+          <a href="https://github.com/neuml/txtai/pull/1408" target="_blank" rel="noopener">My PR #1408 ↗</a>
+          <a href="https://github.com/neuml/txtai/pull/1422" target="_blank" rel="noopener">My PR #1422 ↗</a>
+          <a href="https://github.com/RavSinghChandan" target="_blank" rel="noopener">GitHub profile ↗</a>
+        </div>
+      </div>
+      <figure class="rec-fig">
+        <button type="button" class="rec-shot" (click)="openShot()" aria-label="Open the full-size screenshot of the NeuML announcement">
+          <img src="txtai-v9-15-recognition.jpg" width="2000" height="1111" loading="lazy" decoding="async"
+               alt="Screenshot of NeuML's LinkedIn post announcing txtai v9.15.0. A wall of 58 contributor photos is shown, and a comment thread beside it." />
+          <span class="rec-zoom" aria-hidden="true">⤢ View larger</span>
+        </button>
+        <figcaption>NeuML's LinkedIn announcement of txtai v9.15.0 (screenshot)</figcaption>
+      </figure>
+    </article>
     <proof-viz kind="MONTHS" [prs]="openSource" [colorOf]="libColorOf" class="oss-months" />
     <!-- In review: my open PRs, read live from GitHub (cached 15 min with the merged count) -->
     @if (live.openCount(); as openN) {
@@ -1622,6 +1650,15 @@
 </section>
 
 
+
+<!-- COMMUNITY RECOGNITION LIGHTBOX -->
+@if (shotOpen()) {
+  <div class="shot-overlay" (click)="closeShot()" role="dialog" aria-modal="true" aria-label="NeuML txtai v9.15.0 announcement, full size">
+    <button type="button" class="shot-close" (click)="closeShot()" aria-label="Close">✕</button>
+    <img class="shot-img" src="txtai-v9-15-recognition.jpg" (click)="$event.stopPropagation()"
+         alt="Full-size screenshot of NeuML's LinkedIn post announcing txtai v9.15.0, with the contributor wall and comments." />
+  </div>
+}
 
 <!-- DEMO MODAL -->
 @if (demoOpen()) {

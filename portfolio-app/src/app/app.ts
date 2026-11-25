@@ -5006,8 +5006,22 @@ export class App implements OnInit, AfterViewInit {
     this.demoSlide.set((this.demoSlide() - 1 + proj.slides.length) % proj.slides.length);
   }
 
+  // ── COMMUNITY RECOGNITION: full-size screenshot ─────────────────
+  shotOpen = signal(false);
+
+  openShot() {
+    this.shotOpen.set(true);
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeShot() {
+    this.shotOpen.set(false);
+    document.body.style.overflow = '';
+  }
+
   @HostListener('window:keydown', ['$event'])
   onKeyDown(e: KeyboardEvent) {
+    if (this.shotOpen() && e.key === 'Escape') { this.closeShot(); return; }
     if (!this.demoOpen()) return;
     if (e.key === 'Escape')     { this.closeDemo(); return; }
     if (e.key === 'ArrowRight') { e.preventDefault(); this.demoNext(); }
