@@ -548,6 +548,44 @@ h1 {
 @keyframes rec-fade { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .shot-overlay { animation: none; } }
 
+/* The LinkedIn recommendation of the creator of txtai */
+.rec-letter {
+  --rec-g1: #86BC25; --rec-g2: #A6D86E; --rec-g3: #046A38;
+  position: relative; overflow: hidden; margin: 0 0 1.5rem; padding: 1.3rem 1.4rem; border-radius: 16px;
+  border: 1px solid rgba(134, 188, 37, 0.35);
+  background: radial-gradient(110% 100% at 100% 0%, rgba(134, 188, 37, 0.14), transparent 55%), linear-gradient(135deg, var(--card-hi), var(--card));
+  box-shadow: var(--shadow); animation: rec-in .7s ease .1s both;
+}
+.rec-letter::before {
+  content: "\201C"; position: absolute; top: -0.35em; right: 0.15em; font-size: 9rem; line-height: 1; font-family: Georgia, serif;
+  color: rgba(134, 188, 37, 0.12); pointer-events: none; animation: rec-float 6s ease-in-out infinite;
+}
+.rec-letter-head { position: relative; display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 0.9rem; }
+.rec-letter-badge {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0.8rem; border-radius: 999px;
+  font-size: 0.72rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent-2);
+  background: rgba(134, 188, 37, 0.14); border: 1px solid rgba(166, 216, 110, 0.55); box-shadow: 0 0 16px rgba(134, 188, 37, 0.25);
+}
+.rec-letter-h { margin: 0; font-size: clamp(1.1rem, 2.2vw, 1.4rem); line-height: 1.3; color: var(--text); }
+.rec-quotes { position: relative; list-style: none; margin: 0 0 0.7rem; padding: 0; display: flex; flex-wrap: wrap; gap: 0.55rem; }
+.rec-quotes li {
+  padding: 0.45rem 0.85rem; border-radius: 999px; font-size: 0.95rem; color: var(--text2);
+  background: var(--surface); border: 1px solid var(--border);
+  opacity: 0; transform: translateY(8px); animation: rec-rise .6s ease calc(0.3s + var(--i) * 0.2s) forwards;
+}
+.rec-quotes b { font-weight: 700; color: var(--text); animation: rec-hl 7.5s ease-in-out infinite; animation-delay: calc(var(--i) * 2.5s); }
+.rec-letter-thanks { position: relative; margin: 0 0 1rem; font-style: italic; font-size: 0.95rem; color: var(--text2); }
+.rec-shot--wide { margin-bottom: 0.9rem; }
+.rec-letter .rec-links { position: relative; }
+@keyframes rec-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
+:host-context([data-theme="light"]) .rec-letter-badge { color: #046A38; }
+:host-context([data-theme="light"]) .rec-quotes b { animation-name: rec-hl-light; }
+@media (max-width: 520px) { .rec-quotes li { font-size: 0.88rem; } .rec-letter { padding: 1.1rem; } }
+@media (prefers-reduced-motion: reduce) {
+  .rec-letter, .rec-letter::before, .rec-quotes li, .rec-quotes b { animation: none; }
+  .rec-quotes li { opacity: 1; transform: none; }
+}
+
 /* In review: open PRs, live from GitHub */
 .oss-review {
   margin: 1rem 0 1.25rem; padding: 0.9rem 1rem; border: 1px solid var(--border); border-radius: 12px;

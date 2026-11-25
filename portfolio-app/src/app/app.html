@@ -1293,7 +1293,8 @@
           <li style="--i:1"><span class="rec-tick" aria-hidden="true"></span><b>2 merged PRs</b> credited in the release notes:
             <a href="https://github.com/neuml/txtai/pull/1408" target="_blank" rel="noopener">#1408</a>,
             <a href="https://github.com/neuml/txtai/pull/1422" target="_blank" rel="noopener">#1422</a></li>
-          <li style="--i:2"><span class="rec-tick" aria-hidden="true"></span>One of <b>58 contributors</b>, <b>49 first-timers</b>, <b>240+ issues</b> resolved</li>
+          <li style="--i:2"><span class="rec-tick" aria-hidden="true"></span>A <b>LinkedIn recommendation</b> from David Mezzetti, creator of txtai</li>
+          <li style="--i:3"><span class="rec-tick" aria-hidden="true"></span>One of <b>58 contributors</b>, <b>49 first-timers</b>, <b>240+ issues</b> resolved</li>
         </ul>
         <p class="rec-thanks">Grateful to be part of a community that believes in
           <b class="rec-hl" style="--d:0s">building</b>, <b class="rec-hl" style="--d:2.5s">sharing</b> and
@@ -1315,6 +1316,27 @@
         </button>
         <figcaption>NeuML's LinkedIn announcement of txtai v9.15.0 (screenshot)</figcaption>
       </figure>
+    </article>
+    <!-- The LinkedIn recommendation of the creator of txtai -->
+    <article class="rec-letter" aria-labelledby="rec-letter-h">
+      <div class="rec-letter-head">
+        <span class="rec-letter-badge"><i class="rec-dot ck-spark" aria-hidden="true"></i>LinkedIn recommendation</span>
+        <h3 class="rec-letter-h" id="rec-letter-h">From <span class="rec-glow">David Mezzetti</span>, founder of NeuML and creator of txtai</h3>
+      </div>
+      <ul class="rec-quotes">
+        <li style="--i:0">&ldquo;<b>a solid software engineer</b>&rdquo;</li>
+        <li style="--i:1">&ldquo;<b>diligent in his work</b>&rdquo;</li>
+        <li style="--i:2">&ldquo;<b>rapidly addressed all feedback</b> as requested&rdquo;</li>
+      </ul>
+      <p class="rec-letter-thanks">&ldquo;Thank you for the contributions to the open source community!&rdquo;</p>
+      <button type="button" class="rec-shot rec-shot--wide" (click)="openShot('recommendation')" aria-label="Open the full-size screenshot of the LinkedIn recommendation">
+        <img src="linkedin-recommendation-neuml.jpg" width="1600" height="405" loading="lazy" decoding="async"
+             alt="Screenshot of the LinkedIn recommendation written by David Mezzetti, Founder of NeuML and creator of txtai, dated November 25, 2026." />
+        <span class="rec-zoom" aria-hidden="true">⤢ View larger</span>
+      </button>
+      <div class="rec-links">
+        <a href="https://github.com/neuml/txtai/pulls?q=assignee%3ARavSinghChandan" target="_blank" rel="noopener">My txtai PRs ↗</a>
+      </div>
     </article>
     <proof-viz kind="MONTHS" [prs]="openSource" [colorOf]="libColorOf" class="oss-months" />
     <!-- In review: my open PRs, read live from GitHub (cached 15 min with the merged count) -->
@@ -1665,15 +1687,21 @@
 
 <!-- COMMUNITY RECOGNITION LIGHTBOX -->
 @if (shotOpen()) {
-  <div class="shot-overlay" (click)="closeShot()" role="dialog" aria-modal="true" aria-label="NeuML txtai v9.15.0 announcement, full size">
+  <div class="shot-overlay" (click)="closeShot()" role="dialog" aria-modal="true"
+       [attr.aria-label]="shotKind() === 'wall' ? 'NeuML txtai v9.15.0 announcement, full size' : 'LinkedIn recommendation from David Mezzetti, full size'">
     <button type="button" class="shot-close" (click)="closeShot()" aria-label="Close">✕</button>
     <div class="shot-wrap" (click)="$event.stopPropagation()">
-      <img class="shot-img" src="txtai-v9-15-recognition.jpg"
-           alt="Full-size screenshot of NeuML's LinkedIn post announcing txtai v9.15.0, with the contributor wall, my photo marked by a green arrow, and comments." />
-      <span class="rec-mark" aria-hidden="true">
-        <span class="rec-mark-ring"></span>
-        <span class="rec-mark-arrow"><svg viewBox="0 0 40 24"><path d="M2 12 L16 2 V8 H38 V16 H16 V22 Z"/></svg><em>That's me</em></span>
-      </span>
+      @if (shotKind() === 'wall') {
+        <img class="shot-img" src="txtai-v9-15-recognition.jpg"
+             alt="Full-size screenshot of NeuML's LinkedIn post announcing txtai v9.15.0, with the contributor wall, my photo marked by a green arrow, and comments." />
+        <span class="rec-mark" aria-hidden="true">
+          <span class="rec-mark-ring"></span>
+          <span class="rec-mark-arrow"><svg viewBox="0 0 40 24"><path d="M2 12 L16 2 V8 H38 V16 H16 V22 Z"/></svg><em>That's me</em></span>
+        </span>
+      } @else {
+        <img class="shot-img" src="linkedin-recommendation-neuml.jpg"
+             alt="Full-size screenshot of the LinkedIn recommendation written by David Mezzetti, Founder of NeuML and creator of txtai, dated November 25, 2026." />
+      }
     </div>
   </div>
 }

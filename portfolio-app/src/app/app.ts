@@ -5068,8 +5068,11 @@ export class App implements OnInit, AfterViewInit {
 
   // ── COMMUNITY RECOGNITION: full-size screenshot ─────────────────
   shotOpen = signal(false);
+  // the screenshot shown: the contributor wall of the announcement, or the recommendation
+  shotKind = signal<'wall' | 'recommendation'>('wall');
 
-  openShot() {
+  openShot(kind: 'wall' | 'recommendation' = 'wall') {
+    this.shotKind.set(kind);
     this.shotOpen.set(true);
     document.body.style.overflow = 'hidden';
   }
