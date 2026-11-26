@@ -630,6 +630,26 @@ export class App implements OnInit, AfterViewInit {
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
     {
+      repo: 'frostming/marko',
+      logo: 'marko-logo.svg',
+      org: 'frostming',
+      stars: '470★',
+      title: 'Keep the marker of a list item that starts with an empty quote when re-rendering Markdown',
+      desc: 'A list item that starts with an empty quote (a dash followed by a lone greater-than sign) lost its marker when MarkdownRenderer wrote it back and came out as an indented quote. The empty quote renders as a blank line, which wrote the prefix of the following lines instead of the first line of the item. render_blank_line() now writes the prefix of the line it is on, so the marker stays, also for a nested item and an ordered one. Merged by frostming.',
+      pr: 'https://github.com/frostming/marko/pull/345',
+      merged: 'Nov 2026',
+    },
+    {
+      repo: 'frostming/marko',
+      logo: 'marko-logo.svg',
+      org: 'frostming',
+      stars: '470★',
+      title: 'Start the next list item after a link reference definition that takes the first line of an item',
+      desc: 'A link reference definition as the first line of a list item left the item with the prefix of its first line, so the marker of the next item was read as part of the item and the two items became one, where cmark gives an empty item followed by one with the text. LinkRefDef.parse() now leaves the position where the next item can start, also for an ordered list with alike markers. Merged by frostming.',
+      pr: 'https://github.com/frostming/marko/pull/344',
+      merged: 'Nov 2026',
+    },
+    {
       repo: 'py-pdf/fpdf2',
       logo: 'fpdf2-logo.png',
       org: 'py-pdf',
