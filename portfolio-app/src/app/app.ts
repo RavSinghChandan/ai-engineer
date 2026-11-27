@@ -630,6 +630,16 @@ export class App implements OnInit, AfterViewInit {
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
     {
+      repo: 'frostming/marko',
+      logo: 'marko-logo.svg',
+      org: 'frostming',
+      stars: '470★',
+      title: 'Escape a block marker that starts a continuation line inside an emphasis, link or image',
+      desc: 'Only the children of a paragraph escaped a block marker at the start of a continuation line. Inside an emphasis, a link or an image the line was written without the escape, so a dash, a hash, a quote marker or a fence began a list, heading, quote or code block of its own when the output was parsed again. The paragraph loop is now a shared helper that emphasis, links and images use too, so each continuation line gets the same escape. Merged by frostming.',
+      pr: 'https://github.com/frostming/marko/pull/349',
+      merged: 'Nov 2026',
+    },
+    {
       repo: 'py-pdf/fpdf2',
       logo: 'fpdf2-logo.png',
       org: 'py-pdf',
