@@ -630,6 +630,16 @@ export class App implements OnInit, AfterViewInit {
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
     {
+      repo: 'py-pdf/fpdf2',
+      logo: 'fpdf2-logo.png',
+      org: 'py-pdf',
+      stars: '1.5k★',
+      title: 'SVG: read the CSS-wide keywords of the font-family and font-size',
+      desc: 'A font-family of inherit made the SVG fail with KeyError: No suitable font for family=inherit, and a font-size of unset or initial failed with ValueError: Unable to parse unset as a length. Inherit and unset are now the font of the parent, as the font is inherited, and initial is the default font family and the medium font size, 16px, on a text and on a tspan, in an attribute or in a style. Merged by andersonhc.',
+      pr: 'https://github.com/py-pdf/fpdf2/pull/2238',
+      merged: 'Nov 2026',
+    },
+    {
       repo: 'frostming/marko',
       logo: 'marko-logo.svg',
       org: 'frostming',
