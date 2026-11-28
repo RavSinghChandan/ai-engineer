@@ -630,6 +630,16 @@ export class App implements OnInit, AfterViewInit {
   //    portfolio auto-counts and renders them (scales as more get merged over time). ──
   openSource = [
     {
+      repo: 'camelot-dev/camelot',
+      logo: 'camelot-logo.png',
+      org: 'camelot-dev',
+      stars: '3.9k★',
+      title: 'Skip a table area without text in the stream parser',
+      desc: 'The stream parser failed when the area it found for a table had no text or only whitespace: ValueError: max() iterable argument is empty in _join_rows(), or TypeError: cannot unpack non-iterable NoneType object when the text was outside the area. 10 of 1,764 PDFs of other projects hit it. Such an area now gets the existing "No tables found in table area" warning and is skipped. Merged by bosd.',
+      pr: 'https://github.com/camelot-dev/camelot/pull/886',
+      merged: 'Nov 2026',
+    },
+    {
       repo: 'google/sentencepiece',
       logo: 'sentencepiece-logo.png',
       org: 'google',
